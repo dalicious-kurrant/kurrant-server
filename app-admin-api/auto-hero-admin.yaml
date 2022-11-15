@@ -1,0 +1,1181 @@
+---
+openapi: 3.0.3
+info:
+  title: 오토히어로 Admin API
+  description: 오토히어로 앱에서 사용되는 API
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/91debug/auto-hero-admin/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: https://virtserver.swaggerhub.com/91debug/auto-hero-public/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: https://virtserver.swaggerhub.com/91debug/partner_api/1.0.0
+  description: SwaggerHub API Auto Mocking
+tags:
+- name: auth
+- name: banner
+- name: faq
+- name: inquery
+- name: cost-item
+- name: review
+- name: sellItem
+- name: sell
+- name: buyItem
+- name: buy
+- name: file
+paths:
+  /auth/login:
+    post:
+      tags:
+      - auth
+      summary: 로그인
+      requestBody:
+        description: 로그인
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/auth_login_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+  /banners:
+    get:
+      tags:
+      - banner
+      summary: 배너 목록 불러오는 API
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+    post:
+      tags:
+      - banner
+      summary: 배너 생성 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/banners_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+  /banners/{bannerId}:
+    patch:
+      tags:
+      - banner
+      summary: 배너 수정 API
+      parameters:
+      - name: bannerId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/banners_bannerId_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /faqs:
+    get:
+      tags:
+      - faq
+      summary: 자주묻는질문 불러오는 API
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_3'
+    post:
+      tags:
+      - faq
+      summary: 자주묻는질문 생성 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/faqs_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+  /faq/{faqId}:
+    get:
+      tags:
+      - faq
+      summary: faq 상세내용 조회하기
+      parameters:
+      - name: faqId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_4'
+    delete:
+      tags:
+      - faq
+      summary: faq 삭제하기
+      parameters:
+      - name: faqId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+    patch:
+      tags:
+      - faq
+      summary: faq 상세내용 수정하기
+      parameters:
+      - name: faqId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/faq_faqId_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /inqueries:
+    get:
+      tags:
+      - inquery
+      summary: 문의 불러오는 API
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_5'
+  /inqueries/{inqueryId}:
+    get:
+      tags:
+      - inquery
+      summary: 문의 상세내용 조회하기
+      parameters:
+      - name: inqueryId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_6'
+    delete:
+      tags:
+      - inquery
+      summary: 문의 삭제하기
+      parameters:
+      - name: inqueryId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /cost-items:
+    get:
+      tags:
+      - cost-item
+      summary: 비용 항목 프리셋 목록 조회하기
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_7'
+    post:
+      tags:
+      - cost-item
+      summary: 비용 항목 프리셋 생성하기
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/costitems_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+  /cost-items/{costItemId}:
+    patch:
+      tags:
+      - cost-item
+      summary: 비용 항목 프리셋 생성하기
+      parameters:
+      - name: costItemId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/costitems_costItemId_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+  /reviews:
+    get:
+      tags:
+      - review
+      summary: 판매 리뷰 불러오는 API
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_8'
+    post:
+      tags:
+      - review
+      summary: 판매 리뷰 작성 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/reviews_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /reviews/{reviewCode}:
+    get:
+      tags:
+      - review
+      summary: 리뷰 상세 가져오기 API
+      parameters:
+      - name: reviewCode
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_9'
+  /sells:
+    get:
+      tags:
+      - sell
+      summary: 판매 목록 조회 api
+      parameters:
+      - name: code:in
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_10'
+    post:
+      tags:
+      - sell
+      summary: 판매 요청 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sells_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_11'
+  /sells/{sellCode}:
+    get:
+      tags:
+      - sell
+      summary: 판매 상세 조회 api
+      parameters:
+      - name: sellCode
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_12'
+    patch:
+      tags:
+      - sell
+      summary: 판매 수정 API
+      parameters:
+      - name: sellCode
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sells_sellCode_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /buys:
+    get:
+      tags:
+      - buy
+      summary: 구매 목록 불러오는 API
+      parameters:
+      - name: manufacturerId
+        in: query
+        schema:
+          type: string
+      - name: modelId
+        in: query
+        schema:
+          type: string
+      - name: detailModelId
+        in: query
+        schema:
+          type: string
+      - name: gradeId:in
+        in: query
+        schema:
+          type: string
+      - name: mileage:gte
+        in: query
+        schema:
+          type: number
+      - name: mileage:lte
+        in: query
+        schema:
+          type: number
+      - name: releasedYear:gte
+        in: query
+        schema:
+          type: number
+      - name: releasedYear:lte
+        in: query
+        schema:
+          type: number
+      - name: price:gte
+        in: query
+        schema:
+          type: number
+      - name: price:lte
+        in: query
+        schema:
+          type: number
+      - name: sizeId:in
+        in: query
+        schema:
+          type: string
+      - name: location1:in
+        in: query
+        schema:
+          type: string
+      - name: fuelType:in
+        in: query
+        schema:
+          type: string
+      - name: transmission:in
+        in: query
+        schema:
+          type: string
+      - name: color:in
+        in: query
+        schema:
+          type: string
+      - name: option:in
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_13'
+    post:
+      tags:
+      - buy
+      summary: 구매 신청 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/buys_body'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+  /buys/{buyId}:
+    get:
+      tags:
+      - buy
+      summary: 구매 목록 불러오는 API
+      parameters:
+      - name: buyId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_14'
+components:
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+    auth_login_body:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    inline_response_200:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+    inline_response_200_1:
+      type: object
+      properties:
+        total:
+          type: number
+        count:
+          type: number
+        limit:
+          type: number
+        offset:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_response_200_1_items'
+    banners_body:
+      type: object
+      properties:
+        location:
+          type: string
+        filename:
+          type: string
+        width:
+          type: number
+        height:
+          type: number
+        key:
+          type: string
+    inline_response_200_2:
+      type: object
+      properties:
+        id:
+          type: string
+    banners_bannerId_body:
+      type: object
+      properties:
+        location:
+          type: string
+        filename:
+          type: string
+        width:
+          type: number
+        height:
+          type: number
+        key:
+          type: string
+    inline_response_200_3:
+      type: object
+      properties:
+        total:
+          type: number
+        count:
+          type: number
+        limit:
+          type: number
+        offset:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_response_200_3_items'
+    faqs_body:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - BUY
+          - SELL
+        title:
+          type: string
+        description:
+          type: string
+    inline_response_200_4:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - BUY
+          - SELL
+        title:
+          type: string
+        description:
+          type: string
+    faq_faqId_body:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - BUY
+          - SELL
+        title:
+          type: string
+        description:
+          type: string
+    inline_response_200_5:
+      type: object
+      properties:
+        total:
+          type: number
+        count:
+          type: number
+        limit:
+          type: number
+        offset:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_response_200_6'
+    inline_response_200_6:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        phoneNumber:
+          type: string
+        createdDateTime:
+          type: string
+          format: date-time
+    inline_response_200_7:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        price:
+          type: number
+        description:
+          type: string
+    costitems_body:
+      type: object
+      properties:
+        type:
+          type: string
+        price:
+          type: number
+        description:
+          type: string
+    costitems_costItemId_body:
+      type: object
+      properties:
+        type:
+          type: string
+        price:
+          type: number
+        description:
+          type: string
+    inline_response_200_8:
+      type: object
+      properties:
+        total:
+          type: number
+        count:
+          type: number
+        limit:
+          type: number
+        offset:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_response_200_8_items'
+    reviews_body:
+      type: object
+      properties:
+        content:
+          type: string
+        images:
+          $ref: '#/components/schemas/banners_bannerId_body'
+    inline_response_200_9:
+      type: object
+      properties:
+        code:
+          type: string
+        imageLocations:
+          type: array
+          items:
+            type: string
+        paybackFee:
+          type: number
+        buyingAmount:
+          type: number
+        salesAmount:
+          type: number
+        content:
+          type: string
+    inline_response_200_10:
+      type: object
+      properties:
+        total:
+          type: number
+        count:
+          type: number
+        limit:
+          type: number
+        offset:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_response_200_10_items'
+    sells_imageLocations:
+      type: object
+      properties:
+        location:
+          type: string
+        size:
+          type: number
+        key:
+          type: string
+        width:
+          type: number
+        height:
+          type: number
+    sells_body:
+      type: object
+      properties:
+        carNumber:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        grade:
+          type: string
+        releaseDate:
+          type: string
+        mileage:
+          type: number
+        color:
+          type: string
+        drivingSystem:
+          type: string
+        autoTransmission:
+          type: string
+        fuelType:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        phoneNumber:
+          type: string
+        location1:
+          type: string
+        location2:
+          type: string
+        hasAccident:
+          type: string
+        accidentDetail:
+          type: string
+        needRepair:
+          type: string
+        needRepairDetail:
+          type: string
+        buyingType:
+          type: string
+        contactType:
+          type: string
+        ownerName:
+          type: string
+        imageLocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/sells_imageLocations'
+        noPhoto:
+          type: boolean
+        modelId:
+          type: string
+        manufacturerId:
+          type: string
+    inline_response_200_11:
+      type: object
+      properties:
+        code:
+          type: string
+    inline_response_200_12:
+      type: object
+      properties:
+        code:
+          type: string
+        status:
+          type: string
+        quotation:
+          $ref: '#/components/schemas/inline_response_200_12_quotation'
+        car:
+          $ref: '#/components/schemas/inline_response_200_12_car'
+    sells_sellCode_body:
+      type: object
+      properties:
+        carNumber:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        grade:
+          type: string
+        releaseDate:
+          type: string
+        mileage:
+          type: number
+        color:
+          type: string
+        drivingSystem:
+          type: string
+        autoTransmission:
+          type: string
+        fuelType:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        phoneNumber:
+          type: string
+        location1:
+          type: string
+        location2:
+          type: string
+        hasAccident:
+          type: string
+        accidentDetail:
+          type: string
+        needRepair:
+          type: string
+        needRepairDetail:
+          type: string
+        buyingType:
+          type: string
+        contactType:
+          type: string
+        ownerName:
+          type: string
+        imageLocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/sells_imageLocations'
+        noPhoto:
+          type: boolean
+        modelId:
+          type: string
+        manufacturerId:
+          type: string
+    inline_response_200_13:
+      type: object
+      properties:
+        total:
+          type: number
+        count:
+          type: number
+        limit:
+          type: number
+        offset:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_response_200_13_items'
+    buys_body:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+        model:
+          type: string
+        location1:
+          type: string
+        location2:
+          type: string
+    inline_response_200_14:
+      type: object
+      properties:
+        id:
+          type: string
+        carNumber:
+          type: string
+        imageLocations:
+          type: array
+          items:
+            type: string
+        title:
+          type: string
+        year:
+          type: number
+        kms:
+          type: string
+        accident:
+          type: string
+        price:
+          type: number
+        service:
+          type: array
+          items:
+            type: string
+        options:
+          type: array
+          items:
+            type: string
+        diagnostics:
+          $ref: '#/components/schemas/inline_response_200_14_diagnostics'
+        insuranceDetail:
+          $ref: '#/components/schemas/inline_response_200_14_insuranceDetail'
+        estimatedCost:
+          $ref: '#/components/schemas/inline_response_200_14_estimatedCost'
+        sellerInfo:
+          $ref: '#/components/schemas/inline_response_200_14_sellerInfo'
+    inline_response_200_1_items:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        location:
+          type: string
+        moveTo:
+          type: string
+        size:
+          type: number
+    inline_response_200_3_items:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+    inline_response_200_8_items:
+      type: object
+      properties:
+        code:
+          type: string
+        featuredImageLocation:
+          type: string
+        paybackFee:
+          type: number
+        car:
+          type: string
+        content:
+          type: string
+    inline_response_200_10_car:
+      type: object
+      properties:
+        featuredImageLocation:
+          type: string
+        modelName:
+          type: string
+        number:
+          type: string
+    inline_response_200_10_items:
+      type: object
+      properties:
+        code:
+          type: string
+        status:
+          type: string
+        car:
+          $ref: '#/components/schemas/inline_response_200_10_car'
+    inline_response_200_12_quotation_marketPrice:
+      type: object
+      properties:
+        minimum:
+          type: number
+        maximum:
+          type: number
+    inline_response_200_12_quotation:
+      type: object
+      properties:
+        marketPrice:
+          $ref: '#/components/schemas/inline_response_200_12_quotation_marketPrice'
+        goalSalesPrice:
+          type: number
+        buyingPrice:
+          type: number
+        paybackAmount:
+          type: number
+        salesAmount:
+          type: number
+        costItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/costitems_costItemId_body'
+    inline_response_200_12_car_imageLocations:
+      type: object
+      properties:
+        uri:
+          type: string
+        fileName:
+          type: string
+        fileType:
+          type: string
+        hasAccident:
+          type: boolean
+        accidentDetail:
+          type: string
+        needRepair:
+          type: boolean
+        needRepairDetail:
+          type: string
+        buyingType:
+          type: string
+        contractType:
+          type: string
+        ownerName:
+          type: string
+        phoneNumber:
+          type: string
+        location1:
+          type: string
+        location2:
+          type: string
+    inline_response_200_12_car:
+      type: object
+      properties:
+        number:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        modelDetail:
+          type: string
+        grade:
+          type: array
+          items:
+            type: string
+        releaseDate:
+          type: string
+        mileage:
+          type: number
+        color:
+          type: string
+        autoTransmission:
+          type: string
+        drivingSystem:
+          type: string
+        fuelType:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        noPhoto:
+          type: boolean
+        imageLocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_response_200_12_car_imageLocations'
+    inline_response_200_13_items:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        url:
+          type: array
+          items:
+            type: string
+        title:
+          type: string
+        year:
+          type: number
+        kms:
+          type: string
+        accident:
+          type: string
+        price:
+          type: number
+        service:
+          type: array
+          items:
+            type: string
+    inline_response_200_14_diagnostics:
+      type: object
+      properties:
+        frame:
+          type: string
+        pannel:
+          type: string
+        performanceCheck:
+          type: number
+        insuranceHistory:
+          type: number
+    inline_response_200_14_insuranceDetail:
+      type: object
+      properties:
+        fee:
+          type: string
+        range:
+          type: string
+        period:
+          type: string
+        tip:
+          type: string
+    inline_response_200_14_estimatedCost:
+      type: object
+      properties:
+        cost:
+          type: number
+        etcCost:
+          type: number
+        totalCost:
+          type: number
+    inline_response_200_14_sellerInfo:
+      type: object
+      properties:
+        seller:
+          type: string
+        company:
+          type: string
+        address:
+          type: string
+        locationImage:
+          type: string

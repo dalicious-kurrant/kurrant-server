@@ -1,0 +1,46 @@
+server:
+  port: 6013
+
+spring:
+  config:
+    activate:
+      on-profile: prod # 기본 프로파일 설정
+    
+  # DB설정
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ""
+    username: 1
+    password: 1
+    
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        # "[physical_naming_strategy]": "shop.allof.api.hibernate.CamelToSnakePhysicalNamingStrategy"
+        "[format_sql]": true # 정렬된 SQL 출력
+    show-sql: true # 사용되는 SQL 콘솔창에 출력
+    hibernate:
+      ddl-auto: none # 객체에 매핑되는 기존 테이블 자동 드랍 및 새로운 테이블 생성, create, none
+
+  jwt:
+    secret : ""  
+    # WeakKeyException 때문에 임시 키 추가함.
+    # secret: "goblop!@#" # OAuth 토큰 경로
+
+logging:
+  level:
+    root: INFO # 로그레벨
+
+cloud:
+  aws:
+    credentials:
+      accessKey: ""
+      secretKey: ""
+    s3:
+      bucket: ""
+    region:
+      static: ""
+    
+autobegins:
+  secretKey: ""
