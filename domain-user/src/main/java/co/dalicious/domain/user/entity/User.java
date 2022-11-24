@@ -14,9 +14,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import co.dalicious.domain.file.entity.embeddable.Image;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
