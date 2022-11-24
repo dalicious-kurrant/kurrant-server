@@ -6,22 +6,35 @@ spring:
     activate:
       on-profile: local # 기본 프로파일 설정
     
-  # DB설정
+  # DB설정(MySQL)
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://localhost:3306/mydb
+#    username: root
+#    password:
+
+  #DB설정(H2)
+  h2:
+    console:
+      enabled: true
+
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ""
-    username: 1
-    password: 1
-    
+    hikari:
+      driver-class-name: org.h2.Driver
+      jdbc-url: jdbc:h2:./kurrant;MODE=MySQL;AUTO_SERVER=TRUE
+      username: root
+      password:
+
   jpa:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
         # "[physical_naming_strategy]": "shop.allof.api.hibernate.CamelToSnakePhysicalNamingStrategy"
-        "[format_sql]": true # 정렬된 SQL 출력
+        format_sql: true # 정렬된 SQL 출력
     show-sql: true # 사용되는 SQL 콘솔창에 출력
     hibernate:
-      ddl-auto: create # 객체에 매핑되는 기존 테이블 자동 드랍 및 새로운 테이블 생성, create, none
+      ddl-auto: update # 객체에 매핑되는 기존 테이블 자동 드랍 및 새로운 테이블 생성, create, none
+    generate-ddl: true
 
   jwt:
     secret : ""  
