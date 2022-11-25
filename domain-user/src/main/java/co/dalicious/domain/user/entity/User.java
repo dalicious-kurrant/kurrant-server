@@ -3,15 +3,15 @@ package co.dalicious.domain.user.entity;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import co.dalicious.domain.group.entity.ClientApartment;
 import co.dalicious.domain.group.entity.ClientCorporation;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import lombok.AllArgsConstructor;
@@ -32,11 +32,13 @@ public class User {
   @Comment("사용자 PK")
   private Long id;
 
+  @CreationTimestamp
   @Column(name = "created_datetim", nullable = false,
       columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
   @Comment("생성일")
   private Timestamp createdDateTime;
 
+  @UpdateTimestamp
   @Column(name = "updated_datetime", nullable = false,
       columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
   @Comment("수정일")

@@ -1,0 +1,1443 @@
+---
+openapi: 3.0.3
+info:
+  title: 커런트 밀 APP
+  description: 커런트 밀 모바일 앱 API
+  version: 1.0.0
+servers:
+- url: http://localhost:8081/kurrant-app
+  description: 로컬서버
+tags:
+- name: AUTH
+- name: USER
+- name: ORDER
+- name: FOOD
+- name: APPLICATION
+- name: APARTMENTS
+paths:
+  /v1/auth/login:
+    post:
+      tags:
+      - AUTH
+      summary: 로그인 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+      
+  /v1/auth/join:
+    post:
+      tags:
+      - AUTH
+      summary: 회원가입 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                
+  /v1/auth/check-email:
+    post:
+      tags:
+      - AUTH
+      summary: 이메일 중복 확인 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckEmailRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /v1/auth/certification/email:
+    post:
+      tags:
+      - AUTH
+      summary: 이메일 인증 요청 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificationEmailRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /v1/auth/certification/phone:
+    post:
+      tags:
+      - AUTH
+      summary: 휴대폰 인증 요청  API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificationPhoneRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /v1/auth/inquiry/id:
+    post:
+      tags:
+      - AUTH
+      summary: 아이디 찾기 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InquiryIdRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InquiryIdResponseDto'
+              
+  /v1/auth/inquiry/password:
+    post:
+      tags:
+      - AUTH
+      summary: 비밀번호 찾기 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InquiryPasswordPhoneRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                
+  /v1/auth/inquiry/check-me:
+    post:
+      tags:
+      - AUTH
+      summary: 본인확인 API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckMeRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              
+  /v1/auth/change/password/{certification}:
+    post:
+      tags:
+      - AUTH
+      summary: 비밀번호 변경(핸드폰 혹은 이메일)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+    
+              
+  /v1/users/me:
+    get:
+      tags:
+      - USER
+      summary: 현재 사용자 정보를 불러오는 API
+      security:
+        - BearerAuth : []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoResponseDto'
+
+                
+  /v1/users/me/order?startdate={startDate}&&enddate={endDate}:
+    get:
+      tags:
+      - USER
+      summary: 일자별 식사 구매 정보 API
+      security:
+        - BearerAuth: [ ]
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderItemResponseDto'
+  
+  /v1/dailyfoods?spots={spotId}&&date={selectedDate}:
+    get:
+      tags:
+      - USER
+      summary: 날짜별 메뉴 정보 API
+      security:
+        - BearerAuth: [ ]
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuListResponseDto'
+                
+  /v1/users/me/order:
+    post:
+      tags:
+      - USER
+      summary: 결제 API
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderMeRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderMeResponseDto'
+
+  
+  /v1/orders/{orderId}/cancel:
+    post:
+      tags:
+      - ORDER
+      summary: 주문 취소 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                
+  /v1/foods/{foodId}:
+    get:
+      tags:
+      - FOOD
+      summary: 메뉴 상세 정보 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: foodId
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuDetailResponseDto'
+                
+  /v1/users/me/clients:
+    get:
+      tags:
+      - USER
+      summary: 유저가 속한 그룹의 정보 가져오기 API
+      security:
+        - BearerAuth: [ ]
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpotsResponseDto'
+  
+  /v1/users/me/clients/spots/{spotId}:
+    get:
+      tags:
+      - USER
+      summary: 그룹별 스팟 상세 조회API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: spotId
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpotDetailResponseDto'
+  
+  /v1/users/me/corporations/{id}:
+    post:
+      tags:
+      - USER
+      summary: 그룹 탈퇴 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /v1/apartments:
+    get:
+      tags:
+      - APARTMENTS
+      summary: 고객사로 등록된 아파트 검색 API
+      security:
+        - BearerAuth: [ ]
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApartmentsListResponseDto'
+  /v1/apartments/{id}:
+    get:
+      tags:
+      - APARTMENTS
+      summary: 아파트 그룹별 스팟 정보 조회 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: number
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApartmentSpotsResponseDto'
+                
+  /v1/apartments/{apartmentId}/spots/{spotId}:
+    get:
+      tags:
+      - APARTMENTS
+      summary: 아파트 그룹별 스팟 상세 조회 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+      - name: apartmentId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: number
+      - name: spotId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: number
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApartmentSpotsDetailResponseDto'
+  /v1/users/me/apartments/{id}:
+    patch:
+      tags:
+      - USER
+      summary: 아파트 그룹 탈퇴 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+    post:
+      tags:
+      - USER
+      summary: 아파트 그룹 탈퇴 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /v1/users/me/apartments/spots/{spotId}/address:
+    patch:
+      tags:
+      - USER
+      summary: 상세 스팟 정보 변경 API
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: spotId
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeSpotRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+    post:
+      tags:
+      - USER
+      summary: 유저 아파트 상세주소 저장 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: spotId
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeSpotRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                
+  /v1/application-form/apartments:
+    post:
+      tags:
+      - APPLICATION
+      summary: 스팟 개설 신청 API
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApartmentsApplicationRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /v1/application-form/clients:
+    get:
+      tags:
+      - APPLICATION
+      summary: 스팟 신청한 날짜 리스트 API
+      security:
+        - BeaerAuth: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationFormListResponseDto'
+                
+  /v1/application-form/corporations:
+    post:
+      tags:
+      - APPLICATION
+      summary: 기업 스팟 개설 신청 API
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorporationsApplicationRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                
+  /v1/application-form/corporations/{id}:
+    get:
+      tags:
+      - APPLICATION
+      summary: 기업 스팟 신청 내역 + 상세 API
+      security:
+        - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CorporationsApplicationResponseDto'
+                
+    patch:
+      tags:
+      - APPLICATION
+      summary: 기업 스팟 신청 내역 수정 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorporationsApplicationRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                
+  /v1/application-form/apartments/{id}:
+    get:
+      tags:
+      - APPLICATION
+      summary: 아파트 스팟 신청 내역 + 상세 API
+      security:
+        - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApartmentsApplicationResponseDto'
+    patch:
+      tags:
+      - APPLICATION
+      summary: 아파트 스팟 신청 내역 수정 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApartmentsApplicationRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                
+  /v1/application-form/apartments/{id}/memo:
+    patch:
+      tags:
+      - APPLICATION
+      summary: 기타내용 저장 API
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchSpotRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+    post:
+      tags:
+      - APPLICATION
+      summary: 기타내용 저장 API
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchSpotRequestDto'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    LoginRequestDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 아이디
+        password:
+          type: string
+          description: 패스워드
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: 토큰
+        err msg:
+          type: string
+          description: 에러 메세지
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          description: 성공 여부
+
+    JoinRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 이메일주소
+        name:
+          type: string
+          description: 이름
+        password:
+          type: string
+          description: 패스워드
+        phone:
+          type: string
+          description: 핸드폰번호
+    JoinResponseDto:
+      type: object
+      properties:
+        status:
+          type: number
+    CheckEmailRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 이메일주소
+    CertificationEmailRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 이메일주소
+    CertificationPhoneRequestDto:
+      type: object
+      properties:
+        phone:
+          type: string
+          description: 휴대폰 번호
+    InquiryIdRequestDto:
+      type: object
+      properties:
+        phone:
+          type: string
+          description: 휴대폰 번호
+    InquiryIdResponseDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 가입한 이메일 아이디
+        social:
+          type: array
+          description: 소셜 로그인 정보
+          example: ["NAVER", "GOOGLE"]
+    InquiryPasswordPhoneRequestDto:
+      type: object
+      properties:
+        논의필요:
+          type: string
+          description: 논의필요
+    CheckMeRequestDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 성명
+        email:
+          type: string
+          description: 가입한 이메일
+    ChangePasswordRequestDto:
+      type: object
+      properties:
+        certificationNumber:
+          type: string
+          description: 인증 번호
+        password:
+          type: string
+          description: 새로 변경할 비밀번호
+    UserInfoResponseDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 유저 이름
+        membership:
+          type: boolean
+          description: 멤버쉽 가입 유무
+        phone:
+          type: string
+          description: 유저 전화 번호
+        spots:
+          type: array
+          description: 스팟 정보들 (default spot 1 / 0)
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                description: 스팟 id
+              spotName:
+                type: string
+                description: 스팟명
+              address:
+                type: string
+                description: 배송 주소
+        point:
+          type: number
+          description: 현재 로그인 한 유저의 포인트 잔액
+
+
+    OrderItemResponseDto:
+      type: object
+      properties:
+        order:
+          type: array
+          items:
+            type: object
+            description: 일자별 식사 구매정보
+            properties:
+              id:
+                type: number
+                description: 주문(Order)의 id값
+              serviceDate:
+                type: string
+                description: 배송 날짜
+              orderItem:
+                type: array
+                items:
+                  type: object
+                  description: 식사 타입별 주문 상세(OrderItem)
+                  properties:
+                    name:
+                      type: string
+                      description: 음식 메뉴
+                    e_diningType:
+                      type: string
+                      description: enum값 0 아침/ 1 점심/ 2 저녁
+                    img:
+                      type: string
+                      description: 음식 이미지
+                    count:
+                      type: number
+                      description: 주문한 음식의 개수
+
+    MenuListResponseDto:
+      type: object
+      properties:
+        dailyFood:
+          type: array
+          items:
+            type: object
+            description: 날짜별 보여지는 식단 정보
+            properties:
+              id:
+                type: number
+                description: 식단(DailyFood)의 id값
+              makers:
+                type: string
+                description: 메이커스 이름
+              name:
+                type: string
+                description: 음식 이름
+              price:
+                type: number
+                description: 음식 가격
+              description:
+                type: string
+                description: 음식 상세설명
+              e_diningType:
+                type: string
+                description: enum값 0 아침/ 1 점심/ 2 저녁
+              img:
+                type: string
+                description: 음식 이미지
+              e_spicy:
+                type: string
+                description: 맵기 정도 (0 안매움 / 1 보통 / 2 매움 / 3 아주 매움)
+              isSoldOut:
+                type: boolean
+                description: 매진된 음식인지 아닌지
+    OrderMeRequestDto:
+      type: object
+      properties:
+        DailyFoodList:
+          type: array
+          items:
+            type: object
+            description: 결제하는 식단들의 정보
+            properties:
+              id:
+                type: number
+                description: 식단(DailyFood)의 id값
+              serviceDate:
+                type: string
+                description: 배송 날짜
+              e_diningType:
+                type: string
+                description: enum값 0 아침/ 1 점심/ 2 저녁
+              count:
+                type: number
+                description: 주문한 음식의 개수
+        totalPrice:
+          type: number
+          description: 총 결제 금액
+        cards:
+          type: number
+          description: 결제할 카드의 id
+    MenuDetailResponseDto:
+      type: object
+      properties:
+        makers:
+          type: string
+          description: 음식을 제공하는 메이커스 이름
+        name:
+          type: string
+          description: 음식 이름
+        price:
+          type: number
+          description: 음식 가격
+        e_diningType:
+          type: string
+          description: enum값 0 아침/ 1 점심/ 2 저녁
+        img:
+          type: string
+          description: 음식 이미지
+        e_spicy:
+          type: string
+          description: 맵기 정도 (0 안매움 / 1 보통 / 2 매움 / 3 아주 매움)
+        originList:
+          type: array
+          items:
+            type: object
+            description: 원산지 정보
+            properties:
+              originName:
+                type: string
+                description: 재료명
+              originFrom:
+                type: string
+                description: 원산지
+
+    SpotsResponseDto:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            type: object
+            description: 아파트, 기업 모두 포함한 그룹별 스팟 정보
+            properties:
+              clientType:
+                type: number
+                description: 기업 / 아파트 신청 구분(0 기업, 1 아파트)
+              clientName:
+                type: string
+                description: 그룹명
+              spots:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    spotId:
+                      type: number
+                      description: 스팟 id
+                    spotName:
+                      type: string
+                      description: 스팟명
+    SpotDetailResponseDto:
+      type: object
+      description: 그룹별 스팟 상세 조회API
+      properties:
+        spotId:
+          type: number
+          description: 스팟 id
+        clientName:
+          type: string
+          description: 고객사 이름
+        list:
+          type: array
+          description: diningType별 정보
+          items:
+            type: object
+            properties:
+              delivery:
+                type: string
+                description: 배송지
+              e_diningType:
+                type: string
+                description: enum값 0 아침/ 1 점심/ 2 저녁
+              supportPrice:
+                type: number
+                description: 지원금
+        spotDetail:
+          type: string
+          description: 아파트일 경우, 필요함 (아파트 상세 주소)
+          nullable: true
+
+
+    ApartmentsListResponseDto:
+      type: object
+      description: 고객사로 등록된 아파트 검색
+      properties:
+        apartments:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                description: 아파트 id
+              name:
+                type: string
+                description: 아파트 이름
+              address:
+                type: string
+                description: 주소
+
+    ApartmentSpotsResponseDto:
+      type: object
+      description: 아파트 그룹별 스팟 정보
+      properties:
+        apartmentSpots:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                description: 아파트 스팟 id
+              name:
+                type: string
+                description: 스팟 이름
+
+    ApartmentSpotsDetailResponseDto:
+      type: object
+      description: 아파트 그룹별 스팟 상세 정보
+      properties:
+        id:
+          type: number
+          description: 스팟 id
+        delivery:
+          type: string
+          description: 스팟 배송지
+        spotName:
+          type: string
+          description: 스팟명
+        e_diningType:
+          type: string
+          description: enum값 0 아침/ 1 점심/ 2 저녁
+        apartmentName:
+          type: string
+          description: 아파트명
+    ChangeSpotRequestDto:
+      type: object
+      description: 상세 스팟 정보(호수) 변경
+      properties:
+        apartmentAddressDetail:
+          type: string
+          description: 스팟 상세(호)
+    ApartmentsApplicationRequestDto:
+      type: object
+      description: 아파트 스팟 개설 신청
+      properties:
+        user:
+          type: object
+          description: 신청 담당자 정보
+          properties:
+            name:
+              type: string
+              description: 신청 담당자 이름
+            phone:
+              type: string
+              description: 신청 담당자 전화번호
+            email:
+              type: string
+              description: 신청 담당자 이메일
+        info:
+          type: object
+          description: 아파트 정보
+          properties:
+            apartmentName:
+              type: string
+              description: 아파트 이름
+            address:
+              type: string
+              description: 아파트 주소
+            dongCount:
+              type: number
+              description: 아파트 동 개수
+            familyCount:
+              type: number
+              description: 세대 수
+        meal:
+          type: array
+          description: 식사 정보
+          items:
+            type: object
+            properties:
+              e_diningType:
+                type: string
+                description: enum값 0 아침/ 1 점심/ 2 저녁
+              expectedUserCount:
+                type: number
+                description: 예상 인원 수
+              serviceDays:
+                type: string
+                description: 이용 요일(월, 화, 수, 목, 금, 토, 일)
+              deliveryTime:
+                type: string
+                description: 배달 시간
+        option:
+          type: string
+    CorporationsApplicationRequestDto:
+      type: object
+      description: 기업 스팟 개설 신청
+      properties:
+        user:
+          type: object
+          description: 신청 담당자 정보
+          properties:
+            name:
+              type: string
+              description: 신청 담당자 이름
+            phone:
+              type: string
+              description: 신청 담당자 전화번호
+            email:
+              type: string
+              description: 신청 담당자 이메일
+        corporationInfo:
+          type: object
+          description: 기업 신청 정보
+          properties:
+            corporationName:
+              type: string
+              description: 기업 이름
+            address1:
+              type: string
+              description: 주소 정보 1
+            address2:
+              type: string
+              description: 주소 정보 2
+            employeeCount:
+              type: number
+              description: 사원 수
+            startDate:
+              type: string
+              description: 서비스 시작 날짜
+        mealDetail:
+          type: array
+          description: 식사 정보
+          items:
+            type: object
+            properties:
+              e_diningType:
+                type: string
+                description: enum값 0 아침/ 1 점심/ 2 저녁
+              supportPrice:
+                type: number
+                description: 회사 지원금
+              expectedUserCount:
+                type: number
+                description: 예상 인원 수
+              serviceDays:
+                type: string
+                description: 이용 요일(월, 화, 수, 목, 금, 토, 일)
+              deliveryTime:
+                type: string
+                description: 배달 시간
+              priceAverage:
+                type: string
+                description: 희망 식단 가격 범위
+        spot:
+          type: array
+          description: 스팟 정보
+          items:
+            type: object
+            properties:
+              spotName:
+                type: string
+                description: 스팟 이름
+              address1:
+                type: string
+                description: 주소 정보 1
+              address2:
+                type: string
+                description: 주소 정보 2
+              e_diningType:
+                type: string
+                description: enum값 0 아침/ 1 점심/ 2 저녁
+        option:
+          type: object
+          description: 옵션 선택
+          properties:
+            isGarbage:
+              type: boolean
+              description: 쓰레기 수거 서비스 사용 유무
+            isHotStorage:
+              type: boolean
+              description: 온장고 대여 서비스 사용 유무
+            isSetting:
+              type: boolean
+              description: 식사 세팅 서비스 사용 유무
+            memo:
+              type: string
+              description: 기타 건의 사항
+
+    CorporationsApplicationResponseDto:
+      type: object
+      description: 기업 스팟 신청 내역 + 상세 정보
+      properties:
+        applyDate:
+          type: string
+          description: 신청 날짜
+        progress:
+          type: number
+          description: 진행 상황 (0 신청 , 1 협의 , 2 완료)
+        corporationName:
+          type: string
+          description: 기업명
+        userName:
+          type: string
+          description: 신청 담당자 이름
+        phone:
+          type: string
+          description: 신청 담당자 전화번호
+        email:
+          type: string
+          description: 신청 담당자 이메일
+        address1:
+          type: string
+          description: 주소 정보 1
+        address2:
+          type: string
+          description: 주소 정보 2
+        employeeCount:
+          type: number
+          description: 사원 수
+        serviceStartDate:
+          type: string
+          description: 서비스 시작 날짜
+        e_diningType:
+          type: string
+          description: enum값 0 아침/ 1 점심/ 2 저녁
+        priceAverage:
+          type: string
+          description: 희망 식단 가격 범위
+        spots:
+          type: array
+          description: 스팟 정보
+          items:
+            type: object
+            properties:
+              spotName:
+                type: string
+                description: 스팟 이름
+              delivery:
+                type: string
+                description: 배송지
+              address :
+                type: string
+                description: 나머지 주소
+              e_diningType:
+                type: string
+                description: enum값 0 아침/ 1 점심/ 2 저녁
+        mealDetail:
+          type: array
+          description: 식사 정보
+          items:
+            type: object
+            properties:
+              e_diningType:
+                type: string
+                description: enum값 0 아침/ 1 점심/ 2 저녁
+              deliveryTime:
+                type: string
+                description: 배달 시간
+              serviceDays:
+                type: string
+                description: 이용 요일(월, 화, 수, 목, 금, 토, 일)
+              expectedUserCount:
+                type: number
+                description: 예상 인원 수
+              priceAverage:
+                type: string
+                description: 희망 식단 가격 범위
+              supportPrice:
+                type: number
+                description: 회사 지원금
+              isGarbage:
+                type: boolean
+                description: 쓰레기 수거 서비스 사용 유무
+              isHotStorage:
+                type: boolean
+                description: 온장고 대여 서비스 사용 유무
+              isSetting:
+                type: boolean
+                description: 식사 세팅 서비스 사용 유무
+              memo:
+                type: string
+                description: 기타 건의 사항
+
+    ApartmentsApplicationResponseDto:
+      type: object
+      description: 기업 스팟 신청 내역 + 상세 정보
+      properties:
+        applyDate:
+          type: string
+          description: 신청 날짜
+        progress:
+          type: number
+          description: 진행 상황 (0 신청 , 1 협의 , 2 완료)
+        ApartmentName:
+          type: string
+          description: 아파트명
+        userName:
+          type: string
+          description: 신청 담당자 이름
+        phone:
+          type: string
+          description: 신청 담당자 전화번호
+        email:
+          type: string
+          description: 신청 담당자 이메일
+        address1:
+          type: string
+          description: 주소 정보 1
+        address2:
+          type: string
+          description: 주소 정보 2
+        familyCount:
+          type: number
+          description: 세대 수
+        dongCount:
+          type: number
+          description: 아파트 동의 개수
+        expectedFamilyCount:
+          type: number
+          description: 예상 이용 세대 수
+        serviceStartDate:
+          type: string
+          description: 서비스 시작 날짜
+        e_diningType:
+          type: string
+          description: enum값 0 아침/ 1 점심/ 2 저녁
+        mealDetail:
+          type: array
+          description: 식단 상세 정보
+          items:
+            type: object
+            properties:
+              deliveryTime:
+                type: string
+                description: 배달 시간
+              serviceDays:
+                type: string
+                description: 이용 요일(월, 화, 수, 목, 금, 토, 일)
+              memo:
+                type: string
+                description: 기타 건의 사항
+    PatchSpotRequestDto:
+      type: object
+      description: 기타 건의 사항
+      properties:
+        memo:
+          type: string
+          description: 기타 건의 사항 메모
+
+    ApplicationFormListResponseDto:
+      type: object
+      description: 스팟 신청한 날짜 리스트
+      properties:
+        applicationFormList:
+          type: array
+          description: 스팟 신청한 날짜 리스트
+          items:
+            type: object
+            properties:
+              clientType:
+                type: number
+                description: 기업 / 아파트 신청 구분(0 기업, 1 아파트)
+              id:
+                type: number
+                description: 신청서 id
+              date:
+                type: string
+                description: 신청 날짜

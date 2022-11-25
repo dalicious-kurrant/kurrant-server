@@ -1,23 +1,24 @@
-package co.kurrant.app.public_api.controller;
+package co.kurrant.app.public_api.controller.user;
 
-import co.dalicious.data.redis.mail.EmailService;
-import co.dalicious.data.redis.sms.MessageDto;
-import co.dalicious.data.redis.sms.SmsResponseDto;
-import co.dalicious.data.redis.sms.SmsService;
+import co.dalicious.client.external.mail.EmailService;
+import co.dalicious.client.external.mail.MailMessageDto;
+import co.dalicious.client.external.sms.SmsMessageDto;
+import co.dalicious.client.external.sms.SmsResponseDto;
+import co.dalicious.client.external.sms.SmsService;
 import co.dalicious.system.util.ResponseMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-public class UserController {
+public class SignUpController {
     private final EmailService emailService;
     private final SmsService smsService;
 
 
     @PostMapping("/v1/auth/certification/email")
-    public String mailConfirm(@RequestBody MessageDto messageDto) throws Exception {
-        return emailService.sendSimpleMessage(messageDto.getTo());
+    public String mailConfirm(@RequestBody MailMessageDto mailMessageDto) throws Exception {
+        return emailService.sendSimpleMessage(mailMessageDto.getReceivers());
     }
 
     @GetMapping("/v1/auth/certification/email")
@@ -30,8 +31,8 @@ public class UserController {
     }
 
     @PostMapping("/v1/auth/certification/phone")
-    public SmsResponseDto smsConfirm(@RequestBody MessageDto messageDto) throws Exception {
-        return smsService.sendSms(messageDto);
+    public SmsResponseDto smsConfirm(@RequestBody SmsMessageDto smsMessageDto) throws Exception {
+        return smsService.sendSms(smsMessageDto);
     }
 
     @GetMapping("/v1/auth/certification/phone")

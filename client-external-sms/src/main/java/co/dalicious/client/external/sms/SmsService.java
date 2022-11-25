@@ -1,4 +1,4 @@
-package co.dalicious.data.redis.sms;
+package co.dalicious.client.external.sms;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,7 +75,7 @@ public class SmsService {
         return encodeBase64String;
     }
 
-    public SmsResponseDto sendSms(MessageDto messageDto) throws JsonProcessingException, RestClientException, InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException {
+    public SmsResponseDto sendSms(SmsMessageDto smsMessageDto) throws JsonProcessingException, RestClientException, InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException {
         String time = Long.toString(System.currentTimeMillis());
 
         HttpHeaders headers = new HttpHeaders();
@@ -84,8 +84,8 @@ public class SmsService {
         headers.set("x-ncp-iam-access-key", accessKey);
         headers.set("x-ncp-apigw-signature-v2", getSignature(time)); // signature 서명
 
-        List<MessageDto> messages = new ArrayList<>();
-        messages.add(messageDto);
+        List<SmsMessageDto> messages = new ArrayList<>();
+        messages.add(smsMessageDto);
 
         String key = createSmsKey();
 
@@ -110,7 +110,7 @@ public class SmsService {
         //restTemplate로 post 요청 보내고 오류가 없으면 202코드 반환
         try {
             SmsResponseDto smsResponseDto = restTemplate.postForObject(new URI("https://sens.apigw.ntruss.com/sms/v2/services/"+ serviceId +"/messages"), httpBody, SmsResponseDto.class);
-            redisUtil.setDataExpire(key, messageDto.getTo(), 60 * 3L); // 유효시간 3분
+            redisUtil.setDataExpire(key, smsMessageDto.getReceiver(), 60 * 3L); // 유효시간 3분
             return smsResponseDto;
         } catch (RestClientException | URISyntaxException e) {
             throw new RuntimeException(e);

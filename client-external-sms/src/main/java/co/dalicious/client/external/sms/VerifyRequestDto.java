@@ -1,4 +1,4 @@
-package co.dalicious.data.redis.sms;
+package co.dalicious.client.external.sms;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

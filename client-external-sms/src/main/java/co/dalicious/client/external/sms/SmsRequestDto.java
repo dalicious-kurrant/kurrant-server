@@ -1,4 +1,4 @@
-package co.dalicious.data.redis.sms;
+package co.dalicious.client.external.sms;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -14,10 +14,10 @@ public class SmsRequestDto {
     private String countryCode;
     private String from;
     private String content;
-    private List<MessageDto> messages;
+    private List<SmsMessageDto> messages;
 
     @Builder
-    public SmsRequestDto(String type, String contentType, String countryCode, String from, String content, List<MessageDto> messages) {
+    public SmsRequestDto(String type, String contentType, String countryCode, String from, String content, List<SmsMessageDto> messages) {
         this.type = type;
         this.contentType = contentType;
         this.countryCode = countryCode;
