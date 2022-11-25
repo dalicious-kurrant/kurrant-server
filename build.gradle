@@ -118,7 +118,6 @@ subprojects {
 
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter-web:2.6.1'
-        implementation 'com.h2database:h2:1.4.200'
     }
 
 }
@@ -131,8 +130,8 @@ task cleanGeneatedDir(type: Delete) {
 project(':app-public-api') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':client-core')
         implementation project(':domain-user')
+        implementation project(':client-core')
         implementation project(':domain-file')
         implementation project(':client-external-mail')
         implementation project(':client-external-sms')

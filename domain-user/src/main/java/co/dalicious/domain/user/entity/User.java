@@ -11,10 +11,10 @@ import javax.validation.constraints.Size;
 
 import co.dalicious.domain.group.entity.ClientApartment;
 import co.dalicious.domain.group.entity.ClientCorporation;
+import lombok.Builder;
 import org.hibernate.annotations.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import co.dalicious.domain.file.entity.embeddable.Image;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -22,7 +22,6 @@ import lombok.NoArgsConstructor;
 @DynamicUpdate
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "user__user")
 public class User {
@@ -55,12 +54,12 @@ public class User {
   @Column(name = "password", nullable = false,
       columnDefinition = "BINARY(144)")
   @Comment("사용자 비밀번호, PBKDF2 180000")
-  private byte[] password;
+  private String password;
 
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  @Column(name = "salt", nullable = false, columnDefinition = "BINARY(64)")
-  @Comment("비밀번호 SALT")
-  private byte[] salt;
+//  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+//  @Column(name = "salt", nullable = false, columnDefinition = "BINARY(64)")
+//  @Comment("비밀번호 SALT")
+//  private byte[] salt;
 
   @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(32)")
   @Comment("사용자 명")
@@ -103,4 +102,12 @@ public class User {
 
   @Column(name = "is_membership")
   private Boolean isMembership;
+
+  @Builder
+  public User(String password, String name, String email, String phone) {
+    this.password = password;
+    this.name = name;
+    this.email = email;
+    this.phone = phone;
+  }
 }

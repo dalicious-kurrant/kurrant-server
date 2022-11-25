@@ -1,4 +1,4 @@
-package shop.allof.app.publicapi.service;
+package co.kurrant.app.public_api.service;
 
 import org.springframework.boot.test.context.SpringBootTest;
 

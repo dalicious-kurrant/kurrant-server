@@ -4,12 +4,14 @@ import co.dalicious.data.redis.RedisUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 
-@SpringBootTest
 class PublicApplicationTests {
 	@Autowired
 	private RedisUtil redisUtil;
+
+	@Autowired
+	private Pbkdf2PasswordEncoder passwordEncoder;
 	@Test
 	void TestRedisConnection() {
 		//given
@@ -22,6 +24,14 @@ class PublicApplicationTests {
 
 		//then
 		Assertions.assertTrue(redisUtil.hasKey(key));
+	}
+
+	@Test
+	void TestPasswordEncoder() {
+		String password = "alselalsel1";
+		String hashedPassword = passwordEncoder.encode(password);
+
+		System.out.println(hashedPassword);
 	}
 
 }

@@ -1,5 +1,7 @@
 package co.kurrant.app.public_api.config;
 
+import co.dalicious.client.core.filter.provider.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -9,19 +11,15 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import co.dalicious.client.core.filter.JwtAuthenticationFilter;
-import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.client.core.handler.CustomAccessDeniedHandler;
 import co.dalicious.client.core.handler.CustomAuthenticationHandler;
 
 @EnableWebSecurity
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
   private final JwtTokenProvider jwtTokenProvider;
-
-  public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
-    this.jwtTokenProvider = jwtTokenProvider;
-  }
 
   /**
    * 1. JWT 없이 호출 하는 경우 2. JWT 형식이 이상하거나 만료된 토큰의 경우 3. JWT 토큰으로 호출하였으나 권한이 없는경우
@@ -36,7 +34,7 @@ public class SecurityConfig {
         // jwt token으로 인증할것이므로 세션필요없으므로 생성안함.
         .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
         .authorizeRequests() // 다음 리퀘스트에 대한 사용권한 체크
-        .antMatchers("/v1/**").permitAll() // 테스트용
+        .antMatchers("/","/**").permitAll() // 테스트용
         // .antMatchers("/v1/boards/**").permitAll() // swagger
         // .antMatchers("/swagger-resources/**").permitAll() // swagger
         // .antMatchers("/swagger-ui/**").permitAll() // swagger

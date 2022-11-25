@@ -1,5 +1,7 @@
 package co.kurrant.app.public_api.controller.user;
 
+import co.kurrant.app.public_api.dto.user.SignUpRequestDto;
+import co.kurrant.app.public_api.service.SignUpService;
 import co.dalicious.client.external.mail.EmailService;
 import co.dalicious.client.external.mail.MailMessageDto;
 import co.dalicious.client.external.sms.SmsMessageDto;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class SignUpController {
     private final EmailService emailService;
     private final SmsService smsService;
+    private final SignUpService signUpService;
 
 
     @PostMapping("/v1/auth/certification/email")
@@ -41,6 +44,15 @@ public class SignUpController {
         return ResponseMessage.builder()
                 .result(true)
                 .message("휴대폰 인증에 성공하였습니다.")
+                .build();
+    }
+
+    @PostMapping("/v1/auth/join")
+    public ResponseMessage signUp(@RequestBody SignUpRequestDto signUpRequestDto) {
+        return ResponseMessage.builder()
+                .result(true)
+                .message("회원가입에 성공하셨습니다.")
+                .data(signUpService.SignUp(signUpRequestDto))
                 .build();
     }
 }
