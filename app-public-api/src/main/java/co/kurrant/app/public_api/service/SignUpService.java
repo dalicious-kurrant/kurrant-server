@@ -27,12 +27,17 @@ public class SignUpService {
         //Hashed Password 생성
         String hashedPassword = passwordEncoder.encode(password);
 
+        //N/A인 Corporation과 Apartment 가져오기
+
+
         //User 객체 생성
         UserDto userDto = UserDto.builder()
                 .email(signUpRequestDto.getEmail())
                 .phone(signUpRequestDto.getPhone())
                 .password(hashedPassword)
                 .name(signUpRequestDto.getName())
+                .apartment()
+                .corporation()
                 .build();
 
         User user = UserMapper.INSTANCE.toEntity(userDto);

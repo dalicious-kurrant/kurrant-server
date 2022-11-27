@@ -73,31 +73,33 @@ public class User {
   @Comment("이메일 동의 여부")
   private Timestamp emailMarketingAgreedDateTime;
 
-  @Size(max = 8)
   @NotNull
-  @Column(name = "e_role", nullable = false, length = 8)
-  private String eRole;
+  @Enumerated(value = EnumType.STRING)
+  private Role role;
 
   @Size(max = 64)
   @NotNull
-  @Column(name = "email", nullable = false, length = 64)
+  @Column(name = "email", nullable = false, length = 64,
+          columnDefinition = "VARCHAR(64)")
   private String email;
 
-  @Column(name = "point", precision = 15)
+  @Column(name = "point", precision = 15,
+          columnDefinition = "DECIMAL(15, 0)")
   private BigDecimal point;
 
   @Size(max = 16)
-  @Column(name = "phone", length = 16)
+  @Column(name = "phone", length = 16,
+          columnDefinition = "VARCHAR(16)")
   private String phone;
 
   @NotNull
   @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  @JoinColumn(name = "corporation_id", nullable = false)
+  @JoinColumn(name = "corporation_id")
   private ClientCorporation corporation;
 
   @NotNull
   @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  @JoinColumn(name = "apartment_id", nullable = false)
+  @JoinColumn(name = "apartment_id")
   private ClientApartment apartment;
 
   @Column(name = "is_membership")
