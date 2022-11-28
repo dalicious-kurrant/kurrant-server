@@ -21,5 +21,4 @@ include 'domain-user'
 include 'app-public-api'
 include 'app-admin-api'
 include 'data-redis'
-include 'domain-group'
 

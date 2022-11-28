@@ -29,11 +29,11 @@ public enum ExceptionEnum {
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "alreadyExistingUser"),
 
-  /* E500 */
-  INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000000", "internalServerError"),
+  	/* E500 */
+  	INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000000", "internalServerError"),
 
-  /* E422 */
-  UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY, "E4220000", "alreadyExistingUser");
+  	/* E422 */
+  	UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY, "E4220000", "alreadyExistingUser");
 
 	private final HttpStatus status;
 	private final String code;

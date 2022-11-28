@@ -177,14 +177,8 @@ project(':domain-file') {
 project(':domain-user') {
     dependencies {
     	implementation project(':system-core')
-    	implementation project(':domain-file')    
-    	implementation project(':domain-group')
-    }
-}
-
-project(':domain-group') {
-    dependencies {
-        implementation project(':system-core')
+    	implementation project(':domain-file')
+        implementation project(':domain-address')
     }
 }
 

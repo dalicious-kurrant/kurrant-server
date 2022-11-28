@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -22,10 +23,12 @@ public class Image {
 
   @Column(name = "location", length = 2048, nullable = false,
       columnDefinition = "VARCHAR(2048) COMMENT 'S3 접근 위치'")
+  @ColumnDefault("")
   private String location;
 
   @Column(name = "filename", length = 1024, nullable = false,
       columnDefinition = "VARCHAR(1024) COMMENT '파일명, S3최대값'")
+  @ColumnDefault("")
   private String filename;
 
   @Builder

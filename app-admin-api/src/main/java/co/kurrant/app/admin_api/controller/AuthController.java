@@ -22,8 +22,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = "/v1/auth")
 @RestController
 public class AuthController {
-  @Autowired
-  private AuthService authService;
+
+  private final AuthService authService;
 
   @Operation(summary = "로그인", description = "로그인을 수행한다.")
   @ResponseStatus(HttpStatus.OK)
