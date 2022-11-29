@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 public class SmsMessageDto {
-    private String receiver;
+    private String to;
 //    String content;
     @Builder
-    public SmsMessageDto(String receiver) {
-        this.receiver = receiver;
+    public SmsMessageDto(String to) {
+        this.to = to;
     }
 }

@@ -10,5 +10,5 @@ import co.dalicious.domain.user.entity.User;
 public interface UserRepository extends JpaRepository<User, BigInteger> {
   Optional<User> findByEmail(String email);
 
-  boolean existsUserByEmail(String email);
+  Optional<User> findByPhone(String phone);
 }
