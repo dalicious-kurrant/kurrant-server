@@ -1,4 +1,4 @@
-package co.dalicious.client.core.exception;
+package exception;
 
 import org.springframework.http.HttpStatus;
 
@@ -25,6 +25,8 @@ public enum ExceptionEnum {
 	ROUTER_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040001", "routerNotFound"),
 	PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040002", "productNotFound"),
 	RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040003", "resourceNotFound"),
+	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040004", "userNotFound"),
+	CERTIFICATION_NUMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040004", "userNotFound"),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "alreadyExistingUser"),

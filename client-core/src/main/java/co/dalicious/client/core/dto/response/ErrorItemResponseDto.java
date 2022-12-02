@@ -11,4 +11,7 @@ import lombok.Getter;
 public class ErrorItemResponseDto {
   @NotNull
   private String code;
+
+  @NotNull
+  private String message;
 }

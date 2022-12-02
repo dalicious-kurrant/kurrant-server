@@ -1,25 +1,22 @@
-package co.dalicious.system.util;
+package co.dalicious.client.core.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 public class ResponseMessage {
-    private Boolean result;
     private String message;
 
     private Object data;
 
     @Builder
-    public ResponseMessage(Boolean result, String message, Object data) {
-        this.result = result;
+    public ResponseMessage(String message, Object data) {
         this.message = message;
         this.data = data;
     }
 
     @Builder
-    public ResponseMessage(Boolean result, String message) {
-        this.result = result;
+    public ResponseMessage(String message) {
         this.message = message;
     }
 }

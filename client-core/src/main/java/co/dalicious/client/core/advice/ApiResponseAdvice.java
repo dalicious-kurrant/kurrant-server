@@ -1,10 +1,13 @@
 package co.dalicious.client.core.advice;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import co.dalicious.client.core.dto.response.ErrorItemResponseDto;
 import co.dalicious.client.core.dto.response.ResponseDto;
+import co.dalicious.client.core.dto.response.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -41,13 +44,27 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
 
     ResponseDto.ResponseDtoBuilder<Object> builder =
         ResponseDto.builder().id((String) httpServletRequest.getAttribute("requestId"));
+    System.out.println(body.getClass());
+    System.out.println(body.getClass().equals(LinkedHashMap.class));
 
-    if (body instanceof List && ((List<?>) body).get(0) instanceof ErrorItemResponseDto) {
-      builder.errors((List<ErrorItemResponseDto>) body);
-    } else {
-      builder.data(body);
+    if (body instanceof List && ((List<?>) body).get(0).getClass().equals(ErrorItemResponseDto.class)) {
+      builder.error(((List<ErrorItemResponseDto>) body).get(0).getCode());
+      builder.message(((List<ErrorItemResponseDto>) body).get(0).getMessage());
+      builder.statusCode(Integer.parseInt(((List<ErrorItemResponseDto>) body).get(0).getCode().substring(1, 4)));
+    } else if (body.getClass().equals(LinkedHashMap.class)) {
+      builder.error("SE" + ((LinkedHashMap<?, ?>) body).get("status"));
+      builder.message((String) ((LinkedHashMap<?, ?>) body).get("error"));
+      builder.statusCode((int) ((LinkedHashMap<?, ?>) body).get("status"));
     }
 
+    else if (body.getClass().equals(ResponseMessage.class)){
+      builder.data(((ResponseMessage) body).getData());
+      builder.message(((ResponseMessage) body).getMessage());
+      builder.statusCode(200);
+    } else {
+      builder.data(body);
+      builder.statusCode(200);
+    }
     return builder.build();
   }
 }

@@ -1,4 +1,4 @@
-package co.dalicious.client.core.exception;
+package exception;
 
 import lombok.Getter;
 
@@ -7,7 +7,11 @@ public class ApiException extends RuntimeException {
 
   private static final long serialVersionUID = -529464181135477878L;
 
-  private ExceptionEnum error;
+  private final ExceptionEnum error;
+
+  public ExceptionEnum getExceptionEnum() {
+    return this.error;
+  }
 
   public ApiException(ExceptionEnum e) {
     super(e.getMessage());

@@ -2,12 +2,12 @@ package co.kurrant.app.public_api.controller.user;
 
 import co.kurrant.app.public_api.dto.user.LoginRequestDto;
 import co.kurrant.app.public_api.dto.user.SignUpRequestDto;
-import co.kurrant.app.public_api.service.AuthService;
+import co.kurrant.app.public_api.service.impl.AuthServiceImpl;
 import co.dalicious.client.external.mail.EmailService;
 import co.dalicious.client.external.mail.MailMessageDto;
 import co.dalicious.client.external.sms.SmsMessageDto;
 import co.dalicious.client.external.sms.SmsService;
-import co.dalicious.system.util.ResponseMessage;
+import co.dalicious.client.core.dto.response.ResponseMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,14 +23,13 @@ import javax.validation.Valid;
 public class AuthController {
     private final EmailService emailService;
     private final SmsService smsService;
-    private final AuthService authService;
+    private final AuthServiceImpl authServiceImpl;
 
     @Operation(summary = "이메일 인증번호 발송", description = "이메일 인증번호를 발송한다.")
     @PostMapping("/certification/email")
     public ResponseMessage mailConfirm(@RequestBody MailMessageDto mailMessageDto) throws Exception {
-        authService.mailConfirm(mailMessageDto);
+        authServiceImpl.mailConfirm(mailMessageDto);
         return ResponseMessage.builder()
-                .result(true)
                 .message("인증번호가 발송되었습니다.")
                 .build();
     }
@@ -40,7 +39,6 @@ public class AuthController {
     public ResponseMessage checkEmailCertificationNumber(@RequestParam("key")String key) throws Exception {
         emailService.verifyEmail(key);
         return ResponseMessage.builder()
-                .result(true)
                 .message("이메일 인증에 성공하였습니다.")
                 .build();
     }
@@ -48,9 +46,8 @@ public class AuthController {
     @Operation(summary = "휴대폰 인증번호 발송", description = "휴대폰 인증번호를 발송한다.")
     @PostMapping("/certification/phone")
     public ResponseMessage smsConfirm(@RequestBody SmsMessageDto smsMessageDto) throws Exception {
-        authService.sendSms(smsMessageDto);
+        authServiceImpl.sendSms(smsMessageDto);
         return ResponseMessage.builder()
-                .result(true)
                 .message("인증번호가 발송되었습니다.")
                 .build();
     }
@@ -60,7 +57,6 @@ public class AuthController {
     public ResponseMessage checkSmsCertificationNumber(@RequestParam("key")String key) throws Exception {
         smsService.verifySms(key);
         return ResponseMessage.builder()
-                .result(true)
                 .message("휴대폰 인증에 성공하였습니다.")
                 .build();
     }
@@ -69,9 +65,8 @@ public class AuthController {
     @PostMapping("/join")
     public ResponseMessage signUp(@RequestBody SignUpRequestDto signUpRequestDto) {
         return ResponseMessage.builder()
-                .result(true)
                 .message("회원가입에 성공하셨습니다.")
-                .data(authService.signUp(signUpRequestDto))
+                .data(authServiceImpl.signUp(signUpRequestDto))
                 .build();
     }
 
@@ -80,9 +75,8 @@ public class AuthController {
     public ResponseMessage login(@Parameter(name = "로그인정보", description = "",
             required = true) @Valid @RequestBody LoginRequestDto dto) {
         return ResponseMessage.builder()
-                .result(true)
-                .message("로그인에 성공하셨습니다.")
-                .data(authService.login(dto))
+                .message("로그인에 성공하였습니다.")
+                .data(authServiceImpl.login(dto))
                 .build();
     }
 }

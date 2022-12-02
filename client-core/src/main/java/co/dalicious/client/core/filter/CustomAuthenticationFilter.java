@@ -23,7 +23,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     CustomAuthenticationFilter.log.info("Trying to authentication...");
 
     UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
-        request.getParameter("userEmail"), request.getParameter("userPw"));
+        request.getParameter("email"), request.getParameter("password"));
     setDetails(request, authRequest);
     return this.getAuthenticationManager().authenticate(authRequest);
   }

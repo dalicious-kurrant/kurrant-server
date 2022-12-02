@@ -3,7 +3,6 @@ package co.dalicious.client.external.mail;
 import co.dalicious.data.redis.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +35,7 @@ public class EmailService {
         MimeMessage 객체 안에 내가 전송할 메일의 내용을 담아준다.
         bean으로 등록해둔 javaMailSender 객체를 사용하여 이메일 send
      */
-    public String sendSimpleMessage(List<String> receivers)throws Exception {
+    public void sendSimpleMessage(List<String> receivers)throws Exception {
         String key = createKey(); //인증번호 생성
         String receiver = receivers.get(0);
         
@@ -60,8 +59,7 @@ public class EmailService {
         }catch(IllegalArgumentException es){
             throw new IllegalArgumentException();
         }
-        
-        return key; // 메일로 보냈던 인증 코드를 서버로 리턴
+
     }
 
     public void verifyEmail(String key) throws IllegalArgumentException {

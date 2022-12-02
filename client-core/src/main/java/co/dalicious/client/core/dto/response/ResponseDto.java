@@ -13,7 +13,11 @@ public class ResponseDto<T> {
   @NotNull
   private String id;
 
+  private int statusCode;
+
+  private String message;
+
   private T data;
 
-  private List<ErrorItemResponseDto> errors;
+  private String error;
 }

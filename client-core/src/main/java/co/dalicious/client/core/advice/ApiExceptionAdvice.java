@@ -5,8 +5,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import co.dalicious.client.core.dto.response.ErrorItemResponseDto;
-import co.dalicious.client.core.exception.ApiException;
-import co.dalicious.client.core.exception.ExceptionEnum;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,7 +26,10 @@ public class ApiExceptionAdvice {
     e.printStackTrace();
 
     ErrorItemResponseDto errors =
-        ErrorItemResponseDto.builder().code(e.getError().getCode()).build();
+        ErrorItemResponseDto.builder()
+                .code(e.getError().getCode())
+                .message(e.getError().getMessage())
+                .build();
 
     return ResponseEntity.status(e.getError().getStatus()).body(List.of(errors));
   }

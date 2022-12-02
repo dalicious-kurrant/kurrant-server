@@ -155,6 +155,12 @@ project(':client-external-bizppurio') {
     	implementation project(':system-core')
     }
 }
+
+project(':client-core') {
+    dependencies {
+        implementation project(':system-core')
+    }
+}
 project(':domain-address') {
     dependencies {
     	implementation project(':system-core')

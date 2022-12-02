@@ -1,21 +1,36 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.domain.user.dto.UserDto;
+import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.public_api.dto.user.ChangePasswordRequestDto;
 import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.service.impl.mapper.UserMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 
+@Tag(name = "2. User")
+@RequestMapping(value = "/v1/users")
 @RestController
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("v1/users/me")
-    public UserDto userInfo(){
-        return UserMapper.INSTANCE.toDto(userService.findByToken());
+    @Operation(summary = "비밀번호 변경", description = "로그인 한 유저의 비밀번호를 변경한다.")
+    @PostMapping("/change/password")
+    public ResponseMessage changePassword(HttpServletRequest httpServletRequest,
+                                          @RequestBody ChangePasswordRequestDto changePasswordRequestDto) {
+        userService.changePassword(httpServletRequest, changePasswordRequestDto);
+        return ResponseMessage.builder()
+                .message("비밀번호 변경에 성공하였습니다.")
+                .build();
+    }
+
+    @GetMapping("/me")
+    public UserDto userInfo(HttpServletRequest httpServletRequest){
+        return userService.getUserInfo(httpServletRequest);
     }
 }

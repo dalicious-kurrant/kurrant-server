@@ -1,4 +1,4 @@
-package co.dalicious.system.util.exception;
+package exception;
 
 public enum ExceptionClass {
     ORDER("주문"),

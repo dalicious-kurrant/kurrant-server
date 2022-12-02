@@ -1,5 +1,7 @@
 package co.dalicious.client.external.sms;
 
+import exception.ApiException;
+import exception.ExceptionEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import co.dalicious.data.redis.RedisUtil;
@@ -118,10 +120,10 @@ public class SmsService {
 
     }
 
-    public void verifySms(String key) throws IllegalArgumentException {
+    public void verifySms(String key) {
         String memberSms = redisUtil.getData(key);
         if (memberSms == null) {
-            throw new IllegalArgumentException();
+            throw new ApiException(ExceptionEnum.CERTIFICATION_NUMBER_NOT_FOUND);
         }
         redisUtil.deleteData(key);
     }

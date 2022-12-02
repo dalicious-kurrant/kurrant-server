@@ -31,6 +31,9 @@ public class User {
   @Comment("사용자 PK")
   private BigInteger id;
 
+  @Enumerated(value = EnumType.STRING)
+  private Role role;
+
   @CreationTimestamp
   @Column(name = "created_datetime", nullable = false,
       columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
@@ -53,13 +56,8 @@ public class User {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @Column(name = "password", nullable = false,
       columnDefinition = "VARCHAR(128)")
-  @Comment("사용자 비밀번호, PBKDF2 180000")
+  @Comment("사용자 비밀번호, BCrpypt")
   private String password;
-
-//  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-//  @Column(name = "salt", nullable = false, columnDefinition = "BINARY(64)")
-//  @Comment("비밀번호 SALT")
-//  private byte[] salt;
 
   @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(32)")
   @Comment("사용자 명")
@@ -68,13 +66,20 @@ public class User {
 //  @Embedded
 //  private Image avatar;
 
-  @Column(name = "email_marketing_agreed_datetime",
+  @Column(name = "marketing_agreed_datetime",
       columnDefinition = "TIMESTAMP(6)")
   @Comment("이메일 동의 여부")
-  private Timestamp emailMarketingAgreedDateTime;
+  private Timestamp marketingAgreedDateTime;
 
-  @Enumerated(value = EnumType.STRING)
-  private Role role;
+  @Column(name = "marketing_alarm",
+    columnDefinition = "BIT(1)")
+  @Comment("혜택 및 소식 알림")
+  private Boolean marketingAlarm;
+
+  @Column(name = "order_alarm",
+          columnDefinition = "BIT(1)")
+  @Comment("주문 알림")
+  private Boolean orderAlarm;
 
   @Size(max = 64)
   @Column(name = "email", nullable = false, length = 64,
@@ -83,7 +88,7 @@ public class User {
 
   @Column(name = "point", precision = 15, nullable = false,
           columnDefinition = "DECIMAL(15, 0)")
-  @ColumnDefault("0")
+  @ColumnDefault("0.00")
   private BigDecimal point;
 
   @Size(max = 16)
@@ -118,5 +123,13 @@ public class User {
     this.phone = phone;
     this.corporation = corporation;
     this.apartment = apartment;
+  }
+
+  public void changePassword(String password) {
+    this.password = password;
+  }
+
+  public void changePhoneNumber(String phone) {
+    this.phone = phone;
   }
 }

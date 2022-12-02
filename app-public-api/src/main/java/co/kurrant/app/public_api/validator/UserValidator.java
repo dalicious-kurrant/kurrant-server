@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.validator;
 
-import co.dalicious.client.core.exception.ApiException;
-import co.dalicious.client.core.exception.ExceptionEnum;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
