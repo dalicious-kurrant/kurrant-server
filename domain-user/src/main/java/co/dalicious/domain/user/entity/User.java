@@ -8,8 +8,12 @@ import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.user.converter.GourmetTypeConverter;
+import co.dalicious.domain.user.converter.RoleConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
@@ -31,7 +35,10 @@ public class User {
   @Comment("사용자 PK")
   private BigInteger id;
 
-  @Enumerated(value = EnumType.STRING)
+  @NotNull
+  @Convert(converter = RoleConverter.class)
+  @Column(name = "e_role")
+  @Comment("유저 타입")
   private Role role;
 
   @CreationTimestamp
@@ -63,8 +70,14 @@ public class User {
   @Comment("사용자 명")
   private String name;
 
-//  @Embedded
-//  private Image avatar;
+  @Embedded
+  private Image avatar;
+
+  @NotNull
+  @Convert(converter = GourmetTypeConverter.class)
+  @Column(name = "e_gourmet_type")
+  @Comment("미식가 타입")
+  private GourmetType gourmetType = GourmetType.NULL;
 
   @Column(name = "marketing_agreed_datetime",
       columnDefinition = "TIMESTAMP(6)")
@@ -115,14 +128,12 @@ public class User {
   private Apartment apartment;
 
   @Builder
-  public User(String password, String name, Role role, String email, String phone, Corporation corporation, Apartment apartment) {
+  public User(String password, String name, Role role, String email, String phone) {
     this.password = password;
     this.name = name;
     this.role = role;
     this.email = email;
     this.phone = phone;
-    this.corporation = corporation;
-    this.apartment = apartment;
   }
 
   public void changePassword(String password) {
@@ -131,5 +142,10 @@ public class User {
 
   public void changePhoneNumber(String phone) {
     this.phone = phone;
+  }
+
+  public void setEmailAndPassword(String email, String password) {
+    this.email = email;
+    this.password = password;
   }
 }

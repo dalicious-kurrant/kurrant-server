@@ -47,8 +47,6 @@ class PublicApplicationTests {
 				.password("123123")
 				.role(Role.USER)
 				.name("민지")
-				.apartment(null)
-				.corporation(null)
 				.build();
 
 //		List<Provider> providers = new ArrayList<>();

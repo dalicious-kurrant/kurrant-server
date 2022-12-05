@@ -23,7 +23,7 @@ public class CommonServiceImpl implements CommonService {
         // 토큰 가져오기
         String token = jwtTokenProvider.resolveToken(httpServletRequest);
         // 유효한 토큰인지 확인
-        jwtTokenProvider.validateToken(token);
+//        jwtTokenProvider.validateToken(token);
         // 유저 정보 가져오기
         BigInteger userId = BigInteger.valueOf(Integer.parseInt(jwtTokenProvider.getUserPk(token)));
 

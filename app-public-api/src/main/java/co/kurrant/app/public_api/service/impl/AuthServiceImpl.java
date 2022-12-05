@@ -78,14 +78,13 @@ public class AuthServiceImpl implements AuthService {
 
         // 비밀번호 일치 체크
         String password = signUpRequestDto.getPassword();
-        UserValidator.isPasswordMatched(password, signUpRequestDto.getPasswordCheck());
+        userValidator.isPasswordMatched(password, signUpRequestDto.getPasswordCheck());
 
         // Hashed Password 생성
         String hashedPassword = passwordEncoder.encode(password);
 
-        // 1. 기존에 회원가입을 한 이력이 없는 유저라면 -> 유저 생성
+        // 기존에 회원가입을 한 이력이 없는 유저라면 -> 유저 생성
         if(user == null) {
-
             UserDto userDto = UserDto.builder()
                     .email(signUpRequestDto.getEmail())
                     .phone(signUpRequestDto.getPhone())

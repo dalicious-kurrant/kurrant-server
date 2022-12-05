@@ -18,7 +18,7 @@ import java.util.Optional;
 public class UserValidator {
     private final UserRepository userRepository;
     private final ProviderEmailRepository providerEmailRepository;
-    public static void isPasswordMatched(String password, String passwordCheck) {
+    public void isPasswordMatched(String password, String passwordCheck) {
         if(!password.equals(passwordCheck)) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
         }

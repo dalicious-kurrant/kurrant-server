@@ -16,10 +16,6 @@ public enum Provider {
 
     private final String provider;
 
-    public String getProvider(){
-        return this.provider;
-    }
-
     Provider(String provider) {
         this.provider = provider;
     }

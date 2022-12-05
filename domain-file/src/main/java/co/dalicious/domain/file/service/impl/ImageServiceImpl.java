@@ -43,12 +43,18 @@ public class ImageServiceImpl implements ImageService {
   @Value("${cloud.aws.region.static}")
   private String region;
 
+//  @Value("${cloud.aws.cloudFront.distributionDomain}")
+//  private String distributionDomain;
+//
+//  @Value("${cloud.aws.cloudFront.keyPairId}")
+//  private String keyPairId;
+
   @Override
   @Transactional
   public Image createImage(ImageCreateRequestDto dto) {
 
     AmazonS3Client client = this.createAmazonS3Client();
-    boolean isExist = client.doesObjectExist(this.bucketName, dto.getKey());
+    boolean isExist = client.doesObjectExist(this.bucketName , dto.getKey());
     if (!isExist) {
       throw new FileNotFoundException();
     }
@@ -105,7 +111,7 @@ public class ImageServiceImpl implements ImageService {
   }
 
   private String extractLocation(String location) {
-    return location.replace("https://corretto-dev.s3.ap-northeast-2.amazonaws.com/", "")
+    return location.replace(bucketName, "")
         .replaceAll("\\?.*", "");
   }
 
