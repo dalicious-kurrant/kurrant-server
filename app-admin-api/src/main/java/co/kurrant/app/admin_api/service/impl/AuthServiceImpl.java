@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import co.kurrant.app.admin_api.dto.LoginRequestDto;
 import co.kurrant.app.admin_api.dto.LoginResponseDto;
@@ -35,9 +36,9 @@ public class AuthServiceImpl implements AuthService {
     // }
 
     List<String> arr = new ArrayList<String>();
+    arr.add(user.getRole().getAuthority());
     String accessToken = jwtTokenProvider.createToken(user.getId().toString(), arr);
-    // user.getUserRoles().stream().map(userRoles -> userRoles.getRole())
-    // .map(role -> role.getName()).collect(Collectors.toList()));
+
 
     return LoginResponseDto.builder().accessToken(accessToken).expiresIn(86400).build();
   }

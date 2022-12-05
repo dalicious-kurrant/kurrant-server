@@ -29,6 +29,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -120,9 +121,8 @@ public class AuthServiceImpl implements AuthService {
          }
 
         List<String> arr = new ArrayList<String>();
+        arr.add(user.getRole().getAuthority());
         String accessToken = jwtTokenProvider.createToken(user.getId().toString(), arr);
-        // user.getUserRoles().stream().map(userRoles -> userRoles.getRole())
-        // .map(role -> role.getName()).collect(Collectors.toList()));
 
         return LoginResponseDto.builder().accessToken(accessToken).expiresIn(86400).build();
     }

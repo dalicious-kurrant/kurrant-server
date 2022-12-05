@@ -11,7 +11,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/kurrant
     username: root
-    password:
+    password: 1234
 
   #DB설정(H2)
 #  h2:

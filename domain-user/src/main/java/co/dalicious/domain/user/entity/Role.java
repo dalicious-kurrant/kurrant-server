@@ -27,6 +27,6 @@ public enum Role {
         return Arrays.stream(Role.values())
                 .filter(v -> v.getCode().equals(code))
                 .findAny()
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 미식가 타입입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 타입입니다."));
     }
 }

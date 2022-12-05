@@ -62,7 +62,7 @@ public class User {
 
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @Column(name = "password", nullable = false,
-      columnDefinition = "VARCHAR(128)")
+      columnDefinition = "VARCHAR(255)")
   @Comment("사용자 비밀번호, BCrpypt")
   private String password;
 
