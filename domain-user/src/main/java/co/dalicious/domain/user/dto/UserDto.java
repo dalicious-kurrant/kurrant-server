@@ -7,6 +7,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.util.Date;
 
 @Schema(description = "유저 생성 Dto")
 @NoArgsConstructor
@@ -19,9 +22,12 @@ public class UserDto {
     private Role role;
     private Corporation corporation;
     private Apartment apartment;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    Date createdDateTime;
 
     @Builder
-    public UserDto(String email, String password, String phone, String name, Role role, Corporation corporation, Apartment apartment) {
+    public UserDto(String email, String password, String phone, String name, Role role, Corporation corporation, Apartment apartment,
+    Date createdDateTime) {
         this.email = email;
         this.password = password;
         this.phone = phone;
@@ -29,6 +35,7 @@ public class UserDto {
         this.role = role;
         this.corporation = corporation;
         this.apartment = apartment;
+        this.createdDateTime = createdDateTime;
     }
 }
 
