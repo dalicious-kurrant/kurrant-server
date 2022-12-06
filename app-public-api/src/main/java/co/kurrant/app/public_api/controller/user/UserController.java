@@ -26,6 +26,19 @@ import java.security.NoSuchAlgorithmException;
 public class UserController {
 
     private final UserService userService;
+
+    @Operation(summary = "유저정보 가져오기", description = "로그인 한 유저의 정보를 불러온다.")
+    @GetMapping("/me")
+    public UserInfoDto userInfo(HttpServletRequest httpServletRequest){
+        return userService.getUserInfo(httpServletRequest);
+    }
+
+    @Operation(summary = "SNS 계정 연결 및 해제", description = "SNS 계정을 연결하거나 해제한다.")
+    @GetMapping("/me/sns/{sns}")
+    public void editSnsAccount(HttpServletRequest httpServletRequest, @PathVariable String sns){
+        userService.editSnsAccount(httpServletRequest, sns);
+    }
+
     @Operation(summary = "휴대폰 번호 변경", description = "로그인 한 유저의 비밀번호를 변경한다.")
     @PostMapping("/change/phone")
     public ResponseMessage changePassword(HttpServletRequest httpServletRequest,
@@ -46,9 +59,5 @@ public class UserController {
                 .build();
     }
 
-    @Operation(summary = "유저정보 가져오기", description = "로그인 한 유저의 정보를 불러온다.")
-    @GetMapping("/me")
-    public UserInfoDto userInfo(HttpServletRequest httpServletRequest){
-        return userService.getUserInfo(httpServletRequest);
-    }
+
 }

@@ -54,7 +54,7 @@ public class ImageServiceImpl implements ImageService {
   public Image createImage(ImageCreateRequestDto dto) {
 
     AmazonS3Client client = this.createAmazonS3Client();
-    boolean isExist = client.doesObjectExist(this.bucketName , dto.getKey());
+    boolean isExist = client.doesObjectExist(this.bucketName, dto.getKey());
     if (!isExist) {
       throw new FileNotFoundException();
     }

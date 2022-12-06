@@ -14,7 +14,7 @@ public enum ExceptionEnum {
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "unauthorized"),
-	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "passwordDoesNotMatch"),
+	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "비밀번호가 일치하지 않습니다."),
 
 	/* E403 */
 	FORBIDDEN(HttpStatus.FORBIDDEN, "E4030000", "forbidden"),
@@ -27,6 +27,8 @@ public enum ExceptionEnum {
 	RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040003", "resourceNotFound"),
 	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040004", "userNotFound"),
 	CERTIFICATION_NUMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040004", "userNotFound"),
+	SNS_PLATFORM_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040005", "일치하는 SNS 플랫폼을 찾을 수 없습니다."),
+	GENERAL_PROVIDER_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040005", "이메일/비밀번호 설정이 필요합니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "alreadyExistingUser"),

@@ -25,6 +25,9 @@ import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,65 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final SmsService smsService;
     private final ProviderEmailRepository providerEmailRepository;
+
+    @Override
+    public void editSnsAccount(HttpServletRequest httpServletRequest, String sns) {
+        // 등록된 SNS 플랫폼인지 확인
+        Provider provider = null;
+        boolean isContainedSns = Arrays.toString(Provider.values()).contains(sns.toUpperCase());
+        if(!isContainedSns) {
+            throw new ApiException(ExceptionEnum.SNS_PLATFORM_NOT_FOUND);
+        } else {
+            provider = Provider.valueOf(sns);
+        }
+
+        // 연결된 SNS 계정 확인
+        UserInfoDto userInfoDto = getUserInfo(httpServletRequest);
+        List<ProviderEmail> providerEmails = userInfoDto.getProviderEmails();
+        ProviderEmail providerSelectedEmail = null;
+        boolean isConnectedSns = false;
+        boolean hasGeneralProvider = false;
+        List<Provider> providers = new ArrayList<>();
+        for(ProviderEmail providerEmail : providerEmails) {
+            // 연결이 되어있다면 연결된 계정 정보 가져오기
+            if(providerEmail.getProvider().equals(provider)) {
+                providerSelectedEmail = providerEmail;
+                isConnectedSns = true;
+            }
+            providers.add(providerEmail.getProvider());
+        }
+        hasGeneralProvider = providers.contains(Provider.GENERAL);
+
+        // 연결이 되어있지만 일반로그인 정보가 없는 경우
+        if(isConnectedSns && !hasGeneralProvider) {
+            throw new ApiException(ExceptionEnum.GENERAL_PROVIDER_NOT_FOUND);
+        }
+        // 연결이 되어있고 일반 로그인 정보가 있는 경우
+        else if(isConnectedSns && hasGeneralProvider) {
+            disconnectSnsAccount(providerSelectedEmail, provider);
+        }
+        // 연결이 되어있지 않은 경우, 소셜로그인 연결 진행
+        else {
+            connectSnsAccount(userInfoDto, provider);
+        }
+
+    }
+
+    @Override
+    public void connectSnsAccount(UserInfoDto userInfoDto, Provider provider) {
+        // 소셜 로그인 연결
+    }
+
+    @Override
+    public void disconnectSnsAccount(ProviderEmail providerSelectedEmail, Provider provider) {
+        // 소셜 로그인 일치하는지 확인
+        if(!providerSelectedEmail.getProvider().equals(provider)) {
+            throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
+        }
+        // 소셜로그인 연결 계정 삭제
+        providerEmailRepository.deleteById(providerSelectedEmail.getId());
+
+    }
 
     @Override
     @Transactional
@@ -95,6 +157,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserInfoDto getUserInfo(HttpServletRequest httpServletRequest) {
         User user = commonService.getUser(httpServletRequest);
         return UserInfoMapper.INSTANCE.toDto(user);

@@ -2,20 +2,19 @@ package kr.autohero.combined;
 
 
 import co.dalicious.domain.user.entity.Provider;
-import co.dalicious.domain.user.entity.Role;
-import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
-@SpringBootTest
-@RequiredArgsConstructor
 class DomainUserApplicationTests {
-
-
+    @Test
+    public void Provider_test() {
+        String sns = "kakao";
+        System.out.println(Arrays.toString(Provider.values()));
+        Assertions.assertTrue(Arrays.toString(Provider.values()).contains("KAKAO"));
+        Provider provider = Provider.KAKAO;
+        Provider provider1 = Provider.valueOf(sns.toUpperCase());
+        Assertions.assertEquals(provider1, provider);
+    }
 }
