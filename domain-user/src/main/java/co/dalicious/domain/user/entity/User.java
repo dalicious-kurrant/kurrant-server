@@ -1,5 +1,8 @@
 package co.dalicious.domain.user.entity;
 
+
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -9,14 +12,22 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import org.hibernate.annotations.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.*;
+import javax.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Timestamp;
 
 @DynamicInsert
 @DynamicUpdate
@@ -32,6 +43,7 @@ public class User {
   private BigInteger id;
 
   @CreationTimestamp
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
   @Column(name = "created_datetime", nullable = false,
       columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
   @Comment("생성일")
