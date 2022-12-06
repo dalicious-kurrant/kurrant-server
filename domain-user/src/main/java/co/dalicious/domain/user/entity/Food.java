@@ -33,7 +33,7 @@ public class Food {
     private String img;
 
     @Column(name = "makers__makers_id")
-    private String makersmakersId;
+    private String makersId;
 
     @Column(name = "description")
     private String description;
