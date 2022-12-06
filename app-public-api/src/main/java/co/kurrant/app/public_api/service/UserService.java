@@ -1,5 +1,13 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.domain.user.dto.OrderDetailDto;
+import co.dalicious.domain.user.entity.OrderDetail;
+import co.dalicious.domain.user.entity.User;
+import co.kurrant.app.public_api.dto.user.UserOrderDto;
+
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
 import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
@@ -31,5 +39,7 @@ public interface UserService {
     void setEmailAndPassword(HttpServletRequest httpServletRequest, SetEmailAndPasswordDto setEmailAndPasswordDto);
     // 유저 정보 가져오기
     UserInfoDto getUserInfo(HttpServletRequest httpServletRequest);
+    User findAll();
 
+    OrderDetailDto findOrderByServiceDate(Date startDate, Date endDate);
 }

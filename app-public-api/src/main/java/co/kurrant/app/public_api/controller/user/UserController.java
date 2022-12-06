@@ -1,6 +1,8 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.external.sms.SmsMessageDto;
+import co.dalicious.domain.user.dto.OrderDetailDto;
+import co.dalicious.domain.user.dto.OrderItemDto;
 import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.user.entity.User;
@@ -18,6 +20,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Date;
 
 @Tag(name = "2. User")
 @RequestMapping(value = "/v1/users")
@@ -29,8 +37,14 @@ public class UserController {
 
     @Operation(summary = "유저정보 가져오기", description = "로그인 한 유저의 정보를 불러온다.")
     @GetMapping("/me")
-    public UserInfoDto userInfo(HttpServletRequest httpServletRequest){
+    public UserInfoDto userInfo(HttpServletRequest httpServletRequest) {
         return userService.getUserInfo(httpServletRequest);
+    }
+
+    @GetMapping("v1/users/me/order")
+    public OrderDetailDto userOrderbyDate(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+                                          @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate){
+        return userService.findOrderByServiceDate(startDate, endDate);
     }
 
     @Operation(summary = "SNS 계정 연결 및 해제", description = "SNS 계정을 연결하거나 해제한다.")
