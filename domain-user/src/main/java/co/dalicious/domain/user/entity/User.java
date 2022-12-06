@@ -1,12 +1,25 @@
 package co.dalicious.domain.user.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+
+
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.List;
+import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
+import org.hibernate.annotations.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -43,9 +56,9 @@ public class User {
   private Timestamp updatedDateTime;
 
 
-  @ColumnDefault("false")
   @Column(name = "email_address_verified", nullable = false,
       columnDefinition = "BIT(1)")
+  @ColumnDefault("false")
   @Comment("사용자 이메일 인증여부")
   private Boolean emailAddressVerified;
 
@@ -80,14 +93,23 @@ public class User {
           columnDefinition = "VARCHAR(64)")
   private String email;
 
-  @Column(name = "point", precision = 15,
+  @Column(name = "point", precision = 15, nullable = false,
           columnDefinition = "DECIMAL(15, 0)")
+  @ColumnDefault("0")
   private BigDecimal point;
 
   @Size(max = 16)
   @Column(name = "phone", length = 16,
           columnDefinition = "VARCHAR(16)")
   private String phone;
+
+  @Column(name = "is_membership", columnDefinition = "BIT(1)")
+  @ColumnDefault("false")
+  private Boolean isMembership;
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+  @JsonManagedReference(value = "user-fk")
+  List<ProviderEmail> providerEmails;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "corporation_id")
@@ -98,10 +120,6 @@ public class User {
   @JoinColumn(name = "apartment_id")
   @JsonBackReference(value = "apartment-fk")
   private Apartment apartment;
-
-  @Column(name = "is_membership")
-  @ColumnDefault("false")
-  private Boolean isMembership;
 
   @Builder
   public User(String password, String name, Role role, String email, String phone, Corporation corporation, Apartment apartment) {

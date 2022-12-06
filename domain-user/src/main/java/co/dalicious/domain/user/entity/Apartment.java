@@ -16,6 +16,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @DynamicInsert
@@ -65,7 +66,8 @@ public class Apartment {
 
     @OneToMany(mappedBy = "apartment", cascade = CascadeType.ALL)
     @JsonManagedReference(value = "apartment-fk")
-    private List<User> users;
+    @Column(name="e_providers")
+    private List<User> users = new ArrayList<>();
 
 
     @Builder

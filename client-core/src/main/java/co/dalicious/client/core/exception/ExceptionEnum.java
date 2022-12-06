@@ -30,6 +30,7 @@ public enum ExceptionEnum {
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "alreadyExistingUser"),
 
   	/* E500 */
+	FAIL_TO_SEND_CERTIFICATION_NUMBER(HttpStatus.INTERNAL_SERVER_ERROR, "E5000001", "failToSendCertificationNumber"),
   	INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000000", "internalServerError"),
 
   	/* E422 */
