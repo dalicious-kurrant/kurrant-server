@@ -3,16 +3,20 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
-import co.kurrant.app.public_api.dto.user.ChangePhoneRequestDto;
-import co.kurrant.app.public_api.dto.user.SetEmailAndPasswordDto;
-import co.kurrant.app.public_api.dto.user.UserInfoDto;
+import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.impl.mapper.UserInfoMapper;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import co.dalicious.client.external.sms.SmsService;
 import co.dalicious.domain.user.entity.User;
-import co.kurrant.app.public_api.dto.user.ChangePasswordRequestDto;
 import co.kurrant.app.public_api.service.CommonService;
+import co.dalicious.domain.user.dto.OrderDetailDto;
+import co.dalicious.domain.user.dto.OrderItemDto;
+import co.dalicious.domain.user.entity.Food;
+import co.dalicious.domain.user.entity.OrderDetail;
+import co.dalicious.domain.user.repository.FoodRepository;
+import co.dalicious.domain.user.repository.OrderDetailRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.kurrant.app.public_api.service.UserService;
 import co.kurrant.app.public_api.validator.UserValidator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,13 +24,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -37,6 +45,9 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final SmsService smsService;
     private final ProviderEmailRepository providerEmailRepository;
+    private final UserRepository userRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final FoodRepository foodRepository;
 
     @Override
     public void editSnsAccount(HttpServletRequest httpServletRequest, String sns) {
@@ -56,6 +67,7 @@ public class UserServiceImpl implements UserService {
         boolean isConnectedSns = false;
         boolean hasGeneralProvider = false;
         List<Provider> providers = new ArrayList<>();
+
         for(ProviderEmail providerEmail : providerEmails) {
             // 연결이 되어있다면 연결된 계정 정보 가져오기
             if(providerEmail.getProvider().equals(provider)) {
@@ -94,7 +106,6 @@ public class UserServiceImpl implements UserService {
         }
         // 소셜로그인 연결 계정 삭제
         providerEmailRepository.deleteById(providerSelectedEmail.getId());
-
     }
 
     @Override
@@ -158,9 +169,92 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public ChangeMarketingDto changeAlarmSetting(HttpServletRequest httpServletRequest, Boolean isMarketingInfoAgree,
+                                                 Boolean isMarketingAlarmAgree, Boolean isOrderAlarmAgree) {
+        // 유저 정보 가져오기
+        User user = commonService.getUser(httpServletRequest);
+        Boolean currantMarketingInfoAgree = user.getMarketingAgree();
+        Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
+        Boolean currantOrderAlarmAgree = user.getOrderAlarm();
+
+        // 현재 시간 가져오기
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+
+        // 마케팅 정보 수신 동의/철회
+        if(isMarketingInfoAgree != null) {
+            user.changeMarketingAgreement(now, isMarketingInfoAgree, isMarketingInfoAgree, isMarketingInfoAgree);
+        }
+        // 혜택 및 소식 알림 동의/철회
+        if(isMarketingAlarmAgree != null) {
+            // 주문 알림이 활성화 되어 있을 경우
+            if(currantOrderAlarmAgree) {
+                user.setMarketingAlarm(isMarketingAlarmAgree);
+            }
+            // 주문 알림이 활성화 되어 있지 않을 경우
+            else {
+                user.changeMarketingAgreement(now, !currantMarketingInfoAgree, isMarketingAlarmAgree, currantOrderAlarmAgree);
+            }
+        }
+        // 주문 알림 동의/철회
+        if(isOrderAlarmAgree != null) {
+            // 혜택 및 소식 알림이 활성화 되어 있을 경우
+            if(currantMarketingAlarmAgree) {
+                user.setOrderAlarm(isOrderAlarmAgree);
+            }
+            // 혜택 및 소식 알림이 활성화 되어 있지 않을 경우
+            else {
+                user.changeMarketingAgreement(now, !currantMarketingInfoAgree, currantMarketingAlarmAgree, isOrderAlarmAgree);
+            }
+        }
+        return ChangeMarketingDto.builder()
+                .marketingAgree(user.getMarketingAgree())
+                .marketingAgreedDateTime(user.getMarketingAgreedDateTime())
+                .marketingAlarm(user.getMarketingAlarm())
+                .orderAlarm(user.getOrderAlarm())
+                .build();
+    }
+
+    @Override
+    @Transactional
     public UserInfoDto getUserInfo(HttpServletRequest httpServletRequest) {
         User user = commonService.getUser(httpServletRequest);
         return UserInfoMapper.INSTANCE.toDto(user);
+    }
+    @Override
+    public User findAll() {
+        User user = userRepository.findAll().get(0);
+        return user;
+    }
+
+    @Override
+    public OrderDetailDto findOrderByServiceDate(Date startDate, Date endDate){
+        //JWT로 아이디 받기
+        OrderDetailDto orderDetailDto = new OrderDetailDto();
+
+        List<OrderItemDto> orderItemDtoList = new ArrayList<>();
+
+        System.out.println(startDate +" startDate, " + endDate +" endDate");
+        List<OrderDetail> byServiceDateBetween = orderDetailRepository.findByServiceDateBetween(startDate, endDate);
+
+        byServiceDateBetween.forEach( x -> {
+            orderDetailDto.setId(x.getId());
+            orderDetailDto.setServiceDate(x.getServiceDate());
+
+            Food food = foodRepository.findById(x.getFoodId());
+
+           OrderItemDto orderItemDto = OrderItemDto.builder()
+                   .name(food.getName())
+                   .diningType(x.getEDiningType())
+                   .img(food.getImg())
+                   .count(x.getCount())
+                   .build();
+
+           orderItemDtoList.add(orderItemDto);
+           orderDetailDto.setOrderItemDtoList(orderItemDtoList);
+        });
+
+
+        return orderDetailDto;
     }
 
 }

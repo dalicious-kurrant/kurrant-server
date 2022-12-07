@@ -5,7 +5,7 @@ import lombok.*;
 
 import javax.validation.constraints.NotBlank;
 
-@Schema(description = "로그인 요청 Dto")
+@Schema(description = "로그인 요청 DTO")
 @Builder
 @Getter
 @AllArgsConstructor

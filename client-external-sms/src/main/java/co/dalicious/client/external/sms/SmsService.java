@@ -128,7 +128,7 @@ public class SmsService {
         redisUtil.deleteData(key);
     }
 
-    public static String createSmsKey() {
+    private static String createSmsKey() {
         StringBuffer key = new StringBuffer();
         Random rnd = new Random();
 
