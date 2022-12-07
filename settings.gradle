@@ -10,15 +10,24 @@
 rootProject.name = 'api'
 
 include 'system-core'
+
 include 'client-core'
 include 'client-external-bizppurio'
 include 'client-external-sms'
 include 'client-external-mail'
+
 include 'domain-address'
 include 'domain-banner'
 include 'domain-file'
 include 'domain-user'
+include 'domain-order'
+include 'domain-food'
+include 'domain-client'
+include 'domain-application-form'
+
 include 'app-public-api'
 include 'app-admin-api'
+
 include 'data-redis'
+
 

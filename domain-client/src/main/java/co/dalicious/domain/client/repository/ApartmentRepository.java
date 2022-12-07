@@ -1,6 +1,6 @@
-package co.dalicious.domain.user.repository;
+package co.dalicious.domain.client.repository;
 
-import co.dalicious.domain.user.entity.Apartment;
+import co.dalicious.domain.client.entity.Apartment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
