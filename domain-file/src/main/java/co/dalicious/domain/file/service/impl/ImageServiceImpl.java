@@ -4,6 +4,7 @@ package co.dalicious.domain.file.service.impl;
 import java.io.IOException;
 import java.util.StringJoiner;
 
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -69,7 +70,7 @@ public class ImageServiceImpl implements ImageService {
       throw new ApiException(ExceptionEnum.FILE_NOT_FOUND);
     }
     String fileName = multipartFile.getOriginalFilename();
-    String key = createKey(fileName);
+    String key = dirName + "/" + createKey(fileName);
     amazonS3.putObject(new PutObjectRequest(bucketName, key, multipartFile.getInputStream(), null));
     String location = String.valueOf(amazonS3.getUrl(bucketName, key));
     return Image.builder()
@@ -80,8 +81,9 @@ public class ImageServiceImpl implements ImageService {
   }
 
   @Override
-  public void delete(String key, String dirName) {
-
+  public void delete(String key) {
+    AmazonS3 amazonS3 = amazonS3Client();
+    amazonS3.deleteObject(new DeleteObjectRequest(bucketName, key));
   }
 
   //  @Override
