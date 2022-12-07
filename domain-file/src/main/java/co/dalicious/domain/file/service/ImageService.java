@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public interface ImageService {
   Image upload(MultipartFile multipartFile, String dirName) throws IOException;
-  void delete(String key, String dirName);
+  void delete(String key);
 //  Image createImage(ImageCreateRequestDto imageRequestDto);
 //
 //  RequestImageUploadUrlResponseDto requestUrl(RequestImageUploadUrlRequestDto dto);
