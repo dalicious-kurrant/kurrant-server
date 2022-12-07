@@ -1,12 +1,12 @@
 package co.kurrant.app.public_api.controller.user;
 
+import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
 import co.kurrant.app.public_api.dto.user.LoginRequestDto;
 import co.kurrant.app.public_api.dto.user.SignUpRequestDto;
 import co.kurrant.app.public_api.service.impl.AuthServiceImpl;
 import co.dalicious.client.external.mail.EmailService;
 import co.dalicious.client.external.mail.MailMessageDto;
-import co.dalicious.client.external.sms.SmsMessageDto;
-import co.dalicious.client.external.sms.SmsService;
+import co.dalicious.client.external.sms.NaverSmsServiceImpl;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,7 +22,7 @@ import javax.validation.Valid;
 @RestController
 public class AuthController {
     private final EmailService emailService;
-    private final SmsService smsService;
+    private final NaverSmsServiceImpl smsService;
     private final AuthServiceImpl authServiceImpl;
 
     @Operation(summary = "이메일 인증번호 발송", description = "이메일 인증번호를 발송한다.")
@@ -45,8 +45,8 @@ public class AuthController {
 
     @Operation(summary = "휴대폰 인증번호 발송", description = "휴대폰 인증번호를 발송한다.")
     @PostMapping("/certification/phone")
-    public ResponseMessage smsConfirm(@RequestBody SmsMessageDto smsMessageDto) throws Exception {
-        authServiceImpl.sendSms(smsMessageDto);
+    public ResponseMessage smsConfirm(@RequestBody SmsMessageRequestDto smsMessageRequestDto) throws Exception {
+        authServiceImpl.sendSms(smsMessageRequestDto);
         return ResponseMessage.builder()
                 .message("인증번호가 발송되었습니다.")
                 .build();

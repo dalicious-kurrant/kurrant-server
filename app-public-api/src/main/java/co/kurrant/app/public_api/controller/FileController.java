@@ -22,13 +22,13 @@ import lombok.RequiredArgsConstructor;
 public class FileController {
   private final ImageService imageService;
 
-  @Operation(summary = "이미지 업로드 경로 요청", description = "이미지 업로드 경로 요청한다.")
-  @ResponseStatus(HttpStatus.OK)
-  @PostMapping("/request-image-upload-url")
-  public RequestImageUploadUrlResponseDto requestImageUploadUrl(@Parameter(name = "문의 생성 Body",
-      description = "", required = true) @Valid @RequestBody RequestImageUploadUrlRequestDto dto) {
-
-    return imageService.requestUrl(dto);
-  }
+//  @Operation(summary = "이미지 업로드 경로 요청", description = "이미지 업로드 경로 요청한다.")
+//  @ResponseStatus(HttpStatus.OK)
+//  @PostMapping("/request-image-upload-url")
+//  public RequestImageUploadUrlResponseDto requestImageUploadUrl(@Parameter(name = "문의 생성 Body",
+//      description = "", required = true) @Valid @RequestBody RequestImageUploadUrlRequestDto dto) {
+//
+//    return imageService.requestUrl(dto);
+//  }
 
 }

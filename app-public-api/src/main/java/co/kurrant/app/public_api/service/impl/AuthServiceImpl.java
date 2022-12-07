@@ -1,13 +1,14 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
+import co.dalicious.system.util.GenerateRandomNumber;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.client.external.mail.EmailService;
 import co.dalicious.client.external.mail.MailMessageDto;
-import co.dalicious.client.external.sms.SmsMessageDto;
-import co.dalicious.client.external.sms.SmsResponseDto;
-import co.dalicious.client.external.sms.SmsService;
+import co.dalicious.client.external.sms.dto.SmsResponseDto;
+import co.dalicious.client.external.sms.NaverSmsServiceImpl;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.kurrant.app.public_api.dto.user.LoginRequestDto;
@@ -29,7 +30,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserValidator userValidator;
 
     private final EmailService emailService;
-    private final SmsService smsService;
+    private final NaverSmsServiceImpl smsService;
 
     // 이메일 인증
     @Override
@@ -58,12 +58,14 @@ public class AuthServiceImpl implements AuthService {
 
     // Sms 인증
     @Override
-    public void sendSms(SmsMessageDto smsMessageDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+    public void sendSms(SmsMessageRequestDto smsMessageRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
         // 기존에 등록된 휴대폰 번호인지 확인
-        userValidator.isPhoneValid(smsMessageDto.getTo());
+        userValidator.isPhoneValid(smsMessageRequestDto.getTo());
 
         // 인증번호 발송
-        SmsResponseDto smsResponseDto = smsService.sendSms(smsMessageDto);
+        String key = GenerateRandomNumber.create8DigitKey();
+        String content = "[커런트] 인증번호 [" + key + "]를 입력해주세요";
+        SmsResponseDto smsResponseDto = smsService.sendSms(smsMessageRequestDto, content);
     }
 
     // 회원가입

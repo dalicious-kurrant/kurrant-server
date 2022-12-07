@@ -1,4 +1,4 @@
-package co.dalicious.domain.user.entity;
+package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.system.util.DiningType;
@@ -16,7 +16,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @DynamicInsert
@@ -24,12 +23,12 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @Getter
-@Table(name = "client__apartment")
-public class Apartment {
+@Table(name = "client__corporation")
+public class Corporation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
-    @Comment("아파트 고객사 PK")
+    @Comment("기업 고객사 PK")
     private BigInteger id;
 
     @Size(max = 64)
@@ -37,19 +36,19 @@ public class Apartment {
     @Column(name = "name", nullable = false, length = 64)
     private String name;
 
-    @Column(name = "family_count")
-    private Integer familyCount;
+    @Column(name = "employee_count")
+    private Integer employeeCount;
 
     @Column(name = "manager_id")
     private Long managerId;
-
-    @Embedded
-    private Address address;
 
     @NotNull
     @Convert(converter = DiningTypeConverter.class)
     @Column(name = "e_dining_type", nullable = false)
     private DiningType diningType;
+
+    @Embedded
+    private Address address;
 
     @NotNull
     @Column(name = "start_date", nullable = false)
@@ -64,16 +63,10 @@ public class Apartment {
     @Column(name = "emb_use_days")
     private String embUseDays;
 
-    @OneToMany(mappedBy = "apartment", cascade = CascadeType.ALL)
-    @JsonManagedReference(value = "apartment-fk")
-    @Column(name="e_providers")
-    private List<User> users = new ArrayList<>();
-
-
     @Builder
-    public Apartment(String name, Integer familyCount, DiningType diningType, String deliveryTime) {
+    public Corporation(String name, Integer employeeCount, DiningType diningType, String deliveryTime) {
         this.name = name;
-        this.familyCount = familyCount;
+        this.employeeCount = employeeCount;
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
     }

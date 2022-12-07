@@ -1,9 +1,10 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.client.entity.Apartment;
+import co.dalicious.domain.client.entity.Corporation;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 import javax.persistence.*;

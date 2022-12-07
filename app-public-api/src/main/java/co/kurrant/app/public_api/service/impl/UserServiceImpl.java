@@ -7,7 +7,7 @@ import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.impl.mapper.UserInfoMapper;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import co.dalicious.client.external.sms.SmsService;
+import co.dalicious.client.external.sms.NaverSmsServiceImpl;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.service.CommonService;
 import co.dalicious.domain.user.dto.OrderDetailDto;
@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
     private final CommonService commonService;
     private final UserValidator userValidator;
     private final PasswordEncoder passwordEncoder;
-    private final SmsService smsService;
+    private final NaverSmsServiceImpl smsService;
     private final ProviderEmailRepository providerEmailRepository;
     private final UserRepository userRepository;
     private final OrderDetailRepository orderDetailRepository;
