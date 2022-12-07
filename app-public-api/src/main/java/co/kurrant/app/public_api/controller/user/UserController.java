@@ -1,11 +1,8 @@
 package co.kurrant.app.public_api.controller.user;
 
-import co.dalicious.client.external.sms.SmsMessageDto;
 import co.dalicious.domain.user.dto.OrderDetailDto;
-import co.dalicious.domain.user.dto.OrderItemDto;
-import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.user.entity.User;
+import co.kurrant.app.public_api.dto.user.ChangeMarketingDto;
 import co.kurrant.app.public_api.dto.user.ChangePasswordRequestDto;
 import co.kurrant.app.public_api.dto.user.ChangePhoneRequestDto;
 import co.kurrant.app.public_api.dto.user.UserInfoDto;
@@ -72,6 +69,21 @@ public class UserController {
                 .message("비밀번호 변경에 성공하였습니다.")
                 .build();
     }
+
+    @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
+    @PostMapping("/me/setting")
+    public ResponseMessage changeAlarmSetting(HttpServletRequest httpServletRequest,
+                                              @RequestParam(required = false) Boolean isMarketingInfoAgree,
+                                              @RequestParam(required = false) Boolean isMarketingAlarmAgree,
+                                              @RequestParam(required = false) Boolean isOrderAlarmAgree) {
+        ChangeMarketingDto changeMarketingDto = userService.changeAlarmSetting(httpServletRequest, isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
+        return ResponseMessage.builder()
+                .message("마케팅 수신 정보 변경에 성공하였습니다.")
+                .data(changeMarketingDto)
+                .build();
+    }
+
+
 
 
 }

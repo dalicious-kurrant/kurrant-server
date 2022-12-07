@@ -1,23 +1,12 @@
 package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.user.dto.OrderDetailDto;
-import co.dalicious.domain.user.entity.OrderDetail;
 import co.dalicious.domain.user.entity.User;
-import co.kurrant.app.public_api.dto.user.UserOrderDto;
-
-import java.time.LocalDate;
 import java.util.Date;
-import java.util.List;
-import co.dalicious.domain.user.dto.UserDto;
+import co.kurrant.app.public_api.dto.user.*;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
-import co.kurrant.app.public_api.dto.user.ChangePasswordRequestDto;
-import co.kurrant.app.public_api.dto.user.ChangePhoneRequestDto;
-import co.kurrant.app.public_api.dto.user.SetEmailAndPasswordDto;
-import co.kurrant.app.public_api.dto.user.UserInfoDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.aspectj.apache.bcel.classfile.Module;
-
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -37,6 +26,9 @@ public interface UserService {
     void changePassword(HttpServletRequest httpServletRequest, ChangePasswordRequestDto changePasswordRequestDto);
     // 이메일/비밀번호 설정
     void setEmailAndPassword(HttpServletRequest httpServletRequest, SetEmailAndPasswordDto setEmailAndPasswordDto);
+    // 알람/마케팅 설정 변경
+    ChangeMarketingDto changeAlarmSetting(HttpServletRequest httpServletRequest, Boolean isMarketingInfoAgree,
+                                          Boolean isMarketingAlarmAgree, Boolean isOrderAlarmAgree);
     // 유저 정보 가져오기
     UserInfoDto getUserInfo(HttpServletRequest httpServletRequest);
     User findAll();

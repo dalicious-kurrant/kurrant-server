@@ -3,6 +3,7 @@ package co.dalicious.domain.user.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 import javax.persistence.*;
@@ -50,6 +51,7 @@ public class User {
   private Timestamp createdDateTime;
 
   @UpdateTimestamp
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
   @Column(name = "updated_datetime",
       columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
   @Comment("수정일")
@@ -83,8 +85,14 @@ public class User {
 
   @Column(name = "marketing_agreed_datetime",
       columnDefinition = "TIMESTAMP(6)")
-  @Comment("이메일 동의 여부")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+  @Comment("이메일 동의/철회 날짜")
   private Timestamp marketingAgreedDateTime;
+
+  @Column(name = "marketing_agreed",
+          columnDefinition = "BIT(1)")
+  @Comment("이메일 동의 여부")
+  private Boolean marketingAgree;
 
   @Column(name = "marketing_alarm",
     columnDefinition = "BIT(1)")
@@ -149,5 +157,20 @@ public class User {
   public void setEmailAndPassword(String email, String password) {
     this.email = email;
     this.password = password;
+  }
+
+  public void changeMarketingAgreement(Timestamp marketingAgreedDateTime, Boolean marketingAgree, Boolean marketingAlarm, Boolean orderAlarm) {
+    this.marketingAgreedDateTime = marketingAgreedDateTime;
+    this.marketingAgree = marketingAgree;
+    this.marketingAlarm = marketingAlarm;
+    this.orderAlarm = orderAlarm;
+  }
+
+  public void setMarketingAlarm(Boolean marketingAlarm) {
+    this.marketingAlarm = marketingAlarm;
+  }
+
+  public void setOrderAlarm(Boolean orderAlarm) {
+    this.orderAlarm = orderAlarm;
   }
 }
