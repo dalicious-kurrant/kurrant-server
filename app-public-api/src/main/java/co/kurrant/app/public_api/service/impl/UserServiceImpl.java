@@ -1,5 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
@@ -12,9 +14,7 @@ import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.service.CommonService;
 import co.dalicious.domain.user.dto.OrderDetailDto;
 import co.dalicious.domain.user.dto.OrderItemDto;
-import co.dalicious.domain.user.entity.Food;
 import co.dalicious.domain.user.entity.OrderDetail;
-import co.dalicious.domain.user.repository.FoodRepository;
 import co.dalicious.domain.user.repository.OrderDetailRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.kurrant.app.public_api.service.UserService;
@@ -229,13 +229,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public OrderDetailDto findOrderByServiceDate(Date startDate, Date endDate){
         //JWT로 아이디 받기
-        OrderDetailDto orderDetailDto = new OrderDetailDto();
 
+        //값을 담아줄 DTO 생성
+        OrderDetailDto orderDetailDto = new OrderDetailDto();
+        //중간에서 값을 담아주는 DTO 생성
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
         System.out.println(startDate +" startDate, " + endDate +" endDate");
         List<OrderDetail> byServiceDateBetween = orderDetailRepository.findByServiceDateBetween(startDate, endDate);
 
+        //반복 돌면서 DTO에 담아준다.
         byServiceDateBetween.forEach( x -> {
             orderDetailDto.setId(x.getId());
             orderDetailDto.setServiceDate(x.getServiceDate());

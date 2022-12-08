@@ -1,8 +1,8 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.domain.client.entity.Apartment;
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.user.dto.UserDto;
-import co.dalicious.domain.user.entity.Apartment;
-import co.dalicious.domain.user.entity.Corporation;
 import co.dalicious.domain.user.entity.Role;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.service.impl.mapper.UserMapper;

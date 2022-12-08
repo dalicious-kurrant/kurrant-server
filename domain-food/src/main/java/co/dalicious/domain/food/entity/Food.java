@@ -1,4 +1,4 @@
-package co.dalicious.domain.user.entity;
+package co.dalicious.domain.food.entity;
 
 import lombok.Data;
 import lombok.Getter;

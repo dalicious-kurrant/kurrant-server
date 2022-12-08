@@ -131,6 +131,7 @@ project(':app-public-api') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
+        implementation project(':domain-food')
         implementation project(':domain-client')
         implementation project(':client-core')
         implementation project(':domain-file')
@@ -148,6 +149,7 @@ project(':app-admin-api') {
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
+        implementation project(':domain-food')
     }
 }
 
@@ -178,6 +180,12 @@ project(':domain-banner') {
 project(':domain-file') {
     dependencies {
     	implementation project(':system-core')    
+    }
+}
+
+project(':domain-food') {
+    dependencies {
+        implementation project(':system-core')
     }
 }
 
