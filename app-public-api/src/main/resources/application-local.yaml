@@ -7,23 +7,23 @@ spring:
       on-profile: local # 기본 프로파일 설정
     
 #   DB설정(MySQL)
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/kurrant
-    username: root
-    password:
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://localhost:3306/kurrant
+#    username: root
+#    password:
 
   #DB설정(H2)
-#  h2:
-#    console:
-#      enabled: true
-#
-#  datasource:
-#    hikari:
-#      driver-class-name: org.h2.Driver
-#      jdbc-url: jdbc:h2:./kurrant;MODE=MySQL;AUTO_SERVER=TRUE;
-#      username: root
-#      password:
+  h2:
+    console:
+      enabled: true
+
+  datasource:
+    hikari:
+      driver-class-name: org.h2.Driver
+      jdbc-url: jdbc:h2:./kurrant;MODE=MySQL;AUTO_SERVER=TRUE;
+      username: root
+      password:
 
   jpa:
     properties:

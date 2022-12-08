@@ -132,6 +132,7 @@ project(':app-public-api') {
         implementation project(':system-core')
         implementation project(':domain-user')
         implementation project(':domain-client')
+        implementation project(':domain-order')
         implementation project(':client-core')
         implementation project(':domain-file')
         implementation project(':client-external-mail')
@@ -194,6 +195,13 @@ project(':domain-client') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-address')
+    }
+}
+
+project(':domain-order') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-user')
     }
 }
 
