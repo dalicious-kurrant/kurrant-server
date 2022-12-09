@@ -1,6 +1,6 @@
 package co.dalicious.domain.order.repository;
 
-import co.dalicious.domain.order.OrderDetail;
+import co.dalicious.domain.order.entity.OrderDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

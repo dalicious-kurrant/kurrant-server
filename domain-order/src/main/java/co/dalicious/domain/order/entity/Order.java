@@ -1,6 +1,8 @@
-package co.dalicious.domain.order;
+package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.order.converter.OrderStatusConverter;
 import co.dalicious.domain.user.entity.User;
+import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -14,6 +16,20 @@ public class Order {
     @Id
     @Column(name = "id", nullable = false)
     private Long id;
+
+    @NotNull
+    @Column(name = "code")
+    private String code;
+
+    @Convert(converter = OrderType.class)
+    @Column(name = "e_order_typr")
+    @Comment("주문 타입(정기식사/멤버십/상품)")
+    private OrderType orderType;
+
+    @Convert(converter = OrderStatusConverter.class)
+    @Column(name = "e_order_status")
+    @Comment("결제 진행 상태")
+    private OrderStatus orderStatus;
 
     @NotNull
     @Column(name = "total_price", nullable = false, precision = 15)
@@ -32,5 +48,9 @@ public class Order {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    public void updateStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
+    }
 
 }

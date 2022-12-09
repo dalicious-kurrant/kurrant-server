@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.service.impl.mapper;
 
 import co.dalicious.client.core.mapper.GenericMapper;
-import co.dalicious.domain.order.OrderDetail;
+import co.dalicious.domain.order.entity.OrderDetail;
 import co.dalicious.domain.user.dto.OrderItemDto;
 
 import org.mapstruct.Mapper;

@@ -1,19 +1,22 @@
 package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @NoArgsConstructor
 @Getter
 @Entity
-@Table(name = "membershipInfo")
-public class MembershipInfo {
+@Table(name = "user__membership")
+public class Membership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
@@ -37,6 +40,13 @@ public class MembershipInfo {
     @Column(name = "auto_payment", columnDefinition = "BIT(1)")
     @Comment("멤버십 자동 결제 여부")
     private Boolean auto_payment;
+
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "created_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private Timestamp createdDateTime;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

@@ -1,4 +1,4 @@
-package co.dalicious.domain.order;
+package co.dalicious.domain.order.entity;
 
 import lombok.Builder;
 import lombok.Getter;

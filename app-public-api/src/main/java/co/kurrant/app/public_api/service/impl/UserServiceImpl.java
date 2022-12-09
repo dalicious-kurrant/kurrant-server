@@ -1,6 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.order.OrderDetail;
+import co.dalicious.domain.order.entity.OrderDetail;
 import co.dalicious.domain.order.repository.OrderDetailRepository;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;

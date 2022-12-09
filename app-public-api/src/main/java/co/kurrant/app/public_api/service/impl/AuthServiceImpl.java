@@ -84,6 +84,9 @@ public class AuthServiceImpl implements AuthService {
         userValidator.isPasswordMatched(password, signUpRequestDto.getPasswordCheck());
         userValidator.isValidPassword(password);
 
+        // 인증을 진행한 유저인지 체크
+        emailService.isAuthenticatedEmail(signUpRequestDto.getEmail());
+
         // Hashed Password 생성
         String hashedPassword = passwordEncoder.encode(password);
 
