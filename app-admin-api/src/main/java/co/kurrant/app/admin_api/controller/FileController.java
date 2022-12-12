@@ -1,8 +1,6 @@
 package co.kurrant.app.admin_api.controller;
 
 import javax.validation.Valid;
-
-import co.dalicious.domain.file.entity.embeddable.Image;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,9 +14,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 @Tag(name = "File")
 @RequiredArgsConstructor
@@ -35,21 +30,5 @@ public class FileController {
 //
 //    return imageService.requestUrl(dto);
 //  }
-  @Operation(summary = "이미지 업로드 경로 요청", description = "이미지 업로드 경로 요청한다.")
-  @ResponseStatus(HttpStatus.OK)
-  @PostMapping("/upload")
-  public Image uploadImage(MultipartFile multipartFile) throws IOException {
 
-    return imageService.upload(multipartFile, "test");
-}
-
-  @Operation(summary = "이미지 삭제 요청", description = "이미지 업로드 경로 요청한다.")
-  @ResponseStatus(HttpStatus.OK)
-  @PostMapping("/delete")
-  public void requestImageUploadUrl() {
-    String dirName = "test";
-    String key = "0001670392620211";
-    String fileName = "images.jpeg";
-    imageService.delete(dirName + "/" + key + "/" + fileName);
-  }
 }

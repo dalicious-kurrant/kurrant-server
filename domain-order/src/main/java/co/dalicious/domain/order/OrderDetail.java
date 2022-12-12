@@ -1,4 +1,4 @@
-package co.dalicious.domain.user.entity;
+package co.dalicious.domain.order;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -8,6 +8,8 @@ import org.hibernate.annotations.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @DynamicInsert
@@ -69,7 +71,6 @@ public class OrderDetail {
     @Column(name = "food__food_id")
     @Comment("식품 ID")
     private Integer foodId;
-
     @Builder
     public OrderDetail(Integer id, Date created, Date updated, Date serviceDate, Boolean check, Integer price, String eDiningType, Integer count, Integer userId, Integer orderId, Integer foodId) {
         this.id = id;
