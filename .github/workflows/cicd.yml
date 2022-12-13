@@ -30,3 +30,10 @@ jobs:
         distribution: 'adopt'
     - name: gradlew 실행 권한 추가
       run: chmod +x gradlew
+
+    - name: Gradle 빌드
+      run: ./gradlew build
+
+    - name: Docker 빌드
+      run: |
+        docker build -t kurrant_v1 .
