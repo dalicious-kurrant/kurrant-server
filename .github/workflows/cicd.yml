@@ -36,7 +36,19 @@ jobs:
 
     - name: Docker 빌드
       run: |
-        docker login -u ${{ secrets.USERNAME }} -p ${{ secrets.PASSWORD }}
+        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
         docker build -t kurrant_v1 .
         docker tag kurrant_v1 dalicious77/kurrant_v1:${GITHUB_SHA::7}
         docker push dalicious77/kurrant_v1:${GITHUB_SHA::7}
+    - name: 배포
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ubuntu
+        key: ${{ secrets.PRIVATE_KEY }}
+        envs: GITHUB_SHA
+        script: |
+          docker pull dalicious77/kurrant_v1:${GITHUB_SHA::7}
+          docker tag dalicious77/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
+          docker stop kurrant_v1
+          docker run -d --rm --name kurrant_v1
