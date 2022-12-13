@@ -52,4 +52,4 @@ jobs:
           docker pull dalicious77/kurrant_v1:${GITHUB_SHA::7}
           docker tag dalicious77/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
           docker stop kurrant_v1
-          docker run -d --rm --name kurrant_v1
+          docker run -d --rm --name kurrant_v1 -p 8882:8882 kurrant_v1

@@ -143,7 +143,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public LoginResponseDto login(LoginRequestDto dto) {
         User user = userRepository.findByEmail(dto.getEmail()).orElseThrow(() -> {
-            return new ApiException(ExceptionEnum.USER_NOT_FOUND);
+            throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
         });
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
