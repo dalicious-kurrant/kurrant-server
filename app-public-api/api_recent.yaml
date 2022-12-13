@@ -1,0 +1,1001 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SpringShop API",
+    "description": "Spring shop sample application",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://springdoc.org"
+    },
+    "version": "v0.0.1"
+  },
+  "externalDocs": {
+    "description": "SpringShop Wiki Documentation",
+    "url": "https://springshop.wiki.github.org/docs"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8882",
+      "description": "Generated server url"
+    }
+  ],
+  "paths": {
+    "/v1/users/membership/{subscriptionType}": {
+      "post": {
+        "tags": [
+          "3. Membership"
+        ],
+        "summary": "멤버십 구매",
+        "description": "유저가 멤버십에 가입한다",
+        "operationId": "joinMembership",
+        "parameters": [
+          {
+            "name": "subscriptionType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/users/membership/unsubscribing": {
+      "post": {
+        "tags": [
+          "3. Membership"
+        ],
+        "summary": "멤버십 해지/환불",
+        "description": "유저가 멤버십을 해지 또는 환불한다",
+        "operationId": "unsubscribingMembership",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/users/membership/paymentType": {
+      "post": {
+        "tags": [
+          "3. Membership"
+        ],
+        "summary": "멤버십 자동 결제 수단 저장하기",
+        "description": "유저가 멤버십을 자동 결제할 시 사용할 결제 수단을 정한다.",
+        "operationId": "saveMembershipAutoPayment",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/users/me/setting": {
+      "post": {
+        "tags": [
+          "2. User"
+        ],
+        "summary": "알림 설정",
+        "description": "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.",
+        "operationId": "changeAlarmSetting",
+        "parameters": [
+          {
+            "name": "isMarketingInfoAgree",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isMarketingAlarmAgree",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isOrderAlarmAgree",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/change/phone": {
+      "post": {
+        "tags": [
+          "2. User"
+        ],
+        "summary": "휴대폰 번호 변경",
+        "description": "로그인 한 유저의 비밀번호를 변경한다.",
+        "operationId": "changePassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePhoneRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/change/password": {
+      "post": {
+        "tags": [
+          "2. User"
+        ],
+        "summary": "비밀번호 변경",
+        "description": "로그인 한 유저의 비밀번호를 변경한다.",
+        "operationId": "changePassword_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/files/upload": {
+      "post": {
+        "tags": [
+          "File"
+        ],
+        "summary": "이미지 업로드 경로 요청",
+        "description": "이미지 업로드 경로 요청한다.",
+        "operationId": "uploadImage",
+        "parameters": [
+          {
+            "name": "multipartFile",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Image"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/files/delete": {
+      "post": {
+        "tags": [
+          "File"
+        ],
+        "summary": "이미지 삭제 요청",
+        "description": "이미지 업로드 경로 요청한다.",
+        "operationId": "requestImageUploadUrl",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "로그인",
+        "description": "로그인을 수행한다.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/join": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "회원가입",
+        "description": "회원가입을 수행한다.",
+        "operationId": "signUp",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignUpRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/certification/phone": {
+      "get": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "휴대폰 인증",
+        "description": "휴대폰 인증번호를 검증한다.",
+        "operationId": "checkSmsCertificationNumber",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "휴대폰 인증번호 발송",
+        "description": "휴대폰 인증번호를 발송한다.",
+        "operationId": "smsConfirm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmsMessageRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/certification/email": {
+      "get": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "이메일 인증",
+        "description": "이메일 인증번호를 검증한다.",
+        "operationId": "checkEmailCertificationNumber",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "이메일 인증번호 발송",
+        "description": "이메일 인증번호를 발송한다.",
+        "operationId": "mailConfirm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MailMessageDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/v1/users/me/order": {
+      "get": {
+        "tags": [
+          "2. User"
+        ],
+        "operationId": "userOrderbyDate",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/membership/benefits": {
+      "get": {
+        "tags": [
+          "3. Membership"
+        ],
+        "summary": "멤버십 혜택 금액 가져오기",
+        "description": "유저가 멤버십을 이용하는 동안 받았던 혜택 금액을 조회한다.",
+        "operationId": "getPriceBenefits",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/users/me": {
+      "get": {
+        "tags": [
+          "2. User"
+        ],
+        "summary": "유저정보 가져오기",
+        "description": "로그인 한 유저의 정보를 불러온다.",
+        "operationId": "userInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfoDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/me/sns/{sns}": {
+      "get": {
+        "tags": [
+          "2. User"
+        ],
+        "summary": "SNS 계정 연결 및 해제",
+        "description": "SNS 계정을 연결하거나 해제한다.",
+        "operationId": "editSnsAccount",
+        "parameters": [
+          {
+            "name": "sns",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/auth/inquiry/id": {
+      "get": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "아이디 찾기",
+        "description": "유저의 아이디를 찾는다.",
+        "operationId": "findUserEmail",
+        "parameters": [
+          {
+            "name": "changePhoneRequestDto",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ChangePhoneRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ResponseMessage": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "ChangePhoneRequestDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          }
+        },
+        "description": "마이페이지 휴대폰 번호 인증 및 변경 요청 DTO"
+      },
+      "ChangePasswordRequestDto": {
+        "type": "object",
+        "properties": {
+          "currantPassword": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
+          },
+          "newPasswordCheck": {
+            "type": "string"
+          }
+        },
+        "description": "비밀번호 변경 요청 DTO"
+      },
+      "Image": {
+        "type": "object",
+        "properties": {
+          "createdDateTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "key": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginRequestDto": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "description": "로그인 요청 DTO"
+      },
+      "SignUpRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "certificationNumber": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "passwordCheck": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "description": "회원가입 시 프론트에서 보내주는 요청을 담아주는 Dto"
+      },
+      "SmsMessageRequestDto": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          }
+        }
+      },
+      "MailMessageDto": {
+        "type": "object",
+        "properties": {
+          "receivers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "OrderDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "serviceDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "orderItemDtoList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemDto"
+            }
+          }
+        },
+        "description": "주문 상세 Dto"
+      },
+      "OrderItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "diningType": {
+            "type": "string"
+          },
+          "img": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "해당 날짜에 주문한 음식들"
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "createdDateTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "zipCode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "basic": {
+            "type": "string"
+          },
+          "rest": {
+            "type": "string"
+          }
+        }
+      },
+      "Apartment": {
+        "required": [
+          "deliveryTime",
+          "diningType",
+          "name",
+          "startDate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "familyCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "managerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "diningType": {
+            "type": "string",
+            "enum": [
+              "NULL",
+              "MORNING",
+              "LUNCH",
+              "DINNER"
+            ]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "deliveryTime": {
+            "maxLength": 32,
+            "minLength": 0,
+            "type": "string"
+          },
+          "embUseDays": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "Corporation": {
+        "required": [
+          "deliveryTime",
+          "diningType",
+          "name",
+          "startDate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "employeeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "managerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "diningType": {
+            "type": "string",
+            "enum": [
+              "NULL",
+              "MORNING",
+              "LUNCH",
+              "DINNER"
+            ]
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "deliveryTime": {
+            "maxLength": 32,
+            "minLength": 0,
+            "type": "string"
+          },
+          "embUseDays": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "ProviderEmail": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "GENERAL",
+              "KAKAO",
+              "NAVER",
+              "FACEBOOK",
+              "GOOGLE",
+              "APPLE"
+            ]
+          },
+          "email": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "id": {
+            "type": "integer"
+          }
+        }
+      },
+      "User": {
+        "required": [
+          "gourmetType",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "GUEST",
+              "USER",
+              "ADMIN"
+            ]
+          },
+          "createdDateTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedDateTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "emailAddressVerified": {
+            "type": "boolean"
+          },
+          "password": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "avatar": {
+            "$ref": "#/components/schemas/Image"
+          },
+          "gourmetType": {
+            "type": "string",
+            "enum": [
+              "NULL",
+              "SULLUNGTANG_GOURMET"
+            ]
+          },
+          "marketingAgreedDateTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "marketingAgree": {
+            "type": "boolean"
+          },
+          "marketingAlarm": {
+            "type": "boolean"
+          },
+          "orderAlarm": {
+            "type": "boolean"
+          },
+          "email": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "point": {
+            "type": "number"
+          },
+          "phone": {
+            "maxLength": 16,
+            "minLength": 0,
+            "type": "string"
+          },
+          "isMembership": {
+            "type": "boolean"
+          },
+          "providerEmails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderEmail"
+            }
+          },
+          "corporation": {
+            "$ref": "#/components/schemas/Corporation"
+          },
+          "apartment": {
+            "$ref": "#/components/schemas/Apartment"
+          }
+        }
+      },
+      "UserInfoDto": {
+        "type": "object",
+        "properties": {
+          "gourmetType": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "avatar": {
+            "$ref": "#/components/schemas/Image"
+          },
+          "providerEmails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderEmail"
+            }
+          }
+        },
+        "description": "마이페이지에서 내 정보 응답 DTO"
+      }
+    }
+  }
+}

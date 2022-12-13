@@ -9,6 +9,7 @@ import lombok.Setter;
 @Getter
 public class SignUpRequestDto {
     String email;
+    String certificationNumber;
     String password;
     String passwordCheck;
     String phone;

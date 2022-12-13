@@ -5,7 +5,9 @@ import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.Role;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
+import co.dalicious.system.util.RequiredAuth;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.lang.annotation.RequiredTypes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +21,6 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
-@SpringBootTest
 class PublicApplicationTests {
 	@Autowired
 	private RedisUtil redisUtil;
@@ -57,6 +58,10 @@ class PublicApplicationTests {
 		User savedUser = userRepository.save(user);
 
 		Assertions.assertEquals("qwe38280@naver.com", savedUser.getEmail());
+	}
+
+	@Test
+	void Enum_Test() {
 	}
 
 }
