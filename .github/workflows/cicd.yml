@@ -52,7 +52,7 @@ jobs:
 #          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
 #          sudo dockecr-compose up -d
 #          docker image prune -f
-        
+
 
     - name: 배포
       uses: appleboy/ssh-action@master
