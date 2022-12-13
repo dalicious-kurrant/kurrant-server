@@ -41,7 +41,7 @@ public class UserValidator {
 
     public void isValidPassword(String password) {
         String pattern = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[$@$!%*#?&])[A-Za-z[0-9]$@$!%*#?&]{8,32}$";
-        if(!Pattern.matches(pattern, pattern)) {
+        if(!Pattern.matches(pattern, password)) {
             throw new ApiException(ExceptionEnum.DOSE_NOT_SATISFY_PASSWORD_PATTERN_REQUIREMENT);
         }
     }

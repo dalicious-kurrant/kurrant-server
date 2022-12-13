@@ -1,6 +1,9 @@
 package co.dalicious.client.external.mail;
 
 import co.dalicious.data.redis.RedisUtil;
+import co.dalicious.system.util.GenerateRandomNumber;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.PropertySource;
@@ -18,17 +21,6 @@ public class EmailService {
     private final SendEmailService sendEmailService;
     private final RedisUtil redisUtil;
 
-    // 인증코드 만들기
-    public static String createKey() {
-        StringBuffer key = new StringBuffer();
-        Random rnd = new Random();
-
-        for (int i = 0; i < 8; i++) { // 인증코드 6자리
-            key.append((rnd.nextInt(10)));
-        }
-        return key.toString();
-    }
-
     /*
         메일 발송
         sendSimpleMessage의 매개변수로 들어온 to는 인증번호를 받을 메일주소
@@ -36,7 +28,7 @@ public class EmailService {
         bean으로 등록해둔 javaMailSender 객체를 사용하여 이메일 send
      */
     public void sendSimpleMessage(List<String> receivers)throws Exception {
-        String key = createKey(); //인증번호 생성
+        String key = GenerateRandomNumber.create8DigitKey(); //인증번호 생성
         String receiver = receivers.get(0);
         
         log.info("인증 번호 : " + key);
@@ -68,5 +60,15 @@ public class EmailService {
             throw new IllegalArgumentException();
         }
         redisUtil.deleteData(key);
+        String email = redisUtil.getData(key);
+        redisUtil.setDataExpire(email, "1", 500 * 1L);
+    }
+
+    public void isAuthenticatedEmail(String email) {
+        if(redisUtil.hasKey(email)) {
+            redisUtil.deleteData(email);
+        } else {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
     }
 }

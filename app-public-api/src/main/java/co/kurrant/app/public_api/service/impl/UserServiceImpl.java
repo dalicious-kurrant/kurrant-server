@@ -1,8 +1,8 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.order.entity.OrderDetail;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.domain.order.OrderDetail;
 import co.dalicious.domain.order.repository.OrderDetailRepository;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
@@ -16,6 +16,7 @@ import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.service.CommonService;
 import co.dalicious.domain.user.dto.OrderDetailDto;
 import co.dalicious.domain.user.dto.OrderItemDto;
+
 import co.dalicious.domain.user.repository.UserRepository;
 import co.kurrant.app.public_api.service.UserService;
 import co.kurrant.app.public_api.validator.UserValidator;
