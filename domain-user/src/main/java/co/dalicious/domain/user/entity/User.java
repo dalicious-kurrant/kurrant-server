@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.Corporation;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 import javax.persistence.*;
@@ -58,12 +59,12 @@ public class User {
   @Comment("수정일")
   private Timestamp updatedDateTime;
 
-
-  @Column(name = "email_address_verified", nullable = false,
-      columnDefinition = "BIT(1)")
-  @ColumnDefault("false")
-  @Comment("사용자 이메일 인증여부")
-  private Boolean emailAddressVerified;
+  @UpdateTimestamp
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+  @Column(name = "recent_login_datetime",
+          columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+  @Comment("마지막 로그인 날짜")
+  private Timestamp recentLoginDateTime;
 
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @Column(name = "password", nullable = false,
@@ -173,5 +174,9 @@ public class User {
 
   public void setOrderAlarm(Boolean orderAlarm) {
     this.orderAlarm = orderAlarm;
+  }
+
+  public void updateRecentLoginDateTime(Timestamp recentLoginDateTime) {
+    this.recentLoginDateTime = recentLoginDateTime;
   }
 }

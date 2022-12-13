@@ -37,8 +37,8 @@ public class CustomAuthenticationHandler implements AuthenticationEntryPoint {
     errorDetails.put("id", requestId);
 
     Map<String, String> errorItem = new HashMap<>();
-    errorItem.put("code", "123");
-    errorItem.put("message", "123");
+    errorItem.put("code", "401");
+    errorItem.put("message", "접근 권한이 없습니다.");
     List<Map<String, String>> errorItems = new ArrayList<>();
     errorItems.add(errorItem);
     errorDetails.put("errors", errorItems);

@@ -1,8 +1,12 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.order.OrderUtil;
+import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderMembership;
 import co.dalicious.domain.order.entity.OrderStatus;
+import co.dalicious.domain.order.entity.OrderType;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
+import co.dalicious.domain.order.repository.OrderRepository;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.User;
@@ -25,6 +29,7 @@ public class MembershipServiceImpl implements MembershipService {
     private final CommonService commonService;
     private final MembershipRepository membershipRepository;
     private final OrderMembershipRepository orderMembershipRepository;
+    private final OrderRepository orderRepository;
 
     @Override
     @Transactional
@@ -37,29 +42,37 @@ public class MembershipServiceImpl implements MembershipService {
             Membership recentMembership = memberships.get(0);
             LocalDate currantEndDate = recentMembership.getEndDate();
         }
+        // 멤버십 구매 할인 혜택을 가지고 있는 유저인지 검증.
+
         // 멤버십 결제 요청(진행중 상태)
+        String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
+        Order order = Order.builder()
+                .orderStatus(OrderStatus.PENDING_PAYMENT)
+                .orderType(OrderType.MEMBERSHIP)
+                .code(code)
+                .build();
+        orderRepository.save(order);
+
         MembershipSubscriptionType membershipSubscriptionType = MembershipSubscriptionType.valueOf(subscriptionType);
         OrderMembership orderMembership = OrderMembership.builder()
                 .membershipSubscriptionType(membershipSubscriptionType)
+                .discount_rate(0)
+                .order(order)
                 .build();
         orderMembershipRepository.save(orderMembership);
 
-//        /* 결제. 실패시 오류 날림
+        // 결제 진행. 실패시 오류 날림
         double price = membershipSubscriptionType.getDiscountedPrice() ;
-        int statusCode = requestPayment()
+        int statusCode = requestPayment(code, membershipSubscriptionType.getDiscountedPrice(), 200);
         // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
         if(statusCode != 200) {
-            orderMembership.updateStatus(OrderStatus.FAILED);
+            order.updateStatus(OrderStatus.FAILED);
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
         }
         // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
         else {
-
+            order.updateStatus(OrderStatus.COMPLETED);
         }
-//        */
-
-
-
     }
 
     @Override
@@ -97,7 +110,7 @@ public class MembershipServiceImpl implements MembershipService {
 
     }
     // 결제 로직 구현. 검증
-    public int requestPayment(String paymentCode, int price, int statusCode) {
+    public int requestPayment(String paymentCode, double price, int statusCode) {
         return statusCode;
     }
 }

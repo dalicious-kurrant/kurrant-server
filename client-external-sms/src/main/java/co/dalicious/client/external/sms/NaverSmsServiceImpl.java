@@ -5,6 +5,7 @@ import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
 import co.dalicious.client.external.sms.dto.SmsRequestDto;
 import co.dalicious.client.external.sms.dto.SmsResponseDto;
 import co.dalicious.system.util.GenerateRandomNumber;
+import co.dalicious.system.util.RequiredAuth;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -80,7 +81,7 @@ public class NaverSmsServiceImpl implements SmsService {
         return encodeBase64String;
     }
 
-    public SmsResponseDto sendSms(SmsMessageRequestDto smsMessageRequestDto, String content) throws JsonProcessingException, RestClientException, InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException {
+    public SmsResponseDto sendSms(SmsMessageRequestDto smsMessageRequestDto, String content, String key) throws JsonProcessingException, RestClientException, InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException {
         String time = Long.toString(System.currentTimeMillis());
 
         HttpHeaders headers = new HttpHeaders();
@@ -96,14 +97,12 @@ public class NaverSmsServiceImpl implements SmsService {
                 .build();
         messages.add(smsMessageDto);
 
-        String key = GenerateRandomNumber.create8DigitKey();
-
         SmsRequestDto request = SmsRequestDto.builder()
                 .type("SMS")
                 .contentType("COMM")
                 .countryCode("82")
                 .from(phone)
-                .content("[커런트] 인증번호 [" + key + "]를 입력해주세요")
+                .content(content)
                 .messages(messages)
                 .build();
 
@@ -127,12 +126,22 @@ public class NaverSmsServiceImpl implements SmsService {
 
     }
 
-    public void verifySms(String key) {
+    public void verifySms(String key, RequiredAuth requiredAuth) {
         String memberSms = redisUtil.getData(key);
         if (memberSms == null) {
             throw new ApiException(ExceptionEnum.CERTIFICATION_NUMBER_NOT_FOUND);
         }
+        String phone = redisUtil.getData(key);
         redisUtil.deleteData(key);
+        redisUtil.setDataExpire(phone, requiredAuth.getId(), 500 * 1L);
+    }
+
+    public void isAuthenticatedPhone(String phone, RequiredAuth requiredAuth) {
+        if(redisUtil.hasKey(phone) && redisUtil.getData(phone).equals(requiredAuth.getId())) {
+            redisUtil.deleteData(phone);
+        } else {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
     }
 }
 

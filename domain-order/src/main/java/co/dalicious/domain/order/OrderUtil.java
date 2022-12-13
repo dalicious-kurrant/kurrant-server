@@ -11,7 +11,6 @@ import java.time.LocalDate;
 @Component
 @RequiredArgsConstructor
 public class OrderUtil {
-    private final GenerateRandomNumber generateRandomNumber;
     // 주문 코드 생성
     public static String generateOrderCode(OrderType orderType, BigInteger userId) {
         String code = switch (orderType) {
@@ -21,7 +20,7 @@ public class OrderUtil {
         };
         LocalDate now = LocalDate.now();
         code += now.toString().replace("-", "");
-        code += userId.toString().subSequence(0, 4);
+        code += GenerateRandomNumber.idToString(userId.intValue());
         code += GenerateRandomNumber.create4DigitKey();
         return code;
     }

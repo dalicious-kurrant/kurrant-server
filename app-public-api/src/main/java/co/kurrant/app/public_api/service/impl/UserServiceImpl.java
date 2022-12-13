@@ -7,6 +7,7 @@ import co.dalicious.domain.order.repository.OrderDetailRepository;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
+import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.impl.mapper.UserInfoMapper;
 import exception.ApiException;
@@ -117,7 +118,7 @@ public class UserServiceImpl implements UserService {
         // 입력한 휴대폰 번호가 기존에 등록된 번호인지 확인한다.
         userValidator.isPhoneValid(changePhoneRequestDto.getPhone());
         // 인증번호가 일치하는지 확인한다.
-        smsService.verifySms(changePhoneRequestDto.getKey());
+        smsService.verifySms(changePhoneRequestDto.getKey(), RequiredAuth.MYPAGE_CHANGE_PHONE_NUMBER);
         // 비밀번호를 업데이트 한다.
         user.changePhoneNumber(changePhoneRequestDto.getPhone());
     }

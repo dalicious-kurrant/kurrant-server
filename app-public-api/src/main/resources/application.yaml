@@ -38,7 +38,6 @@ spring:
     properties:
       hibernate:
         auto_quote_keyword: true
-#         globally_quoted_identifiers: true
     hibernate:
       use-new-id-generator-mappings: false # hibernate에서 AUTO_INCRE를 기본설정으로 하게
   
