@@ -22,7 +22,7 @@ import java.sql.Timestamp;
 @Entity
 @NoArgsConstructor
 @Table(name = "order__order_membership")
-public class OrderMembership{
+public class OrderMembership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
@@ -34,6 +34,10 @@ public class OrderMembership{
     @Convert(converter = MembershipSubscriptionTypeConverter.class)
     @Comment("멤버십 구독 타입(월간/연간)")
     private MembershipSubscriptionType membershipSubscriptionType;
+
+    @Column(name = "discount_rate")
+    @Comment("멤버십 구매 할인율")
+    private int discount_rate;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -49,12 +53,15 @@ public class OrderMembership{
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    @Column(name = "discount_rate")
-    @Comment("할인율")
-    private int discount_rate;
+    @NotNull
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     @Builder
-    public OrderMembership(MembershipSubscriptionType membershipSubscriptionType) {
+    public OrderMembership(MembershipSubscriptionType membershipSubscriptionType, int discount_rate, Order order) {
         this.membershipSubscriptionType = membershipSubscriptionType;
+        this.discount_rate = discount_rate;
+        this.order = order;
     }
 }

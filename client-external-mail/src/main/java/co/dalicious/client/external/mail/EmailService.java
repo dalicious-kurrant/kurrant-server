@@ -2,6 +2,7 @@ package co.dalicious.client.external.mail;
 
 import co.dalicious.data.redis.RedisUtil;
 import co.dalicious.system.util.GenerateRandomNumber;
+import co.dalicious.system.util.RequiredAuth;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -54,18 +55,18 @@ public class EmailService {
 
     }
 
-    public void verifyEmail(String key) throws IllegalArgumentException {
+    public void verifyEmail(String key, RequiredAuth requiredAuth) throws IllegalArgumentException {
         String memberEmail = redisUtil.getData(key);
         if (memberEmail == null) {
             throw new IllegalArgumentException();
         }
-        redisUtil.deleteData(key);
         String email = redisUtil.getData(key);
-        redisUtil.setDataExpire(email, "1", 500 * 1L);
+        redisUtil.deleteData(key);
+        redisUtil.setDataExpire(email, requiredAuth.getId(), 500 * 1L);
     }
 
-    public void isAuthenticatedEmail(String email) {
-        if(redisUtil.hasKey(email)) {
+    public void isAuthenticatedEmail(String email, RequiredAuth requiredAuth) {
+        if(redisUtil.hasKey(email) && redisUtil.getData(email).equals(requiredAuth.getId())) {
             redisUtil.deleteData(email);
         } else {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);

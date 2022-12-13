@@ -1,16 +1,23 @@
 package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.order.converter.OrderStatusConverter;
+import co.dalicious.domain.order.converter.OrderTypeConverter;
 import co.dalicious.domain.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.sql.Timestamp;
 
 @Entity
+@NoArgsConstructor
 @Table(name = "order__order")
 public class Order {
     @Id
@@ -21,8 +28,8 @@ public class Order {
     @Column(name = "code")
     private String code;
 
-    @Convert(converter = OrderType.class)
-    @Column(name = "e_order_typr")
+    @Convert(converter = OrderTypeConverter.class)
+    @Column(name = "e_order_type")
     @Comment("주문 타입(정기식사/멤버십/상품)")
     private OrderType orderType;
 
@@ -40,9 +47,19 @@ public class Order {
     @Column(name = "e_payment_type", nullable = false, length = 8)
     private String ePaymentType;
 
-    @NotNull
-    @Column(name = "created_datetime", nullable = false)
-    private Instant createdDatetime;
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "created_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private Timestamp createdDateTime;
+
+    @UpdateTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "updated_datetime",
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("수정일")
+    private Timestamp updatedDateTime;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -53,4 +70,13 @@ public class Order {
         this.orderStatus = orderStatus;
     }
 
+    @Builder
+    public Order(String code, OrderType orderType, OrderStatus orderStatus, BigDecimal totalPrice, String ePaymentType, User user) {
+        this.code = code;
+        this.orderType = orderType;
+        this.orderStatus = orderStatus;
+        this.totalPrice = totalPrice;
+        this.ePaymentType = ePaymentType;
+        this.user = user;
+    }
 }
