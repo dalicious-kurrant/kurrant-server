@@ -4,6 +4,8 @@ import co.dalicious.client.external.sms.dto.SmsMessageDto;
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
 import co.dalicious.client.external.sms.dto.SmsRequestDto;
 import co.dalicious.client.external.sms.dto.SmsResponseDto;
+import co.dalicious.data.redis.CertificationHashRepository;
+import co.dalicious.data.redis.RedisConfig;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.RequiredAuth;
 import exception.ApiException;
@@ -40,7 +42,7 @@ import java.util.List;
 @Service
 public class NaverSmsServiceImpl implements SmsService {
     private final RedisUtil redisUtil;
-
+    private final CertificationHashRepository certificationHashRepository;
     @Value("${naver-cloud-sms.accessKey}")
     private String accessKey;
 
@@ -81,7 +83,7 @@ public class NaverSmsServiceImpl implements SmsService {
         return encodeBase64String;
     }
 
-    public SmsResponseDto sendSms(SmsMessageRequestDto smsMessageRequestDto, String content, String key) throws JsonProcessingException, RestClientException, InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException {
+    public SmsResponseDto sendSms(SmsMessageRequestDto smsMessageRequestDto, String content) throws JsonProcessingException, RestClientException, InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException {
         String time = Long.toString(System.currentTimeMillis());
 
         HttpHeaders headers = new HttpHeaders();
@@ -117,31 +119,11 @@ public class NaverSmsServiceImpl implements SmsService {
 
         //restTemplate로 post 요청 보내고 오류가 없으면 202코드 반환
         try {
-            SmsResponseDto smsResponseDto = restTemplate.postForObject(new URI("https://sens.apigw.ntruss.com/sms/v2/services/"+ serviceId +"/messages"), httpBody, SmsResponseDto.class);
-            redisUtil.setDataExpire(key, smsMessageDto.getTo(), 60 * 3L); // 유효시간 3분
-            return smsResponseDto;
+            return restTemplate.postForObject(new URI("https://sens.apigw.ntruss.com/sms/v2/services/"+ serviceId +"/messages"), httpBody, SmsResponseDto.class);
         } catch (RestClientException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
 
-    }
-
-    public void verifySms(String key, RequiredAuth requiredAuth) {
-        String memberSms = redisUtil.getData(key);
-        if (memberSms == null) {
-            throw new ApiException(ExceptionEnum.CERTIFICATION_NUMBER_NOT_FOUND);
-        }
-        String phone = redisUtil.getData(key);
-        redisUtil.deleteData(key);
-        redisUtil.setDataExpire(phone, requiredAuth.getId(), 500 * 1L);
-    }
-
-    public void isAuthenticatedPhone(String phone, RequiredAuth requiredAuth) {
-        if(redisUtil.hasKey(phone) && redisUtil.getData(phone).equals(requiredAuth.getId())) {
-            redisUtil.deleteData(phone);
-        } else {
-            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
-        }
     }
 }
 

@@ -14,7 +14,5 @@ public interface SmsService {
     // Access Key Id와 맵핑되는 SecretKey로 암호화한 서명
     String getSignature(String time) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException;
     // 메세지 전송
-    SmsResponseDto sendSms(SmsMessageRequestDto smsMessageRequestDto, String content, String key) throws JsonProcessingException, RestClientException, InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException;
-    // 인증번호 확인
-    void verifySms(String key, RequiredAuth requiredAuth);
+    SmsResponseDto sendSms(SmsMessageRequestDto smsMessageRequestDto, String content) throws JsonProcessingException, RestClientException, InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException;
 }
