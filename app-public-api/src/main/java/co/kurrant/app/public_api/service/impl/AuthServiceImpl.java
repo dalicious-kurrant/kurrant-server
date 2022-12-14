@@ -1,10 +1,15 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.external.sms.SmsService;
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
+import co.dalicious.data.redis.CertificationHash;
+import co.dalicious.data.redis.CertificationHashRepository;
+import co.dalicious.data.redis.RedisUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
+import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
@@ -21,6 +26,7 @@ import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.dto.UserDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +41,7 @@ import java.util.List;
 
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
@@ -44,7 +51,9 @@ public class AuthServiceImpl implements AuthService {
     private final UserValidator userValidator;
 
     private final EmailService emailService;
-    private final NaverSmsServiceImpl smsService;
+    private final SmsService smsService;
+    private final VerifyUtil verifyUtil;
+    private final CertificationHashRepository certificationHashRepository;
 
     // 이메일 인증
     @Override
@@ -57,15 +66,44 @@ public class AuthServiceImpl implements AuthService {
                 Provider provider = Provider.GENERAL;
                 String mail = mailMessageDto.getReceivers().get(0);
                 userValidator.isEmailValid(provider, mail);
-
+                break;
             case FIND_PASSWORD:
                 // 존재하는 유저인지 확인
                 User user = userRepository.findByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(
                         () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
                 );
+                break;
         }
+
+        // 이메일 폼 작성
+        String key = GenerateRandomNumber.create8DigitKey(); // 8자리 랜덤 인증번호 생성
+        String receiver = mailMessageDto.getReceivers().get(0);
+
+        log.info("인증 번호 : " + key);
+        log.info("보내는 대상 : "+ receiver);
+
+
+        String subject = ("[커런트] 회원가입 인증 코드: "); //메일 제목
+
+        // 메일 내용 메일의 subtype을 html로 지정하여 html문법 사용 가능
+        String content="";
+        content += "<h1 style=\"font-size: 30px; padding-right: 30px; padding-left: 30px;\">이메일 주소 확인</h1>";
+        content += "<p style=\"font-size: 17px; padding-right: 30px; padding-left: 30px;\">아래 확인 코드를 회원가입 화면에서 입력해주세요.</p>";
+        content += "<div style=\"padding-right: 30px; padding-left: 30px; margin: 32px 0 40px;\"><table style=\"border-collapse: collapse; border: 0; background-color: #F4F4F4; height: 70px; table-layout: fixed; word-wrap: break-word; border-radius: 6px;\"><tbody><tr><td style=\"text-align: center; vertical-align: middle; font-size: 30px;\">";
+        content += key;
+        content += "</td></tr></tbody></table></div>";
+
         // 인증번호 발송
-        emailService.sendSimpleMessage(mailMessageDto.getReceivers());
+        emailService.sendSimpleMessage(mailMessageDto.getReceivers(), subject, content);
+
+        // Redis에 인증번호 저장
+        CertificationHash certificationHash = CertificationHash.builder()
+                .id(null)
+                .type(type)
+                .to(receiver)
+                .certificationNumber(key)
+                .build();
+        certificationHashRepository.save(certificationHash);
     }
 
     // Sms 인증
@@ -77,17 +115,28 @@ public class AuthServiceImpl implements AuthService {
             case SIGNUP:
                 // 기존에 등록된 휴대폰 번호인지 확인
                 userValidator.isPhoneValid(smsMessageRequestDto.getTo());
+                break;
             case FIND_ID, FIND_PASSWORD:
                 // 유저가 존재하는지 확인
                 User user = userRepository.findByPhone(smsMessageRequestDto.getTo()).orElseThrow(
                         () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
                 );
+                break;
         }
 
         // 인증번호 발송
         String key = GenerateRandomNumber.create8DigitKey();
         String content = "[커런트] 인증번호 [" + key + "]를 입력해주세요";
-        SmsResponseDto smsResponseDto = smsService.sendSms(smsMessageRequestDto, content, key);
+        SmsResponseDto smsResponseDto = smsService.sendSms(smsMessageRequestDto, content);
+
+        // Redis에 인증번호 저장
+        CertificationHash certificationHash = CertificationHash.builder()
+                .id(null)
+                .type(type)
+                .to(smsMessageRequestDto.getTo())
+                .certificationNumber(key)
+                .build();
+        certificationHashRepository.save(certificationHash);
     }
 
     // 회원가입
@@ -107,7 +156,7 @@ public class AuthServiceImpl implements AuthService {
         userValidator.isValidPassword(password);
 
         // 인증을 진행한 유저인지 체크
-        emailService.isAuthenticatedEmail(signUpRequestDto.getEmail(), RequiredAuth.SIGNUP);
+        verifyUtil.isAuthenticated(signUpRequestDto.getEmail(), RequiredAuth.SIGNUP);
 
         // Hashed Password 생성
         String hashedPassword = passwordEncoder.encode(password);
@@ -143,7 +192,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public LoginResponseDto login(LoginRequestDto dto) {
         User user = userRepository.findByEmail(dto.getEmail()).orElseThrow(() -> {
-            return new ApiException(ExceptionEnum.USER_NOT_FOUND);
+            throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
         });
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
@@ -166,7 +215,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public FindIdResponseDto findUserEmail(FindIdRequestDto findIdRequestDto) {
         // 휴대폰 인증을 했는지 체크
-        smsService.isAuthenticatedPhone(findIdRequestDto.phone, RequiredAuth.FIND_ID);
+        verifyUtil.isAuthenticated(findIdRequestDto.phone, RequiredAuth.FIND_ID);
 
         // 유저 가져오기
         User user = userRepository.findByPhone(findIdRequestDto.getPhone()).orElseThrow(
@@ -200,7 +249,7 @@ public class AuthServiceImpl implements AuthService {
         userValidator.isValidPassword(password);
 
         // 인증을 진행한 유저인지 체크
-        emailService.isAuthenticatedEmail(findPasswordEmailRequestDto.getEmail(), RequiredAuth.FIND_PASSWORD);
+        verifyUtil.isAuthenticated(findPasswordEmailRequestDto.getEmail(), RequiredAuth.FIND_PASSWORD);
 
         // 유저 정보 가져오기
         User user = userRepository.findByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(
@@ -214,7 +263,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void findPasswordPhone(FindPasswordPhoneRequestDto findPasswordPhoneRequestDto) {
         // 인증을 진행한 유저인지 체크
-        smsService.isAuthenticatedPhone(findPasswordPhoneRequestDto.getPhone(), RequiredAuth.FIND_PASSWORD);
+        verifyUtil.isAuthenticated(findPasswordPhoneRequestDto.getPhone(), RequiredAuth.FIND_PASSWORD);
         // 비밀번호 일치/조건 체크
         String password = findPasswordPhoneRequestDto.getPassword();
         userValidator.isPasswordMatched(password, findPasswordPhoneRequestDto.getPasswordCheck());
@@ -227,5 +276,4 @@ public class AuthServiceImpl implements AuthService {
         String hashedPassword = passwordEncoder.encode(password);
         user.changePassword(hashedPassword);
     }
-
 }

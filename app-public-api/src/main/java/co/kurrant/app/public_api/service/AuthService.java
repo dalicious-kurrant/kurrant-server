@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.service;
 import co.dalicious.client.external.mail.MailMessageDto;
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -27,6 +28,4 @@ public interface AuthService {
     void findPasswordEmail(FindPasswordEmailRequestDto findPasswordEmailRequestDto);
     // 비밀번호 찾기시 휴대폰 인증을 통해 비밀번호 변경
     void findPasswordPhone(FindPasswordPhoneRequestDto findPasswordPhoneRequestDto);
-
-
 }

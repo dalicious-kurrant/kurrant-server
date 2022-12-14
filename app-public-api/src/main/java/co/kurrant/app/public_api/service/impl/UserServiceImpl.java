@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.order.entity.OrderDetail;
+import co.dalicious.domain.order.entity.OrderDetail;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.repository.OrderDetailRepository;
@@ -10,6 +11,7 @@ import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.impl.mapper.UserInfoMapper;
+import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import co.dalicious.client.external.sms.NaverSmsServiceImpl;
@@ -45,7 +47,7 @@ public class UserServiceImpl implements UserService {
     private final CommonService commonService;
     private final UserValidator userValidator;
     private final PasswordEncoder passwordEncoder;
-    private final NaverSmsServiceImpl smsService;
+    private final VerifyUtil verifyUtil;
     private final ProviderEmailRepository providerEmailRepository;
     private final UserRepository userRepository;
     private final OrderDetailRepository orderDetailRepository;
@@ -118,7 +120,7 @@ public class UserServiceImpl implements UserService {
         // 입력한 휴대폰 번호가 기존에 등록된 번호인지 확인한다.
         userValidator.isPhoneValid(changePhoneRequestDto.getPhone());
         // 인증번호가 일치하는지 확인한다.
-        smsService.verifySms(changePhoneRequestDto.getKey(), RequiredAuth.MYPAGE_CHANGE_PHONE_NUMBER);
+        verifyUtil.verifyCertificationNumber(changePhoneRequestDto.getKey(), RequiredAuth.MYPAGE_CHANGE_PHONE_NUMBER);
         // 비밀번호를 업데이트 한다.
         user.changePhoneNumber(changePhoneRequestDto.getPhone());
     }

@@ -6,8 +6,9 @@ import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.AuthService;
 import co.dalicious.client.external.mail.EmailService;
 import co.dalicious.client.external.mail.MailMessageDto;
-import co.dalicious.client.external.sms.NaverSmsServiceImpl;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.public_api.util.VerifyUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,7 +27,7 @@ import java.security.NoSuchAlgorithmException;
 @RestController
 public class AuthController {
     private final EmailService emailService;
-    private final NaverSmsServiceImpl smsService;
+    private final VerifyUtil verifyUtil;
     private final AuthService authService;
 
     @Operation(summary = "이메일 인증번호 발송", description = "이메일 인증번호를 발송한다.")
@@ -41,7 +42,7 @@ public class AuthController {
     @Operation(summary = "이메일 인증", description = "이메일 인증번호를 검증한다.")
     @GetMapping("/certification/email")
     public ResponseMessage checkEmailCertificationNumber(@RequestParam("key")String key, @RequestParam("type")String type) {
-        emailService.verifyEmail(key, RequiredAuth.ofId(type));
+        verifyUtil.verifyCertificationNumber(key, RequiredAuth.ofId(type));
         return ResponseMessage.builder()
                 .message("이메일 인증에 성공하였습니다.")
                 .build();
@@ -59,7 +60,7 @@ public class AuthController {
     @Operation(summary = "휴대폰 인증", description = "휴대폰 인증번호를 검증한다.")
     @GetMapping("/certification/phone")
     public ResponseMessage checkSmsCertificationNumber(@RequestParam("key")String key, @RequestParam("type")String type) {
-        smsService.verifySms(key, RequiredAuth.ofId(type));
+        verifyUtil.verifyCertificationNumber(key, RequiredAuth.ofId(type));
         return ResponseMessage.builder()
                 .message("휴대폰 인증에 성공하였습니다.")
                 .build();

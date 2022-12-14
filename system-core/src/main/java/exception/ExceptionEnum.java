@@ -12,7 +12,7 @@ public enum ExceptionEnum {
 	BAD_REQUEST(HttpStatus.BAD_REQUEST, "E4000000", "badRequest"),
 	UNCAUGHT_EXCEPTION(HttpStatus.BAD_REQUEST, "E4000001", "uncaughtException"),
 	DOSE_NOT_SATISFY_PASSWORD_PATTERN_REQUIREMENT(HttpStatus.BAD_REQUEST, "E4000002", "비밀번호는 8~32자리의 영문자, 숫자, 특수문자를 조합하여 설정해야 합니다."),
-
+	DOSE_NOT_CORRESPOND_CERTIFICATION_TYPE(HttpStatus.BAD_REQUEST, "E4000003", "인증 타입이 일치하지 않습니다"),
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
 	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "비밀번호가 일치하지 않습니다."),

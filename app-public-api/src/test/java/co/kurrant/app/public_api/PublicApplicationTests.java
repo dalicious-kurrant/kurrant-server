@@ -1,5 +1,7 @@
 package co.kurrant.app.public_api;
 
+import co.dalicious.data.redis.CertificationHash;
+import co.dalicious.data.redis.CertificationHashRepository;
 import co.dalicious.data.redis.RedisUtil;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.Role;
@@ -7,7 +9,6 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.util.RequiredAuth;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.lang.annotation.RequiredTypes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,8 +25,13 @@ import java.util.List;
 class PublicApplicationTests {
 	@Autowired
 	private RedisUtil redisUtil;
+
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private CertificationHashRepository certificationHashRepository;
+
 
 	@Test
 	void TestRedisConnection() {
@@ -61,7 +67,13 @@ class PublicApplicationTests {
 	}
 
 	@Test
-	void Enum_Test() {
+	void Redis_Repository_Test() {
+		CertificationHash certificationHash = CertificationHash.builder()
+				.type("1")
+				.certificationNumber("0101010101")
+				.isAuthenticated(false)
+				.build();
+
 	}
 
 }

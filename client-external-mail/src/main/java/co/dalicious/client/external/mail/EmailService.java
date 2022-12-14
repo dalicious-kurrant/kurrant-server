@@ -28,48 +28,12 @@ public class EmailService {
         MimeMessage 객체 안에 내가 전송할 메일의 내용을 담아준다.
         bean으로 등록해둔 javaMailSender 객체를 사용하여 이메일 send
      */
-    public void sendSimpleMessage(List<String> receivers)throws Exception {
-        String key = GenerateRandomNumber.create8DigitKey(); //인증번호 생성
-        String receiver = receivers.get(0);
-        
-        log.info("인증 번호 : " + key);
-        log.info("보내는 대상 : "+ receiver);
-
-        
-        String subject = ("[커런트] 회원가입 인증 코드: "); //메일 제목
-
-        // 메일 내용 메일의 subtype을 html로 지정하여 html문법 사용 가능
-        String content="";
-        content += "<h1 style=\"font-size: 30px; padding-right: 30px; padding-left: 30px;\">이메일 주소 확인</h1>";
-        content += "<p style=\"font-size: 17px; padding-right: 30px; padding-left: 30px;\">아래 확인 코드를 회원가입 화면에서 입력해주세요.</p>";
-        content += "<div style=\"padding-right: 30px; padding-left: 30px; margin: 32px 0 40px;\"><table style=\"border-collapse: collapse; border: 0; background-color: #F4F4F4; height: 70px; table-layout: fixed; word-wrap: break-word; border-radius: 6px;\"><tbody><tr><td style=\"text-align: center; vertical-align: middle; font-size: 30px;\">";
-        content += key;
-        content += "</td></tr></tbody></table></div>";
-
+    public void sendSimpleMessage(List<String> receivers, String subject, String content) throws Exception {
         try{
-            redisUtil.setDataExpire(key, receiver, 300 * 1L);
             sendEmailService.send(subject, content, receivers); // 메일 발송
         }catch(IllegalArgumentException es){
             throw new IllegalArgumentException();
         }
 
-    }
-
-    public void verifyEmail(String key, RequiredAuth requiredAuth) throws IllegalArgumentException {
-        String memberEmail = redisUtil.getData(key);
-        if (memberEmail == null) {
-            throw new IllegalArgumentException();
-        }
-        String email = redisUtil.getData(key);
-        redisUtil.deleteData(key);
-        redisUtil.setDataExpire(email, requiredAuth.getId(), 500 * 1L);
-    }
-
-    public void isAuthenticatedEmail(String email, RequiredAuth requiredAuth) {
-        if(redisUtil.hasKey(email) && redisUtil.getData(email).equals(requiredAuth.getId())) {
-            redisUtil.deleteData(email);
-        } else {
-            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
-        }
     }
 }
