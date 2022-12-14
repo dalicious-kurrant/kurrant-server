@@ -43,7 +43,10 @@ jobs:
         docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
 
     - name: 배포
-      run: docker compose up --build -d --remove-orphans
+      run: |
+        pwd
+        cd app-public-api
+        docker-compose up --build -d --remove-orphans
 
 #    - name: 배포
 #      uses: appleboy/ssh-action@master
