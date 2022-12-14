@@ -41,16 +41,19 @@ jobs:
         docker build -t kurrant_v1 .
         docker tag kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
         docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
+
     - name: 배포
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ubuntu
-        key: ${{ secrets.PRIVATE_KEY }}
-        envs: GITHUB_SHA
-        script: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
-          docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
-          docker stop kurrant_v1
-          sleep 5
-          docker run -d --rm --name kurrant_v1 -p 8882:8882 kurrant_v1
+      run: docker compose up --build -d --remove-orphans
+
+#    - name: 배포
+#      uses: appleboy/ssh-action@master
+#      with:
+#        host: ${{ secrets.HOST }}
+#        username: ubuntu포
+#        envs: GITHUB_SHA
+#        script: |
+#          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
+#          docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
+#          docker stop kurrant_v1
+#          sleep 5
+#          docker run -d --rm --name kurrant_v1 -p 8882:8882 kurrant_v1
