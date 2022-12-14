@@ -1,0 +1,12 @@
+version: "3"
+services:
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+  kurrant_v1:
+    build: .
+    ports:
+      - 8882:8882
+    depends_on:
+      - redis

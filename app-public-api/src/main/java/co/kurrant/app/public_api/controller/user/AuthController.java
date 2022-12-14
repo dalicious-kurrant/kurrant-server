@@ -1,13 +1,11 @@
 package co.kurrant.app.public_api.controller.user;
 
-import co.dalicious.client.external.sms.SmsService;
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.AuthService;
 import co.dalicious.client.external.mail.EmailService;
 import co.dalicious.client.external.mail.MailMessageDto;
-import co.dalicious.client.external.sms.NaverSmsServiceImpl;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;

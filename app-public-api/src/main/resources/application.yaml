@@ -52,7 +52,6 @@ spring:
   activemq:
     broker-url:
 
-
 springdoc:
   api-docs:
     path: /api-docs
