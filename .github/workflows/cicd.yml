@@ -47,7 +47,7 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ubuntu
-        key: ${{ secrets.PRIVATE_KEY }
+        key: ${{ secrets.PRIVATE_KEY }}
         envs: GITHUB_SHA
         script: |
           cd app-public-api
