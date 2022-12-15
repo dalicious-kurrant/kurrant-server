@@ -6,9 +6,7 @@ services:
       - 6379:6379
     container_name: redis
   kurrant_v1:
-    build:
-      context: ./
-      dockerfile: Dockerfile
+    image: dalicious77/kurrant_v1
     ports:
       - 8882:8882
     container_name: kurrant_v1
