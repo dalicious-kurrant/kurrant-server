@@ -11,6 +11,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - 8882:8882
-    container_name: dalicious77/kurrant_v1
+    container_name: kurrant_v1
     depends_on:
       - redis
