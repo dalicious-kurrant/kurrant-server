@@ -4,9 +4,11 @@ services:
     image: redis
     ports:
       - 6379:6379
+    container_name: redis
   kurrant_v1:
     build: .
     ports:
       - 8882:8882
+    container_name: kurrant_v1
     depends_on:
       - redis

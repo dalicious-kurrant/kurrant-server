@@ -1,21 +1,12 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "SpringShop API",
-    "description": "Spring shop sample application",
-    "license": {
-      "name": "Apache 2.0",
-      "url": "http://springdoc.org"
-    },
-    "version": "v0.0.1"
-  },
-  "externalDocs": {
-    "description": "SpringShop Wiki Documentation",
-    "url": "https://springshop.wiki.github.org/docs"
+    "title": "OpenAPI definition",
+    "version": "v0"
   },
   "servers": [
     {
-      "url": "http://localhost:8882",
+      "url": "http://localhost:6012",
       "description": "Generated server url"
     }
   ],
@@ -299,6 +290,102 @@
         }
       }
     },
+    "/v1/auth/inquiry/password": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "비밀번호 찾기시 회원정보 확인",
+        "description": "비밀번호 변경을 요청하는 유저가 유효한지 검사한다.",
+        "operationId": "findUserPasswordUserCheck",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindPasswordUserCheckRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/inquiry/password/phone": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "비밀번호 찾기 휴대폰으로 비밀번호 재설정",
+        "description": "비밀번호를 재설정한다.",
+        "operationId": "findUserPasswordPhone",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindPasswordPhoneRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/inquiry/password/email": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "비밀번호 찾기 이메일로 비밀번호 재설정",
+        "description": "비밀번호를 재설정한다.",
+        "operationId": "findUserPasswordEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindPasswordEmailRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/auth/certification/phone": {
       "get": {
         "tags": [
@@ -345,6 +432,16 @@
         "summary": "휴대폰 인증번호 발송",
         "description": "휴대폰 인증번호를 발송한다.",
         "operationId": "smsConfirm",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -415,6 +512,16 @@
         "summary": "이메일 인증번호 발송",
         "description": "이메일 인증번호를 발송한다.",
         "operationId": "mailConfirm",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -432,6 +539,76 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/api-docs": {
+      "get": {
+        "tags": [
+          "open-api-controller-web-mvc"
+        ],
+        "operationId": "getDocumentation",
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/hal+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/api-docs": {
+      "get": {
+        "tags": [
+          "swagger-2-controller-web-mvc"
+        ],
+        "operationId": "getDocumentation_1",
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/hal+json": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -541,6 +718,50 @@
         }
       }
     },
+    "/v1/foods/dailyfoods": {
+      "get": {
+        "tags": [
+          "3. Food"
+        ],
+        "summary": "식단 불러오기",
+        "description": "특정스팟의 원하는 날짜의 식단을 조회한다.",
+        "operationId": "getDailyFood",
+        "parameters": [
+          {
+            "name": "spotId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "selectedDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DailyFoodDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/auth/inquiry/id": {
       "get": {
         "tags": [
@@ -551,11 +772,11 @@
         "operationId": "findUserEmail",
         "parameters": [
           {
-            "name": "changePhoneRequestDto",
+            "name": "findIdRequestDto",
             "in": "query",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/ChangePhoneRequestDto"
+              "$ref": "#/components/schemas/FindIdRequestDto"
             }
           }
         ],
@@ -566,6 +787,69 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/swagger-resources": {
+      "get": {
+        "tags": [
+          "api-resource-controller"
+        ],
+        "operationId": "swaggerResources",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SwaggerResource"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/swagger-resources/configuration/ui": {
+      "get": {
+        "tags": [
+          "api-resource-controller"
+        ],
+        "operationId": "uiConfiguration",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UiConfiguration"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/swagger-resources/configuration/security": {
+      "get": {
+        "tags": [
+          "api-resource-controller"
+        ],
+        "operationId": "securityConfiguration",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityConfiguration"
                 }
               }
             }
@@ -671,6 +955,48 @@
           }
         },
         "description": "회원가입 시 프론트에서 보내주는 요청을 담아주는 Dto"
+      },
+      "FindPasswordUserCheckRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "description": "비밀번호 찾기 요청 DTO"
+      },
+      "FindPasswordPhoneRequestDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "passwordCheck": {
+            "type": "string"
+          }
+        },
+        "description": "비밀번호 찾기시 휴대폰 인증을 통해 비밀번호를 재설정을 위한 요청 DTO"
+      },
+      "FindPasswordEmailRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "passwordCheck": {
+            "type": "string"
+          }
+        },
+        "description": "비밀번호 찾기시 이메일 인증을 통해 비밀번호를 재설정을 위한 요청 DTO"
       },
       "SmsMessageRequestDto": {
         "type": "object",
@@ -909,8 +1235,9 @@
             "type": "string",
             "format": "date-time"
           },
-          "emailAddressVerified": {
-            "type": "boolean"
+          "recentLoginDateTime": {
+            "type": "string",
+            "format": "date-time"
           },
           "password": {
             "type": "string",
@@ -995,6 +1322,200 @@
           }
         },
         "description": "마이페이지에서 내 정보 응답 DTO"
+      },
+      "DailyFoodDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "makers": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "diningType": {
+            "type": "string",
+            "enum": [
+              "NULL",
+              "MORNING",
+              "LUNCH",
+              "DINNER"
+            ]
+          },
+          "img": {
+            "type": "string"
+          },
+          "spicy": {
+            "type": "string",
+            "enum": [
+              "NULL",
+              "Level1",
+              "Level2",
+              "Level3"
+            ]
+          },
+          "isSoldOut": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "식단 응답 DTO"
+      },
+      "FindIdRequestDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string"
+          }
+        },
+        "description": "아이디 찾기 요청 DTO"
+      },
+      "SwaggerResource": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "swaggerVersion": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "deprecated": true
+          }
+        }
+      },
+      "UiConfiguration": {
+        "type": "object",
+        "properties": {
+          "deepLinking": {
+            "type": "boolean"
+          },
+          "displayOperationId": {
+            "type": "boolean"
+          },
+          "defaultModelsExpandDepth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "defaultModelExpandDepth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "defaultModelRendering": {
+            "type": "string",
+            "enum": [
+              "example",
+              "model"
+            ]
+          },
+          "displayRequestDuration": {
+            "type": "boolean"
+          },
+          "docExpansion": {
+            "type": "string",
+            "enum": [
+              "none",
+              "list",
+              "full"
+            ]
+          },
+          "filter": {
+            "type": "object"
+          },
+          "maxDisplayedTags": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "operationsSorter": {
+            "type": "string",
+            "enum": [
+              "alpha",
+              "method"
+            ]
+          },
+          "showExtensions": {
+            "type": "boolean"
+          },
+          "showCommonExtensions": {
+            "type": "boolean"
+          },
+          "tagsSorter": {
+            "type": "string",
+            "enum": [
+              "alpha"
+            ]
+          },
+          "validatorUrl": {
+            "type": "string"
+          },
+          "supportedSubmitMethods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "swaggerBaseUiUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "SecurityConfiguration": {
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string",
+            "deprecated": true
+          },
+          "apiKeyVehicle": {
+            "type": "string",
+            "deprecated": true
+          },
+          "apiKeyName": {
+            "type": "string",
+            "deprecated": true
+          },
+          "clientId": {
+            "type": "string"
+          },
+          "clientSecret": {
+            "type": "string"
+          },
+          "realm": {
+            "type": "string"
+          },
+          "appName": {
+            "type": "string"
+          },
+          "scopeSeparator": {
+            "type": "string"
+          },
+          "additionalQueryStringParams": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "useBasicAuthenticationWithAccessCodeGrant": {
+            "type": "boolean"
+          },
+          "enableCsrfSupport": {
+            "type": "boolean"
+          }
+        }
       }
     }
   }

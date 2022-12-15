@@ -52,7 +52,7 @@ jobs:
 #      uses: appleboy/ssh-action@master
 #      with:
 #        host: ${{ secrets.HOST }}
-#        username: ubuntu포
+#        username: ubuntu
 #        envs: GITHUB_SHA
 #        script: |
 #          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
