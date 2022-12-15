@@ -38,8 +38,6 @@ jobs:
       run: |
         docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
         cd app-public-api
-        pwd
-        ls
         docker build -t kurrant_v1 .
         docker tag kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
         docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
@@ -52,8 +50,7 @@ jobs:
         key: ${{ secrets.PRIVATE_KEY }}
         envs: GITHUB_SHA
         script: |
-          pwd
-          cd kurrant-server/app-public-api
+          cd /home/runner/work/kurrant-server/kurrant-server/app-public-api
           docker rm -f $(docker ps -qa)
           docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
           docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
