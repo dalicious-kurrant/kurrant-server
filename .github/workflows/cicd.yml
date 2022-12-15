@@ -47,11 +47,13 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ubuntu
-        key: ${{ sec4rets.PRIVATE_KEY }
+        key: ${{ secrets.PRIVATE_KEY }
         envs: GITHUB_SHA
         script: |
-          sudo docker rm -f $(docker ps -qa)
-          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1
+          cd app-public-api
+          docker rm -f $(docker ps -qa)
+          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
           docker-compose up -d
           docker image prune -f
 #          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
