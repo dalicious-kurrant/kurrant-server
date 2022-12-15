@@ -43,18 +43,17 @@ jobs:
         docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
 
     - name: 배포
-      run: |
-        pwd
-        cd app-public-api
-        docker-compose up --build -d --remove-orphans
-
-#    - name: 배포
-#      uses: appleboy/ssh-action@master
-#      with:
-#        host: ${{ secrets.HOST }}
-#        username: ubuntu
-#        envs: GITHUB_SHA
-#        script: |
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ubuntu
+        key: ${{ sec4rets.PRIVATE_KEY }
+        envs: GITHUB_SHA
+        script: |
+          sudo docker rm -f $(docker ps -qa)
+          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1
+          docker-compose up -d
+          docker image prune -f
 #          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
 #          docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
 #          docker stop kurrant_v1
