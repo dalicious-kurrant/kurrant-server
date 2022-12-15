@@ -66,6 +66,7 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
           docker stop kurrant_v1
           sleep 5
-          docker run -d --rm --name kurrant_v1 -p 8882:8882 kurrant_v1
+          docker network rm bridge docker-bridge
+          docker run -d --rm --net redis-bridge --name kurrant_v1 -p 8882:8882 kurrant_v1
           
 
