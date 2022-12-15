@@ -25,7 +25,7 @@ server:
 
 spring:
   profiles:
-    active: prod, mail, sms, redis, jwt, s3 # 기본 프로파일 설정
+    active: local, mail, sms, redis, jwt, s3 # 기본 프로파일 설정
     
   servlet:
     multipart: # 최대 파일 크기 설정
