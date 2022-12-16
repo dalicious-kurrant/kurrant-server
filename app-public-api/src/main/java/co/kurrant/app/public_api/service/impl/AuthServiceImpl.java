@@ -5,6 +5,7 @@ import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
 import co.dalicious.data.redis.CertificationHash;
 import co.dalicious.data.redis.CertificationHashRepository;
 import co.dalicious.data.redis.RedisUtil;
+import co.dalicious.domain.user.dto.ProviderEmailDto;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.RequiredAuth;
@@ -223,9 +224,13 @@ public class AuthServiceImpl implements AuthService {
         );
 
         // 아이디 찾기 응답 Response 생성
-        List<String> connectedSns = new ArrayList<>();
+        List<ProviderEmailDto> connectedSns = new ArrayList<>();
         for(ProviderEmail providerEmail : user.getProviderEmails()) {
-            connectedSns.add(providerEmail.getProvider().getProvider());
+            ProviderEmailDto providerEmailDto = ProviderEmailDto.builder()
+                    .provider(providerEmail.getProvider().getProvider())
+                    .email(providerEmail.getEmail())
+                    .build();
+            connectedSns.add(providerEmailDto);
         }
         return FindIdResponseDto.builder()
                 .connectedSns(connectedSns)

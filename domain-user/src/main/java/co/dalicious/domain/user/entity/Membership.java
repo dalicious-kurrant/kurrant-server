@@ -2,6 +2,7 @@ package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -53,4 +54,12 @@ public class Membership {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Builder
+    public Membership(MembershipSubscriptionType membershipSubscriptionType, LocalDate startDate, LocalDate endDate, Boolean auto_payment, User user) {
+        this.membershipSubscriptionType = membershipSubscriptionType;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.auto_payment = auto_payment;
+        this.user = user;
+    }
 }
