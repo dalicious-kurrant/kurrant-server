@@ -3,24 +3,15 @@ package co.kurrant.app.public_api;
 import co.dalicious.data.redis.CertificationHash;
 import co.dalicious.data.redis.CertificationHashRepository;
 import co.dalicious.data.redis.RedisUtil;
-import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.Role;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
-import co.dalicious.system.util.RequiredAuth;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
+
 
 class PublicApplicationTests {
 	@Autowired

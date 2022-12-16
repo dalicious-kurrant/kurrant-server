@@ -26,7 +26,6 @@ import java.security.NoSuchAlgorithmException;
 @RequestMapping(value = "/v1/auth")
 @RestController
 public class AuthController {
-    private final EmailService emailService;
     private final VerifyUtil verifyUtil;
     private final AuthService authService;
 
@@ -67,7 +66,7 @@ public class AuthController {
     }
 
     @Operation(summary = "아이디 찾기", description = "유저의 아이디를 찾는다.")
-    @GetMapping("/inquiry/id")
+    @PostMapping("/inquiry/id")
     public ResponseMessage findUserEmail(@RequestBody FindIdRequestDto findIdRequestDto) {
         return ResponseMessage.builder()
                 .message("아이디 찾기에 성공하였습니다.")
@@ -89,7 +88,7 @@ public class AuthController {
     public ResponseMessage findUserPasswordEmail(@RequestBody FindPasswordEmailRequestDto findPasswordEmailRequestDto) {
         authService.findPasswordEmail(findPasswordEmailRequestDto);
         return ResponseMessage.builder()
-                .message("비밀번호 찾기에 성공하였습니다.")
+                .message("비밀번호가 변경되었습니다.")
                 .build();
     }
 
@@ -98,7 +97,7 @@ public class AuthController {
     public ResponseMessage findUserPasswordPhone(@RequestBody FindPasswordPhoneRequestDto findPasswordPhoneRequestDto) {
         authService.findPasswordPhone(findPasswordPhoneRequestDto);
         return ResponseMessage.builder()
-                .message("비밀번호 찾기에 성공하였습니다.")
+                .message("비밀번호가 변경되었습니다.")
                 .build();
     }
 

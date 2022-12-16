@@ -242,6 +242,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void findPasswordEmail(FindPasswordEmailRequestDto findPasswordEmailRequestDto) {
         // 비밀번호 일치/조건 체크
         String password = findPasswordEmailRequestDto.getPassword();
@@ -261,6 +262,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void findPasswordPhone(FindPasswordPhoneRequestDto findPasswordPhoneRequestDto) {
         // 인증을 진행한 유저인지 체크
         verifyUtil.isAuthenticated(findPasswordPhoneRequestDto.getPhone(), RequiredAuth.FIND_PASSWORD);
