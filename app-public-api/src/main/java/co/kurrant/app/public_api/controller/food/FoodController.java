@@ -23,7 +23,7 @@ public class FoodController {
 
     @Operation(summary = "식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
     @GetMapping("/dailyfoods")
-    public List<DailyFoodDto> getDailyFood(Integer spotId, String selectedDate) {
+    public List<DailyFoodDto> getDailyFood(Integer spotId,@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate) {
         return foodService.getDailyFood(spotId, selectedDate);
     }
 

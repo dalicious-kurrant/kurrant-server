@@ -7,23 +7,23 @@ spring:
       on-profile: local # 기본 프로파일 설정
     
 #   DB설정(MySQL)
-#  datasource:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://localhost:3306/kurrant
-#    username: root
-#    password:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/kurrant
+    username: root
+    password:
 
   #DB설정(H2)
-  h2:
-    console:
-      enabled: true
+#  h2:
+#    console:
+#      enabled: true
 
-  datasource:
-    hikari:
-      driver-class-name: org.h2.Driver
-      jdbc-url: jdbc:h2:./kurrant;MODE=MySQL;AUTO_SERVER=TRUE;
-      username: root
-      password:
+#  datasource:
+#    hikari:
+#      driver-class-name: org.h2.Driver
+#      jdbc-url: jdbc:h2:./kurrant;MODE=MySQL;AUTO_SERVER=TRUE;
+#      username: root
+#      password:
 
   jpa:
     properties:
@@ -34,7 +34,7 @@ spring:
     show-sql: true # 사용되는 SQL 콘솔창에 출력
     generate-ddl: true
     hibernate:
-      ddl-auto: create # 객체에 매핑되는 기존 테이블 자동 드랍 및 새로운 테이블 생성, create, none
+      ddl-auto: none # 객체에 매핑되는 기존 테이블 자동 드랍 및 새로운 테이블 생성, create, none
     database-platform: org.hibernate.dialect.H2Dialect
 
   jwt:

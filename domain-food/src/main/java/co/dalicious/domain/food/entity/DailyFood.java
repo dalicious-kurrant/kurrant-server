@@ -12,7 +12,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 @DynamicInsert
@@ -41,7 +43,7 @@ public class DailyFood {
     @Column(name = "e_status")
     private FoodStatus status;
 
-    @Column(name = "isSoldOut")
+    @Column(name = "is_sold_out")
     private Integer isSoldOut;
 
     @Column(name = "food__food_id")

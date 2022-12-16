@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface FoodService {
 
-    List<DailyFoodDto> getDailyFood(Integer spotId, String selectedDate);
+    List<DailyFoodDto> getDailyFood(Integer spotId, LocalDate selectedDate);
 }
