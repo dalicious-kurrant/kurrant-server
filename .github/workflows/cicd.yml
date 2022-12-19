@@ -26,6 +26,69 @@ jobs:
       with:
         java-version: '17'
         distribution: 'adopt'
+
+    - name: app-public-api application-prod.yaml 생성
+      run: |
+        cd ./app-public-api/src/main
+        mkdir resources
+        cd resources
+        touch ./application-prod.yaml
+        echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application-prod.yaml
+
+      shell: bash
+
+    - name: app-public-api application.yaml 생성
+      run: | 
+        cd ./app-public-api/src/main/resources
+        touch ./application.yaml
+        echo "${{ secrets.APP_PUBLIC_API_YAML }}" > ./application.yaml
+      shell: bash
+
+    - name: client-core application-jwt.properties 생성
+      run: |
+        cd ./client-core/src/main
+        mkdir resources
+        cd resources
+        touch ./application-jwt.properties
+        echo "${{ secrets.CLIENT_CORE_JWT_PROPERTIES }}" > ./application-jwt.properties
+      shell: bash
+
+    - name: client-external-mail application-mail.properties 생성
+      run: |
+        cd ./client-external-mail/src/main
+        mkdir resources
+        cd resources
+        touch ./application-mail.properties
+        echo "${{ secrets.CLIENT_EXTERNAL_MAIL_PROPERTIES }}" > ./application-mail.properties
+      shell: bash
+
+    - name: client-external-sms application-mail.properties 생성
+      run: |
+        cd ./client-external-sms/src/main
+        mkdir resources
+        cd resources
+        touch ./application-sms.properties
+        echo "${{ secrets.CLIENT_EXTERNAL_SMS_PROPERTIES }}" > ./application-sms.properties
+      shell: bash
+
+    - name: data-redis application-redis.properties 생성
+      run: |
+        cd ./data-redis/src/main
+        mkdir resources
+        cd resources
+        touch ./application-sms.properties
+        echo "${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}" > ./application-redis.properties
+      shell: bash
+
+    - name: domain-file application-s3.properties 생성
+      run: |
+        cd ./domain-file/src/main
+        mkdir resources
+        cd resources
+        touch ./application-s3.properties
+        echo "${{ secrets.DOMAIN_FILE_S3_PROPERTIES }}" > ./application-s3.properties
+      shell: bash
+
     - name: gradlew 실행 권한 추가
       run: chmod +x gradlew
 
@@ -66,7 +129,6 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
           docker stop kurrant_v1
           sleep 5
-          docker network rm bridge docker-bridge
           docker run -d --rm --net redis-bridge --name kurrant_v1 -p 8882:8882 kurrant_v1
           
 
