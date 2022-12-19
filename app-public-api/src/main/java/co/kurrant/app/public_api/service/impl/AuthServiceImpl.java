@@ -150,7 +150,7 @@ public class AuthServiceImpl implements AuthService {
         Provider provider = Provider.GENERAL;
         userValidator.isEmailValid(provider, mail);
 
-        // 비밀번호 일치/조건 체크
+        // 비밀번호 일치/조건 체
         String password = signUpRequestDto.getPassword();
         userValidator.isPasswordMatched(password, signUpRequestDto.getPasswordCheck());
         userValidator.isValidPassword(password);

@@ -5,14 +5,14 @@ spring:
   config:
     activate:
       on-profile: prod # 기본 프로파일 설정
-    
+
   # DB설정
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ""
     username: 1
     password: 1
-    
+
   jpa:
     properties:
       hibernate:
@@ -24,7 +24,7 @@ spring:
       ddl-auto: none # 객체에 매핑되는 기존 테이블 자동 드랍 및 새로운 테이블 생성, create, none
 
   jwt:
-    secret : ""  
+    secret : ""
     # WeakKeyException 때문에 임시 키 추가함.
     # secret: "goblop!@#" # OAuth 토큰 경로
 
@@ -41,6 +41,6 @@ cloud:
       bucket: ""
     region:
       static: ""
-    
+
 autobegins:
   secretKey: ""

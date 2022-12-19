@@ -131,12 +131,10 @@ public class User {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "corporation_id")
-  @JsonBackReference(value = "corporation-fk")
   private Corporation corporation;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "apartment_id")
-  @JsonBackReference(value = "apartment-fk")
   private Apartment apartment;
 
   @Builder

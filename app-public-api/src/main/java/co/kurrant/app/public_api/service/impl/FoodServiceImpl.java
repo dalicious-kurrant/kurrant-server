@@ -3,6 +3,8 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.FoodStatus;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.impl.mapper.DailyFoodMapper;
@@ -11,6 +13,7 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,17 +26,26 @@ public class FoodServiceImpl implements FoodService {
     private final QDailyFoodRepository qDailyFoodRepository;
 
     @Override
-    public List<DailyFoodDto> getDailyFood(Integer spotId, String selectedDate) {
+    public List<DailyFoodDto> getDailyFood(Integer spotId, LocalDate selectedDate) {
+        //결과값을 담아줄 LIST 생성
         List<DailyFoodDto> resultList = new ArrayList<>();
+        //조건에 맞는 DailyFood 조회
         List<DailyFood> dailyFood =  qDailyFoodRepository.getDailyFood(spotId, selectedDate);
-        System.out.println(dailyFood.size() + " dalilyFood 사이즈 확인");
-        System.out.println(dailyFood.get(0).getDiningType() + " DiningType");
+        //확인
+        System.out.println(dailyFood.size() + " dailyFood 사이즈 확인");
+        System.out.println("LocalDate.from(selectedDate.plusDays(5).atStartOfDay(ZoneId.of(\"Asia/Seoul\") = " + LocalDate.from(selectedDate.plusDays(5).atStartOfDay(ZoneId.of("Asia/Seoul"))));
+        //값이 있다면 결과값으로 담아준다.
         if (!dailyFood.isEmpty()){
-            resultList.add(DailyFoodMapper.INSTANCE.toDto(qDailyFoodRepository.getDailyFood(spotId, selectedDate).get(0)));
+            for (DailyFood food : dailyFood) {
+                resultList.add(DailyFoodMapper.INSTANCE.toDto(food));
+            }
         } else {
-            System.out.println("널..");
-            return null;
+            //값이 NULL일 경우, NPE 방지를 위한 샘플처리
+            DiningType diningType = DiningType.valueOf("MORNING");
+            FoodStatus foodStatus = FoodStatus.ofCode(0);
+            DailyFoodDto dailySample = new DailyFoodDto(0,LocalDate.from(selectedDate.atStartOfDay()), diningType, 0,0,0,foodStatus,LocalDate.from(selectedDate.atStartOfDay()));
+            resultList.add(dailySample);
         }
-        return resultList;
+        return resultList;  //결과값 반환
     }
 }
