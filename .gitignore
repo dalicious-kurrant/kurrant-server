@@ -116,3 +116,6 @@ local.properties
 .DS_Store
 .settings/org.eclipse.buildship.core.prefs
 system-core/.settings/org.eclipse.buildship.core.prefs
+
+**/src/main/resources/
+.properties
