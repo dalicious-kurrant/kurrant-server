@@ -7,10 +7,12 @@ import co.dalicious.domain.order.entity.OrderStatus;
 import co.dalicious.domain.order.entity.OrderType;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
 import co.dalicious.domain.order.repository.OrderRepository;
+import co.dalicious.domain.user.dto.PeriodDto;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.MembershipRepository;
+import co.dalicious.domain.user.util.MembershipUtil;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.MembershipService;
 import exception.ApiException;
@@ -60,43 +62,61 @@ public class MembershipServiceImpl implements MembershipService {
 
         // 결제 진행. 실패시 오류 날림
         BigDecimal price = BigDecimal.valueOf(membershipSubscriptionType.getDiscountedPrice());
-        int statusCode = requestPayment(code, price, 200);
-        // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
-        if(statusCode != 200) {
+
+        try {
+            int statusCode = requestPayment(code, price, 200);
+            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
+            if (statusCode == 200) {
+                order.updateTotalPrice(price);
+                order.updateStatus(OrderStatus.COMPLETED);
+            }
+            // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
+            else {
+                order.updateStatus(OrderStatus.FAILED);
+                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+            }
+        } catch (ApiException e) {
             order.updateStatus(OrderStatus.FAILED);
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
         }
-        // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-        else {
-            order.updateTotalPrice(price);
-            order.updateStatus(OrderStatus.COMPLETED);
+
+        // 이 사람이 기존에 멤버십을 가입했는 지 확인
+        Membership membership = null;
+        PeriodDto periodDto = null;
+
+        if (user.getIsMembership()) {
+            List<Membership> memberships = membershipRepository.findByUserOrderByEndDateDesc(user);
+            if (memberships != null && !memberships.isEmpty()) {
+                Membership recentMembership = memberships.get(0);
+                LocalDate currantEndDate = recentMembership.getEndDate();
+                periodDto = MembershipUtil.getStartAndEndDateMonthly(currantEndDate);
+            }
+        } else {
+            LocalDate now = LocalDate.now();
+            periodDto = MembershipUtil.getStartAndEndDateMonthly(now);
         }
+
+        assert periodDto != null;
 
         // 멤버십 등록
-        Membership membership = null;
-        LocalDate startDate = null;
-        LocalDate endDate = null;
-        // 이 사람이 기존에 멤버십을 가입했는 지 확인
-        if(user.getIsMembership()) {
-            List<Membership> memberships = membershipRepository.findByUserOrderByCreatedDateTimeDesc(user);
-            Membership recentMembership = memberships.get(0);
-            LocalDate currantEndDate = recentMembership.getEndDate();
-            startDate = currantEndDate.plusDays(1);
-            endDate = startDate.plusMonths(1);
+        membership = Membership.builder()
+                .autoPayment(true)
+                .startDate(periodDto.getStartDate())
+                .endDate(periodDto.getEndDate())
+                .build();
 
-            membership = Membership.builder()
-            .auto_payment(true)
-            .startDate(startDate)
-            .endDate(endDate)
-            .build();
-        }
-
-
-
+        membershipRepository.save(membership);
+        user.changeMembershipStatus(true);
     }
 
     @Override
-    public void terminateMembership() {
+    public void terminateMembership(HttpServletRequest httpServletRequest) {
+        // 유저 가져오기
+        User user = commonService.getUser(httpServletRequest);
+
+        // 현재 사용중인 멤버십 가져오기
+        Membership currantMembership = membershipRepository.findByUserAndStartDateBeforeAndEndDateAfter(user, LocalDate.now());
+
 
     }
 
@@ -129,6 +149,7 @@ public class MembershipServiceImpl implements MembershipService {
     public void saveMembershipAutoPayment(HttpServletRequest httpServletRequest) {
 
     }
+
     // 결제 로직 구현. 검증
     public int requestPayment(String paymentCode, BigDecimal price, int statusCode) {
         return statusCode;

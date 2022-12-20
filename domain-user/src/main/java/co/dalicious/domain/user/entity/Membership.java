@@ -40,7 +40,7 @@ public class Membership {
 
     @Column(name = "auto_payment", columnDefinition = "BIT(1)")
     @Comment("멤버십 자동 결제 여부")
-    private Boolean auto_payment;
+    private Boolean autoPayment;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -55,11 +55,11 @@ public class Membership {
     private User user;
 
     @Builder
-    public Membership(MembershipSubscriptionType membershipSubscriptionType, LocalDate startDate, LocalDate endDate, Boolean auto_payment, User user) {
+    public Membership(MembershipSubscriptionType membershipSubscriptionType, LocalDate startDate, LocalDate endDate, Boolean autoPayment, User user) {
         this.membershipSubscriptionType = membershipSubscriptionType;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.auto_payment = auto_payment;
+        this.autoPayment = autoPayment;
         this.user = user;
     }
 }

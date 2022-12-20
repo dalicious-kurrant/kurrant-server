@@ -6,7 +6,7 @@ public interface MembershipService {
     // 유저가 멤버십에 가입한다
     void joinMembership(HttpServletRequest httpServletRequest, String subscriptionType);
     // 유저가 멤버십을 해지한다
-    void terminateMembership();
+    void terminateMembership(HttpServletRequest httpServletRequest);
     // 유저가 멤버십을 환불한다
     void refundMembership();
     // 유저가 멤버십을 이용하는 동안 받았던 정기식사 혜택 금액을 조회한다.
