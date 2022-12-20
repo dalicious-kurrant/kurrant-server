@@ -71,12 +71,15 @@ public class Order {
     }
 
     @Builder
-    public Order(String code, OrderType orderType, OrderStatus orderStatus, BigDecimal totalPrice, String ePaymentType, User user) {
+    public Order(String code, OrderType orderType, OrderStatus orderStatus, String ePaymentType, User user) {
         this.code = code;
         this.orderType = orderType;
         this.orderStatus = orderStatus;
-        this.totalPrice = totalPrice;
         this.ePaymentType = ePaymentType;
         this.user = user;
+    }
+
+    public void updateTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
     }
 }
