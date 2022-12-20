@@ -30,7 +30,6 @@ jobs:
     - name: app-public-api application-prod.yaml 생성
       run: |
         cd ./app-public-api/src/main
-        mkdir resources
         touch ./resources/application-prod.yaml
         echo "${{secrets.APP_PUBLIC_API_PROD_YAML}}" > ./application-prod.yaml
       shell: bash
@@ -45,7 +44,6 @@ jobs:
     - name: client-core application-jwt.properties 생성
       run: |
         cd ./client-core/src/main
-        mkdir resources
         touch ./resources/application-jwt.properties
         echo "${{secrets.CLIENT_CORE_JWT_PROPERTIES}}" > ./application-jwt.properties
       shell: bash
@@ -53,7 +51,6 @@ jobs:
     - name: client-external-mail application-mail.properties 생성
       run: |
         cd ./client-external-mail/src/main
-        mkdir resources
         touch ./resources/application-mail.properties
         echo "${{secrets.CLIENT_EXTERNAL_MAIL_PROPERTIES}}" > ./application-mail.properties
       shell: bash
@@ -61,7 +58,6 @@ jobs:
     - name: client-external-sms application-mail.properties 생성
       run: |
         cd ./client-external-sms/src/main
-        mkdir resources
         touch ./resources/application-sms.properties
         echo "${{secrets.CLIENT_EXTERNAL_SMS_PROPERTIES}}" > ./application-sms.properties
       shell: bash
@@ -69,7 +65,6 @@ jobs:
     - name: data-redis application-redis.properties 생성
       run: |
         cd ./data-redis/src/main
-        mkdir resources
         touch ./resources/application-sms.properties
         echo "${{secrets.DATA_REDIS_REDIS_PROPERTIES}}" > ./application-redis.properties
       shell: bash
@@ -77,7 +72,6 @@ jobs:
     - name: domain-file application-s3.properties 생성
       run: |
         cd ./domain-file/src/main
-        mkdir resources
         touch ./resources/application-s3.properties
         echo "${{secrets.DOMAIN_FILE_S3_PROPERTIES}}" > ./application-s3.properties
       shell: bash
