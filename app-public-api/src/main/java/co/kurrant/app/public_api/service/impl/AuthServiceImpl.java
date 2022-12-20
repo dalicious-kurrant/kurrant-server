@@ -77,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 이메일 폼 작성
-        String key = GenerateRandomNumber.create8DigitKey(); // 8자리 랜덤 인증번호 생성
+        String key = GenerateRandomNumber.create4DigitKey(); // 4자리 랜덤 인증번호 생성
         String receiver = mailMessageDto.getReceivers().get(0);
 
         log.info("인증 번호 : " + key);
@@ -126,7 +126,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 인증번호 발송
-        String key = GenerateRandomNumber.create8DigitKey();
+        String key = GenerateRandomNumber.create4DigitKey();
         String content = "[커런트] 인증번호 [" + key + "]를 입력해주세요";
         SmsResponseDto smsResponseDto = smsService.sendSms(smsMessageRequestDto, content);
 
