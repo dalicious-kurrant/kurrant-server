@@ -29,13 +29,15 @@ jobs:
 
     - name: app-public-api application.yaml 생성
       run: | 
-        cd ./app-public-api/src/main/resources
+        pwd
+        cd app-public-api/src/main/resources
         touch ./application.yaml
         echo "${{secrets.APP_PUBLIC_API_YAML}}" > ./application.yaml
       shell: bash
 
     - name: app-public-api application-prod.yaml 생성
       run: |
+        pwd
         cd ./app-public-api/src/main/resources
         touch ./application-prod.yaml
         echo "${{secrets.APP_PUBLIC_API_PROD_YAML}}" > ./application-prod.yaml
@@ -43,7 +45,6 @@ jobs:
 
     - name: client-core application-jwt.properties 생성
       run: |
-        pwd
         cd ./client-core/src/main/resources
         touch ./application-jwt.properties
         echo "${{secrets.CLIENT_CORE_JWT_PROPERTIES}}" > ./application-jwt.properties
@@ -51,7 +52,6 @@ jobs:
 
     - name: client-external-mail application-mail.properties 생성
       run: |
-        pwd
         cd ./client-external-mail/src/main/resources
         touch ./application-mail.properties
         echo "${{secrets.CLIENT_EXTERNAL_MAIL_PROPERTIES}}" > ./application-mail.properties
