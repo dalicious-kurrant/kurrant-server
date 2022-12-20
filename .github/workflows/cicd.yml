@@ -30,6 +30,7 @@ jobs:
     - name: app-public-api application-prod.yaml 생성
       run: |
         cd ./app-public-api/src/main
+        mkdir resources
         touch ./resources/application-prod.yaml
         echo "${{secrets.APP_PUBLIC_API_PROD_YAML}}" > ./application-prod.yaml
       shell: bash
@@ -37,7 +38,6 @@ jobs:
     - name: app-public-api application.yaml 생성
       run: | 
         cd ./app-public-api/src/main
-        mkdir resources
         touch ./resources/application.yaml
         echo "${{secrets.APP_PUBLIC_API_YAML}}" > ./application.yaml
       shell: bash
