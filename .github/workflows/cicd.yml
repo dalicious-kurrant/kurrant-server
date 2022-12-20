@@ -76,7 +76,7 @@ jobs:
 
     - name: domain-file application-s3.properties 생성
       run: |
-        cd ./domain-file/src/main/resources
+        cd ./domain-file/src/main
         mkdir resources
         touch ./resources/application-s3.properties
         echo "${{secrets.DOMAIN_FILE_S3_PROPERTIES}}" > ./application-s3.properties
