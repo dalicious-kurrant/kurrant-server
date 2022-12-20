@@ -30,6 +30,7 @@ jobs:
     - name: app-public-api application.yaml 생성
       run: | 
         cd ./app-public-api/src/main
+        mkdir resources
         touch ./resources/application.yaml
         echo "${{secrets.APP_PUBLIC_API_YAML}}" > ./application.yaml
       shell: bash
