@@ -2,9 +2,12 @@ package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.order.converter.OrderStatusConverter;
 import co.dalicious.domain.order.converter.OrderTypeConverter;
+import co.dalicious.domain.user.converter.PaymentTypeConverter;
+import co.dalicious.domain.user.entity.PaymentType;
 import co.dalicious.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
@@ -12,15 +15,16 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Entity
 @NoArgsConstructor
+@Getter
 @Table(name = "order__order")
 public class Order {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -38,14 +42,14 @@ public class Order {
     @Comment("결제 진행 상태")
     private OrderStatus orderStatus;
 
-    @NotNull
-    @Column(name = "total_price", nullable = false, precision = 15)
+    @Column(name = "total_price", precision = 15)
+    @Comment("결제 총액")
     private BigDecimal totalPrice;
 
-    @Size(max = 8)
-    @NotNull
-    @Column(name = "e_payment_type", nullable = false, length = 8)
-    private String ePaymentType;
+    @Convert(converter = PaymentTypeConverter.class)
+    @Column(name = "e_payment_type")
+    @Comment("결제 타입")
+    private PaymentType paymentType;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -71,11 +75,11 @@ public class Order {
     }
 
     @Builder
-    public Order(String code, OrderType orderType, OrderStatus orderStatus, String ePaymentType, User user) {
+    public Order(String code, OrderType orderType, OrderStatus orderStatus, PaymentType paymentType, User user) {
         this.code = code;
         this.orderType = orderType;
         this.orderStatus = orderStatus;
-        this.ePaymentType = ePaymentType;
+        this.paymentType = paymentType;
         this.user = user;
     }
 

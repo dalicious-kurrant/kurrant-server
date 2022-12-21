@@ -6,9 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.Calendar;
 import java.util.List;
 
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
     List<Membership> findByUserOrderByEndDateDesc(@NotNull User user);
-    Membership findByUserAndStartDateBeforeAndEndDateAfter(User user, LocalDate now, LocalDate now2);
+    List<Membership> findByUserOrderByEndDateAsc(@NotNull User user);
+    List<Membership> findByUserAndStartDateLessThanEqualAndEndDateGreaterThanEqual(User user, LocalDate givenDate, LocalDate givenDate2);
 }
