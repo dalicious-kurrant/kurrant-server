@@ -62,4 +62,8 @@ public class Membership {
         this.autoPayment = autoPayment;
         this.user = user;
     }
+
+    public void changeAutoPaymentStatus(Boolean autoPayment) {
+       this.autoPayment = autoPayment;
+    }
 }

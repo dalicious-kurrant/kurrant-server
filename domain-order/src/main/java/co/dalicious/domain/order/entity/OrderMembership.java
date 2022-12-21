@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
+import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -29,15 +30,6 @@ public class OrderMembership {
     @Comment("멤버십 결제 PK")
     private Long id;
 
-    @NotNull
-    @Column(name = "e_subscription_type")
-    @Convert(converter = MembershipSubscriptionTypeConverter.class)
-    @Comment("멤버십 구독 타입(월간/연간)")
-    private MembershipSubscriptionType membershipSubscriptionType;
-
-    @Column(name = "discount_rate")
-    @Comment("멤버십 구매 할인율")
-    private int discount_rate;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -58,10 +50,14 @@ public class OrderMembership {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
+    @NotNull
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "membership_id", nullable = false)
+    private Membership membership;
+
     @Builder
-    public OrderMembership(MembershipSubscriptionType membershipSubscriptionType, int discount_rate, Order order) {
-        this.membershipSubscriptionType = membershipSubscriptionType;
-        this.discount_rate = discount_rate;
+    public OrderMembership(Order order, Membership membership) {
         this.order = order;
+        this.membership = membership;
     }
 }
