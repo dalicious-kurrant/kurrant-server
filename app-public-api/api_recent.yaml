@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:6012",
+      "url": "http://localhost:8882",
       "description": "Generated server url"
     }
   ],
@@ -386,6 +386,38 @@
         }
       }
     },
+    "/v1/auth/inquiry/id": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "아이디 찾기",
+        "description": "유저의 아이디를 찾는다.",
+        "operationId": "findUserEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindIdRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/auth/certification/phone": {
       "get": {
         "tags": [
@@ -741,7 +773,8 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "date"
             }
           }
         ],
@@ -755,38 +788,6 @@
                   "items": {
                     "$ref": "#/components/schemas/DailyFoodDto"
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/auth/inquiry/id": {
-      "get": {
-        "tags": [
-          "1. Auth"
-        ],
-        "summary": "아이디 찾기",
-        "description": "유저의 아이디를 찾는다.",
-        "operationId": "findUserEmail",
-        "parameters": [
-          {
-            "name": "findIdRequestDto",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/FindIdRequestDto"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseMessage"
                 }
               }
             }
@@ -938,16 +939,13 @@
           "email": {
             "type": "string"
           },
-          "certificationNumber": {
+          "phone": {
             "type": "string"
           },
           "password": {
             "type": "string"
           },
           "passwordCheck": {
-            "type": "string"
-          },
-          "phone": {
             "type": "string"
           },
           "name": {
@@ -997,6 +995,15 @@
           }
         },
         "description": "비밀번호 찾기시 이메일 인증을 통해 비밀번호를 재설정을 위한 요청 DTO"
+      },
+      "FindIdRequestDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string"
+          }
+        },
+        "description": "아이디 찾기 요청 DTO"
       },
       "SmsMessageRequestDto": {
         "type": "object",
@@ -1330,18 +1337,9 @@
             "type": "integer",
             "format": "int32"
           },
-          "makers": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "price": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "description": {
-            "type": "string"
+          "created": {
+            "type": "string",
+            "format": "date"
           },
           "diningType": {
             "type": "string",
@@ -1352,33 +1350,34 @@
               "DINNER"
             ]
           },
-          "img": {
-            "type": "string"
-          },
-          "spicy": {
-            "type": "string",
-            "enum": [
-              "NULL",
-              "Level1",
-              "Level2",
-              "Level3"
-            ]
+          "foodId": {
+            "type": "integer",
+            "format": "int32"
           },
           "isSoldOut": {
             "type": "integer",
             "format": "int32"
+          },
+          "spotId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SALES_END",
+              "SALES",
+              "REQUEST",
+              "APPROVAL",
+              "WAITING"
+            ]
+          },
+          "updated": {
+            "type": "string",
+            "format": "date"
           }
         },
         "description": "식단 응답 DTO"
-      },
-      "FindIdRequestDto": {
-        "type": "object",
-        "properties": {
-          "phone": {
-            "type": "string"
-          }
-        },
-        "description": "아이디 찾기 요청 DTO"
       },
       "SwaggerResource": {
         "type": "object",

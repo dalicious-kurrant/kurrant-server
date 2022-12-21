@@ -12,6 +12,11 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequiredArgsConstructor
 public class MembershipController {
+    @Operation(summary = "멤버십 이용내역", description = "유저의 멤버십 이용 내역을 조회한다.")
+    @GetMapping("/")
+    public void retrieveMembership(HttpServletRequest httpServletRequest) {
+    }
+
     @Operation(summary = "멤버십 구매", description = "유저가 멤버십에 가입한다")
     @PostMapping("/{subscriptionType}")
     public void joinMembership(HttpServletRequest httpServletRequest, @PathVariable String subscriptionType) {

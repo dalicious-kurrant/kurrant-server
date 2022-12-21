@@ -10,5 +10,5 @@ import java.util.List;
 
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
     List<Membership> findByUserOrderByEndDateDesc(@NotNull User user);
-    Membership findByUserAndStartDateBeforeAndEndDateAfter(User user, LocalDate date);
+    Membership findByUserAndStartDateBeforeAndEndDateAfter(User user, LocalDate now, LocalDate now2);
 }

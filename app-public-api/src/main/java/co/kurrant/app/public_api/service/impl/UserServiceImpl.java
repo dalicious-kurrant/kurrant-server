@@ -10,6 +10,7 @@ import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
+import co.kurrant.app.public_api.service.impl.mapper.UserHomeInfoMapper;
 import co.kurrant.app.public_api.service.impl.mapper.UserInfoMapper;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
@@ -52,6 +53,12 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final FoodRepository foodRepository;
+
+    @Override
+    public UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest) {
+        User user = commonService.getUser(httpServletRequest);
+        return UserHomeInfoMapper.INSTANCE.toDto(user);
+    }
 
     @Override
     public void editSnsAccount(HttpServletRequest httpServletRequest, String sns) {

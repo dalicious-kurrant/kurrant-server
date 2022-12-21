@@ -115,7 +115,10 @@ public class MembershipServiceImpl implements MembershipService {
         User user = commonService.getUser(httpServletRequest);
 
         // 현재 사용중인 멤버십 가져오기
-        Membership currantMembership = membershipRepository.findByUserAndStartDateBeforeAndEndDateAfter(user, LocalDate.now());
+        Membership currantMembership = membershipRepository.findByUserAndStartDateBeforeAndEndDateAfter(user, LocalDate.now(), LocalDate.now());
+
+        // 현재 이용중인 멤버십의 자동 결제 여부를 확인 후 변경
+
 
 
     }

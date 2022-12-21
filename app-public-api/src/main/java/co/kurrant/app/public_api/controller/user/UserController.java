@@ -2,10 +2,7 @@ package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.domain.user.dto.OrderDetailDto;
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.kurrant.app.public_api.dto.user.ChangeMarketingDto;
-import co.kurrant.app.public_api.dto.user.ChangePasswordRequestDto;
-import co.kurrant.app.public_api.dto.user.ChangePhoneRequestDto;
-import co.kurrant.app.public_api.dto.user.UserInfoDto;
+import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +28,12 @@ import java.util.Date;
 public class UserController {
 
     private final UserService userService;
+
+    @Operation(summary = "홈 유저 정보 가져오기", description = "로그인 한 유저의 정보를 불러온다.")
+    @GetMapping("/userInfo")
+    public UserHomeResponseDto userHomeInfo(HttpServletRequest httpServletRequest) {
+        return userService.getUserHomeInfo(httpServletRequest);
+    }
 
     @Operation(summary = "유저정보 가져오기", description = "로그인 한 유저의 정보를 불러온다.")
     @GetMapping("/me")
