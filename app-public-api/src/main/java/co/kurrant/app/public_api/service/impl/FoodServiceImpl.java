@@ -32,8 +32,7 @@ public class FoodServiceImpl implements FoodService {
         //조건에 맞는 DailyFood 조회
         List<DailyFood> dailyFood =  qDailyFoodRepository.getDailyFood(spotId, selectedDate);
         //확인
-        System.out.println(dailyFood.size() + " dailyFood 사이즈 확인");
-        System.out.println("LocalDate.from(selectedDate.plusDays(5).atStartOfDay(ZoneId.of(\"Asia/Seoul\") = " + LocalDate.from(selectedDate.plusDays(5).atStartOfDay(ZoneId.of("Asia/Seoul"))));
+        System.out.println(" dailyFood 사이즈 확인 : " + dailyFood.size());
         //값이 있다면 결과값으로 담아준다.
         if (!dailyFood.isEmpty()){
             for (DailyFood food : dailyFood) {
