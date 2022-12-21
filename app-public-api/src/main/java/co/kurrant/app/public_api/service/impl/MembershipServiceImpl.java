@@ -13,8 +13,10 @@ import co.dalicious.domain.user.entity.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
+import co.kurrant.app.public_api.dto.user.MembershipDto;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.MembershipService;
+import co.kurrant.app.public_api.service.impl.mapper.MembershipMapper;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,6 +36,17 @@ public class MembershipServiceImpl implements MembershipService {
     private final MembershipRepository membershipRepository;
     private final OrderMembershipRepository orderMembershipRepository;
     private final OrderRepository orderRepository;
+
+    @Override
+    public List<MembershipDto> retrieveMembership(HttpServletRequest httpServletRequest) {
+        User user = commonService.getUser(httpServletRequest);
+        List<Membership> memberships = membershipRepository.findByUserOrderByEndDateDesc(user);
+        List<MembershipDto> membershipDtos = new ArrayList<>();
+        for(Membership membership : memberships) {
+            membershipDtos.add(MembershipMapper.INSTANCE.toDto(membership));
+        }
+        return membershipDtos;
+    }
 
     @Override
     @Transactional
