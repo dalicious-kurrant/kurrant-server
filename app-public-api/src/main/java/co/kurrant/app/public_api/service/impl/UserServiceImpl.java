@@ -1,10 +1,9 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.order.entity.OrderDetail;
-import co.dalicious.domain.order.entity.OrderDetail;
+import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.domain.order.repository.OrderDetailRepository;
+import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
@@ -15,7 +14,6 @@ import co.kurrant.app.public_api.service.impl.mapper.UserInfoMapper;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import co.dalicious.client.external.sms.NaverSmsServiceImpl;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.service.CommonService;
 import co.dalicious.domain.user.dto.OrderDetailDto;
@@ -51,7 +49,7 @@ public class UserServiceImpl implements UserService {
     private final VerifyUtil verifyUtil;
     private final ProviderEmailRepository providerEmailRepository;
     private final UserRepository userRepository;
-    private final OrderDetailRepository orderDetailRepository;
+    private final OrderItemRepository orderItemRepository;
     private final FoodRepository foodRepository;
 
     @Override
@@ -245,7 +243,7 @@ public class UserServiceImpl implements UserService {
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
         System.out.println(startDate +" startDate, " + endDate +" endDate");
-        List<OrderDetail> byServiceDateBetween = orderDetailRepository.findByServiceDateBetween(startDate, endDate);
+        List<OrderItem> byServiceDateBetween = orderItemRepository.findByServiceDateBetween(startDate, endDate);
 
         byServiceDateBetween.forEach( x -> {
             orderDetailDto.setId(x.getId());

@@ -1,6 +1,6 @@
 package co.dalicious.domain.order.repository;
 
-import co.dalicious.domain.order.entity.OrderDetail;
+import co.dalicious.domain.order.entity.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,9 +10,9 @@ import java.util.List;
 
 
 @Repository
-public interface OrderDetailRepository extends JpaRepository<OrderDetail, BigInteger> {
+public interface OrderItemRepository extends JpaRepository<OrderItem, BigInteger> {
 
-    List<OrderDetail> findByServiceDateBetween(Date startDate, Date endDate);
+    List<OrderItem> findByServiceDateBetween(Date startDate, Date endDate);
 
-    List<OrderDetail> findAll();
+    List<OrderItem> findAll();
 }
