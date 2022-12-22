@@ -13,7 +13,8 @@ public enum OrderStatus {
     PROCESSING("처리중", 4L),
     ON_HOLD("보류중", 5L),
     CANCELED("취소", 6L),
-    REFUNDED("환불", 7L);
+    MANUAL_REFUNDED("수동 환불", 7L),
+    AUTO_REFUND("자동 환불", 8L);
 
     private final String orderStatus;
     private final Long code;

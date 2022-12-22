@@ -1,5 +1,6 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.user.converter.MembershipStatusConverter;
 import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
@@ -22,6 +23,12 @@ public class Membership {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private Long id;
+
+    @NotNull
+    @Column(name = "e_membership_status")
+    @Convert(converter = MembershipStatusConverter.class)
+    @Comment("멤버십 구독 상태")
+    private MembershipStatus membershipStatus;
 
     @NotNull
     @Column(name = "e_subscription_type")
@@ -55,7 +62,8 @@ public class Membership {
     private User user;
 
     @Builder
-    public Membership(MembershipSubscriptionType membershipSubscriptionType, LocalDate startDate, LocalDate endDate, Boolean autoPayment, User user) {
+    public Membership(MembershipStatus membershipStatus, MembershipSubscriptionType membershipSubscriptionType, LocalDate startDate, LocalDate endDate, Boolean autoPayment, User user) {
+        this.membershipStatus = membershipStatus;
         this.membershipSubscriptionType = membershipSubscriptionType;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -65,5 +73,9 @@ public class Membership {
 
     public void changeAutoPaymentStatus(Boolean autoPayment) {
        this.autoPayment = autoPayment;
+    }
+
+    public void changeMembershipStatus(MembershipStatus membershipStatus) {
+        this.membershipStatus = membershipStatus;
     }
 }
