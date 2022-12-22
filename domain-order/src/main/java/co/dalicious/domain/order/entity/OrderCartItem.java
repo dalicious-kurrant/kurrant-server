@@ -1,6 +1,6 @@
 package co.dalicious.domain.order.entity;
 
-import co.dalicious.domain.order.converter.OrderStatusConverter;
+import co.dalicious.domain.food.entity.Food;
 import co.dalicious.system.util.DiningType;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.Date;
+import java.time.LocalDate;
 
 @DynamicInsert
 @DynamicUpdate
@@ -26,26 +26,20 @@ public class OrderCartItem {
     private Integer id;
 
     @CreationTimestamp
-    @Column(name = "created_datetime", nullable = false,
+    @Column(name = "created_datetime",
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("생성일")
-    private Date created;
+    private LocalDate created;
 
-    @UpdateTimestamp
     @Column(name = "updated_datetime",
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
-    private Date updated;
+    private LocalDate updated;
 
     @Column(name = "service_date", nullable = false,
             columnDefinition = "TIMESTAMP(6)")
     @Comment("서비스 날짜")
-    private Date serviceDate;
-
-
-    @Column(name = "is_check")
-    @Comment("중복여부")
-    private Boolean check;
+    private LocalDate serviceDate;
 
     @Column(name = "price")
     @Comment("가격")
@@ -59,26 +53,30 @@ public class OrderCartItem {
     @Comment("수량")
     private Integer count;
 
-    @Column(name = "order__cart_id")
-    @Comment("주문 ID")
-    private Integer cartId;
+    @ManyToOne
+    @JoinColumn(name = "cart_id")
+    @Comment("장바구니 ID")
+    private OrderCart orderCart;
 
-    @Column(name = "food__food_id")
-    @Comment("식품 ID")
-    private Integer foodId;
+
+    @ManyToOne
+    @JoinColumn(name="food_id")
+    @Comment("장바구니에 담긴 음식 ID")
+    private Food foodId;
+
+
 
     @Builder
-    public OrderCartItem(Integer id, Date created, Date updated, Date serviceDate,
-                         Boolean check, Integer price, DiningType diningType, Integer count, Integer cartId, Integer foodId){
+    public OrderCartItem(Integer id, LocalDate created, LocalDate updated, LocalDate serviceDate,
+                         Integer price, DiningType diningType, Integer count, OrderCart orderCart, Food foodId){
         this.id = id;
         this.created = created;
         this.updated = updated;
         this.serviceDate = serviceDate;
-        this.check = check;
         this.price = price;
         this.diningType = diningType;
         this.count = count;
-        this.cartId = cartId;
+        this.orderCart = orderCart;
         this.foodId = foodId;
     }
 }

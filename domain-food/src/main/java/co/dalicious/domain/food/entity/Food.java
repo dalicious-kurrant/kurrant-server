@@ -1,15 +1,16 @@
 package co.dalicious.domain.food.entity;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @DynamicInsert
 @DynamicUpdate
@@ -20,6 +21,7 @@ import javax.persistence.Table;
 public class Food {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
 
@@ -37,5 +39,15 @@ public class Food {
 
     @Column(name = "description")
     private String description;
+
+    @Builder
+    Food(Integer id, String name, Integer price, String img, String makersId, String description){
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.img = img;
+        this.makersId = makersId;
+        this.description = description;
+    }
 
 }

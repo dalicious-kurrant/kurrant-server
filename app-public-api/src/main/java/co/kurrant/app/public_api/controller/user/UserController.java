@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.controller.user;
 
+import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.user.dto.OrderDetailDto;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.public_api.dto.user.*;
@@ -41,10 +42,19 @@ public class UserController {
         return userService.getUserInfo(httpServletRequest);
     }
 
-    @GetMapping("v1/users/me/order")
+    @GetMapping("/me/order")
     public OrderDetailDto userOrderbyDate(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate){
         return userService.findOrderByServiceDate(startDate, endDate);
+    }
+
+    @PostMapping("/me/order/cart")
+    public ResponseMessage saveOrderCart(HttpServletRequest httpServletRequest,
+                                         @RequestBody OrderCartDto orderCartDto){
+        userService.saveOrderCart(httpServletRequest, orderCartDto);
+        return ResponseMessage.builder()
+                .message("장바구니에 상품을 추가했습니다.")
+                .build();
     }
 
     @Operation(summary = "SNS 계정 연결 및 해제", description = "SNS 계정을 연결하거나 해제한다.")

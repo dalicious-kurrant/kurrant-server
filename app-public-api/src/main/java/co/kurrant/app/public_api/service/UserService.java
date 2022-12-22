@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.user.dto.OrderDetailDto;
 import co.dalicious.domain.user.entity.User;
 import java.util.Date;
@@ -36,4 +37,6 @@ public interface UserService {
     User findAll();
 
     OrderDetailDto findOrderByServiceDate(Date startDate, Date endDate);
+
+    void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto);
 }
