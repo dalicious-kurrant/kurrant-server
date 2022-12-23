@@ -648,11 +648,12 @@
         }
       }
     },
-    "/v1/users/v1/users/me/order": {
+    "/v1/users/me/order": {
       "get": {
         "tags": [
           "2. User"
         ],
+        "summary": "개인 주문 정보 조회",
         "operationId": "userOrderbyDate",
         "parameters": [
           {
@@ -684,6 +685,130 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/v1/users/me/order/cart": {
+      "post": {
+        "tags": [
+          "2. User"
+        ],
+        "summary": "장바구니 담기",
+        "operationId": "userCartSave",
+        "parameters": [
+          {
+            "name": "foodId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer" ,
+              "format": "integer"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "integer"
+            }
+          },
+          {
+            "name": "serviceDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "diningType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/users/me/order/cart/": {
+      "get": {
+        "tags": [
+          "2. User"
+        ],
+        "summary": "장바구니 조회",
+        "description": "뒤에 '/'는 중복키를 피하기위해서 붙임",
+        "operationId": "findUserCart",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserCartDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/me/order/cart//": {
+      "delete": {
+        "tags": [
+          "2. User"
+        ],
+        "summary": "장바구니 전체 삭제",
+        "description": "뒤에 '//'는 중복키를 피하기위해서 붙임",
+        "operationId": "deleteUserCart",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/users/me/order/cart///": {
+      "patch" : {
+        "tags": [
+          "2. User"
+        ],
+        "summary": "장바구니 수량 수정",
+        "description": "뒤에 '///'는 중복키를 피하기위해서 붙임",
+        "operationId": "patchUserCart",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "integer"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "integer"
+            }
+          },
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
