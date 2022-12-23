@@ -2,6 +2,8 @@ package co.dalicious.system.util;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class DateUtils {
@@ -21,5 +23,10 @@ public class DateUtils {
     SimpleDateFormat sdf;
     sdf = new SimpleDateFormat(formatString);
     return sdf.format(date);
+  }
+
+  public static String format(LocalDate date, String formatString) {
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatString);
+      return date.format(formatter);
   }
 }

@@ -6,8 +6,8 @@ import java.util.Arrays;
 
 @Getter
 public enum MembershipSubscriptionType {
-    MONTH("월간 구독", 12000.0, 0,1L),
-    YEAR("연간 구독",144000, 20, 2L);
+    MONTH("월간구독", 12000.0, 0,1L),
+    YEAR("연간구독",144000.0, 20, 2L);
 
     private final String membershipSubscriptionType;
     private final double price;

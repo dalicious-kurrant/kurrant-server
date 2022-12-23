@@ -5,6 +5,8 @@ import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.repository.UserRepository;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import net.bytebuddy.asm.Advice;
 import org.springframework.stereotype.Component;
@@ -24,7 +26,7 @@ public class MembershipUtil {
     // 월간 멤버십 회원권 구매시, 멤버십 기간 설정
     public static PeriodDto getStartAndEndDateMonthly(LocalDate paidDate) {
         int day = paidDate.getDayOfMonth();
-        if(day <= 28) {
+        if (day <= 28) {
             return PeriodDto.builder()
                     .startDate(paidDate)
                     .endDate(paidDate.plusMonths(1))
@@ -36,6 +38,7 @@ public class MembershipUtil {
                     .build();
         }
     }
+
     // 연간 멤버십 회원권 구매시, 멤버십 기간 설정
     public static PeriodDto getStartAndEndDateYearly(LocalDate paidDate) {
         LocalDate endDate = paidDate.plusYears(1);
@@ -45,8 +48,9 @@ public class MembershipUtil {
                 .endDate(endDate)
                 .build();
     }
-    // 멤버십 이용 기간 출력
-    public int getPeriodOfUsingMembership(User user) {
+
+    // 현재까지의 멤버십 이용 기간 출력
+    public int getUserPeriodOfUsingMembership(User user) {
         List<Membership> membershipList = membershipRepository.findByUserOrderByEndDateDesc(user);
         List<Membership> autoPaymentMembership = membershipList.stream()
                 .takeWhile(Membership::getAutoPayment).toList();
@@ -67,4 +71,19 @@ public class MembershipUtil {
         Period period = firstPaidDate.until(now);
         return period.getMonths() + 1;
     }
+
+    // 시작날짜와 종료날짜로 멤버십 이용 개월 반환
+    public static int getPeriodWithStartAndEndDate(LocalDate startDate, LocalDate endDate) {
+        Period period = startDate.until(endDate);
+        return period.getYears() * 12 + period.getMonths();
+    }
+
+    // 현재 유효한 멤버십인지 확인
+    public static Boolean isValidMembership(Membership membership) {
+        LocalDate now = LocalDate.now();
+        LocalDate startDate = membership.getStartDate();
+        LocalDate endDate = membership.getEndDate();
+        return (now.isAfter(startDate) || now.equals(startDate)) && (now.isBefore(endDate) || now.equals(endDate));
+    }
+
 }

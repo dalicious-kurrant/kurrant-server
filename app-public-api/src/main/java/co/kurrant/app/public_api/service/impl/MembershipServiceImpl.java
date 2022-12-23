@@ -1,6 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.order.OrderUtil;
+import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderMembership;
 import co.dalicious.domain.order.entity.OrderStatus;
@@ -8,18 +8,17 @@ import co.dalicious.domain.order.entity.OrderType;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
 import co.dalicious.domain.order.repository.OrderRepository;
 import co.dalicious.domain.user.dto.PeriodDto;
-import co.dalicious.domain.user.entity.Membership;
-import co.dalicious.domain.user.entity.MembershipSubscriptionType;
-import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.kurrant.app.public_api.dto.user.MembershipDto;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.MembershipService;
-import co.kurrant.app.public_api.service.impl.mapper.MembershipMapper;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +26,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -36,21 +36,50 @@ public class MembershipServiceImpl implements MembershipService {
     private final MembershipRepository membershipRepository;
     private final OrderMembershipRepository orderMembershipRepository;
     private final OrderRepository orderRepository;
-
+    private final BigDecimal DELIVERY_FEE = new BigDecimal("2200.0");
+    private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = BigDecimal.valueOf(MembershipSubscriptionType.YEAR.getDiscountedPrice() / 12);
+    private final BigDecimal DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH = BigDecimal.valueOf(MembershipSubscriptionType.MONTH.getPrice()).subtract(REFUND_YEARLY_MEMBERSHIP_PER_MONTH);
     @Override
     public List<MembershipDto> retrieveMembership(HttpServletRequest httpServletRequest) {
         User user = commonService.getUser(httpServletRequest);
-        List<Membership> memberships = membershipRepository.findByUserOrderByEndDateDesc(user);
+        // 멤버십 종료 날짜의 오름차순으로 멤버십 정보를 조회한다.
+
+        // create a specification to specify the conditions of the query
+        Specification<Membership> specification = (root, query, builder) ->
+                builder.and(
+                        builder.equal(root.get("user"), user),
+                        builder.in(root.get("membershipStatus")).value(1).value(2)
+                );
+
+        // create a Sort object to specify the ordering of the query
+        Sort sort = Sort.by(Sort.Direction.ASC, "endDate");
+
+        // execute the query using the repository
+        List<Membership> memberships = membershipRepository.findAll(specification, sort);
+
         List<MembershipDto> membershipDtos = new ArrayList<>();
-        for(Membership membership : memberships) {
-            membershipDtos.add(MembershipMapper.INSTANCE.toDto(membership));
+        int membershipUsingPeriod = 0;
+        for (Membership membership : memberships) {
+            // 총 이용 기간을 계산한다.
+            membershipUsingPeriod += MembershipUtil.getPeriodWithStartAndEndDate(membership.getStartDate(), membership.getEndDate());
+            // membershipDto를 생성한다.
+            MembershipDto membershipDto = MembershipDto.builder()
+                    .membershipUsingPeriod(membershipUsingPeriod)
+                    .price(BigDecimal.valueOf(membership.getMembershipSubscriptionType().getPrice()))
+                    .startDate(membership.getStartDate())
+                    .endDate(membership.getEndDate())
+                    .build();
+            membershipDtos.add(membershipDto);
         }
+        // 멤버십 종료 날짜의 내림차순으로 멤버십 이용내역을 반환한다.
+        Collections.reverse(membershipDtos);
         return membershipDtos;
     }
 
     @Override
     @Transactional
     public void joinMembership(HttpServletRequest httpServletRequest, String subscriptionType) {
+        // TODO: 현재, 멤버십을 중복 가입할 수 있게 만들어졌지만, 수정 필요
         // 유저 가져오기
         User user = commonService.getUser(httpServletRequest);
 
@@ -60,6 +89,7 @@ public class MembershipServiceImpl implements MembershipService {
         String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
         Order order = Order.builder()
                 .user(user)
+                .paymentType(PaymentType.BANK_TRANSFER)
                 .orderStatus(OrderStatus.PENDING_PAYMENT)
                 .orderType(OrderType.MEMBERSHIP)
                 .code(code)
@@ -67,12 +97,6 @@ public class MembershipServiceImpl implements MembershipService {
         orderRepository.save(order);
 
         MembershipSubscriptionType membershipSubscriptionType = MembershipSubscriptionType.valueOf(subscriptionType);
-        OrderMembership orderMembership = OrderMembership.builder()
-                .membershipSubscriptionType(membershipSubscriptionType)
-                .discount_rate(membershipSubscriptionType.getDiscountRate())
-                .order(order)
-                .build();
-        orderMembershipRepository.save(orderMembership);
 
         // 결제 진행. 실패시 오류 날림
         BigDecimal price = BigDecimal.valueOf(membershipSubscriptionType.getDiscountedPrice());
@@ -103,11 +127,17 @@ public class MembershipServiceImpl implements MembershipService {
             if (memberships != null && !memberships.isEmpty()) {
                 Membership recentMembership = memberships.get(0);
                 LocalDate currantEndDate = recentMembership.getEndDate();
-                periodDto = MembershipUtil.getStartAndEndDateMonthly(currantEndDate);
+                // 구독 타입에 따라 기간 정하기
+                periodDto = (membershipSubscriptionType.equals(MembershipSubscriptionType.MONTH)) ?
+                        MembershipUtil.getStartAndEndDateMonthly(currantEndDate) :
+                        MembershipUtil.getStartAndEndDateYearly(currantEndDate);
             }
         } else {
             LocalDate now = LocalDate.now();
-            periodDto = MembershipUtil.getStartAndEndDateMonthly(now);
+            // 구독 타입에 따라 기간 정하기
+            periodDto = (membershipSubscriptionType.equals(MembershipSubscriptionType.MONTH)) ?
+                    MembershipUtil.getStartAndEndDateMonthly(now) :
+                    MembershipUtil.getStartAndEndDateYearly(now);
         }
 
         assert periodDto != null;
@@ -115,31 +145,115 @@ public class MembershipServiceImpl implements MembershipService {
         // 멤버십 등록
         membership = Membership.builder()
                 .autoPayment(true)
+                .membershipSubscriptionType(membershipSubscriptionType)
+                .user(user)
                 .startDate(periodDto.getStartDate())
                 .endDate(periodDto.getEndDate())
+                .membershipStatus(MembershipStatus.PROCESSING)
                 .build();
-
         membershipRepository.save(membership);
+
+        // 멤버십 결제 내역 등록
+        OrderMembership orderMembership = OrderMembership.builder()
+                .order(order)
+                .membership(membership)
+                .build();
+        orderMembershipRepository.save(orderMembership);
+
         user.changeMembershipStatus(true);
     }
 
     @Override
-    public void terminateMembership(HttpServletRequest httpServletRequest) {
-        // 유저 가져오기
-        User user = commonService.getUser(httpServletRequest);
+    @Transactional
+    public void refundMembership(User user, Order order, Membership membership) {
+        BigDecimal price = BigDecimal.ZERO;
 
-        // 현재 사용중인 멤버십 가져오기
-        Membership currantMembership = membershipRepository.findByUserAndStartDateBeforeAndEndDateAfter(user, LocalDate.now(), LocalDate.now());
+        List<Order> dailyFoodOrders = orderRepository.findByUserAndOrderType(user, OrderType.DAILYFOOD);
+        // 정기 식사 배송비 계산
+        price = price.add(DELIVERY_FEE.multiply(BigDecimal.valueOf(dailyFoodOrders.size())));
 
-        // 현재 이용중인 멤버십의 자동 결제 여부를 확인 후 변경
+        // 정기 식사 할인율 계산
 
+        // 마켓 상품 할인 계산
+        List<Order> productDiscountedPrice = orderRepository.findByUserAndOrderType(user, OrderType.PRODUCT);
 
+        // 결제금액 가져오기
+        BigDecimal paidPrice = BigDecimal.valueOf(membership.getMembershipSubscriptionType().getDiscountedPrice());
 
+        // 월간 구독권인지, 연간 구독권인지 구분 필요
+        int period = 0;
+        if(membership.getMembershipSubscriptionType().equals(MembershipSubscriptionType.YEAR)) {
+            period = MembershipUtil.getPeriodWithStartAndEndDate(membership.getStartDate(), LocalDate.now());
+            // Day가 일치하지 않으면 1을 추가한다. -> 2022-12-22과 2023-01-21은 0의 결과 값이 나오므로.
+            if(membership.getStartDate().getDayOfMonth() > LocalDate.now().getDayOfMonth()) {
+                period++;
+            }
+            paidPrice = paidPrice.subtract(DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH.multiply(BigDecimal.valueOf(period)));
+        }
+
+        // 주문 상태 변경
+        order.updateStatus(OrderStatus.AUTO_REFUND);
+        // TODO: 결제 취소.
+        OrderUtil.refundOrderMembership(user, order, membership);
+        // TODO: 지불한 금액이 사용한 금액보다 크다면 환불 필요.
+        if(paidPrice.compareTo(price) > 0) {
+            BigDecimal refundPrice = paidPrice.subtract(price);
+            // TODO: Order / OrderMembership 생성
+        }
     }
 
     @Override
-    public void refundMembership() {
+    @Transactional
+    public void unsubscribeMembership(HttpServletRequest httpServletRequest) {
+        // 유저 가져오기
+        User user = commonService.getUser(httpServletRequest);
 
+        // 멤버십 사용중인 유저인지 가져오기
+        if(!user.getIsMembership()) {
+            throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
+        }
+
+        // 현재 사용중인 멤버십 가져오기
+        List<Membership> memberships =
+        membershipRepository.findByUserAndStartDateLessThanEqualAndEndDateGreaterThanEqual(user, LocalDate.now(), LocalDate.now());
+
+        if (memberships.isEmpty()) {
+            throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
+        }
+
+        Order currantMembershipOrder = null;
+        // 주문 상태가 "완료됨"이 아닌 경우, 주문 조회 목록에서 삭제
+        for(Membership membership : memberships) {
+            Order order = orderMembershipRepository.findByMembership(membership).getOrder();
+            if(!order.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+                memberships.remove(membership);
+            }
+            currantMembershipOrder = order;
+        }
+        if(memberships.size() > 1) {
+            throw new ApiException(ExceptionEnum.DUPLICATED_MEMBERSHIP);
+        }
+
+        Membership currantMembership = memberships.get(0);
+        /* 현재 멤버십이 존재하지 않는다면 에러 발생.
+        if(!MembershipUtil.isValidMembership(currantMembership)) {
+            throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
+        } */
+
+        // 멤버십 주문 내역 가져오기
+
+
+
+        // 사용한 날짜 계산하기
+        int membershipUsingDays = currantMembership.getStartDate().until(LocalDate.now()).getDays();
+
+        // 7일 이하일 경우 멤버십 환불
+        if(membershipUsingDays <= 7){
+            refundMembership(user, currantMembershipOrder, currantMembership);
+            return;
+        }
+
+        currantMembership.changeAutoPaymentStatus(false);
     }
 
     @Override
