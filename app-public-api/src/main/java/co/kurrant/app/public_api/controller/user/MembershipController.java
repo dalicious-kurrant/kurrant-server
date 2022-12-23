@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 public class MembershipController {
     private final MembershipService membershipService;
     @Operation(summary = "멤버십 이용내역", description = "유저의 멤버십 이용 내역을 조회한다.")
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseMessage retrieveMembership(HttpServletRequest httpServletRequest) {
         return ResponseMessage.builder()
                 .data(membershipService.retrieveMembership(httpServletRequest))

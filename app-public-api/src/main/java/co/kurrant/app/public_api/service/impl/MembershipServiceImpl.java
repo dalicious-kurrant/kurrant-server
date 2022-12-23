@@ -64,6 +64,8 @@ public class MembershipServiceImpl implements MembershipService {
             membershipUsingPeriod += MembershipUtil.getPeriodWithStartAndEndDate(membership.getStartDate(), membership.getEndDate());
             // membershipDto를 생성한다.
             MembershipDto membershipDto = MembershipDto.builder()
+                    .id(membership.getId())
+                    .membershipSubscriptionType(membership.getMembershipSubscriptionType().getMembershipSubscriptionType())
                     .membershipUsingPeriod(membershipUsingPeriod)
                     .price(BigDecimal.valueOf(membership.getMembershipSubscriptionType().getPrice()))
                     .startDate(membership.getStartDate())
@@ -166,6 +168,7 @@ public class MembershipServiceImpl implements MembershipService {
     @Override
     @Transactional
     public void refundMembership(User user, Order order, Membership membership) {
+        // TODO: 연간구독 해지시, membership endDate update.
         BigDecimal price = BigDecimal.ZERO;
 
         List<Order> dailyFoodOrders = orderRepository.findByUserAndOrderType(user, OrderType.DAILYFOOD);

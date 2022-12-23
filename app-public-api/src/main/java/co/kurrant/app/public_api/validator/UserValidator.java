@@ -26,8 +26,8 @@ public class UserValidator {
     }
 
     public void isEmailValid(Provider provider, String email) {
-        List<ProviderEmail> providerEmailList = providerEmailRepository.findAllByProviderAndEmail(provider, email);
-        if(!providerEmailList.isEmpty()) {
+        Optional<ProviderEmail> providerEmail = providerEmailRepository.findAllByProviderAndEmail(provider, email);
+        if(providerEmail.isPresent()) {
             throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
         }
     }

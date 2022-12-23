@@ -3,7 +3,6 @@ package co.kurrant.app.public_api.service;
 import co.dalicious.client.external.mail.MailMessageDto;
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -20,6 +19,8 @@ public interface AuthService {
     User signUp(SignUpRequestDto signUpRequestDto);
     // 로그인
     LoginResponseDto login(LoginRequestDto loginRequestDto);
+    // SNS 로그인 / 회원가입
+    LoginResponseDto snsLoginOrJoin(String sns, SnsAccessToken snsAccessToken);
     // 아이디 찾기
     FindIdResponseDto findUserEmail(FindIdRequestDto findIdRequestDto);
     // 비밀번호 찾기시 회원 정보 확인

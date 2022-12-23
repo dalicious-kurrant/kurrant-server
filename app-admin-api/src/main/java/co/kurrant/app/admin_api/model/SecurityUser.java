@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SecurityUser implements UserDetails {
+public class SecurityUser implements  UserDetails {
 
   private static final long serialVersionUID = -4493193809465704737L;
 
