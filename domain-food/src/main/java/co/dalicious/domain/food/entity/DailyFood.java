@@ -1,6 +1,8 @@
 package co.dalicious.domain.food.entity;
 
+import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.FoodStatus;
+import co.dalicious.system.util.converter.DiningTypeConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -8,10 +10,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,11 +25,13 @@ import java.time.LocalDateTime;
 public class DailyFood {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
 
+    @Convert(converter = DiningTypeConverter.class)
     @Column(name = "dining_type")
-    private String diningType;
+    private DiningType diningType;
 
     @CreationTimestamp
     @Column(name = "created", columnDefinition = "DATE")
@@ -46,8 +47,9 @@ public class DailyFood {
     @Column(name = "is_sold_out")
     private Integer isSoldOut;
 
-    @Column(name = "food__food_id")
-    private Integer foodId;
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "food__food_id")
+    private Food food;
 
     @Column(name = "client__spot_id")
     private Integer spotId;
