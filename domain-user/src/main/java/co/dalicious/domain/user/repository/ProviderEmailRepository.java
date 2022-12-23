@@ -8,9 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProviderEmailRepository extends JpaRepository<ProviderEmail, BigInteger> {
-    List<ProviderEmail> findAllByProviderAndEmail(@Size(max = 16) Provider provider, @Size(max = 64) String email);
+    Optional<ProviderEmail> findAllByProviderAndEmail(@Size(max = 16) Provider provider, @Size(max = 64) String email);
     List<ProviderEmail> findAllByEmail(@Size(max = 64) String email);
     List<ProviderEmail> findAllByUser(User user);
 }

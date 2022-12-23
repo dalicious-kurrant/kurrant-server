@@ -56,9 +56,9 @@ subprojects {
 	    annotationProcessor "org.mapstruct:mapstruct-processor:${mapStructVersion}"
 	    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
 
-        //MySQL
-//        runtimeOnly 'mysql:mysql-connector-java'
-        implementation 'com.h2database:h2:1.4.200'
+//        MySQL
+        runtimeOnly 'mysql:mysql-connector-java'
+//        implementation 'com.h2database:h2:1.4.200'
 	    
 	    /*
 	        this example uses lombok directly over the annotationProcessor,
@@ -130,11 +130,12 @@ task cleanGeneatedDir(type: Delete) {
 project(':app-public-api') {
     dependencies {
         implementation project(':system-core')
+        implementation project(':client-core')
+        implementation project(':client-oauth')
         implementation project(':domain-user')
         implementation project(':domain-food')
         implementation project(':domain-client')
         implementation project(':domain-order')
-        implementation project(':client-core')
         implementation project(':domain-file')
         implementation project(':client-external-mail')
         implementation project(':client-external-sms')
@@ -163,6 +164,13 @@ project(':client-external-bizppurio') {
 project(':client-core') {
     dependencies {
         implementation project(':system-core')
+    }
+}
+
+project(':client-oauth') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-user')
     }
 }
 project(':domain-address') {

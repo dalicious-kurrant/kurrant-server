@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 import javax.persistence.*;
@@ -19,7 +18,6 @@ import javax.validation.constraints.Size;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.user.converter.GourmetTypeConverter;
 import co.dalicious.domain.user.converter.RoleConverter;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import org.hibernate.annotations.*;
@@ -68,7 +66,7 @@ public class User {
     private Timestamp recentLoginDateTime;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Column(name = "password", nullable = false,
+    @Column(name = "password",
             columnDefinition = "VARCHAR(255)")
     @Comment("사용자 비밀번호, BCrpypt")
     private String password;

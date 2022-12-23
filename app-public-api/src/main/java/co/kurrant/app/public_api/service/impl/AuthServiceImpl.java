@@ -2,9 +2,10 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.external.sms.SmsService;
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
+import co.dalicious.client.oauth.SnsLoginResponseDto;
+import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.data.redis.CertificationHash;
 import co.dalicious.data.redis.CertificationHashRepository;
-import co.dalicious.data.redis.RedisUtil;
 import co.dalicious.domain.user.dto.ProviderEmailDto;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
@@ -17,7 +18,6 @@ import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.client.external.mail.EmailService;
 import co.dalicious.client.external.mail.MailMessageDto;
 import co.dalicious.client.external.sms.dto.SmsResponseDto;
-import co.dalicious.client.external.sms.NaverSmsServiceImpl;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.kurrant.app.public_api.service.AuthService;
@@ -39,6 +39,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -55,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
     private final SmsService smsService;
     private final VerifyUtil verifyUtil;
     private final CertificationHashRepository certificationHashRepository;
+    private final SnsLoginService snsLoginService;
 
     // 이메일 인증
     @Override
@@ -62,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
         // 인증을 요청하는 위치 파악하기
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
         switch (requiredAuth) {
-            case SIGNUP :
+            case SIGNUP:
                 // 기존에 가입된 사용자인지 확인
                 Provider provider = Provider.GENERAL;
                 String mail = mailMessageDto.getReceivers().get(0);
@@ -70,9 +72,7 @@ public class AuthServiceImpl implements AuthService {
                 break;
             case FIND_PASSWORD:
                 // 존재하는 유저인지 확인
-                User user = userRepository.findByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(
-                        () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
-                );
+                User user = userRepository.findByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
                 break;
         }
 
@@ -81,13 +81,13 @@ public class AuthServiceImpl implements AuthService {
         String receiver = mailMessageDto.getReceivers().get(0);
 
         log.info("인증 번호 : " + key);
-        log.info("보내는 대상 : "+ receiver);
+        log.info("보내는 대상 : " + receiver);
 
 
         String subject = ("[커런트] 회원가입 인증 코드: "); //메일 제목
 
         // 메일 내용 메일의 subtype을 html로 지정하여 html문법 사용 가능
-        String content="";
+        String content = "";
         content += "<h1 style=\"font-size: 30px; padding-right: 30px; padding-left: 30px;\">이메일 주소 확인</h1>";
         content += "<p style=\"font-size: 17px; padding-right: 30px; padding-left: 30px;\">아래 확인 코드를 회원가입 화면에서 입력해주세요.</p>";
         content += "<div style=\"padding-right: 30px; padding-left: 30px; margin: 32px 0 40px;\"><table style=\"border-collapse: collapse; border: 0; background-color: #F4F4F4; height: 70px; table-layout: fixed; word-wrap: break-word; border-radius: 6px;\"><tbody><tr><td style=\"text-align: center; vertical-align: middle; font-size: 30px;\">";
@@ -98,12 +98,7 @@ public class AuthServiceImpl implements AuthService {
         emailService.sendSimpleMessage(mailMessageDto.getReceivers(), subject, content);
 
         // Redis에 인증번호 저장
-        CertificationHash certificationHash = CertificationHash.builder()
-                .id(null)
-                .type(type)
-                .to(receiver)
-                .certificationNumber(key)
-                .build();
+        CertificationHash certificationHash = CertificationHash.builder().id(null).type(type).to(receiver).certificationNumber(key).build();
         certificationHashRepository.save(certificationHash);
     }
 
@@ -119,9 +114,7 @@ public class AuthServiceImpl implements AuthService {
                 break;
             case FIND_ID, FIND_PASSWORD:
                 // 유저가 존재하는지 확인
-                User user = userRepository.findByPhone(smsMessageRequestDto.getTo()).orElseThrow(
-                        () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
-                );
+                User user = userRepository.findByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
                 break;
         }
 
@@ -131,12 +124,7 @@ public class AuthServiceImpl implements AuthService {
         SmsResponseDto smsResponseDto = smsService.sendSms(smsMessageRequestDto, content);
 
         // Redis에 인증번호 저장
-        CertificationHash certificationHash = CertificationHash.builder()
-                .id(null)
-                .type(type)
-                .to(smsMessageRequestDto.getTo())
-                .certificationNumber(key)
-                .build();
+        CertificationHash certificationHash = CertificationHash.builder().id(null).type(type).to(smsMessageRequestDto.getTo()).certificationNumber(key).build();
         certificationHashRepository.save(certificationHash);
     }
 
@@ -151,7 +139,7 @@ public class AuthServiceImpl implements AuthService {
         Provider provider = Provider.GENERAL;
         userValidator.isEmailValid(provider, mail);
 
-        // 비밀번호 일치/조건 체
+        // 비밀번호 일치/조건 체크
         String password = signUpRequestDto.getPassword();
         userValidator.isPasswordMatched(password, signUpRequestDto.getPasswordCheck());
         userValidator.isValidPassword(password);
@@ -164,13 +152,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 기존에 회원가입을 한 이력이 없는 유저라면 -> 유저 생성
         if (user == null) {
-            UserDto userDto = UserDto.builder()
-                    .email(signUpRequestDto.getEmail())
-                    .phone(signUpRequestDto.getPhone())
-                    .password(hashedPassword)
-                    .name(signUpRequestDto.getName())
-                    .role(Role.USER)
-                    .build();
+            UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
 
             // Corporation과 Apartment가 null로 대입되는 오류 발생 -> nullable = true 설정
             user = UserMapper.INSTANCE.toEntity(userDto);
@@ -179,13 +161,23 @@ public class AuthServiceImpl implements AuthService {
             user = userRepository.save(user);
         }
 
-        ProviderEmail providerEmail = ProviderEmail.builder()
-                .email(mail)
-                .provider(Provider.GENERAL)
-                .user(user)
-                .build();
+        ProviderEmail providerEmail = ProviderEmail.builder().email(mail).provider(Provider.GENERAL).user(user).build();
         providerEmailRepository.save(providerEmail);
         return user;
+    }
+
+    // 유저 인증 완료 후 토큰 발급
+    public LoginResponseDto returnAccessToken(User user) {
+        // 토큰에 권한 넣기
+        List<String> authorities = new ArrayList<String>();
+        authorities.add(user.getRole().getAuthority());
+        String accessToken = jwtTokenProvider.createToken(user.getId().toString(), authorities);
+
+        // 로그인 날짜 업데이트
+        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
+        user.updateRecentLoginDateTime(timestamp);
+
+        return LoginResponseDto.builder().accessToken(accessToken).expiresIn(86400).build();
     }
 
     // 로그인
@@ -200,16 +192,76 @@ public class AuthServiceImpl implements AuthService {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
         }
 
-        // 토큰에 권한 넣기
-        List<String> arr = new ArrayList<String>();
-        arr.add(user.getRole().getAuthority());
-        String accessToken = jwtTokenProvider.createToken(user.getId().toString(), arr);
+        return returnAccessToken(user);
+    }
 
-        // 로그인 날짜 업데이트
-        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
-        user.updateRecentLoginDateTime(timestamp);
+    @Override
+    @Transactional
+    public LoginResponseDto snsLoginOrJoin(String sns, SnsAccessToken snsAccessToken) {
+        Provider provider = Provider.valueOf(sns);
+        // Vendor 로그인 시도
+        SnsLoginResponseDto snsLoginResponseDto = switch (provider) {
+            case NAVER -> snsLoginService.getNaverLoginUserInfo(snsAccessToken.getSnsAccessToken());
+            case KAKAO -> snsLoginService.getKakaoLoginUserInfo(snsAccessToken.getSnsAccessToken());
+            case GOOGLE -> snsLoginService.getGoogleLoginUserInfo(snsAccessToken.getSnsAccessToken());
+            case APPLE -> snsLoginService.getAppleLoginUserInfo(snsAccessToken.getSnsAccessToken());
+            case FACEBOOK -> snsLoginService.getFacebookLoginUserInfo(snsAccessToken.getSnsAccessToken());
+            default -> null;
+        };
 
-        return LoginResponseDto.builder().accessToken(accessToken).expiresIn(86400).build();
+        // Response 값이 존재하지 않으면 예외 발생
+        if(snsLoginResponseDto == null) {
+            throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
+        }
+
+        String email = snsLoginResponseDto.getEmail();
+        String phone = snsLoginResponseDto.getPhone();
+        String name = snsLoginResponseDto.getName();
+
+        // 해당 아이디를 가지고 있는 유저가 존재하지는 지 확인.
+        Optional<ProviderEmail> providerEmail = providerEmailRepository.findAllByProviderAndEmail(provider, email);
+
+        // 이미 소셜로그인으로 가입한 이력이 있는 유저라면 토큰 발행
+        if(providerEmail.isPresent()) {
+            User user = providerEmail
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND))
+                    .getUser();
+            return returnAccessToken(user);
+        }
+
+        // 소셜 로그인으로 가입한 이력은 없지만, 소셜 로그인 이메일과 ProviderEmail에 동일한 이메일이 있는지 확인
+        List<ProviderEmail> providerEmails = providerEmailRepository.findAllByEmail(email);
+        // 동일한 이메일로 가입한 이력이 있는 유저를 가져온다.
+        if(!providerEmails.isEmpty()) {
+            User user = providerEmails.get(0).getUser();
+            ProviderEmail newProviderEmail = ProviderEmail.builder()
+                    .provider(provider)
+                    .email(snsLoginResponseDto.getEmail())
+                    .user(user)
+                    .build();
+            providerEmailRepository.save(newProviderEmail);
+            return returnAccessToken(user);
+        }
+
+        // 어떤 것도 가입되지 않은 유저라면 계정 생성
+        UserDto userDto = UserDto.builder()
+                .role(Role.USER)
+                .email(email)
+                .phone(phone)
+                .name(name)
+                .build();
+
+        User user = UserMapper.INSTANCE.toEntity(userDto);
+        userRepository.save(user);
+
+        ProviderEmail newProviderEmail2 = ProviderEmail.builder()
+                .provider(provider)
+                .email(snsLoginResponseDto.getEmail())
+                .user(user)
+                .build();
+        providerEmailRepository.save(newProviderEmail2);
+        return returnAccessToken(user);
+
     }
 
     @Override
@@ -219,31 +271,20 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findIdRequestDto.phone, RequiredAuth.FIND_ID);
 
         // 유저 가져오기
-        User user = userRepository.findByPhone(findIdRequestDto.getPhone()).orElseThrow(
-                () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
-        );
+        User user = userRepository.findByPhone(findIdRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
 
         // 아이디 찾기 응답 Response 생성
         List<ProviderEmailDto> connectedSns = new ArrayList<>();
-        for(ProviderEmail providerEmail : user.getProviderEmails()) {
-            ProviderEmailDto providerEmailDto = ProviderEmailDto.builder()
-                    .provider(providerEmail.getProvider().getProvider())
-                    .email(providerEmail.getEmail())
-                    .build();
+        for (ProviderEmail providerEmail : user.getProviderEmails()) {
+            ProviderEmailDto providerEmailDto = ProviderEmailDto.builder().provider(providerEmail.getProvider().getProvider()).email(providerEmail.getEmail()).build();
             connectedSns.add(providerEmailDto);
         }
-        return FindIdResponseDto.builder()
-                .connectedSns(connectedSns)
-                .email(user.getEmail())
-                .recentLoginDateTime(DateUtils.toISO(user.getRecentLoginDateTime()))
-                .build();
+        return FindIdResponseDto.builder().connectedSns(connectedSns).email(user.getEmail()).recentLoginDateTime(DateUtils.toISO(user.getRecentLoginDateTime())).build();
     }
 
     @Override
     public void checkUser(FindPasswordUserCheckRequestDto findPasswordUserCheckRequestDto) {
-        userRepository.findByNameAndEmail(findPasswordUserCheckRequestDto.getName(), findPasswordUserCheckRequestDto.getEmail()).orElseThrow(
-                () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
-        );
+        userRepository.findByNameAndEmail(findPasswordUserCheckRequestDto.getName(), findPasswordUserCheckRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
     }
 
     @Override
@@ -258,9 +299,7 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findPasswordEmailRequestDto.getEmail(), RequiredAuth.FIND_PASSWORD);
 
         // 유저 정보 가져오기
-        User user = userRepository.findByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(
-                () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
-        );
+        User user = userRepository.findByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
         // 비밀번호 변경
         String hashedPassword = passwordEncoder.encode(password);
         user.changePassword(hashedPassword);
@@ -276,9 +315,7 @@ public class AuthServiceImpl implements AuthService {
         userValidator.isPasswordMatched(password, findPasswordPhoneRequestDto.getPasswordCheck());
         userValidator.isValidPassword(password);
         // 유저 정보 가져오기
-        User user = userRepository.findByPhone(findPasswordPhoneRequestDto.getPhone()).orElseThrow(
-                () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
-        );
+        User user = userRepository.findByPhone(findPasswordPhoneRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
         // 비밀번호 변경
         String hashedPassword = passwordEncoder.encode(password);
         user.changePassword(hashedPassword);

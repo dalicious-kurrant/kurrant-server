@@ -29,7 +29,7 @@ public class AuthController {
 
     @Operation(summary = "이메일 인증번호 발송", description = "이메일 인증번호를 발송한다.")
     @PostMapping("/certification/email")
-    public ResponseMessage mailConfirm(@RequestBody MailMessageDto mailMessageDto, @RequestParam("type")String type) throws Exception {
+    public ResponseMessage mailConfirm(@RequestBody MailMessageDto mailMessageDto, @RequestParam("type") String type) throws Exception {
         authService.mailConfirm(mailMessageDto, type);
         return ResponseMessage.builder()
                 .message("인증번호가 발송되었습니다.")
@@ -38,7 +38,7 @@ public class AuthController {
 
     @Operation(summary = "이메일 인증", description = "이메일 인증번호를 검증한다.")
     @GetMapping("/certification/email")
-    public ResponseMessage checkEmailCertificationNumber(@RequestParam("key")String key, @RequestParam("type")String type) {
+    public ResponseMessage checkEmailCertificationNumber(@RequestParam("key") String key, @RequestParam("type") String type) {
         verifyUtil.verifyCertificationNumber(key, RequiredAuth.ofId(type));
         return ResponseMessage.builder()
                 .message("이메일 인증에 성공하였습니다.")
@@ -47,7 +47,7 @@ public class AuthController {
 
     @Operation(summary = "휴대폰 인증번호 발송", description = "휴대폰 인증번호를 발송한다.")
     @PostMapping("/certification/phone")
-    public ResponseMessage smsConfirm(@RequestBody SmsMessageRequestDto smsMessageRequestDto, @RequestParam("type")String type) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+    public ResponseMessage smsConfirm(@RequestBody SmsMessageRequestDto smsMessageRequestDto, @RequestParam("type") String type) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
         authService.sendSms(smsMessageRequestDto, type);
         return ResponseMessage.builder()
                 .message("인증번호가 발송되었습니다.")
@@ -56,7 +56,7 @@ public class AuthController {
 
     @Operation(summary = "휴대폰 인증", description = "휴대폰 인증번호를 검증한다.")
     @GetMapping("/certification/phone")
-    public ResponseMessage checkSmsCertificationNumber(@RequestParam("key")String key, @RequestParam("type")String type) {
+    public ResponseMessage checkSmsCertificationNumber(@RequestParam("key") String key, @RequestParam("type") String type) {
         verifyUtil.verifyCertificationNumber(key, RequiredAuth.ofId(type));
         return ResponseMessage.builder()
                 .message("휴대폰 인증에 성공하였습니다.")
@@ -100,13 +100,21 @@ public class AuthController {
     }
 
 
-
     @Operation(summary = "회원가입", description = "회원가입을 수행한다.")
     @PostMapping("/join")
     public ResponseMessage signUp(@RequestBody SignUpRequestDto signUpRequestDto) {
         return ResponseMessage.builder()
                 .message("회원가입에 성공하셨습니다.")
                 .data(authService.signUp(signUpRequestDto))
+                .build();
+    }
+
+    @Operation(summary = "소셜 로그인/회원가입 요청", description = "소셜 로그인/회원가입을 수행한다.")
+    @PostMapping("/login/{sns}")
+    public ResponseMessage snsLoginOrJoin(@PathVariable String sns, @RequestBody SnsAccessToken snsAccessToken) {
+        return ResponseMessage.builder()
+                .message("소셜로그인을 성공하셨습니다.")
+                .data(authService.snsLoginOrJoin(sns, snsAccessToken))
                 .build();
     }
 
