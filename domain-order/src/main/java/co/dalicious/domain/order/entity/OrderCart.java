@@ -5,8 +5,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import java.sql.Timestamp;
+import java.math.BigInteger;
 import java.util.Date;
 
 @Entity
@@ -14,35 +13,29 @@ import java.util.Date;
 @Table(name = "order__cart")
 public class OrderCart {
     @Id
-    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
-
-    @NotNull
-    @Column(name = "food_id")
-    private Integer foodId;
-
-
-    @Column(name = "created_datetime")
-    @Comment("장바구니에 담은 시간")
-    private Date created;
 
     @Column(name = "user_id")
     @Comment("유저 Id")
-    private Integer userId;
+    private BigInteger userId;
 
     @Column(name = "total_price")
     private Integer totalPrice;
 
-    @JoinColumn(name = "cart_id")
-    private Integer cartId;
+    @Column(name = "total_count")
+    private Integer totalCount;
+
 
     @Builder
-    public OrderCart(Integer id, Integer foodId, Date created, Integer userId, Integer totalPrice, Integer cartId){
+    public OrderCart(Integer id, BigInteger userId, Integer totalPrice, Integer totalCount){
         this.id = id;
-        this.foodId = foodId;
-        this.created= created;
         this.userId = userId;
         this.totalPrice = totalPrice;
-        this.cartId = cartId;
+        this.totalCount = totalCount;
+    }
+
+    public OrderCart(Integer foodId, BigInteger id, Date serviceDate) {
     }
 }

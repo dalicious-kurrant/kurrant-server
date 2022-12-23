@@ -1,8 +1,13 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.order.dto.OrderCartDto;
+import co.dalicious.domain.order.entity.OrderCart;
+import co.dalicious.domain.order.entity.OrderCartItem;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
+import co.dalicious.domain.order.repository.OrderCartItemRepository;
+import co.dalicious.domain.order.repository.OrderCartRepository;
 import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
@@ -31,14 +36,18 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import static co.dalicious.domain.order.entity.QOrderCart.orderCart;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +59,9 @@ public class UserServiceImpl implements UserService {
     private final ProviderEmailRepository providerEmailRepository;
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderCartItemRepository orderCartItemRepository;
     private final FoodRepository foodRepository;
+    private final OrderCartRepository orderCartRepository;
 
     @Override
     public UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest) {
@@ -261,9 +272,46 @@ public class UserServiceImpl implements UserService {
            orderItemDtoList.add(orderItemDto);
            orderDetailDto.setOrderItemDtoList(orderItemDtoList);
         });
-
-
         return orderDetailDto;
     }
 
-}
+    @Override
+    @Transactional
+    public void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto){
+        //User user = commonService.getUser(httpServletRequest);
+        //BigInteger id = user.getId();
+
+        BigInteger id = BigInteger.valueOf(1); // 임시로 적용
+
+        OrderCart orderCart1 = OrderCart.builder()
+                                .userId(id)
+                                .build();
+
+        orderCartRepository.save(orderCart1);
+        OrderCart orderCartId = orderCartRepository.findByUserId(id);
+
+        //Food DB 생성용
+        Food createFood = Food.builder()
+                .price(10000)
+                .name("무야호장 붕어빵")
+                .description("무야호장의 심혈을 기울인 팥붕")
+                .build();
+
+        foodRepository.save(createFood);
+
+        Food food = Food.builder()
+                .id(orderCartDto.getFoodId())
+                .build();
+
+        OrderCartItem orderCartItem = OrderCartItem.builder()
+                        .created(LocalDate.now())
+                        .serviceDate(orderCartDto.getServiceDate())
+                        .diningType(orderCartDto.getDiningType())
+                        .count(orderCartDto.getCount())
+                        .orderCart(orderCartId)
+                        .foodId(food)
+                        .build();
+        orderCartItemRepository.save(orderCartItem);
+
+    }
+    }
