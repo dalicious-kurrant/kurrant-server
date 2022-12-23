@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
@@ -23,7 +24,7 @@ public class FoodController {
 
     @Operation(summary = "식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
     @GetMapping("/dailyfoods")
-    public List<DailyFoodDto> getDailyFood(Integer spotId,@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate) {
+    public List<DailyFoodDto> getDailyFood(@RequestParam Integer spotId, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate) {
         return foodService.getDailyFood(spotId, selectedDate);
     }
 

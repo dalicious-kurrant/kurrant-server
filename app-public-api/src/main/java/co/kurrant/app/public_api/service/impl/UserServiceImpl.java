@@ -293,11 +293,23 @@ public class UserServiceImpl implements UserService {
         //Food DB 생성용
         Food createFood = Food.builder()
                 .price(10000)
-                .name("무야호장 붕어빵")
+                .name("무야호장 팥붕어빵")
                 .description("무야호장의 심혈을 기울인 팥붕")
+                .build();
+        Food createFood1 = Food.builder()
+                .price(10000)
+                .name("무야호장 슈크림붕어빵")
+                .description("무야호장의 심혈을 기울인 슈붕")
+                .build();
+        Food createFood2 = Food.builder()
+                .price(10000)
+                .name("무야호장 피자붕어빵")
+                .description("무야호장의 심혈을 기울인 피붕")
                 .build();
 
         foodRepository.save(createFood);
+        foodRepository.save(createFood1);
+        foodRepository.save(createFood2);
 
         Food food = Food.builder()
                 .id(orderCartDto.getFoodId())
@@ -314,4 +326,4 @@ public class UserServiceImpl implements UserService {
         orderCartItemRepository.save(orderCartItem);
 
     }
-    }
+}

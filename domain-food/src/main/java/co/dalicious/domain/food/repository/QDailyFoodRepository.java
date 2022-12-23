@@ -22,7 +22,7 @@ public class QDailyFoodRepository {
         return queryFactory
                 .selectFrom(dailyFood)
                 .where(dailyFood.spotId.eq(spotId),
-                        dailyFood.created.between(LocalDate.from(selectedDate.atStartOfDay()), LocalDate.from(selectedDate.plusDays(1).atStartOfDay())))
+                        dailyFood.serviceDate.between(LocalDate.from(selectedDate.atStartOfDay()), LocalDate.from(selectedDate.plusDays(1).atStartOfDay())))
                 .fetch();
     }
 }
