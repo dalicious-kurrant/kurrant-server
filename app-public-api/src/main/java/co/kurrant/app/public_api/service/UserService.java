@@ -35,8 +35,4 @@ public interface UserService {
     // 유저 정보 가져오기
     UserInfoDto getUserInfo(HttpServletRequest httpServletRequest);
     User findAll();
-
-    OrderDetailDto findOrderByServiceDate(Date startDate, Date endDate);
-
-    void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto);
 }
