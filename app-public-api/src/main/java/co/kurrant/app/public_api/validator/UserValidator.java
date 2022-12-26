@@ -10,6 +10,7 @@ import co.dalicious.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -52,6 +53,15 @@ public class UserValidator {
             return providerEmails.get(0).getUser();
         } else {
             return null;
+        }
+    }
+
+    public static Provider isValidProvider(String provider) {
+        boolean isContainedSns = Arrays.toString(Provider.values()).contains(provider.toUpperCase());
+        if(!isContainedSns) {
+            throw new ApiException(ExceptionEnum.SNS_PLATFORM_NOT_FOUND);
+        } else {
+            return  Provider.valueOf(provider);
         }
     }
 }

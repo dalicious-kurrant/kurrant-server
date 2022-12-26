@@ -13,5 +13,4 @@ import java.util.Optional;
 public interface ProviderEmailRepository extends JpaRepository<ProviderEmail, BigInteger> {
     Optional<ProviderEmail> findAllByProviderAndEmail(@Size(max = 16) Provider provider, @Size(max = 64) String email);
     List<ProviderEmail> findAllByEmail(@Size(max = 64) String email);
-    List<ProviderEmail> findAllByUser(User user);
 }
