@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,7 +42,6 @@ public class UserController {
     public UserInfoDto userInfo(HttpServletRequest httpServletRequest) {
         return userService.getUserInfo(httpServletRequest);
     }
-
 
 
     @Operation(summary = "SNS 계정 연결", description = "SNS 계정을 연결한다.")
@@ -102,8 +102,6 @@ public class UserController {
                 .data(changeMarketingDto)
                 .build();
     }
-
-
 
 
 }

@@ -264,4 +264,6 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findAll().get(0);
         return user;
     }
+
+ 
 }
