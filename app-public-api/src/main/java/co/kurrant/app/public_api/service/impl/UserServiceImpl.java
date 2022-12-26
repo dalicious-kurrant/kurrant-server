@@ -1,5 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.oauth.SnsLoginResponseDto;
+import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.order.entity.OrderCart;
 import co.dalicious.domain.order.entity.OrderCartItem;
@@ -42,17 +44,13 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import static co.dalicious.domain.order.entity.QOrderCart.orderCart;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final CommonService commonService;
+    private final SnsLoginService snsLoginService;
     private final UserValidator userValidator;
     private final PasswordEncoder passwordEncoder;
     private final VerifyUtil verifyUtil;
@@ -68,64 +66,83 @@ public class UserServiceImpl implements UserService {
         User user = commonService.getUser(httpServletRequest);
         return UserHomeInfoMapper.INSTANCE.toDto(user);
     }
-
     @Override
-    public void editSnsAccount(HttpServletRequest httpServletRequest, String sns) {
+    @Transactional
+    public void connectSnsAccount(HttpServletRequest httpServletRequest, SnsAccessToken snsAccessToken, String sns) {
+        // 유저 정보 가져오기
+        User user = commonService.getUser(httpServletRequest);
+
         // 등록된 SNS 플랫폼인지 확인
-        Provider provider = null;
-        boolean isContainedSns = Arrays.toString(Provider.values()).contains(sns.toUpperCase());
-        if(!isContainedSns) {
-            throw new ApiException(ExceptionEnum.SNS_PLATFORM_NOT_FOUND);
-        } else {
-            provider = Provider.valueOf(sns);
-        }
+        Provider provider = UserValidator.isValidProvider(sns);
 
-        // 연결된 SNS 계정 확인
-        UserInfoDto userInfoDto = getUserInfo(httpServletRequest);
-        List<ProviderEmail> providerEmails = userInfoDto.getProviderEmails();
-        ProviderEmail providerSelectedEmail = null;
-        boolean isConnectedSns = false;
-        boolean hasGeneralProvider = false;
-        List<Provider> providers = new ArrayList<>();
-
-        for(ProviderEmail providerEmail : providerEmails) {
-            // 연결이 되어있다면 연결된 계정 정보 가져오기
-            if(providerEmail.getProvider().equals(provider)) {
-                providerSelectedEmail = providerEmail;
-                isConnectedSns = true;
+        // 현재 로그인 한 아이디가 같은 Vendor의 아이디와 연결되어있는지 체크
+        List<ProviderEmail> providerEmails = user.getProviderEmails();
+        for (ProviderEmail providerEmail : providerEmails) {
+            if (providerEmail.getProvider().equals(provider)) {
+                throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
             }
-            providers.add(providerEmail.getProvider());
         }
-        hasGeneralProvider = providers.contains(Provider.GENERAL);
 
-        // 연결이 되어있지만 일반로그인 정보가 없는 경우
-        if(isConnectedSns && !hasGeneralProvider) {
-            throw new ApiException(ExceptionEnum.GENERAL_PROVIDER_NOT_FOUND);
+        // Vendor 로그인 시도
+        SnsLoginResponseDto snsLoginResponseDto = switch (provider) {
+            case NAVER -> snsLoginService.getNaverLoginUserInfo(snsAccessToken.getSnsAccessToken());
+            case KAKAO -> snsLoginService.getKakaoLoginUserInfo(snsAccessToken.getSnsAccessToken());
+            case GOOGLE -> snsLoginService.getGoogleLoginUserInfo(snsAccessToken.getSnsAccessToken());
+            case APPLE -> snsLoginService.getAppleLoginUserInfo(snsAccessToken.getSnsAccessToken());
+            case FACEBOOK -> snsLoginService.getFacebookLoginUserInfo(snsAccessToken.getSnsAccessToken());
+            default -> null;
+        };
+
+        // Response 값이 존재하지 않으면 예외 발생
+        if (snsLoginResponseDto == null) {
+            throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
         }
-        // 연결이 되어있고 일반 로그인 정보가 있는 경우
-        else if(isConnectedSns && hasGeneralProvider) {
-            disconnectSnsAccount(providerSelectedEmail, provider);
+
+        String email = snsLoginResponseDto.getEmail();
+
+        // 해당 아이디를 가지고 있는 유저가 존재하지는 지 확인.
+        Optional<ProviderEmail> providerEmail = providerEmailRepository.findAllByProviderAndEmail(provider, email);
+
+        // 존재한다면 예외 발생
+        if (providerEmail.isPresent()) {
+            throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
         }
-        // 연결이 되어있지 않은 경우, 소셜로그인 연결 진행
+        // 존재하지 않는다면 저장하기.
         else {
-            connectSnsAccount(userInfoDto, provider);
-        }
+            ProviderEmail newProviderEmail = ProviderEmail.builder()
+                    .provider(provider)
+                    .email(email)
+                    .user(user)
+                    .build();
 
+            providerEmailRepository.save(newProviderEmail);
+        }
     }
 
     @Override
-    public void connectSnsAccount(UserInfoDto userInfoDto, Provider provider) {
-        // 소셜 로그인 연결
-    }
+    @Transactional
+    public void disconnectSnsAccount(HttpServletRequest httpServletRequest, String sns) {
+        // 유저 정보 가져오기
+        UserInfoDto userInfoDto = getUserInfo(httpServletRequest);
 
-    @Override
-    public void disconnectSnsAccount(ProviderEmail providerSelectedEmail, Provider provider) {
-        // 소셜 로그인 일치하는지 확인
-        if(!providerSelectedEmail.getProvider().equals(provider)) {
-            throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
-        }
+        // 등록된 SNS 플랫폼인지 확인
+        Provider provider = UserValidator.isValidProvider(sns);
+
+        // 현재 로그인 한 아이디가 이메일/비밀번호를 설정했는지 확인
+        List<ProviderEmail> providerEmails = userInfoDto.getProviderEmails();
+        providerEmails.stream()
+                .filter(e -> e.getProvider().equals(Provider.GENERAL))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.GENERAL_PROVIDER_NOT_FOUND));
+
+        // 현재 로그인 한 아이디가 같은 Vendor의 아이디와 연결되어있는지 체크
+        ProviderEmail providerEmail = providerEmails.stream()
+                .filter(e -> e.getProvider().equals(provider))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+
         // 소셜로그인 연결 계정 삭제
-        providerEmailRepository.deleteById(providerSelectedEmail.getId());
+        providerEmailRepository.deleteById(providerEmail.getId());
     }
 
     @Override
@@ -147,11 +164,12 @@ public class UserServiceImpl implements UserService {
         // 로그인한 유저의 정보를 받아온다.
         User user = commonService.getUser(httpServletRequest);
         // 현재 비밀번호가 일치하는지 확인
-        if(!passwordEncoder.matches(changePasswordRequestDto.getCurrantPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(changePasswordRequestDto.getCurrantPassword(), user.getPassword())) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
-        };
+        }
+        ;
         // 새로 등록한 번호 두개가 일치하는 지 확인
-        if(!changePasswordRequestDto.getNewPassword().equals(changePasswordRequestDto.getNewPasswordCheck())) {
+        if (!changePasswordRequestDto.getNewPassword().equals(changePasswordRequestDto.getNewPasswordCheck())) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
         }
         // 비밀번호 변경
@@ -201,13 +219,13 @@ public class UserServiceImpl implements UserService {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
         // 마케팅 정보 수신 동의/철회
-        if(isMarketingInfoAgree != null) {
+        if (isMarketingInfoAgree != null) {
             user.changeMarketingAgreement(now, isMarketingInfoAgree, isMarketingInfoAgree, isMarketingInfoAgree);
         }
         // 혜택 및 소식 알림 동의/철회
-        if(isMarketingAlarmAgree != null) {
+        if (isMarketingAlarmAgree != null) {
             // 주문 알림이 활성화 되어 있을 경우
-            if(currantOrderAlarmAgree) {
+            if (currantOrderAlarmAgree) {
                 user.setMarketingAlarm(isMarketingAlarmAgree);
             }
             // 주문 알림이 활성화 되어 있지 않을 경우
@@ -216,9 +234,9 @@ public class UserServiceImpl implements UserService {
             }
         }
         // 주문 알림 동의/철회
-        if(isOrderAlarmAgree != null) {
+        if (isOrderAlarmAgree != null) {
             // 혜택 및 소식 알림이 활성화 되어 있을 경우
-            if(currantMarketingAlarmAgree) {
+            if (currantMarketingAlarmAgree) {
                 user.setOrderAlarm(isOrderAlarmAgree);
             }
             // 혜택 및 소식 알림이 활성화 되어 있지 않을 경우
@@ -240,6 +258,7 @@ public class UserServiceImpl implements UserService {
         User user = commonService.getUser(httpServletRequest);
         return UserInfoMapper.INSTANCE.toDto(user);
     }
+
     @Override
     public User findAll() {
         User user = userRepository.findAll().get(0);
@@ -247,45 +266,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public OrderDetailDto findOrderByServiceDate(Date startDate, Date endDate){
+    public OrderDetailDto findOrderByServiceDate(Date startDate, Date endDate) {
         //JWT로 아이디 받기
         OrderDetailDto orderDetailDto = new OrderDetailDto();
 
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
-        System.out.println(startDate +" startDate, " + endDate +" endDate");
+        System.out.println(startDate + " startDate, " + endDate + " endDate");
         List<OrderItem> byServiceDateBetween = orderItemRepository.findByServiceDateBetween(startDate, endDate);
 
-        byServiceDateBetween.forEach( x -> {
+        byServiceDateBetween.forEach(x -> {
             orderDetailDto.setId(x.getId());
             orderDetailDto.setServiceDate(x.getServiceDate());
 
             Food food = foodRepository.findById(x.getFoodId());
 
-           OrderItemDto orderItemDto = OrderItemDto.builder()
-                   .name(food.getName())
-                   .diningType(x.getEDiningType())
-                   .img(food.getImg())
-                   .count(x.getCount())
-                   .build();
+            OrderItemDto orderItemDto = OrderItemDto.builder()
+                    .name(food.getName())
+                    .diningType(x.getEDiningType())
+                    .img(food.getImg())
+                    .count(x.getCount())
+                    .build();
 
-           orderItemDtoList.add(orderItemDto);
-           orderDetailDto.setOrderItemDtoList(orderItemDtoList);
+            orderItemDtoList.add(orderItemDto);
+            orderDetailDto.setOrderItemDtoList(orderItemDtoList);
         });
         return orderDetailDto;
     }
 
     @Override
     @Transactional
-    public void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto){
+    public void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto) {
         //User user = commonService.getUser(httpServletRequest);
         //BigInteger id = user.getId();
 
         BigInteger id = BigInteger.valueOf(1); // 임시로 적용
 
         OrderCart orderCart1 = OrderCart.builder()
-                                .userId(id)
-                                .build();
+                .userId(id)
+                .build();
 
         orderCartRepository.save(orderCart1);
         OrderCart orderCartId = orderCartRepository.findByUserId(id);
@@ -304,14 +323,14 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         OrderCartItem orderCartItem = OrderCartItem.builder()
-                        .created(LocalDate.now())
-                        .serviceDate(orderCartDto.getServiceDate())
-                        .diningType(orderCartDto.getDiningType())
-                        .count(orderCartDto.getCount())
-                        .orderCart(orderCartId)
-                        .foodId(food)
-                        .build();
+                .created(LocalDate.now())
+                .serviceDate(orderCartDto.getServiceDate())
+                .diningType(orderCartDto.getDiningType())
+                .count(orderCartDto.getCount())
+                .orderCart(orderCartId)
+                .foodId(food)
+                .build();
         orderCartItemRepository.save(orderCartItem);
 
     }
-    }
+}

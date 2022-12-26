@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.dto.user;
 
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.user.dto.ProviderEmailDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

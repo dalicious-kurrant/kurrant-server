@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,23 +45,35 @@ public class UserController {
 
     @GetMapping("/me/order")
     public OrderDetailDto userOrderbyDate(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-                                          @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate){
+                                          @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
         return userService.findOrderByServiceDate(startDate, endDate);
     }
 
     @PostMapping("/me/order/cart")
     public ResponseMessage saveOrderCart(HttpServletRequest httpServletRequest,
-                                         @RequestBody OrderCartDto orderCartDto){
+                                         @RequestBody OrderCartDto orderCartDto) {
         userService.saveOrderCart(httpServletRequest, orderCartDto);
         return ResponseMessage.builder()
                 .message("장바구니에 상품을 추가했습니다.")
                 .build();
     }
 
-    @Operation(summary = "SNS 계정 연결 및 해제", description = "SNS 계정을 연결하거나 해제한다.")
-    @GetMapping("/me/sns/{sns}")
-    public void editSnsAccount(HttpServletRequest httpServletRequest, @PathVariable String sns){
-        userService.editSnsAccount(httpServletRequest, sns);
+    @Operation(summary = "SNS 계정 연결", description = "SNS 계정을 연결한다.")
+    @PostMapping("/me/connecting/{sns}")
+    public ResponseMessage connectSnsAccount(HttpServletRequest httpServletRequest, @RequestBody SnsAccessToken snsAccessToken, @PathVariable String sns) {
+        userService.connectSnsAccount(httpServletRequest, snsAccessToken, sns);
+        return ResponseMessage.builder()
+                .message("SNS 계정 연결에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "SNS 계정 해지", description = "SNS 계정 연결을 해제한다.")
+    @DeleteMapping("/me/disconnecting/{sns}")
+    public ResponseMessage disconnectingSnsAccount(HttpServletRequest httpServletRequest, @PathVariable String sns) {
+        userService.disconnectSnsAccount(httpServletRequest, sns);
+        return ResponseMessage.builder()
+                .message("SNS 계정 연결 해제에 성공하였습니다.")
+                .build();
     }
 
     @Operation(summary = "휴대폰 번호 변경", description = "로그인 한 유저의 비밀번호를 변경한다.")
@@ -68,6 +81,14 @@ public class UserController {
     public ResponseMessage changePassword(HttpServletRequest httpServletRequest,
                                           @RequestBody ChangePhoneRequestDto changePhoneRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
         userService.changePhoneNumber(httpServletRequest, changePhoneRequestDto);
+        return ResponseMessage.builder()
+                .message("휴대폰 번호 변경에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "이메일/비밀번호 설정", description = "로그인 한 유저(소셜로그인 유저)의 이메일과 비밀번호를 설정한다.")
+    @PostMapping("/setting/email")
+    public ResponseMessage setEmailAndPassword(HttpServletRequest httpServletRequest) {
         return ResponseMessage.builder()
                 .message("휴대폰 번호 변경에 성공하였습니다.")
                 .build();
@@ -95,8 +116,6 @@ public class UserController {
                 .data(changeMarketingDto)
                 .build();
     }
-
-
 
 
 }
