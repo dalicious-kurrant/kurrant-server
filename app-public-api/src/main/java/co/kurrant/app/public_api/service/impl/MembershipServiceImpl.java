@@ -68,6 +68,7 @@ public class MembershipServiceImpl implements MembershipService {
                     .membershipSubscriptionType(membership.getMembershipSubscriptionType().getMembershipSubscriptionType())
                     .membershipUsingPeriod(membershipUsingPeriod)
                     .price(BigDecimal.valueOf(membership.getMembershipSubscriptionType().getPrice()))
+                    .discountedPrice(BigDecimal.valueOf(membership.getMembershipSubscriptionType().getDiscountedPrice()))
                     .startDate(membership.getStartDate())
                     .endDate(membership.getEndDate())
                     .build();

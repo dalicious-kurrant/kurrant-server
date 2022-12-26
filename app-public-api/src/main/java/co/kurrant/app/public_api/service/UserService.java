@@ -17,12 +17,10 @@ import java.security.NoSuchAlgorithmException;
 public interface UserService {
     // 홈 유저 정보 가져오기
     UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest);
-    // SNS 계정 연결 및 해제
-    void editSnsAccount(HttpServletRequest httpServletRequest, String sns);
     // SNS 계정 연결
-    void connectSnsAccount(UserInfoDto userInfoDto, Provider provider);
+    void connectSnsAccount(HttpServletRequest httpServletRequest, SnsAccessToken snsAccessToken, String sns);
     // SNS 계정 해제
-    void disconnectSnsAccount(ProviderEmail providerEmail, Provider provider);
+    void disconnectSnsAccount(HttpServletRequest httpServletRequest, String provider);
     // 휴대폰 번호 변경
     void changePhoneNumber(HttpServletRequest httpServletRequest, ChangePhoneRequestDto changePhoneRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException;
     // 비밀번호 변경
