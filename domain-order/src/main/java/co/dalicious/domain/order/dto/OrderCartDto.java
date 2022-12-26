@@ -14,13 +14,15 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderCartDto {
+    Integer id;
     Integer foodId;
     Integer count;
     LocalDate serviceDate;
     DiningType diningType;
 
 
-    public OrderCartDto(Integer foodId, LocalDate serviceDate, Integer count, DiningType diningType) {
+    public OrderCartDto(Integer id, Integer foodId, LocalDate serviceDate, Integer count, DiningType diningType) {
+        this.id = id;
         this.foodId = foodId;
         this.serviceDate = serviceDate;
         this.count = count;

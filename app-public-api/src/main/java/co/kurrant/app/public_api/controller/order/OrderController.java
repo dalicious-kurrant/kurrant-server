@@ -1,8 +1,9 @@
 package co.kurrant.app.public_api.controller.order;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.order.dto.CartItemDto;
 import co.dalicious.domain.order.dto.OrderCartDto;
-import co.dalicious.domain.user.dto.OrderDetailDto;
+import co.dalicious.domain.order.dto.OrderDetailDto;
 import co.kurrant.app.public_api.service.OrderService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.List;
 
 @Tag(name = "4. Order")
 @RequestMapping(value = "/v1/users")
@@ -35,4 +37,10 @@ public class OrderController {
                 .message("장바구니에 상품을 추가했습니다.")
                 .build();
     }
+
+    @GetMapping("/me/order/cart")
+    public List<CartItemDto> getCartItem(HttpServletRequest httpServletRequest){
+        return orderService.findCartById(httpServletRequest);
+    }
+
 }

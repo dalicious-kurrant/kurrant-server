@@ -45,7 +45,7 @@ public class DailyFood {
     private FoodStatus status;
 
     @Column(name = "is_sold_out")
-    private Integer isSoldOut;
+    private Boolean isSoldOut;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "food__food_id")

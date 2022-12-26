@@ -4,6 +4,7 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.FoodStatus;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
@@ -42,18 +43,24 @@ public class FoodServiceImpl implements FoodService {
         } else {
 //            Food foodTemp = new Food(0,"없음",100,"",1,"없음");
             Food foodTemp = new Food();
+            Makers makers = new Makers();
+            makers.builder()
+                    .id(1)
+                    .name("무야호")
+                    .build();
+
             foodTemp.builder()
                     .id(1)
                     .name("없음")
                     .price(100)
-                    .makersId("1")
+                    .makers(makers)
                     .description("없음")
                     .build();
 
             //값이 NULL일 경우, NPE 방지를 위한 샘플처리
             DiningType diningType = DiningType.valueOf("MORNING");
             FoodStatus foodStatus = FoodStatus.ofCode(0);
-            DailyFoodDto dailySample = new DailyFoodDto(0,LocalDate.from(selectedDate.atStartOfDay()), diningType, foodTemp ,0,0,foodStatus,LocalDate.from(selectedDate.atStartOfDay()));
+            DailyFoodDto dailySample = new DailyFoodDto(0,LocalDate.from(selectedDate.atStartOfDay()), diningType, foodTemp ,false,0,foodStatus,LocalDate.from(selectedDate.atStartOfDay()),LocalDate.from(selectedDate.atStartOfDay()));
             resultList.add(dailySample);
         }
         return resultList;  //결과값 반환

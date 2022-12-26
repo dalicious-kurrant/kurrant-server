@@ -2,11 +2,6 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
-import co.dalicious.domain.order.dto.OrderCartDto;
-import co.dalicious.domain.order.entity.OrderCart;
-import co.dalicious.domain.order.entity.OrderCartItem;
-import co.dalicious.domain.order.entity.OrderItem;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.repository.OrderCartItemRepository;
 import co.dalicious.domain.order.repository.OrderCartRepository;
@@ -23,8 +18,6 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.service.CommonService;
-import co.dalicious.domain.user.dto.OrderDetailDto;
-import co.dalicious.domain.user.dto.OrderItemDto;
 
 import co.dalicious.domain.user.repository.UserRepository;
 import co.kurrant.app.public_api.service.UserService;
@@ -38,11 +31,9 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
