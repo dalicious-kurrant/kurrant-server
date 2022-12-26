@@ -43,6 +43,15 @@ public class UserController {
         return userService.getUserInfo(httpServletRequest);
     }
 
+    @Operation(summary = "아이디/비밀번호 설정", description = "로그인 한 유저의 정보를 불러온다.")
+    @PostMapping("/me/setting/GENERAL")
+    public ResponseMessage setEmailAndPassword(HttpServletRequest httpServletRequest, @RequestBody SetEmailAndPasswordDto setEmailAndPasswordDto) {
+        userService.setEmailAndPassword(httpServletRequest, setEmailAndPasswordDto);
+        return ResponseMessage.builder()
+                .message("아이디/비밀번호 설정에 성공하였습니다.")
+                .build();
+    }
+
     @GetMapping("/me/order")
     public OrderDetailDto userOrderbyDate(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {

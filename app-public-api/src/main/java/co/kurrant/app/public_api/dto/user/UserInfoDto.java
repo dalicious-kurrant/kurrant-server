@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class UserInfoDto {
     private String gourmetType;
+    private Boolean hasGeneralProvider;
     private String name;
     private String email;
     private Image avatar;
@@ -26,5 +27,9 @@ public class UserInfoDto {
         this.email = email;
         this.avatar = avatar;
         this.providerEmails = providerEmails;
+    }
+
+    public void hasGeneralProvider(Boolean hasGeneralProvider) {
+        this.hasGeneralProvider = hasGeneralProvider;
     }
 }

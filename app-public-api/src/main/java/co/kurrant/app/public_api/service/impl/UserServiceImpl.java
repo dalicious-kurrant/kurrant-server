@@ -66,6 +66,7 @@ public class UserServiceImpl implements UserService {
         User user = commonService.getUser(httpServletRequest);
         return UserHomeInfoMapper.INSTANCE.toDto(user);
     }
+
     @Override
     @Transactional
     public void connectSnsAccount(HttpServletRequest httpServletRequest, SnsAccessToken snsAccessToken, String sns) {
@@ -123,13 +124,13 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void disconnectSnsAccount(HttpServletRequest httpServletRequest, String sns) {
         // 유저 정보 가져오기
-        UserInfoDto userInfoDto = getUserInfo(httpServletRequest);
+        User user = commonService.getUser(httpServletRequest);
 
         // 등록된 SNS 플랫폼인지 확인
         Provider provider = UserValidator.isValidProvider(sns);
 
         // 현재 로그인 한 아이디가 이메일/비밀번호를 설정했는지 확인
-        List<ProviderEmail> providerEmails = userInfoDto.getProviderEmails();
+        List<ProviderEmail> providerEmails = user.getProviderEmails();
         providerEmails.stream()
                 .filter(e -> e.getProvider().equals(Provider.GENERAL))
                 .findAny()
@@ -142,6 +143,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
 
         // 소셜로그인 연결 계정 삭제
+        user.getProviderEmails().removeIf(e -> e.getId().equals(providerEmail.getId()));
         providerEmailRepository.deleteById(providerEmail.getId());
     }
 
@@ -185,6 +187,9 @@ public class UserServiceImpl implements UserService {
 
         // 기존에 존재하는 이메일인지 확인
         userValidator.isEmailValid(Provider.GENERAL, setEmailAndPasswordDto.getEmail());
+
+        // 인증을 진행한 유저인지 체크
+        verifyUtil.isAuthenticated(setEmailAndPasswordDto.getEmail(), RequiredAuth.MYPAGE_SETTING_EMAIL_AND_PASSWORD);
 
         // 비밀번호 일치 확인
         String password = setEmailAndPasswordDto.getPassword();
@@ -255,8 +260,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserInfoDto getUserInfo(HttpServletRequest httpServletRequest) {
+        // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
-        return UserInfoMapper.INSTANCE.toDto(user);
+
+        // 일반 로그인 정보를 가지고 있는 유저인지 검사
+        List<ProviderEmail> providerEmails = user.getProviderEmails();
+        UserInfoDto userInfoDto = UserInfoMapper.INSTANCE.toDto(user);
+        Boolean hasGeneralProvider = providerEmails.stream()
+                .anyMatch(e -> e.getProvider().equals(Provider.GENERAL));
+
+        // 일반 로그인을 가지고 있는 유저인지 아닌지 상태 업데이트.
+        userInfoDto.hasGeneralProvider(hasGeneralProvider);
+        return userInfoDto;
     }
 
     @Override
