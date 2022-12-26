@@ -43,21 +43,6 @@ public class UserController {
         return userService.getUserInfo(httpServletRequest);
     }
 
-    @GetMapping("/me/order")
-    public OrderDetailDto userOrderbyDate(
-                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate){
-        return userService.findOrderByServiceDate(startDate, endDate);
-    }
-
-    @PostMapping("/me/order/cart")
-    public ResponseMessage saveOrderCart(HttpServletRequest httpServletRequest,
-                                         @RequestBody OrderCartDto orderCartDto) {
-        userService.saveOrderCart(httpServletRequest, orderCartDto);
-        return ResponseMessage.builder()
-                .message("장바구니에 상품을 추가했습니다.")
-                .build();
-    }
 
     @Operation(summary = "SNS 계정 연결", description = "SNS 계정을 연결한다.")
     @PostMapping("/me/connecting/{sns}")
