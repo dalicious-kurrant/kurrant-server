@@ -20,7 +20,7 @@ public interface UserService {
     // SNS 계정 연결
     void connectSnsAccount(HttpServletRequest httpServletRequest, SnsAccessToken snsAccessToken, String sns);
     // SNS 계정 해제
-    void disconnectSnsAccount(HttpServletRequest httpServletRequest, String provider);
+    void disconnectSnsAccount(HttpServletRequest httpServletRequest, String sns);
     // 휴대폰 번호 변경
     void changePhoneNumber(HttpServletRequest httpServletRequest, ChangePhoneRequestDto changePhoneRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException;
     // 비밀번호 변경
