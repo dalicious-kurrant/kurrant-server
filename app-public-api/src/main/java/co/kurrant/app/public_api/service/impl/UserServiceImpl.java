@@ -169,7 +169,11 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(changePasswordRequestDto.getCurrantPassword(), user.getPassword())) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
         }
-        ;
+        // 변경할 비밀번호가 현재 비밀번호와 같을 경우 에러 발생
+        if(passwordEncoder.matches(changePasswordRequestDto.getNewPassword(), user.getPassword())) {
+            throw new ApiException(ExceptionEnum.CHANGED_PASSWORD_SAME);
+        }
+
         // 새로 등록한 번호 두개가 일치하는 지 확인
         if (!changePasswordRequestDto.getNewPassword().equals(changePasswordRequestDto.getNewPasswordCheck())) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
@@ -184,20 +188,23 @@ public class UserServiceImpl implements UserService {
     public void setEmailAndPassword(HttpServletRequest httpServletRequest, SetEmailAndPasswordDto setEmailAndPasswordDto) {
         // 로그인한 유저의 정보를 받아온다.
         User user = commonService.getUser(httpServletRequest);
+        String email = setEmailAndPasswordDto.getEmail();
 
         // 기존에 존재하는 이메일인지 확인
-        userValidator.isEmailValid(Provider.GENERAL, setEmailAndPasswordDto.getEmail());
+        userValidator.isEmailValid(Provider.GENERAL, email);
+
+        // 다른 계정에서 주요 이메일(아이디)로 사용하는 이메일인지 확인
+        userValidator.isExistingMainEmail(email);
 
         // 인증을 진행한 유저인지 체크
-        verifyUtil.isAuthenticated(setEmailAndPasswordDto.getEmail(), RequiredAuth.MYPAGE_SETTING_EMAIL_AND_PASSWORD);
+        verifyUtil.isAuthenticated(email, RequiredAuth.MYPAGE_SETTING_EMAIL_AND_PASSWORD);
 
         // 비밀번호 일치 확인
         String password = setEmailAndPasswordDto.getPassword();
         String passwordCheck = setEmailAndPasswordDto.getPasswordCheck();
-        userValidator.isPasswordMatched(password, passwordCheck);
+        UserValidator.isPasswordMatched(password, passwordCheck);
 
         // 이메일/비밀번호 업데이트
-        String email = setEmailAndPasswordDto.getEmail();
         String hashedPassword = passwordEncoder.encode(password);
         user.setEmailAndPassword(email, hashedPassword);
 
