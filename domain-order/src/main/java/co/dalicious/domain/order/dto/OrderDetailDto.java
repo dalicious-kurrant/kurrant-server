@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderDetailDto {
     Integer id;
-    Date serviceDate;
+    String serviceDate;
     List<OrderItemDto> orderItemDtoList;
 
 }
