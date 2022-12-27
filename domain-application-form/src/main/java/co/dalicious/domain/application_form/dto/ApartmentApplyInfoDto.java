@@ -1,6 +1,7 @@
 package co.dalicious.domain.application_form.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,4 +13,12 @@ public class ApartmentApplyInfoDto {
     private String serviceStartDate;
     private Integer dongCount;
     private Integer familyCount;
+
+    @Builder
+    public ApartmentApplyInfoDto(String apartmentName, String serviceStartDate, Integer dongCount, Integer familyCount) {
+        this.apartmentName = apartmentName;
+        this.serviceStartDate = serviceStartDate;
+        this.dongCount = dongCount;
+        this.familyCount = familyCount;
+    }
 }

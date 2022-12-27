@@ -1,10 +1,9 @@
 package co.dalicious.domain.application_form.entity;
 
-import co.dalicious.domain.application_form.dto.ApplyMealInfoDto;
+import co.dalicious.domain.application_form.dto.ApplyMealInfoRequestDto;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,15 +35,16 @@ public class ApplyMealInfo {
     private String deliveryTime;
 
     @ManyToOne
+    @JoinColumn(name = "application_form_apartment_id")
     @JsonBackReference(value = "application_form_apartment_fk")
-    private ApplicationFormApartment applicationFormApartment;
+    private ApartmentApplicationForm apartmentApplicationForm;
 
     @Builder
-    public ApplyMealInfo(ApplyMealInfoDto applyMealInfoDto, ApplicationFormApartment applicationFormApartment) {
-        this.diningType = DiningType.ofCode(applyMealInfoDto.getDiningType());
-        this.expectedUserCount = applyMealInfoDto.getExpectedUserCount();
-        this.serviceDays = applyMealInfoDto.getServiceDays();
-        this.deliveryTime = applyMealInfoDto.getDeliveryTime();
-        this.applicationFormApartment = applicationFormApartment;
+    public ApplyMealInfo(ApplyMealInfoRequestDto applyMealInfoRequestDto, ApartmentApplicationForm apartmentApplicationForm) {
+        this.diningType = DiningType.ofCode(applyMealInfoRequestDto.getDiningType());
+        this.expectedUserCount = applyMealInfoRequestDto.getExpectedUserCount();
+        this.serviceDays = applyMealInfoRequestDto.getServiceDays();
+        this.deliveryTime = applyMealInfoRequestDto.getDeliveryTime();
+        this.apartmentApplicationForm = apartmentApplicationForm;
     }
 }

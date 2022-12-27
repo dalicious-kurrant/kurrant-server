@@ -14,6 +14,6 @@ public class ApartmentApplicationFormRequestDto {
     private ApplyUserDto user;
     private CreateAddressRequestDto address;
     private ApartmentApplyInfoDto info;
-    private List<ApplyMealInfoDto> meal;
-    private String option;
+    private List<ApplyMealInfoRequestDto> meal;
+    private String memo;
 }

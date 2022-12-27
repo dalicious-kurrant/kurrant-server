@@ -29,8 +29,11 @@ public class ApplicationFormController {
 
     @Operation(summary = "아파트 스팟 개설 신청 내역", description = "아파트 스팟 개설 신청 상세 내역을 조회한다.")
     @GetMapping("/apartments/{id}")
-    public void getApartmentApplicationFormDetail(@PathVariable Integer id) {
-
+    public ResponseMessage getApartmentApplicationFormDetail(HttpServletRequest httpServletRequest, @PathVariable Long id) {
+        return ResponseMessage.builder()
+                .message("아파트 스팟 개설 신청 내역 조회에 성공하였습니다.")
+                .data(applicationFormService.getApartmentApplicationFormDetail(httpServletRequest, id))
+                .build();
     }
 
     @Operation(summary = "아파트 스팟 개설 신청 내역 수정", description = "아파트 스팟 개설 신청 내역을 수정한다.")

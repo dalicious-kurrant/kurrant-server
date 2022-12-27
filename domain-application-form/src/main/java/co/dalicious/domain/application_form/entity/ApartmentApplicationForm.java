@@ -1,10 +1,8 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.application_form.dto.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.ApartmentApplyInfoDto;
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
-import co.dalicious.system.util.DateUtils;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,9 +11,7 @@ import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -23,7 +19,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @Table(name = "application_form__apartement")
-public class ApplicationFormApartment {
+public class ApartmentApplicationForm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("아파트 스팟 개설 신청서 id")
@@ -74,14 +70,18 @@ public class ApplicationFormApartment {
     @Comment("서비스 이용 시작 예정일")
     private LocalDate serviceStartDate;
 
-    @Column(name = "meal_info", nullable = false)
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "apartmentApplicationForm", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "application_form_apartment_fk")
     @Comment("식사 정보")
     private List<ApplyMealInfo> mealInfoList;
 
+    @NotNull
+    @Column(name = "memo")
+    @Comment("기타 내용")
+    private String memo;
+
     @Builder
-    public ApplicationFormApartment(BigInteger userId, ApplyUserDto applyUserDto, Address address, ApartmentApplyInfoDto apartmentApplyInfoDto) {
+    public ApartmentApplicationForm(BigInteger userId, ApplyUserDto applyUserDto, Address address, ApartmentApplyInfoDto apartmentApplyInfoDto, String memo) {
         String serviceDate = apartmentApplyInfoDto.getServiceStartDate();
 
         this.userId = userId;
@@ -96,6 +96,7 @@ public class ApplicationFormApartment {
         this.serviceStartDate = LocalDate.of(Integer.parseInt(serviceDate.substring(0, 4)),
                 Integer.parseInt(serviceDate.substring(4, 6)),
                 Integer.parseInt(serviceDate.substring(6, 8)));
+        this.memo = memo;
     }
 
     public void setMealInfoList(List<ApplyMealInfo> mealInfoList) {

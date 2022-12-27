@@ -115,13 +115,6 @@ public class AuthServiceImpl implements AuthService {
                  </html>
                 """;
 
-
-        content += "<h1 style=\"font-size: 30px; padding-right: 30px; padding-left: 30px;\">이메일 주소 확인</h1>";
-        content += "<p style=\"font-size: 17px; padding-right: 30px; padding-left: 30px;\">아래 확인 코드를 회원가입 화면에서 입력해주세요.</p>";
-        content += "<div style=\"padding-right: 30px; padding-left: 30px; margin: 32px 0 40px;\"><table style=\"border-collapse: collapse; border: 0; background-color: #F4F4F4; height: 70px; table-layout: fixed; word-wrap: break-word; border-radius: 6px;\"><tbody><tr><td style=\"text-align: center; vertical-align: middle; font-size: 30px;\">";
-        content += key;
-        content += "</td></tr></tbody></table></div>";
-
         // 인증번호 발송
         emailService.sendSimpleMessage(mailMessageDto.getReceivers(), subject, content);
 
