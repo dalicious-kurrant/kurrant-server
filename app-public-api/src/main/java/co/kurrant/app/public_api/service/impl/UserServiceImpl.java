@@ -2,17 +2,14 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
-import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.domain.order.repository.OrderCartItemRepository;
-import co.dalicious.domain.order.repository.OrderCartRepository;
-import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
+import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.impl.mapper.UserHomeInfoMapper;
-import co.kurrant.app.public_api.service.impl.mapper.UserInfoMapper;
+import co.kurrant.app.public_api.service.impl.mapper.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -45,12 +42,9 @@ public class UserServiceImpl implements UserService {
     private final UserValidator userValidator;
     private final PasswordEncoder passwordEncoder;
     private final VerifyUtil verifyUtil;
+    private final MembershipUtil membershipUtil;
     private final ProviderEmailRepository providerEmailRepository;
     private final UserRepository userRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final OrderCartItemRepository orderCartItemRepository;
-    private final FoodRepository foodRepository;
-    private final OrderCartRepository orderCartRepository;
 
     @Override
     public UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest) {
@@ -257,19 +251,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserInfoDto getUserInfo(HttpServletRequest httpServletRequest) {
+    public UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest) {
         // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
 
         // 일반 로그인 정보를 가지고 있는 유저인지 검사
         List<ProviderEmail> providerEmails = user.getProviderEmails();
-        UserInfoDto userInfoDto = UserInfoMapper.INSTANCE.toDto(user);
+        UserPersonalInfoDto userPersonalInfoDto = UserPersonalInfoMapper.INSTANCE.toDto(user);
         Boolean hasGeneralProvider = providerEmails.stream()
                 .anyMatch(e -> e.getProvider().equals(Provider.GENERAL));
 
         // 일반 로그인을 가지고 있는 유저인지 아닌지 상태 업데이트.
-        userInfoDto.hasGeneralProvider(hasGeneralProvider);
-        return userInfoDto;
+        userPersonalInfoDto.hasGeneralProvider(hasGeneralProvider);
+        return userPersonalInfoDto;
+    }
+
+    @Override
+    public UserInfoDto getUserInfo(HttpServletRequest httpServletRequest) {
+        User user = commonService.getUser(httpServletRequest);
+        Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
+//        Integer dailyMealCount =
+
+        return UserInfoDto.builder()
+                .user(user)
+                .membershipPeriod(membershipPeriod)
+//                .dailyMealCount()
+                .build();
     }
 
     @Override

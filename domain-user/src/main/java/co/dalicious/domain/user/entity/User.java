@@ -82,7 +82,7 @@ public class User {
     @Convert(converter = GourmetTypeConverter.class)
     @Column(name = "e_gourmet_type")
     @Comment("미식가 타입")
-    private GourmetType gourmetType = GourmetType.NULL;
+    private GourmetType gourmetType;
 
     @Column(name = "marketing_agreed_datetime",
             columnDefinition = "TIMESTAMP(6)")

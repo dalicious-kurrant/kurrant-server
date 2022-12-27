@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.application_form.dto.ApartmentApplicationFormRequestDto;
+import co.kurrant.app.public_api.dto.client.ApartmentApplicationFormMemoDto;
 import co.kurrant.app.public_api.dto.client.CorporationSpotApplicationFormDto;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,16 +37,13 @@ public class ApplicationFormController {
                 .build();
     }
 
-    @Operation(summary = "아파트 스팟 개설 신청 내역 수정", description = "아파트 스팟 개설 신청 내역을 수정한다.")
-    @PatchMapping("/apartments/{id}")
-    public void editApartmentApplicationForm(@PathVariable Long id) {
-
-    }
-
     @Operation(summary = "아파트 스팟 개설 신청 내역 기타 내용 저장", description = "아파트 스팟 개설 신청 내역 기타 내용을 저장한다.")
     @PostMapping("/apartments/{id}/memo")
-    public void saveApartmentApplicationFormMemo(@PathVariable Long id) {
-
+    public ResponseMessage updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, @PathVariable Long id, ApartmentApplicationFormMemoDto apartmentApplicationFormMemoDto) {
+        applicationFormService.updateApartmentApplicationFormMemo(httpServletRequest, id, apartmentApplicationFormMemoDto);
+        return ResponseMessage.builder()
+                .message("아파트 스팟 개설 신청 내역의 기타 내용을 업데이트 하였습니다.")
+                .build();
     }
 
     @Operation(summary = "기업 스팟 개설 신청 API", description = "기업 스팟 개설을 신청한다.")

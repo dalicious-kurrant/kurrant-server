@@ -25,7 +25,9 @@ public interface UserService {
     // 알람/마케팅 설정 변경
     ChangeMarketingDto changeAlarmSetting(HttpServletRequest httpServletRequest, Boolean isMarketingInfoAgree,
                                           Boolean isMarketingAlarmAgree, Boolean isOrderAlarmAgree);
-    // 유저 정보 가져오기
+    // 마이페이지(개인정보) 유저 정보 가져오기
+    UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest);
+    // 마이페이지(홈) 유저 정보 가져오기
     UserInfoDto getUserInfo(HttpServletRequest httpServletRequest);
     User findAll();
 }

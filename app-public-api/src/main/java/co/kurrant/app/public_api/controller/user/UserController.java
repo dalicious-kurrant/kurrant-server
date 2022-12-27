@@ -26,10 +26,16 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "유저정보 가져오기", description = "로그인 한 유저의 정보를 불러온다.")
+    @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보를 불러온다.")
     @GetMapping("")
-    public UserInfoDto userInfo(HttpServletRequest httpServletRequest) {
+    public UserInfoDto getUserInfo(HttpServletRequest httpServletRequest) {
         return userService.getUserInfo(httpServletRequest);
+    }
+
+    @Operation(summary = "마이페이지의 개인 정보 페이지에서 유저 정보 가져오기", description = "개인 정보 페이지에서 로그인 한 유저의 개인 정보를 불러온다.")
+    @GetMapping("/personal")
+    public UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest) {
+        return userService.getPersonalUserInfo(httpServletRequest);
     }
 
     @Operation(summary = "홈 유저 정보 가져오기", description = "로그인 한 유저의 정보를 불러온다.")

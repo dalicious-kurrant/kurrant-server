@@ -102,4 +102,7 @@ public class ApartmentApplicationForm {
     public void setMealInfoList(List<ApplyMealInfo> mealInfoList) {
         this.mealInfoList = mealInfoList;
     }
+    public void updateMemo(String memo) {
+        this.memo = memo;
+    }
 }
