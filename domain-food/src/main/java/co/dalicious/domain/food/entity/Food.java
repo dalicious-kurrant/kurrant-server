@@ -47,6 +47,7 @@ public class Food {
 
     @Column(name = "description")
     @Comment("설명")
+    @Lob
     private String description;
 
     @Builder

@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.dto.CartItemDto;
 import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.order.dto.OrderDetailDto;
@@ -14,4 +15,8 @@ public interface OrderService {
     void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto);
 
     List<CartItemDto> findCartById(HttpServletRequest httpServletRequest);
+
+    void deleteByUserId(HttpServletRequest httpServletRequest);
+
+    void deleteById(HttpServletRequest httpServletRequest, Integer foodId);
 }

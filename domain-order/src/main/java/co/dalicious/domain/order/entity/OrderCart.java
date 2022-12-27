@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.entity;
 
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
@@ -10,6 +11,7 @@ import java.util.Date;
 
 @Entity
 @NoArgsConstructor
+@Getter
 @Table(name = "order__cart")
 public class OrderCart {
     @Id
