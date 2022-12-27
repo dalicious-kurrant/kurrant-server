@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.dto.CartItemDto;
 import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.order.dto.OrderDetailDto;
+import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
@@ -19,4 +20,6 @@ public interface OrderService {
     void deleteByUserId(HttpServletRequest httpServletRequest);
 
     void deleteById(HttpServletRequest httpServletRequest, Integer foodId);
+
+    void updateByFoodId(HttpServletRequest httpServletRequest, UpdateCartDto updateCartDto);
 }
