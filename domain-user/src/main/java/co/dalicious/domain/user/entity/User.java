@@ -78,11 +78,10 @@ public class User {
     @Embedded
     private Image avatar;
 
-    @NotNull
     @Convert(converter = GourmetTypeConverter.class)
     @Column(name = "e_gourmet_type")
     @Comment("미식가 타입")
-    private GourmetType gourmetType;
+    private GourmetType gourmetType = GourmetType.NULL;
 
     @Column(name = "marketing_agreed_datetime",
             columnDefinition = "TIMESTAMP(6)")

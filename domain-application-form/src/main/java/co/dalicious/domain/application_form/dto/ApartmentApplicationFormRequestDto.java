@@ -13,7 +13,7 @@ import java.util.List;
 public class ApartmentApplicationFormRequestDto {
     private ApplyUserDto user;
     private CreateAddressRequestDto address;
-    private ApartmentApplyInfoDto info;
+    private ApartmentApplyInfoDto aprtmentInfo;
     private List<ApplyMealInfoRequestDto> meal;
     private String memo;
 }

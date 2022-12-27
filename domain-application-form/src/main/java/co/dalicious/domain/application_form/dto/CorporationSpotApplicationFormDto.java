@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.dto.client;
+package co.dalicious.domain.application_form.dto;
 
 public class CorporationSpotApplicationFormDto {
 }

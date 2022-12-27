@@ -106,9 +106,9 @@ public class AuthServiceImpl implements AuthService {
         content += key;
         content += "</div>\n" + "</div>\n" + "</div>";
         content += """
-                 <footer  style=“justify-content: center;  align-items: center; display: flex; flex-direction: column; margin-top: 125px;“>
-                                 <div style=“font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;“>서울특별시 강남구 테헤란로51길 21 3층</div>
-                                 <div style=“font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;“>달리셔스주식회사</div>
+                 <footer  style="justify-content: center;  align-items: center; display: flex; flex-direction: column; margin-top: 125px;">
+                                 <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">서울특별시 강남구 테헤란로51길 21 3층</div>
+                                 <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">달리셔스주식회사</div>
                              </footer>
                          </div>
                      </body>

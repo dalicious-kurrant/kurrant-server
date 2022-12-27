@@ -6,14 +6,14 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class GourmetTypeConverter implements AttributeConverter<GourmetType, Long> {
+public class GourmetTypeConverter implements AttributeConverter<GourmetType, Integer> {
     @Override
-    public Long convertToDatabaseColumn(GourmetType gourmetType) {
+    public Integer convertToDatabaseColumn(GourmetType gourmetType) {
         return gourmetType.getCode();
     }
 
     @Override
-    public GourmetType convertToEntityAttribute(Long dbData) {
+    public GourmetType convertToEntityAttribute(Integer dbData) {
         return GourmetType.ofCode(dbData);
     }
 }

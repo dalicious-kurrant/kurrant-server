@@ -2,8 +2,8 @@ package co.kurrant.app.public_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.application_form.dto.ApartmentApplicationFormRequestDto;
-import co.kurrant.app.public_api.dto.client.ApartmentApplicationFormMemoDto;
-import co.kurrant.app.public_api.dto.client.CorporationSpotApplicationFormDto;
+import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
+import co.dalicious.domain.application_form.dto.CorporationSpotApplicationFormDto;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,8 +39,8 @@ public class ApplicationFormController {
 
     @Operation(summary = "아파트 스팟 개설 신청 내역 기타 내용 저장", description = "아파트 스팟 개설 신청 내역 기타 내용을 저장한다.")
     @PostMapping("/apartments/{id}/memo")
-    public ResponseMessage updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, @PathVariable Long id, ApartmentApplicationFormMemoDto apartmentApplicationFormMemoDto) {
-        applicationFormService.updateApartmentApplicationFormMemo(httpServletRequest, id, apartmentApplicationFormMemoDto);
+    public ResponseMessage updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, @PathVariable Long id, ApplicationFormMemoDto applicationFormMemoDto) {
+        applicationFormService.updateApartmentApplicationFormMemo(httpServletRequest, id, applicationFormMemoDto);
         return ResponseMessage.builder()
                 .message("아파트 스팟 개설 신청 내역의 기타 내용을 업데이트 하였습니다.")
                 .build();
@@ -55,12 +55,6 @@ public class ApplicationFormController {
     @Operation(summary = "기업 스팟 개설 신청 내역", description = "기업 스팟 개설 신청 내역을 조회한다.")
     @GetMapping("/corporations/{id}")
     public void getCorporationApplicationFormDetail(@PathVariable Long id) {
-
-    }
-
-    @Operation(summary = "기업 스팟 개설 신청 내역 수정", description = "기업 스팟 개설 신청 내역을 수정한다.")
-    @PatchMapping("/corporations/{id}")
-    public void editCorporationApplicationForm(@PathVariable Long id) {
 
     }
 

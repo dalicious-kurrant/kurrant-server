@@ -5,6 +5,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class ApartmentApplicationFormMemoDto {
+public class ApplicationFormMemoDto {
     private String memo;
 }

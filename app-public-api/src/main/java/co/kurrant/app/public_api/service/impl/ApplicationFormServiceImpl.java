@@ -13,8 +13,6 @@ import co.kurrant.app.public_api.dto.client.*;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.validator.ApplicationFormValidator;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +40,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         ApplyUserDto applyUserDto = apartmentApplicationFormRequestDto.getUser();
 
         // 스팟 신청 아파트 정보 가져오기
-        ApartmentApplyInfoDto apartmentApplyInfoDto = apartmentApplicationFormRequestDto.getInfo();
+        ApartmentApplyInfoDto apartmentApplyInfoDto = apartmentApplicationFormRequestDto.getAprtmentInfo();
 
         // 스팟 신청 아파트 주소 정보 가져오기
         CreateAddressRequestDto createAddressRequestDto = apartmentApplicationFormRequestDto.getAddress();
@@ -90,13 +88,23 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     }
 
     @Override
-    public void updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, Long id, ApartmentApplicationFormMemoDto apartmentApplicationFormMemoDto) {
+    public void updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, Long id, ApplicationFormMemoDto applicationFormMemoDto) {
         ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isVaildApartmentApplicationForm(commonService.getUserId(httpServletRequest), id);
         apartmentApplicationForm.updateMemo(apartmentApplicationForm.getMemo());
     }
 
     @Override
     public void registerCorporationSpot(HttpServletRequest httpServletRequest, CorporationSpotApplicationFormDto apartmentSpotApplicationFormDto) {
+
+    }
+
+    @Override
+    public CorporationApplicationFormDto getCorporationApplicationFormDetail(HttpServletRequest httpServletRequest, Long id) {
+        return null;
+    }
+
+    @Override
+    public void updateCorporationApplicationFormMemo(HttpServletRequest httpServletRequest, Long id, ApplicationFormMemoDto applicationFormMemoDto) {
 
     }
 
