@@ -8,6 +8,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.Date;
 
 @DynamicInsert
