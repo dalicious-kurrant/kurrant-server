@@ -1,4 +1,4 @@
-package co.dalicious.domain.user.dto;
+package co.dalicious.domain.order.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

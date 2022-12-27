@@ -23,6 +23,7 @@ include 'domain-file'
 include 'domain-user'
 include 'domain-order'
 include 'domain-food'
+include 'domain-makers'
 include 'domain-client'
 include 'domain-application-form'
 

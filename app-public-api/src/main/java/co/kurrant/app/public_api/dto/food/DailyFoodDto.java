@@ -21,13 +21,17 @@ public class DailyFoodDto {
     Integer foodId;
 
     String foodName;
-    Integer isSoldOut;
+    Boolean isSoldOut;
     Integer spotId;
     FoodStatus status;
     LocalDate updated;
 
+    LocalDate serviceDate;
+
     @Builder
-    public DailyFoodDto(Integer id, LocalDate created, DiningType diningType, Food food, Integer isSoldOut, Integer spotId, FoodStatus status, LocalDate updated){
+    public DailyFoodDto(Integer id, LocalDate created, DiningType diningType, Food food,
+                        Boolean isSoldOut, Integer spotId, FoodStatus status, LocalDate updated,
+                        LocalDate serviceDate){
         this.id = id;
         this.created = created;
         this.diningType = diningType;
@@ -37,5 +41,6 @@ public class DailyFoodDto {
         this.spotId = spotId;
         this.status = status;
         this.updated = updated;
+        this.serviceDate = serviceDate;
     }
 }

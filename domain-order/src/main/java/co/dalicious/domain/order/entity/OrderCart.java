@@ -21,21 +21,11 @@ public class OrderCart {
     @Comment("유저 Id")
     private BigInteger userId;
 
-    @Column(name = "total_price")
-    private Integer totalPrice;
-
-    @Column(name = "total_count")
-    private Integer totalCount;
 
 
     @Builder
-    public OrderCart(Integer id, BigInteger userId, Integer totalPrice, Integer totalCount){
+    public OrderCart(Integer id, BigInteger userId){
         this.id = id;
         this.userId = userId;
-        this.totalPrice = totalPrice;
-        this.totalCount = totalCount;
-    }
-
-    public OrderCart(Integer foodId, BigInteger id, Date serviceDate) {
     }
 }
