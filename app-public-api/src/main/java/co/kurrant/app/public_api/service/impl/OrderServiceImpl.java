@@ -1,19 +1,21 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.dto.CartItemDto;
 import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.order.dto.OrderDetailDto;
 import co.dalicious.domain.order.dto.OrderItemDto;
+import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderCart;
 import co.dalicious.domain.order.entity.OrderCartItem;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.repository.OrderCartItemRepository;
 import co.dalicious.domain.order.repository.OrderCartRepository;
 import co.dalicious.domain.order.repository.OrderItemRepository;
+import co.dalicious.domain.order.repository.QOrderCartItemRepository;
 import co.dalicious.domain.user.entity.User;
+import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.OrderService;
 
@@ -23,7 +25,6 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -34,6 +35,7 @@ public class OrderServiceImpl implements OrderService {
     private final FoodRepository foodRepository;
     private final OrderCartRepository orderCartRepository;
     private final OrderCartItemRepository orderCartItemRepository;
+    private final QOrderCartItemRepository qOrderCartItemRepository;
     private final CommonService commonService;
 
     @Override
@@ -95,18 +97,40 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void deleteByUserId(HttpServletRequest httpServletRequest) {
+        // order__cart_item에서 user_id에 해당되는 항목 모두 삭제
         User user = commonService.getUser(httpServletRequest);
         List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
         Integer cartId = cart.get(0).getId();
-        orderCartItemRepository.deleteByCartId(cartId);
+        qOrderCartItemRepository.deleteByCartId(cartId);
     }
 
     @Override
     @Transactional
     public void deleteById(HttpServletRequest httpServletRequest, Integer foodId) {
+        //cart_id와 food_id가 같은 경우 삭제
         User user = commonService.getUser(httpServletRequest);
         List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
-        orderCartItemRepository.deleteByFoodId(cart.get(0).getId(), foodId);
+        qOrderCartItemRepository.deleteByFoodId(cart.get(0).getId(), foodId);
+    }
+
+    @Override
+    @Transactional
+    public void updateByFoodId(HttpServletRequest httpServletRequest, UpdateCartDto updateCartDto) {
+        User user = commonService.getUser(httpServletRequest);
+        List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
+
+        //FoodId를 담아준다.
+        Food food = Food.builder()
+                .id(updateCartDto.getFoodId())
+                .build();
+
+        OrderCartItem updateCartItem = OrderCartItem.builder()
+                                       .orderCart(cart.get(0))
+                                        .foodId(food)
+                                        .count(updateCartDto.getCount())
+                                        .build();
+
+        qOrderCartItemRepository.updateByFoodId(updateCartItem);
     }
 
     @Override

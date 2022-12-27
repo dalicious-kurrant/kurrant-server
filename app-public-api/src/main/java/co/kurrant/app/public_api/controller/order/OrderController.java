@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.dto.CartItemDto;
 import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.order.dto.OrderDetailDto;
+import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.service.OrderService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,7 @@ public class OrderController {
     public ResponseMessage deleteById(HttpServletRequest httpServletRequest,@PathVariable Integer foodId) {
         orderService.deleteById(httpServletRequest, foodId);
         return ResponseMessage.builder()
-                .message("장바구니의 모든 상품을 삭제했습니다.")
+                .message("장바구니의 상품을 삭제했습니다.")
                 .build();
     }
 
@@ -58,4 +59,15 @@ public class OrderController {
                 .message("장바구니의 모든 상품을 삭제했습니다.")
                 .build();
     }
+
+    @PatchMapping("/me/order/cart")
+    public ResponseMessage updateByFoodId(
+            HttpServletRequest httpServletRequest,
+            @RequestBody UpdateCartDto updateCartDto){
+        orderService.updateByFoodId(httpServletRequest, updateCartDto);
+        return ResponseMessage.builder()
+                .message("장바구니의 상품 수량이 수정됐습니다.")
+                .build();
+    }
+
 }
