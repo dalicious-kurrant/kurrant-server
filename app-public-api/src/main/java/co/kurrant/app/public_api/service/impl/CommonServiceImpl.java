@@ -32,4 +32,14 @@ public class CommonServiceImpl implements CommonService {
         );
 
     }
+
+    @Override
+    public BigInteger getUserId(HttpServletRequest httpServletRequest) {
+        // 토큰 가져오기
+        String token = jwtTokenProvider.resolveToken(httpServletRequest);
+        // 유효한 토큰인지 확인
+        jwtTokenProvider.validateToken(token);
+        // 유저 아이디 가져오기
+        return BigInteger.valueOf(Integer.parseInt(jwtTokenProvider.getUserPk(token)));
+    }
 }

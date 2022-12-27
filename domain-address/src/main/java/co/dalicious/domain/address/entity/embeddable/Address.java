@@ -1,29 +1,44 @@
 package co.dalicious.domain.address.entity.embeddable;
 
-import java.math.BigInteger;
 import java.sql.Timestamp;
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.Id;
+import javax.persistence.*;
+
+import co.dalicious.domain.address.dto.CreateAddressRequestDto;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.geo.Point;
 
 @Getter
 @Embeddable
+@NoArgsConstructor
 public class Address {
-  @Id
-  @Column(columnDefinition = "BIGINT UNSIGNED COMMENT '주소 PK'")
-  private BigInteger id;
-
-  @Column(name = "created_datetime", nullable = false,
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+  @Column(name = "created_datetime",
       columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) COMMENT '생성일'")
   private Timestamp createdDateTime;
 
   @Column(name = "zip_code", nullable = false, columnDefinition = "MEDIUMINT COMMENT '우편번호, 다섯자리'")
   private Integer zipCode;
 
-  @Column(name = "basic", nullable = false, columnDefinition = "VARCHAR(255) COMMENT '기본주소'")
-  private String basic;
+  @Column(name = "address_depth_1", nullable = true, columnDefinition = "VARCHAR(255) COMMENT '기본주소'")
+  private String address1;
 
-  @Column(name = "rest", nullable = true, columnDefinition = "VARCHAR(255) COMMENT '상세주소'")
-  private String rest;
+  @Column(name = "address_depth_2", nullable = true, columnDefinition = "VARCHAR(255) COMMENT '상세주소'")
+  private String address2;
+
+  @Column(name = "location", nullable = true)
+  @Comment("위치")
+  private Point location;
+
+  @Builder
+  public Address(CreateAddressRequestDto createAddressRequestDto) {
+    this.zipCode = Integer.parseInt(createAddressRequestDto.getZipCode());
+    this.address1 = createAddressRequestDto.getAddress1();
+    this.address2 = createAddressRequestDto.getAddress2();
+    this.location = new Point(Double.parseDouble(createAddressRequestDto.getLatitude()), Double.parseDouble(createAddressRequestDto.getLongitude()));
+  }
 }

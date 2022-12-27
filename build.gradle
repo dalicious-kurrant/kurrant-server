@@ -133,6 +133,8 @@ project(':app-public-api') {
         implementation project(':client-core')
         implementation project(':client-oauth')
         implementation project(':domain-user')
+        implementation project(':domain-application-form')
+        implementation project(':domain-address')
         implementation project(':domain-food')
         implementation project(':domain-client')
         implementation project(':domain-order')
@@ -219,6 +221,13 @@ project(':domain-order') {
         implementation project(':system-core')
         implementation project(':domain-user')
         implementation project(':domain-food')
+    }
+}
+
+project(':domain-application-form') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-address')
     }
 }
 
