@@ -31,6 +31,7 @@ public class OrderCartItem {
     @Comment("생성일")
     private LocalDate created;
 
+    @UpdateTimestamp
     @Column(name = "updated_datetime",
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
@@ -67,11 +68,8 @@ public class OrderCartItem {
 
 
     @Builder
-    public OrderCartItem(Integer id, LocalDate created, LocalDate updated, LocalDate serviceDate,
-                         Integer price, DiningType diningType, Integer count, OrderCart orderCart, Food foodId){
-        this.id = id;
-        this.created = created;
-        this.updated = updated;
+    public OrderCartItem( LocalDate serviceDate, Integer price, DiningType diningType,
+                          Integer count, OrderCart orderCart, Food foodId){
         this.serviceDate = serviceDate;
         this.price = price;
         this.diningType = diningType;

@@ -43,4 +43,19 @@ public class OrderController {
         return orderService.findCartById(httpServletRequest);
     }
 
+    @DeleteMapping("/me/order/cart/{foodId}")
+    public ResponseMessage deleteById(HttpServletRequest httpServletRequest,@PathVariable Integer foodId) {
+        orderService.deleteById(httpServletRequest, foodId);
+        return ResponseMessage.builder()
+                .message("장바구니의 모든 상품을 삭제했습니다.")
+                .build();
+    }
+
+    @DeleteMapping("/me/order/cart/all")
+    public ResponseMessage deleteByUserId(HttpServletRequest httpServletRequest) {
+        orderService.deleteByUserId(httpServletRequest);
+        return ResponseMessage.builder()
+                .message("장바구니의 모든 상품을 삭제했습니다.")
+                .build();
+    }
 }

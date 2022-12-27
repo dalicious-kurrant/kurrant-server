@@ -6,11 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @Repository
 public interface OrderCartRepository extends JpaRepository<OrderCart, BigInteger> {
 
-    OrderCart findByUserId(BigInteger id);
+    List<OrderCart> findByUserId(BigInteger id);
     @Query(value = "SELECT id FROM order__cart WHERE user_id = ?1", nativeQuery = true)
     Integer getCartId(BigInteger id);
 }

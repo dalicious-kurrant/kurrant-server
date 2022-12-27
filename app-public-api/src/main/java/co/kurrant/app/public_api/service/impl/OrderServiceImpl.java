@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.dto.CartItemDto;
@@ -93,50 +94,46 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    public void deleteByUserId(HttpServletRequest httpServletRequest) {
+        User user = commonService.getUser(httpServletRequest);
+        List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
+        Integer cartId = cart.get(0).getId();
+        orderCartItemRepository.deleteByCartId(cartId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(HttpServletRequest httpServletRequest, Integer foodId) {
+        User user = commonService.getUser(httpServletRequest);
+        List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
+        orderCartItemRepository.deleteByFoodId(cart.get(0).getId(), foodId);
+    }
+
+    @Override
+    @Transactional
     public void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto){
-        //User user = commonService.getUser(httpServletRequest);
-        //BigInteger id = user.getId();
+        User user = commonService.getUser(httpServletRequest);
+        BigInteger id = user.getId();
 
-        BigInteger id = BigInteger.valueOf(1); // 임시로 적용
+        List<OrderCart> orderCartId = orderCartRepository.findByUserId(id);
 
-        OrderCart orderCart1 = OrderCart.builder()
-                .userId(id)
-                .build();
-
-        orderCartRepository.save(orderCart1);
-        OrderCart orderCartId = orderCartRepository.findByUserId(id);
-
-        //Food DB 생성용
-        Food createFood = Food.builder()
-                .price(10000)
-                .name("무야호장 팥붕어빵")
-                .description("무야호장의 심혈을 기울인 팥붕")
-                .build();
-        Food createFood1 = Food.builder()
-                .price(10000)
-                .name("무야호장 슈크림붕어빵")
-                .description("무야호장의 심혈을 기울인 슈붕")
-                .build();
-        Food createFood2 = Food.builder()
-                .price(10000)
-                .name("무야호장 피자붕어빵")
-                .description("무야호장의 심혈을 기울인 피붕")
-                .build();
-
-        foodRepository.save(createFood);
-        foodRepository.save(createFood1);
-        foodRepository.save(createFood2);
-
+        //UserId로 찾았을때 장바구니가 없다면 생성
+        if(orderCartId.isEmpty()){
+            OrderCart orderCart1 = OrderCart.builder()
+                    .userId(id)
+                    .build();
+            orderCartRepository.save(orderCart1);
+        }
+        //FoodId를 담아준다.
         Food food = Food.builder()
                 .id(orderCartDto.getFoodId())
                 .build();
-
+        //정보들을 담아서 INSERT
         OrderCartItem orderCartItem = OrderCartItem.builder()
-                .created(LocalDate.now())
                 .serviceDate(orderCartDto.getServiceDate())
                 .diningType(orderCartDto.getDiningType())
                 .count(orderCartDto.getCount())
-                .orderCart(orderCartId)
+                .orderCart(orderCartId.get(0))
                 .foodId(food)
                 .build();
         orderCartItemRepository.save(orderCartItem);

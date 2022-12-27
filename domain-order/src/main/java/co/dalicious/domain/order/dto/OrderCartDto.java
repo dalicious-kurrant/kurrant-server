@@ -3,6 +3,7 @@ package co.dalicious.domain.order.dto;
 import co.dalicious.system.util.DiningType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -14,15 +15,14 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderCartDto {
-    Integer id;
     Integer foodId;
     Integer count;
     LocalDate serviceDate;
     DiningType diningType;
 
 
-    public OrderCartDto(Integer id, Integer foodId, LocalDate serviceDate, Integer count, DiningType diningType) {
-        this.id = id;
+    @Builder
+    public OrderCartDto(Integer foodId, LocalDate serviceDate, Integer count, DiningType diningType) {
         this.foodId = foodId;
         this.serviceDate = serviceDate;
         this.count = count;

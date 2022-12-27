@@ -14,4 +14,10 @@ public interface OrderCartItemRepository extends JpaRepository<OrderCartItem, In
 
     @Query(value = "SELECT * FROM order__cart_item WHERE cart_id = ?1",nativeQuery = true)
     List<OrderCartItem> getItems(Set<Integer> singleton);
+
+    @Query(value = "DELETE FROM order__cart_item WHERE cart_id = ?1 and food_id = ?2", nativeQuery = true)
+    void deleteByFoodId(Integer id, Integer foodId);
+
+    @Query(value = "DELETE FROM order__cart_item WHERE cart_id =?1",nativeQuery = true)
+    void deleteByCartId(Integer cartId);
 }

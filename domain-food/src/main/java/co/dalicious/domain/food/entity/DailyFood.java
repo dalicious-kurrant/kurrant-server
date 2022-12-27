@@ -34,11 +34,11 @@ public class DailyFood {
     private DiningType diningType;
 
     @CreationTimestamp
-    @Column(name = "created", columnDefinition = "DATE")
+    @Column(name = "created")
     private LocalDate created;
 
     @UpdateTimestamp
-    @Column(name = "updated", columnDefinition = "DATE")
+    @Column(name = "updated")
     private LocalDate updated;
 
     @Column(name = "e_status")
