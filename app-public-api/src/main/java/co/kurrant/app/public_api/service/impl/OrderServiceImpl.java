@@ -15,6 +15,7 @@ import co.dalicious.domain.order.repository.OrderCartRepository;
 import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.order.repository.QOrderCartItemRepository;
 import co.dalicious.domain.user.entity.User;
+import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.service.CommonService;
@@ -120,18 +121,21 @@ public class OrderServiceImpl implements OrderService {
         User user = commonService.getUser(httpServletRequest);
         List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
 
-        //FoodId를 담아준다.
-        Food food = Food.builder()
-                .id(updateCartDto.getFoodId())
-                .build();
+        for (UpdateCart updateCart : updateCartDto.getUpdateCartList()){
+            //FoodId를 담아준다.
+            Food food = Food.builder()
+                    .id(updateCart.getFoodId())
+                    .build();
+            System.out.println(updateCart.getFoodId() + " updateCart.get(0)");
 
-        OrderCartItem updateCartItem = OrderCartItem.builder()
-                                       .orderCart(cart.get(0))
-                                        .foodId(food)
-                                        .count(updateCartDto.getCount())
-                                        .build();
+            OrderCartItem updateCartItem = OrderCartItem.builder()
+                    .orderCart(cart.get(0))
+                    .foodId(food)
+                    .count(updateCart.getCount())
+                    .build();
+            qOrderCartItemRepository.updateByFoodId(updateCartItem);
+        }
 
-        qOrderCartItemRepository.updateByFoodId(updateCartItem);
     }
 
     @Override
