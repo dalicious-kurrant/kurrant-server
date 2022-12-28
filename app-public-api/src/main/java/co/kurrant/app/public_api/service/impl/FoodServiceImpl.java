@@ -83,18 +83,16 @@ public class FoodServiceImpl implements FoodService {
 
         List<Origin> origin = qOriginRepository.findByFoodId(foodId);
 
-        OriginList originList = null;
-
-        for (Origin origin1 : origin) {
-            originList = OriginList.builder()
-                    .origin(origin1)
-                    .build();
+        List<OriginList> originList = new ArrayList<>();
+        for (Origin origin1 : origin){
+            OriginList originList2 =  OriginList.builder()
+                    .origin(origin1).build();
+            originList.add(originList2);
         }
-
 
         return FoodDetailDto.builder()
                 .food(food)
-                .originList(originList)
+                .origin(originList)
                 .build();
     }
 }
