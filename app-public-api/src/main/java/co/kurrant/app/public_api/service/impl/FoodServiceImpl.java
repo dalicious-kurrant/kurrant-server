@@ -1,9 +1,14 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.food.dto.FoodDetailDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.Origin;
 import co.dalicious.domain.food.repository.FoodRepository;
+import co.dalicious.domain.food.repository.OriginRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.food.repository.QOriginRepository;
+import co.dalicious.domain.food.util.OriginList;
 import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.FoodStatus;
@@ -26,6 +31,11 @@ public class FoodServiceImpl implements FoodService {
 
     private final FoodRepository foodRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
+
+    private final OriginRepository originRepository;
+
+    private final QOriginRepository qOriginRepository;
+
 
     @Override
     public List<DailyFoodDto> getDailyFood(Integer spotId, LocalDate selectedDate) {
@@ -64,5 +74,27 @@ public class FoodServiceImpl implements FoodService {
             resultList.add(dailySample);
         }
         return resultList;  //결과값 반환
+    }
+
+    @Override
+    public FoodDetailDto getFoodDetail(Integer foodId) {
+
+        Food food = foodRepository.findById(foodId);
+
+        List<Origin> origin = qOriginRepository.findByFoodId(foodId);
+
+        OriginList originList = null;
+
+        for (Origin origin1 : origin) {
+            originList = OriginList.builder()
+                    .origin(origin1)
+                    .build();
+        }
+
+
+        return FoodDetailDto.builder()
+                .food(food)
+                .originList(originList)
+                .build();
     }
 }
