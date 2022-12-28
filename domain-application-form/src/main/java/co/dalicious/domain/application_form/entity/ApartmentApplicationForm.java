@@ -1,7 +1,7 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.application_form.dto.ApartmentApplyInfoDto;
+import co.dalicious.domain.application_form.dto.apartment.ApartmentApplyInfoDto;
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
@@ -11,6 +11,7 @@ import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
@@ -29,19 +30,25 @@ public class ApartmentApplicationForm {
     @Comment("아파트 스팟 개설 서비스를 신청한 유저의 id")
     private BigInteger userId;
 
-    @Column
+    @Size(max = 64)
+    @Column(name = "name", nullable = false, length = 64)
     @Comment("아파트 스팟 개설 서비스 신청자명")
     private String applierName;
 
+    @Size(max = 16)
     @Column
     @Comment("아파트 스팟 개설 신청자 연락처")
     private String phone;
 
-    @Column
+    @Size(max = 64)
+    @NotNull
+    @Column(name = "email", nullable = false, length = 64)
     @Comment("아파트 스팟 개설 신청자 이메일")
     private String email;
 
-    @Column
+    @Size(max = 64)
+    @NotNull
+    @Column(name = "apartment_name", nullable = false, length = 64)
     @Comment("아파트명")
     private String apartmentName;
 
@@ -73,9 +80,8 @@ public class ApartmentApplicationForm {
     @OneToMany(mappedBy = "apartmentApplicationForm", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "application_form_apartment_fk")
     @Comment("식사 정보")
-    private List<ApplyMealInfo> mealInfoList;
+    private List<ApartmentMealInfo> mealInfoList;
 
-    @NotNull
     @Column(name = "memo")
     @Comment("기타 내용")
     private String memo;
@@ -99,7 +105,7 @@ public class ApartmentApplicationForm {
         this.memo = memo;
     }
 
-    public void setMealInfoList(List<ApplyMealInfo> mealInfoList) {
+    public void setMealInfoList(List<ApartmentMealInfo> mealInfoList) {
         this.mealInfoList = mealInfoList;
     }
     public void updateMemo(String memo) {

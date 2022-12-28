@@ -1,9 +1,9 @@
 package co.kurrant.app.public_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.application_form.dto.ApartmentApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
-import co.dalicious.domain.application_form.dto.CorporationSpotApplicationFormDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationSpotApplicationFormDto;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

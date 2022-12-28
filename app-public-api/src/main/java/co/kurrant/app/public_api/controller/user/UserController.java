@@ -97,10 +97,10 @@ public class UserController {
                                               @RequestParam(required = false) Boolean isMarketingInfoAgree,
                                               @RequestParam(required = false) Boolean isMarketingAlarmAgree,
                                               @RequestParam(required = false) Boolean isOrderAlarmAgree) {
-        ChangeMarketingDto changeMarketingDto = userService.changeAlarmSetting(httpServletRequest, isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
+        MarketingAlarmRequestDto marketingAlarmRequestDto = userService.changeAlarmSetting(httpServletRequest, isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
         return ResponseMessage.builder()
                 .message("마케팅 수신 정보 변경에 성공하였습니다.")
-                .data(changeMarketingDto)
+                .data(marketingAlarmRequestDto)
                 .build();
     }
 

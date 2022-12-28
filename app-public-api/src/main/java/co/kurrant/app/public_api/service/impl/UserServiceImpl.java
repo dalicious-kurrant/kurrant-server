@@ -202,8 +202,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ChangeMarketingDto changeAlarmSetting(HttpServletRequest httpServletRequest, Boolean isMarketingInfoAgree,
-                                                 Boolean isMarketingAlarmAgree, Boolean isOrderAlarmAgree) {
+    public MarketingAlarmRequestDto changeAlarmSetting(HttpServletRequest httpServletRequest, Boolean isMarketingInfoAgree,
+                                                       Boolean isMarketingAlarmAgree, Boolean isOrderAlarmAgree) {
         // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
         Boolean currantMarketingInfoAgree = user.getMarketingAgree();
@@ -239,7 +239,7 @@ public class UserServiceImpl implements UserService {
                 user.changeMarketingAgreement(now, !currantMarketingInfoAgree, currantMarketingAlarmAgree, isOrderAlarmAgree);
             }
         }
-        return ChangeMarketingDto.builder()
+        return MarketingAlarmRequestDto.builder()
                 .marketingAgree(user.getMarketingAgree())
                 .marketingAgreedDateTime(user.getMarketingAgreedDateTime())
                 .marketingAlarm(user.getMarketingAlarm())

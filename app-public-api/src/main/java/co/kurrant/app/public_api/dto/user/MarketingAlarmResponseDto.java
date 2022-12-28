@@ -7,11 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
-@Schema(description = "마케팅 수신정보 변경 요청/응답 DTO")
+@Schema(description = "마케팅 수신정보 변경 응답 DTO")
 @Getter
 @NoArgsConstructor
-public class ChangeMarketingDto {
-    private Timestamp marketingAgreedDateTime;
+public class MarketingAlarmResponseDto {
 
     private Boolean marketingAgree;
 
@@ -20,8 +19,7 @@ public class ChangeMarketingDto {
     private Boolean orderAlarm;
 
     @Builder
-    public ChangeMarketingDto(Timestamp marketingAgreedDateTime, Boolean marketingAgree, Boolean marketingAlarm, Boolean orderAlarm) {
-        this.marketingAgreedDateTime = marketingAgreedDateTime;
+    public MarketingAlarmResponseDto(Boolean marketingAgree, Boolean marketingAlarm, Boolean orderAlarm) {
         this.marketingAgree = marketingAgree;
         this.marketingAlarm = marketingAlarm;
         this.orderAlarm = orderAlarm;
