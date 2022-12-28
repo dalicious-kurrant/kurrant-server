@@ -53,7 +53,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public void connectSnsAccount(HttpServletRequest httpServletRequest, SnsAccessToken snsAccessToken, String sns) {
         // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
@@ -62,11 +61,9 @@ public class UserServiceImpl implements UserService {
         Provider provider = UserValidator.isValidProvider(sns);
 
         // 현재 로그인 한 아이디가 같은 Vendor의 아이디와 연결되어있는지 체크
-        List<ProviderEmail> providerEmails = user.getProviderEmails();
-        for (ProviderEmail providerEmail : providerEmails) {
-            if (providerEmail.getProvider().equals(provider)) {
-                throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
-            }
+        List<ProviderEmail> providerEmails = providerEmailRepository.findByUser(user);
+        if (providerEmails.stream().anyMatch(pe -> pe.getProvider().equals(provider))) {
+            throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
         }
 
         // Vendor 로그인 시도
@@ -106,7 +103,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public void disconnectSnsAccount(HttpServletRequest httpServletRequest, String sns) {
         // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
@@ -115,7 +111,10 @@ public class UserServiceImpl implements UserService {
         Provider provider = UserValidator.isValidProvider(sns);
 
         // 현재 로그인 한 아이디가 이메일/비밀번호를 설정했는지 확인
-        List<ProviderEmail> providerEmails = user.getProviderEmails();
+        List<ProviderEmail> providerEmails = providerEmailRepository.findByUser(user);
+        if(providerEmails == null) {
+            throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
+        }
         providerEmails.stream()
                 .filter(e -> e.getProvider().equals(Provider.GENERAL))
                 .findAny()
@@ -128,7 +127,6 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
 
         // 소셜로그인 연결 계정 삭제
-        user.getProviderEmails().removeIf(e -> e.getId().equals(providerEmail.getId()));
         providerEmailRepository.deleteById(providerEmail.getId());
     }
 
