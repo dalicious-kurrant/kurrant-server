@@ -16,6 +16,7 @@ import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.order.repository.QOrderCartItemRepository;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.OrderService;
@@ -51,7 +52,7 @@ public class OrderServiceImpl implements OrderService {
 
         byServiceDateBetween.forEach( x -> {
             orderDetailDto.setId(x.getId());
-            orderDetailDto.setServiceDate(x.getServiceDate());
+            orderDetailDto.setServiceDate(DateUtils.format(x.getServiceDate(), "yyyy-MM-dd") );
 
             Food food = foodRepository.findById(x.getFoodId());
 
