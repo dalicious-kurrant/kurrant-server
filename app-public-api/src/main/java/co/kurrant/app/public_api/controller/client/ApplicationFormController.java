@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationSpotApplicationFormDto;
 import co.kurrant.app.public_api.service.ApplicationFormService;
@@ -48,8 +49,8 @@ public class ApplicationFormController {
 
     @Operation(summary = "기업 스팟 개설 신청 API", description = "기업 스팟 개설을 신청한다.")
     @PostMapping("/corporations")
-    public void registerCorporationSpot(@RequestBody CorporationSpotApplicationFormDto corporationSpotApplicationFormDto) {
-
+    public void registerCorporationSpot(HttpServletRequest httpServletRequest, @RequestBody CorporationApplicationFormRequestDto corporationApplicationFormRequestDto) {
+        applicationFormService.registerCorporationSpot(httpServletRequest, corporationApplicationFormRequestDto);
     }
 
     @Operation(summary = "기업 스팟 개설 신청 내역", description = "기업 스팟 개설 신청 내역을 조회한다.")

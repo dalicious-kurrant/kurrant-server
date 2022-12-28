@@ -8,13 +8,15 @@ import co.dalicious.domain.application_form.dto.apartment.*;
 import co.dalicious.domain.application_form.dto.corporation.*;
 import co.dalicious.domain.application_form.entity.ApartmentApplicationForm;
 import co.dalicious.domain.application_form.entity.ApartmentMealInfo;
+import co.dalicious.domain.application_form.entity.CorporationApplicationFormSpot;
 import co.dalicious.domain.application_form.repository.ApartmentApplicationFormRepository;
 import co.dalicious.domain.application_form.repository.ApplyMealInfoRepository;
-import co.dalicious.domain.client.repository.CorporationRepository;
+import co.dalicious.domain.application_form.repository.CorporationApplicationFormSpotRepository;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.client.*;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.CommonService;
+import co.kurrant.app.public_api.service.impl.mapper.CorporationSpotApplicationFormMapper;
 import co.kurrant.app.public_api.validator.ApplicationFormValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final ApplicationFormValidator applicationFormValidator;
     private final ApplyMealInfoRepository applyMealInfoRepository;
     private final ApartmentApplicationFormRepository apartmentApplicationFormRepository;
-    private final CorporationRepository corporationRepository;
+    private final CorporationApplicationFormSpotRepository corporationApplicationFormSpotRepository;
 
     @Override
     @Transactional
@@ -106,10 +108,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         ApplyUserDto applyUserDto = corporationApplicationFormRequestDto.getUser();
 
         // 스팟 신청 기업 정보 가져오기
-        CorporationApplyInfoDto applyInfoDto = corporationApplicationFormRequestDto.getCorporationApplyInfoDto();
+        CorporationApplyInfoDto applyInfoDto = corporationApplicationFormRequestDto.getCorporationInfo();
 
         // 스팟 신청 기업 주소 정보 가져오기
-        CreateAddressRequestDto addressRequestDto = corporationApplicationFormRequestDto.getCreateAddressRequestDto();
+        CreateAddressRequestDto addressRequestDto = corporationApplicationFormRequestDto.getAddress();
 
         // 식사 정보 리스트 가져오기
         List<CorporationMealInfoRequestDto> mealInfoRequestDtoList = corporationApplicationFormRequestDto.getMealDetails();
@@ -121,6 +123,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         CorporationOptionsApplicationFormRequestDto corporationOptionsApplicationFormRequestDto = corporationApplicationFormRequestDto.getOption();
 
         // 스팟 신청 정보 저장
+        for(CorporationSpotApplicationFormDto spot : spots) {
+            CorporationApplicationFormSpot corporationSpotApplicationForm = CorporationSpotApplicationFormMapper.INSTANCE.toEntity(spot);
+            corporationApplicationFormSpotRepository.save(corporationSpotApplicationForm);
+        }
 
         // 식사 정보 저장
     }

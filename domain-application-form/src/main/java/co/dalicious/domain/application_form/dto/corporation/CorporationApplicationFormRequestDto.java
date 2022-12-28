@@ -13,8 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 public class CorporationApplicationFormRequestDto {
     private ApplyUserDto user;
-    private CorporationApplyInfoDto corporationApplyInfoDto;
-    private CreateAddressRequestDto createAddressRequestDto;
+    private CorporationApplyInfoDto corporationInfo;
+    private CreateAddressRequestDto address;
     private List<CorporationMealInfoRequestDto> mealDetails;
     private List<CorporationSpotApplicationFormDto> spots;
     private CorporationOptionsApplicationFormRequestDto option;
