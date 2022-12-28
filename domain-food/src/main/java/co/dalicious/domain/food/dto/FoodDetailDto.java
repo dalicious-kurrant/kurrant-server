@@ -23,16 +23,16 @@ public class FoodDetailDto {
     private Integer price;
     private String img;
     private Spicy spicy;
-    private OriginList originList;
+    private List<OriginList> originList;
 
     @Builder
-    FoodDetailDto(Food food, OriginList originList){
+    FoodDetailDto(Food food, List<OriginList> origin){
         this.makers = food.getMakers().getName();
         this.name = food.getName();
         this.price = food.getPrice();
         this.img = food.getImg();
         this.spicy = food.getSpicy();
-        this.originList = originList;
+        this.originList = origin;
     }
 
 }
