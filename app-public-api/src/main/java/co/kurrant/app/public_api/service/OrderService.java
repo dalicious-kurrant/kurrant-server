@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 public interface OrderService {
-    OrderDetailDto findOrderByServiceDate(Date startDate, Date endDate);
+    List<OrderDetailDto> findOrderByServiceDate(Date startDate, Date endDate);
 
     void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto);
 

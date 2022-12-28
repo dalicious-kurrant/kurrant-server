@@ -24,7 +24,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping("/me/order")
-    public OrderDetailDto userOrderbyDate(
+    public List<OrderDetailDto> userOrderbyDate(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate){
         return orderService.findOrderByServiceDate(startDate, endDate);

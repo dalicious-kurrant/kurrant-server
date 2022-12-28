@@ -1,8 +1,10 @@
 package co.dalicious.domain.order.dto;
 
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.domain.order.entity.OrderCartItem;
 import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.Spicy;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,20 +19,32 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartItemDto {
-    Food food;
+    Integer id;
+    String name;
+    Integer price;
+    String img;
+    Spicy spicy;
+    Makers makers;
+    String description;
     DiningType diningType;
     Integer count;
-    Integer price;
+    Integer sumPrice;
     Double discountRate;
     LocalDate serviceDate;
 
     @Builder
     public CartItemDto(OrderCartItem orderCartItem, Integer price){
-        this.food = orderCartItem.getFoodId();
+        this.id = orderCartItem.getFoodId().getId();
+        this.name = orderCartItem.getFoodId().getName();
+        this.price = orderCartItem.getFoodId().getPrice();
+        this.img = orderCartItem.getFoodId().getImg();
+        this.spicy = orderCartItem.getFoodId().getSpicy();
+        this.makers = orderCartItem.getFoodId().getMakers();
+        this.description = orderCartItem.getFoodId().getDescription();
         this.diningType = orderCartItem.getDiningType();
         this.count = orderCartItem.getCount();
-        this.discountRate = Double.valueOf(orderCartItem.getFoodId().getDiscountedRate());//할인율로 변경필요
+        this.discountRate = orderCartItem.getFoodId().getDiscountedRate();
         this.serviceDate = orderCartItem.getServiceDate();
-        this.price = price;
+        this.sumPrice = price;
     }
 }

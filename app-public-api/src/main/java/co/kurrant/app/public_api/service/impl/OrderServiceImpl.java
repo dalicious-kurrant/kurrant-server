@@ -41,8 +41,8 @@ public class OrderServiceImpl implements OrderService {
     private final CommonService commonService;
 
     @Override
-    public OrderDetailDto findOrderByServiceDate(Date startDate, Date endDate){
-        //JWT로 아이디 받기
+    public List<OrderDetailDto> findOrderByServiceDate(Date startDate, Date endDate){
+        List<OrderDetailDto> resultList = new ArrayList<>();
         OrderDetailDto orderDetailDto = new OrderDetailDto();
 
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
@@ -66,7 +66,9 @@ public class OrderServiceImpl implements OrderService {
             orderItemDtoList.add(orderItemDto);
             orderDetailDto.setOrderItemDtoList(orderItemDtoList);
         });
-        return orderDetailDto;
+        resultList.add(orderDetailDto);
+
+        return resultList;
     }
 
     @Override
