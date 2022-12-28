@@ -25,7 +25,6 @@ public class CartItemDto {
     String img;
     Spicy spicy;
     Makers makers;
-    String description;
     DiningType diningType;
     Integer count;
     Integer sumPrice;
@@ -40,7 +39,6 @@ public class CartItemDto {
         this.img = orderCartItem.getFoodId().getImg();
         this.spicy = orderCartItem.getFoodId().getSpicy();
         this.makers = orderCartItem.getFoodId().getMakers();
-        this.description = orderCartItem.getFoodId().getDescription();
         this.diningType = orderCartItem.getDiningType();
         this.count = orderCartItem.getCount();
         this.discountRate = orderCartItem.getFoodId().getDiscountedRate();
