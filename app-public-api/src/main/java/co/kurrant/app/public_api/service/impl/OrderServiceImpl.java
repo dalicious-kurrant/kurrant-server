@@ -126,8 +126,6 @@ public class OrderServiceImpl implements OrderService {
             Food food = Food.builder()
                     .id(updateCart.getFoodId())
                     .build();
-            System.out.println(updateCart.getFoodId() + " updateCart.get(0)");
-
             OrderCartItem updateCartItem = OrderCartItem.builder()
                     .orderCart(cart.get(0))
                     .foodId(food)
@@ -166,8 +164,5 @@ public class OrderServiceImpl implements OrderService {
                 .foodId(food)
                 .build();
         orderCartItemRepository.save(orderCartItem);
-
-
-
     }
 }

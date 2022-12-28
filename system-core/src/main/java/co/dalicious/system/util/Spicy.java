@@ -6,15 +6,15 @@ import java.util.Arrays;
 
 @Getter
 public enum Spicy {
-    NULL("표기없음", 0L),
-    Level1("약간 매움", 1L),
-    Level2("신라면 맵기", 2L),
-    Level3("불닭볶음면 맵기", 3L);
+    NULL("표기없음", 0),
+    Level1("약간 매움", 1),
+    Level2("신라면 맵기", 2),
+    Level3("불닭볶음면 맵기", 3);
 
     private final String spicy;
-    private final Long code;
+    private final Integer code;
 
-    Spicy(String spicy, Long code) {
+    Spicy(String spicy, Integer code) {
         this.spicy = spicy;
         this.code = code;
     }

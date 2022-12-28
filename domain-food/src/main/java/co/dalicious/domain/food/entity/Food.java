@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.makers.entity.Makers;
+import co.dalicious.system.util.Spicy;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,6 +40,10 @@ public class Food {
     @Column(name = "discounted_rate")
     @Comment("할인율")
     private Double discountedRate;
+
+    @Column(name = "e_spicy")
+    @Comment("맵기정도")
+    private Spicy spicy;
 
     @ManyToOne
     @JoinColumn(name = "makers_id")
