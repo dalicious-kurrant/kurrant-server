@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,7 +22,16 @@ public class QDailyFoodRepository {
         return queryFactory
                 .selectFrom(dailyFood)
                 .where(dailyFood.spotId.eq(spotId),
-                        dailyFood.serviceDate.between(LocalDate.from(selectedDate.atStartOfDay()), LocalDate.from(selectedDate.plusDays(1).atStartOfDay())))
+                        dailyFood.serviceDate.eq(selectedDate))
+                .fetch();
+    }
+
+    public List<Integer> findByFoodId(BigInteger foodId, LocalDate serviceDate) {
+        return queryFactory
+                .select(dailyFood.id)
+                .from(dailyFood)
+                .where(dailyFood.food.id.eq(foodId.intValue()),
+                        dailyFood.serviceDate.eq(serviceDate))
                 .fetch();
     }
 }

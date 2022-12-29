@@ -20,29 +20,32 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class CartItemDto {
     Integer id;
+    Integer dailyFoodId;
     String name;
     Integer price;
     String img;
-    Spicy spicy;
+    String spicy;
     Makers makers;
-    DiningType diningType;
+    String diningType;
     Integer count;
     Integer sumPrice;
     Double discountRate;
     LocalDate serviceDate;
 
+
     @Builder
-    public CartItemDto(OrderCartItem orderCartItem, Integer price){
-        this.id = orderCartItem.getFoodId().getId();
-        this.name = orderCartItem.getFoodId().getName();
-        this.price = orderCartItem.getFoodId().getPrice();
-        this.img = orderCartItem.getFoodId().getImg();
-        this.spicy = orderCartItem.getFoodId().getSpicy();
-        this.makers = orderCartItem.getFoodId().getMakers();
-        this.diningType = orderCartItem.getDiningType();
+    public CartItemDto(OrderCartItem orderCartItem, Integer price, Integer dailyFoodId){
+        this.id = orderCartItem.getFood().getId();
+        this.name = orderCartItem.getFood().getName();
+        this.price = orderCartItem.getFood().getPrice();
+        this.img = orderCartItem.getFood().getImg();
+        this.spicy = orderCartItem.getFood().getSpicy().getSpicy();
+        this.makers = orderCartItem.getFood().getMakers();
+        this.diningType = orderCartItem.getDiningType().getDiningType();
         this.count = orderCartItem.getCount();
-        this.discountRate = orderCartItem.getFoodId().getDiscountedRate();
+        this.discountRate = orderCartItem.getFood().getDiscountedRate();
         this.serviceDate = orderCartItem.getServiceDate();
         this.sumPrice = price;
+        this.dailyFoodId = dailyFoodId;
     }
 }

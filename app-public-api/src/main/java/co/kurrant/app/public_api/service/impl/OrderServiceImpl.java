@@ -1,7 +1,10 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
+import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.dto.CartItemDto;
 import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.order.dto.OrderDetailDto;
@@ -14,17 +17,19 @@ import co.dalicious.domain.order.repository.OrderCartRepository;
 import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.order.repository.QOrderCartItemRepository;
 import co.dalicious.domain.user.entity.User;
-import co.kurrant.app.public_api.dto.order.UpdateCart;
+
 import co.dalicious.system.util.DateUtils;
+import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.OrderService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
+
 import java.math.BigInteger;
 import java.util.*;
 
@@ -36,6 +41,7 @@ public class OrderServiceImpl implements OrderService {
     private final FoodRepository foodRepository;
     private final OrderCartRepository orderCartRepository;
     private final OrderCartItemRepository orderCartItemRepository;
+    private final QDailyFoodRepository qDailyFoodRepository;
     private final QOrderCartItemRepository qOrderCartItemRepository;
     private final CommonService commonService;
 
@@ -78,22 +84,27 @@ public class OrderServiceImpl implements OrderService {
         List<CartItemDto> result = new ArrayList<>();
 
         //유저정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
-        List<OrderCartItem> orderCartItems = orderCartItemRepository.getItems(Collections.singleton(orderCartRepository.getCartId(user.getId())));
+        List<OrderCartItem> orderCartItems = qOrderCartItemRepository.getItems(orderCartRepository.getCartId(user.getId()));
 
         //카트에 담긴 아이템들을 결과 LIST에 담아주기
         for (OrderCartItem oc : orderCartItems){
-            Integer price = oc.getFoodId().getPrice();
+            Integer price = oc.getFood().getPrice();
             //count가 1이 아니면 가격 * count
             if (oc.getCount() != 1){
                 price = price * oc.getCount();
+            }
+            Integer dailyFoodId = null;
+            List<Integer> dailyFood = qDailyFoodRepository.findByFoodId(BigInteger.valueOf(oc.getFood().getId()), oc.getServiceDate());
+            if(dailyFood.size() == 1){
+                dailyFoodId = dailyFood.get(0);
             }
 
             result.add(CartItemDto.builder()
                     .orderCartItem(oc)
                     .price(price)
+                    .dailyFoodId(dailyFoodId)
                     .build());
         }
-        System.out.println(orderCartItems.size() + "결과 size 확인");
         return result;
     }
 
@@ -147,25 +158,42 @@ public class OrderServiceImpl implements OrderService {
 
         //UserId로 찾았을때 장바구니가 없다면 생성
         if(orderCartId.isEmpty()){
-            OrderCart orderCart1 = OrderCart.builder()
-                    .userId(id)
-                    .build();
-            orderCartRepository.save(orderCart1);
-            orderCartId.add(orderCart1);
-        }
 
-        //FoodId를 담아준다.
-        Food food = Food.builder()
-                .id(orderCartDto.getFoodId())
-                .build();
-        //정보들을 담아서 INSERT
-        OrderCartItem orderCartItem = OrderCartItem.builder()
-                .serviceDate(orderCartDto.getServiceDate())
-                .diningType(orderCartDto.getDiningType())
-                .count(orderCartDto.getCount())
-                .orderCart(orderCartId.get(0))
-                .foodId(food)
-                .build();
-        orderCartItemRepository.save(orderCartItem);
+            User user1 = User.builder()
+                    .id(id)
+                    .build();
+
+            OrderCart orderCart1 = OrderCart.builder()
+                    .userId(user1.getId())
+                    .build();
+            OrderCart orderCart = orderCartRepository.save(orderCart1);
+
+            //음식을 저장한다.
+            Food food = foodRepository.findById(1);
+            //정보들을 담아서 INSERT
+            OrderCartItem orderCartItem = OrderCartItem.builder()
+                    .serviceDate(orderCartDto.getServiceDate())
+                    .diningType(orderCartDto.getDiningType())
+                    .count(orderCartDto.getCount())
+                    .orderCart(orderCart)
+                    .foodId(food)
+                    .build();
+            orderCartItemRepository.save(orderCartItem);
+        }else { //장바구니 ID가 있다면 바로 담아준다.
+            //FoodId를 담아준다.
+            Food food = Food.builder()
+                    .id(orderCartDto.getFoodId())
+                    .build();
+
+            //정보들을 담아서 INSERT
+            OrderCartItem orderCartItem = OrderCartItem.builder()
+                    .serviceDate(orderCartDto.getServiceDate())
+                    .diningType(orderCartDto.getDiningType())
+                    .count(orderCartDto.getCount())
+                    .orderCart(orderCartId.get(0))
+                    .foodId(food)
+                    .build();
+            orderCartItemRepository.save(orderCartItem);
+        }
     }
 }

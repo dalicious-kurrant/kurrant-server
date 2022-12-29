@@ -22,7 +22,7 @@ public class FoodDetailDto {
     private String name;
     private Integer price;
     private String img;
-    private Spicy spicy;
+    private String spicy;
     private List<OriginList> originList;
 
     @Builder
@@ -31,7 +31,7 @@ public class FoodDetailDto {
         this.name = food.getName();
         this.price = food.getPrice();
         this.img = food.getImg();
-        this.spicy = food.getSpicy();
+        this.spicy = food.getSpicy().getSpicy();
         this.originList = origin;
     }
 

@@ -5,6 +5,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 import static co.dalicious.domain.order.entity.QOrderCartItem.orderCartItem;
 
 @Repository
@@ -24,7 +26,7 @@ public class QOrderCartItemRepository {
         queryFactory
                 .delete(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(id),
-                        orderCartItem.foodId.id.eq(foodId))
+                        orderCartItem.food.id.eq(foodId))
                 .execute();
     }
 
@@ -32,8 +34,15 @@ public class QOrderCartItemRepository {
         queryFactory
                 .update(orderCartItem)
                 .set(orderCartItem.count, updateCartItem.getCount())
-                .where(orderCartItem.foodId.id.eq(updateCartItem.getFoodId().getId()),
+                .where(orderCartItem.food.id.eq(updateCartItem.getFood().getId()),
                         orderCartItem.orderCart.id.eq(updateCartItem.getOrderCart().getId()))
                 .execute();
+    }
+
+    public List<OrderCartItem> getItems(Integer cartId) {
+        return queryFactory
+                .selectFrom(orderCartItem)
+                .where(orderCartItem.orderCart.id.eq(cartId))
+                .fetch();
     }
 }

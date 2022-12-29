@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.time.LocalDate;
@@ -54,7 +55,7 @@ public class OrderCartItem {
     @Comment("수량")
     private Integer count;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "cart_id")
     @Comment("장바구니 ID")
     private OrderCart orderCart;
@@ -63,7 +64,7 @@ public class OrderCartItem {
     @ManyToOne
     @JoinColumn(name="food_id")
     @Comment("장바구니에 담긴 음식 ID")
-    private Food foodId;
+    private Food food;
 
 
 
@@ -75,6 +76,6 @@ public class OrderCartItem {
         this.diningType = diningType;
         this.count = count;
         this.orderCart = orderCart;
-        this.foodId = foodId;
+        this.food = foodId;
     }
 }
