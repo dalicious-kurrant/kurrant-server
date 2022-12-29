@@ -6,7 +6,6 @@ import co.dalicious.domain.order.dto.CartItemDto;
 import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.order.dto.OrderDetailDto;
 import co.dalicious.domain.order.dto.OrderItemDto;
-import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderCart;
 import co.dalicious.domain.order.entity.OrderCartItem;
 import co.dalicious.domain.order.entity.OrderItem;
@@ -152,7 +151,9 @@ public class OrderServiceImpl implements OrderService {
                     .userId(id)
                     .build();
             orderCartRepository.save(orderCart1);
+            orderCartId.add(orderCart1);
         }
+
         //FoodId를 담아준다.
         Food food = Food.builder()
                 .id(orderCartDto.getFoodId())

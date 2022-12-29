@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.public_api.service.MembershipService;
+import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Tag(name = "3. Membership")
+@Tag(name = "5. Membership")
 @RequestMapping(value = "/v1/users/membership")
 @RestController
 @RequiredArgsConstructor

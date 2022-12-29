@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

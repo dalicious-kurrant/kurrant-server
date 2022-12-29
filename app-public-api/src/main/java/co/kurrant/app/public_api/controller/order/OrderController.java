@@ -6,6 +6,7 @@ import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.order.dto.OrderDetailDto;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.service.OrderService;
+import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
 
-@Tag(name = "4. Order")
+@Tag(name = "3. Order")
 @RequestMapping(value = "/v1/users")
 @RestController
 @RequiredArgsConstructor
