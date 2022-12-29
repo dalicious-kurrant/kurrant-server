@@ -125,8 +125,10 @@ jobs:
         script: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
           docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
+          docker stop redis
           docker stop kurrant_v1
           sleep 5
+          docker run -d --rm --net redis-bridge --name redis -p 6379:6379 redis
           docker run -d --rm --net redis-bridge --name kurrant_v1 -p 8882:8882 kurrant_v1
           
 

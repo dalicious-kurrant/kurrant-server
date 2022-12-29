@@ -6,15 +6,15 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class DiningTypeConverter implements AttributeConverter<DiningType, Long> {
+public class DiningTypeConverter implements AttributeConverter<DiningType, Integer> {
 
     @Override
-    public Long convertToDatabaseColumn(DiningType diningType) {
+    public Integer convertToDatabaseColumn(DiningType diningType) {
         return diningType.getCode();
     }
 
     @Override
-    public DiningType convertToEntityAttribute(Long dbData) {
+    public DiningType convertToEntityAttribute(Integer dbData) {
         return DiningType.ofCode(dbData);
     }
 }

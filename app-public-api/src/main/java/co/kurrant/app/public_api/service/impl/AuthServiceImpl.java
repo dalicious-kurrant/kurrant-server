@@ -88,11 +88,32 @@ public class AuthServiceImpl implements AuthService {
 
         // 메일 내용 메일의 subtype을 html로 지정하여 html문법 사용 가능
         String content = "";
-        content += "<h1 style=\"font-size: 30px; padding-right: 30px; padding-left: 30px;\">이메일 주소 확인</h1>";
-        content += "<p style=\"font-size: 17px; padding-right: 30px; padding-left: 30px;\">아래 확인 코드를 회원가입 화면에서 입력해주세요.</p>";
-        content += "<div style=\"padding-right: 30px; padding-left: 30px; margin: 32px 0 40px;\"><table style=\"border-collapse: collapse; border: 0; background-color: #F4F4F4; height: 70px; table-layout: fixed; word-wrap: break-word; border-radius: 6px;\"><tbody><tr><td style=\"text-align: center; vertical-align: middle; font-size: 30px;\">";
+        content += """
+                <!DOCTYPE html>
+                <html>
+                    <head></head>
+                    <body>
+                        <div>
+                            <div style="width:100%; justify-content: center;  align-items: center; display: flex; flex-direction: column;">
+                                <div style="width:100%; max-width: 481px;">
+                                    <img style="margin-bottom: 32px;" src="https://asset.kurrant.co/img/common/logo.png" />
+                                </div>
+                                <div style="padding: 50px; padding-right: 104px; border:1px solid #E4E3E7; border-radius: 14px; max-width: 481px; min-height: 481px; width: 100%; box-sizing: border-box;">
+                                    <div style="font-size: 26px; font-weight: 600; font-family: ‘Franklin Gothic Medium’, ‘Arial Narrow’, Arial, sans-serif; line-height: 35px; margin-bottom: 32px; color: #343337;">커런트에서 요청하신 인증번호를 발송해 드립니다.</div>
+                                    <div style="font-size: 14px; line-height: 22px; font-weight: 400; color: #343337;">아래 인증번호 6자리를 인증번호 입력창에 입력해주세요</div>
+                                    <div style="color: #343337; font-size: 22px; font-weight: 600; line-height: 30px;">
+                """;
         content += key;
-        content += "</td></tr></tbody></table></div>";
+        content += "</div>\n" + "</div>\n" + "</div>";
+        content += """
+                 <footer  style="justify-content: center;  align-items: center; display: flex; flex-direction: column; margin-top: 125px;">
+                                 <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">서울특별시 강남구 테헤란로51길 21 3층</div>
+                                 <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">달리셔스주식회사</div>
+                             </footer>
+                         </div>
+                     </body>
+                 </html>
+                """;
 
         // 인증번호 발송
         emailService.sendSimpleMessage(mailMessageDto.getReceivers(), subject, content);
@@ -211,7 +232,7 @@ public class AuthServiceImpl implements AuthService {
         };
 
         // Response 값이 존재하지 않으면 예외 발생
-        if(snsLoginResponseDto == null) {
+        if (snsLoginResponseDto == null) {
             throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
         }
 
@@ -223,43 +244,28 @@ public class AuthServiceImpl implements AuthService {
         Optional<ProviderEmail> providerEmail = providerEmailRepository.findAllByProviderAndEmail(provider, email);
 
         // 이미 소셜로그인으로 가입한 이력이 있는 유저라면 토큰 발행
-        if(providerEmail.isPresent()) {
-            User user = providerEmail
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND))
-                    .getUser();
+        if (providerEmail.isPresent()) {
+            User user = providerEmail.orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND)).getUser();
             return returnAccessToken(user);
         }
 
         // 소셜 로그인으로 가입한 이력은 없지만, 소셜 로그인 이메일과 ProviderEmail에 동일한 이메일이 있는지 확인
         List<ProviderEmail> providerEmails = providerEmailRepository.findAllByEmail(email);
         // 동일한 이메일로 가입한 이력이 있는 유저를 가져온다.
-        if(!providerEmails.isEmpty()) {
+        if (!providerEmails.isEmpty()) {
             User user = providerEmails.get(0).getUser();
-            ProviderEmail newProviderEmail = ProviderEmail.builder()
-                    .provider(provider)
-                    .email(snsLoginResponseDto.getEmail())
-                    .user(user)
-                    .build();
+            ProviderEmail newProviderEmail = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
             providerEmailRepository.save(newProviderEmail);
             return returnAccessToken(user);
         }
 
         // 어떤 것도 가입되지 않은 유저라면 계정 생성
-        UserDto userDto = UserDto.builder()
-                .role(Role.USER)
-                .email(email)
-                .phone(phone)
-                .name(name)
-                .build();
+        UserDto userDto = UserDto.builder().role(Role.USER).email(email).phone(phone).name(name).build();
 
         User user = UserMapper.INSTANCE.toEntity(userDto);
         userRepository.save(user);
 
-        ProviderEmail newProviderEmail2 = ProviderEmail.builder()
-                .provider(provider)
-                .email(snsLoginResponseDto.getEmail())
-                .user(user)
-                .build();
+        ProviderEmail newProviderEmail2 = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
         providerEmailRepository.save(newProviderEmail2);
         return returnAccessToken(user);
 

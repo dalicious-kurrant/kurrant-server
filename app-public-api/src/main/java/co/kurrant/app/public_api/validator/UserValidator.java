@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 public class UserValidator {
     private final UserRepository userRepository;
     private final ProviderEmailRepository providerEmailRepository;
-    public void isPasswordMatched(String password, String passwordCheck) {
+    public static void isPasswordMatched(String password, String passwordCheck) {
         if(!password.equals(passwordCheck)) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
         }
@@ -31,6 +31,12 @@ public class UserValidator {
         if(providerEmail.isPresent()) {
             throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
         }
+    }
+
+    public void isExistingMainEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new ApiException(ExceptionEnum.ALREADY_EXISTING_USER)
+        );
     }
 
     public void isPhoneValid(String phone) {
