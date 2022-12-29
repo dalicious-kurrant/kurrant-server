@@ -144,6 +144,9 @@ public class AuthServiceImpl implements AuthService {
         String content = "[커런트] 인증번호 [" + key + "]를 입력해주세요";
         SmsResponseDto smsResponseDto = smsService.sendSms(smsMessageRequestDto, content);
 
+        log.info("인증 번호 : " + key);
+        log.info("보내는 대상 : " + smsMessageRequestDto.getTo());
+
         // Redis에 인증번호 저장
         CertificationHash certificationHash = CertificationHash.builder().id(null).type(type).to(smsMessageRequestDto.getTo()).certificationNumber(key).build();
         certificationHashRepository.save(certificationHash);

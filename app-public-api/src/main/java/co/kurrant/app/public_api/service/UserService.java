@@ -23,8 +23,8 @@ public interface UserService {
     // 이메일/비밀번호 설정
     void setEmailAndPassword(HttpServletRequest httpServletRequest, SetEmailAndPasswordDto setEmailAndPasswordDto);
     // 알람/마케팅 설정 변경
-    ChangeMarketingDto changeAlarmSetting(HttpServletRequest httpServletRequest, Boolean isMarketingInfoAgree,
-                                          Boolean isMarketingAlarmAgree, Boolean isOrderAlarmAgree);
+    MarketingAlarmRequestDto changeAlarmSetting(HttpServletRequest httpServletRequest, Boolean isMarketingInfoAgree,
+                                                Boolean isMarketingAlarmAgree, Boolean isOrderAlarmAgree);
     // 마이페이지(개인정보) 유저 정보 가져오기
     UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest);
     // 마이페이지(홈) 유저 정보 가져오기

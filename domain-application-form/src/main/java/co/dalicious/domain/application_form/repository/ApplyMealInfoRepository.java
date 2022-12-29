@@ -1,7 +1,7 @@
 package co.dalicious.domain.application_form.repository;
 
-import co.dalicious.domain.application_form.entity.ApplyMealInfo;
+import co.dalicious.domain.application_form.entity.ApartmentMealInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ApplyMealInfoRepository extends JpaRepository<ApplyMealInfo, Long> {
+public interface ApplyMealInfoRepository extends JpaRepository<ApartmentMealInfo, Long> {
 }
