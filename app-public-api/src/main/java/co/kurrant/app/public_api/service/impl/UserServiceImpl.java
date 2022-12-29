@@ -2,17 +2,14 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
-import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.domain.order.repository.OrderCartItemRepository;
-import co.dalicious.domain.order.repository.OrderCartRepository;
-import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
+import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.impl.mapper.UserHomeInfoMapper;
-import co.kurrant.app.public_api.service.impl.mapper.UserInfoMapper;
+import co.kurrant.app.public_api.service.impl.mapper.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -45,20 +42,17 @@ public class UserServiceImpl implements UserService {
     private final UserValidator userValidator;
     private final PasswordEncoder passwordEncoder;
     private final VerifyUtil verifyUtil;
+    private final MembershipUtil membershipUtil;
     private final ProviderEmailRepository providerEmailRepository;
     private final UserRepository userRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final OrderCartItemRepository orderCartItemRepository;
-    private final FoodRepository foodRepository;
-    private final OrderCartRepository orderCartRepository;
 
     @Override
     public UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest) {
         User user = commonService.getUser(httpServletRequest);
         return UserHomeInfoMapper.INSTANCE.toDto(user);
     }
+
     @Override
-    @Transactional
     public void connectSnsAccount(HttpServletRequest httpServletRequest, SnsAccessToken snsAccessToken, String sns) {
         // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
@@ -67,11 +61,9 @@ public class UserServiceImpl implements UserService {
         Provider provider = UserValidator.isValidProvider(sns);
 
         // 현재 로그인 한 아이디가 같은 Vendor의 아이디와 연결되어있는지 체크
-        List<ProviderEmail> providerEmails = user.getProviderEmails();
-        for (ProviderEmail providerEmail : providerEmails) {
-            if (providerEmail.getProvider().equals(provider)) {
-                throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
-            }
+        List<ProviderEmail> providerEmails = providerEmailRepository.findByUser(user);
+        if (providerEmails.stream().anyMatch(pe -> pe.getProvider().equals(provider))) {
+            throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
         }
 
         // Vendor 로그인 시도
@@ -111,16 +103,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public void disconnectSnsAccount(HttpServletRequest httpServletRequest, String sns) {
         // 유저 정보 가져오기
-        UserInfoDto userInfoDto = getUserInfo(httpServletRequest);
+        User user = commonService.getUser(httpServletRequest);
 
         // 등록된 SNS 플랫폼인지 확인
         Provider provider = UserValidator.isValidProvider(sns);
 
         // 현재 로그인 한 아이디가 이메일/비밀번호를 설정했는지 확인
-        List<ProviderEmail> providerEmails = userInfoDto.getProviderEmails();
+        List<ProviderEmail> providerEmails = providerEmailRepository.findByUser(user);
+        if(providerEmails == null) {
+            throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
+        }
         providerEmails.stream()
                 .filter(e -> e.getProvider().equals(Provider.GENERAL))
                 .findAny()
@@ -158,7 +152,11 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(changePasswordRequestDto.getCurrantPassword(), user.getPassword())) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
         }
-        ;
+        // 변경할 비밀번호가 현재 비밀번호와 같을 경우 에러 발생
+        if(passwordEncoder.matches(changePasswordRequestDto.getNewPassword(), user.getPassword())) {
+            throw new ApiException(ExceptionEnum.CHANGED_PASSWORD_SAME);
+        }
+
         // 새로 등록한 번호 두개가 일치하는 지 확인
         if (!changePasswordRequestDto.getNewPassword().equals(changePasswordRequestDto.getNewPasswordCheck())) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
@@ -173,17 +171,23 @@ public class UserServiceImpl implements UserService {
     public void setEmailAndPassword(HttpServletRequest httpServletRequest, SetEmailAndPasswordDto setEmailAndPasswordDto) {
         // 로그인한 유저의 정보를 받아온다.
         User user = commonService.getUser(httpServletRequest);
+        String email = setEmailAndPasswordDto.getEmail();
 
         // 기존에 존재하는 이메일인지 확인
-        userValidator.isEmailValid(Provider.GENERAL, setEmailAndPasswordDto.getEmail());
+        userValidator.isEmailValid(Provider.GENERAL, email);
+
+        // 다른 계정에서 주요 이메일(아이디)로 사용하는 이메일인지 확인
+        userValidator.isExistingMainEmail(email);
+
+        // 인증을 진행한 유저인지 체크
+        verifyUtil.isAuthenticated(email, RequiredAuth.MYPAGE_SETTING_EMAIL_AND_PASSWORD);
 
         // 비밀번호 일치 확인
         String password = setEmailAndPasswordDto.getPassword();
         String passwordCheck = setEmailAndPasswordDto.getPasswordCheck();
-        userValidator.isPasswordMatched(password, passwordCheck);
+        UserValidator.isPasswordMatched(password, passwordCheck);
 
         // 이메일/비밀번호 업데이트
-        String email = setEmailAndPasswordDto.getEmail();
         String hashedPassword = passwordEncoder.encode(password);
         user.setEmailAndPassword(email, hashedPassword);
 
@@ -245,9 +249,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest) {
+        // 유저 정보 가져오기
+        User user = commonService.getUser(httpServletRequest);
+
+        // 일반 로그인 정보를 가지고 있는 유저인지 검사
+        List<ProviderEmail> providerEmails = user.getProviderEmails();
+        UserPersonalInfoDto userPersonalInfoDto = UserPersonalInfoMapper.INSTANCE.toDto(user);
+        Boolean hasGeneralProvider = providerEmails.stream()
+                .anyMatch(e -> e.getProvider().equals(Provider.GENERAL));
+
+        // 일반 로그인을 가지고 있는 유저인지 아닌지 상태 업데이트.
+        userPersonalInfoDto.hasGeneralProvider(hasGeneralProvider);
+        return userPersonalInfoDto;
+    }
+
+    @Override
     public UserInfoDto getUserInfo(HttpServletRequest httpServletRequest) {
         User user = commonService.getUser(httpServletRequest);
-        return UserInfoMapper.INSTANCE.toDto(user);
+        Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
+//        Integer dailyMealCount =
+
+        return UserInfoDto.builder()
+                .user(user)
+                .membershipPeriod(membershipPeriod)
+//                .dailyMealCount()
+                .build();
     }
 
     @Override

@@ -78,7 +78,6 @@ public class User {
     @Embedded
     private Image avatar;
 
-    @NotNull
     @Convert(converter = GourmetTypeConverter.class)
     @Column(name = "e_gourmet_type")
     @Comment("미식가 타입")

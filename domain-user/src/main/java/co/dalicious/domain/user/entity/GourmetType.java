@@ -6,18 +6,18 @@ import java.util.Arrays;
 
 @Getter
 public enum GourmetType {
-    NULL("정보 없음", 0L),
-    SULLUNGTANG_GOURMET("설렁탕 미식가", 1L);
+    NULL("정보없음", 0),
+    SULLUNGTANG_GOURMET("설렁탕 미식가", 1);
 
     private final String gourmetType;
-    private final Long code;
+    private final Integer code;
 
-    GourmetType(String gourmetType, Long code) {
+    GourmetType(String gourmetType, Integer code) {
         this.gourmetType = gourmetType;
         this.code = code;
     }
 
-    public static GourmetType ofCode(Long code) {
+    public static GourmetType ofCode(Integer code) {
         return Arrays.stream(GourmetType.values())
                 .filter(v -> v.getCode().equals(code))
                 .findAny()

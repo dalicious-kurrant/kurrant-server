@@ -9,7 +9,8 @@ public enum RequiredAuth {
     SIGNUP("1"),
     FIND_ID("2"),
     FIND_PASSWORD("3"),
-    MYPAGE_CHANGE_PHONE_NUMBER("4");
+    MYPAGE_CHANGE_PHONE_NUMBER("4"),
+    MYPAGE_SETTING_EMAIL_AND_PASSWORD("5");
 
     private final String id;
 

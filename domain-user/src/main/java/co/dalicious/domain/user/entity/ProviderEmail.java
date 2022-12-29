@@ -23,16 +23,16 @@ public class ProviderEmail {
 
     @Column(name = "provider", nullable = false, length = 16)
     @Comment("소셜로그인 기업 이름")
-    Provider provider;
+    private Provider provider;
 
     @Column(name = "email", nullable = false, length = 64)
     @Comment("소셜로그인 가입된 이메일")
-    String email;
+    private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonBackReference(value = "user-fk")
-    User user;
+    private User user;
 
     @Builder
     public ProviderEmail(Provider provider, String email, User user) {
