@@ -10,8 +10,8 @@ import java.sql.Timestamp;
 @Schema(description = "마케팅 수신정보 변경 요청/응답 DTO")
 @Getter
 @NoArgsConstructor
-public class ChangeMarketingDto {
-    private Timestamp marketingAgreedDateTime;
+public class MarketingAlarmResponseDto {
+    private String marketingAgreedDateTime;
 
     private Boolean marketingAgree;
 
@@ -20,7 +20,7 @@ public class ChangeMarketingDto {
     private Boolean orderAlarm;
 
     @Builder
-    public ChangeMarketingDto(Timestamp marketingAgreedDateTime, Boolean marketingAgree, Boolean marketingAlarm, Boolean orderAlarm) {
+    public MarketingAlarmResponseDto(String marketingAgreedDateTime, Boolean marketingAgree, Boolean marketingAlarm, Boolean orderAlarm) {
         this.marketingAgreedDateTime = marketingAgreedDateTime;
         this.marketingAgree = marketingAgree;
         this.marketingAlarm = marketingAlarm;

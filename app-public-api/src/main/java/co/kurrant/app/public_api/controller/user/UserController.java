@@ -1,10 +1,10 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.user.repository.MembershipRepository;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "2. User")
@@ -26,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final MembershipRepository membershipRepository;
 
     @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보를 불러온다.")
     @GetMapping("")
@@ -74,7 +74,7 @@ public class UserController {
 
     @Operation(summary = "휴대폰 번호 변경", description = "로그인 한 유저의 비밀번호를 변경한다.")
     @PostMapping("/change/phone")
-    public ResponseMessage changePassword(HttpServletRequest httpServletRequest,
+    public ResponseMessage changePhone(HttpServletRequest httpServletRequest,
                                           @RequestBody ChangePhoneRequestDto changePhoneRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
         userService.changePhoneNumber(httpServletRequest, changePhoneRequestDto);
         return ResponseMessage.builder()
@@ -85,7 +85,7 @@ public class UserController {
     @Operation(summary = "비밀번호 변경", description = "로그인 한 유저의 비밀번호를 변경한다.")
     @PostMapping("/change/password")
     public ResponseMessage changePassword(HttpServletRequest httpServletRequest,
-                                          @RequestBody ChangePasswordRequestDto changePasswordRequestDto) {
+                                          @RequestBody ChangePasswordDto changePasswordRequestDto) {
         userService.changePassword(httpServletRequest, changePasswordRequestDto);
         return ResponseMessage.builder()
                 .message("비밀번호 변경에 성공하였습니다.")
@@ -93,12 +93,19 @@ public class UserController {
     }
 
     @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
+    @GetMapping("/setting")
+    public ResponseMessage getAlarmSetting(HttpServletRequest httpServletRequest) {
+        MarketingAlarmResponseDto MarketingDto = userService.getAlarmSetting(httpServletRequest);
+        return ResponseMessage.builder()
+                .message("알림 설정 조회에 성공하였습니다.")
+                .data(MarketingDto)
+                .build();
+    }
+
+    @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
     @PostMapping("/setting")
-    public ResponseMessage changeAlarmSetting(HttpServletRequest httpServletRequest,
-                                              @RequestParam(required = false) Boolean isMarketingInfoAgree,
-                                              @RequestParam(required = false) Boolean isMarketingAlarmAgree,
-                                              @RequestParam(required = false) Boolean isOrderAlarmAgree) {
-        ChangeMarketingDto changeMarketingDto = userService.changeAlarmSetting(httpServletRequest, isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
+    public ResponseMessage changeAlarmSetting(HttpServletRequest httpServletRequest, MarketingAlarmRequestDto marketingAlarmDto) {
+        MarketingAlarmResponseDto changeMarketingDto = userService.changeAlarmSetting(httpServletRequest, marketingAlarmDto);
         return ResponseMessage.builder()
                 .message("마케팅 수신 정보 변경에 성공하였습니다.")
                 .data(changeMarketingDto)

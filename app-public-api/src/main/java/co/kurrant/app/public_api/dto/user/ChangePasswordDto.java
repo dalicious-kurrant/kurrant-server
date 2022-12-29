@@ -8,13 +8,13 @@ import lombok.NoArgsConstructor;
 @Schema(description = "비밀번호 변경 요청 DTO")
 @Getter
 @NoArgsConstructor
-public class ChangePasswordRequestDto {
+public class ChangePasswordDto {
     private String currantPassword;
     private String newPassword;
     private String newPasswordCheck;
 
     @Builder
-    public ChangePasswordRequestDto(String currantPassword, String newPassword, String newPasswordCheck) {
+    public ChangePasswordDto(String currantPassword, String newPassword, String newPasswordCheck) {
         this.currantPassword = currantPassword;
         this.newPassword = newPassword;
         this.newPasswordCheck = newPasswordCheck;

@@ -34,9 +34,9 @@ public class UserValidator {
     }
 
     public void isExistingMainEmail(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new ApiException(ExceptionEnum.ALREADY_EXISTING_USER)
-        );
+        if(userRepository.findByEmail(email).isPresent()) {
+            throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
+        };
     }
 
     public void isPhoneValid(String phone) {

@@ -6,6 +6,7 @@ import co.dalicious.domain.user.entity.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
+import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.impl.mapper.UserHomeInfoMapper;
@@ -145,7 +146,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void changePassword(HttpServletRequest httpServletRequest, ChangePasswordRequestDto changePasswordRequestDto) {
+    public void changePassword(HttpServletRequest httpServletRequest, ChangePasswordDto changePasswordRequestDto) {
         // 로그인한 유저의 정보를 받아온다.
         User user = commonService.getUser(httpServletRequest);
         // 현재 비밀번호가 일치하는지 확인
@@ -201,9 +202,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public MarketingAlarmResponseDto getAlarmSetting(HttpServletRequest httpServletRequest) {
+        // 유저 정보 가져오기
+        User user = commonService.getUser(httpServletRequest);
+        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
+        return MarketingAlarmResponseDto.builder()
+                .marketingAgree(user.getMarketingAgree())
+                .orderAlarm(user.getOrderAlarm())
+                .marketingAlarm(user.getMarketingAlarm())
+                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
+                .build();
+    }
+
+    @Override
     @Transactional
-    public ChangeMarketingDto changeAlarmSetting(HttpServletRequest httpServletRequest, Boolean isMarketingInfoAgree,
-                                                 Boolean isMarketingAlarmAgree, Boolean isOrderAlarmAgree) {
+    public MarketingAlarmResponseDto changeAlarmSetting(HttpServletRequest httpServletRequest, MarketingAlarmRequestDto marketingAlarmDto) {
         // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
         Boolean currantMarketingInfoAgree = user.getMarketingAgree();
@@ -212,6 +225,11 @@ public class UserServiceImpl implements UserService {
 
         // 현재 시간 가져오기
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+
+        // 변수 설정
+        Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
+        Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
+        Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
 
         // 마케팅 정보 수신 동의/철회
         if (isMarketingInfoAgree != null) {
@@ -239,9 +257,9 @@ public class UserServiceImpl implements UserService {
                 user.changeMarketingAgreement(now, !currantMarketingInfoAgree, currantMarketingAlarmAgree, isOrderAlarmAgree);
             }
         }
-        return ChangeMarketingDto.builder()
+        return MarketingAlarmResponseDto.builder()
                 .marketingAgree(user.getMarketingAgree())
-                .marketingAgreedDateTime(user.getMarketingAgreedDateTime())
+                .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
                 .marketingAlarm(user.getMarketingAlarm())
                 .orderAlarm(user.getOrderAlarm())
                 .build();
