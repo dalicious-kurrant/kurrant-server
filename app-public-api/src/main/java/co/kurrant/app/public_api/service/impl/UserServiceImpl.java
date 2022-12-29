@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 
 import javax.servlet.http.HttpServletRequest;
@@ -233,37 +234,44 @@ public class UserServiceImpl implements UserService {
 
         // 마케팅 정보 수신 동의/철회
         if (isMarketingInfoAgree != null) {
-            isMarketingAlarmAgree = isMarketingInfoAgree;
-            isOrderAlarmAgree = isMarketingInfoAgree;
-            user.changeMarketingAgreement(now, isMarketingInfoAgree, isMarketingInfoAgree, isMarketingInfoAgree);
+            currantMarketingInfoAgree = isMarketingInfoAgree;
+            currantMarketingAlarmAgree = isMarketingInfoAgree;
+            currantOrderAlarmAgree = isMarketingInfoAgree;
+            user.changeMarketingAgreement(now, currantMarketingAlarmAgree, currantMarketingAlarmAgree, currantOrderAlarmAgree);
         }
         // 혜택 및 소식 알림 동의/철회
         if (isMarketingAlarmAgree != null) {
             // 주문 알림이 활성화 되어 있을 경우
             if (currantOrderAlarmAgree) {
-                user.setMarketingAlarm(isMarketingAlarmAgree);
+                currantMarketingAlarmAgree = isMarketingAlarmAgree;
+                user.setMarketingAlarm(currantMarketingAlarmAgree);
             }
             // 주문 알림이 활성화 되어 있지 않을 경우
             else {
-                user.changeMarketingAgreement(now, !currantMarketingInfoAgree, isMarketingAlarmAgree, currantOrderAlarmAgree);
+                currantMarketingInfoAgree = !currantMarketingInfoAgree;
+                currantMarketingAlarmAgree = isMarketingAlarmAgree;
+                user.changeMarketingAgreement(now, currantMarketingInfoAgree, currantMarketingAlarmAgree, currantOrderAlarmAgree);
             }
         }
         // 주문 알림 동의/철회
         if (isOrderAlarmAgree != null) {
             // 혜택 및 소식 알림이 활성화 되어 있을 경우
             if (currantMarketingAlarmAgree) {
+                currantOrderAlarmAgree = isOrderAlarmAgree;
                 user.setOrderAlarm(isOrderAlarmAgree);
             }
             // 혜택 및 소식 알림이 활성화 되어 있지 않을 경우
             else {
-                user.changeMarketingAgreement(now, !currantMarketingInfoAgree, currantMarketingAlarmAgree, isOrderAlarmAgree);
+                currantMarketingInfoAgree = !currantMarketingInfoAgree;
+                currantOrderAlarmAgree = isOrderAlarmAgree;
+                user.changeMarketingAgreement(now, currantMarketingInfoAgree, currantMarketingAlarmAgree, currantOrderAlarmAgree);
             }
         }
         return MarketingAlarmResponseDto.builder()
-                .marketingAgree(isMarketingInfoAgree)
+                .marketingAgree(currantMarketingInfoAgree)
                 .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
-                .marketingAlarm(isMarketingAlarmAgree)
-                .orderAlarm(isOrderAlarmAgree)
+                .marketingAlarm(currantMarketingAlarmAgree)
+                .orderAlarm(currantOrderAlarmAgree)
                 .build();
     }
 

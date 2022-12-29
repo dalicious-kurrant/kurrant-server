@@ -102,7 +102,7 @@ public class UserController {
 
     @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
     @PostMapping("/setting")
-    public ResponseMessage changeAlarmSetting(HttpServletRequest httpServletRequest, MarketingAlarmRequestDto marketingAlarmDto) {
+    public ResponseMessage changeAlarmSetting(HttpServletRequest httpServletRequest, @RequestBody MarketingAlarmRequestDto marketingAlarmDto) {
         MarketingAlarmResponseDto changeMarketingDto = userService.changeAlarmSetting(httpServletRequest, marketingAlarmDto);
         return ResponseMessage.builder()
                 .message("마케팅 수신 정보 변경에 성공하였습니다.")
