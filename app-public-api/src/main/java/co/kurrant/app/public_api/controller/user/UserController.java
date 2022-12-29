@@ -23,9 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class UserController {
-
     private final UserService userService;
-    private final MembershipRepository membershipRepository;
 
     @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보를 불러온다.")
     @GetMapping("")

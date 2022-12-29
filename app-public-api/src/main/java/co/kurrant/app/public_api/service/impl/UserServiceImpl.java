@@ -227,12 +227,14 @@ public class UserServiceImpl implements UserService {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
         // 변수 설정
-        Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
         Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
+        Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
         Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
 
         // 마케팅 정보 수신 동의/철회
         if (isMarketingInfoAgree != null) {
+            isMarketingAlarmAgree = isMarketingInfoAgree;
+            isOrderAlarmAgree = isMarketingInfoAgree;
             user.changeMarketingAgreement(now, isMarketingInfoAgree, isMarketingInfoAgree, isMarketingInfoAgree);
         }
         // 혜택 및 소식 알림 동의/철회
@@ -258,10 +260,10 @@ public class UserServiceImpl implements UserService {
             }
         }
         return MarketingAlarmResponseDto.builder()
-                .marketingAgree(user.getMarketingAgree())
+                .marketingAgree(isMarketingInfoAgree)
                 .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
-                .marketingAlarm(user.getMarketingAlarm())
-                .orderAlarm(user.getOrderAlarm())
+                .marketingAlarm(isMarketingAlarmAgree)
+                .orderAlarm(isOrderAlarmAgree)
                 .build();
     }
 
