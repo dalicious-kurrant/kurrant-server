@@ -56,11 +56,12 @@ public class Food {
     private String description;
 
     @Builder
-    Food(Integer id, String name, Integer price, String img, Makers makers, String description, Double discountedRate){
+    Food(Integer id, String name, Integer price, String img, Makers makers, String description, Double discountedRate, Spicy spicy){
         this.id = id;
         this.name = name;
         this.price = price;
         this.img = img;
+        this.spicy = spicy;
         this.makers = makers;
         this.description = description;
         this.discountedRate = discountedRate;

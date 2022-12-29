@@ -136,13 +136,15 @@ public class User {
     private Apartment apartment;
 
     @Builder
-    public User(String password, String name, Role role, String email, String phone) {
+    public User(BigInteger id, String password, String name, Role role, String email, String phone) {
+        this.id = id;
         this.password = password;
         this.name = name;
         this.role = role;
         this.email = email;
         this.phone = phone;
     }
+
 
     public void changePassword(String password) {
         this.password = password;

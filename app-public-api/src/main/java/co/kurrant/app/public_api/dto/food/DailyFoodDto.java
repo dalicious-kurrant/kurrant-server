@@ -17,7 +17,7 @@ import java.time.LocalDate;
 public class DailyFoodDto {
     Integer id;
     LocalDate created;
-    DiningType diningType;
+    String diningType;
     Integer foodId;
 
     String foodName;
@@ -34,7 +34,7 @@ public class DailyFoodDto {
                         LocalDate serviceDate){
         this.id = id;
         this.created = created;
-        this.diningType = diningType;
+        this.diningType = diningType.getDiningType();
         this.foodId = food.getId();
         this.foodName = food.getName();
         this.isSoldOut = isSoldOut;
