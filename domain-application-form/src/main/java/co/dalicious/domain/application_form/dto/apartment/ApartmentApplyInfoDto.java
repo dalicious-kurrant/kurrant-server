@@ -1,4 +1,4 @@
-package co.dalicious.domain.application_form.dto;
+package co.dalicious.domain.application_form.dto.apartment;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

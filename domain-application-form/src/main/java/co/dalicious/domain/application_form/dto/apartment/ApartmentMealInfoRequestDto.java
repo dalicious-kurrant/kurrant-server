@@ -1,4 +1,4 @@
-package co.dalicious.domain.application_form.dto;
+package co.dalicious.domain.application_form.dto.apartment;
 
 import co.dalicious.domain.application_form.entity.ApartmentApplicationForm;
 import lombok.Builder;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class ApplyMealInfoRequestDto {
+public class ApartmentMealInfoRequestDto {
     private Integer diningType;
     private Integer expectedUserCount;
     private String serviceDays;
@@ -15,7 +15,7 @@ public class ApplyMealInfoRequestDto {
     private ApartmentApplicationForm apartmentApplicationForm;
 
     @Builder
-    public ApplyMealInfoRequestDto(Integer diningType, Integer expectedUserCount, String serviceDays, String deliveryTime, ApartmentApplicationForm apartmentApplicationForm) {
+    public ApartmentMealInfoRequestDto(Integer diningType, Integer expectedUserCount, String serviceDays, String deliveryTime, ApartmentApplicationForm apartmentApplicationForm) {
         this.diningType = diningType;
         this.expectedUserCount = expectedUserCount;
         this.serviceDays = serviceDays;
@@ -23,7 +23,7 @@ public class ApplyMealInfoRequestDto {
         this.apartmentApplicationForm = apartmentApplicationForm;
     }
 
-    public void insertApplicationFormApartment(ApartmentApplicationForm apartmentApplicationForm) {
+    public void setApartmentApplicationForm(ApartmentApplicationForm apartmentApplicationForm) {
         this.apartmentApplicationForm = apartmentApplicationForm;
     }
 }
