@@ -18,6 +18,7 @@ import javax.validation.constraints.Size;
 @Table(name = "application_form__spot")
 public class CorporationApplicationFormSpot {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 

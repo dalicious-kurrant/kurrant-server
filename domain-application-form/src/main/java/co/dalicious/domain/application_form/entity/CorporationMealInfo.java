@@ -21,6 +21,7 @@ import java.time.LocalDate;
 @Table(name = "application_form__meal_detail")
 public class CorporationMealInfo {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 

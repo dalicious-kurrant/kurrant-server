@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class CorporationSpotApplicationFormDto {
+public class CorporationSpotRequestDto {
     private String spotName;
     private CreateAddressRequestDto address;
     private Integer diningType;

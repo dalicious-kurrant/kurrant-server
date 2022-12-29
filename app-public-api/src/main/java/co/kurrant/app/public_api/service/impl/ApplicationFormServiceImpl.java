@@ -6,17 +6,16 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.*;
 import co.dalicious.domain.application_form.dto.apartment.*;
 import co.dalicious.domain.application_form.dto.corporation.*;
-import co.dalicious.domain.application_form.entity.ApartmentApplicationForm;
-import co.dalicious.domain.application_form.entity.ApartmentMealInfo;
-import co.dalicious.domain.application_form.entity.CorporationApplicationFormSpot;
-import co.dalicious.domain.application_form.repository.ApartmentApplicationFormRepository;
-import co.dalicious.domain.application_form.repository.ApplyMealInfoRepository;
-import co.dalicious.domain.application_form.repository.CorporationApplicationFormSpotRepository;
+import co.dalicious.domain.application_form.entity.*;
+import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.client.*;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.CommonService;
-import co.kurrant.app.public_api.service.impl.mapper.CorporationSpotApplicationFormMapper;
+import co.kurrant.app.public_api.service.impl.mapper.CorporationMealInfoReqMapper;
+import co.kurrant.app.public_api.service.impl.mapper.CorporationMealInfoResMapper;
+import co.kurrant.app.public_api.service.impl.mapper.CorporationSpotReqMapper;
+import co.kurrant.app.public_api.service.impl.mapper.CorporationSpotResMapper;
 import co.kurrant.app.public_api.validator.ApplicationFormValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final ApplicationFormValidator applicationFormValidator;
     private final ApplyMealInfoRepository applyMealInfoRepository;
     private final ApartmentApplicationFormRepository apartmentApplicationFormRepository;
+    private final CorporationApplicationFormRepository corporationApplicationFormRepository;
     private final CorporationApplicationFormSpotRepository corporationApplicationFormSpotRepository;
+    private final CorporationMealInfoRepository corporationMealInfoRepository;
 
     @Override
     @Transactional
@@ -65,7 +66,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         List<ApartmentMealInfo> apartmentMealInfoList = new ArrayList<>();
         for (ApartmentMealInfoRequestDto apartmentMealInfoRequestDto : apartmentMealInfoRequestDtoList) {
             apartmentMealInfoRequestDto.setApartmentApplicationForm(apartmentApplicationForm);
-            ApartmentMealInfo apartmentMealInfo = applyMealInfoRepository.save(ApartmentMealInfo.builder().apartmentMealInfoRequestDto(apartmentMealInfoRequestDto).apartmentApplicationForm(apartmentApplicationForm).build());
+            ApartmentMealInfo apartmentMealInfo = applyMealInfoRepository.save(
+                    ApartmentMealInfo.builder()
+                    .apartmentMealInfoRequestDto(apartmentMealInfoRequestDto)
+                    .apartmentApplicationForm(apartmentApplicationForm)
+                    .build());
             apartmentMealInfoList.add(apartmentMealInfo);
         }
         apartmentApplicationForm.setMealInfoList(apartmentMealInfoList);
@@ -74,36 +79,38 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional
     public ApartmentApplicationFormResponseDto getApartmentApplicationFormDetail(HttpServletRequest httpServletRequest, Long id) {
-        ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isVaildApartmentApplicationForm(commonService.getUserId(httpServletRequest), id);
-
+        // 가져오는 신청서의 작성자가 로그인한 유저와 일치하는지 확인
+        ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isValidApartmentApplicationForm(commonService.getUserId(httpServletRequest), id);
+        // 등록한 유저의 정보 가져오기
         ApplyUserDto applyUserDto = ApplyUserDto.builder().name(apartmentApplicationForm.getApplierName()).email(apartmentApplicationForm.getEmail()).phone(apartmentApplicationForm.getPhone()).build();
-
+        // 아파트의 주소 가져오기
         Address address = apartmentApplicationForm.getAddress();
-        CreateAddressResponseDto createAddressResponseDto = CreateAddressResponseDto.builder().address1(address.getAddress1()).address2(address.getAddress2()).build();
-
+        CreateAddressResponseDto createAddressResponseDto = new CreateAddressResponseDto(address);
+        // 아파트 정보 가져오기
         ApartmentApplyInfoDto apartmentApplyInfoDto = ApartmentApplyInfoDto.builder().apartmentName(apartmentApplicationForm.getApartmentName()).dongCount(apartmentApplicationForm.getDongCount()).familyCount(apartmentApplicationForm.getTotalFamilyCount()).serviceStartDate(DateUtils.format(apartmentApplicationForm.getServiceStartDate(), "yyyy. MM. dd")).build();
-
+        // 식사 정보 가져오기
         List<ApartmentMealInfoResponseDto> meal = new ArrayList<>();
         for (ApartmentMealInfo apartmentMealInfo : apartmentApplicationForm.getMealInfoList()) {
             meal.add(ApartmentMealInfoResponseDto.builder().apartmentMealInfo(apartmentMealInfo).build());
         }
-
+        // 기타내용 가져오기.
         String memo = apartmentApplicationForm.getMemo();
 
         return ApartmentApplicationFormResponseDto.builder().user(applyUserDto).address(createAddressResponseDto).info(apartmentApplyInfoDto).meal(meal).memo(memo).build();
     }
 
     @Override
+    @Transactional
     public void updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, Long id, ApplicationFormMemoDto applicationFormMemoDto) {
-        ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isVaildApartmentApplicationForm(commonService.getUserId(httpServletRequest), id);
+        ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isValidApartmentApplicationForm(commonService.getUserId(httpServletRequest), id);
         apartmentApplicationForm.updateMemo(apartmentApplicationForm.getMemo());
     }
 
     @Override
+    @Transactional
     public void registerCorporationSpot(HttpServletRequest httpServletRequest, CorporationApplicationFormRequestDto corporationApplicationFormRequestDto) {
         // 유저 아이디 가져오기
         BigInteger userId = commonService.getUserId(httpServletRequest);
-
         // 담당자 정보 가져오기
         ApplyUserDto applyUserDto = corporationApplicationFormRequestDto.getUser();
 
@@ -112,28 +119,89 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 스팟 신청 기업 주소 정보 가져오기
         CreateAddressRequestDto addressRequestDto = corporationApplicationFormRequestDto.getAddress();
+        Address address = Address.builder()
+                .createAddressRequestDto(addressRequestDto)
+                .build();
 
         // 식사 정보 리스트 가져오기
         List<CorporationMealInfoRequestDto> mealInfoRequestDtoList = corporationApplicationFormRequestDto.getMealDetails();
 
         // 스팟 신청 기업의 등록 요청 스팟들 가져오기
-        List<CorporationSpotApplicationFormDto> spots = corporationApplicationFormRequestDto.getSpots();
+        List<CorporationSpotRequestDto> spots = corporationApplicationFormRequestDto.getSpots();
 
         // 옵션 내용 가져오기
         CorporationOptionsApplicationFormRequestDto corporationOptionsApplicationFormRequestDto = corporationApplicationFormRequestDto.getOption();
 
-        // 스팟 신청 정보 저장
-        for(CorporationSpotApplicationFormDto spot : spots) {
-            CorporationApplicationFormSpot corporationSpotApplicationForm = CorporationSpotApplicationFormMapper.INSTANCE.toEntity(spot);
-            corporationApplicationFormSpotRepository.save(corporationSpotApplicationForm);
-        }
+        // 기업 스팟 신청서 저장
+        CorporationApplicationForm corporationApplicationForm = corporationApplicationFormRepository.save(
+                CorporationApplicationForm.builder()
+                .userId(userId)
+                .applyUserDto(applyUserDto)
+                .applyInfoDto(applyInfoDto)
+                .address(address)
+                .corporationOptionsApplicationFormRequestDto(corporationOptionsApplicationFormRequestDto)
+                .build());
 
+        // 스팟 신청 정보 저장
+        List<CorporationApplicationFormSpot> spotList = new ArrayList<>();
+        for(CorporationSpotRequestDto spot : spots) {
+            CorporationApplicationFormSpot corporationSpotApplicationForm = CorporationSpotReqMapper.INSTANCE.toEntity(spot);
+            corporationSpotApplicationForm.setCorporationApplicationForm(corporationApplicationForm);
+            spotList.add(corporationApplicationFormSpotRepository.save(corporationSpotApplicationForm));
+        }
+        corporationApplicationForm.setSpots(spotList);
         // 식사 정보 저장
+        List<CorporationMealInfo> mealInfoList = new ArrayList<>();
+        for(CorporationMealInfoRequestDto mealInfoRequestDto : mealInfoRequestDtoList) {
+            CorporationMealInfo corporationMealInfo = CorporationMealInfoReqMapper.INSTANCE.toEntity(mealInfoRequestDto);
+            corporationMealInfo.setApplicationFormCorporation(corporationApplicationForm);
+            mealInfoList.add(corporationMealInfoRepository.save(corporationMealInfo));
+        }
+        corporationApplicationForm.setMealInfoList(mealInfoList);
     }
 
     @Override
-    public CorporationApplicationFormRequestDto getCorporationApplicationFormDetail(HttpServletRequest httpServletRequest, Long id) {
-        return null;
+    public CorporationApplicationFormResponseDto getCorporationApplicationFormDetail(HttpServletRequest httpServletRequest, Long id) {
+        // 유저 아이디 가져오기
+        BigInteger userId = commonService.getUserId(httpServletRequest);
+        // 기업 스팟 신청서 가져오기
+        CorporationApplicationForm corporationApplicationForm = applicationFormValidator.isValidCorporationApplicationForm(userId, id);
+        // 담당자 정보 가져오기
+        ApplyUserDto applyUserDto = ApplyUserDto.builder()
+                .name(corporationApplicationForm.getApplierName())
+                .email(corporationApplicationForm.getEmail())
+                .phone(corporationApplicationForm.getPhone()).build();
+        // 기업 주소 가져오기
+        Address address = corporationApplicationForm.getAddress();
+        String addressString = address.getAddress1() + " " + address.getAddress2();
+        // 기업 정보 가져오기
+        CorporationApplyInfoDto corporationApplyInfoDto = CorporationApplyInfoDto.builder()
+                .corporationName(corporationApplicationForm.getCorporationName())
+                .employeeCount(corporationApplicationForm.getEmployeeCount())
+                .startDate(DateUtils.format(corporationApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
+                .build();
+
+        // 스팟 정보 가져오기
+        List<CorporationApplicationFormSpot> spots = corporationApplicationFormSpotRepository.findByCorporationApplicationForm(corporationApplicationForm);
+        List<CorporationSpotResponseDto> spotList = new ArrayList<>();
+        for(CorporationApplicationFormSpot spot : spots) {
+            spotList.add(CorporationSpotResMapper.INSTANCE.toDto(spot));
+        }
+
+        // 식사 정보 가져오기
+        List<CorporationMealInfo> mealInfos = corporationMealInfoRepository.findByCorporationApplicationForm(corporationApplicationForm);
+        List<CorporationMealInfoResponseDto> mealInfoList = new ArrayList<>();
+        for(CorporationMealInfo mealInfo : mealInfos) {
+            mealInfoList.add(CorporationMealInfoResMapper.INSTANCE.toDto(mealInfo));
+        }
+
+        return CorporationApplicationFormResponseDto.builder()
+                .user(applyUserDto)
+                .address(addressString)
+                .corporationInfo(corporationApplyInfoDto)
+                .spots(spotList)
+                .mealDetails(mealInfoList)
+                .build();
     }
 
     @Override

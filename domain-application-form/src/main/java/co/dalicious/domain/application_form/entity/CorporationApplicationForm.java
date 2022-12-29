@@ -1,7 +1,11 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.application_form.dto.ApplyUserDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationApplyInfoDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationOptionsApplicationFormRequestDto;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -10,7 +14,6 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,7 +24,7 @@ import java.util.List;
 public class CorporationApplicationForm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     @Comment("기업 스팟 개설 신청서 id")
     private Long id;
 
@@ -95,11 +98,35 @@ public class CorporationApplicationForm {
     @Comment("스팟 정보")
     private List<CorporationApplicationFormSpot> spots;
 
+    public void setUserId(BigInteger userId) {
+        this.userId = userId;
+    }
+
     public void setMealInfoList(List<CorporationMealInfo> mealInfoList) {
         this.mealInfoList = mealInfoList;
     }
 
     public void setSpots(List<CorporationApplicationFormSpot> spots) {
         this.spots = spots;
+    }
+
+    @Builder
+    public CorporationApplicationForm(BigInteger userId, ApplyUserDto applyUserDto, CorporationApplyInfoDto applyInfoDto, Address address, CorporationOptionsApplicationFormRequestDto corporationOptionsApplicationFormRequestDto) {
+        String date = applyInfoDto.getStartDate();
+
+        this.userId = userId;
+        this.applierName = applyUserDto.getName();
+        this.phone = applyUserDto.getPhone();
+        this.email = applyUserDto.getEmail();
+        this.corporationName = applyInfoDto.getCorporationName();
+        this.address = address;
+        this.employeeCount = applyInfoDto.getEmployeeCount();
+        this.serviceStartDate = LocalDate.of(Integer.parseInt(date.substring(0, 4)),
+                                            Integer.parseInt(date.substring(4, 6)),
+                                            Integer.parseInt(date.substring(6, 8)));
+        this.isGarbage = corporationOptionsApplicationFormRequestDto.getIsGarbage();
+        this.isHotStorage = corporationOptionsApplicationFormRequestDto.getIsHotStorage();
+        this.isSetting = corporationOptionsApplicationFormRequestDto.getIsSetting();
+        this.memo = corporationOptionsApplicationFormRequestDto.getMemo();
     }
 }

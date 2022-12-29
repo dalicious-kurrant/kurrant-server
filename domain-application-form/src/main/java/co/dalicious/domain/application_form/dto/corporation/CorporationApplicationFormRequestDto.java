@@ -16,6 +16,6 @@ public class CorporationApplicationFormRequestDto {
     private CorporationApplyInfoDto corporationInfo;
     private CreateAddressRequestDto address;
     private List<CorporationMealInfoRequestDto> mealDetails;
-    private List<CorporationSpotApplicationFormDto> spots;
+    private List<CorporationSpotRequestDto> spots;
     private CorporationOptionsApplicationFormRequestDto option;
 }

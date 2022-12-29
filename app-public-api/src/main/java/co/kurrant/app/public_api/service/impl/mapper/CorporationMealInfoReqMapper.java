@@ -11,20 +11,20 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
-public interface CorporationMealInfoMapper extends GenericMapper<CorporationMealInfoRequestDto, CorporationMealInfo> {
-    CorporationMealInfoMapper INSTANCE = Mappers.getMapper(CorporationMealInfoMapper.class);
+public interface CorporationMealInfoReqMapper extends GenericMapper<CorporationMealInfoRequestDto, CorporationMealInfo> {
+    CorporationMealInfoReqMapper INSTANCE = Mappers.getMapper(CorporationMealInfoReqMapper.class);
 
     @Override
-    @Mapping(source = "diningType", target = "diningType", qualifiedByName = "CodeToDiningType")
-    @Mapping(source = "priceAverage", target = "priceAverage", qualifiedByName = "CodeToPriceAverage")
+    @Mapping(source = "diningType", target = "diningType", qualifiedByName = "codeToDiningType")
+    @Mapping(source = "priceAverage", target = "priceAverage", qualifiedByName = "codeToPriceAverage")
     CorporationMealInfo toEntity(CorporationMealInfoRequestDto dto);
 
-    @Named("CodeToDiningType")
+    @Named("codeToDiningType")
     default DiningType CodeToDiningType(Integer diningType) {
         return DiningType.ofCode(diningType);
     }
 
-    @Named("CodeToPriceAverage")
+    @Named("codeToPriceAverage")
     default PriceAverage CodeToPriceAverage(Integer priceAverage) {
         return PriceAverage.ofCode(priceAverage);
     }
