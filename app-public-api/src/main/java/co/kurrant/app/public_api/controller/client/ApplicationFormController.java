@@ -6,6 +6,7 @@ import co.dalicious.domain.application_form.dto.corporation.CorporationApplicati
 import co.dalicious.domain.application_form.dto.corporation.CorporationSpotRequestDto;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.service.ApplicationFormService;
+import io.swagger.models.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 public class ApplicationFormController {
     private final ApplicationFormService applicationFormService;
+
     @Operation(summary = "아파트 스팟 개설 신청 API", description = "아파트 스팟 개설을 신청한다.")
     @PostMapping("/apartments")
     public ResponseMessage registerApartmentSpot(HttpServletRequest httpServletRequest,
@@ -58,19 +60,29 @@ public class ApplicationFormController {
 
     @Operation(summary = "기업 스팟 개설 신청 내역", description = "기업 스팟 개설 신청 내역을 조회한다.")
     @GetMapping("/corporations/{id}")
-    public void getCorporationApplicationFormDetail(HttpServletRequest httpServletRequest, @PathVariable Long id) {
-        applicationFormService.getCorporationApplicationFormDetail(httpServletRequest, id);
+    public ResponseMessage getCorporationApplicationFormDetail(HttpServletRequest httpServletRequest, @PathVariable Long id) {
+        return ResponseMessage.builder()
+                .message("기업 스팟 신청 내역 조회에 성공하였습니다.")
+                .data(applicationFormService.getCorporationApplicationFormDetail(httpServletRequest, id))
+                .build();
     }
 
     @Operation(summary = "기업 스팟 개설 신청 내역 기타 내용 저장", description = "기업 스팟 개설 신청 내역 기타 내용을 저장한다.")
     @PostMapping("/corporations/{id}/memo")
-    public void SaveCorporationsApplicationFormMemo(@PathVariable Long id) {
+    public ResponseMessage SaveCorporationsApplicationFormMemo(HttpServletRequest httpServletRequest, @PathVariable Long id, ApplicationFormMemoDto applicationFormMemoDto) {
+        applicationFormService.updateCorporationApplicationFormMemo(httpServletRequest, id, applicationFormMemoDto);
+        return ResponseMessage.builder()
+                .message("기업 스팟 개설 신청 내역 기타 내용 수정에 성공하였습니다.")
+                .build();
 
     }
 
     @Operation(summary = "스팟 신청 리스트", description = "스팟 개설 요청들의 리스트를 돌려준다.")
     @GetMapping("/clients")
-    public void getSpotsApplicationList(@RequestBody CorporationSpotRequestDto corporationSpotRequestDto) {
-
+    public ResponseMessage getSpotsApplicationList(HttpServletRequest httpServletRequest) {
+        return ResponseMessage.builder()
+                .message("스팟 신청 리스트를 조회하는데 성공하였습니다.")
+                .data(applicationFormService.getSpotsApplicationList(httpServletRequest))
+                .build();
     }
 }

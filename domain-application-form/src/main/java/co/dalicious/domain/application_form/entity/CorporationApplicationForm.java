@@ -3,7 +3,7 @@ package co.dalicious.domain.application_form.entity;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplyInfoDto;
-import co.dalicious.domain.application_form.dto.corporation.CorporationOptionsApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationOptionsDto;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
@@ -111,7 +111,7 @@ public class CorporationApplicationForm {
     }
 
     @Builder
-    public CorporationApplicationForm(BigInteger userId, ApplyUserDto applyUserDto, CorporationApplyInfoDto applyInfoDto, Address address, CorporationOptionsApplicationFormRequestDto corporationOptionsApplicationFormRequestDto) {
+    public CorporationApplicationForm(BigInteger userId, ApplyUserDto applyUserDto, CorporationApplyInfoDto applyInfoDto, Address address, CorporationOptionsDto corporationOptionsDto) {
         String date = applyInfoDto.getStartDate();
 
         this.userId = userId;
@@ -124,9 +124,13 @@ public class CorporationApplicationForm {
         this.serviceStartDate = LocalDate.of(Integer.parseInt(date.substring(0, 4)),
                                             Integer.parseInt(date.substring(4, 6)),
                                             Integer.parseInt(date.substring(6, 8)));
-        this.isGarbage = corporationOptionsApplicationFormRequestDto.getIsGarbage();
-        this.isHotStorage = corporationOptionsApplicationFormRequestDto.getIsHotStorage();
-        this.isSetting = corporationOptionsApplicationFormRequestDto.getIsSetting();
-        this.memo = corporationOptionsApplicationFormRequestDto.getMemo();
+        this.isGarbage = corporationOptionsDto.getIsGarbage();
+        this.isHotStorage = corporationOptionsDto.getIsHotStorage();
+        this.isSetting = corporationOptionsDto.getIsSetting();
+        this.memo = corporationOptionsDto.getMemo();
+    }
+
+    public void updateMemo(String memo) {
+        this.memo = memo;
     }
 }

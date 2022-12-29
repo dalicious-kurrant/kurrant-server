@@ -7,6 +7,7 @@ import co.dalicious.domain.application_form.dto.corporation.CorporationApplicati
 import co.kurrant.app.public_api.dto.client.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 public interface ApplicationFormService {
     // 아파트 스팟 개설 신청
@@ -22,6 +23,6 @@ public interface ApplicationFormService {
     // 기업 스팟 개설 신청 기타 내용 변경
     void updateCorporationApplicationFormMemo(HttpServletRequest httpServletRequest, Long id, ApplicationFormMemoDto applicationFormMemoDto);
     // 스팟 신청 날짜 리스트
-    ApplicationFormDto getSpotsApplicationList(HttpServletRequest httpServletRequest);
+    List<ApplicationFormDto> getSpotsApplicationList(HttpServletRequest httpServletRequest);
 
 }

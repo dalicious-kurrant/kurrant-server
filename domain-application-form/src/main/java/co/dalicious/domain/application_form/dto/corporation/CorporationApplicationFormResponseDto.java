@@ -17,10 +17,10 @@ public class CorporationApplicationFormResponseDto {
     private String address;
     private List<CorporationMealInfoResponseDto> mealDetails;
     private List<CorporationSpotResponseDto> spots;
-    private CorporationOptionsApplicationFormRequestDto option;
+    private CorporationOptionsDto option;
 
     @Builder
-    public CorporationApplicationFormResponseDto(ApplyUserDto user, CorporationApplyInfoDto corporationInfo, String address, List<CorporationMealInfoResponseDto> mealDetails, List<CorporationSpotResponseDto> spots, CorporationOptionsApplicationFormRequestDto option) {
+    public CorporationApplicationFormResponseDto(ApplyUserDto user, CorporationApplyInfoDto corporationInfo, String address, List<CorporationMealInfoResponseDto> mealDetails, List<CorporationSpotResponseDto> spots, CorporationOptionsDto option) {
         this.user = user;
         this.corporationInfo = corporationInfo;
         this.address = address;

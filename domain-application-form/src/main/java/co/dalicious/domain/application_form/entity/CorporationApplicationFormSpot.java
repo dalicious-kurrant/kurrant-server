@@ -52,4 +52,6 @@ public class CorporationApplicationFormSpot {
     public void setCorporationApplicationForm(CorporationApplicationForm corporationApplicationForm) {
         this.corporationApplicationForm = corporationApplicationForm;
     }
+
+
 }

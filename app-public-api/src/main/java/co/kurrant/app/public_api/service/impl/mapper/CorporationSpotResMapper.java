@@ -17,7 +17,11 @@ public interface CorporationSpotResMapper extends GenericMapper<CorporationSpotR
     @Override
     @Mapping(source = "address", target = "address", qualifiedByName = "addressToString")
     @Mapping(source = "diningType", target = "diningType", qualifiedByName = "diningTypeToString")
+    @Mapping(source = "name", target = "spotName")
     CorporationSpotResponseDto toDto(CorporationApplicationFormSpot applicationFormSpot);
+
+    @Mapping(target = "address", ignore = true)
+    CorporationApplicationFormSpot toEntity(CorporationSpotResponseDto dto);
 
     @Named("addressToString")
     default String addressToString(Address address) {

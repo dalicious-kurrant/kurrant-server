@@ -130,7 +130,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         List<CorporationSpotRequestDto> spots = corporationApplicationFormRequestDto.getSpots();
 
         // 옵션 내용 가져오기
-        CorporationOptionsApplicationFormRequestDto corporationOptionsApplicationFormRequestDto = corporationApplicationFormRequestDto.getOption();
+        CorporationOptionsDto corporationOptionsDto = corporationApplicationFormRequestDto.getOption();
 
         // 기업 스팟 신청서 저장
         CorporationApplicationForm corporationApplicationForm = corporationApplicationFormRepository.save(
@@ -139,7 +139,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                 .applyUserDto(applyUserDto)
                 .applyInfoDto(applyInfoDto)
                 .address(address)
-                .corporationOptionsApplicationFormRequestDto(corporationOptionsApplicationFormRequestDto)
+                .corporationOptionsDto(corporationOptionsDto)
                 .build());
 
         // 스팟 신청 정보 저장
@@ -195,22 +195,58 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             mealInfoList.add(CorporationMealInfoResMapper.INSTANCE.toDto(mealInfo));
         }
 
+        // 옵션 정보 가져오기
+        CorporationOptionsDto corporationOptionsDto = CorporationOptionsDto.builder()
+                .isGarbage(corporationApplicationForm.getIsGarbage())
+                .isHotStorage(corporationApplicationForm.getIsHotStorage())
+                .isSetting(corporationApplicationForm.getIsSetting())
+                .memo(corporationApplicationForm.getMemo())
+                .build();
+
         return CorporationApplicationFormResponseDto.builder()
                 .user(applyUserDto)
                 .address(addressString)
                 .corporationInfo(corporationApplyInfoDto)
                 .spots(spotList)
                 .mealDetails(mealInfoList)
+                .option(corporationOptionsDto)
                 .build();
     }
 
     @Override
+    @Transactional
     public void updateCorporationApplicationFormMemo(HttpServletRequest httpServletRequest, Long id, ApplicationFormMemoDto applicationFormMemoDto) {
-
+        // 유저 아이디 가져오기
+        BigInteger userId = commonService.getUserId(httpServletRequest);
+        // 로그인 한 유저와 수정하려는 신청서의 작성자가 같은 사람인지 검사
+        CorporationApplicationForm corporationApplicationForm = applicationFormValidator.isValidCorporationApplicationForm(userId, id);
+        // 내용 업데이트
+        corporationApplicationForm.updateMemo(applicationFormMemoDto.getMemo());
     }
 
     @Override
-    public ApplicationFormDto getSpotsApplicationList(HttpServletRequest httpServletRequest) {
-        return null;
+    public List<ApplicationFormDto> getSpotsApplicationList(HttpServletRequest httpServletRequest) {
+        // 유저 아이디 가져오기
+        BigInteger userId = commonService.getUserId(httpServletRequest);
+        // 유저가 등록한 기업/아파트 신청서 정보 리스트 가져오기
+        List<CorporationApplicationForm> corporationApplicationForms = corporationApplicationFormRepository.findByUserId(userId);
+        List<ApartmentApplicationForm> apartmentApplicationForms = apartmentApplicationFormRepository.findByUserId(userId);
+        List<ApplicationFormDto> applicationFormDtos = new ArrayList<>();
+        // 응답값 생성
+        for(CorporationApplicationForm corporationApplicationForm : corporationApplicationForms) {
+            applicationFormDtos.add(ApplicationFormDto.builder()
+                    .id(corporationApplicationForm.getId())
+                    .clientType(1)
+                    .date(DateUtils.format(corporationApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
+                    .build());
+        }
+        for(ApartmentApplicationForm apartmentApplicationForm : apartmentApplicationForms) {
+            applicationFormDtos.add(ApplicationFormDto.builder()
+                    .id(apartmentApplicationForm.getId())
+                    .clientType(0)
+                    .date(DateUtils.format(apartmentApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
+                    .build());
+        }
+        return applicationFormDtos;
     }
 }
