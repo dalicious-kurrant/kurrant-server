@@ -60,7 +60,15 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         String memo = apartmentApplicationFormRequestDto.getMemo();
 
         // 스팟 신청 정보 저장
-        ApartmentApplicationForm apartmentApplicationForm = apartmentApplicationFormRepository.save(ApartmentApplicationForm.builder().userId(userId).applyUserDto(applyUserDto).apartmentApplyInfoDto(apartmentApplyInfoDto).address(address).memo(memo).build());
+        ApartmentApplicationForm apartmentApplicationForm = apartmentApplicationFormRepository.save(
+                ApartmentApplicationForm.builder()
+                        .progressStatus(ProgressStatus.APPLY)
+                        .userId(userId)
+                        .applyUserDto(applyUserDto)
+                        .apartmentApplyInfoDto(apartmentApplyInfoDto)
+                        .address(address)
+                        .memo(memo)
+                        .build());
 
         // 식사 정보 리스트 저장
         List<ApartmentMealInfo> apartmentMealInfoList = new ArrayList<>();
@@ -68,9 +76,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             apartmentMealInfoRequestDto.setApartmentApplicationForm(apartmentApplicationForm);
             ApartmentMealInfo apartmentMealInfo = applyMealInfoRepository.save(
                     ApartmentMealInfo.builder()
-                    .apartmentMealInfoRequestDto(apartmentMealInfoRequestDto)
-                    .apartmentApplicationForm(apartmentApplicationForm)
-                    .build());
+                            .apartmentMealInfoRequestDto(apartmentMealInfoRequestDto)
+                            .apartmentApplicationForm(apartmentApplicationForm)
+                            .build());
             apartmentMealInfoList.add(apartmentMealInfo);
         }
         apartmentApplicationForm.setMealInfoList(apartmentMealInfoList);
@@ -96,7 +104,14 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 기타내용 가져오기.
         String memo = apartmentApplicationForm.getMemo();
 
-        return ApartmentApplicationFormResponseDto.builder().user(applyUserDto).address(createAddressResponseDto).info(apartmentApplyInfoDto).meal(meal).memo(memo).build();
+        return ApartmentApplicationFormResponseDto.builder()
+                .progressStatus(apartmentApplicationForm.getProgressStatus().getProgressStatus())
+                .user(applyUserDto)
+                .address(createAddressResponseDto)
+                .info(apartmentApplyInfoDto)
+                .meal(meal)
+                .memo(memo)
+                .build();
     }
 
     @Override
@@ -135,16 +150,16 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 기업 스팟 신청서 저장
         CorporationApplicationForm corporationApplicationForm = corporationApplicationFormRepository.save(
                 CorporationApplicationForm.builder()
-                .userId(userId)
-                .applyUserDto(applyUserDto)
-                .applyInfoDto(applyInfoDto)
-                .address(address)
-                .corporationOptionsDto(corporationOptionsDto)
-                .build());
+                        .userId(userId)
+                        .applyUserDto(applyUserDto)
+                        .applyInfoDto(applyInfoDto)
+                        .address(address)
+                        .corporationOptionsDto(corporationOptionsDto)
+                        .build());
 
         // 스팟 신청 정보 저장
         List<CorporationApplicationFormSpot> spotList = new ArrayList<>();
-        for(CorporationSpotRequestDto spot : spots) {
+        for (CorporationSpotRequestDto spot : spots) {
             CorporationApplicationFormSpot corporationSpotApplicationForm = CorporationSpotReqMapper.INSTANCE.toEntity(spot);
             corporationSpotApplicationForm.setCorporationApplicationForm(corporationApplicationForm);
             spotList.add(corporationApplicationFormSpotRepository.save(corporationSpotApplicationForm));
@@ -152,7 +167,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         corporationApplicationForm.setSpots(spotList);
         // 식사 정보 저장
         List<CorporationMealInfo> mealInfoList = new ArrayList<>();
-        for(CorporationMealInfoRequestDto mealInfoRequestDto : mealInfoRequestDtoList) {
+        for (CorporationMealInfoRequestDto mealInfoRequestDto : mealInfoRequestDtoList) {
             CorporationMealInfo corporationMealInfo = CorporationMealInfoReqMapper.INSTANCE.toEntity(mealInfoRequestDto);
             corporationMealInfo.setApplicationFormCorporation(corporationApplicationForm);
             mealInfoList.add(corporationMealInfoRepository.save(corporationMealInfo));
@@ -184,14 +199,14 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 스팟 정보 가져오기
         List<CorporationApplicationFormSpot> spots = corporationApplicationFormSpotRepository.findByCorporationApplicationForm(corporationApplicationForm);
         List<CorporationSpotResponseDto> spotList = new ArrayList<>();
-        for(CorporationApplicationFormSpot spot : spots) {
+        for (CorporationApplicationFormSpot spot : spots) {
             spotList.add(CorporationSpotResMapper.INSTANCE.toDto(spot));
         }
 
         // 식사 정보 가져오기
         List<CorporationMealInfo> mealInfos = corporationMealInfoRepository.findByCorporationApplicationForm(corporationApplicationForm);
         List<CorporationMealInfoResponseDto> mealInfoList = new ArrayList<>();
-        for(CorporationMealInfo mealInfo : mealInfos) {
+        for (CorporationMealInfo mealInfo : mealInfos) {
             mealInfoList.add(CorporationMealInfoResMapper.INSTANCE.toDto(mealInfo));
         }
 
@@ -233,14 +248,14 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         List<ApartmentApplicationForm> apartmentApplicationForms = apartmentApplicationFormRepository.findByUserId(userId);
         List<ApplicationFormDto> applicationFormDtos = new ArrayList<>();
         // 응답값 생성
-        for(CorporationApplicationForm corporationApplicationForm : corporationApplicationForms) {
+        for (CorporationApplicationForm corporationApplicationForm : corporationApplicationForms) {
             applicationFormDtos.add(ApplicationFormDto.builder()
                     .id(corporationApplicationForm.getId())
                     .clientType(1)
                     .date(DateUtils.format(corporationApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
                     .build());
         }
-        for(ApartmentApplicationForm apartmentApplicationForm : apartmentApplicationForms) {
+        for (ApartmentApplicationForm apartmentApplicationForm : apartmentApplicationForms) {
             applicationFormDtos.add(ApplicationFormDto.builder()
                     .id(apartmentApplicationForm.getId())
                     .clientType(0)
