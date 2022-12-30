@@ -1,6 +1,7 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.application_form.converter.ProgressStausConverter;
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplyInfoDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationOptionsDto;
@@ -27,6 +28,10 @@ public class CorporationApplicationForm {
     @Column(name = "id")
     @Comment("기업 스팟 개설 신청서 id")
     private Long id;
+
+    @Convert(converter = ProgressStausConverter.class)
+    @Comment("진행 상황")
+    private ProgressStatus progressStatus;
 
     @Column
     @Comment("기업 스팟 개설 서비스를 신청한 유저의 id")
@@ -88,6 +93,10 @@ public class CorporationApplicationForm {
     @Comment("기타 내용")
     private String memo;
 
+    @Column(name = "rejected_reason")
+    @Comment("미승인 사유")
+    private String rejectedReason;
+
     @OneToMany(mappedBy = "corporationApplicationForm", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "application_form__corporation_fk")
     @Comment("식사 정보")
@@ -111,9 +120,9 @@ public class CorporationApplicationForm {
     }
 
     @Builder
-    public CorporationApplicationForm(BigInteger userId, ApplyUserDto applyUserDto, CorporationApplyInfoDto applyInfoDto, Address address, CorporationOptionsDto corporationOptionsDto) {
+    public CorporationApplicationForm(ProgressStatus progressStatus, BigInteger userId, ApplyUserDto applyUserDto, CorporationApplyInfoDto applyInfoDto, Address address, CorporationOptionsDto corporationOptionsDto) {
         String date = applyInfoDto.getStartDate();
-
+        this.progressStatus = progressStatus;
         this.userId = userId;
         this.applierName = applyUserDto.getName();
         this.phone = applyUserDto.getPhone();

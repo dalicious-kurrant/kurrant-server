@@ -1,6 +1,7 @@
 package co.dalicious.domain.application_form.dto.corporation;
 
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
+import co.dalicious.domain.application_form.entity.ProgressStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,20 +13,24 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class CorporationApplicationFormResponseDto {
+    private Integer progressStatus;
     private ApplyUserDto user;
     private CorporationApplyInfoDto corporationInfo;
     private String address;
     private List<CorporationMealInfoResponseDto> mealDetails;
     private List<CorporationSpotResponseDto> spots;
     private CorporationOptionsDto option;
+    private String rejectedReason;
 
     @Builder
-    public CorporationApplicationFormResponseDto(ApplyUserDto user, CorporationApplyInfoDto corporationInfo, String address, List<CorporationMealInfoResponseDto> mealDetails, List<CorporationSpotResponseDto> spots, CorporationOptionsDto option) {
+    public CorporationApplicationFormResponseDto(Integer progressStatus, ApplyUserDto user, CorporationApplyInfoDto corporationInfo, String address, List<CorporationMealInfoResponseDto> mealDetails, List<CorporationSpotResponseDto> spots, CorporationOptionsDto option, String rejectedReason) {
+        this.progressStatus = progressStatus;
         this.user = user;
         this.corporationInfo = corporationInfo;
         this.address = address;
         this.mealDetails = mealDetails;
         this.spots = spots;
         this.option = option;
+        this.rejectedReason = rejectedReason;
     }
 }
