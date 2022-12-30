@@ -12,7 +12,6 @@ rootProject.name = 'api'
 include 'system-core'
 
 include 'client-core'
-include 'client-external-bizppurio'
 include 'client-external-sms'
 include 'client-external-mail'
 include 'client-oauth'
