@@ -45,9 +45,9 @@ public class OrderController {
         return orderService.findCartById(httpServletRequest);
     }
 
-    @DeleteMapping("/me/order/cart/{foodId}")
-    public ResponseMessage deleteById(HttpServletRequest httpServletRequest,@PathVariable Integer foodId) {
-        orderService.deleteById(httpServletRequest, foodId);
+    @DeleteMapping("/me/order/cart/{dailyFoodId}")
+    public ResponseMessage deleteById(HttpServletRequest httpServletRequest,@PathVariable Integer dailyFoodId) {
+        orderService.deleteById(httpServletRequest, dailyFoodId);
         return ResponseMessage.builder()
                 .message("장바구니의 상품을 삭제했습니다.")
                 .build();

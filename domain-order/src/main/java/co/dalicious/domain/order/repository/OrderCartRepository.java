@@ -12,6 +12,4 @@ import java.util.List;
 public interface OrderCartRepository extends JpaRepository<OrderCart, BigInteger> {
 
     List<OrderCart> findByUserId(BigInteger id);
-    @Query(value = "SELECT id FROM order__cart WHERE user_id = ?1", nativeQuery = true)
-    Integer getCartId(BigInteger id);
 }
