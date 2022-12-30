@@ -90,7 +90,7 @@ public class UserController {
                 .build();
     }
 
-    @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
+    @Operation(summary = "알림 설정 조회", description = "알림/마케팅 수신 정보 설정을 조회한다")
     @GetMapping("/setting")
     public ResponseMessage getAlarmSetting(HttpServletRequest httpServletRequest) {
         MarketingAlarmResponseDto MarketingDto = userService.getAlarmSetting(httpServletRequest);

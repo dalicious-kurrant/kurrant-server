@@ -1,5 +1,6 @@
 package co.dalicious.client.oauth;
 
+import co.dalicious.domain.user.entity.Provider;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.springframework.http.HttpEntity;
@@ -10,6 +11,18 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 public class SnsLoginServiceImpl implements SnsLoginService{
+    @Override
+    public SnsLoginResponseDto getSnsLoginUserInfo(Provider provider, String accessToken) {
+        return switch (provider) {
+            case NAVER -> getNaverLoginUserInfo(accessToken);
+            case KAKAO -> getKakaoLoginUserInfo(accessToken);
+            case GOOGLE -> getGoogleLoginUserInfo(accessToken);
+            case APPLE -> getAppleLoginUserInfo(accessToken);
+            case FACEBOOK -> getFacebookLoginUserInfo(accessToken);
+            default -> null;
+        };
+    }
+
     @Override
     public SnsLoginResponseDto getNaverLoginUserInfo(String accessToken) {
         // 헤더에 응답으로 받은 네이버 계정정보 받아오기 위한 Access Token 넣기

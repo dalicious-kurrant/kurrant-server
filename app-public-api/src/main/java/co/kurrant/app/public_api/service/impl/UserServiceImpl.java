@@ -68,14 +68,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // Vendor 로그인 시도
-        SnsLoginResponseDto snsLoginResponseDto = switch (provider) {
-            case NAVER -> snsLoginService.getNaverLoginUserInfo(snsAccessToken.getSnsAccessToken());
-            case KAKAO -> snsLoginService.getKakaoLoginUserInfo(snsAccessToken.getSnsAccessToken());
-            case GOOGLE -> snsLoginService.getGoogleLoginUserInfo(snsAccessToken.getSnsAccessToken());
-            case APPLE -> snsLoginService.getAppleLoginUserInfo(snsAccessToken.getSnsAccessToken());
-            case FACEBOOK -> snsLoginService.getFacebookLoginUserInfo(snsAccessToken.getSnsAccessToken());
-            default -> null;
-        };
+        SnsLoginResponseDto snsLoginResponseDto = snsLoginService.getSnsLoginUserInfo(provider, snsAccessToken.getSnsAccessToken());
 
         // Response 값이 존재하지 않으면 예외 발생
         if (snsLoginResponseDto == null) {
