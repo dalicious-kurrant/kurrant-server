@@ -105,12 +105,13 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         String memo = apartmentApplicationForm.getMemo();
 
         return ApartmentApplicationFormResponseDto.builder()
-                .progressStatus(apartmentApplicationForm.getProgressStatus().getProgressStatus())
+                .progressStatus(apartmentApplicationForm.getProgressStatus().getCode())
                 .user(applyUserDto)
                 .address(createAddressResponseDto)
                 .info(apartmentApplyInfoDto)
                 .meal(meal)
                 .memo(memo)
+                .rejectedReason(apartmentApplicationForm.getRejectedReason())
                 .build();
     }
 
@@ -150,6 +151,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 기업 스팟 신청서 저장
         CorporationApplicationForm corporationApplicationForm = corporationApplicationFormRepository.save(
                 CorporationApplicationForm.builder()
+                        .progressStatus(ProgressStatus.APPLY)
                         .userId(userId)
                         .applyUserDto(applyUserDto)
                         .applyInfoDto(applyInfoDto)
@@ -219,12 +221,14 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                 .build();
 
         return CorporationApplicationFormResponseDto.builder()
+                .progressStatus(corporationApplicationForm.getProgressStatus().getCode())
                 .user(applyUserDto)
                 .address(addressString)
                 .corporationInfo(corporationApplyInfoDto)
                 .spots(spotList)
                 .mealDetails(mealInfoList)
                 .option(corporationOptionsDto)
+                .rejectedReason(corporationApplicationForm.getRejectedReason())
                 .build();
     }
 
