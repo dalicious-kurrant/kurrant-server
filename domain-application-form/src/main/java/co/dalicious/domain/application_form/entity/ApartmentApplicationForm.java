@@ -1,6 +1,7 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.application_form.converter.ProgressStausConverter;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplyInfoDto;
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -25,6 +26,10 @@ public class ApartmentApplicationForm {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("아파트 스팟 개설 신청서 id")
     private Long id;
+
+    @Convert(converter = ProgressStausConverter.class)
+    @Comment("진행 상황")
+    private ProgressStatus progressStatus;
 
     @Column
     @Comment("아파트 스팟 개설 서비스를 신청한 유저의 id")
@@ -87,9 +92,10 @@ public class ApartmentApplicationForm {
     private String memo;
 
     @Builder
-    public ApartmentApplicationForm(BigInteger userId, ApplyUserDto applyUserDto, Address address, ApartmentApplyInfoDto apartmentApplyInfoDto, String memo) {
+    public ApartmentApplicationForm(ProgressStatus progressStatus, BigInteger userId, ApplyUserDto applyUserDto, Address address, ApartmentApplyInfoDto apartmentApplyInfoDto, String memo) {
         String serviceDate = apartmentApplyInfoDto.getServiceStartDate();
 
+        this.progressStatus = progressStatus;
         this.userId = userId;
         this.applierName = applyUserDto.getName();
         this.phone = applyUserDto.getPhone();

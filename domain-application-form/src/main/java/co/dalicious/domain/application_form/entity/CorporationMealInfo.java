@@ -1,6 +1,6 @@
 package co.dalicious.domain.application_form.entity;
 
-import co.dalicious.domain.application_form.PriceAverageConverter;
+import co.dalicious.domain.application_form.converter.PriceAverageConverter;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -11,9 +11,7 @@ import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Entity
 @Getter
