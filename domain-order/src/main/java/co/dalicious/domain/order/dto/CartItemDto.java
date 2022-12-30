@@ -34,18 +34,18 @@ public class CartItemDto {
 
 
     @Builder
-    public CartItemDto(OrderCartItem orderCartItem, Integer price, Integer dailyFoodId){
-        this.id = orderCartItem.getFood().getId();
-        this.name = orderCartItem.getFood().getName();
-        this.price = orderCartItem.getFood().getPrice();
-        this.img = orderCartItem.getFood().getImg();
-        this.spicy = orderCartItem.getFood().getSpicy().getSpicy();
-        this.makers = orderCartItem.getFood().getMakers();
+    public CartItemDto(OrderCartItem orderCartItem, Integer price){
+        this.id = orderCartItem.getOrderCart().getId();
+        this.name = orderCartItem.getDailyFood().getFood().getName();
+        this.price = orderCartItem.getDailyFood().getFood().getPrice();
+        this.img = orderCartItem.getDailyFood().getFood().getImg();
+        this.spicy = orderCartItem.getDailyFood().getFood().getSpicy().getSpicy();
+        this.makers = orderCartItem.getDailyFood().getFood().getMakers();
         this.diningType = orderCartItem.getDiningType().getDiningType();
         this.count = orderCartItem.getCount();
-        this.discountRate = orderCartItem.getFood().getDiscountedRate();
+        this.discountRate = orderCartItem.getDailyFood().getFood().getDiscountedRate();
         this.serviceDate = orderCartItem.getServiceDate();
         this.sumPrice = price;
-        this.dailyFoodId = dailyFoodId;
+        this.dailyFoodId = orderCartItem.getDailyFood().getId();
     }
 }

@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.system.util.DiningType;
 import lombok.Builder;
@@ -60,22 +61,19 @@ public class OrderCartItem {
     @Comment("장바구니 ID")
     private OrderCart orderCart;
 
-
     @ManyToOne
-    @JoinColumn(name="food_id")
+    @JoinColumn(name="dailyFood_id")
     @Comment("장바구니에 담긴 음식 ID")
-    private Food food;
-
-
+    private DailyFood dailyFood;
 
     @Builder
     public OrderCartItem( LocalDate serviceDate, Integer price, DiningType diningType,
-                          Integer count, OrderCart orderCart, Food foodId){
+                          Integer count, OrderCart orderCart, DailyFood dailyFood){
         this.serviceDate = serviceDate;
         this.price = price;
         this.diningType = diningType;
         this.count = count;
         this.orderCart = orderCart;
-        this.food = foodId;
+        this.dailyFood = dailyFood;
     }
 }

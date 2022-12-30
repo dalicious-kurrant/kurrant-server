@@ -22,11 +22,11 @@ public class QOrderCartItemRepository {
                 .execute();
     }
 
-    public void deleteByFoodId(Integer id, Integer foodId) {
+    public void deleteByFoodId(Integer id, Integer dailyFoodId) {
         queryFactory
                 .delete(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(id),
-                        orderCartItem.food.id.eq(foodId))
+                        orderCartItem.dailyFood.id.eq(dailyFoodId))
                 .execute();
     }
 
@@ -34,7 +34,7 @@ public class QOrderCartItemRepository {
         queryFactory
                 .update(orderCartItem)
                 .set(orderCartItem.count, updateCartItem.getCount())
-                .where(orderCartItem.food.id.eq(updateCartItem.getFood().getId()),
+                .where(orderCartItem.dailyFood.id.eq(updateCartItem.getDailyFood().getId()),
                         orderCartItem.orderCart.id.eq(updateCartItem.getOrderCart().getId()))
                 .execute();
     }

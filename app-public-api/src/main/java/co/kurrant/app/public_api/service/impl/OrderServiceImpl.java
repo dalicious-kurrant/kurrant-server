@@ -12,10 +12,7 @@ import co.dalicious.domain.order.dto.OrderItemDto;
 import co.dalicious.domain.order.entity.OrderCart;
 import co.dalicious.domain.order.entity.OrderCartItem;
 import co.dalicious.domain.order.entity.OrderItem;
-import co.dalicious.domain.order.repository.OrderCartItemRepository;
-import co.dalicious.domain.order.repository.OrderCartRepository;
-import co.dalicious.domain.order.repository.OrderItemRepository;
-import co.dalicious.domain.order.repository.QOrderCartItemRepository;
+import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.user.entity.User;
 
 import co.dalicious.system.util.DateUtils;
@@ -40,7 +37,9 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final FoodRepository foodRepository;
     private final OrderCartRepository orderCartRepository;
+    private final QOrderCartRepository qOrderCartRepository;
     private final OrderCartItemRepository orderCartItemRepository;
+    private final DailyFoodRepository dailyFoodRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
     private final QOrderCartItemRepository qOrderCartItemRepository;
     private final CommonService commonService;
@@ -84,25 +83,22 @@ public class OrderServiceImpl implements OrderService {
         List<CartItemDto> result = new ArrayList<>();
 
         //유저정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
-        List<OrderCartItem> orderCartItems = qOrderCartItemRepository.getItems(orderCartRepository.getCartId(user.getId()));
+        List<OrderCartItem> orderCartItems = qOrderCartItemRepository.getItems(qOrderCartRepository.getCartId(user.getId().intValue()));
+
+        System.out.println(orderCartItems.get(0).toString()+"11");
 
         //카트에 담긴 아이템들을 결과 LIST에 담아주기
         for (OrderCartItem oc : orderCartItems){
-            Integer price = oc.getFood().getPrice();
+            Integer price = oc.getDailyFood().getFood().getPrice();
+
             //count가 1이 아니면 가격 * count
             if (oc.getCount() != 1){
                 price = price * oc.getCount();
-            }
-            Integer dailyFoodId = null;
-            List<Integer> dailyFood = qDailyFoodRepository.findByFoodId(BigInteger.valueOf(oc.getFood().getId()), oc.getServiceDate());
-            if(dailyFood.size() == 1){
-                dailyFoodId = dailyFood.get(0);
             }
 
             result.add(CartItemDto.builder()
                     .orderCartItem(oc)
                     .price(price)
-                    .dailyFoodId(dailyFoodId)
                     .build());
         }
         return result;
@@ -120,11 +116,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void deleteById(HttpServletRequest httpServletRequest, Integer foodId) {
+    public void deleteById(HttpServletRequest httpServletRequest, Integer dailyFoodId) {
         //cart_id와 food_id가 같은 경우 삭제
         User user = commonService.getUser(httpServletRequest);
         List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
-        qOrderCartItemRepository.deleteByFoodId(cart.get(0).getId(), foodId);
+        qOrderCartItemRepository.deleteByFoodId(cart.get(0).getId(), dailyFoodId);
     }
 
     @Override
@@ -134,13 +130,14 @@ public class OrderServiceImpl implements OrderService {
         List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
 
         for (UpdateCart updateCart : updateCartDto.getUpdateCartList()){
-            //FoodId를 담아준다.
-            Food food = Food.builder()
-                    .id(updateCart.getFoodId())
+            //dailyFoodId를 담아준다.
+            DailyFood dailyFood = DailyFood.builder()
+                    .id(updateCart.getDailyFoodId())
                     .build();
+
             OrderCartItem updateCartItem = OrderCartItem.builder()
                     .orderCart(cart.get(0))
-                    .foodId(food)
+                    .dailyFood(dailyFood)
                     .count(updateCart.getCount())
                     .build();
             qOrderCartItemRepository.updateByFoodId(updateCartItem);
@@ -169,21 +166,19 @@ public class OrderServiceImpl implements OrderService {
             OrderCart orderCart = orderCartRepository.save(orderCart1);
 
             //음식을 저장한다.
-            Food food = foodRepository.findById(1);
+            Optional<DailyFood> dailyFood = dailyFoodRepository.findById(orderCartDto.getDailyFoodId());
             //정보들을 담아서 INSERT
             OrderCartItem orderCartItem = OrderCartItem.builder()
                     .serviceDate(orderCartDto.getServiceDate())
                     .diningType(orderCartDto.getDiningType())
                     .count(orderCartDto.getCount())
                     .orderCart(orderCart)
-                    .foodId(food)
+                    .dailyFood(dailyFood.get())
                     .build();
             orderCartItemRepository.save(orderCartItem);
         }else { //장바구니 ID가 있다면 바로 담아준다.
-            //FoodId를 담아준다.
-            Food food = Food.builder()
-                    .id(orderCartDto.getFoodId())
-                    .build();
+            //dailyFoodId를 담아준다.
+            Optional<DailyFood> dailyFood = dailyFoodRepository.findById(orderCartDto.getDailyFoodId());
 
             //정보들을 담아서 INSERT
             OrderCartItem orderCartItem = OrderCartItem.builder()
@@ -191,7 +186,7 @@ public class OrderServiceImpl implements OrderService {
                     .diningType(orderCartDto.getDiningType())
                     .count(orderCartDto.getCount())
                     .orderCart(orderCartId.get(0))
-                    .foodId(food)
+                    .dailyFood(dailyFood.get())
                     .build();
             orderCartItemRepository.save(orderCartItem);
         }

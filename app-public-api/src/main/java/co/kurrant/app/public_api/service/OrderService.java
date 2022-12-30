@@ -19,7 +19,7 @@ public interface OrderService {
 
     void deleteByUserId(HttpServletRequest httpServletRequest);
 
-    void deleteById(HttpServletRequest httpServletRequest, Integer foodId);
+    void deleteById(HttpServletRequest httpServletRequest, Integer dailyFoodId);
 
     void updateByFoodId(HttpServletRequest httpServletRequest, UpdateCartDto updateCartDto);
 }

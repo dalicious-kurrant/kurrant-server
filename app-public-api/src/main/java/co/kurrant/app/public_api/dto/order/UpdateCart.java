@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class UpdateCart {
-    private Integer foodId;
+    private Integer dailyFoodId;
     private Integer count;
 }
