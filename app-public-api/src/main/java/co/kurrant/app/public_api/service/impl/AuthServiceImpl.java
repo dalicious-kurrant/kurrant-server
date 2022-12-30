@@ -165,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 비밀번호 일치/조건 체크
         String password = signUpRequestDto.getPassword();
-        userValidator.isPasswordMatched(password, signUpRequestDto.getPasswordCheck());
+        UserValidator.isPasswordMatched(password, signUpRequestDto.getPasswordCheck());
         userValidator.isValidPassword(password);
 
         // 인증을 진행한 유저인지 체크
@@ -225,14 +225,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponseDto snsLoginOrJoin(String sns, SnsAccessToken snsAccessToken) {
         Provider provider = Provider.valueOf(sns);
         // Vendor 로그인 시도
-        SnsLoginResponseDto snsLoginResponseDto = switch (provider) {
-            case NAVER -> snsLoginService.getNaverLoginUserInfo(snsAccessToken.getSnsAccessToken());
-            case KAKAO -> snsLoginService.getKakaoLoginUserInfo(snsAccessToken.getSnsAccessToken());
-            case GOOGLE -> snsLoginService.getGoogleLoginUserInfo(snsAccessToken.getSnsAccessToken());
-            case APPLE -> snsLoginService.getAppleLoginUserInfo(snsAccessToken.getSnsAccessToken());
-            case FACEBOOK -> snsLoginService.getFacebookLoginUserInfo(snsAccessToken.getSnsAccessToken());
-            default -> null;
-        };
+        SnsLoginResponseDto snsLoginResponseDto = snsLoginService.getSnsLoginUserInfo(provider, snsAccessToken.getSnsAccessToken());
 
         // Response 값이 존재하지 않으면 예외 발생
         if (snsLoginResponseDto == null) {
@@ -302,7 +295,7 @@ public class AuthServiceImpl implements AuthService {
     public void findPasswordEmail(FindPasswordEmailRequestDto findPasswordEmailRequestDto) {
         // 비밀번호 일치/조건 체크
         String password = findPasswordEmailRequestDto.getPassword();
-        userValidator.isPasswordMatched(password, findPasswordEmailRequestDto.getPasswordCheck());
+        UserValidator.isPasswordMatched(password, findPasswordEmailRequestDto.getPasswordCheck());
         userValidator.isValidPassword(password);
 
         // 인증을 진행한 유저인지 체크
@@ -322,7 +315,7 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findPasswordPhoneRequestDto.getPhone(), RequiredAuth.FIND_PASSWORD);
         // 비밀번호 일치/조건 체크
         String password = findPasswordPhoneRequestDto.getPassword();
-        userValidator.isPasswordMatched(password, findPasswordPhoneRequestDto.getPasswordCheck());
+        UserValidator.isPasswordMatched(password, findPasswordPhoneRequestDto.getPasswordCheck());
         userValidator.isValidPassword(password);
         // 유저 정보 가져오기
         User user = userRepository.findByPhone(findPasswordPhoneRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));

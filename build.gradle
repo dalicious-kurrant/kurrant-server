@@ -150,17 +150,10 @@ project(':app-admin-api') {
     dependencies {
         implementation project(':system-core')
         implementation project(':client-core')
-        implementation project(':client-external-bizppurio')
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
         implementation project(':domain-food')
-    }
-}
-
-project(':client-external-bizppurio') {
-    dependencies {
-    	implementation project(':system-core')
     }
 }
 
