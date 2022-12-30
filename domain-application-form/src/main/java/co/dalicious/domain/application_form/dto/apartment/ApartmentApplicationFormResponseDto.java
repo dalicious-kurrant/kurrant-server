@@ -13,20 +13,22 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class ApartmentApplicationFormResponseDto {
-    private String progressStatus;
+    private Integer progressStatus;
     private ApplyUserDto user;
     private CreateAddressResponseDto address;
     private ApartmentApplyInfoDto info;
     private List<ApartmentMealInfoResponseDto> meal;
     private String memo;
+    private String rejectedReason;
 
     @Builder
-    public ApartmentApplicationFormResponseDto(String progressStatus, ApplyUserDto user, CreateAddressResponseDto address, ApartmentApplyInfoDto info, List<ApartmentMealInfoResponseDto> meal, String memo) {
+    public ApartmentApplicationFormResponseDto(Integer progressStatus, ApplyUserDto user, CreateAddressResponseDto address, ApartmentApplyInfoDto info, List<ApartmentMealInfoResponseDto> meal, String memo, String rejectedReason) {
         this.progressStatus = progressStatus;
         this.user = user;
         this.address = address;
         this.info = info;
         this.meal = meal;
         this.memo = memo;
+        this.rejectedReason = rejectedReason;
     }
 }

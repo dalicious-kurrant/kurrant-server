@@ -91,6 +91,10 @@ public class ApartmentApplicationForm {
     @Comment("기타 내용")
     private String memo;
 
+    @Column(name = "rejected_reason")
+    @Comment("미승인 사유")
+    private String rejectedReason;
+
     @Builder
     public ApartmentApplicationForm(ProgressStatus progressStatus, BigInteger userId, ApplyUserDto applyUserDto, Address address, ApartmentApplyInfoDto apartmentApplyInfoDto, String memo) {
         String serviceDate = apartmentApplyInfoDto.getServiceStartDate();
