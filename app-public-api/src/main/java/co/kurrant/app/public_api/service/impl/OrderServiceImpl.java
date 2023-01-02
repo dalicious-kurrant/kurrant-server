@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletRequest;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -35,6 +36,7 @@ import java.util.*;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderItemRepository orderItemRepository;
+    private final QOrderItemRepository qOrderItemRepository;
     private final FoodRepository foodRepository;
     private final OrderCartRepository orderCartRepository;
     private final QOrderCartRepository qOrderCartRepository;
@@ -45,15 +47,13 @@ public class OrderServiceImpl implements OrderService {
     private final CommonService commonService;
 
     @Override
-    public List<OrderDetailDto> findOrderByServiceDate(Date startDate, Date endDate){
+    public List<OrderDetailDto> findOrderByServiceDate(LocalDate startDate, LocalDate endDate){
         List<OrderDetailDto> resultList = new ArrayList<>();
         OrderDetailDto orderDetailDto = new OrderDetailDto();
 
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
-        System.out.println(startDate +" startDate, " + endDate +" endDate");
-        List<OrderItem> byServiceDateBetween = orderItemRepository.findByServiceDateBetween(startDate, endDate);
-
+        List<OrderItem> byServiceDateBetween = qOrderItemRepository.findByServiceDateBetween(startDate, endDate);
         byServiceDateBetween.forEach( x -> {
             orderDetailDto.setId(x.getId());
             orderDetailDto.setServiceDate(DateUtils.format(x.getServiceDate(), "yyyy-MM-dd") );

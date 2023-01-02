@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.dto.food;
 
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.FoodStatus;
 import co.dalicious.system.util.Spicy;
@@ -16,31 +17,31 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class DailyFoodDto {
     Integer id;
-    LocalDate created;
+    String created;
     String diningType;
     Integer foodId;
 
     String foodName;
     Boolean isSoldOut;
     Integer spotId;
-    FoodStatus status;
-    LocalDate updated;
+    String status;
+    String updated;
 
-    LocalDate serviceDate;
+    String serviceDate;
 
     @Builder
     public DailyFoodDto(Integer id, LocalDate created, DiningType diningType, Food food,
                         Boolean isSoldOut, Integer spotId, FoodStatus status, LocalDate updated,
                         LocalDate serviceDate){
         this.id = id;
-        this.created = created;
+        this.created = DateUtils.format(created, "yyyy-MM-dd");
         this.diningType = diningType.getDiningType();
         this.foodId = food.getId();
         this.foodName = food.getName();
         this.isSoldOut = isSoldOut;
         this.spotId = spotId;
-        this.status = status;
-        this.updated = updated;
-        this.serviceDate = serviceDate;
+        this.status = status.getStatus();
+        this.updated = DateUtils.format(updated, "yyyy-MM-dd");
+        this.serviceDate = DateUtils.format(serviceDate, "yyyy-MM-dd");
     }
 }

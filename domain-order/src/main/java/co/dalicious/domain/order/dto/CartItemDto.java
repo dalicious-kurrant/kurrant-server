@@ -3,6 +3,7 @@ package co.dalicious.domain.order.dto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.domain.order.entity.OrderCartItem;
+import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.Spicy;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,7 +31,7 @@ public class CartItemDto {
     Integer count;
     Integer sumPrice;
     Double discountRate;
-    LocalDate serviceDate;
+    String serviceDate;
 
 
     @Builder
@@ -44,7 +45,7 @@ public class CartItemDto {
         this.diningType = orderCartItem.getDiningType().getDiningType();
         this.count = orderCartItem.getCount();
         this.discountRate = orderCartItem.getDailyFood().getFood().getDiscountedRate();
-        this.serviceDate = orderCartItem.getServiceDate();
+        this.serviceDate = DateUtils.format(orderCartItem.getServiceDate(), "yyyy-MM-dd");
         this.sumPrice = price;
         this.dailyFoodId = orderCartItem.getDailyFood().getId();
     }
