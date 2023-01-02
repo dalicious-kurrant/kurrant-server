@@ -3,11 +3,13 @@ package co.dalicious.domain.client.entity;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -15,6 +17,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -34,40 +37,44 @@ public class Corporation {
     @Size(max = 64)
     @NotNull
     @Column(name = "name", nullable = false, length = 64)
+    @Comment("기업명")
     private String name;
 
     @Column(name = "employee_count")
+    @Comment("사원수")
     private Integer employeeCount;
 
     @Column(name = "manager_id")
+    @Comment("담당자 유저 id")
     private Long managerId;
 
-    @NotNull
-    @Convert(converter = DiningTypeConverter.class)
-    @Column(name = "e_dining_type", nullable = false)
-    private DiningType diningType;
-
     @Embedded
+    @Comment("주소")
     private Address address;
 
-    @NotNull
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
+    @Column(name = "is_garbage")
+    @Comment("쓰레기 수거 서비스 사용 유무")
+    private Boolean isGarbage;
 
-    @Size(max = 32)
-    @NotNull
-    @Column(name = "delivery_time", nullable = false, length = 32)
-    private String deliveryTime;
+    @Column(name = "is_hot_storage")
+    @Comment("온장고 대여 서비스 사용 유무")
+    private Boolean isHotStorage;
 
-    @Size(max = 255)
-    @Column(name = "emb_use_days")
-    private String embUseDays;
+    @Column(name = "is_setting")
+    @Comment("식사 세팅 지원 서비스 사용 유무")
+    private Boolean isSetting;
 
-    @Builder
-    public Corporation(String name, Integer employeeCount, DiningType diningType, String deliveryTime) {
-        this.name = name;
-        this.employeeCount = employeeCount;
-        this.diningType = diningType;
-        this.deliveryTime = deliveryTime;
-    }
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "created_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private Timestamp createdDateTime;
+
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "updated_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("수정일")
+    private Timestamp updatedDateTime;
 }

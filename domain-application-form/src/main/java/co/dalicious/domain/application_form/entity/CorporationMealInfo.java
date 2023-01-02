@@ -4,19 +4,22 @@ import co.dalicious.domain.application_form.converter.PriceAverageConverter;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "application_form__meal_detail")
+@Table(name = "application_form__corporation_meal_info")
 public class CorporationMealInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,6 +57,20 @@ public class CorporationMealInfo {
     @Column(name = "delivery_time", nullable = false)
     @Comment("배송 시간")
     private String deliveryTime;
+
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "created_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private Timestamp createdDateTime;
+
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "updated_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("수정일")
+    private Timestamp updatedDateTime;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)

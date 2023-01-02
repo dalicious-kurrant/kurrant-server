@@ -4,16 +4,19 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.converter.ProgressStausConverter;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplyInfoDto;
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -36,7 +39,7 @@ public class ApartmentApplicationForm {
     private BigInteger userId;
 
     @Size(max = 64)
-    @Column(name = "name", nullable = false, length = 64)
+    @Column(name = "applier_name", nullable = false, length = 64)
     @Comment("아파트 스팟 개설 서비스 신청자명")
     private String applierName;
 
@@ -95,6 +98,20 @@ public class ApartmentApplicationForm {
     @Comment("미승인 사유")
     private String rejectedReason;
 
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "created_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private Timestamp createdDateTime;
+
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "updated_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("수정일")
+    private Timestamp updatedDateTime;
+
     @Builder
     public ApartmentApplicationForm(ProgressStatus progressStatus, BigInteger userId, ApplyUserDto applyUserDto, Address address, ApartmentApplyInfoDto apartmentApplyInfoDto, String memo) {
         String serviceDate = apartmentApplyInfoDto.getServiceStartDate();
@@ -104,7 +121,7 @@ public class ApartmentApplicationForm {
         this.applierName = applyUserDto.getName();
         this.phone = applyUserDto.getPhone();
         this.email = applyUserDto.getEmail();
-        this.apartmentName = applyUserDto.getEmail();
+        this.apartmentName = apartmentApplyInfoDto.getApartmentName();
         this.address = address;
         this.totalFamilyCount = apartmentApplyInfoDto.getFamilyCount();
         this.dongCount = apartmentApplyInfoDto.getDongCount();
@@ -120,5 +137,9 @@ public class ApartmentApplicationForm {
     }
     public void updateMemo(String memo) {
         this.memo = memo;
+    }
+
+    public void updateRejectedReason(String rejectedReason) {
+        this.rejectedReason = rejectedReason;
     }
 }

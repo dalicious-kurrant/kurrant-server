@@ -1,11 +1,9 @@
-package co.dalicious.domain.application_form.entity;
+package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -16,19 +14,22 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 
+
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "application_form__spot")
-public class CorporationApplicationFormSpot {
+@Table(name = "client__corporation_spot")
+public class CorporationSpot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
+    @Comment("기업 스팟 PK")
     private Long id;
 
     @Size(max = 32)
     @NotNull
     @Column(name = "name", nullable = false, length = 32)
+    @Comment("스팟 이름")
     private String name;
 
     @NotNull
@@ -53,23 +54,4 @@ public class CorporationApplicationFormSpot {
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
-    @JoinColumn(name = "application_form__corporation_id")
-    @JsonBackReference(value = "application_form__corporation_fk")
-    private CorporationApplicationForm corporationApplicationForm;
-
-    @Builder
-    public CorporationApplicationFormSpot(String name, Address address, DiningType diningType) {
-        this.name = name;
-        this.address = address;
-        this.diningType = diningType;
-    }
-
-    public void setCorporationApplicationForm(CorporationApplicationForm corporationApplicationForm) {
-        this.corporationApplicationForm = corporationApplicationForm;
-    }
-
-
 }

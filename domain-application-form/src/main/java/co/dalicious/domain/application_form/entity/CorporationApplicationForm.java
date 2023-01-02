@@ -5,16 +5,19 @@ import co.dalicious.domain.application_form.converter.ProgressStausConverter;
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplyInfoDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationOptionsDto;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -97,6 +100,20 @@ public class CorporationApplicationForm {
     @Comment("미승인 사유")
     private String rejectedReason;
 
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "created_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private Timestamp createdDateTime;
+
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "updated_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("수정일")
+    private Timestamp updatedDateTime;
+
     @OneToMany(mappedBy = "corporationApplicationForm", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "application_form__corporation_fk")
     @Comment("식사 정보")
@@ -107,9 +124,6 @@ public class CorporationApplicationForm {
     @Comment("스팟 정보")
     private List<CorporationApplicationFormSpot> spots;
 
-    public void setUserId(BigInteger userId) {
-        this.userId = userId;
-    }
 
     public void setMealInfoList(List<CorporationMealInfo> mealInfoList) {
         this.mealInfoList = mealInfoList;
@@ -141,5 +155,9 @@ public class CorporationApplicationForm {
 
     public void updateMemo(String memo) {
         this.memo = memo;
+    }
+
+    public void updateRejectedReason(String rejectedReason) {
+        this.rejectedReason = rejectedReason;
     }
 }
