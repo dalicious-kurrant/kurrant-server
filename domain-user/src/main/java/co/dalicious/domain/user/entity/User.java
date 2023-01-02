@@ -2,6 +2,7 @@ package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Corporation;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;
@@ -114,6 +115,10 @@ public class User {
     @ColumnDefault("0.00")
     private BigDecimal point;
 
+    @Column(name = "default_spot")
+    @Comment("기본으로 설정한 스팟의 id")
+    private BigInteger defaultSpotId;
+
     @Size(max = 16)
     @Column(name = "phone", length = 16,
             columnDefinition = "VARCHAR(16)")
@@ -127,13 +132,15 @@ public class User {
     @JsonManagedReference(value = "user-fk")
     List<ProviderEmail> providerEmails;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "corporation_id")
-    private Corporation corporation;
+    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "user")
+    @JsonBackReference(value = "user_fk")
+    @Comment("스팟 기업 정보")
+    private List<UserCorporation> corporations;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "apartment_id")
-    private Apartment apartment;
+    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "user")
+    @JsonBackReference(value = "user_fk")
+    @Comment("스팟 기업 정보")
+    private List<UserApartment> apartments;
 
     @Builder
     public User(BigInteger id, String password, String name, Role role, String email, String phone) {
