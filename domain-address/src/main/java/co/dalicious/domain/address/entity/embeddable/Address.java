@@ -39,6 +39,11 @@ public class Address {
     this.zipCode = Integer.parseInt(createAddressRequestDto.getZipCode());
     this.address1 = createAddressRequestDto.getAddress1();
     this.address2 = createAddressRequestDto.getAddress2();
-    this.location = new Point(Double.parseDouble(createAddressRequestDto.getLatitude()), Double.parseDouble(createAddressRequestDto.getLongitude()));
+    this.location = (createAddressRequestDto.getLatitude() == null || createAddressRequestDto.getLongitude() == null) ?
+            null : new Point(Double.parseDouble(createAddressRequestDto.getLatitude()), Double.parseDouble(createAddressRequestDto.getLongitude()));
+  }
+
+  public String addressToString() {
+    return this.address1 + " " + this.address2;
   }
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -13,7 +14,7 @@ public class CorporationMealInfoRequestDto {
     private Integer priceAverage;
     private BigDecimal supportPrice;
     private Integer expectedUserCount;
-    private String serviceDays;
+    private List<Integer> serviceDays;
     private String deliveryTime;
     private CorporationApplicationForm corporationApplicationForm;
 

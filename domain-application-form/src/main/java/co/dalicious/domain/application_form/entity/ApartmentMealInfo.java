@@ -1,6 +1,7 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.application_form.dto.apartment.ApartmentMealInfoRequestDto;
+import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -45,7 +46,7 @@ public class ApartmentMealInfo {
     public ApartmentMealInfo(ApartmentMealInfoRequestDto apartmentMealInfoRequestDto, ApartmentApplicationForm apartmentApplicationForm) {
         this.diningType = DiningType.ofCode(apartmentMealInfoRequestDto.getDiningType());
         this.expectedUserCount = apartmentMealInfoRequestDto.getExpectedUserCount();
-        this.serviceDays = apartmentMealInfoRequestDto.getServiceDays();
+        this.serviceDays = DaysUtil.serviceDaysToDbData(apartmentMealInfoRequestDto.getServiceDays());
         this.deliveryTime = apartmentMealInfoRequestDto.getDeliveryTime();
         this.apartmentApplicationForm = apartmentApplicationForm;
     }
