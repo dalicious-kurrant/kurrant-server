@@ -5,17 +5,19 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 public class ApartmentMealInfoRequestDto {
     private Integer diningType;
     private Integer expectedUserCount;
-    private String serviceDays;
+    private List<Integer> serviceDays;
     private String deliveryTime;
     private ApartmentApplicationForm apartmentApplicationForm;
 
     @Builder
-    public ApartmentMealInfoRequestDto(Integer diningType, Integer expectedUserCount, String serviceDays, String deliveryTime, ApartmentApplicationForm apartmentApplicationForm) {
+    public ApartmentMealInfoRequestDto(Integer diningType, Integer expectedUserCount, List<Integer> serviceDays, String deliveryTime, ApartmentApplicationForm apartmentApplicationForm) {
         this.diningType = diningType;
         this.expectedUserCount = expectedUserCount;
         this.serviceDays = serviceDays;

@@ -4,6 +4,8 @@ import co.dalicious.client.core.mapper.GenericMapper;
 import co.dalicious.domain.application_form.dto.corporation.CorporationMealInfoResponseDto;
 import co.dalicious.domain.application_form.entity.CorporationMealInfo;
 import co.dalicious.domain.application_form.entity.PriceAverage;
+import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.DiningType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,6 +19,7 @@ public interface CorporationMealInfoResMapper extends GenericMapper<CorporationM
     @Override
     @Mapping(source = "diningType", target = "diningType", qualifiedByName = "diningTypeToString")
     @Mapping(source = "priceAverage", target = "priceAverage", qualifiedByName = "priceAverageToString")
+    @Mapping(source = "serviceDays", target = "serviceDays", qualifiedByName = "dbDataToString")
     CorporationMealInfoResponseDto toDto(CorporationMealInfo corporationMealInfo);
 
     @Named("diningTypeToString")
@@ -27,5 +30,10 @@ public interface CorporationMealInfoResMapper extends GenericMapper<CorporationM
     @Named("priceAverageToString")
     default String priceAverageToString(PriceAverage priceAverage) {
         return priceAverage.getPriceAverage();
+    }
+
+    @Named("dbDataToString")
+    default String dbDataToString(String dbData) {
+        return DaysUtil.serviceDaysToString(dbData);
     }
 }
