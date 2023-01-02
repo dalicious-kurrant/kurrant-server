@@ -14,15 +14,17 @@ import java.math.BigInteger;
 public class UserHomeResponseDto {
     private String name;
     private String phone;
+    private String email;
     private Boolean isMembership;
     private BigInteger spotId;
     private String spot;
     private BigDecimal point;
 
     @Builder
-    public UserHomeResponseDto(String name, String phone, Boolean isMembership, BigInteger spotId, String spot, BigDecimal point) {
+    public UserHomeResponseDto(String name, String phone, String email, Boolean isMembership, BigInteger spotId, String spot, BigDecimal point) {
         this.name = name;
         this.phone = phone;
+        this.email = email;
         this.isMembership = isMembership;
         this.spotId = spotId;
         this.spot = spot;
