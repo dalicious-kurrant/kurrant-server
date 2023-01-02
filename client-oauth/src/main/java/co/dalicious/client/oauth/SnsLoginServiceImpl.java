@@ -82,7 +82,28 @@ public class SnsLoginServiceImpl implements SnsLoginService{
 
     @Override
     public SnsLoginResponseDto getGoogleLoginUserInfo(String accessToken) {
-        return null;
+        // 헤더에 응답으로 받은 구글 계정정보 받아오기 위한 Access Token 넣기
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        accessToken = "Bearer " + accessToken;
+        headers.set("Authorization", accessToken);
+
+        // HttpEntity 생성.
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Send the request and retrieve the response
+        GoogleLoginResponseDto response = restTemplate.postForEntity(
+                "https://www.googleapis.com/oauth2/v2/userinfo", requestEntity, GoogleLoginResponseDto.class).getBody();
+
+        if(response == null) {
+            throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
+        }
+        return SnsLoginResponseDto.builder()
+                .email(response.getEmail())
+                .name(response.getName().replaceAll(" ", ""))
+                .build();
     }
 
     @Override
