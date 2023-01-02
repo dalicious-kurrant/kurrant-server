@@ -3,6 +3,7 @@ package co.dalicious.domain.food.entity;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.FoodStatus;
 import co.dalicious.system.util.converter.DiningTypeConverter;
+import co.dalicious.system.util.converter.FoodStatusConverter;
 import jdk.jshell.Snippet;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,8 +45,9 @@ public class DailyFood {
     @Column(name = "updated")
     private LocalDate updated;
 
+    @Convert(converter = FoodStatusConverter.class)
     @Column(name = "e_status")
-    private String status;
+    private FoodStatus status;
 
     @Column(name = "is_sold_out")
     private Boolean isSoldOut;
@@ -67,7 +69,7 @@ public class DailyFood {
         this.diningType = diningType;
         this.created = created;
         this.updated = updated;
-        this.status = status.getStatus();
+        this.status = status;
         this.isSoldOut = isSoldOut;
         this.food = food;
         this.spotId = spotId;

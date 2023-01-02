@@ -29,18 +29,18 @@ public class OrderItem {
     @Column(name = "created", nullable = false,
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("생성일")
-    private Date created;
+    private LocalDate created;
 
     @UpdateTimestamp
     @Column(name = "updated",
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
-    private Date updated;
+    private LocalDate updated;
 
     @Column(name = "service_date", nullable = false,
             columnDefinition = "TIMESTAMP(6)")
     @Comment("서비스 날짜")
-    private Date serviceDate;
+    private LocalDate serviceDate;
 
 
     @Column(name = "is_check")
@@ -71,7 +71,7 @@ public class OrderItem {
     @Comment("식품 ID")
     private Integer foodId;
     @Builder
-    public OrderItem(Integer id, Date created, Date updated, Date serviceDate, Boolean check, Integer price, String eDiningType, Integer count, Integer userId, Integer orderId, Integer foodId) {
+    public OrderItem(Integer id, LocalDate created, LocalDate updated, LocalDate serviceDate, Boolean check, Integer price, String eDiningType, Integer count, Integer userId, Integer orderId, Integer foodId) {
         this.id = id;
         this.created = created;
         this.updated = updated;
