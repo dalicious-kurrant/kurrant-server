@@ -40,20 +40,6 @@ public class CorporationApplicationFormSpot {
     @Column(name = "e_dining_type", nullable = false)
     private DiningType diningType;
 
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "created_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("생성일")
-    private Timestamp createdDateTime;
-
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "updated_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("수정일")
-    private Timestamp updatedDateTime;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
     @JoinColumn(name = "application_form__corporation_id")

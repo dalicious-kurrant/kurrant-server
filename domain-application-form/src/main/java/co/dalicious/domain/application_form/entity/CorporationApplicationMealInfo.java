@@ -20,7 +20,7 @@ import java.sql.Timestamp;
 @Getter
 @NoArgsConstructor
 @Table(name = "application_form__corporation_meal_info")
-public class CorporationMealInfo {
+public class CorporationApplicationMealInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -58,20 +58,6 @@ public class CorporationMealInfo {
     @Comment("배송 시간")
     private String deliveryTime;
 
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "created_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("생성일")
-    private Timestamp createdDateTime;
-
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "updated_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("수정일")
-    private Timestamp updatedDateTime;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
     @JoinColumn(name = "application_form__corporation_id")
@@ -79,7 +65,7 @@ public class CorporationMealInfo {
     private CorporationApplicationForm corporationApplicationForm;
 
     @Builder
-    public CorporationMealInfo(DiningType diningType, PriceAverage priceAverage, BigDecimal supportPrice, Integer expectedUserCount, String serviceDays, String deliveryTime) {
+    public CorporationApplicationMealInfo(DiningType diningType, PriceAverage priceAverage, BigDecimal supportPrice, Integer expectedUserCount, String serviceDays, String deliveryTime) {
         this.diningType = diningType;
         this.priceAverage = priceAverage;
         this.supportPrice = supportPrice;

@@ -102,22 +102,20 @@ public class CorporationApplicationForm {
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "created_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("생성일")
     private Timestamp createdDateTime;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "updated_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
     @OneToMany(mappedBy = "corporationApplicationForm", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "application_form__corporation_fk")
     @Comment("식사 정보")
-    private List<CorporationMealInfo> mealInfoList;
+    private List<CorporationApplicationMealInfo> mealInfoList;
 
     @OneToMany(mappedBy = "corporationApplicationForm", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "application_form__corporation_fk")
@@ -125,7 +123,7 @@ public class CorporationApplicationForm {
     private List<CorporationApplicationFormSpot> spots;
 
 
-    public void setMealInfoList(List<CorporationMealInfo> mealInfoList) {
+    public void setMealInfoList(List<CorporationApplicationMealInfo> mealInfoList) {
         this.mealInfoList = mealInfoList;
     }
 
@@ -145,8 +143,8 @@ public class CorporationApplicationForm {
         this.address = address;
         this.employeeCount = applyInfoDto.getEmployeeCount();
         this.serviceStartDate = LocalDate.of(Integer.parseInt(date.substring(0, 4)),
-                                            Integer.parseInt(date.substring(4, 6)),
-                                            Integer.parseInt(date.substring(6, 8)));
+                Integer.parseInt(date.substring(4, 6)),
+                Integer.parseInt(date.substring(6, 8)));
         this.isGarbage = corporationOptionsDto.getIsGarbage();
         this.isHotStorage = corporationOptionsDto.getIsHotStorage();
         this.isSetting = corporationOptionsDto.getIsSetting();

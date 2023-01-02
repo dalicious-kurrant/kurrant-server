@@ -3,11 +3,13 @@ package co.dalicious.domain.client.entity;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -15,6 +17,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,10 +54,6 @@ public class Apartment {
     @Column(name = "e_dining_type", nullable = false)
     private DiningType diningType;
 
-    @NotNull
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
-
     @Size(max = 32)
     @NotNull
     @Column(name = "delivery_time", nullable = false, length = 32)
@@ -63,6 +62,20 @@ public class Apartment {
     @Size(max = 255)
     @Column(name = "emb_use_days")
     private String embUseDays;
+
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "apartment_created_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private Timestamp createdDateTime;
+
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "apartment_updated_datetime", nullable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("수정일")
+    private Timestamp updatedDateTime;
 
     @Builder
     public Apartment(String name, Integer familyCount, DiningType diningType, String deliveryTime) {

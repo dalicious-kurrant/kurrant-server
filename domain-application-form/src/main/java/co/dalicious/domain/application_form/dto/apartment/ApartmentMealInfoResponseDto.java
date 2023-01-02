@@ -1,6 +1,6 @@
 package co.dalicious.domain.application_form.dto.apartment;
 
-import co.dalicious.domain.application_form.entity.ApartmentMealInfo;
+import co.dalicious.domain.application_form.entity.ApartmentApplicationMealInfo;
 import co.dalicious.system.util.DaysUtil;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,10 +15,10 @@ public class ApartmentMealInfoResponseDto {
     private String deliveryTime;
 
     @Builder
-    public ApartmentMealInfoResponseDto(ApartmentMealInfo apartmentMealInfo) {
-        this.diningType = apartmentMealInfo.getDiningType().getDiningType();
-        this.expectedUserCount = apartmentMealInfo.getExpectedUserCount();
-        this.serviceDays = DaysUtil.serviceDaysToString(apartmentMealInfo.getServiceDays());
-        this.deliveryTime = apartmentMealInfo.getDeliveryTime();
+    public ApartmentMealInfoResponseDto(ApartmentApplicationMealInfo apartmentApplicationMealInfo) {
+        this.diningType = apartmentApplicationMealInfo.getDiningType().getDiningType();
+        this.expectedUserCount = apartmentApplicationMealInfo.getExpectedUserCount();
+        this.serviceDays = DaysUtil.serviceDaysToString(apartmentApplicationMealInfo.getServiceDays());
+        this.deliveryTime = apartmentApplicationMealInfo.getDeliveryTime();
     }
 }

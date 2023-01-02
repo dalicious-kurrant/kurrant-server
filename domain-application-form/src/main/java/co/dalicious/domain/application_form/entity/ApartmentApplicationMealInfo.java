@@ -20,7 +20,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @Entity
 @Table(name = "application_form__apartment_meal_info")
-public class ApartmentMealInfo {
+public class ApartmentApplicationMealInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("식사 상세 정보 DTO")
@@ -39,20 +39,6 @@ public class ApartmentMealInfo {
     @Comment("배달 시간")
     private String deliveryTime;
 
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "created_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("생성일")
-    private Timestamp createdDateTime;
-
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "updated_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("수정일")
-    private Timestamp updatedDateTime;
-
     @NotNull
     @ManyToOne
     @JoinColumn(name = "application_form_apartment_id")
@@ -60,7 +46,7 @@ public class ApartmentMealInfo {
     private ApartmentApplicationForm apartmentApplicationForm;
 
     @Builder
-    public ApartmentMealInfo(ApartmentMealInfoRequestDto apartmentMealInfoRequestDto, ApartmentApplicationForm apartmentApplicationForm) {
+    public ApartmentApplicationMealInfo(ApartmentMealInfoRequestDto apartmentMealInfoRequestDto, ApartmentApplicationForm apartmentApplicationForm) {
         this.diningType = DiningType.ofCode(apartmentMealInfoRequestDto.getDiningType());
         this.expectedUserCount = apartmentMealInfoRequestDto.getExpectedUserCount();
         this.serviceDays = DaysUtil.serviceDaysToDbData(apartmentMealInfoRequestDto.getServiceDays());

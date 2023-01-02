@@ -88,7 +88,7 @@ public class ApartmentApplicationForm {
     @OneToMany(mappedBy = "apartmentApplicationForm", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "application_form_apartment_fk")
     @Comment("식사 정보")
-    private List<ApartmentMealInfo> mealInfoList;
+    private List<ApartmentApplicationMealInfo> mealInfoList;
 
     @Column(name = "memo")
     @Comment("기타 내용")
@@ -100,15 +100,13 @@ public class ApartmentApplicationForm {
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "created_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("생성일")
     private Timestamp createdDateTime;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "updated_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
@@ -132,7 +130,7 @@ public class ApartmentApplicationForm {
         this.memo = memo;
     }
 
-    public void setMealInfoList(List<ApartmentMealInfo> mealInfoList) {
+    public void setMealInfoList(List<ApartmentApplicationMealInfo> mealInfoList) {
         this.mealInfoList = mealInfoList;
     }
     public void updateMemo(String memo) {

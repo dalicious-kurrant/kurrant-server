@@ -71,17 +71,17 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                         .build());
 
         // 식사 정보 리스트 저장
-        List<ApartmentMealInfo> apartmentMealInfoList = new ArrayList<>();
+        List<ApartmentApplicationMealInfo> apartmentApplicationMealInfoList = new ArrayList<>();
         for (ApartmentMealInfoRequestDto apartmentMealInfoRequestDto : apartmentMealInfoRequestDtoList) {
             apartmentMealInfoRequestDto.setApartmentApplicationForm(apartmentApplicationForm);
-            ApartmentMealInfo apartmentMealInfo = applyMealInfoRepository.save(
-                    ApartmentMealInfo.builder()
+            ApartmentApplicationMealInfo apartmentApplicationMealInfo = applyMealInfoRepository.save(
+                    ApartmentApplicationMealInfo.builder()
                             .apartmentMealInfoRequestDto(apartmentMealInfoRequestDto)
                             .apartmentApplicationForm(apartmentApplicationForm)
                             .build());
-            apartmentMealInfoList.add(apartmentMealInfo);
+            apartmentApplicationMealInfoList.add(apartmentApplicationMealInfo);
         }
-        apartmentApplicationForm.setMealInfoList(apartmentMealInfoList);
+        apartmentApplicationForm.setMealInfoList(apartmentApplicationMealInfoList);
     }
 
     @Override
@@ -98,8 +98,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         ApartmentApplyInfoDto apartmentApplyInfoDto = ApartmentApplyInfoDto.builder().apartmentName(apartmentApplicationForm.getApartmentName()).dongCount(apartmentApplicationForm.getDongCount()).familyCount(apartmentApplicationForm.getTotalFamilyCount()).serviceStartDate(DateUtils.format(apartmentApplicationForm.getServiceStartDate(), "yyyy. MM. dd")).build();
         // 식사 정보 가져오기
         List<ApartmentMealInfoResponseDto> meal = new ArrayList<>();
-        for (ApartmentMealInfo apartmentMealInfo : apartmentApplicationForm.getMealInfoList()) {
-            meal.add(ApartmentMealInfoResponseDto.builder().apartmentMealInfo(apartmentMealInfo).build());
+        for (ApartmentApplicationMealInfo apartmentApplicationMealInfo : apartmentApplicationForm.getMealInfoList()) {
+            meal.add(ApartmentMealInfoResponseDto.builder().apartmentApplicationMealInfo(apartmentApplicationMealInfo).build());
         }
         // 기타내용 가져오기.
         String memo = apartmentApplicationForm.getMemo();
@@ -168,11 +168,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
         corporationApplicationForm.setSpots(spotList);
         // 식사 정보 저장
-        List<CorporationMealInfo> mealInfoList = new ArrayList<>();
+        List<CorporationApplicationMealInfo> mealInfoList = new ArrayList<>();
         for (CorporationMealInfoRequestDto mealInfoRequestDto : mealInfoRequestDtoList) {
-            CorporationMealInfo corporationMealInfo = CorporationMealInfoReqMapper.INSTANCE.toEntity(mealInfoRequestDto);
-            corporationMealInfo.setApplicationFormCorporation(corporationApplicationForm);
-            mealInfoList.add(corporationMealInfoRepository.save(corporationMealInfo));
+            CorporationApplicationMealInfo corporationApplicationMealInfo = CorporationMealInfoReqMapper.INSTANCE.toEntity(mealInfoRequestDto);
+            corporationApplicationMealInfo.setApplicationFormCorporation(corporationApplicationForm);
+            mealInfoList.add(corporationMealInfoRepository.save(corporationApplicationMealInfo));
         }
         corporationApplicationForm.setMealInfoList(mealInfoList);
     }
@@ -206,9 +206,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
 
         // 식사 정보 가져오기
-        List<CorporationMealInfo> mealInfos = corporationMealInfoRepository.findByCorporationApplicationForm(corporationApplicationForm);
+        List<CorporationApplicationMealInfo> mealInfos = corporationMealInfoRepository.findByCorporationApplicationForm(corporationApplicationForm);
         List<CorporationMealInfoResponseDto> mealInfoList = new ArrayList<>();
-        for (CorporationMealInfo mealInfo : mealInfos) {
+        for (CorporationApplicationMealInfo mealInfo : mealInfos) {
             mealInfoList.add(CorporationMealInfoResMapper.INSTANCE.toDto(mealInfo));
         }
 
