@@ -19,8 +19,8 @@ import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.sql.Timestamp;
 
 @DynamicInsert
 @DynamicUpdate
@@ -76,12 +76,4 @@ public class Apartment {
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
-
-    @Builder
-    public Apartment(String name, Integer familyCount, DiningType diningType, String deliveryTime) {
-        this.name = name;
-        this.familyCount = familyCount;
-        this.diningType = diningType;
-        this.deliveryTime = deliveryTime;
-    }
 }
