@@ -40,7 +40,7 @@ public class CorporationSpot {
 
     @NotNull
     @Convert(converter = DiningTypesConverter.class)
-    @Column(name = "e_dining_type", nullable = false)
+    @Column(name = "dining_types", nullable = false)
     @Comment("식사 타입")
     private List<DiningType> diningType;
 
