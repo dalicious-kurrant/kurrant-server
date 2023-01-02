@@ -9,9 +9,10 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface UserPersonalInfoMapper extends GenericMapper<UserPersonalInfoDto, User> {
+    UserPersonalInfoMapper INSTANCE = Mappers.getMapper(UserPersonalInfoMapper.class);
+
     @Override
     @Mapping(target = "avatar", source = "avatar.location")
     @Mapping(target = "gourmetType", source = "gourmetType.gourmetType")
     UserPersonalInfoDto toDto(User user);
-    UserPersonalInfoMapper INSTANCE = Mappers.getMapper(UserPersonalInfoMapper.class);
 }
