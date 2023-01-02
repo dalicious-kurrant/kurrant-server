@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -169,7 +170,7 @@ public class OrderServiceImpl implements OrderService {
             Optional<DailyFood> dailyFood = dailyFoodRepository.findById(orderCartDto.getDailyFoodId());
             //정보들을 담아서 INSERT
             OrderCartItem orderCartItem = OrderCartItem.builder()
-                    .serviceDate(orderCartDto.getServiceDate())
+                    .serviceDate(LocalDate.parse(orderCartDto.getServiceDate(), DateTimeFormatter.ISO_DATE))
                     .diningType(orderCartDto.getDiningType())
                     .count(orderCartDto.getCount())
                     .orderCart(orderCart)
@@ -182,7 +183,7 @@ public class OrderServiceImpl implements OrderService {
 
             //정보들을 담아서 INSERT
             OrderCartItem orderCartItem = OrderCartItem.builder()
-                    .serviceDate(orderCartDto.getServiceDate())
+                    .serviceDate(LocalDate.parse(orderCartDto.getServiceDate(), DateTimeFormatter.ISO_DATE))
                     .diningType(orderCartDto.getDiningType())
                     .count(orderCartDto.getCount())
                     .orderCart(orderCartId.get(0))
