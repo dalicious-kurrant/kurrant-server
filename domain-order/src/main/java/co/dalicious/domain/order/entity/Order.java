@@ -42,7 +42,7 @@ public class Order {
     @Comment("결제 진행 상태")
     private OrderStatus orderStatus;
 
-    @Column(name = "total_price", precision = 15)
+    @Column(name = "default_price", precision = 15)
     @Comment("상품 총액(할인되지 않은 가격)")
     private BigDecimal defaultPrice;
 
