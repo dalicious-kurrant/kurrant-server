@@ -43,7 +43,11 @@ public class Order {
     private OrderStatus orderStatus;
 
     @Column(name = "total_price", precision = 15)
-    @Comment("결제 총액")
+    @Comment("상품 총액(할인되지 않은 가격)")
+    private BigDecimal defaultPrice;
+
+    @Column(name = "total_price", precision = 15)
+    @Comment("결제 총액(모든 할인이 들어간 가격)")
     private BigDecimal totalPrice;
 
     @Convert(converter = PaymentTypeConverter.class)
