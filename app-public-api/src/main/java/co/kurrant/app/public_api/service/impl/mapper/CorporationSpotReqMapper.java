@@ -11,15 +11,30 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface CorporationSpotReqMapper extends GenericMapper<CorporationSpotRequestDto, CorporationApplicationFormSpot> {
     CorporationSpotReqMapper INSTANCE = Mappers.getMapper(CorporationSpotReqMapper.class);
 
     @Mapping(source = "spotName", target = "name")
     @Mapping(source = "address", target = "address", qualifiedByName = "addressDtoToEntity")
-    @Mapping(source = "diningType", target = "diningType", qualifiedByName = "codeToDiningType")
+    @Mapping(source = "diningTypes", target = "diningTypes", qualifiedByName = "codeToDiningType")
     @Override
     CorporationApplicationFormSpot toEntity(CorporationSpotRequestDto dto);
+
+    @Mapping(source = "diningTypes", target = "diningTypes", qualifiedByName = "diningTypeToList")
+    @Override
+    CorporationSpotRequestDto toDto(CorporationApplicationFormSpot spot);
+
+    default List<DiningType> map(List<Integer> diningTypes) {
+        List<DiningType> diningTypeList = new ArrayList<>();
+        for(Integer diningType : diningTypes) {
+            diningTypeList.add(DiningType.ofCode(diningType));
+        }
+        return diningTypeList;
+    }
 
     @Named("addressDtoToEntity")
     default Address addressDtoToEntity(CreateAddressRequestDto dto) {
@@ -29,7 +44,20 @@ public interface CorporationSpotReqMapper extends GenericMapper<CorporationSpotR
     }
 
     @Named("codeToDiningType")
-    default DiningType codeToDiningType(Integer diningType) {
-        return DiningType.ofCode(diningType);
+    default List<DiningType> codeToDiningType(List<Integer> diningTypes) {
+        List<DiningType> diningTypeList = new ArrayList<>();
+        for(Integer diningType : diningTypes) {
+            diningTypeList.add(DiningType.ofCode(diningType));
+        }
+        return diningTypeList;
+    }
+
+    @Named("diningTypeToList")
+    default List<Integer> diningTypeToList(List<DiningType> diningTypes) {
+        List<Integer> diningTypeList = new ArrayList<>();
+        for(DiningType diningType : diningTypes) {
+            diningTypeList.add(diningType.getCode());
+        }
+        return diningTypeList;
     }
 }

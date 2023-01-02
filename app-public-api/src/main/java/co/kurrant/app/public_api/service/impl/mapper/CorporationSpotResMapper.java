@@ -10,13 +10,16 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface CorporationSpotResMapper extends GenericMapper<CorporationSpotResponseDto, CorporationApplicationFormSpot> {
     CorporationSpotResMapper INSTANCE = Mappers.getMapper(CorporationSpotResMapper.class);
 
     @Override
     @Mapping(source = "address", target = "address", qualifiedByName = "addressToString")
-    @Mapping(source = "diningType", target = "diningType", qualifiedByName = "diningTypeToString")
+    @Mapping(source = "diningTypes", target = "diningTypes", qualifiedByName = "diningTypeToString")
     @Mapping(source = "name", target = "spotName")
     CorporationSpotResponseDto toDto(CorporationApplicationFormSpot applicationFormSpot);
 
@@ -25,12 +28,16 @@ public interface CorporationSpotResMapper extends GenericMapper<CorporationSpotR
 
     @Named("addressToString")
     default String addressToString(Address address) {
-        return address.getAddress1() + " " + address.getAddress2();
+        return address.addressToString();
     }
 
 
     @Named("diningTypeToString")
-    default String diningTypeToString(DiningType diningType) {
-        return diningType.getDiningType();
+    default List<String> diningTypeToString(List<DiningType> diningTypes) {
+        List<String> diningTypeList = new ArrayList<>();
+        for(DiningType diningType : diningTypes) {
+            diningTypeList.add(diningType.getDiningType());
+        }
+        return diningTypeList;
     }
 }

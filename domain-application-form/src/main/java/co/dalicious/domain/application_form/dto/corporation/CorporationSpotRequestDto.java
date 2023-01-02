@@ -4,10 +4,12 @@ import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 public class CorporationSpotRequestDto {
     private String spotName;
     private CreateAddressRequestDto address;
-    private Integer diningType;
+    private List<Integer> diningTypes;
 }

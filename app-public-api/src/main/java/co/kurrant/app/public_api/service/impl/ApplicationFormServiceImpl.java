@@ -71,17 +71,16 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                         .build());
 
         // 식사 정보 리스트 저장
-        List<ApartmentApplicationMealInfo> apartmentApplicationMealInfoList = new ArrayList<>();
         for (ApartmentMealInfoRequestDto apartmentMealInfoRequestDto : apartmentMealInfoRequestDtoList) {
             apartmentMealInfoRequestDto.setApartmentApplicationForm(apartmentApplicationForm);
-            ApartmentApplicationMealInfo apartmentApplicationMealInfo = applyMealInfoRepository.save(
-                    ApartmentApplicationMealInfo.builder()
+            ApartmentMealInfo apartmentMealInfo = applyMealInfoRepository.save(
+                    ApartmentMealInfo.builder()
                             .apartmentMealInfoRequestDto(apartmentMealInfoRequestDto)
                             .apartmentApplicationForm(apartmentApplicationForm)
                             .build());
-            apartmentApplicationMealInfoList.add(apartmentApplicationMealInfo);
+            apartmentMealInfoList.add(apartmentMealInfo);
         }
-        apartmentApplicationForm.setMealInfoList(apartmentApplicationMealInfoList);
+        apartmentApplicationForm.setMealInfoList(apartmentMealInfoList);
     }
 
     @Override
@@ -94,13 +93,26 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 아파트의 주소 가져오기
         Address address = apartmentApplicationForm.getAddress();
         CreateAddressResponseDto createAddressResponseDto = new CreateAddressResponseDto(address);
-        // 아파트 정보 가져오기
-        ApartmentApplyInfoDto apartmentApplyInfoDto = ApartmentApplyInfoDto.builder().apartmentName(apartmentApplicationForm.getApartmentName()).dongCount(apartmentApplicationForm.getDongCount()).familyCount(apartmentApplicationForm.getTotalFamilyCount()).serviceStartDate(DateUtils.format(apartmentApplicationForm.getServiceStartDate(), "yyyy. MM. dd")).build();
         // 식사 정보 가져오기
         List<ApartmentMealInfoResponseDto> meal = new ArrayList<>();
+<<<<<<< Updated upstream
+        for (ApartmentMealInfo apartmentMealInfo : apartmentApplicationForm.getMealInfoList()) {
+            meal.add(ApartmentMealInfoResponseDto.builder().apartmentMealInfo(apartmentMealInfo).build());
+=======
+        List<String> diningTypes = new ArrayList<>();
         for (ApartmentApplicationMealInfo apartmentApplicationMealInfo : apartmentApplicationForm.getMealInfoList()) {
             meal.add(ApartmentMealInfoResponseDto.builder().apartmentApplicationMealInfo(apartmentApplicationMealInfo).build());
+            diningTypes.add(apartmentApplicationMealInfo.getDiningType().getDiningType());
+>>>>>>> Stashed changes
         }
+        // 아파트 정보 가져오기
+        ApartmentApplyInfoDto apartmentApplyInfoDto = ApartmentApplyInfoDto.builder()
+                .apartmentName(apartmentApplicationForm.getApartmentName())
+                .dongCount(apartmentApplicationForm.getDongCount())
+                .familyCount(apartmentApplicationForm.getTotalFamilyCount())
+                .serviceStartDate(DateUtils.format(apartmentApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
+                .diningTypes(diningTypes)
+                .build();
         // 기타내용 가져오기.
         String memo = apartmentApplicationForm.getMemo();
 
@@ -168,11 +180,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
         corporationApplicationForm.setSpots(spotList);
         // 식사 정보 저장
-        List<CorporationApplicationMealInfo> mealInfoList = new ArrayList<>();
+        List<CorporationMealInfo> mealInfoList = new ArrayList<>();
         for (CorporationMealInfoRequestDto mealInfoRequestDto : mealInfoRequestDtoList) {
-            CorporationApplicationMealInfo corporationApplicationMealInfo = CorporationMealInfoReqMapper.INSTANCE.toEntity(mealInfoRequestDto);
-            corporationApplicationMealInfo.setApplicationFormCorporation(corporationApplicationForm);
-            mealInfoList.add(corporationMealInfoRepository.save(corporationApplicationMealInfo));
+            CorporationMealInfo corporationMealInfo = CorporationMealInfoReqMapper.INSTANCE.toEntity(mealInfoRequestDto);
+            corporationMealInfo.setApplicationFormCorporation(corporationApplicationForm);
+            mealInfoList.add(corporationMealInfoRepository.save(corporationMealInfo));
         }
         corporationApplicationForm.setMealInfoList(mealInfoList);
     }
@@ -191,12 +203,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 기업 주소 가져오기
         Address address = corporationApplicationForm.getAddress();
         String addressString = address.getAddress1() + " " + address.getAddress2();
-        // 기업 정보 가져오기
-        CorporationApplyInfoDto corporationApplyInfoDto = CorporationApplyInfoDto.builder()
-                .corporationName(corporationApplicationForm.getCorporationName())
-                .employeeCount(corporationApplicationForm.getEmployeeCount())
-                .startDate(DateUtils.format(corporationApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
-                .build();
 
         // 스팟 정보 가져오기
         List<CorporationApplicationFormSpot> spots = corporationApplicationFormSpotRepository.findByCorporationApplicationForm(corporationApplicationForm);
@@ -206,11 +212,25 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
 
         // 식사 정보 가져오기
+<<<<<<< Updated upstream
+        List<CorporationMealInfo> mealInfos = corporationMealInfoRepository.findByCorporationApplicationForm(corporationApplicationForm);
+=======
         List<CorporationApplicationMealInfo> mealInfos = corporationMealInfoRepository.findByCorporationApplicationForm(corporationApplicationForm);
+        List<String> diningTypes = new ArrayList<>();
+>>>>>>> Stashed changes
         List<CorporationMealInfoResponseDto> mealInfoList = new ArrayList<>();
-        for (CorporationApplicationMealInfo mealInfo : mealInfos) {
+        for (CorporationMealInfo mealInfo : mealInfos) {
             mealInfoList.add(CorporationMealInfoResMapper.INSTANCE.toDto(mealInfo));
+            diningTypes.add(mealInfo.getDiningType().getDiningType());
         }
+
+        // 기업 정보 가져오기
+        CorporationApplyInfoDto corporationApplyInfoDto = CorporationApplyInfoDto.builder()
+                .corporationName(corporationApplicationForm.getCorporationName())
+                .employeeCount(corporationApplicationForm.getEmployeeCount())
+                .startDate(DateUtils.format(corporationApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
+                .diningTypes(diningTypes)
+                .build();
 
         // 옵션 정보 가져오기
         CorporationOptionsDto corporationOptionsDto = CorporationOptionsDto.builder()

@@ -2,19 +2,16 @@ package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.system.util.DiningType;
-import co.dalicious.system.util.converter.DiningTypeConverter;
+import co.dalicious.system.util.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.sql.Timestamp;
+import java.util.List;
 
 @Entity
 @Getter
@@ -36,9 +33,9 @@ public class CorporationApplicationFormSpot {
     private Address address;
 
     @NotNull
-    @Convert(converter = DiningTypeConverter.class)
-    @Column(name = "e_dining_type", nullable = false)
-    private DiningType diningType;
+    @Convert(converter = DiningTypesConverter.class)
+    @Column(name = "dining_types", nullable = false)
+    private List<DiningType> diningTypes;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
@@ -47,10 +44,10 @@ public class CorporationApplicationFormSpot {
     private CorporationApplicationForm corporationApplicationForm;
 
     @Builder
-    public CorporationApplicationFormSpot(String name, Address address, DiningType diningType) {
+    public CorporationApplicationFormSpot(String name, Address address, List<DiningType> diningTypes) {
         this.name = name;
         this.address = address;
-        this.diningType = diningType;
+        this.diningTypes = diningTypes;
     }
 
     public void setCorporationApplicationForm(CorporationApplicationForm corporationApplicationForm) {

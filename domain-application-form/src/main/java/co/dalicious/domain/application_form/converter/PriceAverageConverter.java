@@ -3,7 +3,9 @@ package co.dalicious.domain.application_form.converter;
 import co.dalicious.domain.application_form.entity.PriceAverage;
 
 import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 
+@Converter
 public class PriceAverageConverter implements AttributeConverter<PriceAverage, Integer> {
     @Override
     public Integer convertToDatabaseColumn(PriceAverage attribute) {

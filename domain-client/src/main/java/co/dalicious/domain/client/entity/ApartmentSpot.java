@@ -16,16 +16,15 @@ import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 import java.util.List;
 
-
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "client__corporation_spot")
-public class CorporationSpot {
+@Table(name = "client__apartment_spot")
+public class ApartmentSpot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    @Comment("기업 스팟 PK")
+    @Comment("아파트 스팟 PK")
     private Long id;
 
     @Size(max = 32)
@@ -36,35 +35,30 @@ public class CorporationSpot {
 
     @NotNull
     @Column(name = "emb_address", nullable = false)
+    @Comment("스팟 주소")
     private Address address;
 
     @NotNull
     @Convert(converter = DiningTypesConverter.class)
     @Column(name = "e_dining_type", nullable = false)
-<<<<<<< Updated upstream
-    private DiningType diningType;
-=======
     @Comment("식사 타입")
     private List<DiningType> diningType;
->>>>>>> Stashed changes
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "created_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("생성일")
     private Timestamp createdDateTime;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "updated_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_corporation_id")
-    @JsonManagedReference(value = "client__corporation_fk")
-    @Comment("기업")
-    private Corporation corporation;
+    @JoinColumn(name = "client_apartment_id")
+    @JsonManagedReference(value = "client__apartment_fk")
+    @Comment("아파트")
+    private Apartment apartment;
 }
