@@ -1,12 +1,12 @@
 package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.order.entity.OrderCartItem;
-import co.dalicious.domain.order.entity.OrderItem;
+import com.querydsl.core.types.Expression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
+import java.math.BigInteger;
 import java.util.List;
 
 import static co.dalicious.domain.order.entity.QOrderCartItem.orderCartItem;
@@ -46,5 +46,26 @@ public class QOrderCartItemRepository {
                 .selectFrom(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(cartId))
                 .fetch();
+    }
+
+    public List<OrderCartItem> findDuplicatedItem(Integer cartId, Integer dailyFoodId) {
+        return queryFactory
+                .selectFrom(orderCartItem)
+                .where(orderCartItem.orderCart.id.eq(cartId),
+                        orderCartItem.dailyFood.id.eq(dailyFoodId))
+                .fetch();
+    }
+
+    public void updateCount(List<OrderCartItem> duplicatedItem) {
+
+        for (OrderCartItem oc : duplicatedItem){
+
+            queryFactory.update(orderCartItem)
+                    .set(orderCartItem.count, orderCartItem.count.add(1))
+                    .where(orderCartItem.id.eq(oc.getId()))
+                    .execute();
+        }
+
+
     }
 }
