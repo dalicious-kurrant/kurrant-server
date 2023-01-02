@@ -181,15 +181,23 @@ public class OrderServiceImpl implements OrderService {
             //dailyFoodId를 담아준다.
             Optional<DailyFood> dailyFood = dailyFoodRepository.findById(orderCartDto.getDailyFoodId());
 
-            //정보들을 담아서 INSERT
-            OrderCartItem orderCartItem = OrderCartItem.builder()
-                    .serviceDate(LocalDate.parse(orderCartDto.getServiceDate(), DateTimeFormatter.ISO_DATE))
-                    .diningType(orderCartDto.getDiningType())
-                    .count(orderCartDto.getCount())
-                    .orderCart(orderCartId.get(0))
-                    .dailyFood(dailyFood.get())
-                    .build();
-            orderCartItemRepository.save(orderCartItem);
+            List<OrderCartItem> duplicatedItem = qOrderCartItemRepository.findDuplicatedItem(orderCartId.get(0).getUserId().intValue(), orderCartDto.getDailyFoodId());
+            //중복되는 항목이 있다면 +1 , 아니면 담아준다.
+            if (!duplicatedItem.isEmpty()){
+                qOrderCartItemRepository.updateCount(duplicatedItem);
+
+            } else {
+
+                //정보들을 담아서 INSERT
+                OrderCartItem orderCartItem = OrderCartItem.builder()
+                        .serviceDate(LocalDate.parse(orderCartDto.getServiceDate(), DateTimeFormatter.ISO_DATE))
+                        .diningType(orderCartDto.getDiningType())
+                        .count(orderCartDto.getCount())
+                        .orderCart(orderCartId.get(0))
+                        .dailyFood(dailyFood.get())
+                        .build();
+                orderCartItemRepository.save(orderCartItem);
+            }
         }
     }
 }
