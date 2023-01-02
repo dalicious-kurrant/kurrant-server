@@ -7,10 +7,9 @@ import javax.persistence.Converter;
 
 @Converter
 public class DiningTypeConverter implements AttributeConverter<DiningType, Integer> {
-
     @Override
-    public Integer convertToDatabaseColumn(DiningType diningType) {
-        return diningType.getCode();
+    public Integer convertToDatabaseColumn(DiningType attribute) {
+        return attribute.getCode();
     }
 
     @Override

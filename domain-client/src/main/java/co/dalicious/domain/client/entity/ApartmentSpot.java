@@ -4,6 +4,7 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -15,16 +16,15 @@ import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 import java.util.List;
 
-
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "client__corporation_spot")
-public class CorporationSpot {
+@Table(name = "client__apartment_spot")
+public class ApartmentSpot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    @Comment("기업 스팟 PK")
+    @Comment("아파트 스팟 PK")
     private Long id;
 
     @Size(max = 32)
@@ -55,4 +55,10 @@ public class CorporationSpot {
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_apartment_id")
+    @JsonManagedReference(value = "client__apartment_fk")
+    @Comment("아파트")
+    private Apartment apartment;
 }

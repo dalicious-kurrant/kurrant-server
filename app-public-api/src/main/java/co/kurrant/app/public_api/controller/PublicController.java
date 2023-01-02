@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@Tag(name = "5. Membership")
+@Tag(name = "5. Public")
 @RequestMapping(value = "/v1/public")
 @RestController
 @RequiredArgsConstructor
@@ -25,4 +25,15 @@ public class PublicController {
                 .message("멤버십 구독 정보 조회에 성공하셨습니다.")
                 .build();
     }
+
+    @Operation(summary = "멤버십 구독 정보 조회", description = "멤버십 구독 정보를 조회한다.")
+    @GetMapping("/apartments")
+    public ResponseMessage getApartments() {
+        return ResponseMessage.builder()
+                .data(publicService.getApartments())
+                .message("아파트 전체 조회에 성공하셨습니다.")
+                .build();
+    }
+
+
 }
