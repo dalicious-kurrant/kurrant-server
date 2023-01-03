@@ -6,7 +6,9 @@ import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.data.redis.CertificationHash;
 import co.dalicious.data.redis.CertificationHashRepository;
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.user.dto.ProviderEmailDto;
+import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.RequiredAuth;
@@ -51,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final ProviderEmailRepository providerEmailRepository;
     private final UserValidator userValidator;
-
+    private final ClientUtil clientUtil;
     private final EmailService emailService;
     private final SmsService smsService;
     private final VerifyUtil verifyUtil;
@@ -182,8 +184,11 @@ public class AuthServiceImpl implements AuthService {
             // Corporation과 Apartment가 null로 대입되는 오류 발생 -> nullable = true 설정
             user = UserMapper.INSTANCE.toEntity(userDto);
 
-            //User 저장
+            // User 저장
             user = userRepository.save(user);
+
+            // 등록된 사원인지 검증
+            clientUtil.isRegisteredUser(user);
         }
 
         ProviderEmail providerEmail = ProviderEmail.builder().email(mail).provider(Provider.GENERAL).user(user).build();

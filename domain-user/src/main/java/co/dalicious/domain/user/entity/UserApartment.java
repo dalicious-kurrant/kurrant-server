@@ -13,6 +13,7 @@ import java.math.BigInteger;
 public class UserApartment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
     @Comment("유저 아파트 정보 PK")
     private BigInteger id;
 
@@ -23,7 +24,7 @@ public class UserApartment {
     private Apartment apartment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn
+    @JoinColumn(name = "")
     @JsonManagedReference(value = "user_fk")
     @Comment("유저 정보 FK")
     private User user;
