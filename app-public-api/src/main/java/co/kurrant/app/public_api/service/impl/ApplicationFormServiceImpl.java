@@ -134,7 +134,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public void updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, Long id, ApplicationFormMemoDto applicationFormMemoDto) {
         ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isValidApartmentApplicationForm(commonService.getUserId(httpServletRequest), id);
-        apartmentApplicationForm.updateMemo(apartmentApplicationForm.getMemo());
+        apartmentApplicationForm.updateMemo(applicationFormMemoDto.getMemo());
     }
 
     @Override
