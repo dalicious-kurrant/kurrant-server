@@ -71,8 +71,9 @@ public class OrderServiceImpl implements OrderService {
 
             orderItemDtoList.add(orderItemDto);
             orderDetailDto.setOrderItemDtoList(orderItemDtoList);
+            resultList.add(orderDetailDto);
         });
-        resultList.add(orderDetailDto);
+
 
         return resultList;
     }
