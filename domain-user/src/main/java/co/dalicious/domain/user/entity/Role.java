@@ -7,7 +7,8 @@ import java.util.Arrays;
 public enum Role {
     GUEST(Authority.GUEST, 0L),
     USER(Authority.USER, 1L),
-    ADMIN(Authority.ADMIN, 2L);
+    MANAGER(Authority.MANAGER, 2L),
+    ADMIN(Authority.ADMIN, 3L);
 
     private final String authority;
     private final Long code;
@@ -20,6 +21,7 @@ public enum Role {
     public static class Authority{
         public static final String USER = "ROLE_USER";
         public static final String ADMIN = "ROLE_ADMIN";
+        public static final String MANAGER = "ROLE_MANAGER";
         public static final String GUEST = "ROLE_GUEST";
     }
 
