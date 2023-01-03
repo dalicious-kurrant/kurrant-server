@@ -27,7 +27,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping("/me/order")
-    public List<OrderDetailDto> userOrderbyDate(
+    public Object userOrderbyDate(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate){
         return orderService.findOrderByServiceDate(startDate, endDate);
@@ -43,7 +43,7 @@ public class OrderController {
     }
 
     @GetMapping("/me/order/cart")
-    public List<CartItemDto> getCartItem(HttpServletRequest httpServletRequest){
+    public Object getCartItem(HttpServletRequest httpServletRequest){
         return orderService.findCartById(httpServletRequest);
     }
 
