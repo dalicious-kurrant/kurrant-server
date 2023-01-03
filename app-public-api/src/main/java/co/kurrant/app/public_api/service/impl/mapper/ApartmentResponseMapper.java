@@ -18,7 +18,7 @@ public interface ApartmentResponseMapper extends GenericMapper<SpotListResponseD
     @Mapping(source = "id", target = "clientId")
     @Mapping(source = "name", target = "clientName")
     @Mapping(source = "spots", target = "spots", qualifiedByName = "spotToDto")
-    SpotListResponseDto toDto(Corporation corporation);
+    SpotListResponseDto toDto(Apartment corporation);
 
     @Named("spotToDto")
     default List<SpotListResponseDto.Spot> spotToDto(List<ApartmentSpot> spots) {
