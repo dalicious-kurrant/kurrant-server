@@ -43,7 +43,7 @@ public class ApplicationFormController {
 
     @Operation(summary = "아파트 스팟 개설 신청 내역 기타 내용 저장", description = "아파트 스팟 개설 신청 내역 기타 내용을 저장한다.")
     @PostMapping("/apartments/{id}/memo")
-    public ResponseMessage updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, @PathVariable Long id, ApplicationFormMemoDto applicationFormMemoDto) {
+    public ResponseMessage updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, @PathVariable Long id, @RequestBody ApplicationFormMemoDto applicationFormMemoDto) {
         applicationFormService.updateApartmentApplicationFormMemo(httpServletRequest, id, applicationFormMemoDto);
         return ResponseMessage.builder()
                 .message("아파트 스팟 개설 신청 내역의 기타 내용을 업데이트 하였습니다.")
@@ -70,7 +70,7 @@ public class ApplicationFormController {
 
     @Operation(summary = "기업 스팟 개설 신청 내역 기타 내용 저장", description = "기업 스팟 개설 신청 내역 기타 내용을 저장한다.")
     @PostMapping("/corporations/{id}/memo")
-    public ResponseMessage SaveCorporationsApplicationFormMemo(HttpServletRequest httpServletRequest, @PathVariable Long id, ApplicationFormMemoDto applicationFormMemoDto) {
+    public ResponseMessage SaveCorporationsApplicationFormMemo(HttpServletRequest httpServletRequest, @PathVariable Long id, @RequestBody ApplicationFormMemoDto applicationFormMemoDto) {
         applicationFormService.updateCorporationApplicationFormMemo(httpServletRequest, id, applicationFormMemoDto);
         return ResponseMessage.builder()
                 .message("기업 스팟 개설 신청 내역 기타 내용 수정에 성공하였습니다.")
