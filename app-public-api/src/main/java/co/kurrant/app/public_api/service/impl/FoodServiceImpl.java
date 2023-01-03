@@ -34,16 +34,11 @@ public class FoodServiceImpl implements FoodService {
         //조건에 맞는 DailyFood 조회
         List<DailyFood> dailyFood =  qDailyFoodRepository.getDailyFood(spotId, selectedDate);
         //값이 있다면 결과값으로 담아준다.
-        if (!dailyFood.isEmpty()){
+        if (!dailyFood.isEmpty()) {
             for (DailyFood food : dailyFood) {
                 resultList.add(DailyFoodMapper.INSTANCE.toDto(food));
             }
-        } else{
-            List<String> nullList = new ArrayList<>();
-            nullList.add("");
-            return nullList;
         }
-
         return resultList;  //결과값 반환
     }
 

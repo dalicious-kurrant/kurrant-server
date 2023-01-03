@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.controller.food;
 
+import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.food.dto.FoodDetailDto;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import co.kurrant.app.public_api.service.FoodService;
@@ -24,8 +25,11 @@ public class FoodController {
 
     @Operation(summary = "식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
     @GetMapping("/dailyfoods")
-    public Object getDailyFood(@RequestParam Integer spotId, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate) {
-        return foodService.getDailyFood(spotId, selectedDate);
+    public ResponseMessage getDailyFood(@RequestParam Integer spotId, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate) {
+        return ResponseMessage.builder()
+                        .data(foodService.getDailyFood(spotId, selectedDate))
+                        .message("식단 불러오기에 성공하였습니다.")
+                        .build();
     }
 
     @Operation(summary = "메뉴 상세정보 불러오기", description = "특정 메뉴의 상세정보를 불러온다.")

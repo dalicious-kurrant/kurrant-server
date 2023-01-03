@@ -30,7 +30,10 @@ public class OrderController {
     public Object userOrderbyDate(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate){
-        return orderService.findOrderByServiceDate(startDate, endDate);
+        return ResponseMessage.builder()
+                .data(orderService.findOrderByServiceDate(startDate, endDate))
+                .message("주문 불러오기에 성공하였습니다.")
+                .build();
     }
 
     @PostMapping("/me/order/cart")
@@ -44,7 +47,10 @@ public class OrderController {
 
     @GetMapping("/me/order/cart")
     public Object getCartItem(HttpServletRequest httpServletRequest){
-        return orderService.findCartById(httpServletRequest);
+        return ResponseMessage.builder()
+                .data(orderService.findCartById(httpServletRequest))
+                .message("장바구니 불러오기에 성공하였습니다.")
+                .build();
     }
 
     @DeleteMapping("/me/order/cart/{dailyFoodId}")
