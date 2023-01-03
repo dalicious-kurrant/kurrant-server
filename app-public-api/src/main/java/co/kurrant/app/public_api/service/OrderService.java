@@ -11,11 +11,11 @@ import java.util.Date;
 import java.util.List;
 
 public interface OrderService {
-    List<OrderDetailDto> findOrderByServiceDate(LocalDate startDate, LocalDate endDate);
+    Object findOrderByServiceDate(LocalDate startDate, LocalDate endDate);
 
     void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto);
 
-    List<CartItemDto> findCartById(HttpServletRequest httpServletRequest);
+    Object findCartById(HttpServletRequest httpServletRequest);
 
     void deleteByUserId(HttpServletRequest httpServletRequest);
 

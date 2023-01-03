@@ -40,7 +40,7 @@ public class FoodServiceImpl implements FoodService {
             }
         } else{
             List<String> nullList = new ArrayList<>();
-            nullList.add(" ");
+            nullList.add("");
             return nullList;
         }
 
