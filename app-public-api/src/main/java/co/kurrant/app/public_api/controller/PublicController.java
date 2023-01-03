@@ -26,7 +26,7 @@ public class PublicController {
                 .build();
     }
 
-    @Operation(summary = "멤버십 구독 정보 조회", description = "멤버십 구독 정보를 조회한다.")
+    @Operation(summary = "고객사로 등록된 아파트 전체 조회", description = "고객사로 등록된 아파트들 전체를 조회한다.")
     @GetMapping("/apartments")
     public ResponseMessage getApartments() {
         return ResponseMessage.builder()

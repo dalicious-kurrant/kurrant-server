@@ -1,7 +1,5 @@
 package co.dalicious.domain.user.entity;
 
-import co.dalicious.domain.client.entity.Apartment;
-import co.dalicious.domain.client.entity.Corporation;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -115,9 +113,11 @@ public class User {
     @ColumnDefault("0.00")
     private BigDecimal point;
 
-    @Column(name = "default_spot")
+    @OneToOne(orphanRemoval = true)
+    @JoinColumn
+    @JsonManagedReference(value = "user_spot_fk")
     @Comment("기본으로 설정한 스팟의 id")
-    private BigInteger defaultSpotId;
+    private UserSpot userSpot;
 
     @Size(max = 16)
     @Column(name = "phone", length = 16,

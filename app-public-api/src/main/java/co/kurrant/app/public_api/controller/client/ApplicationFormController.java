@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Tag(name = "7. Application Form Client")
+@Tag(name = "7. Application Form ClientType")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/application-form")
 @RestController

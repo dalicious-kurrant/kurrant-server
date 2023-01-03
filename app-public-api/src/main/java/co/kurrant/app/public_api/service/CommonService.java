@@ -9,6 +9,6 @@ import java.math.BigInteger;
 public interface CommonService {
     // Access 토큰을 통해서 유저 객체 정보를 가져온다.
     User getUser(HttpServletRequest httpServletRequest);
-
+    // Access 토큰을 통해서 유저의 id를 가져온다.
     BigInteger getUserId(HttpServletRequest httpServletRequest);
 }

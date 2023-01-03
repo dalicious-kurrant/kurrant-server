@@ -1,6 +1,8 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
@@ -29,6 +31,12 @@ public class Corporation {
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
     @Comment("기업 고객사 PK")
     private BigInteger id;
+
+    @NotNull
+    @Convert(converter = DiningTypesConverter.class)
+    @Column(name = "dining_types", nullable = false)
+    @Comment("식사 타입")
+    private List<DiningType> diningTypes;
 
     @Size(max = 64)
     @NotNull

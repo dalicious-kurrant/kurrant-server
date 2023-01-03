@@ -13,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -23,9 +24,9 @@ import java.util.List;
 public class ApartmentSpot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     @Comment("아파트 스팟 PK")
-    private Long id;
+    private BigInteger id;
 
     @Size(max = 32)
     @NotNull
@@ -42,7 +43,7 @@ public class ApartmentSpot {
     @Convert(converter = DiningTypesConverter.class)
     @Column(name = "dining_types", nullable = false)
     @Comment("식사 타입")
-    private List<DiningType> diningType;
+    private List<DiningType> diningTypes;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
