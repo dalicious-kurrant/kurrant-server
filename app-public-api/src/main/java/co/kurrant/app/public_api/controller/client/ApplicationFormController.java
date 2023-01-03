@@ -26,8 +26,8 @@ public class ApplicationFormController {
     @PostMapping("/apartments")
     public ResponseMessage registerApartmentSpot(HttpServletRequest httpServletRequest,
                                                  @RequestBody ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto) {
-        applicationFormService.registerApartmentSpot(httpServletRequest, apartmentApplicationFormRequestDto);
         return ResponseMessage.builder()
+                .data(applicationFormService.registerApartmentSpot(httpServletRequest, apartmentApplicationFormRequestDto))
                 .message("아파트 스팟 개설 신청에 성공하였습니다.")
                 .build();
     }
@@ -53,8 +53,8 @@ public class ApplicationFormController {
     @Operation(summary = "기업 스팟 개설 신청 API", description = "기업 스팟 개설을 신청한다.")
     @PostMapping("/corporations")
     public ResponseMessage registerCorporationSpot(HttpServletRequest httpServletRequest, @RequestBody CorporationApplicationFormRequestDto corporationApplicationFormRequestDto) {
-        applicationFormService.registerCorporationSpot(httpServletRequest, corporationApplicationFormRequestDto);
         return ResponseMessage.builder()
+                .data(applicationFormService.registerCorporationSpot(httpServletRequest, corporationApplicationFormRequestDto))
                 .message("기업 스팟 개설 신청에 성공하였습니다.")
                 .build();
     }

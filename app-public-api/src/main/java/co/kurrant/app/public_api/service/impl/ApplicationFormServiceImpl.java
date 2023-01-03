@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional
-    public void registerApartmentSpot(HttpServletRequest httpServletRequest, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto) {
+    public ApplicationFormDto registerApartmentSpot(HttpServletRequest httpServletRequest, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto) {
         // 유저 아이디 가져오기
         BigInteger userId = commonService.getUserId(httpServletRequest);
 
@@ -82,6 +83,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             apartmentApplicationMealInfoList.add(apartmentApplicationMealInfo);
         }
         apartmentApplicationForm.setMealInfoList(apartmentApplicationMealInfoList);
+
+        return ApplicationFormDto.builder()
+                .clientType(0)
+                .id(apartmentApplicationForm.getId())
+                .date(DateUtils.format(LocalDate.now(), "yyyy. MM. dd"))
+                .build();
     }
 
     @Override
@@ -132,7 +139,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional
-    public void registerCorporationSpot(HttpServletRequest httpServletRequest, CorporationApplicationFormRequestDto corporationApplicationFormRequestDto) {
+    public ApplicationFormDto registerCorporationSpot(HttpServletRequest httpServletRequest, CorporationApplicationFormRequestDto corporationApplicationFormRequestDto) {
         // 유저 아이디 가져오기
         BigInteger userId = commonService.getUserId(httpServletRequest);
         // 담당자 정보 가져오기
@@ -183,6 +190,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             mealInfoList.add(corporationMealInfoRepository.save(corporationApplicationMealInfo));
         }
         corporationApplicationForm.setMealInfoList(mealInfoList);
+
+        return ApplicationFormDto.builder()
+                .clientType(1)
+                .id(corporationApplicationForm.getId())
+                .date(DateUtils.format(LocalDate.now(), "yyyy. MM. dd"))
+                .build();
     }
 
     @Override
