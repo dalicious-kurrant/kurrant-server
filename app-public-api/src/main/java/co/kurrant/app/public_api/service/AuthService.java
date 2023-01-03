@@ -17,6 +17,9 @@ public interface AuthService {
     void sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException;
     // 회원가입
     User signUp(SignUpRequestDto signUpRequestDto);
+    // 그룹(기업)에 등록되어 있는 유저인지 확인
+    void
+    // 스팟이 존재하는 유저인지 확인
     // 로그인
     LoginResponseDto login(LoginRequestDto loginRequestDto);
     // SNS 로그인 / 회원가입

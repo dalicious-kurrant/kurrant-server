@@ -106,7 +106,7 @@ public class User {
     private Boolean orderAlarm;
 
     @Size(max = 64)
-    @Column(name = "email", nullable = false, length = 64,
+    @Column(name = "email", nullable = false, unique = true, length = 64,
             columnDefinition = "VARCHAR(64)")
     private String email;
 
