@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface FoodService {
 
-    List<DailyFoodDto> getDailyFood(Integer spotId, LocalDate selectedDate);
+    Object getDailyFood(Integer spotId, LocalDate selectedDate);
 
     FoodDetailDto getFoodDetail(Integer foodId);
 }

@@ -8,10 +8,6 @@ import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.food.repository.QOriginRepository;
 import co.dalicious.domain.food.util.OriginList;
-import co.dalicious.domain.makers.entity.Makers;
-import co.dalicious.system.util.DiningType;
-import co.dalicious.system.util.FoodStatus;
-import co.dalicious.system.util.Spicy;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.impl.mapper.DailyFoodMapper;
@@ -32,7 +28,7 @@ public class FoodServiceImpl implements FoodService {
 
 
     @Override
-    public List<DailyFoodDto> getDailyFood(Integer spotId, LocalDate selectedDate) {
+    public Object getDailyFood(Integer spotId, LocalDate selectedDate) {
         //결과값을 담아줄 LIST 생성
         List<DailyFoodDto> resultList = new ArrayList<>();
         //조건에 맞는 DailyFood 조회
@@ -43,36 +39,9 @@ public class FoodServiceImpl implements FoodService {
                 resultList.add(DailyFoodMapper.INSTANCE.toDto(food));
             }
         } else{
-            //값이 없다면 빈 값 반환
-            Makers makers = Makers.builder()
-                    .id(0)
-                    .name("환상속의 그대")
-                    .build();
-            Food food = Food.builder()
-                    .id(0)
-                    .name("존재하지 않는 환상의 초밥")
-                    .price(999999999)
-                    .description("환상속에나 존재하는 초밥입니다.(오올블루산)")
-                    .img("대충 미미짤.jpg")
-                    .makers(makers)
-                    .spicy(Spicy.Level0)
-                    .build();
-
-
-            DailyFoodDto dailyFoodDto = DailyFoodDto.builder()
-                    .id(0)
-                    .spotId(0)
-                    .created(LocalDate.now())
-                    .updated(LocalDate.now())
-                    .serviceDate(LocalDate.now())
-                    .diningType(DiningType.MORNING)
-                    .isSoldOut(Boolean.TRUE)
-                    .food(food)
-                    .status(FoodStatus.WAITING)
-                    .build();
-            resultList.add(dailyFoodDto);
-
-            return resultList;
+            List<String> nullList = new ArrayList<>();
+            nullList.add(" ");
+            return nullList;
         }
 
         return resultList;  //결과값 반환
