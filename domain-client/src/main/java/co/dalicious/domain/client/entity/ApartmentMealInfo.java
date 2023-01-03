@@ -13,6 +13,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalTime;
 
 @Entity
 @Getter
@@ -33,7 +34,12 @@ public class ApartmentMealInfo {
     @NotNull
     @Column(name = "delivery_time", nullable = false)
     @Comment("배송 시간")
-    private String deliveryTime;
+    private LocalTime deliveryTime;
+
+    @NotNull
+    @Column(name = "last_order_time", nullable = false)
+    @Comment("주문 마감 시간")
+    private LocalTime lastOrderTime;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")

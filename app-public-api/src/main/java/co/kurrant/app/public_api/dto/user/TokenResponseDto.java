@@ -4,11 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
-@Schema(description = "로그인 응답 DTO")
+@Schema(description = "토큰 발급 응답 DTO")
 @Builder
 @Getter
-public class LoginResponseDto {
+public class TokenResponseDto {
   private String accessToken;
   private Integer expiresIn;
-  private Integer spotStatus;
 }

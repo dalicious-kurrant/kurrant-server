@@ -44,6 +44,7 @@ public enum ExceptionEnum {
 	FAIL_TO_SEND_CERTIFICATION_NUMBER(HttpStatus.INTERNAL_SERVER_ERROR, "E5000001", "failToSendCertificationNumber"),
 	FAIL_TO_CONVERT_MULTIPART_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "E5000002", "Multipart -> File 변환에 실패하였습니다."),
 	PAYMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000004", "결제에 실패하였습니다."),
+	SPOT_DATA_INTEGRITY_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"E5000005", "유저의 그룹/스팟 상태에 오류가 있습니다."),
   	INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000000", "internalServerError"),
 
   	/* E422 */
