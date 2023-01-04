@@ -12,10 +12,10 @@ import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.client.*;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.CommonService;
-import co.kurrant.app.public_api.service.impl.mapper.CorporationMealInfoReqMapper;
-import co.kurrant.app.public_api.service.impl.mapper.CorporationMealInfoResMapper;
-import co.kurrant.app.public_api.service.impl.mapper.CorporationSpotReqMapper;
-import co.kurrant.app.public_api.service.impl.mapper.CorporationSpotResMapper;
+import co.kurrant.app.public_api.service.impl.mapper.client.CorporationMealInfoReqMapper;
+import co.kurrant.app.public_api.service.impl.mapper.client.CorporationMealInfoResMapper;
+import co.kurrant.app.public_api.service.impl.mapper.client.CorporationSpotReqMapper;
+import co.kurrant.app.public_api.service.impl.mapper.client.CorporationSpotResMapper;
 import co.kurrant.app.public_api.validator.ApplicationFormValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +25,7 @@ import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -32,11 +33,11 @@ import java.util.List;
 public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final CommonService commonService;
     private final ApplicationFormValidator applicationFormValidator;
-    private final ApplyMealInfoRepository applyMealInfoRepository;
+    private final ApartmentApplicationFormMealRepository apartmentApplicationFormMealRepository;
     private final ApartmentApplicationFormRepository apartmentApplicationFormRepository;
     private final CorporationApplicationFormRepository corporationApplicationFormRepository;
     private final CorporationApplicationFormSpotRepository corporationApplicationFormSpotRepository;
-    private final CorporationMealInfoRepository corporationMealInfoRepository;
+    private final CorporationApplicationMealRepository corporationApplicationMealRepository;
 
     @Override
     @Transactional
@@ -75,7 +76,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         List<ApartmentApplicationMealInfo> apartmentApplicationMealInfoList = new ArrayList<>();
         for (ApartmentMealInfoRequestDto apartmentMealInfoRequestDto : apartmentMealInfoRequestDtoList) {
             apartmentMealInfoRequestDto.setApartmentApplicationForm(apartmentApplicationForm);
-            ApartmentApplicationMealInfo apartmentApplicationMealInfo = applyMealInfoRepository.save(
+            ApartmentApplicationMealInfo apartmentApplicationMealInfo = apartmentApplicationFormMealRepository.save(
                     ApartmentApplicationMealInfo.builder()
                             .apartmentMealInfoRequestDto(apartmentMealInfoRequestDto)
                             .apartmentApplicationForm(apartmentApplicationForm)
@@ -187,7 +188,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         for (CorporationMealInfoRequestDto mealInfoRequestDto : mealInfoRequestDtoList) {
             CorporationApplicationMealInfo corporationApplicationMealInfo = CorporationMealInfoReqMapper.INSTANCE.toEntity(mealInfoRequestDto);
             corporationApplicationMealInfo.setApplicationFormCorporation(corporationApplicationForm);
-            mealInfoList.add(corporationMealInfoRepository.save(corporationApplicationMealInfo));
+            mealInfoList.add(corporationApplicationMealRepository.save(corporationApplicationMealInfo));
         }
         corporationApplicationForm.setMealInfoList(mealInfoList);
 
@@ -221,7 +222,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
 
         // 식사 정보 가져오기
-        List<CorporationApplicationMealInfo> mealInfos = corporationMealInfoRepository.findByCorporationApplicationForm(corporationApplicationForm);
+        List<CorporationApplicationMealInfo> mealInfos = corporationApplicationMealRepository.findByCorporationApplicationForm(corporationApplicationForm);
         List<String> diningTypes = new ArrayList<>();
         List<CorporationMealInfoResponseDto> mealInfoList = new ArrayList<>();
         for (CorporationApplicationMealInfo mealInfo : mealInfos) {
@@ -281,16 +282,22 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             applicationFormDtos.add(ApplicationFormDto.builder()
                     .id(corporationApplicationForm.getId())
                     .clientType(1)
-                    .date(DateUtils.format(corporationApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
+                    .name(corporationApplicationForm.getCorporationName())
+                    .date(DateUtils.format(corporationApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
                     .build());
         }
         for (ApartmentApplicationForm apartmentApplicationForm : apartmentApplicationForms) {
             applicationFormDtos.add(ApplicationFormDto.builder()
                     .id(apartmentApplicationForm.getId())
                     .clientType(0)
-                    .date(DateUtils.format(apartmentApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
+                    .name(apartmentApplicationForm.getApartmentName())
+                    .date(DateUtils.format(apartmentApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
                     .build());
         }
+
+        // 생성일자 순으로 정렬
+        applicationFormDtos.sort(Comparator.comparing(ApplicationFormDto::getDate));
+
         return applicationFormDtos;
     }
 }

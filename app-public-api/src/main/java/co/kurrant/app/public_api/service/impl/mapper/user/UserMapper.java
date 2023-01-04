@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.service.impl.mapper;
+package co.kurrant.app.public_api.service.impl.mapper.user;
 
 import co.dalicious.client.core.mapper.GenericMapper;
 import co.dalicious.domain.user.entity.User;

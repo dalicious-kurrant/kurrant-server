@@ -4,6 +4,7 @@ import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -11,6 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalTime;
@@ -46,6 +48,11 @@ public class CorporationMealInfo {
     @Comment("주문 마감 시간")
     private LocalTime lastOrderTime;
 
+
+    @Size(max = 255)
+    @Column(name = "emb_use_days")
+    private String serviceDays;
+
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
@@ -63,4 +70,14 @@ public class CorporationMealInfo {
     @JoinColumn
     @Comment("기업")
     private Corporation corporation;
+
+    @Builder
+    public CorporationMealInfo(DiningType diningType, BigDecimal supportPrice, LocalTime deliveryTime, LocalTime lastOrderTime, Corporation corporation, String serviceDays) {
+        this.diningType = diningType;
+        this.supportPrice = supportPrice;
+        this.deliveryTime = deliveryTime;
+        this.lastOrderTime = lastOrderTime;
+        this.corporation = corporation;
+        this.serviceDays = serviceDays;
+    }
 }

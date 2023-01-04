@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.public_api.service.ClientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +14,12 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping(value = "/v1/users/me/clients")
 @RestController
 public class ClientController {
+    private final ClientService clientService;
     @Operation(summary = "유저가 속한 그룹의 정보 리스트", description = "유저가 속한 그룹의 정보 리스트를 조회한다.")
     @GetMapping("")
     public ResponseMessage getClients(HttpServletRequest httpServletRequest) {
         return ResponseMessage.builder()
+                .data(clientService.getClients(httpServletRequest))
                 .message("그룹 조회에 성공하였습니다.")
                 .build();
     }

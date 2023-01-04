@@ -26,7 +26,7 @@ import co.dalicious.client.external.sms.dto.SmsResponseDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.kurrant.app.public_api.service.AuthService;
-import co.kurrant.app.public_api.service.impl.mapper.UserMapper;
+import co.kurrant.app.public_api.service.impl.mapper.user.UserMapper;
 import co.kurrant.app.public_api.validator.UserValidator;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.dto.UserDto;

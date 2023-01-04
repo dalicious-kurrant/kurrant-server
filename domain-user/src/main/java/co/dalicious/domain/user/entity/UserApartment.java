@@ -24,7 +24,7 @@ public class UserApartment {
     private Apartment apartment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "")
+    @JoinColumn(name = "user_id")
     @JsonManagedReference(value = "user_fk")
     @Comment("유저 정보 FK")
     private User user;

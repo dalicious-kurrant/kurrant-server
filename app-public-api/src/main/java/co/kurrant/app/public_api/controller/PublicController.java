@@ -1,13 +1,13 @@
 package co.kurrant.app.public_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.client.dto.ApartmentRequestDto;
+import co.dalicious.domain.client.dto.CorporationRequestDto;
 import co.kurrant.app.public_api.service.PublicService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @Tag(name = "5. Public")
@@ -32,6 +32,22 @@ public class PublicController {
         return ResponseMessage.builder()
                 .data(publicService.getApartments())
                 .message("아파트 전체 조회에 성공하셨습니다.")
+                .build();
+    }
+
+    @PostMapping("/apartment")
+    public ResponseMessage createApartment(@RequestBody ApartmentRequestDto apartmentRequestDto) {
+        publicService.createApartment(apartmentRequestDto);
+        return ResponseMessage.builder()
+                .message("아파트 개설에 성공하셨습니다.")
+                .build();
+    }
+
+    @PostMapping("/corporation")
+    public ResponseMessage createCorporation(@RequestBody CorporationRequestDto corporationRequestDto) {
+        publicService.createCorporation(corporationRequestDto);
+        return ResponseMessage.builder()
+                .message("기업 개설에 성공하셨습니다.")
                 .build();
     }
 
