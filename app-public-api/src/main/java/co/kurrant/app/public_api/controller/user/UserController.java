@@ -110,5 +110,22 @@ public class UserController {
                 .build();
     }
 
+    // TODO: 추후 백오피스 구현시 삭제
+    @PostMapping("/setting/corporation/{corporationId}")
+    public ResponseMessage settingCorporation(HttpServletRequest httpServletRequest, @PathVariable Integer corporationId) {
+        userService.settingCorporation(httpServletRequest, corporationId);
+        return ResponseMessage.builder()
+                .message("유저 그룹(기업) 설정에 성공하였습니다.")
+                .build();
+    }
+
+    // TODO: 추후 백오피스 구현시 삭제
+    @PostMapping("/setting/apartment/{apartmentId}")
+    public ResponseMessage settingApartment(HttpServletRequest httpServletRequest, @PathVariable Integer apartmentId) {
+        userService.settingApartment(httpServletRequest, apartmentId);
+        return ResponseMessage.builder()
+                .message("유저 그룹(아파트) 설정에 성공하였습니다.")
+                .build();
+    }
 
 }

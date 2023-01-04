@@ -2,7 +2,9 @@ package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.client.entity.Apartment;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
@@ -10,6 +12,8 @@ import java.math.BigInteger;
 
 @Entity
 @Getter
+@NoArgsConstructor
+@Table(name = "user__user_apartment")
 public class UserApartment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,4 +33,9 @@ public class UserApartment {
     @Comment("유저 정보 FK")
     private User user;
 
+    @Builder
+    public UserApartment(Apartment apartment, User user) {
+        this.apartment = apartment;
+        this.user = user;
+    }
 }

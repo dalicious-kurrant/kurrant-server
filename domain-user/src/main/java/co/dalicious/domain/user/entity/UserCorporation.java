@@ -13,6 +13,7 @@ import java.math.BigInteger;
 @NoArgsConstructor
 @Entity
 @Getter
+@Table(name = "user__user_corporation")
 public class UserCorporation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

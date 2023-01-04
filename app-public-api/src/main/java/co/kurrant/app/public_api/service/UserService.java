@@ -30,5 +30,8 @@ public interface UserService {
     UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest);
     // 마이페이지(홈) 유저 정보 가져오기
     UserInfoDto getUserInfo(HttpServletRequest httpServletRequest);
-    User findAll();
+    // TODO: 추후 백오피스 구현시 삭제
+    void settingCorporation(HttpServletRequest httpServletRequest, Integer corporationId);
+    // TODO: 추후 백오피스 구현시 삭제
+    void settingApartment(HttpServletRequest httpServletRequest, Integer apartmentId);
 }

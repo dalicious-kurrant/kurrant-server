@@ -1,6 +1,5 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.client.dto.ApartmentResponseDto;
 import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.user.entity.User;
