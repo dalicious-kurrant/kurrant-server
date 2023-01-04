@@ -58,15 +58,6 @@ public class Apartment {
     @Embedded
     private Address address;
 
-    @Size(max = 32)
-    @NotNull
-    @Column(name = "delivery_time", nullable = false, length = 32)
-    private String deliveryTime;
-
-    @Size(max = 255)
-    @Column(name = "emb_use_days")
-    private String embUseDays;
-
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(name = "apartment_created_datetime", nullable = false,
@@ -90,4 +81,12 @@ public class Apartment {
     @JsonBackReference(value = "client__apartment_fk")
     @Comment("식사 정보 리스트")
     List<ApartmentMealInfo> mealInfos;
+
+    @Builder
+    public Apartment(List<DiningType> diningTypes, String name, Integer familyCount, Address address) {
+        this.diningTypes = diningTypes;
+        this.name = name;
+        this.familyCount = familyCount;
+        this.address = address;
+    }
 }

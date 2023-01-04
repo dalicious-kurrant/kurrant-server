@@ -5,6 +5,7 @@ import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -62,4 +63,12 @@ public class ApartmentSpot {
     @JsonManagedReference(value = "client__apartment_fk")
     @Comment("아파트")
     private Apartment apartment;
+
+    @Builder
+    public ApartmentSpot(String name, Address address, List<DiningType> diningTypes, Apartment apartment) {
+        this.name = name;
+        this.address = address;
+        this.diningTypes = diningTypes;
+        this.apartment = apartment;
+    }
 }

@@ -5,6 +5,7 @@ import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -89,4 +90,12 @@ public class Corporation {
     @JsonBackReference(value = "client__corporation_fk")
     @Comment("식사 정보 리스트")
     List<CorporationMealInfo> mealInfos;
+
+    @Builder
+    public Corporation(List<DiningType> diningTypes, String name, Integer employeeCount, Address address) {
+        this.diningTypes = diningTypes;
+        this.name = name;
+        this.employeeCount = employeeCount;
+        this.address = address;
+    }
 }

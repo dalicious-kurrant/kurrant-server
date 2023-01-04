@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-public interface CorporationMealInfoRepository extends JpaRepository<CorporationApplicationMealInfo, Long> {
+public interface CorporationApplicationMealRepository extends JpaRepository<CorporationApplicationMealInfo, Long> {
     List<CorporationApplicationMealInfo> findByCorporationApplicationForm(@NotNull CorporationApplicationForm corporationApplicationForm);
 }
