@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.system.util.DateUtils;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
@@ -21,5 +22,14 @@ public class TimeStampTest {
 
         Period period = firstPaidDate.until(now);
         System.out.println(period.getMonths());
+    }
+
+    @Test
+    public void timestampTest() {
+        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
+        System.out.println(timestamp);
+
+        String formattedString = DateUtils.format(timestamp, "yyyy. MM. dd");
+        System.out.println(formattedString);
     }
 }

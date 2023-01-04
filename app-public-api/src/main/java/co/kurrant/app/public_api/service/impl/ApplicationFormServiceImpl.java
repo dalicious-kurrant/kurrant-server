@@ -120,6 +120,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         String memo = apartmentApplicationForm.getMemo();
 
         return ApartmentApplicationFormResponseDto.builder()
+                .date(DateUtils.format(apartmentApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
                 .progressStatus(apartmentApplicationForm.getProgressStatus().getCode())
                 .user(applyUserDto)
                 .address(createAddressResponseDto)
@@ -246,6 +247,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                 .build();
 
         return CorporationApplicationFormResponseDto.builder()
+                .date(DateUtils.format(corporationApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
                 .progressStatus(corporationApplicationForm.getProgressStatus().getCode())
                 .user(applyUserDto)
                 .address(addressString)
@@ -281,14 +283,14 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             applicationFormDtos.add(ApplicationFormDto.builder()
                     .id(corporationApplicationForm.getId())
                     .clientType(1)
-                    .date(DateUtils.format(corporationApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
+                    .date(DateUtils.format(corporationApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
                     .build());
         }
         for (ApartmentApplicationForm apartmentApplicationForm : apartmentApplicationForms) {
             applicationFormDtos.add(ApplicationFormDto.builder()
                     .id(apartmentApplicationForm.getId())
                     .clientType(0)
-                    .date(DateUtils.format(apartmentApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
+                    .date(DateUtils.format(apartmentApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
                     .build());
         }
         return applicationFormDtos;

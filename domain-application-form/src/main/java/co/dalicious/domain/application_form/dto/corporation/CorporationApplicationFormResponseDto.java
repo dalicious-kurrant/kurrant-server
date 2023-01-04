@@ -13,6 +13,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class CorporationApplicationFormResponseDto {
+    private String date;
     private Integer progressStatus;
     private ApplyUserDto user;
     private CorporationApplyInfoDto corporationInfo;
@@ -23,7 +24,8 @@ public class CorporationApplicationFormResponseDto {
     private String rejectedReason;
 
     @Builder
-    public CorporationApplicationFormResponseDto(Integer progressStatus, ApplyUserDto user, CorporationApplyInfoDto corporationInfo, String address, List<CorporationMealInfoResponseDto> mealDetails, List<CorporationSpotResponseDto> spots, CorporationOptionsDto option, String rejectedReason) {
+    public CorporationApplicationFormResponseDto(String date, Integer progressStatus, ApplyUserDto user, CorporationApplyInfoDto corporationInfo, String address, List<CorporationMealInfoResponseDto> mealDetails, List<CorporationSpotResponseDto> spots, CorporationOptionsDto option, String rejectedReason) {
+        this.date = date;
         this.progressStatus = progressStatus;
         this.user = user;
         this.corporationInfo = corporationInfo;
