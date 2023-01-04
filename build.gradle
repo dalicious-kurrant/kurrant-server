@@ -218,6 +218,12 @@ project(':domain-banner') {
     }
 }
 
+project(':domain-board') {
+    dependencies {
+        implementation project(':system-core')
+    }
+}
+
 project(':domain-file') {
     dependencies {
     	implementation project(':system-core')    

@@ -28,18 +28,16 @@ public class FoodServiceImpl implements FoodService {
 
 
     @Override
-    public List<DailyFoodDto> getDailyFood(Integer spotId, LocalDate selectedDate) {
+    public Object getDailyFood(Integer spotId, LocalDate selectedDate) {
         //결과값을 담아줄 LIST 생성
         List<DailyFoodDto> resultList = new ArrayList<>();
         //조건에 맞는 DailyFood 조회
         List<DailyFood> dailyFood =  qDailyFoodRepository.getDailyFood(spotId, selectedDate);
         //값이 있다면 결과값으로 담아준다.
-        if (!dailyFood.isEmpty()){
+        if (!dailyFood.isEmpty()) {
             for (DailyFood food : dailyFood) {
                 resultList.add(DailyFoodMapper.INSTANCE.toDto(food));
             }
-        } else {
-           throw new NullPointerException("Couldn't find DailyFood");
         }
         return resultList;  //결과값 반환
     }

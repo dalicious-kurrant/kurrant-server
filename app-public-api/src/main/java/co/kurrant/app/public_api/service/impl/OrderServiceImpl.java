@@ -48,13 +48,14 @@ public class OrderServiceImpl implements OrderService {
     private final CommonService commonService;
 
     @Override
-    public List<OrderDetailDto> findOrderByServiceDate(LocalDate startDate, LocalDate endDate){
+    public Object findOrderByServiceDate(LocalDate startDate, LocalDate endDate){
         List<OrderDetailDto> resultList = new ArrayList<>();
         OrderDetailDto orderDetailDto = new OrderDetailDto();
 
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
         List<OrderItem> byServiceDateBetween = qOrderItemRepository.findByServiceDateBetween(startDate, endDate);
+
         byServiceDateBetween.forEach( x -> {
             orderDetailDto.setId(x.getId());
             orderDetailDto.setServiceDate(DateUtils.format(x.getServiceDate(), "yyyy-MM-dd") );
@@ -70,14 +71,15 @@ public class OrderServiceImpl implements OrderService {
 
             orderItemDtoList.add(orderItemDto);
             orderDetailDto.setOrderItemDtoList(orderItemDtoList);
+            resultList.add(orderDetailDto);
         });
-        resultList.add(orderDetailDto);
+
 
         return resultList;
     }
 
     @Override
-    public List<CartItemDto> findCartById(HttpServletRequest httpServletRequest) {
+    public Object findCartById(HttpServletRequest httpServletRequest) {
         //유저정보 가져오기
         User user = commonService.getUser(httpServletRequest);
         //결과값 저장을 위한 LIST 생성
@@ -85,8 +87,6 @@ public class OrderServiceImpl implements OrderService {
 
         //유저정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
         List<OrderCartItem> orderCartItems = qOrderCartItemRepository.getItems(qOrderCartRepository.getCartId(user.getId().intValue()));
-
-        System.out.println(orderCartItems.get(0).toString()+"11");
 
         //카트에 담긴 아이템들을 결과 LIST에 담아주기
         for (OrderCartItem oc : orderCartItems){

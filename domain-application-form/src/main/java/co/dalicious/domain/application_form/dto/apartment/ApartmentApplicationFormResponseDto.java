@@ -13,6 +13,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class ApartmentApplicationFormResponseDto {
+    private String date;
     private Integer progressStatus;
     private ApplyUserDto user;
     private CreateAddressResponseDto address;
@@ -22,7 +23,8 @@ public class ApartmentApplicationFormResponseDto {
     private String rejectedReason;
 
     @Builder
-    public ApartmentApplicationFormResponseDto(Integer progressStatus, ApplyUserDto user, CreateAddressResponseDto address, ApartmentApplyInfoDto info, List<ApartmentMealInfoResponseDto> meal, String memo, String rejectedReason) {
+    public ApartmentApplicationFormResponseDto(String date, Integer progressStatus, ApplyUserDto user, CreateAddressResponseDto address, ApartmentApplyInfoDto info, List<ApartmentMealInfoResponseDto> meal, String memo, String rejectedReason) {
+        this.date = date;
         this.progressStatus = progressStatus;
         this.user = user;
         this.address = address;

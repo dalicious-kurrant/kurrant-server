@@ -121,6 +121,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         String memo = apartmentApplicationForm.getMemo();
 
         return ApartmentApplicationFormResponseDto.builder()
+                .date(DateUtils.format(apartmentApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
                 .progressStatus(apartmentApplicationForm.getProgressStatus().getCode())
                 .user(applyUserDto)
                 .address(createAddressResponseDto)
@@ -135,7 +136,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public void updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, Long id, ApplicationFormMemoDto applicationFormMemoDto) {
         ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isValidApartmentApplicationForm(commonService.getUserId(httpServletRequest), id);
-        apartmentApplicationForm.updateMemo(apartmentApplicationForm.getMemo());
+        apartmentApplicationForm.updateMemo(applicationFormMemoDto.getMemo());
     }
 
     @Override
@@ -247,6 +248,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                 .build();
 
         return CorporationApplicationFormResponseDto.builder()
+                .date(DateUtils.format(corporationApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
                 .progressStatus(corporationApplicationForm.getProgressStatus().getCode())
                 .user(applyUserDto)
                 .address(addressString)

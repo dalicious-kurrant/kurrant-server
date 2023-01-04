@@ -18,6 +18,7 @@ include 'client-oauth'
 
 include 'domain-address'
 include 'domain-banner'
+include 'domain-board'
 include 'domain-file'
 include 'domain-user'
 include 'domain-order'
