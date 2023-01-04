@@ -3,9 +3,7 @@ package co.dalicious.client.oauth;
 import co.dalicious.domain.user.entity.Provider;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -94,15 +92,17 @@ public class SnsLoginServiceImpl implements SnsLoginService{
         RestTemplate restTemplate = new RestTemplate();
 
         // Send the request and retrieve the response
-        GoogleLoginResponseDto response = restTemplate.postForEntity(
-                "https://www.googleapis.com/oauth2/v2/userinfo", requestEntity, GoogleLoginResponseDto.class).getBody();
-
-        if(response == null) {
+        ResponseEntity<GoogleLoginResponseDto> response = restTemplate.exchange(
+                "https://www.googleapis.com/oauth2/v2/userinfo", HttpMethod.GET, requestEntity, GoogleLoginResponseDto.class);
+        if(response.getStatusCode() != HttpStatus.OK) {
             throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
         }
+        GoogleLoginResponseDto googleResponse = response.getBody();
+        assert googleResponse != null;
+
         return SnsLoginResponseDto.builder()
-                .email(response.getEmail())
-                .name(response.getName().replaceAll(" ", ""))
+                .email(googleResponse.getEmail())
+                .name(googleResponse.getName().replaceAll(" ", ""))
                 .build();
     }
 
