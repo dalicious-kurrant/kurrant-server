@@ -1,6 +1,7 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.application_form.dto.apartment.ApartmentMealInfoRequestDto;
+import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
@@ -13,6 +14,7 @@ import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.time.LocalTime;
 
 @Getter
 @NoArgsConstructor
@@ -34,8 +36,8 @@ public class ApartmentApplicationMealInfo {
     @Comment("이용 날짜")
     private String serviceDays;
 
-    @Comment("배달 시간")
-    private String deliveryTime;
+    @Comment("배송 시간")
+    private LocalTime deliveryTime;
 
     @NotNull
     @ManyToOne
@@ -48,7 +50,7 @@ public class ApartmentApplicationMealInfo {
         this.diningType = DiningType.ofCode(apartmentMealInfoRequestDto.getDiningType());
         this.expectedUserCount = apartmentMealInfoRequestDto.getExpectedUserCount();
         this.serviceDays = DaysUtil.serviceDaysToDbData(apartmentMealInfoRequestDto.getServiceDays());
-        this.deliveryTime = apartmentMealInfoRequestDto.getDeliveryTime();
+        this.deliveryTime = DateUtils.stringToTime(apartmentMealInfoRequestDto.getDeliveryTime(), ":");
         this.apartmentApplicationForm = apartmentApplicationForm;
     }
 }

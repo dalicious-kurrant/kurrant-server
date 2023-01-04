@@ -12,6 +12,7 @@ import org.hibernate.annotations.Comment;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 @Entity
 @Getter
@@ -53,7 +54,7 @@ public class CorporationApplicationMealInfo {
     @NotNull
     @Column(name = "delivery_time", nullable = false)
     @Comment("배송 시간")
-    private String deliveryTime;
+    private LocalTime deliveryTime;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
@@ -62,7 +63,7 @@ public class CorporationApplicationMealInfo {
     private CorporationApplicationForm corporationApplicationForm;
 
     @Builder
-    public CorporationApplicationMealInfo(DiningType diningType, PriceAverage priceAverage, BigDecimal supportPrice, Integer expectedUserCount, String serviceDays, String deliveryTime) {
+    public CorporationApplicationMealInfo(DiningType diningType, PriceAverage priceAverage, BigDecimal supportPrice, Integer expectedUserCount, String serviceDays, LocalTime deliveryTime) {
         this.diningType = diningType;
         this.priceAverage = priceAverage;
         this.supportPrice = supportPrice;
