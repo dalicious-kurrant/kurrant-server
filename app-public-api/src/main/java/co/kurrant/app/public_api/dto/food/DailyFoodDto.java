@@ -31,8 +31,10 @@ public class DailyFoodDto {
     String serviceDate;
 
     String makersName;
+    Integer price;
+    String spicy;
+    String img;
 
-    Integer makersId;
 
 
     @Builder
@@ -50,6 +52,8 @@ public class DailyFoodDto {
         this.updated = DateUtils.format(updated, "yyyy-MM-dd");
         this.serviceDate = DateUtils.format(serviceDate, "yyyy-MM-dd");
         this.makersName = makers.getName();
-        this.makersId = makers.getId();
+        this.price = food.getPrice();
+        this.spicy = food.getSpicy().getSpicy();
+        this.img = food.getImg();
     }
 }
