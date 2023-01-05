@@ -73,8 +73,6 @@ public class OrderServiceImpl implements OrderService {
             orderDetailDto.setOrderItemDtoList(orderItemDtoList);
             resultList.add(orderDetailDto);
         });
-
-
         return resultList;
     }
 
