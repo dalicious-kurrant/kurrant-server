@@ -10,7 +10,6 @@ import co.dalicious.domain.food.repository.QOriginRepository;
 import co.dalicious.domain.food.util.OriginList;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import co.kurrant.app.public_api.service.FoodService;
-import co.kurrant.app.public_api.service.impl.mapper.DailyFoodMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +35,21 @@ public class FoodServiceImpl implements FoodService {
         //값이 있다면 결과값으로 담아준다.
         if (!dailyFood.isEmpty()) {
             for (DailyFood food : dailyFood) {
-                resultList.add(DailyFoodMapper.INSTANCE.toDto(food));
+
+                Food foodId = foodRepository.findById(food.getFood().getId());
+                DailyFoodDto dailyFoodDto = DailyFoodDto.builder()
+                                            .id(food.getId())
+                                            .created(food.getCreated())
+                                            .diningType(food.getDiningType())
+                                            .food(food.getFood())
+                                            .makers(foodId.getMakers())
+                                            .isSoldOut(food.getIsSoldOut())
+                                            .spotId(food.getSpotId())
+                                            .status(food.getStatus())
+                                            .serviceDate(food.getServiceDate())
+                                            .updated(food.getUpdated())
+                                            .build();
+                resultList.add(dailyFoodDto);
             }
         }
         return resultList;  //결과값 반환

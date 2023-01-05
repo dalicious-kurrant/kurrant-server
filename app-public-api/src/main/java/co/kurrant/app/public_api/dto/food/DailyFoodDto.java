@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.dto.food;
 
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.FoodStatus;
@@ -29,10 +30,15 @@ public class DailyFoodDto {
 
     String serviceDate;
 
+    String makersName;
+
+    Integer makersId;
+
+
     @Builder
     public DailyFoodDto(Integer id, LocalDate created, DiningType diningType, Food food,
                         Boolean isSoldOut, Integer spotId, FoodStatus status, LocalDate updated,
-                        LocalDate serviceDate){
+                        LocalDate serviceDate, Makers makers){
         this.id = id;
         this.created = DateUtils.format(created, "yyyy-MM-dd");
         this.diningType = diningType.getDiningType();
@@ -43,5 +49,7 @@ public class DailyFoodDto {
         this.status = status.getStatus();
         this.updated = DateUtils.format(updated, "yyyy-MM-dd");
         this.serviceDate = DateUtils.format(serviceDate, "yyyy-MM-dd");
+        this.makersName = makers.getName();
+        this.makersId = makers.getId();
     }
 }
