@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.model;
+package co.dalicious.domain.user.entity;
 
 import lombok.Getter;
 

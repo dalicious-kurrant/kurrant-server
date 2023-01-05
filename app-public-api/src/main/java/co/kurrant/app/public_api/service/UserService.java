@@ -5,6 +5,7 @@ import co.kurrant.app.public_api.dto.user.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -30,5 +31,8 @@ public interface UserService {
     UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest);
     // 마이페이지(홈) 유저 정보 가져오기
     UserInfoDto getUserInfo(HttpServletRequest httpServletRequest);
-    User findAll();
+    // TODO: 추후 백오피스 구현시 삭제
+    void settingCorporation(HttpServletRequest httpServletRequest, BigInteger corporationId);
+    // TODO: 추후 백오피스 구현시 삭제
+    void settingApartment(HttpServletRequest httpServletRequest, BigInteger apartmentId);
 }
