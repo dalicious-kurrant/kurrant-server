@@ -35,6 +35,8 @@ public class DailyFoodDto {
     String spicy;
     String img;
 
+    String description;
+
 
 
     @Builder
@@ -55,5 +57,6 @@ public class DailyFoodDto {
         this.price = food.getPrice();
         this.spicy = food.getSpicy().getSpicy();
         this.img = food.getImg();
+        this.description = food.getDescription();
     }
 }
