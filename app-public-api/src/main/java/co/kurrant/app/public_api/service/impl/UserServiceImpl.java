@@ -21,7 +21,6 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import co.kurrant.app.public_api.service.CommonService;
 
-import co.dalicious.domain.user.repository.UserRepository;
 import co.kurrant.app.public_api.service.UserService;
 import co.kurrant.app.public_api.validator.UserValidator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -306,9 +305,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     // TODO: 추후 백오피스 구현시 삭제
-    public void settingCorporation(HttpServletRequest httpServletRequest, Integer corporationId) {
+    public void settingCorporation(HttpServletRequest httpServletRequest, BigInteger corporationId) {
         User user = commonService.getUser(httpServletRequest);
-        Corporation corporation = corporationRepository.findById(BigInteger.valueOf(corporationId))
+        Corporation corporation = corporationRepository.findById(corporationId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         UserCorporation userCorporation = UserCorporation.builder()
                 .user(user)
@@ -319,9 +318,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     // TODO: 추후 백오피스 구현시 삭제
-    public void settingApartment(HttpServletRequest httpServletRequest, Integer apartmentId) {
+    public void settingApartment(HttpServletRequest httpServletRequest, BigInteger apartmentId) {
         User user = commonService.getUser(httpServletRequest);
-        Apartment apartment = apartmentRepository.findById(BigInteger.valueOf(apartmentId))
+        Apartment apartment = apartmentRepository.findById(apartmentId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         UserApartment userApartment = UserApartment.builder()
                 .user(user)

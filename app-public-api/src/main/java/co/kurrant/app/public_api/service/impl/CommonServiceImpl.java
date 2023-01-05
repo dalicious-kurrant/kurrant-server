@@ -42,4 +42,6 @@ public class CommonServiceImpl implements CommonService {
         // 유저 아이디 가져오기
         return BigInteger.valueOf(Integer.parseInt(jwtTokenProvider.getUserPk(token)));
     }
+
+
 }
