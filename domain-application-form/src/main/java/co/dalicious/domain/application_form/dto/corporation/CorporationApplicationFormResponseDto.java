@@ -1,7 +1,6 @@
 package co.dalicious.domain.application_form.dto.corporation;
 
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
-import co.dalicious.domain.application_form.entity.ProgressStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;

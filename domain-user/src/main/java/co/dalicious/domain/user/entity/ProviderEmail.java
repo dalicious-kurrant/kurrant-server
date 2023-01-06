@@ -1,5 +1,6 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.user.entity.enums.Provider;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Builder;
 import lombok.Getter;
@@ -7,7 +8,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
 import java.math.BigInteger;
 
 @Getter
@@ -29,7 +29,7 @@ public class ProviderEmail {
     @Comment("소셜로그인 가입된 이메일")
     private String email;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     @JsonBackReference(value = "user-fk")
     private User user;

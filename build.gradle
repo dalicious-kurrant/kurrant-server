@@ -271,6 +271,7 @@ project(':domain-order') {
 project(':domain-application-form') {
     dependencies {
         implementation project(':system-core')
+        implementation project(':domain-user')
         implementation project(':domain-address')
     }
 }

@@ -2,12 +2,10 @@ package kr.autohero.combined;
 
 
 import co.dalicious.domain.user.dto.PeriodDto;
-import co.dalicious.domain.user.dto.ProviderEmailDto;
-import co.dalicious.domain.user.entity.Provider;
+import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.util.MembershipUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
 import java.util.Arrays;

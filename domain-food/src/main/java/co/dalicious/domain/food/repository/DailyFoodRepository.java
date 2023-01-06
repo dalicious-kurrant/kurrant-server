@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 
 @Repository
-public interface DailyFoodRepository  extends JpaRepository<DailyFood, Integer> {
+public interface DailyFoodRepository  extends JpaRepository<DailyFood, BigInteger> {
 
 }

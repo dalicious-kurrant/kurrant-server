@@ -2,8 +2,10 @@ package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.order.converter.OrderStatusConverter;
 import co.dalicious.domain.order.converter.OrderTypeConverter;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.user.converter.PaymentTypeConverter;
-import co.dalicious.domain.user.entity.PaymentType;
+import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
@@ -16,6 +18,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 
 @Entity
@@ -25,8 +28,9 @@ import java.sql.Timestamp;
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+    @NotNull
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @NotNull
     @Column(name = "code")

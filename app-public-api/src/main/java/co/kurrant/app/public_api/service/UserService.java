@@ -1,6 +1,5 @@
 package co.kurrant.app.public_api.service;
 
-import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.user.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
@@ -8,8 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-
-public interface UserService {
+public interface  UserService {
     // 홈 유저 정보 가져오기
     UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest);
     // SNS 계정 연결

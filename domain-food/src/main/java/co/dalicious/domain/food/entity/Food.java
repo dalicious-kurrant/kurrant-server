@@ -10,6 +10,8 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 
 @DynamicInsert
 @DynamicUpdate
@@ -21,9 +23,9 @@ public class Food {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    @Comment("ID")
-    private Integer id;
+    @NotNull
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @Column(name = "name")
     @Comment("식품 이름")
@@ -45,7 +47,7 @@ public class Food {
     @Comment("맵기정도")
     private Spicy spicy;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "makers_id")
     @Comment("메이커스 ID")
     private Makers makers;
@@ -56,7 +58,7 @@ public class Food {
     private String description;
 
     @Builder
-    Food(Integer id, String name, Integer price, String img, Makers makers, String description, Double discountedRate, Spicy spicy){
+    Food(BigInteger id, String name, Integer price, String img, Makers makers, String description, Double discountedRate, Spicy spicy){
         this.id = id;
         this.name = name;
         this.price = price;

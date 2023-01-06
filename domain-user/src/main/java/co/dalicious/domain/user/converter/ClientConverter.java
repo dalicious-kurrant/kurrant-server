@@ -1,6 +1,6 @@
 package co.dalicious.domain.user.converter;
 
-import co.dalicious.domain.user.entity.ClientType;
+import co.dalicious.domain.user.entity.enums.ClientType;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

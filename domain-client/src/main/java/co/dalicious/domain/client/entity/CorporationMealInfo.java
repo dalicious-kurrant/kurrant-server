@@ -14,6 +14,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalTime;
 
@@ -24,8 +25,9 @@ import java.time.LocalTime;
 public class CorporationMealInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+    @NotNull
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @NotNull
     @Convert(converter = DiningTypeConverter.class)
@@ -65,7 +67,7 @@ public class CorporationMealInfo {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JsonManagedReference(value = "client__corporation_fk")
     @JoinColumn
     @Comment("기업")

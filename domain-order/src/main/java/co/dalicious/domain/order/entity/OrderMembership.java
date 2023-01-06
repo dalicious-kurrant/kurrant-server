@@ -1,9 +1,6 @@
 package co.dalicious.domain.order.entity;
 
-import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
 import co.dalicious.domain.user.entity.Membership;
-import co.dalicious.domain.user.entity.MembershipSubscriptionType;
-import co.dalicious.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +12,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 
 @DynamicInsert
@@ -28,7 +26,7 @@ public class OrderMembership {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
     @Comment("멤버십 결제 PK")
-    private Long id;
+    private BigInteger id;
 
 
     @CreationTimestamp

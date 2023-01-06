@@ -58,7 +58,7 @@ public class CorporationSpot {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "client_corporation_id")
     @JsonManagedReference(value = "client__corporation_fk")
     @Comment("기업")

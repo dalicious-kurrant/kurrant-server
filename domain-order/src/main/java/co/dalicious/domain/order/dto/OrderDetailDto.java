@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigInteger;
 import java.util.List;
 
 @Schema(description = "주문 상세 Dto")
@@ -11,7 +13,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class OrderDetailDto {
-    Integer id;
+    BigInteger id;
     String serviceDate;
     List<OrderItemDto> orderItemDtoList;
 

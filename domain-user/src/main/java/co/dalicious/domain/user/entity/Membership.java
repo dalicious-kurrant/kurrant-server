@@ -2,6 +2,8 @@ package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.converter.MembershipStatusConverter;
 import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
+import co.dalicious.domain.user.entity.enums.MembershipStatus;
+import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 
@@ -21,8 +24,9 @@ import java.time.LocalDate;
 public class Membership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
-    private Long id;
+    @NotNull
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @NotNull
     @Column(name = "e_membership_status")

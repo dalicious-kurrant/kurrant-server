@@ -17,14 +17,14 @@ public class QOrderCartItemRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public void deleteByCartId(Integer cartId) {
+    public void deleteByCartId(BigInteger cartId) {
         queryFactory
                 .delete(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(cartId))
                 .execute();
     }
 
-    public void deleteByFoodId(Integer id, Integer dailyFoodId) {
+    public void deleteByFoodId(BigInteger id, BigInteger dailyFoodId) {
         queryFactory
                 .delete(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(id),
@@ -41,14 +41,14 @@ public class QOrderCartItemRepository {
                 .execute();
     }
 
-    public List<OrderCartItem> getItems(Integer cartId) {
+    public List<OrderCartItem> getItems(BigInteger cartId) {
         return queryFactory
                 .selectFrom(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(cartId))
                 .fetch();
     }
 
-    public List<OrderCartItem> findDuplicatedItem(Integer cartId, Integer dailyFoodId) {
+    public List<OrderCartItem> findDuplicatedItem(BigInteger cartId, BigInteger dailyFoodId) {
         return queryFactory
                 .selectFrom(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(cartId),

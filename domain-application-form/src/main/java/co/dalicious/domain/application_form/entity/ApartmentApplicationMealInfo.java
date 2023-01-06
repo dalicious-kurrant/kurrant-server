@@ -14,6 +14,7 @@ import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 import java.time.LocalTime;
 
 @Getter
@@ -24,7 +25,8 @@ public class ApartmentApplicationMealInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("식사 상세 정보 DTO")
-    private Long id;
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @Convert(converter = DiningTypeConverter.class)
     @Comment("식사 타입")
@@ -40,7 +42,7 @@ public class ApartmentApplicationMealInfo {
     private LocalTime deliveryTime;
 
     @NotNull
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "application_form_apartment_id")
     @JsonBackReference(value = "application_form_apartment_fk")
     private ApartmentApplicationForm apartmentApplicationForm;

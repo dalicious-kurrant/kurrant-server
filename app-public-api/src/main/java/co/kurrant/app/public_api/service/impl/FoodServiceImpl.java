@@ -10,6 +10,7 @@ import co.dalicious.domain.food.repository.QOriginRepository;
 import co.dalicious.domain.food.util.OriginList;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import co.kurrant.app.public_api.service.FoodService;
+import co.kurrant.app.public_api.mapper.DailyFoodMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

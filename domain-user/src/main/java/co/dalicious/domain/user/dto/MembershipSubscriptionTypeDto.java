@@ -1,14 +1,14 @@
 package co.dalicious.domain.user.dto;
 
-import co.dalicious.domain.user.entity.MembershipSubscriptionType;
+import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Schema(description = "멤버십 구독 정보 응답 DTO")
 @Getter
-@NoArgsConstructor
+@Setter
 public class MembershipSubscriptionTypeDto {
     private String membershipSubscriptionType;
     private double price;

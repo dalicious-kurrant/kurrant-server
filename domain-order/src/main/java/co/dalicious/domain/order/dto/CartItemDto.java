@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.bytebuddy.asm.Advice;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Schema(description = "장바구니 조회 DTO")
@@ -20,8 +21,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartItemDto {
-    Integer id;
-    Integer dailyFoodId;
+    BigInteger id;
+    BigInteger dailyFoodId;
     String name;
     Integer price;
     String img;

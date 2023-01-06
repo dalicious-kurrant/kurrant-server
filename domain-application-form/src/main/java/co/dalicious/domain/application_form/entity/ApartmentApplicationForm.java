@@ -4,6 +4,7 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.converter.ProgressStausConverter;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplyInfoDto;
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
+import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
@@ -28,7 +29,8 @@ public class ApartmentApplicationForm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("아파트 스팟 개설 신청서 id")
-    private Long id;
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @Convert(converter = ProgressStausConverter.class)
     @Comment("진행 상황")

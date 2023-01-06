@@ -26,11 +26,11 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
-    public List<Integer> findByFoodId(BigInteger foodId, LocalDate serviceDate) {
+    public List<BigInteger> findByFoodId(BigInteger foodId, LocalDate serviceDate) {
         return queryFactory
                 .select(dailyFood.id)
                 .from(dailyFood)
-                .where(dailyFood.food.id.eq(foodId.intValue()),
+                .where(dailyFood.food.id.eq(foodId),
                         dailyFood.serviceDate.eq(serviceDate))
                 .fetch();
     }

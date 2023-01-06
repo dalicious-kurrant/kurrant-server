@@ -1,7 +1,6 @@
 package co.dalicious.domain.user.converter;
 
-import co.dalicious.domain.user.entity.GourmetType;
-import co.dalicious.domain.user.entity.PaymentType;
+import co.dalicious.domain.user.entity.enums.PaymentType;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

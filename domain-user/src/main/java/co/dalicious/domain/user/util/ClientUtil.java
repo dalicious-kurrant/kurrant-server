@@ -2,8 +2,10 @@ package co.dalicious.domain.user.util;
 
 import co.dalicious.domain.client.entity.Employee;
 import co.dalicious.domain.client.repository.EmployeeRepository;
-import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserCorporation;
+import co.dalicious.domain.user.entity.*;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.entity.enums.SpotStatus;
+import co.dalicious.domain.user.repository.UserApartmentRepository;
 import co.dalicious.domain.user.repository.UserCorporationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

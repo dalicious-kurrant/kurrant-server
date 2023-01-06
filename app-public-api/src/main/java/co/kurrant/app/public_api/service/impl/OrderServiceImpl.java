@@ -84,7 +84,7 @@ public class OrderServiceImpl implements OrderService {
         List<CartItemDto> result = new ArrayList<>();
 
         //유저정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
-        List<OrderCartItem> orderCartItems = qOrderCartItemRepository.getItems(qOrderCartRepository.getCartId(user.getId().intValue()));
+        List<OrderCartItem> orderCartItems = qOrderCartItemRepository.getItems(qOrderCartRepository.getCartId(user.getId()));
 
         //카트에 담긴 아이템들을 결과 LIST에 담아주기
         for (OrderCartItem oc : orderCartItems){
@@ -109,7 +109,7 @@ public class OrderServiceImpl implements OrderService {
         // order__cart_item에서 user_id에 해당되는 항목 모두 삭제
         User user = commonService.getUser(httpServletRequest);
         List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
-        Integer cartId = cart.get(0).getId();
+        BigInteger cartId = cart.get(0).getId();
         qOrderCartItemRepository.deleteByCartId(cartId);
     }
 
@@ -119,7 +119,7 @@ public class OrderServiceImpl implements OrderService {
         //cart_id와 food_id가 같은 경우 삭제
         User user = commonService.getUser(httpServletRequest);
         List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
-        qOrderCartItemRepository.deleteByFoodId(cart.get(0).getId(), dailyFoodId);
+        qOrderCartItemRepository.deleteByFoodId(cart.get(0).getId(), BigInteger.valueOf(dailyFoodId));
     }
 
     @Override
@@ -179,7 +179,7 @@ public class OrderServiceImpl implements OrderService {
             //dailyFoodId를 담아준다.
             Optional<DailyFood> dailyFood = dailyFoodRepository.findById(orderCartDto.getDailyFoodId());
 
-            List<OrderCartItem> duplicatedItem = qOrderCartItemRepository.findDuplicatedItem(orderCartId.get(0).getUserId().intValue(), orderCartDto.getDailyFoodId());
+            List<OrderCartItem> duplicatedItem = qOrderCartItemRepository.findDuplicatedItem(orderCartId.get(0).getUserId(), orderCartDto.getDailyFoodId());
             //중복되는 항목이 있다면 +1 , 아니면 담아준다.
             if (!duplicatedItem.isEmpty()){
                 qOrderCartItemRepository.updateCount(duplicatedItem);

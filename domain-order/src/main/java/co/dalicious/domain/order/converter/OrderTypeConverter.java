@@ -1,6 +1,6 @@
 package co.dalicious.domain.order.converter;
 
-import co.dalicious.domain.order.entity.OrderType;
+import co.dalicious.domain.order.entity.enums.OrderType;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

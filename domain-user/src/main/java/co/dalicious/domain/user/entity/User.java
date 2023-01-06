@@ -1,5 +1,7 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.user.entity.enums.GourmetType;
+import co.dalicious.domain.user.entity.enums.Role;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 

@@ -7,6 +7,8 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 
 @DynamicInsert
 @DynamicUpdate
@@ -17,13 +19,14 @@ import javax.persistence.*;
 public class Makers {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Integer id;
+    @NotNull
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
     @Column(name = "name")
     private String name;
 
     @Builder
-    Makers(Integer id, String name){
+    Makers(BigInteger id, String name){
         this.id = id;
         this.name = name;
     }

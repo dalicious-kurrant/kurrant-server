@@ -2,7 +2,7 @@ package co.dalicious.domain.user.dto;
 
 import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.user.entity.Role;
+import co.dalicious.domain.user.entity.enums.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;

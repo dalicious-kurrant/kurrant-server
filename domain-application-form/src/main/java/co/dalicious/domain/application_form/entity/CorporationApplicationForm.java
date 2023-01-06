@@ -5,6 +5,7 @@ import co.dalicious.domain.application_form.converter.ProgressStausConverter;
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplyInfoDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationOptionsDto;
+import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
@@ -28,9 +29,8 @@ import java.util.List;
 public class CorporationApplicationForm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    @Comment("기업 스팟 개설 신청서 id")
-    private Long id;
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @Convert(converter = ProgressStausConverter.class)
     @Comment("진행 상황")

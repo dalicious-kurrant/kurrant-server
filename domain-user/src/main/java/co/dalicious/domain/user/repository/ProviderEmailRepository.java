@@ -1,11 +1,10 @@
 package co.dalicious.domain.user.repository;
 
-import co.dalicious.domain.user.entity.Provider;
+import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import javax.swing.text.html.Option;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.util.List;

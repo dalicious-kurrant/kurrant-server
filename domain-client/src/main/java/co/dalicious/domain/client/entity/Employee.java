@@ -7,6 +7,7 @@ import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 
 @Entity
 @Getter
@@ -16,9 +17,11 @@ public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("고객사 페이지에서 등록하는 유저")
-    private Long id;
+    @NotNull
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
     @JsonManagedReference(value = "corporation_fk")
     @Comment("기업")

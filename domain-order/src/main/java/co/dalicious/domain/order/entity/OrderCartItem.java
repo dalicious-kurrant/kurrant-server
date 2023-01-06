@@ -12,6 +12,8 @@ import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 @DynamicInsert
@@ -23,9 +25,10 @@ import java.time.LocalDate;
 public class OrderCartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
     @Comment("장바구니 상세 PK")
-    private Integer id;
+    @NotNull
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @CreationTimestamp
     @Column(name = "created_datetime",
@@ -56,7 +59,7 @@ public class OrderCartItem {
     @Comment("수량")
     private Integer count;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
     @JoinColumn(name = "cart_id")
     @Comment("장바구니 ID")
     private OrderCart orderCart;

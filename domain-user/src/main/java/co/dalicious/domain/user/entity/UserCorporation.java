@@ -1,6 +1,8 @@
 package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.user.converter.ClientStatusConverter;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,13 +22,13 @@ public class UserCorporation {
     @Comment("유저 아파트 정보 PK")
     private BigInteger id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
     @JsonManagedReference(value = "corporation_fk")
     @Comment("기업 정보 FK")
     private Corporation corporation;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
     @JsonManagedReference(value = "user_fk")
     @Comment("유저 정보 FK")

@@ -5,6 +5,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 
 @Getter
 @NoArgsConstructor
@@ -13,9 +15,9 @@ import javax.persistence.*;
 public class Origin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    @Comment("ID")
-    private Integer id;
+    @NotNull
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @Column(name = "origin_name")
     @Comment("품목 이름")
@@ -25,7 +27,7 @@ public class Origin {
     @Comment("원산지")
     private String from;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "food_id")
     @Comment("식품 ID")
     private Food food;

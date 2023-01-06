@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -16,14 +17,14 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderCartDto {
-    Integer dailyFoodId;
+    BigInteger dailyFoodId;
     Integer count;
     String serviceDate;
     DiningType diningType;
 
 
     @Builder
-    public OrderCartDto(Integer dailyFoodId, LocalDate serviceDate, Integer count, DiningType diningType) {
+    public OrderCartDto(BigInteger dailyFoodId, LocalDate serviceDate, Integer count, DiningType diningType) {
         this.dailyFoodId = dailyFoodId;
         this.serviceDate = DateUtils.format(serviceDate, "yyyy-MM-dd");
         this.count = count;

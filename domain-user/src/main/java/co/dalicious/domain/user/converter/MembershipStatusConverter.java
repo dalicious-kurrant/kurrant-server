@@ -1,6 +1,6 @@
 package co.dalicious.domain.user.converter;
 
-import co.dalicious.domain.user.entity.MembershipStatus;
+import co.dalicious.domain.user.entity.enums.MembershipStatus;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

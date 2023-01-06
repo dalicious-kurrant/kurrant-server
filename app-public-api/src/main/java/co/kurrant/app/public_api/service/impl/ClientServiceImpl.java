@@ -18,11 +18,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
     private final CommonService commonService;
+    private final ApartmentRepository apartmentRepository;
+    private final ApartmentSpotRepository apartmentSpotRepository;
+    private final ApartmentMealInfoRepository apartmentMealInfoRepository;
+    private final CorporationRepository corporationRepository;
+    private final CorporationSpotRepository corporationSpotRepository;
+    private final CorporationMealInfoRepository corporationMealInfoRepository;
+    private final UserApartmentRepository userApartmentRepository;
+    private final UserCorporationRepository userCorporationRepository;
+    private final UserSpotRepository userSpotRepository;
+
 
     @Override
     @Transactional

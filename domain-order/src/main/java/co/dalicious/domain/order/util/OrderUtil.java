@@ -1,11 +1,10 @@
 package co.dalicious.domain.order.util;
 
 import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.order.entity.OrderMembership;
-import co.dalicious.domain.order.entity.OrderStatus;
-import co.dalicious.domain.order.entity.OrderType;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.user.entity.Membership;
-import co.dalicious.domain.user.entity.MembershipStatus;
+import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.system.util.GenerateRandomNumber;

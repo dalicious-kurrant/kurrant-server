@@ -9,13 +9,14 @@ import co.dalicious.data.redis.CertificationHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.user.dto.ProviderEmailDto;
-import co.dalicious.domain.user.repository.UserCorporationRepository;
+import co.dalicious.domain.user.entity.enums.Provider;
+import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
-import co.kurrant.app.public_api.model.SpotStatus;
+import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -26,8 +27,8 @@ import co.dalicious.client.external.sms.dto.SmsResponseDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.kurrant.app.public_api.service.AuthService;
-import co.kurrant.app.public_api.service.impl.mapper.user.UserMapper;
-import co.kurrant.app.public_api.validator.UserValidator;
+import co.kurrant.app.public_api.mapper.user.UserMapper;
+import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.dto.UserDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,7 +52,6 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private final UserCorporationRepository userCorporationRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;

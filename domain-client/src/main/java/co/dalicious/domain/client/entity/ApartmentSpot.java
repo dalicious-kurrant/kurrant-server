@@ -58,7 +58,7 @@ public class ApartmentSpot {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "client_apartment_id")
     @JsonManagedReference(value = "client__apartment_fk")
     @Comment("아파트")

@@ -15,6 +15,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,8 +32,9 @@ public class DailyFood {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Integer id;
+    @NotNull
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @Convert(converter = DiningTypeConverter.class)
     @Column(name = "dining_type")
@@ -63,7 +66,7 @@ public class DailyFood {
     private LocalDate serviceDate;
 
     @Builder
-    DailyFood(Integer id, DiningType diningType, LocalDate created, LocalDate updated,
+    DailyFood(BigInteger id, DiningType diningType, LocalDate created, LocalDate updated,
               FoodStatus status, Boolean isSoldOut, Food food, Integer spotId, LocalDate serviceDate){
         this.id = id;
         this.diningType = diningType;

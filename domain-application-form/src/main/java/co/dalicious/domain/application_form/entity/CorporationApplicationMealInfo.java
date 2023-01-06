@@ -1,6 +1,7 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.application_form.converter.PriceAverageConverter;
+import co.dalicious.domain.application_form.entity.enums.PriceAverage;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -12,6 +13,7 @@ import org.hibernate.annotations.Comment;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalTime;
 
 @Entity
@@ -21,8 +23,9 @@ import java.time.LocalTime;
 public class CorporationApplicationMealInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+    @NotNull
+    @Column(columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger id;
 
     @NotNull
     @Convert(converter = DiningTypeConverter.class)

@@ -1,6 +1,6 @@
 package co.dalicious.domain.application_form.converter;
 
-import co.dalicious.domain.application_form.entity.ProgressStatus;
+import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

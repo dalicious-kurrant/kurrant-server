@@ -1,6 +1,6 @@
 package co.dalicious.client.oauth;
 
-import co.dalicious.domain.user.entity.Provider;
+import co.dalicious.domain.user.entity.enums.Provider;
 
 public interface SnsLoginService {
     SnsLoginResponseDto getSnsLoginUserInfo(Provider provider, String accessToken);

@@ -1,6 +1,6 @@
 package co.dalicious.domain.user.converter;
 
-import co.dalicious.domain.user.entity.MembershipSubscriptionType;
+import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
