@@ -23,8 +23,9 @@ public class Food {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     @NotNull
-    @Column(columnDefinition = "BIGINT UNSIGNED")
+    @Comment("ID")
     private BigInteger id;
 
     @Column(name = "name")

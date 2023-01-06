@@ -5,8 +5,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @NoArgsConstructor
@@ -16,7 +16,7 @@ public class Origin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @NotNull
-    @Column(columnDefinition = "BIGINT UNSIGNED")
+    @Column(name="id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
     @Column(name = "origin_name")

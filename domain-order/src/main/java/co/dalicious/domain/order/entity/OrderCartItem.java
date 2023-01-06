@@ -27,7 +27,7 @@ public class OrderCartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("장바구니 상세 PK")
     @NotNull
-    @Column(columnDefinition = "BIGINT UNSIGNED")
+    @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
     @CreationTimestamp

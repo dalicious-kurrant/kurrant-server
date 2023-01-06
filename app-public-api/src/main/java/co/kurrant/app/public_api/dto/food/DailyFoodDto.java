@@ -16,7 +16,6 @@ import java.time.LocalDate;
 
 @Schema(description = "식단 응답 DTO")
 @Getter
-@NoArgsConstructor
 public class DailyFoodDto {
     BigInteger id;
     String created;
@@ -25,7 +24,7 @@ public class DailyFoodDto {
 
     String foodName;
     Boolean isSoldOut;
-    Integer spotId;
+    BigInteger spotId;
     String status;
     String updated;
 
@@ -42,7 +41,7 @@ public class DailyFoodDto {
 
     @Builder
     public DailyFoodDto(BigInteger id, LocalDate created, DiningType diningType, Food food,
-                        Boolean isSoldOut, Integer spotId, FoodStatus status, LocalDate updated,
+                        Boolean isSoldOut, BigInteger spotId, FoodStatus status, LocalDate updated,
                         LocalDate serviceDate, Makers makers){
         this.id = id;
         this.created = DateUtils.format(created, "yyyy-MM-dd");

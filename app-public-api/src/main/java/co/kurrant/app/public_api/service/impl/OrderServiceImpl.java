@@ -60,12 +60,12 @@ public class OrderServiceImpl implements OrderService {
             orderDetailDto.setId(x.getId());
             orderDetailDto.setServiceDate(DateUtils.format(x.getServiceDate(), "yyyy-MM-dd") );
 
-            Food food = foodRepository.findById(x.getFoodId());
+            Optional<Food> food = foodRepository.findOneById(x.getFoodId());
 
             OrderItemDto orderItemDto = OrderItemDto.builder()
-                    .name(food.getName())
+                    .name(food.get().getName())
                     .diningType(x.getEDiningType())
-                    .img(food.getImg())
+                    .img(food.get().getImg())
                     .count(x.getCount())
                     .build();
 

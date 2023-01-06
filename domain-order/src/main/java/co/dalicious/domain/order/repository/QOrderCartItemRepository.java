@@ -24,11 +24,11 @@ public class QOrderCartItemRepository {
                 .execute();
     }
 
-    public void deleteByFoodId(BigInteger id, BigInteger dailyFoodId) {
+    public void deleteByFoodId(BigInteger id, Integer dailyFoodId) {
         queryFactory
                 .delete(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(id),
-                        orderCartItem.dailyFood.id.eq(dailyFoodId))
+                        orderCartItem.dailyFood.id.eq(BigInteger.valueOf(dailyFoodId)))
                 .execute();
     }
 

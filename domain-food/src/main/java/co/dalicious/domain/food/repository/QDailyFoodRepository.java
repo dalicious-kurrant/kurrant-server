@@ -18,7 +18,7 @@ public class QDailyFoodRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public List<DailyFood> getDailyFood(Integer spotId, LocalDate selectedDate) {
+    public List<DailyFood> getDailyFood(BigInteger spotId, LocalDate selectedDate) {
         return queryFactory
                 .selectFrom(dailyFood)
                 .where(dailyFood.spotId.eq(spotId),

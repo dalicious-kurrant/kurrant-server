@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Schema(description = "식품 상세정보 DTO")
@@ -20,7 +21,7 @@ import java.util.List;
 public class FoodDetailDto {
     private String makers;
     private String name;
-    private Integer price;
+    private BigDecimal price;
     private String img;
     private String spicy;
     private List<OriginList> originList;

@@ -20,7 +20,7 @@ public class QOrderCartRepository {
         return queryFactory
                 .select(orderCart.id)
                 .from(orderCart)
-                .where(orderCart.id.eq(id))
+                .where(orderCart.id.eq((id)))
                 .fetchOne();
     }
 }
