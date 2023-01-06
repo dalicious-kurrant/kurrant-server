@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 @Getter
 public enum Spicy {
-    Level0("표기없음", 0),
+    Level0("NULL", 0),
     Level1("약간 매움", 1),
     Level2("신라면 맵기", 2),
     Level3("불닭볶음면 맵기", 3);

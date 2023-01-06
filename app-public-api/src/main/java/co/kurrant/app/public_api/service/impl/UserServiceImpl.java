@@ -7,23 +7,22 @@ import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.repository.ApartmentRepository;
 import co.dalicious.domain.client.repository.CorporationRepository;
 import co.dalicious.domain.user.entity.*;
-import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
+import co.dalicious.domain.user.repository.UserApartmentRepository;
+import co.dalicious.domain.user.repository.UserCorporationRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
-import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
-import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
+import co.kurrant.app.public_api.service.impl.mapper.user.UserHomeInfoMapper;
+import co.kurrant.app.public_api.service.impl.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.service.CommonService;
 
-import co.dalicious.domain.user.repository.UserRepository;
 import co.kurrant.app.public_api.service.UserService;
-import co.dalicious.domain.user.validator.UserValidator;
+import co.kurrant.app.public_api.validator.UserValidator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +31,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
@@ -48,7 +48,10 @@ public class UserServiceImpl implements UserService {
     private final VerifyUtil verifyUtil;
     private final MembershipUtil membershipUtil;
     private final ProviderEmailRepository providerEmailRepository;
-    private final UserRepository userRepository;
+    private final CorporationRepository corporationRepository;
+    private final UserCorporationRepository userCorporationRepository;
+    private final ApartmentRepository apartmentRepository;
+    private final UserApartmentRepository userApartmentRepository;
 
     @Override
     public UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest) {
@@ -301,10 +304,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findAll() {
-        User user = userRepository.findAll().get(0);
-        return user;
+    // TODO: 추후 백오피스 구현시 삭제
+    public void settingCorporation(HttpServletRequest httpServletRequest, BigInteger corporationId) {
+        User user = commonService.getUser(httpServletRequest);
+        Corporation corporation = corporationRepository.findById(corporationId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        UserCorporation userCorporation = UserCorporation.builder()
+                .user(user)
+                .corporation(corporation)
+                .build();
+        userCorporationRepository.save(userCorporation);
     }
 
- 
+    @Override
+    // TODO: 추후 백오피스 구현시 삭제
+    public void settingApartment(HttpServletRequest httpServletRequest, BigInteger apartmentId) {
+        User user = commonService.getUser(httpServletRequest);
+        Apartment apartment = apartmentRepository.findById(apartmentId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        UserApartment userApartment = UserApartment.builder()
+                .user(user)
+                .apartment(apartment)
+                .build();
+        userApartmentRepository.save(userApartment);
+    }
 }

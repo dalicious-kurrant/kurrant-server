@@ -37,6 +37,7 @@ public class PublicController {
                 .build();
     }
 
+    // TODO: 추후 백오피스 구현시 삭제
     @PostMapping("/apartment")
     public ResponseMessage createApartment(@RequestBody ApartmentRequestDto apartmentRequestDto) {
         clientService.createApartment(apartmentRequestDto);
@@ -44,7 +45,7 @@ public class PublicController {
                 .message("아파트 개설에 성공하셨습니다.")
                 .build();
     }
-
+    // TODO: 추후 백오피스 구현시 삭제
     @PostMapping("/corporation")
     public ResponseMessage createCorporation(@RequestBody CorporationRequestDto corporationRequestDto) {
         clientService.createCorporation(corporationRequestDto);

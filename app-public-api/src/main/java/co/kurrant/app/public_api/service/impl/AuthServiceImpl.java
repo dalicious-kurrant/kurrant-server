@@ -6,17 +6,14 @@ import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.data.redis.CertificationHash;
 import co.dalicious.data.redis.CertificationHashRepository;
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.user.dto.ProviderEmailDto;
-import co.dalicious.domain.user.entity.enums.Provider;
-import co.dalicious.domain.user.entity.enums.Role;
+import co.dalicious.domain.user.repository.UserCorporationRepository;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
-import co.dalicious.domain.user.entity.enums.SpotStatus;
+import co.dalicious.domain.user.entity.SpotStatus;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -27,8 +24,8 @@ import co.dalicious.client.external.sms.dto.SmsResponseDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.kurrant.app.public_api.service.AuthService;
-import co.kurrant.app.public_api.mapper.user.UserMapper;
-import co.dalicious.domain.user.validator.UserValidator;
+import co.kurrant.app.public_api.service.impl.mapper.user.UserMapper;
+import co.kurrant.app.public_api.validator.UserValidator;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.dto.UserDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,6 +49,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+    private final UserCorporationRepository userCorporationRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -229,8 +227,8 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
         }
-
-        return getLoginAccessToken(user, getSpotStatus(user));
+        SpotStatus spotStatus = clientUtil.getSpotStatus(user);
+        return getLoginAccessToken(user, spotStatus);
     }
 
     @Override
@@ -255,7 +253,7 @@ public class AuthServiceImpl implements AuthService {
         // 이미 소셜로그인으로 가입한 이력이 있는 유저라면 토큰 발행
         if (providerEmail.isPresent()) {
             User user = providerEmail.orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND)).getUser();
-            return getLoginAccessToken(user, getSpotStatus(user));
+            return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
         }
 
         // 소셜 로그인으로 가입한 이력은 없지만, 소셜 로그인 이메일과 ProviderEmail에 동일한 이메일이 있는지 확인
@@ -265,7 +263,7 @@ public class AuthServiceImpl implements AuthService {
             User user = providerEmails.get(0).getUser();
             ProviderEmail newProviderEmail = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
             providerEmailRepository.save(newProviderEmail);
-            return getLoginAccessToken(user, getSpotStatus(user));
+            return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
         }
 
         // 어떤 것도 가입되지 않은 유저라면 계정 생성
@@ -276,7 +274,7 @@ public class AuthServiceImpl implements AuthService {
 
         ProviderEmail newProviderEmail2 = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
         providerEmailRepository.save(newProviderEmail2);
-        return getLoginAccessToken(user, getSpotStatus(user));
+        return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
 
     }
 
@@ -337,28 +335,5 @@ public class AuthServiceImpl implements AuthService {
         user.changePassword(hashedPassword);
     }
 
-    public SpotStatus getSpotStatus(User user) {
-        // 유저가 Default로 설정한 스팟을 가져온다.
-        UserSpot userSpot = user.getUserSpot();
-        if (userSpot == null) {
-            // 유저가 속해있는 그룹이 있는지 조회한다.
-            List<UserCorporation> userCorporations = userCorporationRepository.findByUser(user);
-            if (userCorporations.isEmpty()) {
-                // 그룹과 스팟 모두 존재하지 않을 경우
-                return SpotStatus.NO_SPOT_AND_CLIENT;
-            }
-            // 그룹은 존재하지만 스팟은 존재하지 않을 경우
-            return SpotStatus.NO_SPOT_BUT_HAS_CLIENT;
-        }
-        CorporationSpot corporationSpot = userSpot.getCorporationSpot();
-        // 가져온 스팟을 통해 그룹을 조회한다.
-        Corporation corporation = corporationSpot.getCorporation();
-        // 유저가 그 그룹에 속해있는지 조회한다.
-        Optional<UserCorporation> userCorporation = userCorporationRepository.findByUserAndCorporation(user, corporation);
-        if (userCorporation.isEmpty()) {
-            throw new ApiException(ExceptionEnum.SPOT_DATA_INTEGRITY_ERROR);
-        }
-        // 그룹과 스팟이 모두 존재할 경우
-        return SpotStatus.HAS_SPOT_AND_CLIENT;
-    }
+
 }

@@ -39,11 +39,11 @@ public class DateUtils {
 
     public static LocalTime stringToTime(String str, String separator) {
         String[] strings = str.split(separator);
-        Integer[] integers = new Integer[3];
+        Integer[] integers = new Integer[2];
         for(int i = 0 ; i < strings.length; i++) {
             integers[i] = Integer.parseInt(strings[i]);
         }
-        return LocalTime.of(integers[0], integers[1], integers[2]);
+        return LocalTime.of(integers[0], integers[1]);
     }
 
     public static String timeToString(LocalTime time) {

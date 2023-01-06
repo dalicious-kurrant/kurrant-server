@@ -190,4 +190,8 @@ public class User {
     public void changeMembershipStatus(Boolean isMembership) {
       this.isMembership = isMembership;
     }
+
+    public void updateUserSpot(UserSpot userSpot) {
+        this.userSpot = userSpot;
+    }
 }

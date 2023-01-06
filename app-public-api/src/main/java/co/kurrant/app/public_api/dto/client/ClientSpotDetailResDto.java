@@ -3,13 +3,12 @@ package co.kurrant.app.public_api.dto.client;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigInteger;
 import java.util.List;
 
 @Getter
-@Setter
+@NoArgsConstructor
 public class ClientSpotDetailResDto {
     private String clientType;
     private BigInteger spotId;
@@ -29,7 +28,7 @@ public class ClientSpotDetailResDto {
     }
 
     @Getter
-    @Setter
+    @NoArgsConstructor
     public static class MealTypeInfo {
         private String diningType;
         private String lastOrderTime;
