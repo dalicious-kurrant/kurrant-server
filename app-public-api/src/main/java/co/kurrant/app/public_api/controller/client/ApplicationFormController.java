@@ -4,7 +4,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
-import co.kurrant.app.public_api.service.ApplicationFormService;
+import co.kurrant.app.public_api.service.AppApplicationFormService;
 import co.kurrant.app.public_api.service.CommonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 public class ApplicationFormController {
     private final CommonService commonService;
-    private final ApplicationFormService appApplicationFormService;
+    private final AppApplicationFormService appApplicationFormService;
     private final co.dalicious.domain.application_form.service.ApplicationFormService applicationFormService;
 
     @Operation(summary = "아파트 스팟 개설 신청 API", description = "아파트 스팟 개설을 신청한다.")

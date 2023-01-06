@@ -11,7 +11,7 @@ import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.client.*;
-import co.kurrant.app.public_api.service.ApplicationFormService;
+import co.kurrant.app.public_api.service.AppApplicationFormService;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.mapper.client.CorporationMealInfoReqMapper;
 import co.kurrant.app.public_api.mapper.client.CorporationSpotReqMapper;
@@ -28,7 +28,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ApplicationFormServiceImpl implements ApplicationFormService {
+public class AppApplicationFormServiceImpl implements AppApplicationFormService {
     private final CommonService commonService;
     private final ApplicationFormValidator applicationFormValidator;
     private final ApartmentApplicationFormMealRepository apartmentApplicationFormMealRepository;

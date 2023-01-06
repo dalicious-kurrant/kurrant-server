@@ -3,8 +3,7 @@ package co.kurrant.app.public_api.controller.user;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.service.OrderService;
 import co.kurrant.app.public_api.service.CommonService;
-import co.kurrant.app.public_api.service.MembershipService;
-import io.swagger.annotations.Api;
+import co.kurrant.app.public_api.service.AppMembershipService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequiredArgsConstructor
 public class MembershipController {
     private final CommonService commonService;
-    private final MembershipService membershipService;
+    private final AppMembershipService membershipService;
     private final OrderService orderService;
     @Operation(summary = "멤버십 이용내역", description = "유저의 멤버십 이용 내역을 조회한다.")
     @GetMapping("")

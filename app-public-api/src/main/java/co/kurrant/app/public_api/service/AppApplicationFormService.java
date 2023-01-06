@@ -7,7 +7,7 @@ import co.kurrant.app.public_api.dto.client.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-public interface ApplicationFormService {
+public interface AppApplicationFormService {
     // 아파트 스팟 개설 신청
     ApplicationFormDto registerApartmentSpot(HttpServletRequest httpServletRequest, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto);
     // 아파트 스팟 개설 신청 기타 내용 변경

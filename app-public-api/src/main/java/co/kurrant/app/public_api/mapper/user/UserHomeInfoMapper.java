@@ -8,5 +8,4 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface UserHomeInfoMapper extends GenericMapper<UserHomeResponseDto, User> {
-    UserHomeInfoMapper INSTANCE = Mappers.getMapper(UserHomeInfoMapper.class);
 }

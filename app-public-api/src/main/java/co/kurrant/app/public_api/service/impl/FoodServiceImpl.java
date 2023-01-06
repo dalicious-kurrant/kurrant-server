@@ -11,9 +11,12 @@ import co.dalicious.domain.food.util.OriginList;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.mapper.DailyFoodMapper;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +40,9 @@ public class FoodServiceImpl implements FoodService {
         if (!dailyFood.isEmpty()) {
             for (DailyFood food : dailyFood) {
 
-                Food foodId = foodRepository.findById(food.getFood().getId());
+                Food foodId = foodRepository.findById(food.getFood().getId()).orElseThrow(
+                        () -> new ApiException(ExceptionEnum.NOT_FOUND)
+                );
                 DailyFoodDto dailyFoodDto = DailyFoodDto.builder()
                                             .id(food.getId())
                                             .created(food.getCreated())
@@ -57,9 +62,11 @@ public class FoodServiceImpl implements FoodService {
     }
 
     @Override
-    public FoodDetailDto getFoodDetail(Integer foodId) {
+    public FoodDetailDto getFoodDetail(BigInteger foodId) {
 
-        Food food = foodRepository.findById(foodId);
+        Food food = foodRepository.findById(foodId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.NOT_FOUND)
+        );
 
         List<Origin> origin = qOriginRepository.findByFoodId(foodId);
 

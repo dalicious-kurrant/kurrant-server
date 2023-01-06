@@ -1,14 +1,11 @@
 package co.kurrant.app.public_api.service;
 
-import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.user.entity.Membership;
-import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.user.MembershipDto;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-public interface MembershipService {
+public interface AppMembershipService {
     // 유저의 전체 멤버십 내용을 조회한다.
     List<MembershipDto> retrieveMembership(HttpServletRequest httpServletRequest);
 

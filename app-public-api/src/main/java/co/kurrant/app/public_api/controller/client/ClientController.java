@@ -1,8 +1,10 @@
 package co.kurrant.app.public_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.user.service.UserService;
 import co.kurrant.app.public_api.dto.client.ClientSpotDetailReqDto;
-import co.kurrant.app.public_api.service.ClientService;
+import co.kurrant.app.public_api.service.AppClientService;
+import co.kurrant.app.public_api.service.CommonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +18,15 @@ import java.math.BigInteger;
 @RequestMapping(value = "/v1/users/me/clients")
 @RestController
 public class ClientController {
-    private final ClientService clientService;
+    private final CommonService commonService;
+    private final AppClientService appClientService;
+    private final UserService userService;
 
     @Operation(summary = "유저가 속한 그룹의 정보 리스트", description = "유저가 속한 그룹의 정보 리스트를 조회한다.")
     @GetMapping("")
     public ResponseMessage getClients(HttpServletRequest httpServletRequest) {
         return ResponseMessage.builder()
-                .data(clientService.getClients(httpServletRequest))
+                .data(userService.getClients(commonService.getUser(httpServletRequest)))
                 .message("그룹 조회에 성공하였습니다.")
                 .build();
     }
@@ -34,7 +38,7 @@ public class ClientController {
                                          @RequestParam("clientId") BigInteger clientId,
                                          @RequestParam("spotId") BigInteger spotId) {
         return ResponseMessage.builder()
-                .data(clientService.getSpotDetail(httpServletRequest, clientType, clientId, spotId))
+                .data(appClientService.getSpotDetail(httpServletRequest, clientType, clientId, spotId))
                 .message("스팟 상세 조회에 성공하였습니다.")
                 .build();
     }
@@ -47,7 +51,7 @@ public class ClientController {
                                         @RequestParam("spotId") BigInteger spotId,
                                         @RequestBody(required = false) ClientSpotDetailReqDto spotDetailReqDto) {
         return ResponseMessage.builder()
-                .data(clientService.saveUserSpot(httpServletRequest, spotDetailReqDto, clientType, clientId, spotId))
+                .data(appClientService.saveUserSpot(httpServletRequest, spotDetailReqDto, clientType, clientId, spotId))
                 .message("스팟 등록에 성공하였습니다.")
                 .build();
     }
@@ -58,7 +62,7 @@ public class ClientController {
                                           @RequestParam("clientType") Integer clientType,
                                           @RequestParam("clientId") BigInteger clientId) {
         return ResponseMessage.builder()
-                .data(clientService.withdrawClient(httpServletRequest, clientType, clientId))
+                .data(appClientService.withdrawClient(httpServletRequest, clientType, clientId))
                 .message("스팟 상세 조회에 성공하였습니다.")
                 .build();
     }

@@ -2,11 +2,11 @@ package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.user.converter.ClientStatusConverter;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;

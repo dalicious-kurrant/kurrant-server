@@ -8,7 +8,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-public interface  UserService {
+public interface AppUserService {
     // 홈 유저 정보 가져오기
     UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest);
     // SNS 계정 연결

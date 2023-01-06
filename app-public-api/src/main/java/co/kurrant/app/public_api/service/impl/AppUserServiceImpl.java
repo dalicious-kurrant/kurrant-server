@@ -7,22 +7,23 @@ import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.repository.ApartmentRepository;
 import co.dalicious.domain.client.repository.CorporationRepository;
 import co.dalicious.domain.user.entity.*;
+import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.dalicious.domain.user.repository.UserApartmentRepository;
 import co.dalicious.domain.user.repository.UserCorporationRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
+import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
-import co.kurrant.app.public_api.service.impl.mapper.user.UserHomeInfoMapper;
-import co.kurrant.app.public_api.service.impl.mapper.user.UserPersonalInfoMapper;
+import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
+import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import co.kurrant.app.public_api.service.CommonService;
 
-import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.validator.UserValidator;
+import co.kurrant.app.public_api.service.AppUserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,7 +41,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class AppUserServiceImpl implements AppUserService {
     private final CommonService commonService;
     private final SnsLoginService snsLoginService;
     private final UserValidator userValidator;
@@ -52,11 +53,13 @@ public class UserServiceImpl implements UserService {
     private final UserCorporationRepository userCorporationRepository;
     private final ApartmentRepository apartmentRepository;
     private final UserApartmentRepository userApartmentRepository;
+    private final UserHomeInfoMapper userHomeInfoMapper;
+    private final UserPersonalInfoMapper userPersonalInfoMapper;
 
     @Override
     public UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest) {
         User user = commonService.getUser(httpServletRequest);
-        return UserHomeInfoMapper.INSTANCE.toDto(user);
+        return userHomeInfoMapper.toDto(user);
     }
 
     @Override
@@ -281,7 +284,7 @@ public class UserServiceImpl implements UserService {
 
         // 일반 로그인 정보를 가지고 있는 유저인지 검사
         List<ProviderEmail> providerEmails = user.getProviderEmails();
-        UserPersonalInfoDto userPersonalInfoDto = UserPersonalInfoMapper.INSTANCE.toDto(user);
+        UserPersonalInfoDto userPersonalInfoDto = userPersonalInfoMapper.toDto(user);
         Boolean hasGeneralProvider = providerEmails.stream()
                 .anyMatch(e -> e.getProvider().equals(Provider.GENERAL));
 

@@ -3,17 +3,17 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.*;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.entity.enums.ClientType;
+import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.repository.UserApartmentRepository;
 import co.dalicious.domain.user.repository.UserCorporationRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.system.util.DiningType;
 import co.kurrant.app.public_api.dto.client.ClientSpotDetailReqDto;
 import co.kurrant.app.public_api.dto.client.ClientSpotDetailResDto;
-import co.kurrant.app.public_api.dto.client.SpotListResponseDto;
-import co.kurrant.app.public_api.service.ClientService;
+import co.kurrant.app.public_api.service.AppClientService;
 import co.kurrant.app.public_api.service.CommonService;
-import co.kurrant.app.public_api.service.impl.mapper.client.ApartmentResponseMapper;
-import co.kurrant.app.public_api.service.impl.mapper.client.CorporationResponseMapper;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +24,10 @@ import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ClientServiceImpl implements ClientService {
+public class AppClientServiceImpl implements AppClientService {
     private final CommonService commonService;
     private final ApartmentRepository apartmentRepository;
     private final ApartmentSpotRepository apartmentSpotRepository;
@@ -39,30 +38,6 @@ public class ClientServiceImpl implements ClientService {
     private final UserApartmentRepository userApartmentRepository;
     private final UserCorporationRepository userCorporationRepository;
     private final UserSpotRepository userSpotRepository;
-
-
-    @Override
-    @Transactional
-    public List<SpotListResponseDto> getClients(HttpServletRequest httpServletRequest) {
-        // 유저 정보 가져오기
-        User user = commonService.getUser(httpServletRequest);
-        // 그룹/스팟 정보 가져오기
-        List<UserApartment> userApartments = user.getApartments();
-        List<UserCorporation> userCorporations = user.getCorporations();
-        // 그룹/스팟 리스트를 담아줄 Dto 생성하기
-        List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
-        // 그룹: 아파트 추가
-        for (UserApartment userApartment : userApartments) {
-            Apartment apartment = userApartment.getApartment();
-            spotListResponseDtoList.add(ApartmentResponseMapper.INSTANCE.toDto(apartment));
-        }
-        // 그룹: 기업 추가
-        for (UserCorporation userCorporation : userCorporations) {
-            Corporation corporation = userCorporation.getCorporation();
-            spotListResponseDtoList.add(CorporationResponseMapper.INSTANCE.toDto(corporation));
-        }
-        return spotListResponseDtoList;
-    }
 
     @Override
     public ClientSpotDetailResDto getSpotDetail(HttpServletRequest httpServletRequest, Integer clientType, BigInteger clientId, BigInteger spotId) {

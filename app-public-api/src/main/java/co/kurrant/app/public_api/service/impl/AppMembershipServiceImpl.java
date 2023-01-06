@@ -1,40 +1,28 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.order.util.OrderUtil;
-import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.order.entity.OrderMembership;
-import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
 import co.dalicious.domain.order.repository.OrderRepository;
-import co.dalicious.domain.user.dto.PeriodDto;
 import co.dalicious.domain.user.entity.*;
-import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
-import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.kurrant.app.public_api.dto.user.MembershipDto;
 import co.kurrant.app.public_api.service.CommonService;
-import co.kurrant.app.public_api.service.MembershipService;
-import exception.ApiException;
-import exception.ExceptionEnum;
+import co.kurrant.app.public_api.service.AppMembershipService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class MembershipServiceImpl implements MembershipService {
+public class AppMembershipServiceImpl implements AppMembershipService {
     private final CommonService commonService;
     private final MembershipRepository membershipRepository;
     private final OrderMembershipRepository orderMembershipRepository;

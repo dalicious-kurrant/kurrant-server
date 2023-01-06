@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class FoodController {
 
     @Operation(summary = "메뉴 상세정보 불러오기", description = "특정 메뉴의 상세정보를 불러온다.")
     @GetMapping("/{foodId}")
-    public FoodDetailDto getFoodDetail(@PathVariable Integer foodId){
+    public FoodDetailDto getFoodDetail(@PathVariable BigInteger foodId){
         return foodService.getFoodDetail(foodId);
     }
 

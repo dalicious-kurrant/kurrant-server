@@ -3,6 +3,7 @@ package co.dalicious.domain.user.util;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.EmployeeRepository;
 import co.dalicious.domain.user.entity.*;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.UserApartmentRepository;
 import co.dalicious.domain.user.repository.UserCorporationRepository;
 import exception.ApiException;

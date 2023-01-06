@@ -11,16 +11,17 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Schema(description = "식단 응답 DTO")
 @Getter
 @NoArgsConstructor
 public class DailyFoodDto {
-    Integer id;
+    BigInteger id;
     String created;
     String diningType;
-    Integer foodId;
+    BigInteger foodId;
 
     String foodName;
     Boolean isSoldOut;
@@ -40,7 +41,7 @@ public class DailyFoodDto {
 
 
     @Builder
-    public DailyFoodDto(Integer id, LocalDate created, DiningType diningType, Food food,
+    public DailyFoodDto(BigInteger id, LocalDate created, DiningType diningType, Food food,
                         Boolean isSoldOut, Integer spotId, FoodStatus status, LocalDate updated,
                         LocalDate serviceDate, Makers makers){
         this.id = id;

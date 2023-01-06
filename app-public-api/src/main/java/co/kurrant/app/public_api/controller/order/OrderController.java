@@ -1,11 +1,9 @@
 package co.kurrant.app.public_api.controller.order;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.order.dto.CartItemDto;
 import co.dalicious.domain.order.dto.OrderCartDto;
-import co.dalicious.domain.order.dto.OrderDetailDto;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
-import co.kurrant.app.public_api.service.OrderService;
+import co.kurrant.app.public_api.service.AppOrderService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -13,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
-import java.util.List;
 
 @Tag(name = "3. Order")
 @RequestMapping(value = "/v1/users")
@@ -21,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderService orderService;
+    private final AppOrderService orderService;
 
     @GetMapping("/me/order")
     public Object userOrderbyDate(

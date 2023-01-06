@@ -7,13 +7,17 @@ import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.data.redis.CertificationHash;
 import co.dalicious.data.redis.CertificationHashRepository;
 import co.dalicious.domain.user.dto.ProviderEmailDto;
+import co.dalicious.domain.user.entity.enums.Provider;
+import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.repository.UserCorporationRepository;
 import co.dalicious.domain.user.util.ClientUtil;
+import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import co.dalicious.domain.user.entity.SpotStatus;
+import co.kurrant.app.public_api.mapper.user.UserMapper;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -24,8 +28,6 @@ import co.dalicious.client.external.sms.dto.SmsResponseDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.kurrant.app.public_api.service.AuthService;
-import co.kurrant.app.public_api.service.impl.mapper.user.UserMapper;
-import co.kurrant.app.public_api.validator.UserValidator;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.dto.UserDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -54,13 +56,14 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final ProviderEmailRepository providerEmailRepository;
-    private final UserValidator userValidator;
     private final ClientUtil clientUtil;
     private final EmailService emailService;
     private final SmsService smsService;
     private final VerifyUtil verifyUtil;
     private final CertificationHashRepository certificationHashRepository;
     private final SnsLoginService snsLoginService;
+    private final UserValidator userValidator;
+    private final UserMapper userMapper;
 
     // 이메일 인증
     @Override
@@ -184,7 +187,7 @@ public class AuthServiceImpl implements AuthService {
             UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
 
             // Corporation과 Apartment가 null로 대입되는 오류 발생 -> nullable = true 설정
-            user = UserMapper.INSTANCE.toEntity(userDto);
+            user = userMapper.toEntity(userDto);
 
             // User 저장
             user = userRepository.save(user);
@@ -269,7 +272,7 @@ public class AuthServiceImpl implements AuthService {
         // 어떤 것도 가입되지 않은 유저라면 계정 생성
         UserDto userDto = UserDto.builder().role(Role.USER).email(email).phone(phone).name(name).build();
 
-        User user = UserMapper.INSTANCE.toEntity(userDto);
+        User user = userMapper.toEntity(userDto);
         userRepository.save(user);
 
         ProviderEmail newProviderEmail2 = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
