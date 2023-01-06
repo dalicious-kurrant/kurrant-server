@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -60,12 +61,12 @@ public class OrderServiceImpl implements OrderService {
             orderDetailDto.setId(x.getId());
             orderDetailDto.setServiceDate(DateUtils.format(x.getServiceDate(), "yyyy-MM-dd") );
 
-            Food food = foodRepository.findById(x.getFoodId());
+            Optional<Food> food = foodRepository.findOneById(x.getFoodId());
 
             OrderItemDto orderItemDto = OrderItemDto.builder()
-                    .name(food.getName())
+                    .name(food.get().getName())
                     .diningType(x.getEDiningType())
-                    .img(food.getImg())
+                    .img(food.get().getImg())
                     .count(x.getCount())
                     .build();
 
@@ -84,15 +85,15 @@ public class OrderServiceImpl implements OrderService {
         List<CartItemDto> result = new ArrayList<>();
 
         //유저정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
-        List<OrderCartItem> orderCartItems = qOrderCartItemRepository.getItems(qOrderCartRepository.getCartId(user.getId().intValue()));
+        List<OrderCartItem> orderCartItems = qOrderCartItemRepository.getItems(qOrderCartRepository.getCartId(user.getId()).intValue());
 
         //카트에 담긴 아이템들을 결과 LIST에 담아주기
         for (OrderCartItem oc : orderCartItems){
-            Integer price = oc.getDailyFood().getFood().getPrice();
+            BigDecimal price = oc.getDailyFood().getFood().getPrice();
 
             //count가 1이 아니면 가격 * count
             if (oc.getCount() != 1){
-                price = price * oc.getCount();
+                price =  price.multiply(BigDecimal.valueOf(oc.getCount()));
             }
 
             result.add(CartItemDto.builder()
@@ -109,7 +110,7 @@ public class OrderServiceImpl implements OrderService {
         // order__cart_item에서 user_id에 해당되는 항목 모두 삭제
         User user = commonService.getUser(httpServletRequest);
         List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
-        Integer cartId = cart.get(0).getId();
+        BigInteger cartId = cart.get(0).getId();
         qOrderCartItemRepository.deleteByCartId(cartId);
     }
 

@@ -8,6 +8,8 @@ import org.hibernate.annotations.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -23,7 +25,7 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
     @Comment("주문상세 PK")
-    private Integer id;
+    private BigInteger id;
 
     @CreationTimestamp
     @Column(name = "created", nullable = false,
@@ -49,7 +51,7 @@ public class OrderItem {
 
     @Column(name = "price")
     @Comment("가격")
-    private Integer price;
+    private BigDecimal price;
 
     @Column(name = "e_dining_type")
     @Comment("식사타입: 아침,점심,저녁")
@@ -71,7 +73,7 @@ public class OrderItem {
     @Comment("식품 ID")
     private Integer foodId;
     @Builder
-    public OrderItem(Integer id, LocalDate created, LocalDate updated, LocalDate serviceDate, Boolean check, Integer price, String eDiningType, Integer count, Integer userId, Integer orderId, Integer foodId) {
+    public OrderItem(BigInteger id, LocalDate created, LocalDate updated, LocalDate serviceDate, Boolean check, BigDecimal price, String eDiningType, Integer count, Integer userId, Integer orderId, Integer foodId) {
         this.id = id;
         this.created = created;
         this.updated = updated;

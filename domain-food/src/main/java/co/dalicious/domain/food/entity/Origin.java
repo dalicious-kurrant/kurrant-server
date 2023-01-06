@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
+import java.math.BigInteger;
 
 @Getter
 @NoArgsConstructor
@@ -15,7 +16,7 @@ public class Origin {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     @Comment("ID")
-    private Integer id;
+    private BigInteger id;
 
     @Column(name = "origin_name")
     @Comment("품목 이름")

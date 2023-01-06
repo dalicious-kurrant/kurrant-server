@@ -5,6 +5,7 @@ import co.dalicious.system.util.FoodStatus;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.converter.FoodStatusConverter;
 import jdk.jshell.Snippet;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,7 +25,7 @@ import java.time.LocalDateTime;
 @DynamicInsert
 @DynamicUpdate
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "food__daily_food")
 public class DailyFood {
@@ -31,7 +33,7 @@ public class DailyFood {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Integer id;
+    private BigInteger id;
 
     @Convert(converter = DiningTypeConverter.class)
     @Column(name = "dining_type")
@@ -57,14 +59,14 @@ public class DailyFood {
     private Food food;
 
     @Column(name = "client__spot_id")
-    private Integer spotId;
+    private BigInteger spotId;
 
     @Column(name = "service_date", columnDefinition = "DATE")
     private LocalDate serviceDate;
 
     @Builder
-    DailyFood(Integer id, DiningType diningType, LocalDate created, LocalDate updated,
-              FoodStatus status, Boolean isSoldOut, Food food, Integer spotId, LocalDate serviceDate){
+    DailyFood(BigInteger id, DiningType diningType, LocalDate created, LocalDate updated,
+              FoodStatus status, Boolean isSoldOut, Food food, BigInteger spotId, LocalDate serviceDate){
         this.id = id;
         this.diningType = diningType;
         this.created = created;

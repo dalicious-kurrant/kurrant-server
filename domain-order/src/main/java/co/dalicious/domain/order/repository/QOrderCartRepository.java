@@ -16,11 +16,11 @@ public class QOrderCartRepository {
     public final JPAQueryFactory queryFactory;
 
 
-    public Integer getCartId(Integer id) {
+    public BigInteger getCartId(BigInteger id) {
         return queryFactory
                 .select(orderCart.id)
                 .from(orderCart)
-                .where(orderCart.id.eq(id))
+                .where(orderCart.id.eq((id)))
                 .fetchOne();
     }
 }

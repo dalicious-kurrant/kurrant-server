@@ -18,7 +18,7 @@ public class OrderCart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Integer id;
+    private BigInteger id;
 
     @Column(name = "user_id")
     @Comment("유저 Id")
@@ -27,7 +27,7 @@ public class OrderCart {
 
 
     @Builder
-    public OrderCart(Integer id, BigInteger userId){
+    public OrderCart(BigInteger id, BigInteger userId){
         this.id = id;
         this.userId = userId;
     }

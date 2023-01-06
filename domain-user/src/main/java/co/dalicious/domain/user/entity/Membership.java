@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 
@@ -22,7 +23,7 @@ public class Membership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
-    private Long id;
+    private BigInteger id;
 
     @NotNull
     @Column(name = "e_membership_status")

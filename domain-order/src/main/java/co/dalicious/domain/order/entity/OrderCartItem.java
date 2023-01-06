@@ -12,6 +12,8 @@ import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 @DynamicInsert
@@ -25,7 +27,7 @@ public class OrderCartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
     @Comment("장바구니 상세 PK")
-    private Integer id;
+    private BigInteger id;
 
     @CreationTimestamp
     @Column(name = "created_datetime",
@@ -46,7 +48,7 @@ public class OrderCartItem {
 
     @Column(name = "price")
     @Comment("가격")
-    private Integer price;
+    private BigDecimal price;
 
     @Column(name = "e_dining_type")
     @Comment("식사타입: 아침,점심,저녁")
@@ -67,7 +69,7 @@ public class OrderCartItem {
     private DailyFood dailyFood;
 
     @Builder
-    public OrderCartItem( LocalDate serviceDate, Integer price, DiningType diningType,
+    public OrderCartItem( LocalDate serviceDate, BigDecimal price, DiningType diningType,
                           Integer count, OrderCart orderCart, DailyFood dailyFood){
         this.serviceDate = serviceDate;
         this.price = price;

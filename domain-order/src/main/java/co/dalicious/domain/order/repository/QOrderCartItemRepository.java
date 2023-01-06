@@ -17,18 +17,18 @@ public class QOrderCartItemRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public void deleteByCartId(Integer cartId) {
+    public void deleteByCartId(BigInteger cartId) {
         queryFactory
                 .delete(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(cartId))
                 .execute();
     }
 
-    public void deleteByFoodId(Integer id, Integer dailyFoodId) {
+    public void deleteByFoodId(BigInteger id, Integer dailyFoodId) {
         queryFactory
                 .delete(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(id),
-                        orderCartItem.dailyFood.id.eq(dailyFoodId))
+                        orderCartItem.dailyFood.id.eq(BigInteger.valueOf(dailyFoodId)))
                 .execute();
     }
 
@@ -44,15 +44,15 @@ public class QOrderCartItemRepository {
     public List<OrderCartItem> getItems(Integer cartId) {
         return queryFactory
                 .selectFrom(orderCartItem)
-                .where(orderCartItem.orderCart.id.eq(cartId))
+                .where(orderCartItem.orderCart.id.eq(BigInteger.valueOf(cartId)))
                 .fetch();
     }
 
     public List<OrderCartItem> findDuplicatedItem(Integer cartId, Integer dailyFoodId) {
         return queryFactory
                 .selectFrom(orderCartItem)
-                .where(orderCartItem.orderCart.id.eq(cartId),
-                        orderCartItem.dailyFood.id.eq(dailyFoodId))
+                .where(orderCartItem.orderCart.id.eq(BigInteger.valueOf(cartId)),
+                        orderCartItem.dailyFood.id.eq(BigInteger.valueOf(dailyFoodId)))
                 .fetch();
     }
 

@@ -13,6 +13,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.bytebuddy.asm.Advice;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Schema(description = "장바구니 조회 DTO")
@@ -20,22 +22,22 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartItemDto {
-    Integer id;
-    Integer dailyFoodId;
+    BigInteger id;
+    BigInteger dailyFoodId;
     String name;
-    Integer price;
+    BigDecimal price;
     String img;
     String spicy;
     Makers makers;
     String diningType;
     Integer count;
-    Integer sumPrice;
-    Double discountRate;
+    BigDecimal sumPrice;
+    BigDecimal discountRate;
     String serviceDate;
 
 
     @Builder
-    public CartItemDto(OrderCartItem orderCartItem, Integer price){
+    public CartItemDto(OrderCartItem orderCartItem, BigDecimal price){
         this.id = orderCartItem.getOrderCart().getId();
         this.name = orderCartItem.getDailyFood().getFood().getName();
         this.price = orderCartItem.getDailyFood().getFood().getPrice();

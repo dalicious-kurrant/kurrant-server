@@ -15,6 +15,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 
 @DynamicInsert
@@ -28,7 +29,7 @@ public class OrderMembership {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
     @Comment("멤버십 결제 PK")
-    private Long id;
+    private BigInteger id;
 
 
     @CreationTimestamp
