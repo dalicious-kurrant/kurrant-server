@@ -11,4 +11,5 @@ public interface CommonService {
     User getUser(HttpServletRequest httpServletRequest);
     // Access 토큰을 통해서 유저의 id를 가져온다.
     BigInteger getUserId(HttpServletRequest httpServletRequest);
+
 }

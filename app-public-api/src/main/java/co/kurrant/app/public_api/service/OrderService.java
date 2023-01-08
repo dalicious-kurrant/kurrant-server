@@ -6,7 +6,7 @@ import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 
-public interface AppOrderService {
+public interface OrderService {
     Object findOrderByServiceDate(LocalDate startDate, LocalDate endDate);
 
     void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto);

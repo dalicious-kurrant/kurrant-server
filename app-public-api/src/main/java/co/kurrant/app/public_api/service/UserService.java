@@ -1,5 +1,8 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.domain.client.dto.SpotListResponseDto;
+import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
+import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.user.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
@@ -7,8 +10,9 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
-public interface AppUserService {
+public interface UserService {
     // 홈 유저 정보 가져오기
     UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest);
     // SNS 계정 연결
@@ -33,4 +37,8 @@ public interface AppUserService {
     void settingCorporation(HttpServletRequest httpServletRequest, BigInteger corporationId);
     // TODO: 추후 백오피스 구현시 삭제
     void settingApartment(HttpServletRequest httpServletRequest, BigInteger apartmentId);
+    // 멤버십 구독 정보를 가져온다.
+    List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo();
+    // 유저가 속한 그룹 정보 리스트
+    List<SpotListResponseDto> getClients(User user);
 }

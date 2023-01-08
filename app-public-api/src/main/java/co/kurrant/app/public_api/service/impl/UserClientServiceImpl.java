@@ -1,6 +1,8 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.client.dto.ApartmentResponseDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.mapper.ApartmentListMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
@@ -12,7 +14,7 @@ import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.system.util.DiningType;
 import co.kurrant.app.public_api.dto.client.ClientSpotDetailReqDto;
 import co.kurrant.app.public_api.dto.client.ClientSpotDetailResDto;
-import co.kurrant.app.public_api.service.AppClientService;
+import co.kurrant.app.public_api.service.UserClientService;
 import co.kurrant.app.public_api.service.CommonService;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -27,7 +29,8 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AppClientServiceImpl implements AppClientService {
+public class UserClientServiceImpl implements UserClientService {
+    private final ApartmentListMapper apartmentMapper;
     private final CommonService commonService;
     private final ApartmentRepository apartmentRepository;
     private final ApartmentSpotRepository apartmentSpotRepository;
@@ -208,5 +211,15 @@ public class AppClientServiceImpl implements AppClientService {
         }
         // 다른 그룹이 존재하는지 여부에 따라 Return값 결정(스팟 선택 화면 || 그룹 신청 화면)
         return (apartments.size() + corporations.size() - 1 > 0) ? SpotStatus.NO_SPOT_BUT_HAS_CLIENT.getCode() : SpotStatus.NO_SPOT_AND_CLIENT.getCode();
+    }
+
+    @Override
+    public List<ApartmentResponseDto> getApartments() {
+        List<Apartment> apartments = apartmentRepository.findAll();
+        List<ApartmentResponseDto> apartmentResponseDtos = new ArrayList<>();
+        for (Apartment apartment : apartments) {
+            apartmentResponseDtos.add(apartmentMapper.toDto(apartment));
+        }
+        return apartmentResponseDtos;
     }
 }

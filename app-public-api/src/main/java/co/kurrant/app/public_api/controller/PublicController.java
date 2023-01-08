@@ -4,7 +4,8 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.dto.ApartmentRequestDto;
 import co.dalicious.domain.client.dto.CorporationRequestDto;
 import co.dalicious.domain.client.service.ClientService;
-import co.dalicious.domain.user.service.UserService;
+import co.kurrant.app.public_api.service.UserClientService;
+import co.kurrant.app.public_api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +17,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 public class PublicController {
-    private final UserService userService;
     private final ClientService clientService;
+    private final UserService userService;
+    private final UserClientService userClientService;
 
     @Operation(summary = "멤버십 구독 정보 조회", description = "멤버십 구독 정보를 조회한다.")
     @GetMapping("/membership")
@@ -32,7 +34,7 @@ public class PublicController {
     @GetMapping("/apartments")
     public ResponseMessage getApartments() {
         return ResponseMessage.builder()
-                .data(clientService.getApartments())
+                .data(userClientService.getApartments())
                 .message("아파트 전체 조회에 성공하셨습니다.")
                 .build();
     }

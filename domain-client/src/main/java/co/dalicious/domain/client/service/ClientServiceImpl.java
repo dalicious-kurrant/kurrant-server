@@ -19,22 +19,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService{
-    private final ApartmentListMapper apartmentMapper;
     private final ApartmentRepository apartmentRepository;
     private final ApartmentMealInfoRepository apartmentMealInfoRepository;
     private final ApartmentSpotRepository apartmentSpotRepository;
     private final CorporationRepository corporationRepository;
     private final CorporationMealInfoRepository corporationMealInfoRepository;
     private final CorporationSpotRepository corporationSpotRepository;
-    @Override
-    public List<ApartmentResponseDto> getApartments() {
-        List<Apartment> apartments = apartmentRepository.findAll();
-        List<ApartmentResponseDto> apartmentResponseDtos = new ArrayList<>();
-        for (Apartment apartment : apartments) {
-            apartmentResponseDtos.add(apartmentMapper.toDto(apartment));
-        }
-        return apartmentResponseDtos;
-    }
 
     @Override
     // TODO: 백오피스 구현시 추후 수정 필요

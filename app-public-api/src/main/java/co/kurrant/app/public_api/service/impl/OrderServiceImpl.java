@@ -19,7 +19,7 @@ import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.service.CommonService;
-import co.kurrant.app.public_api.service.AppOrderService;
+import co.kurrant.app.public_api.service.OrderService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class AppOrderServiceImpl implements AppOrderService {
+public class OrderServiceImpl implements OrderService {
 
     private final OrderItemRepository orderItemRepository;
     private final QOrderItemRepository qOrderItemRepository;

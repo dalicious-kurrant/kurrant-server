@@ -3,7 +3,7 @@ package co.kurrant.app.public_api.controller.order;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.dto.OrderCartDto;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
-import co.kurrant.app.public_api.service.AppOrderService;
+import co.kurrant.app.public_api.service.OrderService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,7 +18,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final AppOrderService orderService;
+    private final OrderService orderService;
 
     @GetMapping("/me/order")
     public Object userOrderbyDate(
