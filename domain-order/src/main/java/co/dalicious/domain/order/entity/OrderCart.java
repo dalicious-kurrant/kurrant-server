@@ -42,6 +42,4 @@ public class OrderCart {
         this.id = id;
         this.userId = userId;
     }
-
-
 }

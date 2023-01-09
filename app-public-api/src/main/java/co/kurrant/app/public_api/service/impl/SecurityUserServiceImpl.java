@@ -1,10 +1,10 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.kurrant.app.public_api.model.UserAccount;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
-import co.kurrant.app.public_api.model.SecurityUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,12 +24,7 @@ public class SecurityUserServiceImpl implements UserDetailsService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
 
-        return SecurityUser.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .role(user.getRole())
-                .email(user.getEmail())
-                .build();
+        return new UserAccount(user);
     }
 
 //    public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException {

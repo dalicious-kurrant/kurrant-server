@@ -121,6 +121,30 @@ public class ApartmentApplicationForm {
         this.memo = memo;
         this.rejectedReason = rejectedReason;
     }
+
+
+    //    @Builder
+//    public ApartmentApplicationForm(ProgressStatus progressStatus, BigInteger userId, ApplyUserDto applyUserDto, Address address, ApartmentApplyInfoDto apartmentApplyInfoDto, String memo) {
+//        String serviceDate = apartmentApplyInfoDto.getServiceStartDate();
+//
+//        this.progressStatus = progressStatus;
+//        this.userId = userId;
+//        this.applierName = applyUserDto.getName();
+//        this.phone = applyUserDto.getPhone();
+//        this.email = applyUserDto.getEmail();
+//        this.apartmentName = apartmentApplyInfoDto.getApartmentName();
+//        this.address = address;
+//        this.totalFamilyCount = apartmentApplyInfoDto.getFamilyCount();
+//        this.dongCount = apartmentApplyInfoDto.getDongCount();
+//        this.serviceStartDate = LocalDate.of(Integer.parseInt(serviceDate.substring(0, 4)),
+//                Integer.parseInt(serviceDate.substring(4, 6)),
+//                Integer.parseInt(serviceDate.substring(6, 8)));
+//        this.memo = memo;
+//    }
+
+    public void setMealInfoList(List<ApartmentApplicationMealInfo> mealInfoList) {
+        this.mealInfoList = mealInfoList;
+    }
     public void updateMemo(String memo) {
         this.memo = memo;
     }
