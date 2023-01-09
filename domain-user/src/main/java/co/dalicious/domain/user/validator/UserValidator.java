@@ -27,20 +27,20 @@ public class UserValidator {
     }
 
     public void isEmailValid(Provider provider, String email) {
-        Optional<ProviderEmail> providerEmail = providerEmailRepository.findAllByProviderAndEmail(provider, email);
+        Optional<ProviderEmail> providerEmail = providerEmailRepository.findOneByProviderAndEmail(provider, email);
         if(providerEmail.isPresent()) {
             throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
         }
     }
 
     public void isExistingMainEmail(String email) {
-        if(userRepository.findByEmail(email).isPresent()) {
+        if(userRepository.findOneByEmail(email).isPresent()) {
             throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
         };
     }
 
     public void isPhoneValid(String phone) {
-        Optional<User> user = userRepository.findByPhone(phone);
+        Optional<User> user = userRepository.findOneByPhone(phone);
         if(user.isPresent()) {
             throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
         }

@@ -88,7 +88,7 @@ public class MembershipServiceImpl implements MembershipService {
         PeriodDto periodDto = null;
 
         if (user.getIsMembership()) {
-            List<Membership> memberships = membershipRepository.findByUserOrderByEndDateDesc(user);
+            List<Membership> memberships = membershipRepository.findAllByUserOrderByEndDateDesc(user);
             if (memberships != null && !memberships.isEmpty()) {
                 Membership recentMembership = memberships.get(0);
                 LocalDate currantEndDate = recentMembership.getEndDate();
@@ -134,14 +134,14 @@ public class MembershipServiceImpl implements MembershipService {
         // TODO: 연간구독 해지시, membership endDate update.
         BigDecimal price = BigDecimal.ZERO;
 
-        List<Order> dailyFoodOrders = orderRepository.findByUserAndOrderType(user, OrderType.DAILYFOOD);
+        List<Order> dailyFoodOrders = orderRepository.findAllByUserAndOrderType(user, OrderType.DAILYFOOD);
         // 정기 식사 배송비 계산
         price = price.add(DELIVERY_FEE.multiply(BigDecimal.valueOf(dailyFoodOrders.size())));
 
         // 정기 식사 할인율 계산
 
         // 마켓 상품 할인 계산
-        List<Order> productDiscountedPrice = orderRepository.findByUserAndOrderType(user, OrderType.PRODUCT);
+        List<Order> productDiscountedPrice = orderRepository.findAllByUserAndOrderType(user, OrderType.PRODUCT);
 
         // 멤버십 결제금액 가져오기
         BigDecimal paidPrice = BigDecimal.valueOf(membership.getMembershipSubscriptionType().getDiscountedPrice());
@@ -178,7 +178,7 @@ public class MembershipServiceImpl implements MembershipService {
 
         // 현재 사용중인 멤버십 가져오기
         List<Membership> memberships =
-                membershipRepository.findByUserAndStartDateLessThanEqualAndEndDateGreaterThanEqual(user, LocalDate.now(), LocalDate.now());
+                membershipRepository.findAllByUserAndStartDateLessThanEqualAndEndDateGreaterThanEqual(user, LocalDate.now(), LocalDate.now());
 
         if (memberships.isEmpty()) {
             throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
@@ -187,7 +187,9 @@ public class MembershipServiceImpl implements MembershipService {
         Order currantMembershipOrder = null;
         // 주문 상태가 "완료됨"이 아닌 경우, 주문 조회 목록에서 삭제
         for (Membership membership : memberships) {
-            Order order = orderMembershipRepository.findByMembership(membership).getOrder();
+            Order order = orderMembershipRepository.findOneByMembership(membership).orElseThrow(
+                    () -> new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND)
+            ).getOrder();
             if (!order.getOrderStatus().equals(OrderStatus.COMPLETED)) {
                 memberships.remove(membership);
             }
@@ -219,16 +221,19 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
+    @Transactional
     public void getDailyFoodPriceBenefits(User user) {
 
     }
 
     @Override
+    @Transactional
     public void getMarketPriceBenefits(User user) {
 
     }
 
     @Override
+    @Transactional
     public void getDailyFoodPointBenefits(User user) {
 
     }
@@ -238,12 +243,15 @@ public class MembershipServiceImpl implements MembershipService {
 
     }
 
+
     // TODO: 결제 모듈 구현시 수정
+    @Transactional
     public int requestPayment(String paymentCode, BigDecimal price, int statusCode) {
         return statusCode;
     }
 
     @Override
+    @Transactional
     public List<MembershipDto> retrieveMembership(HttpServletRequest httpServletRequest) {
         User user = commonService.getUser(httpServletRequest);
         // 멤버십 종료 날짜의 오름차순으로 멤버십 정보를 조회한다.
@@ -284,6 +292,7 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
+    @Transactional
     public void saveMembershipAutoPayment(HttpServletRequest httpServletRequest) {
 
     }

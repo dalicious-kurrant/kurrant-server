@@ -115,7 +115,7 @@ public class User {
     @ColumnDefault("0.00")
     private BigDecimal point;
 
-    @OneToOne(orphanRemoval = true)
+    @OneToOne(orphanRemoval = true, optional = false)
     @JoinColumn
     @JsonManagedReference(value = "user_spot_fk")
     @Comment("기본으로 설정한 스팟의 id")

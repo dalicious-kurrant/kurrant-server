@@ -8,6 +8,7 @@ import co.dalicious.domain.user.converter.PaymentTypeConverter;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +23,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 
 @Entity
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "order__order")
 public class Order {

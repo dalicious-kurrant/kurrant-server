@@ -5,13 +5,13 @@ import co.dalicious.domain.application_form.dto.ApplyUserDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
 @Schema(description = "아파트 스팟 개설 신청 응답 DTO")
 @Getter
-@NoArgsConstructor
+@Setter
 public class ApartmentApplicationFormResponseDto {
     private String date;
     private Integer progressStatus;

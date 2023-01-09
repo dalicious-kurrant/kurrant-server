@@ -1,28 +1,21 @@
 package co.dalicious.domain.application_form.dto.corporation;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
+@Schema(description = "기업 스팟 개설 신청 식사 정보 요청 DTO")
 @Getter
-@NoArgsConstructor
+@Setter
 public class CorporationMealInfoResponseDto {
     private String diningType;
     private String priceAverage;
     private BigDecimal supportPrice;
     private Integer expectedUserCount;
-    private String serviceDays;
+    private List<Integer> serviceDays;
     private String deliveryTime;
-
-    @Builder
-    public CorporationMealInfoResponseDto(String diningType, String priceAverage, BigDecimal supportPrice, Integer expectedUserCount, String serviceDays, String deliveryTime) {
-        this.diningType = diningType;
-        this.priceAverage = priceAverage;
-        this.supportPrice = supportPrice;
-        this.expectedUserCount = expectedUserCount;
-        this.serviceDays = serviceDays;
-        this.deliveryTime = deliveryTime;
-    }
 }

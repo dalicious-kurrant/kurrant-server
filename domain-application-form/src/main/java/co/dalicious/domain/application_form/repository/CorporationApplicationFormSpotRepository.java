@@ -8,5 +8,5 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 
 public interface CorporationApplicationFormSpotRepository extends JpaRepository<CorporationApplicationFormSpot, Long> {
-    List<CorporationApplicationFormSpot> findByCorporationApplicationForm(@NotNull CorporationApplicationForm corporationApplicationForm);
+    List<CorporationApplicationFormSpot> findAllByCorporationApplicationForm(@NotNull CorporationApplicationForm corporationApplicationForm);
 }

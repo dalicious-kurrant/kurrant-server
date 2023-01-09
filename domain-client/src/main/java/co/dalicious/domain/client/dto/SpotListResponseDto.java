@@ -1,14 +1,16 @@
 package co.dalicious.domain.client.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigInteger;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
+@Setter
+@Schema(description = "스팟 정보 응답 DTO")
 public class SpotListResponseDto {
     private Integer clientType;
     private BigInteger clientId;
@@ -24,7 +26,7 @@ public class SpotListResponseDto {
     }
 
     @Getter
-    @NoArgsConstructor
+    @Setter
     public static class Spot {
         private BigInteger spotId;
         private String spotName;

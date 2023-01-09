@@ -43,6 +43,7 @@ public class UserClientServiceImpl implements UserClientService {
     private final UserSpotRepository userSpotRepository;
 
     @Override
+    @Transactional
     public ClientSpotDetailResDto getSpotDetail(HttpServletRequest httpServletRequest, Integer clientType, BigInteger clientId, BigInteger spotId) {
         // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
@@ -56,7 +57,7 @@ public class UserClientServiceImpl implements UserClientService {
                 Apartment apartment = apartmentRepository.findById(clientId).orElseThrow(
                         () -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND)
                 );
-                List<ApartmentMealInfo> apartmentMealInfos = apartmentMealInfoRepository.findByApartment(apartment);
+                List<ApartmentMealInfo> apartmentMealInfos = apartmentMealInfoRepository.findAllByApartment(apartment);
                 ApartmentSpot apartmentSpot = apartmentSpotRepository.findById(spotId).orElseThrow(
                         () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
                 );
@@ -89,7 +90,7 @@ public class UserClientServiceImpl implements UserClientService {
                 Corporation corporation = corporationRepository.findById(clientId).orElseThrow(
                         () -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND)
                 );
-                List<CorporationMealInfo> corporationMealInfos = corporationMealInfoRepository.findByCorporation(corporation);
+                List<CorporationMealInfo> corporationMealInfos = corporationMealInfoRepository.findAllByCorporation(corporation);
                 CorporationSpot corporationSpot = corporationSpotRepository.findById(spotId).orElseThrow(
                         () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
                 );
@@ -138,7 +139,7 @@ public class UserClientServiceImpl implements UserClientService {
                 );
                 // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
                 Apartment apartment = apartmentSpot.getApartment();
-                List<UserApartment> apartments = userApartmentRepository.findByUser(user);
+                List<UserApartment> apartments = userApartmentRepository.findAllByUser(user);
                 UserApartment userApartment = apartments.stream().filter(v -> v.getApartment().equals(apartment))
                         .findAny()
                         .orElseThrow(() -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND));
@@ -159,7 +160,7 @@ public class UserClientServiceImpl implements UserClientService {
                 );
                 // 유저가 해당 기업 스팟 그룹에 등록되었는지 확인한다.
                 Corporation corporation = corporationSpot.getCorporation();
-                List<UserCorporation> corporations = userCorporationRepository.findByUser(user);
+                List<UserCorporation> corporations = userCorporationRepository.findAllByUser(user);
                 corporations.stream().filter(v -> v.getCorporation().equals(corporation))
                         .findAny()
                         .orElseThrow(() -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND));
@@ -182,7 +183,7 @@ public class UserClientServiceImpl implements UserClientService {
         User user = commonService.getUser(httpServletRequest);
         // 그룹 구분을 가져온다.
         ClientType client = ClientType.ofCode(clientType);
-        List<UserApartment> apartments = userApartmentRepository.findByUserAndClientStatus(user, ClientStatus.BELONG);
+        List<UserApartment> apartments = userApartmentRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         List<UserCorporation> corporations = userCorporationRepository.findByUserAndClientStatus(user, ClientStatus.BELONG);
         switch (client) {
             case APARTMENT -> {
@@ -214,6 +215,7 @@ public class UserClientServiceImpl implements UserClientService {
     }
 
     @Override
+    @Transactional
     public List<ApartmentResponseDto> getApartments() {
         List<Apartment> apartments = apartmentRepository.findAll();
         List<ApartmentResponseDto> apartmentResponseDtos = new ArrayList<>();

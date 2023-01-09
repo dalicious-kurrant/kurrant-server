@@ -6,6 +6,7 @@ import co.dalicious.domain.user.converter.ClientConverter;
 import co.dalicious.domain.user.entity.enums.ClientType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ import java.math.BigInteger;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user__user_spot")
 public class UserSpot {
     @Id

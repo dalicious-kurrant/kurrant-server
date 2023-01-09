@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserCorporationRepository extends JpaRepository<UserCorporation, BigInteger> {
-    Optional<UserCorporation> findByUserAndCorporationAndClientStatus(User user, Corporation corporation, ClientStatus clientStatus);
-    List<UserCorporation> findByUser(User user);
+    Optional<UserCorporation> findOneByUserAndCorporationAndClientStatus(User user, Corporation corporation, ClientStatus clientStatus);
+    List<UserCorporation> findAllByUser(User user);
     List<UserCorporation> findByUserAndClientStatus(User user, ClientStatus clientStatus);
 }

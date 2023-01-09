@@ -9,6 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<Employee, BigInteger> {
-    Optional<Employee> findByCorporationAndEmail(Corporation corporation, String email);
-    List<Employee> findByEmail(String email);
+    Optional<Employee> findOneByCorporationAndEmail(Corporation corporation, String email);
+    List<Employee> findAllByEmail(String email);
 }

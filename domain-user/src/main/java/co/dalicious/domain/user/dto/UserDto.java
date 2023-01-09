@@ -6,13 +6,13 @@ import co.dalicious.domain.user.entity.enums.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
 @Schema(description = "유저 생성 Dto")
-@NoArgsConstructor
+@Setter
 @Getter
 public class UserDto {
     private String email;

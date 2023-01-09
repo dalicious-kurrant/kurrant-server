@@ -27,7 +27,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public LoginResponseDto login(LoginRequestDto dto) {
-    User user = userRepository.findByEmail(dto.getUsername()).orElseThrow(() -> {
+    User user = userRepository.findOneByEmail(dto.getUsername()).orElseThrow(() -> {
       return new UsernameNotFoundException("");
     });
 

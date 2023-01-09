@@ -1,5 +1,6 @@
 package co.dalicious.domain.food.entity;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -9,7 +10,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "food__origin")
 public class Origin {

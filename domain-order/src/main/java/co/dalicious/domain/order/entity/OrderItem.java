@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.entity;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.Date;
 @DynamicUpdate
 @Getter
 @Entity
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "order__order_item")
 public class OrderItem {
 
@@ -72,9 +73,9 @@ public class OrderItem {
 
     @Column(name = "food__food_id")
     @Comment("식품 ID")
-    private Integer foodId;
+    private BigInteger foodId;
     @Builder
-    public OrderItem(BigInteger id, LocalDate created, LocalDate updated, LocalDate serviceDate, Boolean check, Integer price, String eDiningType, Integer count, Integer userId, Integer orderId, Integer foodId) {
+    public OrderItem(BigInteger id, LocalDate created, LocalDate updated, LocalDate serviceDate, Boolean check, Integer price, String eDiningType, Integer count, Integer userId, Integer orderId, BigInteger foodId) {
         this.id = id;
         this.created = created;
         this.updated = updated;

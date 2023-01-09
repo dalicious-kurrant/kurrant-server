@@ -4,6 +4,7 @@ import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.EmployeeRepository;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.repository.UserApartmentRepository;
 import co.dalicious.domain.user.repository.UserCorporationRepository;
 import exception.ApiException;
@@ -26,7 +27,7 @@ public class ClientUtil {
     public void isRegisteredUser(User user) {
         // 해당 이메일로 등록된 사원이 있는지 확인
         String email = user.getEmail();
-        List<Employee> employees = employeeRepository.findByEmail(email);
+        List<Employee> employees = employeeRepository.findAllByEmail(email);
         // 해당 이메일로 등록된 사원이 존재한다면 유저 정보에 기업 저장 (복수의 스팟이 가능)
         if (!employees.isEmpty()) {
             for(Employee employee : employees) {
@@ -46,7 +47,7 @@ public class ClientUtil {
         if (userSpot == null) {
             // 유저가 속해있는 그룹이 있는지 조회한다.
             List<UserCorporation> userCorporations = userCorporationRepository.findByUserAndClientStatus(user, ClientStatus.BELONG);
-            List<UserApartment> userApartments = userApartmentRepository.findByUserAndClientStatus(user, ClientStatus.BELONG);
+            List<UserApartment> userApartments = userApartmentRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
             if (userCorporations.isEmpty() && userApartments.isEmpty()) {
                 // 그룹과 스팟 모두 존재하지 않을 경우
                 return SpotStatus.NO_SPOT_AND_CLIENT;
@@ -60,7 +61,7 @@ public class ClientUtil {
                 ApartmentSpot apartmentSpot = userSpot.getApartmentSpot();
                 Apartment apartment = apartmentSpot.getApartment();
                 // 유저가 그 그룹에 속해있는지 조회한다.
-                Optional<UserApartment> userApartment = userApartmentRepository.findByUserAndApartmentAndClientStatus(user, apartment, ClientStatus.BELONG);
+                Optional<UserApartment> userApartment = userApartmentRepository.findOneByUserAndApartmentAndClientStatus(user, apartment, ClientStatus.BELONG);
                 if (userApartment.isEmpty()) {
                     throw new ApiException(ExceptionEnum.SPOT_DATA_INTEGRITY_ERROR);
                 }
@@ -69,7 +70,7 @@ public class ClientUtil {
                 CorporationSpot corporationSpot = userSpot.getCorporationSpot();
                 Corporation corporation = corporationSpot.getCorporation();
                 // 유저가 그 그룹에 속해있는지 조회한다.
-                Optional<UserCorporation> userCorporation = userCorporationRepository.findByUserAndCorporationAndClientStatus(user, corporation, ClientStatus.BELONG);
+                Optional<UserCorporation> userCorporation = userCorporationRepository.findOneByUserAndCorporationAndClientStatus(user, corporation, ClientStatus.BELONG);
                 if (userCorporation.isEmpty()) {
                     throw new ApiException(ExceptionEnum.SPOT_DATA_INTEGRITY_ERROR);
                 }

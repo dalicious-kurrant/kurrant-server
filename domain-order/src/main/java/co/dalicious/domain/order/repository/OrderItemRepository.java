@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface OrderItemRepository extends JpaRepository<OrderItem, BigInteger> {
 
-    List<OrderItem> findByServiceDateBetween(LocalDate startDate, LocalDate endDate);
+    List<OrderItem> findAllByServiceDateBetween(LocalDate startDate, LocalDate endDate);
 
     List<OrderItem> findAll();
 }

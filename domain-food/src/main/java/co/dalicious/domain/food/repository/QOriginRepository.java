@@ -15,7 +15,7 @@ import static co.dalicious.domain.food.entity.QOrigin.origin;
 public class QOriginRepository {
     public final JPAQueryFactory queryFactory;
 
-    public List<Origin> findByFoodId(BigInteger foodId) {
+    public List<Origin> findAllByFoodId(BigInteger foodId) {
               return queryFactory.selectFrom(origin)
                 .where(origin.food.id.eq(foodId))
                 .fetch();

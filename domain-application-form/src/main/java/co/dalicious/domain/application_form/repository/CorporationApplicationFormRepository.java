@@ -7,5 +7,5 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface CorporationApplicationFormRepository extends JpaRepository<CorporationApplicationForm, Long> {
-    List<CorporationApplicationForm> findByUserId(BigInteger id);
+    List<CorporationApplicationForm> findAllByUserId(BigInteger id);
 }

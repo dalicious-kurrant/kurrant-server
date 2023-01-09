@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.entity;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 
 @Entity
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "order__cart")
 public class OrderCart {

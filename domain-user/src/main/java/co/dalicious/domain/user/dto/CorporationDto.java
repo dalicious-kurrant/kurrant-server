@@ -1,15 +1,12 @@
 package co.dalicious.domain.user.dto;
 
 import co.dalicious.system.util.DiningType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 @Getter
-@NoArgsConstructor
+@Setter
+@Schema(description = "기업 생성 요청 DTO")
 public class CorporationDto {
     String name;
     Integer employeeCount;
@@ -17,7 +14,6 @@ public class CorporationDto {
     String deliveryTime;
 
     @Builder
-
     public CorporationDto(String name, Integer employeeCount, DiningType diningType, String deliveryTime) {
         this.name = name;
         this.employeeCount = employeeCount;

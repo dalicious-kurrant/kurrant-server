@@ -4,6 +4,7 @@ import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.user.converter.ClientStatusConverter;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ import org.hibernate.annotations.Comment;
 import javax.persistence.*;
 import java.math.BigInteger;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Getter
 @Table(name = "user__user_corporation")

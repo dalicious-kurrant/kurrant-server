@@ -5,6 +5,7 @@ import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,7 +24,7 @@ import java.util.List;
 @DynamicInsert
 @DynamicUpdate
 @Entity
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "client__corporation")
 public class Corporation {

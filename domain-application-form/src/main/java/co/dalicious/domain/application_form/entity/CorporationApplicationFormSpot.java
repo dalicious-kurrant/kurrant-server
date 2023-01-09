@@ -4,6 +4,7 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "application_form__spot")
 public class CorporationApplicationFormSpot {
     @Id

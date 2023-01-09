@@ -2,6 +2,7 @@ package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.user.entity.Membership;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,7 @@ import java.sql.Timestamp;
 @DynamicUpdate
 @Getter
 @Entity
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "order__order_membership")
 public class OrderMembership {
     @Id

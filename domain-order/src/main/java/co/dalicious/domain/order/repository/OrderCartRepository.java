@@ -11,5 +11,5 @@ import java.util.List;
 @Repository
 public interface OrderCartRepository extends JpaRepository<OrderCart, BigInteger> {
 
-    List<OrderCart> findByUserId(BigInteger id);
+    List<OrderCart> findAllByUserId(BigInteger id);
 }

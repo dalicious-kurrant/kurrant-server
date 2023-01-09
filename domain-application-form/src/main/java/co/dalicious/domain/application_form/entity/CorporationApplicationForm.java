@@ -1,13 +1,14 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.application_form.converter.ProgressStausConverter;
+import co.dalicious.domain.application_form.converter.ProgressStatusConverter;
 import co.dalicious.domain.application_form.dto.ApplyUserDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplyInfoDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationOptionsDto;
 import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +25,7 @@ import java.util.List;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "application_form__corporation")
 public class CorporationApplicationForm {
     @Id
@@ -32,7 +33,7 @@ public class CorporationApplicationForm {
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
-    @Convert(converter = ProgressStausConverter.class)
+    @Convert(converter = ProgressStatusConverter.class)
     @Comment("진행 상황")
     private ProgressStatus progressStatus;
 

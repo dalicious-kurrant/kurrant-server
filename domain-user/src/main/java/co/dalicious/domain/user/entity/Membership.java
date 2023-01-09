@@ -5,6 +5,7 @@ import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 @Table(name = "user__membership")

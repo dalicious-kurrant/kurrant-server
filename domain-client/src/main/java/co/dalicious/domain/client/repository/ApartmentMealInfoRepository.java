@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ApartmentMealInfoRepository extends JpaRepository<ApartmentMealInfo, Long> {
-    List<ApartmentMealInfo> findByApartment(Apartment apartment);
+    List<ApartmentMealInfo> findAllByApartment(Apartment apartment);
 }

@@ -1,12 +1,11 @@
 package co.dalicious.domain.address.dto;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@NoArgsConstructor
+@Setter
 public class CreateAddressResponseDto {
     private String address;
 
