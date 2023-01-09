@@ -10,5 +10,5 @@ import java.util.Optional;
 
 @Repository
 public interface FoodRepository extends JpaRepository<Food, BigInteger> {
-    Optional<Food> findOneById(Integer foodId);
+    Optional<Food> findOneById(BigInteger foodId);
 }

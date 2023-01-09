@@ -68,13 +68,13 @@ public class OrderItem {
 
     @Column(name = "order__order_id")
     @Comment("주문 ID")
-    private Integer orderId;
+    private BigInteger orderId;
 
     @Column(name = "food__food_id")
     @Comment("식품 ID")
-    private Integer foodId;
+    private BigInteger foodId;
     @Builder
-    public OrderItem(BigInteger id, LocalDate created, LocalDate updated, LocalDate serviceDate, Boolean check, Integer price, String eDiningType, Integer count, Integer userId, Integer orderId, Integer foodId) {
+    public OrderItem(BigInteger id, LocalDate created, LocalDate updated, LocalDate serviceDate, Boolean check, Integer price, String eDiningType, Integer count, Integer userId, BigInteger orderId, BigInteger foodId) {
         this.id = id;
         this.created = created;
         this.updated = updated;

@@ -77,7 +77,7 @@ public class FoodServiceImpl implements FoodService {
 
         Food food = foodRepository.findOneById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        List<Origin> origin = qOriginRepository.findByFoodId(BigInteger.valueOf(foodId));
+        List<Origin> origin = qOriginRepository.findByFoodId(foodId);
 
         List<OriginList> originList = new ArrayList<>();
         for (Origin origin1 : origin){

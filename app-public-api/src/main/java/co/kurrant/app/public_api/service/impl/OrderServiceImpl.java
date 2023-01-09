@@ -119,7 +119,7 @@ public class OrderServiceImpl implements OrderService {
         //cart_id와 food_id가 같은 경우 삭제
         User user = commonService.getUser(httpServletRequest);
         List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
-        qOrderCartItemRepository.deleteByFoodId(cart.get(0).getId(), BigInteger.valueOf(dailyFoodId));
+        qOrderCartItemRepository.deleteByFoodId(cart.get(0).getId(), dailyFoodId);
     }
 
     @Override
