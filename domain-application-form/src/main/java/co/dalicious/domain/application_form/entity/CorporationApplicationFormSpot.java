@@ -22,7 +22,6 @@ import java.util.List;
 public class CorporationApplicationFormSpot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @NotNull
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 

@@ -39,6 +39,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final ApartmentApplicationMealInfoReqMapper apartmentApplicationMealInfoReqMapper;
     private final CorporationApplicationReqMapper corporationApplicationReqMapper;
     private final CorporationApplicationSpotReqMapper corporationApplicationSpotReqMapper;
+    private final CorporationApplicationFormResMapper corporationApplicationFormResMapper;
 
     @Override
     @Transactional
@@ -78,26 +79,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     public ApplicationFormDto registerCorporationSpot(HttpServletRequest httpServletRequest, CorporationApplicationFormRequestDto corporationApplicationFormRequestDto) {
         // 유저 아이디 가져오기
         BigInteger userId = commonService.getUserId(httpServletRequest);
-//        // 담당자 정보 가져오기
-//        ApplyUserDto applyUserDto = corporationApplicationFormRequestDto.getUser();
-//
-//        // 스팟 신청 기업 정보 가져오기
-//        CorporationApplyInfoDto applyInfoDto = corporationApplicationFormRequestDto.getCorporationInfo();
-//
-//        // 스팟 신청 기업 주소 정보 가져오기
-//        CreateAddressRequestDto addressRequestDto = corporationApplicationFormRequestDto.getAddress();
-//        Address address = Address.builder()
-//                .createAddressRequestDto(addressRequestDto)
-//                .build();
-//
         // 식사 정보 리스트 가져오기
         List<CorporationMealInfoRequestDto> mealInfoRequestDtoList = corporationApplicationFormRequestDto.getMealDetails();
-//
         // 스팟 신청 기업의 등록 요청 스팟들 가져오기
         List<CorporationSpotRequestDto> spots = corporationApplicationFormRequestDto.getSpots();
-//
-//        // 옵션 내용 가져오기
-//        CorporationOptionsDto corporationOptionsDto = corporationApplicationFormRequestDto.getOption();
 
         // 기업 스팟 신청서 저장
         CorporationApplicationForm corporationApplicationForm = corporationApplicationReqMapper.toEntity(corporationApplicationFormRequestDto);
@@ -120,13 +105,14 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         return ApplicationFormDto.builder()
                 .clientType(1)
                 .id(corporationApplicationForm.getId())
+                .name(corporationApplicationForm.getCorporationName())
                 .date(DateUtils.format(LocalDate.now(), "yyyy. MM. dd"))
                 .build();
     }
 
     @Override
     @Transactional
-    public void updateCorporationApplicationFormMemo(HttpServletRequest httpServletRequest, Long id, ApplicationFormMemoDto applicationFormMemoDto) {
+    public void updateCorporationApplicationFormMemo(HttpServletRequest httpServletRequest, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto) {
         // 유저 아이디 가져오기
         BigInteger userId = commonService.getUserId(httpServletRequest);
         // 로그인 한 유저와 수정하려는 신청서의 작성자가 같은 사람인지 검사
@@ -147,9 +133,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional
-    public CorporationApplicationFormResponseDto getCorporationApplicationFormDetail(BigInteger userId, Long id) {
-//        // 기업 스팟 신청서 가져오기
-//        CorporationApplicationForm corporationApplicationForm = applicationFormValidator.isValidCorporationApplicationForm(userId, id);
+    public CorporationApplicationFormResponseDto getCorporationApplicationFormDetail(BigInteger userId, BigInteger id) {
+        // 기업 스팟 신청서 가져오기
+        CorporationApplicationForm corporationApplicationForm = applicationFormValidator.isValidCorporationApplicationForm(userId, id);
+        return corporationApplicationFormResMapper.toDto(corporationApplicationForm);
 //        // 담당자 정보 가져오기
 //        ApplyUserDto applyUserDto = ApplyUserDto.builder()
 //                .name(corporationApplicationForm.getApplierName())
@@ -202,7 +189,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 //                .option(corporationOptionsDto)
 //                .rejectedReason(corporationApplicationForm.getRejectedReason())
 //                .build();
-        return null;
     }
 
     @Override

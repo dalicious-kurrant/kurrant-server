@@ -28,7 +28,7 @@ public class ApplicationFormValidator {
         return apartmentApplicationForm;
     }
 
-    public CorporationApplicationForm isValidCorporationApplicationForm(BigInteger userId, Long applicationFormId) {
+    public CorporationApplicationForm isValidCorporationApplicationForm(BigInteger userId, BigInteger applicationFormId) {
         // 신청서가 존재하는지 확인
         CorporationApplicationForm corporationApplicationForm = corporationApplicationFormRepository.findById(applicationFormId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.APPLICATION_FORM_NOT_FOUND));

@@ -10,6 +10,7 @@ import java.time.LocalDate;
 
 @Mapper(componentModel = "spring")
 public interface CorporationApplicationReqMapper {
+    @Mapping(target = "progressStatus", constant = "APPLY")
     @Mapping(source = "user.name", target = "applierName")
     @Mapping(source = "user.phone", target = "phone")
     @Mapping(source = "user.email", target = "email")

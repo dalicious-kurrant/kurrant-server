@@ -34,6 +34,10 @@ public interface CorporationApplicationFormResMapper {
     @Mapping(source = "serviceStartDate", target = "corporationInfo.startDate", qualifiedByName = "dateToString")
     @Mapping(source = "mealInfoList", target = "corporationInfo.diningTypes", qualifiedByName = "getDiningTypes")
     @Mapping(source = "mealInfoList", target = "mealDetails", qualifiedByName = "mealInfoListToDtos")
+    @Mapping(source = "isGarbage", target = "option.isGarbage")
+    @Mapping(source = "isHotStorage", target = "option.isHotStorage")
+    @Mapping(source = "isSetting", target = "option.isSetting")
+    @Mapping(source = "memo", target = "option.memo")
     CorporationApplicationFormResponseDto toDto(CorporationApplicationForm corporationApplicationForm);
 
     @Named("createdDateTimeToDate")
