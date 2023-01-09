@@ -84,8 +84,8 @@ public interface ApartmentApplicationFormResMapper {
     }
 
     @Named("serviceDaysToString")
-    default String serviceDaysToString(List<Integer> serviceDays) {
-        return DaysUtil.serviceDaysToDbData(serviceDays);
+    default String serviceDaysToString(String serviceDays) {
+        return DaysUtil.serviceDaysToString(serviceDays);
     }
 }
 

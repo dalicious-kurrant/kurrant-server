@@ -13,12 +13,4 @@ public class CorporationOptionsDto {
     private Boolean isHotStorage;
     private Boolean isSetting;
     private String memo;
-
-    @Builder
-    public CorporationOptionsDto(Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String memo) {
-        this.isGarbage = isGarbage;
-        this.isHotStorage = isHotStorage;
-        this.isSetting = isSetting;
-        this.memo = memo;
-    }
 }

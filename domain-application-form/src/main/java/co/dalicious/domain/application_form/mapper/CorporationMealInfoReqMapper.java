@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.mapper.client;
+package co.dalicious.domain.application_form.mapper;
 
 import co.dalicious.domain.application_form.dto.corporation.CorporationMealInfoRequestDto;
 import co.dalicious.domain.application_form.entity.CorporationApplicationMealInfo;
@@ -9,7 +9,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -33,15 +32,5 @@ public interface CorporationMealInfoReqMapper{
     @Named("listToString")
     default String listToString(List<Integer> days) {
         return DaysUtil.serviceDaysToDbData(days);
-    }
-
-    @Named("stringToList")
-    default List<Integer> stringToList(String days) {
-        String[] daysList = days.split(", ");
-        List<Integer> integerList = new ArrayList<>();
-        for(String day : daysList) {
-            integerList.add(Integer.parseInt(days));
-        }
-        return integerList;
     }
 }

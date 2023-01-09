@@ -133,23 +133,25 @@ public class CorporationApplicationForm {
     }
 
     @Builder
-    public CorporationApplicationForm(ProgressStatus progressStatus, BigInteger userId, ApplyUserDto applyUserDto, CorporationApplyInfoDto applyInfoDto, Address address, CorporationOptionsDto corporationOptionsDto) {
-        String date = applyInfoDto.getStartDate();
+    public CorporationApplicationForm(ProgressStatus progressStatus, String applierName, String phone, String email, String corporationName, Address address, Integer employeeCount, LocalDate serviceStartDate, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String memo, String rejectedReason) {
         this.progressStatus = progressStatus;
-        this.userId = userId;
-        this.applierName = applyUserDto.getName();
-        this.phone = applyUserDto.getPhone();
-        this.email = applyUserDto.getEmail();
-        this.corporationName = applyInfoDto.getCorporationName();
+        this.applierName = applierName;
+        this.phone = phone;
+        this.email = email;
+        this.corporationName = corporationName;
         this.address = address;
-        this.employeeCount = applyInfoDto.getEmployeeCount();
-        this.serviceStartDate = LocalDate.of(Integer.parseInt(date.substring(0, 4)),
-                Integer.parseInt(date.substring(4, 6)),
-                Integer.parseInt(date.substring(6, 8)));
-        this.isGarbage = corporationOptionsDto.getIsGarbage();
-        this.isHotStorage = corporationOptionsDto.getIsHotStorage();
-        this.isSetting = corporationOptionsDto.getIsSetting();
-        this.memo = corporationOptionsDto.getMemo();
+        this.employeeCount = employeeCount;
+        this.serviceStartDate = serviceStartDate;
+        this.isGarbage = isGarbage;
+        this.isHotStorage = isHotStorage;
+        this.isSetting = isSetting;
+        this.memo = memo;
+        this.rejectedReason = rejectedReason;
+    }
+
+
+    public void setUserId(BigInteger userId) {
+        this.userId = userId;
     }
 
     public void updateMemo(String memo) {

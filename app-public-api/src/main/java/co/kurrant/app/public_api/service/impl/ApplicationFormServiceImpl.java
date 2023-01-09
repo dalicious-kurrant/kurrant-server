@@ -1,21 +1,16 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.address.dto.CreateAddressRequestDto;
-import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
-import co.dalicious.domain.application_form.dto.*;
 import co.dalicious.domain.application_form.dto.apartment.*;
 import co.dalicious.domain.application_form.dto.corporation.*;
 import co.dalicious.domain.application_form.entity.*;
-import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.client.*;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.CommonService;
-import co.kurrant.app.public_api.mapper.client.CorporationMealInfoReqMapper;
-import co.kurrant.app.public_api.mapper.client.CorporationSpotReqMapper;
+import co.dalicious.domain.application_form.mapper.CorporationMealInfoReqMapper;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,6 +37,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final ApartmentApplicationFormResMapper apartmentApplicationFormResMapper;
     private final ApartmentApplicationReqMapper apartmentApplicationReqMapper;
     private final ApartmentApplicationMealInfoReqMapper apartmentApplicationMealInfoReqMapper;
+    private final CorporationApplicationReqMapper corporationApplicationReqMapper;
+    private final CorporationApplicationSpotReqMapper corporationApplicationSpotReqMapper;
 
     @Override
     @Transactional
@@ -81,54 +78,44 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     public ApplicationFormDto registerCorporationSpot(HttpServletRequest httpServletRequest, CorporationApplicationFormRequestDto corporationApplicationFormRequestDto) {
         // 유저 아이디 가져오기
         BigInteger userId = commonService.getUserId(httpServletRequest);
-        // 담당자 정보 가져오기
-        ApplyUserDto applyUserDto = corporationApplicationFormRequestDto.getUser();
-
-        // 스팟 신청 기업 정보 가져오기
-        CorporationApplyInfoDto applyInfoDto = corporationApplicationFormRequestDto.getCorporationInfo();
-
-        // 스팟 신청 기업 주소 정보 가져오기
-        CreateAddressRequestDto addressRequestDto = corporationApplicationFormRequestDto.getAddress();
-        Address address = Address.builder()
-                .createAddressRequestDto(addressRequestDto)
-                .build();
-
+//        // 담당자 정보 가져오기
+//        ApplyUserDto applyUserDto = corporationApplicationFormRequestDto.getUser();
+//
+//        // 스팟 신청 기업 정보 가져오기
+//        CorporationApplyInfoDto applyInfoDto = corporationApplicationFormRequestDto.getCorporationInfo();
+//
+//        // 스팟 신청 기업 주소 정보 가져오기
+//        CreateAddressRequestDto addressRequestDto = corporationApplicationFormRequestDto.getAddress();
+//        Address address = Address.builder()
+//                .createAddressRequestDto(addressRequestDto)
+//                .build();
+//
         // 식사 정보 리스트 가져오기
         List<CorporationMealInfoRequestDto> mealInfoRequestDtoList = corporationApplicationFormRequestDto.getMealDetails();
-
+//
         // 스팟 신청 기업의 등록 요청 스팟들 가져오기
         List<CorporationSpotRequestDto> spots = corporationApplicationFormRequestDto.getSpots();
-
-        // 옵션 내용 가져오기
-        CorporationOptionsDto corporationOptionsDto = corporationApplicationFormRequestDto.getOption();
+//
+//        // 옵션 내용 가져오기
+//        CorporationOptionsDto corporationOptionsDto = corporationApplicationFormRequestDto.getOption();
 
         // 기업 스팟 신청서 저장
-        CorporationApplicationForm corporationApplicationForm = corporationApplicationFormRepository.save(
-                CorporationApplicationForm.builder()
-                        .progressStatus(ProgressStatus.APPLY)
-                        .userId(userId)
-                        .applyUserDto(applyUserDto)
-                        .applyInfoDto(applyInfoDto)
-                        .address(address)
-                        .corporationOptionsDto(corporationOptionsDto)
-                        .build());
+        CorporationApplicationForm corporationApplicationForm = corporationApplicationReqMapper.toEntity(corporationApplicationFormRequestDto);
+        corporationApplicationForm.setUserId(userId);
+        corporationApplicationFormRepository.save(corporationApplicationForm);
 
         // 스팟 신청 정보 저장
-        List<CorporationApplicationFormSpot> spotList = new ArrayList<>();
         for (CorporationSpotRequestDto spot : spots) {
-            CorporationApplicationFormSpot corporationSpotApplicationForm = CorporationSpotReqMapper.INSTANCE.toEntity(spot);
+            CorporationApplicationFormSpot corporationSpotApplicationForm = corporationApplicationSpotReqMapper.toEntity(spot);
             corporationSpotApplicationForm.setCorporationApplicationForm(corporationApplicationForm);
-            spotList.add(corporationApplicationFormSpotRepository.save(corporationSpotApplicationForm));
+            corporationApplicationFormSpotRepository.save(corporationSpotApplicationForm);
         }
-        corporationApplicationForm.setSpots(spotList);
         // 식사 정보 저장
-        List<CorporationApplicationMealInfo> mealInfoList = new ArrayList<>();
         for (CorporationMealInfoRequestDto mealInfoRequestDto : mealInfoRequestDtoList) {
             CorporationApplicationMealInfo corporationApplicationMealInfo = corporationMealInfoReqMapper.toEntity(mealInfoRequestDto);
             corporationApplicationMealInfo.setApplicationFormCorporation(corporationApplicationForm);
-            mealInfoList.add(corporationApplicationMealRepository.save(corporationApplicationMealInfo));
+            corporationApplicationMealRepository.save(corporationApplicationMealInfo);
         }
-        corporationApplicationForm.setMealInfoList(mealInfoList);
 
         return ApplicationFormDto.builder()
                 .clientType(1)

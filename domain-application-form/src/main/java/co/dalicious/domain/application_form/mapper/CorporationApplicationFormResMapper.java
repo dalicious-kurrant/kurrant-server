@@ -4,11 +4,11 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationMealInfoResponseDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationSpotResponseDto;
-import co.dalicious.domain.application_form.entity.ApartmentApplicationMealInfo;
 import co.dalicious.domain.application_form.entity.CorporationApplicationForm;
 import co.dalicious.domain.application_form.entity.CorporationApplicationFormSpot;
 import co.dalicious.domain.application_form.entity.CorporationApplicationMealInfo;
 import co.dalicious.domain.application_form.entity.enums.PriceAverage;
+import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.DiningType;
@@ -47,9 +47,9 @@ public interface CorporationApplicationFormResMapper {
     }
 
     @Named("getDiningTypes")
-    default List<String> getDiningTypes(List<ApartmentApplicationMealInfo> mealInfoList) {
+    default List<String> getDiningTypes(List<CorporationApplicationMealInfo> mealInfoList) {
         List<String> stringDiningTypes = new ArrayList<>();
-        for (ApartmentApplicationMealInfo mealInfo : mealInfoList) {
+        for (CorporationApplicationMealInfo mealInfo : mealInfoList) {
             stringDiningTypes.add(mealInfo.getDiningType().getDiningType());
         }
         return stringDiningTypes;
@@ -58,6 +58,11 @@ public interface CorporationApplicationFormResMapper {
     @Named("addressToString")
     default String addressToString(Address address) {
         return address.addressToString();
+    }
+
+    @Named("progressStatusToInteger")
+    default Integer progressStatusToInteger(ProgressStatus progressStatus) {
+        return progressStatus.getCode();
     }
 
 
@@ -77,8 +82,8 @@ public interface CorporationApplicationFormResMapper {
         return priceAverage.getPriceAverage();
     }
     @Named("serviceDaysToString")
-    default String serviceDaysToString(List<Integer> serviceDays) {
-        return DaysUtil.serviceDaysToDbData(serviceDays);
+    default String serviceDaysToString(String serviceDays) {
+        return DaysUtil.serviceDaysToString(serviceDays);
     }
 
     @Named("mealInfoListToDtos")

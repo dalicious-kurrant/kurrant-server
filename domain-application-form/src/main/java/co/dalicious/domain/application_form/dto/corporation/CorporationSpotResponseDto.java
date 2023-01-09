@@ -14,11 +14,4 @@ public class CorporationSpotResponseDto {
     private String spotName;
     private String address;
     private List<String> diningTypes;
-
-    @Builder
-    public CorporationSpotResponseDto(String spotName, String address, List<String> diningTypes) {
-        this.spotName = spotName;
-        this.address = address;
-        this.diningTypes = diningTypes;
-    }
 }

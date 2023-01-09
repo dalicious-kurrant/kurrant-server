@@ -18,9 +18,4 @@ public class CorporationMealInfoRequestDto {
     private Integer expectedUserCount;
     private List<Integer> serviceDays;
     private String deliveryTime;
-    private CorporationApplicationForm corporationApplicationForm;
-
-    public void setCorporationApplicationForm(CorporationApplicationForm corporationApplicationForm) {
-        this.corporationApplicationForm = corporationApplicationForm;
-    }
 }
