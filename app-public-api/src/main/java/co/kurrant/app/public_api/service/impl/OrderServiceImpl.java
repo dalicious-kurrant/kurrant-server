@@ -21,6 +21,8 @@ import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.OrderService;
 
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,18 +38,17 @@ import java.util.*;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    private final OrderItemRepository orderItemRepository;
     private final QOrderItemRepository qOrderItemRepository;
     private final FoodRepository foodRepository;
     private final OrderCartRepository orderCartRepository;
     private final QOrderCartRepository qOrderCartRepository;
     private final OrderCartItemRepository orderCartItemRepository;
     private final DailyFoodRepository dailyFoodRepository;
-    private final QDailyFoodRepository qDailyFoodRepository;
     private final QOrderCartItemRepository qOrderCartItemRepository;
     private final CommonService commonService;
 
     @Override
+    @Transactional
     public Object findOrderByServiceDate(LocalDate startDate, LocalDate endDate){
         List<OrderDetailDto> resultList = new ArrayList<>();
         OrderDetailDto orderDetailDto = new OrderDetailDto();
@@ -60,7 +61,9 @@ public class OrderServiceImpl implements OrderService {
             orderDetailDto.setId(x.getId());
             orderDetailDto.setServiceDate(DateUtils.format(x.getServiceDate(), "yyyy-MM-dd") );
 
-            Food food = foodRepository.findById(x.getFoodId());
+            Food food = foodRepository.findOneById(x.getFoodId()).orElseThrow(
+                    () -> new ApiException(ExceptionEnum.NOT_FOUND)
+            );
 
             OrderItemDto orderItemDto = OrderItemDto.builder()
                     .name(food.getName())
@@ -77,6 +80,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public Object findCartById(HttpServletRequest httpServletRequest) {
         //유저정보 가져오기
         User user = commonService.getUser(httpServletRequest);
@@ -108,7 +112,7 @@ public class OrderServiceImpl implements OrderService {
     public void deleteByUserId(HttpServletRequest httpServletRequest) {
         // order__cart_item에서 user_id에 해당되는 항목 모두 삭제
         User user = commonService.getUser(httpServletRequest);
-        List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
+        List<OrderCart> cart = orderCartRepository.findAllByUserId(user.getId());
         BigInteger cartId = cart.get(0).getId();
         qOrderCartItemRepository.deleteByCartId(cartId);
     }
@@ -118,7 +122,7 @@ public class OrderServiceImpl implements OrderService {
     public void deleteById(HttpServletRequest httpServletRequest, Integer dailyFoodId) {
         //cart_id와 food_id가 같은 경우 삭제
         User user = commonService.getUser(httpServletRequest);
-        List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
+        List<OrderCart> cart = orderCartRepository.findAllByUserId(user.getId());
         qOrderCartItemRepository.deleteByFoodId(cart.get(0).getId(), BigInteger.valueOf(dailyFoodId));
     }
 
@@ -126,7 +130,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void updateByFoodId(HttpServletRequest httpServletRequest, UpdateCartDto updateCartDto) {
         User user = commonService.getUser(httpServletRequest);
-        List<OrderCart> cart = orderCartRepository.findByUserId(user.getId());
+        List<OrderCart> cart = orderCartRepository.findAllByUserId(user.getId());
 
         for (UpdateCart updateCart : updateCartDto.getUpdateCartList()){
             //dailyFoodId를 담아준다.
@@ -150,7 +154,7 @@ public class OrderServiceImpl implements OrderService {
         User user = commonService.getUser(httpServletRequest);
         BigInteger id = user.getId();
 
-        List<OrderCart> orderCartId = orderCartRepository.findByUserId(id);
+        List<OrderCart> orderCartId = orderCartRepository.findAllByUserId(id);
 
         //UserId로 찾았을때 장바구니가 없다면 생성
         if(orderCartId.isEmpty()){

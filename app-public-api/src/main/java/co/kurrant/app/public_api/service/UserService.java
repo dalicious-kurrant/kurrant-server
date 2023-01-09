@@ -13,8 +13,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 public interface UserService {
+    // 마이페이지(홈) 유저 정보 가져오기
+    UserInfoDto getUserInfo(User user);
     // 홈 유저 정보 가져오기
-    UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest);
+    UserHomeResponseDto getUserHomeInfo(User user);
     // SNS 계정 연결
     void connectSnsAccount(HttpServletRequest httpServletRequest, SnsAccessToken snsAccessToken, String sns);
     // SNS 계정 해제
@@ -31,8 +33,6 @@ public interface UserService {
     MarketingAlarmResponseDto changeAlarmSetting(HttpServletRequest httpServletRequest, MarketingAlarmRequestDto marketingAlarmDto);
     // 마이페이지(개인정보) 유저 정보 가져오기
     UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest);
-    // 마이페이지(홈) 유저 정보 가져오기
-    UserInfoDto getUserInfo(HttpServletRequest httpServletRequest);
     // TODO: 추후 백오피스 구현시 삭제
     void settingCorporation(HttpServletRequest httpServletRequest, BigInteger corporationId);
     // TODO: 추후 백오피스 구현시 삭제

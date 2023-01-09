@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserApartmentRepository extends JpaRepository<UserApartment, BigInteger> {
-    List<UserApartment> findByUser(User user);
-    Optional<UserApartment> findByUserAndApartmentAndClientStatus(User user, Apartment apartment, ClientStatus clientStatus);
-    List<UserApartment> findByUserAndClientStatus(User user, ClientStatus clientStatus);
+    List<UserApartment> findAllByUser(User user);
+    Optional<UserApartment> findOneByUserAndApartmentAndClientStatus(User user, Apartment apartment, ClientStatus clientStatus);
+    List<UserApartment> findAllByUserAndClientStatus(User user, ClientStatus clientStatus);
 }

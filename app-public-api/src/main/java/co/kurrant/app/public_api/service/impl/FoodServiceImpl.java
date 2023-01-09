@@ -16,6 +16,7 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class FoodServiceImpl implements FoodService {
 
 
     @Override
+    @Transactional
     public Object getDailyFood(Integer spotId, LocalDate selectedDate) {
         //결과값을 담아줄 LIST 생성
         List<DailyFoodDto> resultList = new ArrayList<>();
@@ -62,13 +64,14 @@ public class FoodServiceImpl implements FoodService {
     }
 
     @Override
+    @Transactional
     public FoodDetailDto getFoodDetail(BigInteger foodId) {
 
         Food food = foodRepository.findById(foodId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
 
-        List<Origin> origin = qOriginRepository.findByFoodId(foodId);
+        List<Origin> origin = qOriginRepository.findAllByFoodId(foodId);
 
         List<OriginList> originList = new ArrayList<>();
         for (Origin origin1 : origin){

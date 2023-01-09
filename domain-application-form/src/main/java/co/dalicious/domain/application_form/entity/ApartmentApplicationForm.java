@@ -1,12 +1,11 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.application_form.converter.ProgressStausConverter;
-import co.dalicious.domain.application_form.dto.apartment.ApartmentApplyInfoDto;
-import co.dalicious.domain.application_form.dto.ApplyUserDto;
+import co.dalicious.domain.application_form.converter.ProgressStatusConverter;
 import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,7 +22,7 @@ import java.util.List;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "application_form__apartement")
 public class ApartmentApplicationForm {
     @Id
@@ -32,7 +31,8 @@ public class ApartmentApplicationForm {
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
-    @Convert(converter = ProgressStausConverter.class)
+    @Convert(converter = ProgressStatusConverter.class)
+    @Column(name = "e_progress_status")
     @Comment("진행 상황")
     private ProgressStatus progressStatus;
 
@@ -78,11 +78,6 @@ public class ApartmentApplicationForm {
     private Integer dongCount;
 
     @NotNull
-    @Column(name = "expected_family_count", nullable = false)
-    @Comment("서비스 이용 예상 세대수")
-    private Integer expectedFamilyCount;
-
-    @NotNull
     @Column(name = "service_date", nullable = false)
     @Comment("서비스 이용 시작 예정일")
     private LocalDate serviceStartDate;
@@ -113,30 +108,25 @@ public class ApartmentApplicationForm {
     private Timestamp updatedDateTime;
 
     @Builder
-    public ApartmentApplicationForm(ProgressStatus progressStatus, BigInteger userId, ApplyUserDto applyUserDto, Address address, ApartmentApplyInfoDto apartmentApplyInfoDto, String memo) {
-        String serviceDate = apartmentApplyInfoDto.getServiceStartDate();
-
+    public ApartmentApplicationForm(ProgressStatus progressStatus, String applierName, String phone, String email, String apartmentName, Address address, Integer totalFamilyCount, Integer dongCount, LocalDate serviceStartDate, String memo, String rejectedReason) {
         this.progressStatus = progressStatus;
-        this.userId = userId;
-        this.applierName = applyUserDto.getName();
-        this.phone = applyUserDto.getPhone();
-        this.email = applyUserDto.getEmail();
-        this.apartmentName = apartmentApplyInfoDto.getApartmentName();
+        this.applierName = applierName;
+        this.phone = phone;
+        this.email = email;
+        this.apartmentName = apartmentName;
         this.address = address;
-        this.totalFamilyCount = apartmentApplyInfoDto.getFamilyCount();
-        this.dongCount = apartmentApplyInfoDto.getDongCount();
-        this.expectedFamilyCount = apartmentApplyInfoDto.getFamilyCount();
-        this.serviceStartDate = LocalDate.of(Integer.parseInt(serviceDate.substring(0, 4)),
-                Integer.parseInt(serviceDate.substring(4, 6)),
-                Integer.parseInt(serviceDate.substring(6, 8)));
+        this.totalFamilyCount = totalFamilyCount;
+        this.dongCount = dongCount;
+        this.serviceStartDate = serviceStartDate;
         this.memo = memo;
-    }
-
-    public void setMealInfoList(List<ApartmentApplicationMealInfo> mealInfoList) {
-        this.mealInfoList = mealInfoList;
+        this.rejectedReason = rejectedReason;
     }
     public void updateMemo(String memo) {
         this.memo = memo;
+    }
+
+    public void setUserId(BigInteger userId) {
+        this.userId = userId;
     }
 
     public void updateRejectedReason(String rejectedReason) {

@@ -5,6 +5,7 @@ import co.dalicious.system.util.FoodStatus;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.converter.FoodStatusConverter;
 import jdk.jshell.Snippet;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,7 +26,7 @@ import java.time.LocalDateTime;
 @DynamicInsert
 @DynamicUpdate
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "food__daily_food")
 public class DailyFood {

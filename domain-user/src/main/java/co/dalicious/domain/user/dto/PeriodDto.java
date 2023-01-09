@@ -7,8 +7,8 @@ import java.time.LocalDate;
 
 @Getter
 public class PeriodDto {
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
 
     @Builder
     public PeriodDto(LocalDate startDate, LocalDate endDate) {

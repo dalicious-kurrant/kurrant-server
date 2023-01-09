@@ -26,7 +26,7 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
-    public List<BigInteger> findByFoodId(BigInteger foodId, LocalDate serviceDate) {
+    public List<BigInteger> findAllByFoodId(BigInteger foodId, LocalDate serviceDate) {
         return queryFactory
                 .select(dailyFood.id)
                 .from(dailyFood)

@@ -64,12 +64,13 @@ public class UserServiceImpl implements UserService {
     private final CorporationResponseMapper corporationResponseMapper;
 
     @Override
-    public UserHomeResponseDto getUserHomeInfo(HttpServletRequest httpServletRequest) {
-        User user = commonService.getUser(httpServletRequest);
+    @Transactional
+    public UserHomeResponseDto getUserHomeInfo(User user) {
         return userHomeInfoMapper.toDto(user);
     }
 
     @Override
+    @Transactional
     public void connectSnsAccount(HttpServletRequest httpServletRequest, SnsAccessToken snsAccessToken, String sns) {
         // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
@@ -78,7 +79,7 @@ public class UserServiceImpl implements UserService {
         Provider provider = UserValidator.isValidProvider(sns);
 
         // 현재 로그인 한 아이디가 같은 Vendor의 아이디와 연결되어있는지 체크
-        List<ProviderEmail> providerEmails = providerEmailRepository.findByUser(user);
+        List<ProviderEmail> providerEmails = providerEmailRepository.findAllByUser(user);
         if (providerEmails.stream().anyMatch(pe -> pe.getProvider().equals(provider))) {
             throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
         }
@@ -94,7 +95,7 @@ public class UserServiceImpl implements UserService {
         String email = snsLoginResponseDto.getEmail();
 
         // 해당 아이디를 가지고 있는 유저가 존재하지는 지 확인.
-        Optional<ProviderEmail> providerEmail = providerEmailRepository.findAllByProviderAndEmail(provider, email);
+        Optional<ProviderEmail> providerEmail = providerEmailRepository.findOneByProviderAndEmail(provider, email);
 
         // 존재한다면 예외 발생
         if (providerEmail.isPresent()) {
@@ -113,6 +114,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void disconnectSnsAccount(HttpServletRequest httpServletRequest, String sns) {
         // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
@@ -121,7 +123,7 @@ public class UserServiceImpl implements UserService {
         Provider provider = UserValidator.isValidProvider(sns);
 
         // 현재 로그인 한 아이디가 이메일/비밀번호를 설정했는지 확인
-        List<ProviderEmail> providerEmails = providerEmailRepository.findByUser(user);
+        List<ProviderEmail> providerEmails = providerEmailRepository.findAllByUser(user);
         if(providerEmails == null) {
             throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
         }
@@ -211,6 +213,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public MarketingAlarmResponseDto getAlarmSetting(HttpServletRequest httpServletRequest) {
         // 유저 정보 가져오기
         User user = commonService.getUser(httpServletRequest);
@@ -301,8 +304,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserInfoDto getUserInfo(HttpServletRequest httpServletRequest) {
-        User user = commonService.getUser(httpServletRequest);
+    @Transactional
+    public UserInfoDto getUserInfo(User user) {
         Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
 //        Integer dailyMealCount =
 
@@ -314,6 +317,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     // TODO: 추후 백오피스 구현시 삭제
     public void settingCorporation(HttpServletRequest httpServletRequest, BigInteger corporationId) {
         User user = commonService.getUser(httpServletRequest);
@@ -327,6 +331,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     // TODO: 추후 백오피스 구현시 삭제
     public void settingApartment(HttpServletRequest httpServletRequest, BigInteger apartmentId) {
         User user = commonService.getUser(httpServletRequest);
@@ -339,6 +344,7 @@ public class UserServiceImpl implements UserService {
         userApartmentRepository.save(userApartment);
     }
     @Override
+    @Transactional
     public List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo() {
         List<MembershipSubscriptionTypeDto> membershipSubscriptionTypeDtos = new ArrayList<>();
 

@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -11,7 +12,7 @@ import java.math.BigInteger;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "client__admin_employee")
 public class Employee {
     @Id

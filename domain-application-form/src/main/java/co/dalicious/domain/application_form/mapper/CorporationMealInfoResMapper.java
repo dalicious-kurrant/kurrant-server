@@ -9,11 +9,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface CorporationMealInfoResMapper {
     @Mapping(source = "diningType", target = "diningType", qualifiedByName = "diningTypeToString")
     @Mapping(source = "priceAverage", target = "priceAverage", qualifiedByName = "priceAverageToString")
-    @Mapping(source = "serviceDays", target = "serviceDays", qualifiedByName = "dbDataToString")
+    @Mapping(source = "serviceDays", target = "serviceDays", qualifiedByName = "listToString")
     CorporationMealInfoResponseDto toDto(CorporationApplicationMealInfo corporationApplicationMealInfo);
 
     @Named("diningTypeToString")
@@ -26,8 +28,8 @@ public interface CorporationMealInfoResMapper {
         return priceAverage.getPriceAverage();
     }
 
-    @Named("dbDataToString")
-    default String dbDataToString(String dbData) {
-        return DaysUtil.serviceDaysToString(dbData);
+    @Named("listToString")
+    default String serviceDaysToString(String days) {
+        return DaysUtil.serviceDaysToString(days);
     }
 }

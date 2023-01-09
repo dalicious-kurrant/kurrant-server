@@ -8,5 +8,5 @@ import java.math.BigInteger;
 import java.util.Optional;
 
 public interface CorporationRepository extends JpaRepository<Corporation, BigInteger> {
-    Optional<Corporation> findByName(String name);
+    Optional<Corporation> findOneByName(String name);
 }

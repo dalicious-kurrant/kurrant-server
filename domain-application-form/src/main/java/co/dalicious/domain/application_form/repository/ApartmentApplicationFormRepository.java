@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.math.BigInteger;
 import java.util.List;
 
-public interface ApartmentApplicationFormRepository extends JpaRepository<ApartmentApplicationForm, Long> {
-    List<ApartmentApplicationForm> findByUserId(BigInteger userId);
+public interface ApartmentApplicationFormRepository extends JpaRepository<ApartmentApplicationForm, BigInteger> {
+    List<ApartmentApplicationForm> findAllByUserId(BigInteger userId);
 }

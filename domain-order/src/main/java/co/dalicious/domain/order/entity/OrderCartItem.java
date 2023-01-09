@@ -3,6 +3,7 @@ package co.dalicious.domain.order.entity;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.system.util.DiningType;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ import java.time.LocalDate;
 @DynamicUpdate
 @Getter
 @Entity
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "order__cart_item")
 public class OrderCartItem {
     @Id

@@ -2,6 +2,7 @@ package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.system.util.Spicy;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,7 @@ import java.math.BigInteger;
 @DynamicInsert
 @DynamicUpdate
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "food__food")
 public class Food {

@@ -5,6 +5,7 @@ import javax.persistence.*;
 
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import org.springframework.data.geo.Point;
 
 @Getter
 @Embeddable
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Address {
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
   @Column(name = "created_datetime",

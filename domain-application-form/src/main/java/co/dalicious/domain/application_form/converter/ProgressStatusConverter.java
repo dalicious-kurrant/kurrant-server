@@ -6,7 +6,7 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class ProgressStausConverter implements AttributeConverter<ProgressStatus, Integer> {
+public class ProgressStatusConverter implements AttributeConverter<ProgressStatus, Integer> {
     @Override
     public Integer convertToDatabaseColumn(ProgressStatus attribute) {
         return attribute.getCode();

@@ -25,7 +25,7 @@ public class SecurityUser implements UserDetails {
   private BigInteger id;
   private Role role;
   private String email;
-
+  private String phone;
   private String name;
   private String password;
 

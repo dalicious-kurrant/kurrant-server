@@ -1,22 +1,15 @@
 package co.dalicious.domain.food.dto;
 
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.entity.Origin;
 import co.dalicious.domain.food.util.OriginList;
-import co.dalicious.system.util.DiningType;
-import co.dalicious.system.util.Spicy;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
 @Schema(description = "식품 상세정보 DTO")
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@Setter
 public class FoodDetailDto {
     private String makers;
     private String name;

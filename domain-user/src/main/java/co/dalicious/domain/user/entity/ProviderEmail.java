@@ -2,6 +2,7 @@ package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.entity.enums.Provider;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,7 @@ import javax.persistence.*;
 import java.math.BigInteger;
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "user__oauth_mail")
 public class ProviderEmail {

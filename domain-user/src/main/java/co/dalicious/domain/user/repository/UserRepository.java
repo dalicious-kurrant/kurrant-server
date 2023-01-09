@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import co.dalicious.domain.user.entity.User;
 
 public interface UserRepository extends JpaRepository<User, BigInteger> {
-  Optional<User> findByEmail(String email);
-  Optional<User> findByPhone(String phone);
-  Optional<User> findByNameAndEmail(String name, String email);
+  Optional<User> findOneByEmail(String email);
+  Optional<User> findOneByPhone(String phone);
+  Optional<User> findOneByNameAndEmail(String name, String email);
 }

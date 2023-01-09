@@ -5,8 +5,8 @@ import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
-import co.dalicious.system.util.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +18,7 @@ import java.math.BigInteger;
 import java.time.LocalTime;
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "application_form__apartment_meal_info")
 public class ApartmentApplicationMealInfo {
@@ -48,11 +48,14 @@ public class ApartmentApplicationMealInfo {
     private ApartmentApplicationForm apartmentApplicationForm;
 
     @Builder
-    public ApartmentApplicationMealInfo(ApartmentMealInfoRequestDto apartmentMealInfoRequestDto, ApartmentApplicationForm apartmentApplicationForm) {
+    public ApartmentApplicationMealInfo(ApartmentMealInfoRequestDto apartmentMealInfoRequestDto) {
         this.diningType = DiningType.ofCode(apartmentMealInfoRequestDto.getDiningType());
         this.expectedUserCount = apartmentMealInfoRequestDto.getExpectedUserCount();
         this.serviceDays = DaysUtil.serviceDaysToDbData(apartmentMealInfoRequestDto.getServiceDays());
         this.deliveryTime = DateUtils.stringToTime(apartmentMealInfoRequestDto.getDeliveryTime(), ":");
+    }
+
+    public void setApartmentApplicationForm(ApartmentApplicationForm apartmentApplicationForm) {
         this.apartmentApplicationForm = apartmentApplicationForm;
     }
 }

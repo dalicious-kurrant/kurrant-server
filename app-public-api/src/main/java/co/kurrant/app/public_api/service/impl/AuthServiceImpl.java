@@ -9,14 +9,13 @@ import co.dalicious.data.redis.CertificationHashRepository;
 import co.dalicious.domain.user.dto.ProviderEmailDto;
 import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.entity.enums.Role;
-import co.dalicious.domain.user.repository.UserCorporationRepository;
+import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
-import co.dalicious.domain.user.entity.SpotStatus;
 import co.kurrant.app.public_api.mapper.user.UserMapper;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
@@ -51,7 +50,6 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private final UserCorporationRepository userCorporationRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -79,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
                 break;
             case FIND_PASSWORD:
                 // 존재하는 유저인지 확인
-                User user = userRepository.findByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+                User user = userRepository.findOneByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
                 break;
         }
 
@@ -142,7 +140,7 @@ public class AuthServiceImpl implements AuthService {
                 break;
             case FIND_ID, FIND_PASSWORD:
                 // 유저가 존재하는지 확인
-                User user = userRepository.findByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+                User user = userRepository.findOneByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
                 break;
         }
 
@@ -223,7 +221,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResponseDto login(LoginRequestDto dto) {
-        User user = userRepository.findByEmail(dto.getEmail()).orElseThrow(() -> {
+        User user = userRepository.findOneByEmail(dto.getEmail()).orElseThrow(() -> {
             throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
         });
 
@@ -251,7 +249,7 @@ public class AuthServiceImpl implements AuthService {
         String name = snsLoginResponseDto.getName();
 
         // 해당 아이디를 가지고 있는 유저가 존재하지는 지 확인.
-        Optional<ProviderEmail> providerEmail = providerEmailRepository.findAllByProviderAndEmail(provider, email);
+        Optional<ProviderEmail> providerEmail = providerEmailRepository.findOneByProviderAndEmail(provider, email);
 
         // 이미 소셜로그인으로 가입한 이력이 있는 유저라면 토큰 발행
         if (providerEmail.isPresent()) {
@@ -288,7 +286,7 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findIdRequestDto.phone, RequiredAuth.FIND_ID);
 
         // 유저 가져오기
-        User user = userRepository.findByPhone(findIdRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        User user = userRepository.findOneByPhone(findIdRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
 
         // 아이디 찾기 응답 Response 생성
         List<ProviderEmailDto> connectedSns = new ArrayList<>();
@@ -301,7 +299,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void checkUser(FindPasswordUserCheckRequestDto findPasswordUserCheckRequestDto) {
-        userRepository.findByNameAndEmail(findPasswordUserCheckRequestDto.getName(), findPasswordUserCheckRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        userRepository.findOneByNameAndEmail(findPasswordUserCheckRequestDto.getName(), findPasswordUserCheckRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
     }
 
     @Override
@@ -316,7 +314,7 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findPasswordEmailRequestDto.getEmail(), RequiredAuth.FIND_PASSWORD);
 
         // 유저 정보 가져오기
-        User user = userRepository.findByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        User user = userRepository.findOneByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
         // 비밀번호 변경
         String hashedPassword = passwordEncoder.encode(password);
         user.changePassword(hashedPassword);
@@ -332,7 +330,7 @@ public class AuthServiceImpl implements AuthService {
         UserValidator.isPasswordMatched(password, findPasswordPhoneRequestDto.getPasswordCheck());
         userValidator.isValidPassword(password);
         // 유저 정보 가져오기
-        User user = userRepository.findByPhone(findPasswordPhoneRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        User user = userRepository.findOneByPhone(findPasswordPhoneRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
         // 비밀번호 변경
         String hashedPassword = passwordEncoder.encode(password);
         user.changePassword(hashedPassword);

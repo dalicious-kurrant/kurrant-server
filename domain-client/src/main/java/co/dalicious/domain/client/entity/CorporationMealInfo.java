@@ -4,6 +4,7 @@ import co.dalicious.system.util.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ import java.time.LocalTime;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "client__corporation_meal_info")
 public class CorporationMealInfo {
     @Id
