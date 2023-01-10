@@ -57,7 +57,7 @@ public class UserClientServiceImpl implements UserClientService {
                 Apartment apartment = apartmentRepository.findById(clientId).orElseThrow(
                         () -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND)
                 );
-                List<ApartmentMealInfo> apartmentMealInfos = apartmentMealInfoRepository.findAllByApartment(apartment);
+                List<ApartmentMealInfo> apartmentMealInfos = apartmentMealInfoRepository.findAllByGroup(apartment);
                 ApartmentSpot apartmentSpot = apartmentSpotRepository.findById(spotId).orElseThrow(
                         () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
                 );
@@ -90,7 +90,7 @@ public class UserClientServiceImpl implements UserClientService {
                 Corporation corporation = corporationRepository.findById(clientId).orElseThrow(
                         () -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND)
                 );
-                List<CorporationMealInfo> corporationMealInfos = corporationMealInfoRepository.findAllByCorporation(corporation);
+                List<CorporationMealInfo> corporationMealInfos = corporationMealInfoRepository.findAllByGroup(corporation);
                 CorporationSpot corporationSpot = corporationSpotRepository.findById(spotId).orElseThrow(
                         () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
                 );
@@ -138,7 +138,7 @@ public class UserClientServiceImpl implements UserClientService {
                         () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
                 );
                 // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
-                Apartment apartment = apartmentSpot.getApartment();
+                Apartment apartment = (Apartment) apartmentSpot.getGroup();
                 List<UserApartment> apartments = userApartmentRepository.findAllByUser(user);
                 UserApartment userApartment = apartments.stream().filter(v -> v.getApartment().equals(apartment))
                         .findAny()
@@ -160,7 +160,7 @@ public class UserClientServiceImpl implements UserClientService {
                         () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
                 );
                 // 유저가 해당 기업 스팟 그룹에 등록되었는지 확인한다.
-                Corporation corporation = corporationSpot.getCorporation();
+                Corporation corporation = (Corporation) corporationSpot.getGroup();
                 List<UserCorporation> corporations = userCorporationRepository.findAllByUser(user);
                 corporations.stream().filter(v -> v.getCorporation().equals(corporation))
                         .findAny()
