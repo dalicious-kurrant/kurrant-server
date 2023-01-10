@@ -160,21 +160,21 @@ public class OrderServiceImpl implements OrderService {
 
         //장바구니에 넣어줄 Item 전처리
         Optional<DailyFood> dailyFoodById = dailyFoodRepository.findById(orderCartDto.getDailyFoodId());
+        Optional<OrderCart> orderCart = qOrderCartRepository.findOneByUserId(user.getId());
 
         //DailyFood가 중복될 경우는 추가하지 않고 count +1 처리
-        List<OrderCartItem> userCartItemList = qOrderCartItemRepository.getUserCartItemList(user.getId());
+        List<OrderCartItem> userCartItemList = qOrderCartItemRepository.getUserCartItemList(orderCart.get().getId());
         if (!userCartItemList.isEmpty()){
             for (OrderCartItem cartItem : userCartItemList){
                 //UserId로 조회한 카트에 담긴 아이템과 새로 넣으려는 아이템을 비교해서 DailyFoodId와 ServiceDate가 같다면 수량만 +1
-                if (dailyFoodById.get().getId().equals(cartItem.getId()) &&
+                if (dailyFoodById.get().getId().equals(cartItem.getDailyFood().getId()) &&
                         dailyFoodById.get().getServiceDate().equals(cartItem.getServiceDate())){
                     qOrderCartItemRepository.updateCount(cartItem.getId());
                     return 2;
                 }
             }
         }
-
-        Optional<OrderCart> orderCart = qOrderCartRepository.findOneByUserId(user.getId());
+        //장바구니에 넣어줄 Item 전처리
         OrderCartItem orderCartItem = orderCartItemMapper.CreateOrderCartItem(dailyFoodById.get(),orderCartDto.getCount(), orderCart.get());
 
         //장바구니에 추가

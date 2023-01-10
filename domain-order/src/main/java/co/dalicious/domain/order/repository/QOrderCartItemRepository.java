@@ -58,7 +58,7 @@ public class QOrderCartItemRepository {
 
     public List<OrderCartItem> getUserCartItemList(BigInteger id) {
         return queryFactory.selectFrom(orderCartItem)
-                .where(orderCartItem.orderCart.userId.eq(id))
+                .where(orderCartItem.orderCart.id.eq(id))
                 .fetch();
     }
 
