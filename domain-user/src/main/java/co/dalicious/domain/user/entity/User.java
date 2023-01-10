@@ -115,10 +115,8 @@ public class User {
     @ColumnDefault("0.00")
     private BigDecimal point;
 
-    @OneToOne(orphanRemoval = true, optional = false)
-    @JoinColumn
-    @JsonManagedReference(value = "user_spot_fk")
-    @Comment("기본으로 설정한 스팟의 id")
+    @OneToOne(mappedBy = "user")
+    @JsonBackReference(value = "user_spot_fk")
     private UserSpot userSpot;
 
     @Size(max = 16)
@@ -131,7 +129,7 @@ public class User {
     private Boolean isMembership;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonManagedReference(value = "user-fk")
+    @JsonBackReference(value = "user-fk")
     List<ProviderEmail> providerEmails;
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "user")

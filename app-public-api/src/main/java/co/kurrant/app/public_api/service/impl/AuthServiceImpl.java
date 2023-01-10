@@ -253,8 +253,9 @@ public class AuthServiceImpl implements AuthService {
 
         // 이미 소셜로그인으로 가입한 이력이 있는 유저라면 토큰 발행
         if (providerEmail.isPresent()) {
-            User user = providerEmail.orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND)).getUser();
-            return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
+            User user = providerEmail.get().getUser();
+            SpotStatus spotStatus = clientUtil.getSpotStatus(user);
+            return getLoginAccessToken(user, spotStatus);
         }
 
         // 소셜 로그인으로 가입한 이력은 없지만, 소셜 로그인 이메일과 ProviderEmail에 동일한 이메일이 있는지 확인
@@ -270,8 +271,7 @@ public class AuthServiceImpl implements AuthService {
         // 어떤 것도 가입되지 않은 유저라면 계정 생성
         UserDto userDto = UserDto.builder().role(Role.USER).email(email).phone(phone).name(name).build();
 
-        User user = userMapper.toEntity(userDto);
-        userRepository.save(user);
+        User user = userRepository.save(userMapper.toEntity(userDto));
 
         ProviderEmail newProviderEmail2 = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
         providerEmailRepository.save(newProviderEmail2);

@@ -12,7 +12,6 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,7 +39,6 @@ public class ClientUtil {
         }
     }
 
-    @Transactional
     public SpotStatus getSpotStatus(User user) {
         // 유저가 Default로 설정한 스팟을 가져온다.
         UserSpot userSpot = user.getUserSpot();
