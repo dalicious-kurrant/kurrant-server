@@ -145,6 +145,7 @@ public class UserClientServiceImpl implements UserClientService {
                         .orElseThrow(() -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND));
                 // 유저 Default 스팟을 저장한다.
                 UserSpot userSpot = userSpotRepository.save(UserSpot.builder()
+                        .user(user)
                         .clientType(ClientType.APARTMENT)
                         .apartmentSpot(apartmentSpot)
                         .build());
@@ -166,6 +167,7 @@ public class UserClientServiceImpl implements UserClientService {
                         .orElseThrow(() -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND));
                 // 유저 Default 스팟을 저장한다.
                 UserSpot userSpot = userSpotRepository.save(UserSpot.builder()
+                        .user(user)
                         .clientType(ClientType.CORPORATION)
                         .corporationSpot(corporationSpot)
                         .build());

@@ -24,7 +24,6 @@ public class UserSpot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("유저가 기본으로 저장한 스팟을 가져온다")
-    @NotNull
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
@@ -39,11 +38,13 @@ public class UserSpot {
     private ClientType clientType;
 
     @OneToOne
+    @JoinColumn
     @JsonManagedReference(value = "corporation_spot_fk")
     @Comment("기본으로 설정한 스팟 id")
     private CorporationSpot corporationSpot;
 
     @OneToOne
+    @JoinColumn
     @JsonManagedReference(value = "apartment_spot_fk")
     @Comment("기본으로 설정한 스팟 id")
     private ApartmentSpot apartmentSpot;

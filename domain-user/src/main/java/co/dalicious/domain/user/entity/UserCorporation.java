@@ -20,7 +20,7 @@ import java.math.BigInteger;
 public class UserCorporation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
+    @Column(columnDefinition = "BIGINT UNSIGNED")
     @Comment("유저 아파트 정보 PK")
     private BigInteger id;
 
