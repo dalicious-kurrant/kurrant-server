@@ -10,7 +10,7 @@ import co.dalicious.domain.food.repository.QOriginRepository;
 import co.dalicious.domain.food.util.OriginList;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import co.kurrant.app.public_api.service.FoodService;
-import co.kurrant.app.public_api.mapper.DailyFoodMapper;
+import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +30,8 @@ public class FoodServiceImpl implements FoodService {
     private final QDailyFoodRepository qDailyFoodRepository;
     private final QOriginRepository qOriginRepository;
 
+    private final DailyFoodMapper dailyFoodMapper;
+
 
     @Override
     @Transactional
@@ -37,26 +39,13 @@ public class FoodServiceImpl implements FoodService {
         //결과값을 담아줄 LIST 생성
         List<DailyFoodDto> resultList = new ArrayList<>();
         //조건에 맞는 DailyFood 조회
-        List<DailyFood> dailyFood =  qDailyFoodRepository.getDailyFood(spotId, selectedDate);
+        List<DailyFood> dailyFoodList =  qDailyFoodRepository.getDailyFood(BigInteger.valueOf(spotId), selectedDate);
         //값이 있다면 결과값으로 담아준다.
-        if (!dailyFood.isEmpty()) {
-            for (DailyFood food : dailyFood) {
+        if (!dailyFoodList.isEmpty()) {
+            for (DailyFood dailyFood : dailyFoodList) {
 
-                Food foodId = foodRepository.findById(food.getFood().getId()).orElseThrow(
-                        () -> new ApiException(ExceptionEnum.NOT_FOUND)
-                );
-                DailyFoodDto dailyFoodDto = DailyFoodDto.builder()
-                                            .id(food.getId())
-                                            .created(food.getCreated())
-                                            .diningType(food.getDiningType())
-                                            .food(food.getFood())
-                                            .makers(foodId.getMakers())
-                                            .isSoldOut(food.getIsSoldOut())
-                                            .spotId(food.getSpotId())
-                                            .status(food.getStatus())
-                                            .serviceDate(food.getServiceDate())
-                                            .updated(food.getUpdated())
-                                            .build();
+                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(dailyFood);
+
                 resultList.add(dailyFoodDto);
             }
         }
@@ -67,9 +56,7 @@ public class FoodServiceImpl implements FoodService {
     @Transactional
     public FoodDetailDto getFoodDetail(BigInteger foodId) {
 
-        Food food = foodRepository.findById(foodId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.NOT_FOUND)
-        );
+        Food food = foodRepository.findOneById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
         List<Origin> origin = qOriginRepository.findAllByFoodId(foodId);
 

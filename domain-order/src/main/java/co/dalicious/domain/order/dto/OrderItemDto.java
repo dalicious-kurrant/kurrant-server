@@ -1,13 +1,14 @@
 package co.dalicious.domain.order.dto;
 
+import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.order.entity.OrderItem;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Schema(description = "해당 날짜에 주문한 음식들")
-@Setter
 @Getter
+@Setter
+@AllArgsConstructor
 public class OrderItemDto {
     private String name;
     private String diningType;
@@ -15,10 +16,10 @@ public class OrderItemDto {
     private Integer count;
 
     @Builder
-    public OrderItemDto(String name, String diningType, String img, Integer count) {
-        this.name = name;
-        this.diningType = diningType;
-        this.img = img;
-        this.count = count;
+    OrderItemDto(Food food, OrderItem orderItem){
+        this.name = food.getName();
+        this.diningType = orderItem.getEDiningType();
+        this.img = food.getImg();
+        this.count = orderItem.getCount();
     }
 }

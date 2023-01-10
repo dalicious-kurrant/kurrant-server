@@ -22,13 +22,13 @@ public class CartItemDto {
     String diningType;
     Integer count;
     Integer sumPrice;
-    Double discountRate;
+    Integer discountRate;
     String serviceDate;
 
 
     @Builder
     public CartItemDto(OrderCartItem orderCartItem, Integer price){
-        this.id = orderCartItem.getOrderCart().getId();
+        this.id = orderCartItem.getId();
         this.name = orderCartItem.getDailyFood().getFood().getName();
         this.price = orderCartItem.getDailyFood().getFood().getPrice();
         this.img = orderCartItem.getDailyFood().getFood().getImg();

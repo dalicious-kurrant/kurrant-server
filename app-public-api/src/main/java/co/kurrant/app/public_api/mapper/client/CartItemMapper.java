@@ -8,5 +8,8 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface CartItemMapper extends GenericMapper<CartItemDto, OrderCartItem> {
-    CartItemMapper INSTANCE = Mappers.getMapper(CartItemMapper.class);
+
+    CartItemDto toDto(OrderCartItem orderCartItem);
+
+    OrderCartItem toEntity(CartItemDto cartItemDto);
 }

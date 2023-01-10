@@ -30,7 +30,7 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @NotNull
-    @Column(columnDefinition = "BIGINT UNSIGNED")
+    @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
     @NotNull

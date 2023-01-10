@@ -24,8 +24,9 @@ public class Food {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     @NotNull
-    @Column(columnDefinition = "BIGINT UNSIGNED")
+    @Comment("ID")
     private BigInteger id;
 
     @Column(name = "name")
@@ -42,7 +43,7 @@ public class Food {
 
     @Column(name = "discounted_rate")
     @Comment("할인율")
-    private Double discountedRate;
+    private Integer discountedRate;
 
     @Column(name = "e_spicy")
     @Comment("맵기정도")
@@ -59,7 +60,7 @@ public class Food {
     private String description;
 
     @Builder
-    Food(BigInteger id, String name, Integer price, String img, Makers makers, String description, Double discountedRate, Spicy spicy){
+    Food(BigInteger id, String name, Integer price, String img, Makers makers, String description, Integer discountedRate, Spicy spicy){
         this.id = id;
         this.name = name;
         this.price = price;

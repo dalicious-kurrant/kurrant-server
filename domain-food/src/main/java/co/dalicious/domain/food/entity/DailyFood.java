@@ -16,6 +16,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.math.BigInteger;
 import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -61,14 +62,14 @@ public class DailyFood {
     private Food food;
 
     @Column(name = "client__spot_id")
-    private Integer spotId;
+    private BigInteger spotId;
 
     @Column(name = "service_date", columnDefinition = "DATE")
     private LocalDate serviceDate;
 
     @Builder
     DailyFood(BigInteger id, DiningType diningType, LocalDate created, LocalDate updated,
-              FoodStatus status, Boolean isSoldOut, Food food, Integer spotId, LocalDate serviceDate){
+              FoodStatus status, Boolean isSoldOut, Food food, BigInteger spotId, LocalDate serviceDate){
         this.id = id;
         this.diningType = diningType;
         this.created = created;

@@ -5,6 +5,7 @@ import co.dalicious.domain.food.util.OriginList;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Schema(description = "식품 상세정보 DTO")
