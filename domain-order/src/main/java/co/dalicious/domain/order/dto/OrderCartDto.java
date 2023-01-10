@@ -19,15 +19,11 @@ import java.util.Date;
 public class OrderCartDto {
     BigInteger dailyFoodId;
     Integer count;
-    String serviceDate;
-    DiningType diningType;
 
 
     @Builder
     public OrderCartDto(BigInteger dailyFoodId, LocalDate serviceDate, Integer count, DiningType diningType) {
         this.dailyFoodId = dailyFoodId;
-        this.serviceDate = DateUtils.format(serviceDate, "yyyy-MM-dd");
         this.count = count;
-        this.diningType = diningType;
     }
 }

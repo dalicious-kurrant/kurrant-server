@@ -33,10 +33,10 @@ public class OrderController {
     @PostMapping("/me/order/cart")
     public ResponseMessage saveOrderCart(HttpServletRequest httpServletRequest,
                                          @RequestBody OrderCartDto orderCartDto){
-        orderService.saveOrderCart(httpServletRequest, orderCartDto);
-        return ResponseMessage.builder()
-                .message("장바구니에 상품을 추가했습니다.")
-                .build();
+        Integer result = orderService.saveOrderCart(httpServletRequest, orderCartDto);
+        if (result.equals(1)) return ResponseMessage.builder().message("장바구니에 상품을 추가했습니다.").build();
+        if (result.equals(2)) return ResponseMessage.builder().message("장바구니에 같은 상품이 있어 수량을 추가했습니다.").build();
+        return ResponseMessage.builder().message("아무일도 일어나지 않았습니다.").build();
     }
 
     @GetMapping("/me/order/cart")

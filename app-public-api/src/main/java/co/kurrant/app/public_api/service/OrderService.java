@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public interface OrderService {
     Object findOrderByServiceDate(LocalDate startDate, LocalDate endDate);
 
-    void saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto);
+    Integer saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto);
 
     Object findCartById(HttpServletRequest httpServletRequest);
 

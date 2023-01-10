@@ -21,7 +21,7 @@ import java.util.List;
 public class FoodDetailDto {
     private String makers;
     private String name;
-    private BigDecimal price;
+    private Integer price;
     private String img;
     private String spicy;
     private List<OriginList> originList;

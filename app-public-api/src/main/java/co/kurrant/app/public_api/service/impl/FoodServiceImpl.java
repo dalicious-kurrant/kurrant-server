@@ -10,7 +10,7 @@ import co.dalicious.domain.food.repository.QOriginRepository;
 import co.dalicious.domain.food.util.OriginList;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import co.kurrant.app.public_api.service.FoodService;
-import co.kurrant.app.public_api.mapper.DailyFoodMapper;
+import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -44,27 +43,6 @@ public class FoodServiceImpl implements FoodService {
             for (DailyFood dailyFood : dailyFoodList) {
 
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(dailyFood);
-
-
-                //Optional<Food> food = foodRepository.findOneById(dailyFood.getFood().getId().intValue());
-
-                /*
-                Food foodId = foodRepository.findById(food.getFood().getId()).orElseThrow(
-                        () -> new ApiException(ExceptionEnum.NOT_FOUND)
-                );
-                DailyFoodDto dailyFoodDto = DailyFoodDto.builder()
-                                            .id(food.getId())
-                                            .created(food.getCreated())
-                                            .diningType(food.getDiningType())
-                                            .food(food.getFood())
-                                            .makers(foodId.get().getMakers())
-                                            .isSoldOut(food.getIsSoldOut())
-                                            .spotId(food.getSpotId())
-                                            .status(food.getStatus())
-                                            .serviceDate(food.getServiceDate())
-                                            .updated(food.getUpdated())
-                                            .build();*/
-               // DailyFoodDto dailyFoodDto = dailyFoodMapper.toDtoByFood(dailyFood,food.get());
 
                 resultList.add(dailyFoodDto);
             }

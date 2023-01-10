@@ -1,17 +1,20 @@
 package co.dalicious.domain.order.entity;
 
-import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
+import  co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.order.dto.OrderCartDto;
+import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DiningType;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
 
-import javax.persistence.*;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -22,11 +25,10 @@ import java.time.LocalDate;
 @Entity
 @NoArgsConstructor
 @Table(name = "order__cart_item")
-public class OrderCartItem {
+public class OrderCartItem{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("장바구니 상세 PK")
-    @NotNull
     @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
@@ -66,17 +68,18 @@ public class OrderCartItem {
 
     @ManyToOne
     @JoinColumn(name="dailyFood_id")
+    @NotNull
     @Comment("장바구니에 담긴 음식 ID")
     private DailyFood dailyFood;
 
     @Builder
-    public OrderCartItem( LocalDate serviceDate, Integer price, DiningType diningType,
-                          Integer count, OrderCart orderCart, DailyFood dailyFood){
-        this.serviceDate = serviceDate;
-        this.price = price;
-        this.diningType = diningType;
+    public OrderCartItem(DailyFood dailyFood, Integer count, OrderCart orderCart){
+        this.serviceDate = LocalDate.parse(DateUtils.format(dailyFood.getServiceDate(), "yyyy-MM-dd"));
+        this.price = dailyFood.getFood().getPrice();
+        this.diningType = dailyFood.getDiningType();
         this.count = count;
         this.orderCart = orderCart;
         this.dailyFood = dailyFood;
     }
+
 }

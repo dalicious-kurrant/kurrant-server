@@ -1,7 +1,6 @@
 package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.order.entity.OrderCartItem;
-import com.querydsl.core.types.Expression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -56,16 +55,17 @@ public class QOrderCartItemRepository {
                 .fetch();
     }
 
-    public void updateCount(List<OrderCartItem> duplicatedItem) {
 
-        for (OrderCartItem oc : duplicatedItem){
+    public List<OrderCartItem> getUserCartItemList(BigInteger id) {
+        return queryFactory.selectFrom(orderCartItem)
+                .where(orderCartItem.orderCart.userId.eq(id))
+                .fetch();
+    }
 
+    public void updateCount(BigInteger id) {
             queryFactory.update(orderCartItem)
-                    .set(orderCartItem.count, orderCartItem.count.add(1))
-                    .where(orderCartItem.id.eq(oc.getId()))
-                    .execute();
-        }
-
-
+                .where(orderCartItem.id.eq(id))
+                .set(orderCartItem.count, orderCartItem.count.add(1))
+                .execute();
     }
 }
