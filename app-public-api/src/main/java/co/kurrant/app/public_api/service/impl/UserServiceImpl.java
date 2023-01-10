@@ -288,10 +288,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest) {
-        // 유저 정보 가져오기
-        User user = commonService.getUser(httpServletRequest);
-
+    public UserPersonalInfoDto getPersonalUserInfo(User user) {
         // 일반 로그인 정보를 가지고 있는 유저인지 검사
         List<ProviderEmail> providerEmails = user.getProviderEmails();
         UserPersonalInfoDto userPersonalInfoDto = userPersonalInfoMapper.toDto(user);
@@ -340,6 +337,7 @@ public class UserServiceImpl implements UserService {
         UserApartment userApartment = UserApartment.builder()
                 .user(user)
                 .apartment(apartment)
+                .ho(302)
                 .build();
         userApartmentRepository.save(userApartment);
     }

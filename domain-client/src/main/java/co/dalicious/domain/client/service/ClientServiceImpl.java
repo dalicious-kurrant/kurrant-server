@@ -57,23 +57,22 @@ public class ClientServiceImpl implements ClientService{
             apartmentMealInfoRepository.save(apartmentMealInfo);
         }
 
-//        for (int i = 0; i < 3; i++) {
-//            CreateAddressRequestDto spotAddressDto = CreateAddressRequestDto.builder()
-//                    .zipCode(String.valueOf(10000 + i))
-//                    .address1(addressDto.getAddress1())
-//                    .address2("스팟" + (i + 1))
-//                    .build();
-//            Address spotAddress = Address.builder()
-//                    .createAddressRequestDto(spotAddressDto)
-//                    .build();
-//            ApartmentSpot spot = ApartmentSpot.builder()
-//                    .apartment(apartment)
-//                    .diningTypes(convertToEntityAttribute(apartmentDto.getDiningTypes()))
-//                    .address(spotAddress)
-//                    .name("스팟" + (i + 1))
-//                    .build();
-//            apartmentSpotRepository.save(spot);
-//        }
+        for (int i = 0; i < 3; i++) {
+            CreateAddressRequestDto spotAddressDto = new CreateAddressRequestDto();
+            spotAddressDto.setZipCode(String.valueOf(10000 + i));
+            spotAddressDto.setAddress1(addressDto.getAddress1());
+            spotAddressDto.setAddress2("스팟" + (i + 1));
+            Address spotAddress = Address.builder()
+                    .createAddressRequestDto(spotAddressDto)
+                    .build();
+            ApartmentSpot spot = ApartmentSpot.builder()
+                    .apartment(apartment)
+                    .diningTypes(convertToEntityAttribute(apartmentDto.getDiningTypes()))
+                    .address(spotAddress)
+                    .name("스팟" + (i + 1))
+                    .build();
+            apartmentSpotRepository.save(spot);
+        }
     }
 
     // TODO: 백오피스 구현시 추후 삭제
@@ -107,23 +106,22 @@ public class ClientServiceImpl implements ClientService{
             corporationMealInfoRepository.save(corporationMealInfo);
         }
 
-//        for (int i = 0; i < 3; i++) {
-//            CreateAddressRequestDto spotAddressDto = CreateAddressRequestDto.builder()
-//                    .zipCode(String.valueOf(10000 + i))
-//                    .address1(addressDto.getAddress1())
-//                    .address2(String.valueOf(i + 1) + "층")
-//                    .build();
-//            Address spotAddress = Address.builder()
-//                    .createAddressRequestDto(spotAddressDto)
-//                    .build();
-//            CorporationSpot spot = CorporationSpot.builder()
-//                    .name((i + 1) + "층")
-//                    .corporation(corporation)
-//                    .diningTypes(convertToEntityAttribute(corporationInfo.getDiningTypes()))
-//                    .address(spotAddress)
-//                    .build();
-//            corporationSpotRepository.save(spot);
-//        }
+        for (int i = 0; i < 3; i++) {
+            CreateAddressRequestDto spotAddressDto = new CreateAddressRequestDto();
+            spotAddressDto.setZipCode(String.valueOf(10000 + i));
+            spotAddressDto.setAddress1(addressDto.getAddress1());
+            spotAddressDto.setAddress2(String.valueOf(i + 1) + "층");
+            Address spotAddress = Address.builder()
+                    .createAddressRequestDto(spotAddressDto)
+                    .build();
+            CorporationSpot spot = CorporationSpot.builder()
+                    .name((i + 1) + "층")
+                    .corporation(corporation)
+                    .diningTypes(convertToEntityAttribute(corporationInfo.getDiningTypes()))
+                    .address(spotAddress)
+                    .build();
+            corporationSpotRepository.save(spot);
+        }
     }
 
     public List<DiningType> convertToEntityAttribute(String dbData) {

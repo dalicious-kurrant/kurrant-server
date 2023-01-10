@@ -4,15 +4,12 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.config.CurrantUser;
 import co.kurrant.app.public_api.dto.user.*;
-import co.kurrant.app.public_api.model.UserAccount;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,24 +27,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final CommonService commonService;
 
     @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보 를 불러온다.")
     @GetMapping("")
-    public UserInfoDto getUserInfo(HttpServletRequest httpServletRequest) {
-        return userService.getUserInfo(commonService.getUser(httpServletRequest));
+    public UserInfoDto getUserInfo(@CurrantUser User user) {
+        return userService.getUserInfo(user);
     }
 
     @Operation(summary = "마이페이지의 개인 정보 페이지에서 유저 정보 가져오기", description = "개인 정보 페이지에서 로그인 한 유저의 개인 정보를 불러온다.")
     @GetMapping("/personal")
-    public UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest) {
-        return userService.getPersonalUserInfo(httpServletRequest);
+    public UserPersonalInfoDto getPersonalUserInfo(@CurrantUser User user) {
+        return userService.getPersonalUserInfo(user);
     }
 
     @Operation(summary = "홈 유저 정보 가져오기", description = "로그인 한 유저의 정보를 불러온다.")
     @GetMapping("/userInfo")
-    public UserHomeResponseDto userHomeInfo(@AuthenticationPrincipal Authentication authentication) {
-
+    public UserHomeResponseDto userHomeInfo(@CurrantUser User user) {
         return userService.getUserHomeInfo(user);
     }
 

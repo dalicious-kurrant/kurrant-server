@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.kurrant.app.public_api.model.SecurityUser;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
@@ -41,6 +42,18 @@ public class CommonServiceImpl implements CommonService {
         jwtTokenProvider.validateToken(token);
         // 유저 아이디 가져오기
         return BigInteger.valueOf(Integer.parseInt(jwtTokenProvider.getUserPk(token)));
+    }
+
+    @Override
+    public User getUser(SecurityUser securityUser) {
+        return userRepository.findById(securityUser.getId()).orElseThrow(
+                () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
+        );
+    }
+
+    @Override
+    public BigInteger getUserId(SecurityUser securityUser) {
+        return securityUser.getId();
     }
 
 

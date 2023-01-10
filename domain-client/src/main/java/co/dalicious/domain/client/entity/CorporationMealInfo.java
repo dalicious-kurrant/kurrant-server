@@ -26,7 +26,6 @@ import java.time.LocalTime;
 public class CorporationMealInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @NotNull
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 

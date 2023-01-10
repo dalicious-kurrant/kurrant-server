@@ -25,20 +25,6 @@ public class SecurityUserServiceImpl implements UserDetailsService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
 
-        return SecurityUser.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .role(user.getRole())
-                .email(user.getEmail())
-                .build();
+        return new UserAccount(user);
     }
-
-//    public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException {
-//        BigInteger userPk = BigInteger.valueOf(Integer.parseInt(id));
-//        User user = userRepository.findById(userPk).orElseThrow(
-//                () -> new ApiException(ExceptionEnum.NOT_FOUND)
-//        );
-//
-//        return new UserAccount(user);
-//    }
 }

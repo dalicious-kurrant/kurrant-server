@@ -32,7 +32,7 @@ public interface UserService {
     // 알람/마케팅 설정 변경
     MarketingAlarmResponseDto changeAlarmSetting(HttpServletRequest httpServletRequest, MarketingAlarmRequestDto marketingAlarmDto);
     // 마이페이지(개인정보) 유저 정보 가져오기
-    UserPersonalInfoDto getPersonalUserInfo(HttpServletRequest httpServletRequest);
+    UserPersonalInfoDto getPersonalUserInfo(User user);
     // TODO: 추후 백오피스 구현시 삭제
     void settingCorporation(HttpServletRequest httpServletRequest, BigInteger corporationId);
     // TODO: 추후 백오피스 구현시 삭제
