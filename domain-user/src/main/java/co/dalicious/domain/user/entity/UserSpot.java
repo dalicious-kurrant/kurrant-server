@@ -28,8 +28,10 @@ public class UserSpot {
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
-    @OneToOne(mappedBy = "userSpot")
-    @JsonBackReference(value = "user_spot_fk")
+
+    @OneToOne(orphanRemoval = true, optional = false)
+    @JsonManagedReference(value = "user_spot_fk")
+    @Comment("유저")
     private User user;
 
     @Convert(converter = ClientConverter.class)

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public class UserController {
     private final UserService userService;
     private final CommonService commonService;
 
-    @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보를 불러온다.")
+    @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보 를 불러온다.")
     @GetMapping("")
     public UserInfoDto getUserInfo(HttpServletRequest httpServletRequest) {
         return userService.getUserInfo(commonService.getUser(httpServletRequest));
@@ -45,7 +46,8 @@ public class UserController {
 
     @Operation(summary = "홈 유저 정보 가져오기", description = "로그인 한 유저의 정보를 불러온다.")
     @GetMapping("/userInfo")
-    public UserHomeResponseDto userHomeInfo(@CurrantUser User user) {
+    public UserHomeResponseDto userHomeInfo(@AuthenticationPrincipal Authentication authentication) {
+
         return userService.getUserHomeInfo(user);
     }
 

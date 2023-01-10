@@ -2,7 +2,6 @@ package co.kurrant.app.public_api.service;
 
 import co.dalicious.client.external.mail.MailMessageDto;
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
-import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.user.*;
 import com.fasterxml.jackson.core.JsonProcessingException;

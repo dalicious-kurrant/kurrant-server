@@ -1,7 +1,7 @@
 package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.entity.enums.Provider;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,7 +32,7 @@ public class ProviderEmail {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
-    @JsonBackReference(value = "user-fk")
+    @JsonManagedReference(value = "user-fk")
     private User user;
 
     @Builder
