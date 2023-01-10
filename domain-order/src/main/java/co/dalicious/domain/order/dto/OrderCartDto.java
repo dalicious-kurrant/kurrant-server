@@ -10,6 +10,7 @@ import java.time.LocalDate;
 
 @Schema(description = "장바구니 담기 요청 DTO")
 @Getter
+@Setter
 @AllArgsConstructor
 public class OrderCartDto {
     BigInteger dailyFoodId;
