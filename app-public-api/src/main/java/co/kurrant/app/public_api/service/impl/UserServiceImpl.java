@@ -3,19 +3,16 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
-import co.dalicious.domain.client.entity.Apartment;
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.mapper.ApartmentResponseMapper;
-import co.dalicious.domain.client.mapper.CorporationResponseMapper;
-import co.dalicious.domain.client.repository.ApartmentRepository;
-import co.dalicious.domain.client.repository.CorporationRepository;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.mapper.GroupResponseMapper;
+import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.dalicious.domain.user.entity.*;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
-import co.dalicious.domain.user.repository.UserApartmentRepository;
-import co.dalicious.domain.user.repository.UserCorporationRepository;
+import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
@@ -23,6 +20,7 @@ import co.dalicious.system.util.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -54,14 +52,11 @@ public class UserServiceImpl implements UserService {
     private final VerifyUtil verifyUtil;
     private final MembershipUtil membershipUtil;
     private final ProviderEmailRepository providerEmailRepository;
-    private final CorporationRepository corporationRepository;
-    private final UserCorporationRepository userCorporationRepository;
-    private final ApartmentRepository apartmentRepository;
-    private final UserApartmentRepository userApartmentRepository;
+    private final UserGroupRepository userGroupRepository;
     private final UserHomeInfoMapper userHomeInfoMapper;
     private final UserPersonalInfoMapper userPersonalInfoMapper;
-    private final ApartmentResponseMapper apartmentResponseMapper;
-    private final CorporationResponseMapper corporationResponseMapper;
+    private final GroupResponseMapper groupResponseMapper;
+    private final GroupRepository groupRepository;
 
     @Override
     @Transactional
@@ -288,7 +283,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserPersonalInfoDto getPersonalUserInfo(User user) {
+    public UserPersonalInfoDto getPersonalUserInfo(SecurityUser securityUser) {
+        // 로그인한 유저 정보 가져오기
+        User user = commonService.getUser(securityUser);
         // 일반 로그인 정보를 가지고 있는 유저인지 검사
         List<ProviderEmail> providerEmails = user.getProviderEmails();
         UserPersonalInfoDto userPersonalInfoDto = userPersonalInfoMapper.toDto(user);
@@ -316,30 +313,22 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     // TODO: 추후 백오피스 구현시 삭제
-    public void settingCorporation(HttpServletRequest httpServletRequest, BigInteger corporationId) {
+    public void settingGroup(HttpServletRequest httpServletRequest, BigInteger groupId) {
         User user = commonService.getUser(httpServletRequest);
-        Corporation corporation = corporationRepository.findById(corporationId)
+        Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-        UserCorporation userCorporation = UserCorporation.builder()
-                .user(user)
-                .corporation(corporation)
-                .build();
-        userCorporationRepository.save(userCorporation);
-    }
+        List<UserGroup> userGroups =  user.getGroups();
+        Optional<UserGroup> selectedGroup =  userGroups.stream().filter(g -> g.getGroup().equals(group)).findAny();
+        if(selectedGroup.isPresent()) {
+            throw new ApiException(ExceptionEnum.ALREADY_EXISTING_GROUP);
+        }
 
-    @Override
-    @Transactional
-    // TODO: 추후 백오피스 구현시 삭제
-    public void settingApartment(HttpServletRequest httpServletRequest, BigInteger apartmentId) {
-        User user = commonService.getUser(httpServletRequest);
-        Apartment apartment = apartmentRepository.findById(apartmentId)
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-        UserApartment userApartment = UserApartment.builder()
+        UserGroup userCorporation = UserGroup.builder()
+                .clientStatus(ClientStatus.BELONG)
                 .user(user)
-                .apartment(apartment)
-                .ho(302)
+                .group(group)
                 .build();
-        userApartmentRepository.save(userApartment);
+        userGroupRepository.save(userCorporation);
     }
     @Override
     @Transactional
@@ -362,21 +351,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public List<SpotListResponseDto> getClients(User user) {
+    public List<SpotListResponseDto> getClients(SecurityUser securityUser) {
+        User user = commonService.getUser(securityUser);
         // 그룹/스팟 정보 가져오기
-        List<UserApartment> userApartments = user.getApartments();
-        List<UserCorporation> userCorporations = user.getCorporations();
+        List<UserGroup> userGroups = user.getGroups();
         // 그룹/스팟 리스트를 담아줄 Dto 생성하기
         List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
-        // 그룹: 아파트 추가
-        for (UserApartment userApartment : userApartments) {
-            Apartment apartment = userApartment.getApartment();
-            spotListResponseDtoList.add(apartmentResponseMapper.toDto(apartment));
-        }
-        // 그룹: 기업 추가
-        for (UserCorporation userCorporation : userCorporations) {
-            Corporation corporation = userCorporation.getCorporation();
-            spotListResponseDtoList.add(corporationResponseMapper.toDto(corporation));
+        // 그룹 추가
+        for (UserGroup userGroup : userGroups) {
+            Group group = userGroup.getGroup();
+            spotListResponseDtoList.add(groupResponseMapper.toDto(group));
         }
         return spotListResponseDtoList;
     }

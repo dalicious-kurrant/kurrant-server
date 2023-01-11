@@ -69,10 +69,11 @@ public class MealInfo {
     @Comment("그룹")
     private Group group;
 
-    public MealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays) {
+    public MealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Group group) {
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
         this.lastOrderTime = lastOrderTime;
         this.serviceDays = serviceDays;
+        this.group = group;
     }
 }

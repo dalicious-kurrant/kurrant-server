@@ -1,5 +1,6 @@
 package co.dalicious.domain.application_form.mapper;
 
+import co.dalicious.domain.address.dto.CreateAddressResponseDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationMealInfoResponseDto;
@@ -28,7 +29,7 @@ public interface CorporationApplicationFormResMapper {
     @Mapping(source = "applierName", target = "user.name")
     @Mapping(source = "phone", target = "user.phone")
     @Mapping(source = "email", target = "user.email")
-    @Mapping(source = "address", target = "address", qualifiedByName = "addressToString")
+    @Mapping(source = "address", target = "address", qualifiedByName = "addressToDto")
     @Mapping(source = "corporationName", target = "corporationInfo.corporationName")
     @Mapping(source = "employeeCount", target = "corporationInfo.employeeCount")
     @Mapping(source = "serviceStartDate", target = "corporationInfo.startDate", qualifiedByName = "dateToString")
@@ -59,9 +60,9 @@ public interface CorporationApplicationFormResMapper {
         return stringDiningTypes;
     }
 
-    @Named("addressToString")
-    default String addressToString(Address address) {
-        return address.addressToString();
+    @Named("addressToDto")
+    default CreateAddressResponseDto addressToDto(Address address) {
+        return new CreateAddressResponseDto(address);
     }
 
     @Named("progressStatusToInteger")
@@ -101,7 +102,7 @@ public interface CorporationApplicationFormResMapper {
 
     // 스팟 정보 toDto
     @Mapping(source = "name", target = "spotName")
-    @Mapping(source = "address", target = "address", qualifiedByName = "addressToString")
+    @Mapping(source = "address", target = "address", qualifiedByName = "addressToDto")
     @Mapping(source = "diningTypes", target = "diningTypes", qualifiedByName = "diningTypesToString")
     CorporationSpotResponseDto toDto(CorporationApplicationFormSpot corporationApplicationFormSpot);
 

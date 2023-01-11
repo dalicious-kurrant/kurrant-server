@@ -12,14 +12,12 @@ import java.util.List;
 @Setter
 @Schema(description = "스팟 정보 응답 DTO")
 public class SpotListResponseDto {
-    private Integer clientType;
     private BigInteger clientId;
     private String clientName;
     private List<Spot> spots;
 
     @Builder
-    public SpotListResponseDto(Integer clientType, BigInteger clientId, String clientName, List<Spot> spots) {
-        this.clientType = clientType;
+    public SpotListResponseDto(BigInteger clientId, String clientName, List<Spot> spots) {
         this.clientId = clientId;
         this.clientName = clientName;
         this.spots = spots;

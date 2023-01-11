@@ -1,5 +1,6 @@
 package co.dalicious.domain.application_form.mapper;
 
+import co.dalicious.domain.address.dto.CreateAddressResponseDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentMealInfoResponseDto;
@@ -25,7 +26,7 @@ public interface ApartmentApplicationFormResMapper {
     @Mapping(source = "applierName", target = "user.name")
     @Mapping(source = "phone", target = "user.phone")
     @Mapping(source = "email", target = "user.email")
-    @Mapping(source = "address", target = "address.address")
+    @Mapping(source = "address", target = "address", qualifiedByName = "addressToDto")
     @Mapping(source = "apartmentName", target = "info.apartmentName")
     @Mapping(source = "serviceStartDate", target = "info.serviceStartDate", qualifiedByName = "dateToString")
     @Mapping(source = "dongCount", target = "info.dongCount")
@@ -39,14 +40,14 @@ public interface ApartmentApplicationFormResMapper {
         return DateUtils.format(createdDateTime, "yyyy. MM. dd");
     }
 
+    @Named("addressToDto")
+    default CreateAddressResponseDto addressToDto(Address address) {
+        return new CreateAddressResponseDto(address);
+    }
+
     @Named("progressStatusToInteger")
     default Integer progressStatusToInteger(ProgressStatus progressStatus) {
         return progressStatus.getCode();
-    }
-
-    @Named("addressToString")
-    default String addressToString(Address address) {
-        return address.addressToString();
     }
 
     @Named("dateToString")

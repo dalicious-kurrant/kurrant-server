@@ -30,8 +30,8 @@ public class ProviderEmail {
     @Comment("소셜로그인 가입된 이메일")
     private String email;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id")
+    @ManyToOne(optional = false)
+    @JoinColumn
     @JsonManagedReference(value = "user-fk")
     private User user;
 

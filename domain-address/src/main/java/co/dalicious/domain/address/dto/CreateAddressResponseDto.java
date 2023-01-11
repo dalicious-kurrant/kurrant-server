@@ -7,9 +7,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateAddressResponseDto {
-    private String address;
+    private String address1;
+    private String address2;
 
     public CreateAddressResponseDto(Address address) {
-        this.address = address.getAddress1() + " " + address.getAddress2();
+        this.address1 = address.getAddress1();
+        this.address2 = address.getAddress2();
     }
 }

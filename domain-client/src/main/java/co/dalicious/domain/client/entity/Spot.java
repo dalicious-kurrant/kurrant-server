@@ -71,7 +71,6 @@ public class Spot {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    @Builder
     public Spot(String name, Address address, List<DiningType> diningTypes, Group group) {
         this.name = name;
         this.address = address;

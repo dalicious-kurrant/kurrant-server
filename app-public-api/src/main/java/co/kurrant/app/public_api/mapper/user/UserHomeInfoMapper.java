@@ -29,14 +29,12 @@ public interface UserHomeInfoMapper {
     @Named("getSpotId")
     default BigInteger getSpotId(UserSpot userSpot) {
         if(userSpot == null) return null;
-        return (userSpot.getClientType() == ClientType.APARTMENT) ?
-                userSpot.getApartmentSpot().getId() : userSpot.getCorporationSpot().getId();
+        return userSpot.getSpot().getId();
     }
 
     @Named("getSpotName")
     default String getSpotName(UserSpot userSpot) {
         if(userSpot == null) return null;
-        return (userSpot.getClientType() == ClientType.APARTMENT) ?
-                userSpot.getApartmentSpot().getName() : userSpot.getCorporationSpot().getName();
+        return userSpot.getSpot().getName();
     }
 }

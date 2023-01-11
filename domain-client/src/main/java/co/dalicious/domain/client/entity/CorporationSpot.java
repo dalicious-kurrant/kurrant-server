@@ -24,4 +24,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CorporationSpot extends Spot{
+    @Builder
+    public CorporationSpot(String name, Address address, List<DiningType> diningTypes, Group group) {
+        super(name, address, diningTypes, group);
+    }
 }

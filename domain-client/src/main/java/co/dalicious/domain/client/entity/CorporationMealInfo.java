@@ -17,12 +17,13 @@ import java.time.LocalTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CorporationMealInfo extends MealInfo{
     @NotNull
-    @Column(name = "daily_support_price", nullable = false, precision = 15)
+    @Column(name = "daily_support_price", precision = 15)
     @Comment("일일 회사 지원금")
     private BigDecimal supportPrice;
 
-    public CorporationMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, BigDecimal supportPrice) {
-        super(diningType, deliveryTime, lastOrderTime, serviceDays);
+    @Builder
+    public CorporationMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Group group, BigDecimal supportPrice) {
+        super(diningType, deliveryTime, lastOrderTime, serviceDays, group);
         this.supportPrice = supportPrice;
     }
 }

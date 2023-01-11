@@ -44,6 +44,7 @@ public class Corporation extends Group{
     @Comment("식사 세팅 지원 서비스 사용 유무")
     private Boolean isSetting;
 
+    @Builder
     public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting) {
         super(address, diningTypes, name, managerId);
         this.employeeCount = employeeCount;
