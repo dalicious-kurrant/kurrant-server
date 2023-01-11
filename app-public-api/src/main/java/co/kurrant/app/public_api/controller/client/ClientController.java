@@ -4,7 +4,6 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.public_api.dto.client.ClientSpotDetailReqDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
-import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigInteger;
 
 @Tag(name = "6. ClientType")

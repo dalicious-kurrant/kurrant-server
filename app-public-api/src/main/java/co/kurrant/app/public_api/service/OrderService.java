@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.order.dto.OrderCartDto;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
+import co.kurrant.app.public_api.model.SecurityUser;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
@@ -9,13 +10,13 @@ import java.time.LocalDate;
 public interface OrderService {
     Object findOrderByServiceDate(LocalDate startDate, LocalDate endDate);
 
-    Integer saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto);
+    Integer saveOrderCart(SecurityUser securityUser, OrderCartDto orderCartDto);
 
-    Object findCartById(HttpServletRequest httpServletRequest);
+    Object findCartById(SecurityUser securityUser);
 
-    void deleteByUserId(HttpServletRequest httpServletRequest);
+    void deleteByUserId(SecurityUser securityUser);
 
-    void deleteById(HttpServletRequest httpServletRequest, Integer dailyFoodId);
+    void deleteById(SecurityUser securityUser, Integer dailyFoodId);
 
-    void updateByFoodId(HttpServletRequest httpServletRequest, UpdateCartDto updateCartDto);
+    void updateByFoodId(SecurityUser securityUser, UpdateCartDto updateCartDto);
 }

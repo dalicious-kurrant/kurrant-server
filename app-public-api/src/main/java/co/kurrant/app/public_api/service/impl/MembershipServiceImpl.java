@@ -15,6 +15,7 @@ import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.kurrant.app.public_api.dto.user.MembershipDto;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.MembershipService;
 import exception.ApiException;
@@ -24,7 +25,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -252,8 +252,8 @@ public class MembershipServiceImpl implements MembershipService {
 
     @Override
     @Transactional
-    public List<MembershipDto> retrieveMembership(HttpServletRequest httpServletRequest) {
-        User user = commonService.getUser(httpServletRequest);
+    public List<MembershipDto> retrieveMembership(SecurityUser securityUser) {
+        User user = commonService.getUser(securityUser);
         // 멤버십 종료 날짜의 오름차순으로 멤버십 정보를 조회한다.
 
         // create a specification to specify the conditions of the query
@@ -293,7 +293,7 @@ public class MembershipServiceImpl implements MembershipService {
 
     @Override
     @Transactional
-    public void saveMembershipAutoPayment(HttpServletRequest httpServletRequest) {
+    public void saveMembershipAutoPayment(SecurityUser securityUser) {
 
     }
 }

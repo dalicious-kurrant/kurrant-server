@@ -21,6 +21,7 @@ import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.mapper.order.OrderCartItemMapper;
 import co.kurrant.app.public_api.mapper.order.OrderCartMapper;
 import co.kurrant.app.public_api.mapper.order.OrderDetailMapper;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.OrderService;
 
@@ -81,9 +82,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Object findCartById(HttpServletRequest httpServletRequest) {
+    public Object findCartById(SecurityUser securityUser) {
         //유저정보 가져오기
-        User user = commonService.getUser(httpServletRequest);
+        User user = commonService.getUser(securityUser);
         //결과값 저장을 위한 LIST 생성
         List<CartItemDto> result = new ArrayList<>();
 
@@ -143,9 +144,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void deleteByUserId(HttpServletRequest httpServletRequest) {
+    public void deleteByUserId(SecurityUser securityUser) {
         // order__cart_item에서 user_id에 해당되는 항목 모두 삭제
-        User user = commonService.getUser(httpServletRequest);
+        User user = commonService.getUser(securityUser);
         List<OrderCart> cartList = orderCartRepository.findAllByUserId(user.getId());
         BigInteger cartId = cartList.get(0).getId();
         qOrderCartItemRepository.deleteByCartId(cartId);
@@ -153,17 +154,17 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void deleteById(HttpServletRequest httpServletRequest, Integer dailyFoodId) {
+    public void deleteById(SecurityUser securityUser, Integer dailyFoodId) {
         //cart_id와 food_id가 같은 경우 삭제
-        User user = commonService.getUser(httpServletRequest);
+        User user = commonService.getUser(securityUser);
         List<OrderCart> cartList = orderCartRepository.findAllByUserId(user.getId());
         qOrderCartItemRepository.deleteByFoodId(cartList.get(0).getId(), dailyFoodId);
     }
 
     @Override
     @Transactional
-    public void updateByFoodId(HttpServletRequest httpServletRequest, UpdateCartDto updateCartDto) {
-        User user = commonService.getUser(httpServletRequest);
+    public void updateByFoodId(SecurityUser securityUser, UpdateCartDto updateCartDto) {
+        User user = commonService.getUser(securityUser);
         List<OrderCart> cartList = orderCartRepository.findAllByUserId(user.getId());
 
         for (UpdateCart updateCart : updateCartDto.getUpdateCartList()){
@@ -184,8 +185,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Integer saveOrderCart(HttpServletRequest httpServletRequest, OrderCartDto orderCartDto){
-        User user = commonService.getUser(httpServletRequest);
+    public Integer saveOrderCart(SecurityUser securityUser, OrderCartDto orderCartDto){
+        User user = commonService.getUser(securityUser);
 
         //장바구니가 없다면 장바구니 생성(CartId부여)
        if(!qOrderCartRepository.existsByUserId(user.getId())){
