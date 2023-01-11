@@ -8,6 +8,7 @@ import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.client.*;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.CommonService;
 import co.dalicious.domain.application_form.mapper.CorporationMealInfoReqMapper;
@@ -44,9 +45,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional
-    public ApplicationFormDto registerApartmentSpot(HttpServletRequest httpServletRequest, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto) {
+    public ApplicationFormDto registerApartmentSpot(SecurityUser securityuser, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto) {
         // 유저 아이디 가져오기
-        BigInteger userId = commonService.getUserId(httpServletRequest);
+        BigInteger userId = commonService.getUserId(securityuser);
 
         // 스팟 신청 정보 저장
         ApartmentApplicationForm apartmentApplicationForm = apartmentApplicationReqMapper.toEntity(apartmentApplicationFormRequestDto);
@@ -70,16 +71,16 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional
-    public void updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto) {
-        ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isValidApartmentApplicationForm(commonService.getUserId(httpServletRequest), id);
+    public void updateApartmentApplicationFormMemo(SecurityUser securityuser, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto) {
+        ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isValidApartmentApplicationForm(securityuser.getId(), id);
         apartmentApplicationForm.updateMemo(applicationFormMemoDto.getMemo());
     }
 
     @Override
     @Transactional
-    public ApplicationFormDto registerCorporationSpot(HttpServletRequest httpServletRequest, CorporationApplicationFormRequestDto corporationApplicationFormRequestDto) {
+    public ApplicationFormDto registerCorporationSpot(SecurityUser securityuser, CorporationApplicationFormRequestDto corporationApplicationFormRequestDto) {
         // 유저 아이디 가져오기
-        BigInteger userId = commonService.getUserId(httpServletRequest);
+        BigInteger userId = commonService.getUserId(securityuser);
         // 식사 정보 리스트 가져오기
         List<CorporationMealInfoRequestDto> mealInfoRequestDtoList = corporationApplicationFormRequestDto.getMealDetails();
         // 스팟 신청 기업의 등록 요청 스팟들 가져오기
@@ -113,9 +114,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional
-    public void updateCorporationApplicationFormMemo(HttpServletRequest httpServletRequest, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto) {
+    public void updateCorporationApplicationFormMemo(SecurityUser securityUser, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto) {
         // 유저 아이디 가져오기
-        BigInteger userId = commonService.getUserId(httpServletRequest);
+        BigInteger userId = commonService.getUserId(securityUser);
         // 로그인 한 유저와 수정하려는 신청서의 작성자가 같은 사람인지 검사
         CorporationApplicationForm corporationApplicationForm = applicationFormValidator.isValidCorporationApplicationForm(userId, id);
         // 내용 업데이트
@@ -135,61 +136,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional
     public CorporationApplicationFormResponseDto getCorporationApplicationFormDetail(BigInteger userId, BigInteger id) {
-        // 기업 스팟 신청서 가져오기
+        // 가져오는 신청서의 작성자가 로그인한 유저와 일치하는지 확인
         CorporationApplicationForm corporationApplicationForm = applicationFormValidator.isValidCorporationApplicationForm(userId, id);
+
         return corporationApplicationFormResMapper.toDto(corporationApplicationForm);
-//        // 담당자 정보 가져오기
-//        ApplyUserDto applyUserDto = ApplyUserDto.builder()
-//                .name(corporationApplicationForm.getApplierName())
-//                .email(corporationApplicationForm.getEmail())
-//                .phone(corporationApplicationForm.getPhone()).build();
-//        // 기업 주소 가져오기
-//        Address address = corporationApplicationForm.getAddress();
-//        String addressString = address.getAddress1() + " " + address.getAddress2();
-//
-//        // 스팟 정보 가져오기
-//        List<CorporationApplicationFormSpot> spots = corporationApplicationFormSpotRepository.findAllByCorporationApplicationForm(corporationApplicationForm);
-//        List<CorporationSpotResponseDto> spotList = new ArrayList<>();
-//        for (CorporationApplicationFormSpot spot : spots) {
-//            spotList.add(CorporationSpotResMapper.INSTANCE.toDto(spot));
-//        }
-//
-//        // 식사 정보 가져오기
-//        List<CorporationApplicationMealInfo> mealInfos = corporationApplicationMealRepository.findAllByCorporationApplicationForm(corporationApplicationForm);
-//        List<String> diningTypes = new ArrayList<>();
-//        List<CorporationMealInfoResponseDto> mealInfoList = new ArrayList<>();
-//        for (CorporationApplicationMealInfo mealInfo : mealInfos) {
-//            mealInfoList.add(corporationMealInfoResMapper.toDto(mealInfo));
-//            diningTypes.add(mealInfo.getDiningType().getDiningType());
-//        }
-//
-//        // 기업 정보 가져오기
-//        CorporationApplyInfoDto corporationApplyInfoDto = CorporationApplyInfoDto.builder()
-//                .corporationName(corporationApplicationForm.getCorporationName())
-//                .employeeCount(corporationApplicationForm.getEmployeeCount())
-//                .startDate(DateUtils.format(corporationApplicationForm.getServiceStartDate(), "yyyy. MM. dd"))
-//                .diningTypes(diningTypes)
-//                .build();
-//
-//        // 옵션 정보 가져오기
-//        CorporationOptionsDto corporationOptionsDto = CorporationOptionsDto.builder()
-//                .isGarbage(corporationApplicationForm.getIsGarbage())
-//                .isHotStorage(corporationApplicationForm.getIsHotStorage())
-//                .isSetting(corporationApplicationForm.getIsSetting())
-//                .memo(corporationApplicationForm.getMemo())
-//                .build();
-//
-//        return CorporationApplicationFormResponseDto.builder()
-//                .date(DateUtils.format(corporationApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
-//                .progressStatus(corporationApplicationForm.getProgressStatus().getCode())
-//                .user(applyUserDto)
-//                .address(addressString)
-//                .corporationInfo(corporationApplyInfoDto)
-//                .spots(spotList)
-//                .mealDetails(mealInfoList)
-//                .option(corporationOptionsDto)
-//                .rejectedReason(corporationApplicationForm.getRejectedReason())
-//                .build();
     }
 
     @Override

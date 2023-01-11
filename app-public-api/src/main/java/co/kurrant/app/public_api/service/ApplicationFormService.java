@@ -6,6 +6,7 @@ import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFo
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
 import co.kurrant.app.public_api.dto.client.*;
+import co.kurrant.app.public_api.model.SecurityUser;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigInteger;
@@ -13,13 +14,13 @@ import java.util.List;
 
 public interface ApplicationFormService {
     // 아파트 스팟 개설 신청
-    ApplicationFormDto registerApartmentSpot(HttpServletRequest httpServletRequest, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto);
+    ApplicationFormDto registerApartmentSpot(SecurityUser securityuser, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto);
     // 아파트 스팟 개설 신청 기타 내용 변경
-    void updateApartmentApplicationFormMemo(HttpServletRequest httpServletRequest, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto);
+    void updateApartmentApplicationFormMemo(SecurityUser securityuser, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto);
     // 기업 스팟 개설 신청
-    ApplicationFormDto registerCorporationSpot(HttpServletRequest httpServletRequest, CorporationApplicationFormRequestDto corporationApplicationFormRequestDto);
+    ApplicationFormDto registerCorporationSpot(SecurityUser securityuser, CorporationApplicationFormRequestDto corporationApplicationFormRequestDto);
     // 기업 스팟 개설 신청 기타 내용 변경
-    void updateCorporationApplicationFormMemo(HttpServletRequest httpServletRequest, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto);
+    void updateCorporationApplicationFormMemo(SecurityUser securityuser, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto);
     // 아파트 스팟 개설 신청 내역 상세 조회
     ApartmentApplicationFormResponseDto getApartmentApplicationFormDetail(BigInteger userId, BigInteger id);
     // 기업 스팟 개설 신청 내역 상세 조회
