@@ -19,7 +19,6 @@ import javax.validation.constraints.Size;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.user.converter.GourmetTypeConverter;
 import co.dalicious.domain.user.converter.RoleConverter;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import org.hibernate.annotations.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -132,15 +131,10 @@ public class User {
     @JsonBackReference(value = "user-fk")
     List<ProviderEmail> providerEmails;
 
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "user")
+    @OneToMany(orphanRemoval = true, mappedBy = "user")
     @JsonBackReference(value = "user_fk")
     @Comment("스팟 기업 정보")
-    private List<UserCorporation> corporations;
-
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "user")
-    @JsonBackReference(value = "user_fk")
-    @Comment("스팟 기업 정보")
-    private List<UserApartment> apartments;
+    private List<UserGroup> groups;
 
     @Builder
     public User(BigInteger id, String password, String name, Role role, String email, String phone) {

@@ -1,5 +1,6 @@
 package co.dalicious.domain.application_form.mapper;
 
+import co.dalicious.domain.address.dto.CreateAddressResponseDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.corporation.CorporationSpotResponseDto;
 import co.dalicious.domain.application_form.entity.CorporationApplicationFormSpot;
@@ -16,7 +17,7 @@ import java.util.List;
 public interface CorporationSpotResMapper {
     CorporationSpotResMapper INSTANCE = Mappers.getMapper(CorporationSpotResMapper.class);
 
-    @Mapping(source = "address", target = "address", qualifiedByName = "addressToString")
+    @Mapping(source = "address", target = "address", qualifiedByName = "addressToDto")
     @Mapping(source = "diningTypes", target = "diningTypes", qualifiedByName = "diningTypeToString")
     @Mapping(source = "name", target = "spotName")
     CorporationSpotResponseDto toDto(CorporationApplicationFormSpot applicationFormSpot);
@@ -24,9 +25,9 @@ public interface CorporationSpotResMapper {
     @Mapping(target = "address", ignore = true)
     CorporationApplicationFormSpot toEntity(CorporationSpotResponseDto dto);
 
-    @Named("addressToString")
-    default String addressToString(Address address) {
-        return address.addressToString();
+    @Named("addressToDto")
+    default CreateAddressResponseDto addressToDto(Address address) {
+        return new CreateAddressResponseDto(address);
     }
 
 

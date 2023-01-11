@@ -253,7 +253,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 이미 소셜로그인으로 가입한 이력이 있는 유저라면 토큰 발행
         if (providerEmail.isPresent()) {
-            User user = providerEmail.get().getUser();
+            User user = providerEmail.orElseThrow().getUser();
             SpotStatus spotStatus = clientUtil.getSpotStatus(user);
             return getLoginAccessToken(user, spotStatus);
         }

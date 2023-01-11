@@ -20,6 +20,7 @@ import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -218,6 +219,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 생성일자 순으로 정렬
         applicationFormDtos.sort(Comparator.comparing(ApplicationFormDto::getDate));
+        Collections.reverse(applicationFormDtos);
 
         return applicationFormDtos;
     }

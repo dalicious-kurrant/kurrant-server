@@ -27,36 +27,10 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "client__corporation")
-public class Corporation {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
-    @Comment("기업 고객사 PK")
-    private BigInteger id;
-
-    @NotNull
-    @Convert(converter = DiningTypesConverter.class)
-    @Column(name = "dining_types", nullable = false)
-    @Comment("식사 타입")
-    private List<DiningType> diningTypes;
-
-    @Size(max = 64)
-    @NotNull
-    @Column(name = "name", nullable = false, length = 64)
-    @Comment("기업명")
-    private String name;
-
+public class Corporation extends Group{
     @Column(name = "employee_count")
     @Comment("사원수")
     private Integer employeeCount;
-
-    @Column(name = "manager_id")
-    @Comment("담당자 유저 id")
-    private Long managerId;
-
-    @Embedded
-    @Comment("주소")
-    private Address address;
 
     @Column(name = "is_garbage")
     @Comment("쓰레기 수거 서비스 사용 유무")
@@ -70,33 +44,12 @@ public class Corporation {
     @Comment("식사 세팅 지원 서비스 사용 유무")
     private Boolean isSetting;
 
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("생성일")
-    private Timestamp createdDateTime;
-
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("수정일")
-    private Timestamp updatedDateTime;
-
-    @OneToMany(mappedBy = "corporation", fetch = FetchType.LAZY)
-    @JsonBackReference(value = "client__corporation_fk")
-    @Comment("스팟 리스트")
-    List<CorporationSpot> spots;
-
-    @OneToMany(mappedBy = "corporation", fetch = FetchType.LAZY)
-    @JsonBackReference(value = "client__corporation_fk")
-    @Comment("식사 정보 리스트")
-    List<CorporationMealInfo> mealInfos;
-
     @Builder
-    public Corporation(List<DiningType> diningTypes, String name, Integer employeeCount, Address address) {
-        this.diningTypes = diningTypes;
-        this.name = name;
+    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting) {
+        super(address, diningTypes, name, managerId);
         this.employeeCount = employeeCount;
-        this.address = address;
+        this.isGarbage = isGarbage;
+        this.isHotStorage = isHotStorage;
+        this.isSetting = isSetting;
     }
 }

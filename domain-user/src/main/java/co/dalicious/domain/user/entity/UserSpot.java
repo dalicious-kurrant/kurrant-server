@@ -1,10 +1,8 @@
 package co.dalicious.domain.user.entity;
 
-import co.dalicious.domain.client.entity.ApartmentSpot;
-import co.dalicious.domain.client.entity.CorporationSpot;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.user.converter.ClientConverter;
 import co.dalicious.domain.user.entity.enums.ClientType;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -13,7 +11,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 
 @Entity
@@ -41,20 +38,13 @@ public class UserSpot {
     @JoinColumn
     @JsonManagedReference(value = "corporation_spot_fk")
     @Comment("기본으로 설정한 스팟 id")
-    private CorporationSpot corporationSpot;
-
-    @OneToOne
-    @JoinColumn
-    @JsonManagedReference(value = "apartment_spot_fk")
-    @Comment("기본으로 설정한 스팟 id")
-    private ApartmentSpot apartmentSpot;
+    private Spot spot;
 
     @Builder
-    public UserSpot(User user, ClientType clientType, CorporationSpot corporationSpot, ApartmentSpot apartmentSpot) {
+    public UserSpot(User user, ClientType clientType, Spot spot) {
         this.user = user;
         this.clientType = clientType;
-        this.corporationSpot = corporationSpot;
-        this.apartmentSpot = apartmentSpot;
+        this.spot = spot;
     }
 
 

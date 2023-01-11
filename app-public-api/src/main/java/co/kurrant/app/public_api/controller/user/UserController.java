@@ -2,14 +2,16 @@ package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.user.entity.User;
-import co.kurrant.app.public_api.config.CurrantUser;
+import co.kurrant.app.public_api.config.CurrentUser;
 import co.kurrant.app.public_api.dto.user.*;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.CommonService;
 import co.kurrant.app.public_api.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,23 +29,27 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final CommonService commonService;
 
     @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보 를 불러온다.")
     @GetMapping("")
-    public UserInfoDto getUserInfo(@CurrantUser User user) {
-        return userService.getUserInfo(user);
+    public UserInfoDto getUserInfo(Authentication authentication) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        return userService.getUserInfo(commonService.getUser(securityUser));
     }
 
     @Operation(summary = "마이페이지의 개인 정보 페이지에서 유저 정보 가져오기", description = "개인 정보 페이지에서 로그인 한 유저의 개인 정보를 불러온다.")
     @GetMapping("/personal")
-    public UserPersonalInfoDto getPersonalUserInfo(@CurrantUser User user) {
-        return userService.getPersonalUserInfo(user);
+    public UserPersonalInfoDto getPersonalUserInfo(Authentication authentication) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        return userService.getPersonalUserInfo(securityUser);
     }
 
     @Operation(summary = "홈 유저 정보 가져오기", description = "로그인 한 유저의 정보를 불러온다.")
     @GetMapping("/userInfo")
-    public UserHomeResponseDto userHomeInfo(@CurrantUser User user) {
-        return userService.getUserHomeInfo(user);
+    public UserHomeResponseDto userHomeInfo(Authentication authentication) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        return userService.getUserHomeInfo(commonService.getUser(securityUser));
     }
 
     @Operation(summary = "아이디/비밀번호 설정", description = "로그인 한 유저의 정보를 불러온다.")
@@ -76,7 +82,7 @@ public class UserController {
     @Operation(summary = "휴대폰 번호 변경", description = "로그인 한 유저의 비밀번호를 변경한다.")
     @PostMapping("/change/phone")
     public ResponseMessage changePhone(HttpServletRequest httpServletRequest,
-                                          @RequestBody ChangePhoneRequestDto changePhoneRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+                                       @RequestBody ChangePhoneRequestDto changePhoneRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
         userService.changePhoneNumber(httpServletRequest, changePhoneRequestDto);
         return ResponseMessage.builder()
                 .message("휴대폰 번호 변경에 성공하였습니다.")
@@ -114,20 +120,11 @@ public class UserController {
     }
 
     // TODO: 추후 백오피스 구현시 삭제
-    @PostMapping("/setting/corporation/{corporationId}")
-    public ResponseMessage settingCorporation(HttpServletRequest httpServletRequest, @PathVariable BigInteger corporationId) {
-        userService.settingCorporation(httpServletRequest, corporationId);
+    @PostMapping("/setting/group/{groupId}")
+    public ResponseMessage settingGroup(HttpServletRequest httpServletRequest, @PathVariable BigInteger groupId) {
+        userService.settingGroup(httpServletRequest, groupId);
         return ResponseMessage.builder()
                 .message("유저 그룹(기업) 설정에 성공하였습니다.")
-                .build();
-    }
-
-    // TODO: 추후 백오피스 구현시 삭제
-    @PostMapping("/setting/apartment/{apartmentId}")
-    public ResponseMessage settingApartment(HttpServletRequest httpServletRequest, @PathVariable BigInteger apartmentId) {
-        userService.settingApartment(httpServletRequest, apartmentId);
-        return ResponseMessage.builder()
-                .message("유저 그룹(아파트) 설정에 성공하였습니다.")
                 .build();
     }
 

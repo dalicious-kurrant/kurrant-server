@@ -32,62 +32,15 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "client__apartment")
-public class Apartment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
-    @Comment("아파트 고객사 PK")
-    private BigInteger id;
-
-    @NotNull
-    @Convert(converter = DiningTypesConverter.class)
-    @Column(name = "dining_types", nullable = false)
-    @Comment("식사 타입")
-    private List<DiningType> diningTypes;
-
-    @Size(max = 64)
-    @NotNull
-    @Column(name = "name", nullable = false, length = 64)
-    private String name;
+public class Apartment extends Group{
 
     @Column(name = "family_count")
     private Integer familyCount;
 
-    @Column(name = "manager_id")
-    private Long managerId;
-
-    @Embedded
-    private Address address;
-
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "apartment_created_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("생성일")
-    private Timestamp createdDateTime;
-
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "apartment_updated_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("수정일")
-    private Timestamp updatedDateTime;
-
-    @OneToMany(mappedBy = "apartment", fetch = FetchType.LAZY)
-    @JsonBackReference(value = "client__apartment_fk")
-    @Comment("스팟 리스트")
-    List<ApartmentSpot> spots;
-
-    @OneToMany(mappedBy = "apartment", fetch = FetchType.LAZY)
-    @JsonBackReference(value = "client__apartment_fk")
-    @Comment("식사 정보 리스트")
-    List<ApartmentMealInfo> mealInfos;
 
     @Builder
-    public Apartment(List<DiningType> diningTypes, String name, Integer familyCount, Address address) {
-        this.diningTypes = diningTypes;
-        this.name = name;
+    public Apartment(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer familyCount) {
+        super(address, diningTypes, name, managerId);
         this.familyCount = familyCount;
-        this.address = address;
     }
 }

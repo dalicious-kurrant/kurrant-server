@@ -3,10 +3,8 @@ package co.dalicious.domain.client.service;
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.ApartmentRequestDto;
-import co.dalicious.domain.client.dto.ApartmentResponseDto;
 import co.dalicious.domain.client.dto.CorporationRequestDto;
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.mapper.ApartmentListMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DiningType;
@@ -21,10 +19,10 @@ import java.util.List;
 public class ClientServiceImpl implements ClientService{
     private final ApartmentRepository apartmentRepository;
     private final ApartmentMealInfoRepository apartmentMealInfoRepository;
-    private final ApartmentSpotRepository apartmentSpotRepository;
     private final CorporationRepository corporationRepository;
     private final CorporationMealInfoRepository corporationMealInfoRepository;
     private final CorporationSpotRepository corporationSpotRepository;
+    private final SpotRepository spotRepository;
 
     @Override
     // TODO: 백오피스 구현시 추후 수정 필요
@@ -48,7 +46,7 @@ public class ClientServiceImpl implements ClientService{
 
         for (ApartmentRequestDto.Meal meal : meals) {
             ApartmentMealInfo apartmentMealInfo = ApartmentMealInfo.builder()
-                    .apartment(apartment)
+                    .group(apartment)
                     .deliveryTime(DateUtils.stringToTime(meal.getDeliveryTime(), ":"))
                     .lastOrderTime(DateUtils.stringToTime(meal.getLastOrderTime(), ":"))
                     .diningType(DiningType.ofCode(meal.getDiningType()))
@@ -66,12 +64,12 @@ public class ClientServiceImpl implements ClientService{
                     .createAddressRequestDto(spotAddressDto)
                     .build();
             ApartmentSpot spot = ApartmentSpot.builder()
-                    .apartment(apartment)
+                    .group(apartment)
                     .diningTypes(convertToEntityAttribute(apartmentDto.getDiningTypes()))
                     .address(spotAddress)
                     .name("스팟" + (i + 1))
                     .build();
-            apartmentSpotRepository.save(spot);
+            spotRepository.save(spot);
         }
     }
 
@@ -96,7 +94,7 @@ public class ClientServiceImpl implements ClientService{
 
         for(CorporationRequestDto.Meal meal : meals) {
             CorporationMealInfo corporationMealInfo = CorporationMealInfo.builder()
-                    .corporation(corporation)
+                    .group(corporation)
                     .deliveryTime(DateUtils.stringToTime(meal.getDeliveryTime(), ":"))
                     .lastOrderTime(DateUtils.stringToTime(meal.getLastOrderTime(), ":"))
                     .diningType(DiningType.ofCode(meal.getDiningType()))
@@ -116,7 +114,7 @@ public class ClientServiceImpl implements ClientService{
                     .build();
             CorporationSpot spot = CorporationSpot.builder()
                     .name((i + 1) + "층")
-                    .corporation(corporation)
+                    .group(corporation)
                     .diningTypes(convertToEntityAttribute(corporationInfo.getDiningTypes()))
                     .address(spotAddress)
                     .build();

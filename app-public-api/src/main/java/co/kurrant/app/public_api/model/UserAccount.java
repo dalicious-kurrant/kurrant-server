@@ -10,7 +10,9 @@ public class UserAccount extends org.springframework.security.core.userdetails.U
     private final co.dalicious.domain.user.entity.User user;
 
     public UserAccount(co.dalicious.domain.user.entity.User user) {
-        super(user.getEmail(), user.getPassword(), List.of(new SimpleGrantedAuthority(user.getRole().getAuthority())));
+        super(user.getEmail(),
+                (user.getPassword() == null) ?  "NULL" : user.getPassword() ,
+                List.of(new SimpleGrantedAuthority(user.getRole().getAuthority())));
         this.user = user;
     }
 }
