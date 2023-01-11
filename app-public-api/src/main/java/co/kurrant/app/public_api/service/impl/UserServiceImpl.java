@@ -60,15 +60,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserHomeResponseDto getUserHomeInfo(User user) {
+    public UserHomeResponseDto getUserHomeInfo(SecurityUser securityUser) {
+        User user = commonService.getUser(securityUser);
         return userHomeInfoMapper.toDto(user);
     }
 
     @Override
     @Transactional
-    public void connectSnsAccount(HttpServletRequest httpServletRequest, SnsAccessToken snsAccessToken, String sns) {
+    public void connectSnsAccount(SecurityUser securityUser, SnsAccessToken snsAccessToken, String sns) {
         // 유저 정보 가져오기
-        User user = commonService.getUser(httpServletRequest);
+        User user = commonService.getUser(securityUser);
 
         // 등록된 SNS 플랫폼인지 확인
         Provider provider = UserValidator.isValidProvider(sns);
@@ -110,9 +111,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void disconnectSnsAccount(HttpServletRequest httpServletRequest, String sns) {
+    public void disconnectSnsAccount(SecurityUser securityUser, String sns) {
         // 유저 정보 가져오기
-        User user = commonService.getUser(httpServletRequest);
+        User user = commonService.getUser(securityUser);
 
         // 등록된 SNS 플랫폼인지 확인
         Provider provider = UserValidator.isValidProvider(sns);
@@ -139,9 +140,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void changePhoneNumber(HttpServletRequest httpServletRequest, ChangePhoneRequestDto changePhoneRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+    public void changePhoneNumber(SecurityUser securityUser, ChangePhoneRequestDto changePhoneRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
         // 로그인한 유저의 정보를 받아온다.
-        User user = commonService.getUser(httpServletRequest);
+        User user = commonService.getUser(securityUser);
         // 입력한 휴대폰 번호가 기존에 등록된 번호인지 확인한다.
         userValidator.isPhoneValid(changePhoneRequestDto.getPhone());
         // 인증번호가 일치하는지 확인한다.
@@ -152,9 +153,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void changePassword(HttpServletRequest httpServletRequest, ChangePasswordDto changePasswordRequestDto) {
+    public void changePassword(SecurityUser securityUser, ChangePasswordDto changePasswordRequestDto) {
         // 로그인한 유저의 정보를 받아온다.
-        User user = commonService.getUser(httpServletRequest);
+        User user = commonService.getUser(securityUser);
         // 현재 비밀번호가 일치하는지 확인
         if (!passwordEncoder.matches(changePasswordRequestDto.getCurrantPassword(), user.getPassword())) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
@@ -175,9 +176,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void setEmailAndPassword(HttpServletRequest httpServletRequest, SetEmailAndPasswordDto setEmailAndPasswordDto) {
+    public void setEmailAndPassword(SecurityUser securityUser, SetEmailAndPasswordDto setEmailAndPasswordDto) {
         // 로그인한 유저의 정보를 받아온다.
-        User user = commonService.getUser(httpServletRequest);
+        User user = commonService.getUser(securityUser);
         String email = setEmailAndPasswordDto.getEmail();
 
         // 기존에 존재하는 이메일인지 확인
@@ -209,9 +210,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public MarketingAlarmResponseDto getAlarmSetting(HttpServletRequest httpServletRequest) {
+    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
         // 유저 정보 가져오기
-        User user = commonService.getUser(httpServletRequest);
+        User user = commonService.getUser(securityUser);
         Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
         return MarketingAlarmResponseDto.builder()
                 .marketingAgree(user.getMarketingAgree())
@@ -223,9 +224,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public MarketingAlarmResponseDto changeAlarmSetting(HttpServletRequest httpServletRequest, MarketingAlarmRequestDto marketingAlarmDto) {
+    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
         // 유저 정보 가져오기
-        User user = commonService.getUser(httpServletRequest);
+        User user = commonService.getUser(securityUser);
         Boolean currantMarketingInfoAgree = user.getMarketingAgree();
         Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
         Boolean currantOrderAlarmAgree = user.getOrderAlarm();
@@ -299,7 +300,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserInfoDto getUserInfo(User user) {
+    public UserInfoDto getUserInfo(SecurityUser securityUser) {
+        User user = commonService.getUser(securityUser);
         Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
 //        Integer dailyMealCount =
 
@@ -313,8 +315,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     // TODO: 추후 백오피스 구현시 삭제
-    public void settingGroup(HttpServletRequest httpServletRequest, BigInteger groupId) {
-        User user = commonService.getUser(httpServletRequest);
+    public void settingGroup(SecurityUser securityUser, BigInteger groupId) {
+        User user = commonService.getUser(securityUser);
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         List<UserGroup> userGroups =  user.getGroups();

@@ -30,15 +30,6 @@ public class PublicController {
                 .build();
     }
 
-    @Operation(summary = "고객사로 등록된 아파트 전체 조회", description = "고객사로 등록된 아파트들 전체를 조회한다.")
-    @GetMapping("/apartments")
-    public ResponseMessage getApartments() {
-        return ResponseMessage.builder()
-                .data(userClientService.getApartments())
-                .message("아파트 전체 조회에 성공하셨습니다.")
-                .build();
-    }
-
     // TODO: 추후 백오피스 구현시 삭제
     @PostMapping("/apartment")
     public ResponseMessage createApartment(@RequestBody ApartmentRequestDto apartmentRequestDto) {

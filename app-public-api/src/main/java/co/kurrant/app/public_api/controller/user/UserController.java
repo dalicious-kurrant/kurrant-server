@@ -1,8 +1,6 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.user.entity.User;
-import co.kurrant.app.public_api.config.CurrentUser;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.CommonService;
@@ -14,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -29,13 +26,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final CommonService commonService;
 
     @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보 를 불러온다.")
     @GetMapping("")
     public UserInfoDto getUserInfo(Authentication authentication) {
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
-        return userService.getUserInfo(commonService.getUser(securityUser));
+        return userService.getUserInfo(securityUser);
     }
 
     @Operation(summary = "마이페이지의 개인 정보 페이지에서 유저 정보 가져오기", description = "개인 정보 페이지에서 로그인 한 유저의 개인 정보를 불러온다.")
@@ -49,13 +45,14 @@ public class UserController {
     @GetMapping("/userInfo")
     public UserHomeResponseDto userHomeInfo(Authentication authentication) {
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
-        return userService.getUserHomeInfo(commonService.getUser(securityUser));
+        return userService.getUserHomeInfo(securityUser);
     }
 
     @Operation(summary = "아이디/비밀번호 설정", description = "로그인 한 유저의 정보를 불러온다.")
     @PostMapping("/setting/GENERAL")
-    public ResponseMessage setEmailAndPassword(HttpServletRequest httpServletRequest, @RequestBody SetEmailAndPasswordDto setEmailAndPasswordDto) {
-        userService.setEmailAndPassword(httpServletRequest, setEmailAndPasswordDto);
+    public ResponseMessage setEmailAndPassword(Authentication authentication, @RequestBody SetEmailAndPasswordDto setEmailAndPasswordDto) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        userService.setEmailAndPassword(securityUser, setEmailAndPasswordDto);
         return ResponseMessage.builder()
                 .message("아이디/비밀번호 설정에 성공하였습니다.")
                 .build();
@@ -63,8 +60,9 @@ public class UserController {
 
     @Operation(summary = "SNS 계정 연결", description = "SNS 계정을 연결한다.")
     @PostMapping("/connecting/{sns}")
-    public ResponseMessage connectSnsAccount(HttpServletRequest httpServletRequest, @RequestBody SnsAccessToken snsAccessToken, @PathVariable String sns) {
-        userService.connectSnsAccount(httpServletRequest, snsAccessToken, sns);
+    public ResponseMessage connectSnsAccount(Authentication authentication, @RequestBody SnsAccessToken snsAccessToken, @PathVariable String sns) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        userService.connectSnsAccount(securityUser, snsAccessToken, sns);
         return ResponseMessage.builder()
                 .message("SNS 계정 연결에 성공하였습니다.")
                 .build();
@@ -72,8 +70,9 @@ public class UserController {
 
     @Operation(summary = "SNS 계정 해지", description = "SNS 계정 연결을 해제한다.")
     @DeleteMapping("/disconnecting/{sns}")
-    public ResponseMessage disconnectingSnsAccount(HttpServletRequest httpServletRequest, @PathVariable String sns) {
-        userService.disconnectSnsAccount(httpServletRequest, sns);
+    public ResponseMessage disconnectingSnsAccount(Authentication authentication, @PathVariable String sns) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        userService.disconnectSnsAccount(securityUser, sns);
         return ResponseMessage.builder()
                 .message("SNS 계정 연결 해제에 성공하였습니다.")
                 .build();
@@ -81,9 +80,10 @@ public class UserController {
 
     @Operation(summary = "휴대폰 번호 변경", description = "로그인 한 유저의 비밀번호를 변경한다.")
     @PostMapping("/change/phone")
-    public ResponseMessage changePhone(HttpServletRequest httpServletRequest,
+    public ResponseMessage changePhone(Authentication authentication,
                                        @RequestBody ChangePhoneRequestDto changePhoneRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
-        userService.changePhoneNumber(httpServletRequest, changePhoneRequestDto);
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        userService.changePhoneNumber(securityUser, changePhoneRequestDto);
         return ResponseMessage.builder()
                 .message("휴대폰 번호 변경에 성공하였습니다.")
                 .build();
@@ -91,9 +91,10 @@ public class UserController {
 
     @Operation(summary = "비밀번호 변경", description = "로그인 한 유저의 비밀번호를 변경한다.")
     @PostMapping("/change/password")
-    public ResponseMessage changePassword(HttpServletRequest httpServletRequest,
+    public ResponseMessage changePassword(Authentication authentication,
                                           @RequestBody ChangePasswordDto changePasswordRequestDto) {
-        userService.changePassword(httpServletRequest, changePasswordRequestDto);
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        userService.changePassword(securityUser, changePasswordRequestDto);
         return ResponseMessage.builder()
                 .message("비밀번호 변경에 성공하였습니다.")
                 .build();
@@ -101,8 +102,9 @@ public class UserController {
 
     @Operation(summary = "알림 설정 조회", description = "알림/마케팅 수신 정보 설정을 조회한다")
     @GetMapping("/setting")
-    public ResponseMessage getAlarmSetting(HttpServletRequest httpServletRequest) {
-        MarketingAlarmResponseDto MarketingDto = userService.getAlarmSetting(httpServletRequest);
+    public ResponseMessage getAlarmSetting(Authentication authentication) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        MarketingAlarmResponseDto MarketingDto = userService.getAlarmSetting(securityUser);
         return ResponseMessage.builder()
                 .message("알림 설정 조회에 성공하였습니다.")
                 .data(MarketingDto)
@@ -111,8 +113,9 @@ public class UserController {
 
     @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
     @PostMapping("/setting")
-    public ResponseMessage changeAlarmSetting(HttpServletRequest httpServletRequest, @RequestBody MarketingAlarmRequestDto marketingAlarmDto) {
-        MarketingAlarmResponseDto changeMarketingDto = userService.changeAlarmSetting(httpServletRequest, marketingAlarmDto);
+    public ResponseMessage changeAlarmSetting(Authentication authentication, @RequestBody MarketingAlarmRequestDto marketingAlarmDto) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        MarketingAlarmResponseDto changeMarketingDto = userService.changeAlarmSetting(securityUser, marketingAlarmDto);
         return ResponseMessage.builder()
                 .message("마케팅 수신 정보 변경에 성공하였습니다.")
                 .data(changeMarketingDto)
@@ -121,8 +124,9 @@ public class UserController {
 
     // TODO: 추후 백오피스 구현시 삭제
     @PostMapping("/setting/group/{groupId}")
-    public ResponseMessage settingGroup(HttpServletRequest httpServletRequest, @PathVariable BigInteger groupId) {
-        userService.settingGroup(httpServletRequest, groupId);
+    public ResponseMessage settingGroup(Authentication authentication, @PathVariable BigInteger groupId) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        userService.settingGroup(securityUser, groupId);
         return ResponseMessage.builder()
                 .message("유저 그룹(기업) 설정에 성공하였습니다.")
                 .build();
