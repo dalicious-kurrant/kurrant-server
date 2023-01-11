@@ -19,7 +19,6 @@ public interface ApartmentApplicationReqMapper {
     @Mapping(source = "apartmentInfo.serviceStartDate", target = "serviceStartDate", qualifiedByName = "stringToLocalDate")
     @Mapping(source = "apartmentInfo.dongCount", target = "dongCount")
     @Mapping(source = "apartmentInfo.familyCount", target = "totalFamilyCount")
-    @Mapping(target = "rejectedReason", defaultValue = "")
     ApartmentApplicationForm toEntity(ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto);
 
     @Named("stringToLocalDate")

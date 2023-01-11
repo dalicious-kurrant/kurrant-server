@@ -11,8 +11,8 @@ import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.system.util.DiningType;
-import co.kurrant.app.public_api.dto.client.ClientSpotDetailReqDto;
-import co.kurrant.app.public_api.dto.client.ClientSpotDetailResDto;
+import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
+import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
 import co.kurrant.app.public_api.service.CommonService;
@@ -128,7 +128,7 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public List<ApartmentResponseDto> getApartments() {
+    public List<ApartmentResponseDto> getApartments(SecurityUser securityUser) {
         List<Apartment> apartments = apartmentRepository.findAll();
         List<ApartmentResponseDto> apartmentResponseDtos = new ArrayList<>();
         for (Apartment apartment : apartments) {

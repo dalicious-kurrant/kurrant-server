@@ -22,7 +22,6 @@ public interface CorporationApplicationReqMapper {
     @Mapping(source = "option.isHotStorage", target = "isHotStorage")
     @Mapping(source = "option.isSetting", target = "isSetting")
     @Mapping(source = "option.memo", target = "memo")
-    @Mapping(target = "rejectedReason", defaultValue = "")
     CorporationApplicationForm toEntity(CorporationApplicationFormRequestDto corporationApplicationFormRequestDto);
 
     @Named("stringToLocalDate")

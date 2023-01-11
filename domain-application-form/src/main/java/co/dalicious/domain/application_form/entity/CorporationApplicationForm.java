@@ -133,7 +133,7 @@ public class CorporationApplicationForm {
     }
 
     @Builder
-    public CorporationApplicationForm(ProgressStatus progressStatus, String applierName, String phone, String email, String corporationName, Address address, Integer employeeCount, LocalDate serviceStartDate, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String memo, String rejectedReason) {
+    public CorporationApplicationForm(ProgressStatus progressStatus, String applierName, String phone, String email, String corporationName, Address address, Integer employeeCount, LocalDate serviceStartDate, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String memo) {
         this.progressStatus = progressStatus;
         this.applierName = applierName;
         this.phone = phone;
@@ -146,7 +146,6 @@ public class CorporationApplicationForm {
         this.isHotStorage = isHotStorage;
         this.isSetting = isSetting;
         this.memo = memo;
-        this.rejectedReason = rejectedReason;
     }
 
 

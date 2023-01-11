@@ -1,16 +1,16 @@
-package co.kurrant.app.public_api.dto.client;
+package co.dalicious.domain.client.dto;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 
 @Getter
 @NoArgsConstructor
 public class ClientSpotDetailResDto {
-    private String clientType;
     private BigInteger spotId;
     private String spotName;
     private String address;
@@ -18,8 +18,7 @@ public class ClientSpotDetailResDto {
     private String clientName;
 
     @Builder
-    public ClientSpotDetailResDto(String clientType, BigInteger spotId, String spotName, String address, List<MealTypeInfo> mealTypeInfoList, String clientName) {
-        this.clientType = clientType;
+    public ClientSpotDetailResDto( BigInteger spotId, String spotName, String address, List<MealTypeInfo> mealTypeInfoList, String clientName) {
         this.spotId = spotId;
         this.spotName = spotName;
         this.address = address;
@@ -30,14 +29,16 @@ public class ClientSpotDetailResDto {
     @Getter
     @NoArgsConstructor
     public static class MealTypeInfo {
-        private String diningType;
+        private Integer diningType;
+        private String serviceDays;
         private String lastOrderTime;
         private String deliveryTime;
-        private String supportPrice;
+        private BigDecimal supportPrice;
 
         @Builder
-        public MealTypeInfo(String diningType, String lastOrderTime, String deliveryTime, String supportPrice) {
+        public MealTypeInfo(Integer diningType, String serviceDays, String lastOrderTime, String deliveryTime, BigDecimal supportPrice) {
             this.diningType = diningType;
+            this.serviceDays = serviceDays;
             this.lastOrderTime = lastOrderTime;
             this.deliveryTime = deliveryTime;
             this.supportPrice = supportPrice;
