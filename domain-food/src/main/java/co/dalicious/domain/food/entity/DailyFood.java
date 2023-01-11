@@ -34,7 +34,6 @@ public class DailyFood {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @NotNull
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
@@ -57,11 +56,11 @@ public class DailyFood {
     @Column(name = "is_sold_out")
     private Boolean isSoldOut;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "food__food_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "food_id", columnDefinition = "BIGINT UNSIGNED")
     private Food food;
 
-    @Column(name = "client__spot_id")
+    @Column(name = "spot_id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger spotId;
 
     @Column(name = "service_date", columnDefinition = "DATE")

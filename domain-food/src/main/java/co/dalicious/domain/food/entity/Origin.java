@@ -16,7 +16,6 @@ import javax.validation.constraints.NotNull;
 public class Origin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @NotNull
     @Column(name="id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
@@ -29,7 +28,7 @@ public class Origin {
     private String from;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "food_id")
+    @JoinColumn(name = "food_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("식품 ID")
     private Food food;
 }

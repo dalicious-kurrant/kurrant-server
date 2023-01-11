@@ -3,6 +3,7 @@ package co.dalicious.domain.makers.entity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -20,10 +21,11 @@ import java.math.BigInteger;
 public class Makers {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @NotNull
     @Column(name= "id", columnDefinition = "BIGINT UNSIGNED")
+    @Comment("ID")
     private BigInteger id;
     @Column(name = "name")
+    @Comment("메이커스 이름")
     private String name;
 
     @Builder
