@@ -48,7 +48,7 @@ public class Food {
     private Spicy spicy;
 
     @ManyToOne(fetch = FetchType.EAGER ,optional = false)
-    @JoinColumn(name = "makers_id")
+    @JoinColumn(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("메이커스 ID")
     private Makers makers;
 

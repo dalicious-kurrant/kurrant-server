@@ -17,6 +17,7 @@ public class FoodDetailDto {
     private Integer price;
     private String img;
     private String spicy;
+    private String description;
     private List<OriginList> originList;
 
     @Builder
@@ -27,6 +28,7 @@ public class FoodDetailDto {
         this.img = food.getImg();
         this.spicy = food.getSpicy().getSpicy();
         this.originList = origin;
+        this.description = food.getDescription();
     }
 
 }
