@@ -11,11 +11,11 @@ import java.util.List;
 
 public interface UserClientService {
     // 그룹별 스팟 상세조회
-    ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, Integer clientType, BigInteger clientId, BigInteger spotId);
+    ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId);
     // 유저의 Default 스팟을 등록한다
-    BigInteger saveUserSpot(SecurityUser securityUser, ClientSpotDetailReqDto spotDetailReqDto, Integer clientType, BigInteger clientId, BigInteger spotId);
+    BigInteger saveUserSpot(SecurityUser securityUser, ClientSpotDetailReqDto spotDetailReqDto, BigInteger spotId);
     // 유저가 속한 그룹을 탈퇴한다.
-    Integer withdrawClient(SecurityUser securityUser, Integer clientType, BigInteger clientId);
+    Integer withdrawClient(SecurityUser securityUser, BigInteger groupId);
     // 고객사로 등록된 아파트 전체 리스트를 불러온다.
     List<ApartmentResponseDto> getApartments();
 }

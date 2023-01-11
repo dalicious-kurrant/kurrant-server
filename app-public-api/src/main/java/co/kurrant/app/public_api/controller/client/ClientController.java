@@ -20,7 +20,6 @@ import java.math.BigInteger;
 @RequestMapping(value = "/v1/users/me/clients")
 @RestController
 public class ClientController {
-    private final CommonService commonService;
     private final UserClientService userClientService;
     private final UserService userService;
 
@@ -35,41 +34,36 @@ public class ClientController {
     }
 
     @Operation(summary = "그룹별 스팟 상세 조회", description = "유저가 속한 그룹의 스팟들의 상세 정보를 조회한다.")
-    @GetMapping("/spots")
+    @GetMapping("/spots/{spotId}")
     public ResponseMessage getSpotDetail(Authentication authentication,
-                                         @RequestParam("clientType") Integer clientType,
-                                         @RequestParam("clientId") BigInteger clientId,
-                                         @RequestParam("spotId") BigInteger spotId) {
+                                         @PathVariable BigInteger spotId) {
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
         return ResponseMessage.builder()
-                .data(userClientService.getSpotDetail(securityUser, clientType, clientId, spotId))
+                .data(userClientService.getSpotDetail(securityUser, spotId))
                 .message("스팟 상세 조회에 성공하였습니다.")
                 .build();
     }
 
     @Operation(summary = "스팟 등록", description = "유저의 스팟을 등록한다.")
-    @PostMapping("/spots")
+    @PostMapping("/spots/{spotId}")
     public ResponseMessage saveUserSpot(Authentication authentication,
-                                        @RequestParam("clientType") Integer clientType,
-                                        @RequestParam("clientId") BigInteger clientId,
-                                        @RequestParam("spotId") BigInteger spotId,
+                                        @PathVariable BigInteger spotId,
                                         @RequestBody(required = false) ClientSpotDetailReqDto spotDetailReqDto) {
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
         return ResponseMessage.builder()
-                .data(userClientService.saveUserSpot(securityUser, spotDetailReqDto, clientType, clientId, spotId))
+                .data(userClientService.saveUserSpot(securityUser, spotDetailReqDto, spotId))
                 .message("스팟 등록에 성공하였습니다.")
                 .build();
     }
 
     @Operation(summary = "그룹 탈퇴", description = "유저가 속한 그룹에서 나간다.")
-    @PostMapping("")
+    @PostMapping("/{groupId}")
     public ResponseMessage withdrawClient(Authentication authentication,
-                                          @RequestParam("clientType") Integer clientType,
-                                          @RequestParam("clientId") BigInteger clientId) {
+                                          @PathVariable BigInteger groupId) {
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
         return ResponseMessage.builder()
-                .data(userClientService.withdrawClient(securityUser, clientType, clientId))
-                .message("스팟 상세 조회에 성공하였습니다.")
+                .data(userClientService.withdrawClient(securityUser, groupId))
+                .message("그룹 탈퇴에 성공하였습니다.")
                 .build();
     }
 }

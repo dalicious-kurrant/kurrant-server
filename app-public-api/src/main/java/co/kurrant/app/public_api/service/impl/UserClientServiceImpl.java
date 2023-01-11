@@ -26,6 +26,7 @@ import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,11 +34,6 @@ public class UserClientServiceImpl implements UserClientService {
     private final ApartmentListMapper apartmentMapper;
     private final CommonService commonService;
     private final ApartmentRepository apartmentRepository;
-    private final ApartmentSpotRepository apartmentSpotRepository;
-    private final ApartmentMealInfoRepository apartmentMealInfoRepository;
-    private final CorporationRepository corporationRepository;
-    private final CorporationSpotRepository corporationSpotRepository;
-    private final CorporationMealInfoRepository corporationMealInfoRepository;
     private final UserGroupRepository userGroupRepository;
     private final SpotRepository spotRepository;
     private final UserSpotRepository userSpotRepository;
@@ -45,99 +41,57 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, Integer clientType, BigInteger clientId, BigInteger spotId) {
+    public ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId) {
         // 유저 정보 가져오기
         User user = commonService.getUser(securityUser);
-        // 그룹 분류 가져오기
-        ClientType client = ClientType.ofCode(clientType);
-        List<DiningType> diningTypes = null;
+        // 스팟 정보 가져오기
+        Spot spot = spotRepository.findById(spotId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
+        );
+        // 스팟에 속한 그룹 가져오기
+        Group group = spot.getGroup();
+        UserGroup userGroup = user.getGroups().stream()
+                .filter(g -> g.getGroup().equals(group) && g.getClientStatus().equals(ClientStatus.BELONG))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
+        // 식사 정보 가져오기
+        List<DiningType> diningTypes = spot.getDiningTypes();
+        List<ClientSpotDetailResDto.MealTypeInfo> mealTypeInfoList = new ArrayList<>();
+        for (DiningType diningType : diningTypes) {
+            MealInfo mealInfo = group.getMealInfos().stream()
+                    .filter(v -> v.getDiningType().equals(diningType))
+                    .findAny()
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        switch (client) {
-            case APARTMENT -> {
-                // 해당 아파트의 식사정보와 스팟 정보 가져오기
-                Apartment apartment = apartmentRepository.findById(clientId).orElseThrow(
-                        () -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND)
-                );
-                List<ApartmentMealInfo> apartmentMealInfos = apartmentMealInfoRepository.findAllByGroup(apartment);
-                ApartmentSpot apartmentSpot = apartmentSpotRepository.findById(spotId).orElseThrow(
-                        () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-                );
-                // 식사 정보 가져오기
-                diningTypes = apartmentSpot.getDiningTypes();
-                List<ClientSpotDetailResDto.MealTypeInfo> mealTypeInfoList = new ArrayList<>();
-                for (DiningType diningType : diningTypes) {
-                    ApartmentMealInfo mealInfo = apartmentMealInfos.stream()
-                            .filter(v -> v.getDiningType().equals(diningType))
-                            .findAny()
-                            .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-
-                    ClientSpotDetailResDto.MealTypeInfo mealTypeInfo = ClientSpotDetailResDto.MealTypeInfo.builder()
-                            .diningType(diningType.getDiningType() + " 식사")
-                            .lastOrderTime(mealInfo.getLastOrderTime().toString())
-                            .deliveryTime(mealInfo.getDeliveryTime().toString())
-                            .build();
-                    mealTypeInfoList.add(mealTypeInfo);
-                }
-                return ClientSpotDetailResDto.builder()
-                        .clientType(ClientType.APARTMENT.getClient())
-                        .spotId(apartmentSpot.getId())
-                        .spotName(apartmentSpot.getName())
-                        .address(apartmentSpot.getAddress().addressToString())
-                        .mealTypeInfoList(mealTypeInfoList)
-                        .clientName(apartment.getName())
-                        .build();
-            }
-            case CORPORATION -> {
-                Corporation corporation = corporationRepository.findById(clientId).orElseThrow(
-                        () -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND)
-                );
-                List<CorporationMealInfo> corporationMealInfos = corporationMealInfoRepository.findAllByGroup(corporation);
-                CorporationSpot corporationSpot = corporationSpotRepository.findById(spotId).orElseThrow(
-                        () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-                );
-                // 식사 정보 가져오기
-                diningTypes = corporationSpot.getDiningTypes();
-                List<ClientSpotDetailResDto.MealTypeInfo> mealTypeInfos = new ArrayList<>();
-                for (DiningType diningType : diningTypes) {
-                    CorporationMealInfo mealInfo = corporationMealInfos.stream()
-                            .filter(v -> v.getDiningType().equals(diningType))
-                            .findAny()
-                            .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-
-                    ClientSpotDetailResDto.MealTypeInfo mealTypeInfo = ClientSpotDetailResDto.MealTypeInfo.builder()
-                            .diningType(diningType.getDiningType() + " 식사")
-                            .lastOrderTime(mealInfo.getLastOrderTime().toString())
-                            .deliveryTime(mealInfo.getDeliveryTime().toString())
-                            .build();
-                    mealTypeInfos.add(mealTypeInfo);
-                }
-                return ClientSpotDetailResDto.builder()
-                        .clientType(ClientType.APARTMENT.getClient())
-                        .spotId(corporationSpot.getId())
-                        .spotName(corporationSpot.getName())
-                        .address(corporationSpot.getAddress().addressToString())
-                        .mealTypeInfoList(mealTypeInfos)
-                        .clientName(corporation.getName())
-                        .build();
-            }
-            default -> throw new ApiException(ExceptionEnum.SPOT_NOT_FOUND);
+            ClientSpotDetailResDto.MealTypeInfo mealTypeInfo = ClientSpotDetailResDto.MealTypeInfo.builder()
+                    .diningType(diningType.getDiningType() + " 식사")
+                    .lastOrderTime(mealInfo.getLastOrderTime().toString())
+                    .deliveryTime(mealInfo.getDeliveryTime().toString())
+                    .build();
+            mealTypeInfoList.add(mealTypeInfo);
         }
+        return ClientSpotDetailResDto.builder()
+                .clientType(ClientType.APARTMENT.getClient())
+                .spotId(spot.getId())
+                .spotName(spot.getName())
+                .address(spot.getAddress().addressToString())
+                .mealTypeInfoList(mealTypeInfoList)
+                .clientName(spot.getName())
+                .build();
     }
 
     @Override
     @Transactional
-    public BigInteger saveUserSpot(SecurityUser securityUser, ClientSpotDetailReqDto clientSpotDetailReqDto, Integer clientType, BigInteger clientId, BigInteger spotId) {
+    public BigInteger saveUserSpot(SecurityUser securityUser, ClientSpotDetailReqDto clientSpotDetailReqDto, BigInteger spotId) {
         // 유저를 조회한다.
         User user = commonService.getUser(securityUser);
-        // 그룹 구분을 가져온다.
-        ClientType client = ClientType.ofCode(clientType);
         // 스팟을 가져온다.
         Spot spot = spotRepository.findById(spotId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
         );
         // 유저가 스팟 그룹에 등록되었는지 검사한다.
         Group group = spot.getGroup();
-        List<UserGroup> groups = userGroupRepository.findAllByUser(user);
+        List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         UserGroup userGroup = groups.stream().filter(v -> v.getGroup().equals(group))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND));
@@ -156,11 +110,9 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public Integer withdrawClient(SecurityUser securityUser, Integer clientType, BigInteger clientId) {
+    public Integer withdrawClient(SecurityUser securityUser, BigInteger clientId) {
         // 유저를 조회한다.
         User user = commonService.getUser(securityUser);
-        // 그룹 구분을 가져온다.
-        ClientType client = ClientType.ofCode(clientType);
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
         Group group = groupRepository.findById(clientId).orElseThrow(

@@ -320,6 +320,10 @@ public class UserServiceImpl implements UserService {
         List<UserGroup> userGroups =  user.getGroups();
         Optional<UserGroup> selectedGroup =  userGroups.stream().filter(g -> g.getGroup().equals(group)).findAny();
         if(selectedGroup.isPresent()) {
+            if(selectedGroup.get().getClientStatus() == ClientStatus.WITHDRAWAL) {
+                selectedGroup.get().updateStatus(ClientStatus.BELONG);
+                return;
+            }
             throw new ApiException(ExceptionEnum.ALREADY_EXISTING_GROUP);
         }
 
@@ -359,8 +363,11 @@ public class UserServiceImpl implements UserService {
         List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
         // 그룹 추가
         for (UserGroup userGroup : userGroups) {
-            Group group = userGroup.getGroup();
-            spotListResponseDtoList.add(groupResponseMapper.toDto(group));
+            // 현재 활성화된 유저 그룹일 경우만 가져오기
+            if(userGroup.getClientStatus() == ClientStatus.BELONG) {
+                Group group = userGroup.getGroup();
+                spotListResponseDtoList.add(groupResponseMapper.toDto(group));
+            }
         }
         return spotListResponseDtoList;
     }
