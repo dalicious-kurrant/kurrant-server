@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -98,9 +99,46 @@ public class OrderServiceImpl implements OrderService {
                 price = price * oc.getCount();
             }
 
+            //정책 미확정으로 배송비 보류
+            BigDecimal deliveryFee = BigDecimal.valueOf(0);
+
+            //멤버십 할인 가격
+            BigDecimal membershipPrice = BigDecimal.valueOf(0);
+
+            if (user.getIsMembership().equals(1)) {
+                membershipPrice = BigDecimal.valueOf(price * 80 / 100);
+                price = membershipPrice.intValue();
+            }
+            //판매자 할인 가격
+            BigDecimal discountPrice = BigDecimal.valueOf(price * 85 / 100);
+            //개발 단계에서는 기본할인 + 기간할인 무조건 적용해서 진행
+            price = discountPrice.intValue();
+            //기간 할인 가격
+            BigDecimal periodDiscountPrice = BigDecimal.valueOf(price * 90 / 100);
+            price = periodDiscountPrice.intValue();
+
+            BigDecimal supportPrice = BigDecimal.valueOf(10000);
+
+            System.out.println(price + "Before Price");
+
+            //price가 지원금보다 크거나 작을때 계산
+            if (price <= supportPrice.intValue()){
+                supportPrice = BigDecimal.valueOf(price);
+                price = 0;
+            } else {
+                price = supportPrice.intValue() - price;
+            }
+
+            System.out.println(price + " price");
+
             result.add(CartItemDto.builder()
                     .orderCartItem(oc)
                     .price(price)
+                    .supportPrice(supportPrice)
+                    .deliveryFee(deliveryFee)
+                    .membershipPrice(membershipPrice)
+                    .discountPrice(discountPrice)
+                    .periodDiscountPrice(periodDiscountPrice)
                     .build());
         }
         return result;

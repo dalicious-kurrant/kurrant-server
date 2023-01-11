@@ -21,11 +21,9 @@ import java.math.BigInteger;
 @Entity
 @Table(name = "food__food")
 public class Food {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    @NotNull
+    @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("ID")
     private BigInteger id;
 
@@ -45,18 +43,17 @@ public class Food {
     @Comment("할인율")
     private Integer discountedRate;
 
-    @Column(name = "e_spicy")
+    @Column(name = "spicy")
     @Comment("맵기정도")
     private Spicy spicy;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.EAGER ,optional = false)
     @JoinColumn(name = "makers_id")
     @Comment("메이커스 ID")
     private Makers makers;
 
     @Column(name = "description")
     @Comment("설명")
-    @Lob
     private String description;
 
     @Builder
