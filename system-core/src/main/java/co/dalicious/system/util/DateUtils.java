@@ -47,6 +47,6 @@ public class DateUtils {
     }
 
     public static String timeToString(LocalTime time) {
-        return time.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        return time.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 }
