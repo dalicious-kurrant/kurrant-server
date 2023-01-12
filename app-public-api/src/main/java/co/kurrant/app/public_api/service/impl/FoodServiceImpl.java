@@ -1,6 +1,5 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.food.dto.FoodDetailDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Origin;
@@ -8,15 +7,20 @@ import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.food.repository.QOriginRepository;
 import co.dalicious.domain.food.util.OriginList;
+import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
-import co.kurrant.app.public_api.service.FoodService;
+import co.kurrant.app.public_api.mapper.food.FoodMapper;
 import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
+import co.kurrant.app.public_api.model.SecurityUser;
+import co.kurrant.app.public_api.service.CommonService;
+import co.kurrant.app.public_api.service.FoodService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,11 +30,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FoodServiceImpl implements FoodService {
 
+    private final CommonService commonService;
     private final FoodRepository foodRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
     private final QOriginRepository qOriginRepository;
-
     private final DailyFoodMapper dailyFoodMapper;
+    private final FoodMapper foodMapper;
+
 
 
     @Override
@@ -54,7 +60,9 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public FoodDetailDto getFoodDetail(BigInteger foodId) {
+    public Object getFoodDetail(BigInteger foodId, SecurityUser securityUser) {
+
+        User user = commonService.getUser(securityUser);
 
         Food food = foodRepository.findOneById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
@@ -67,9 +75,30 @@ public class FoodServiceImpl implements FoodService {
             originList.add(originList2);
         }
 
-        return FoodDetailDto.builder()
-                .food(food)
-                .origin(originList)
-                .build();
+        //할인금액
+        //멤버십 할인 가격
+        BigDecimal membershipPrice;
+        Integer price = food.getPrice();
+        Integer countPrice = food.getPrice();
+        if (user.getIsMembership()) {
+            membershipPrice = BigDecimal.valueOf(price - (price * 80L / 100));
+            price = price - membershipPrice.intValue();
+        }
+        //판매자 할인 가격
+        BigDecimal discountPrice = BigDecimal.valueOf(price - (price * 85L / 100));
+        //개발 단계에서는 기본할인 + 기간할인 무조건 적용해서 진행
+        price = price - discountPrice.intValue();
+        //기간 할인 가격
+        BigDecimal periodDiscountPrice = BigDecimal.valueOf((price - price * 90L / 100));
+        price = price - periodDiscountPrice.intValue();
+
+        //할인율 구하기
+        BigDecimal discountRate = BigDecimal.valueOf(( countPrice - (double) Math.abs(price)) / countPrice);
+
+        //결과값을 담아줄 List 생성
+        List<Object> result = new ArrayList<>();
+        result.add(foodMapper.toFoodDetailDto(food, originList, price, discountRate));
+
+        return result;
     }
 }

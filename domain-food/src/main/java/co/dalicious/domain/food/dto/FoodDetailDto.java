@@ -12,22 +12,26 @@ import java.util.List;
 @Getter
 @Setter
 public class FoodDetailDto {
-    private String makers;
+    private String makersName;
     private String name;
     private Integer price;
+    private Integer discountedPrice;
+    private BigDecimal discountRate;
     private String img;
     private String spicy;
     private String description;
     private List<OriginList> originList;
 
     @Builder
-    FoodDetailDto(Food food, List<OriginList> origin){
-        this.makers = food.getMakers().getName();
+    FoodDetailDto(Food food, List<OriginList> originList, Integer price, BigDecimal discountRate){
+        this.makersName = food.getMakers().getName();
         this.name = food.getName();
         this.price = food.getPrice();
+        this.discountedPrice = price;
+        this.discountRate = discountRate;
         this.img = food.getImg();
         this.spicy = food.getSpicy().getSpicy();
-        this.originList = origin;
+        this.originList = originList;
         this.description = food.getDescription();
     }
 
