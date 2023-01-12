@@ -1,15 +1,21 @@
 package co.dalicious.domain.client.dto;
 
+import co.dalicious.domain.client.entity.CorporationMealInfo;
+import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.system.util.DateUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
+@Setter
+@Schema(description = "스팟 상세정보 응답 DTO")
 public class ClientSpotDetailResDto {
     private BigInteger spotId;
     private String spotName;
@@ -17,17 +23,8 @@ public class ClientSpotDetailResDto {
     private List<MealTypeInfo> mealTypeInfoList;
     private String clientName;
 
-    @Builder
-    public ClientSpotDetailResDto( BigInteger spotId, String spotName, String address, List<MealTypeInfo> mealTypeInfoList, String clientName) {
-        this.spotId = spotId;
-        this.spotName = spotName;
-        this.address = address;
-        this.mealTypeInfoList = mealTypeInfoList;
-        this.clientName = clientName;
-    }
-
     @Getter
-    @NoArgsConstructor
+    @Setter
     public static class MealTypeInfo {
         private Integer diningType;
         private String serviceDays;
@@ -36,12 +33,12 @@ public class ClientSpotDetailResDto {
         private BigDecimal supportPrice;
 
         @Builder
-        public MealTypeInfo(Integer diningType, String serviceDays, String lastOrderTime, String deliveryTime, BigDecimal supportPrice) {
-            this.diningType = diningType;
-            this.serviceDays = serviceDays;
-            this.lastOrderTime = lastOrderTime;
-            this.deliveryTime = deliveryTime;
-            this.supportPrice = supportPrice;
+        public MealTypeInfo(MealInfo mealInfo) {
+            this.diningType = mealInfo.getDiningType().getCode();
+            this.serviceDays = mealInfo.getServiceDays();
+            this.lastOrderTime = DateUtils.timeToString(mealInfo.getLastOrderTime()) ;
+            this.deliveryTime =  DateUtils.timeToString(mealInfo.getDeliveryTime());
+            this.supportPrice = null;
         }
     }
 }

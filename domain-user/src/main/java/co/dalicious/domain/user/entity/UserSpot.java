@@ -26,6 +26,7 @@ public class UserSpot {
 
 
     @OneToOne(orphanRemoval = true, optional = false)
+    @JoinColumn
     @JsonManagedReference(value = "user_spot_fk")
     @Comment("유저")
     private User user;
@@ -36,7 +37,7 @@ public class UserSpot {
 
     @OneToOne
     @JoinColumn
-    @JsonManagedReference(value = "corporation_spot_fk")
+    @JsonManagedReference(value = "spot_fk")
     @Comment("기본으로 설정한 스팟 id")
     private Spot spot;
 

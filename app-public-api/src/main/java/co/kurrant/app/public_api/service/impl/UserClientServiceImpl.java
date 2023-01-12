@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.domain.client.dto.ApartmentResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.mapper.ApartmentListMapper;
+import co.dalicious.domain.client.mapper.SpotDetailResponseMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
@@ -36,6 +37,7 @@ public class UserClientServiceImpl implements UserClientService {
     private final SpotRepository spotRepository;
     private final UserSpotRepository userSpotRepository;
     private final GroupRepository groupRepository;
+    private final SpotDetailResponseMapper spotDetailResponseMapper;
 
     @Override
     @Transactional
@@ -53,29 +55,7 @@ public class UserClientServiceImpl implements UserClientService {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
         // 식사 정보 가져오기
-        List<DiningType> diningTypes = spot.getDiningTypes();
-        List<ClientSpotDetailResDto.MealTypeInfo> mealTypeInfoList = new ArrayList<>();
-        for (DiningType diningType : diningTypes) {
-            MealInfo mealInfo = group.getMealInfos().stream()
-                    .filter(v -> v.getDiningType().equals(diningType))
-                    .findAny()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-
-            ClientSpotDetailResDto.MealTypeInfo mealTypeInfo = ClientSpotDetailResDto.MealTypeInfo.builder()
-                    .diningType(diningType.getDiningType() + " 식사")
-                    .lastOrderTime(mealInfo.getLastOrderTime().toString())
-                    .deliveryTime(mealInfo.getDeliveryTime().toString())
-                    .build();
-            mealTypeInfoList.add(mealTypeInfo);
-        }
-        return ClientSpotDetailResDto.builder()
-                .clientType(ClientType.APARTMENT.getClient())
-                .spotId(spot.getId())
-                .spotName(spot.getName())
-                .address(spot.getAddress().addressToString())
-                .mealTypeInfoList(mealTypeInfoList)
-                .clientName(spot.getName())
-                .build();
+        return spotDetailResponseMapper.toDto(spot);
     }
 
     @Override
