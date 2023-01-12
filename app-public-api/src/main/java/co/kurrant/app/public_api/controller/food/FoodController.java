@@ -1,20 +1,17 @@
 package co.kurrant.app.public_api.controller.food;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.food.dto.FoodDetailDto;
-import co.kurrant.app.public_api.dto.food.DailyFoodDto;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.FoodService;
-import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.List;
 
 @Tag(name = "4. Food")
 @RequestMapping(value = "/v1/foods")
@@ -35,8 +32,12 @@ public class FoodController {
 
     @Operation(summary = "메뉴 상세정보 불러오기", description = "특정 메뉴의 상세정보를 불러온다.")
     @GetMapping("/{foodId}")
-    public FoodDetailDto getFoodDetail(@PathVariable BigInteger foodId){
-        return foodService.getFoodDetail(foodId);
+    public ResponseMessage getFoodDetail(Authentication authentication, @PathVariable BigInteger foodId){
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        return ResponseMessage.builder()
+                .data(foodService.getFoodDetail(foodId, securityUser))
+                .message("상품 상세정보 조회 성공!")
+                .build();
     }
 
 }
