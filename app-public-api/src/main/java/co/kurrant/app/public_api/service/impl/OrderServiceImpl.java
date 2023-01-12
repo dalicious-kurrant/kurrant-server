@@ -132,20 +132,22 @@ public class OrderServiceImpl implements OrderService {
             //일일지원금과 합계금액 저장
             BigDecimal totalPrice = BigDecimal.valueOf(0);
             for (CartItemDto cartItem : cartItemDtos){
-                totalPrice.add(BigDecimal.valueOf(cartItem.getSumPrice()));
+                totalPrice = BigDecimal.valueOf(totalPrice.intValue() + cartItem.getSumPrice());
             }
 
             if (totalPrice.intValue() <= supportPrice.intValue()){
                 supportPrice = totalPrice;
                 totalPrice = BigDecimal.valueOf(0);
             } else {
-                totalPrice = supportPrice.subtract(totalPrice);
+                totalPrice = BigDecimal.valueOf(totalPrice.intValue() - supportPrice.intValue());
             }
             List<Object> result = new ArrayList<>();
+            Map<String, Object> priceMaps = new HashMap<>();
+            priceMaps.put("totalPrice",totalPrice);
+            priceMaps.put("usedSupportPrice",supportPrice);
 
             result.add(cartItemDtos);
-            result.add(totalPrice);
-            result.add(supportPrice);
+            result.add(priceMaps);
 
         return result;
     }
