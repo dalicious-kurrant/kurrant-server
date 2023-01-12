@@ -175,6 +175,7 @@ project(':app-public-api') {
         implementation project(':domain-makers')
         implementation project(':domain-client')
         implementation project(':domain-order')
+        implementation project(':domain-board')
         implementation project(':domain-file')
         implementation project(':client-external-mail')
         implementation project(':client-external-sms')

@@ -23,7 +23,7 @@ public class CartItemDto {
     String diningType;
     Integer count;
     Integer sumPrice;
-    Integer discountRate;
+    Double discountRate;
     String serviceDate;
     BigDecimal supportPrice;
     BigDecimal deliveryFee;
@@ -35,7 +35,7 @@ public class CartItemDto {
 
     @Builder
     public CartItemDto(OrderCartItem orderCartItem, Integer price, BigDecimal supportPrice, BigDecimal deliveryFee,
-                       BigDecimal membershipPrice, BigDecimal discountPrice, BigDecimal periodDiscountPrice){
+                       BigDecimal membershipPrice, BigDecimal discountPrice, BigDecimal periodDiscountPrice, BigDecimal discountRate){
         this.id = orderCartItem.getId();
         this.name = orderCartItem.getDailyFood().getFood().getName();
         this.price = orderCartItem.getDailyFood().getFood().getPrice();
@@ -43,7 +43,7 @@ public class CartItemDto {
         this.makers = orderCartItem.getDailyFood().getFood().getMakers();
         this.diningType = orderCartItem.getDiningType().getDiningType();
         this.count = orderCartItem.getCount();
-        this.discountRate = orderCartItem.getDailyFood().getFood().getDiscountedRate();
+        this.discountRate = discountRate.doubleValue();
         this.serviceDate = DateUtils.format(orderCartItem.getServiceDate(), "yyyy-MM-dd");
         this.sumPrice = price;
         this.dailyFoodId = orderCartItem.getDailyFood().getId();
