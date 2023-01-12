@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.dto.client;
+package co.dalicious.domain.client.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

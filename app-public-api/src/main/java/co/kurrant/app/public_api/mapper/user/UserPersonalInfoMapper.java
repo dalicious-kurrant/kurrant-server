@@ -15,8 +15,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 @Transactional
-public interface UserPersonalInfoMapper extends GenericMapper<UserPersonalInfoDto, User> {
-    @Override
+public interface UserPersonalInfoMapper {
     @Mapping(target = "avatar", source = "avatar.location")
     @Mapping(target = "gourmetType", source = "gourmetType.gourmetType")
     @Mapping(target = "providerEmails", source = "providerEmails", qualifiedByName = "providerEmailsToDto")

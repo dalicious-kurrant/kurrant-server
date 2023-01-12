@@ -108,7 +108,7 @@ public class ApartmentApplicationForm {
     private Timestamp updatedDateTime;
 
     @Builder
-    public ApartmentApplicationForm(ProgressStatus progressStatus, String applierName, String phone, String email, String apartmentName, Address address, Integer totalFamilyCount, Integer dongCount, LocalDate serviceStartDate, String memo, String rejectedReason) {
+    public ApartmentApplicationForm(ProgressStatus progressStatus, String applierName, String phone, String email, String apartmentName, Address address, Integer totalFamilyCount, Integer dongCount, LocalDate serviceStartDate, String memo) {
         this.progressStatus = progressStatus;
         this.applierName = applierName;
         this.phone = phone;
@@ -119,7 +119,6 @@ public class ApartmentApplicationForm {
         this.dongCount = dongCount;
         this.serviceStartDate = serviceStartDate;
         this.memo = memo;
-        this.rejectedReason = rejectedReason;
     }
 
 

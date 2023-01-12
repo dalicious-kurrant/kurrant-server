@@ -13,9 +13,6 @@ public interface ApartmentListMapper {
     @Mapping(source = "address", target = "address", qualifiedByName = "addressToString")
     ApartmentResponseDto toDto(Apartment apartment);
 
-    @Mapping(source = "address", target = "address", ignore = true)
-    Apartment toEntity(ApartmentResponseDto apartment);
-
     @Named("addressToString")
     default String addressToString(Address address) {
         return address.addressToString();
