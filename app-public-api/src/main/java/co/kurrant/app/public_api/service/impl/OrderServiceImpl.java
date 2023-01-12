@@ -86,10 +86,13 @@ public class OrderServiceImpl implements OrderService {
         //유저정보 가져오기
         User user = commonService.getUser(securityUser);
         //결과값 저장을 위한 LIST 생성
-        List<CartItemDto> result = new ArrayList<>();
+        List<CartItemDto> cartItemDtos = new ArrayList<>();
 
         //유저정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
         List<OrderCartItem> orderCartItems = qOrderCartItemRepository.getItems(qOrderCartRepository.getCartId(user.getId()));
+
+        //지원금 일괄 만원 적용(임시)
+        BigDecimal supportPrice = BigDecimal.valueOf(10000);
 
         //카트에 담긴 아이템들을 결과 LIST에 담아주기
         for (OrderCartItem oc : orderCartItems){
@@ -119,23 +122,33 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal periodDiscountPrice = BigDecimal.valueOf((price - price * 90 / 100));
             price = price - periodDiscountPrice.intValue();
 
-            //지원금 일괄 만원 적용(임시)
-            BigDecimal supportPrice = BigDecimal.valueOf(10000);
-
             //할인율 구하기
             BigDecimal discountRate = BigDecimal.valueOf(( countPrice - (double) Math.abs(price)) / countPrice);
 
-            //price가 지원금보다 크거나 작을때 계산
-            if (price <= supportPrice.intValue()){
-                supportPrice = BigDecimal.valueOf(price);
-                price = 0;
-            } else {
-                price = supportPrice.intValue() - price;
-            }
 
-            result.add(orderCartItemMapper.toCartItemDto(oc,price,supportPrice,deliveryFee,membershipPrice,discountPrice,periodDiscountPrice, discountRate));
+            cartItemDtos.add(orderCartItemMapper.toCartItemDto(oc,price,supportPrice,deliveryFee,membershipPrice,discountPrice,periodDiscountPrice, discountRate));
 
         }
+            //일일지원금과 합계금액 저장
+            BigDecimal totalPrice = BigDecimal.valueOf(0);
+            for (CartItemDto cartItem : cartItemDtos){
+                totalPrice = BigDecimal.valueOf(totalPrice.intValue() + cartItem.getSumPrice());
+            }
+
+            if (totalPrice.intValue() <= supportPrice.intValue()){
+                supportPrice = totalPrice;
+                totalPrice = BigDecimal.valueOf(0);
+            } else {
+                totalPrice = BigDecimal.valueOf(totalPrice.intValue() - supportPrice.intValue());
+            }
+            List<Object> result = new ArrayList<>();
+            Map<String, Object> priceMaps = new HashMap<>();
+            priceMaps.put("totalPrice",totalPrice);
+            priceMaps.put("usedSupportPrice",supportPrice);
+
+            result.add(cartItemDtos);
+            result.add(priceMaps);
+
         return result;
     }
 
