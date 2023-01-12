@@ -119,14 +119,11 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal periodDiscountPrice = BigDecimal.valueOf((price - price * 90 / 100));
             price = price - periodDiscountPrice.intValue();
 
+            //지원금 일괄 만원 적용(임시)
             BigDecimal supportPrice = BigDecimal.valueOf(10000);
 
             //할인율 구하기
             BigDecimal discountRate = BigDecimal.valueOf(( countPrice - (double) Math.abs(price)) / countPrice);
-
-            System.out.println(countPrice + " countPrice");
-            System.out.println(price + " price");
-            System.out.println(discountRate + "discountRate");
 
             //price가 지원금보다 크거나 작을때 계산
             if (price <= supportPrice.intValue()){
