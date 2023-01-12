@@ -24,8 +24,10 @@ public class UserSpot {
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
+    @Comment("기본 설정된 스팟인지 확인")
+    private Boolean isDefault;
 
-    @OneToOne(orphanRemoval = true, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn
     @JsonManagedReference(value = "user_spot_fk")
     @Comment("유저")
@@ -41,11 +43,27 @@ public class UserSpot {
     @Comment("기본으로 설정한 스팟 id")
     private Spot spot;
 
+    @Comment("아파트 유저의 세부주소 (호수)")
+    private Integer ho;
+
+    public void updateHo(Integer ho) {
+        this.ho = ho;
+    }
+
+    public void updateSpot(Spot spot) {
+        this.spot = spot;
+    }
+
+    public void updateDefault(Boolean isDefault) {
+        this.isDefault = isDefault;
+    }
+
     @Builder
-    public UserSpot(User user, ClientType clientType, Spot spot) {
+    public UserSpot(User user, ClientType clientType, Spot spot, Boolean isDefault) {
         this.user = user;
         this.clientType = clientType;
         this.spot = spot;
+        this.isDefault = isDefault;
     }
 
 

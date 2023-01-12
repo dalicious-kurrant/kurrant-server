@@ -114,9 +114,9 @@ public class User {
     @ColumnDefault("0.00")
     private BigDecimal point;
 
-    @OneToOne(mappedBy = "user")
+    @OneToMany(mappedBy = "user", orphanRemoval = true)
     @JsonBackReference(value = "user_spot_fk")
-    private UserSpot userSpot;
+    private List<UserSpot> userSpots;
 
     @Size(max = 16)
     @Column(name = "phone", length = 16,
@@ -181,9 +181,5 @@ public class User {
 
     public void changeMembershipStatus(Boolean isMembership) {
       this.isMembership = isMembership;
-    }
-
-    public void updateUserSpot(UserSpot userSpot) {
-        this.userSpot = userSpot;
     }
 }

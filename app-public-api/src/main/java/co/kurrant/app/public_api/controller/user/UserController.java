@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.client.dto.ApartmentSettingReqDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.CommonService;
@@ -121,15 +122,4 @@ public class UserController {
                 .data(changeMarketingDto)
                 .build();
     }
-
-    // TODO: 추후 백오피스 구현시 삭제
-    @PostMapping("/setting/group/{groupId}")
-    public ResponseMessage settingGroup(Authentication authentication, @PathVariable BigInteger groupId) {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
-        userService.settingGroup(securityUser, groupId);
-        return ResponseMessage.builder()
-                .message("유저 그룹(기업) 설정에 성공하였습니다.")
-                .build();
-    }
-
 }

@@ -20,6 +20,7 @@ public class ClientSpotDetailResDto {
     private BigInteger spotId;
     private String spotName;
     private String address;
+    private Integer ho;
     private List<MealTypeInfo> mealTypeInfoList;
     private String clientName;
 
@@ -38,7 +39,9 @@ public class ClientSpotDetailResDto {
             this.serviceDays = mealInfo.getServiceDays();
             this.lastOrderTime = DateUtils.timeToString(mealInfo.getLastOrderTime()) ;
             this.deliveryTime =  DateUtils.timeToString(mealInfo.getDeliveryTime());
-            this.supportPrice = null;
+            this.supportPrice = (mealInfo instanceof CorporationMealInfo) ?
+                        ((CorporationMealInfo) mealInfo).getSupportPrice() :
+                        null;
         }
     }
 }
