@@ -14,5 +14,4 @@ public class OrderDetailDto {
     BigInteger id;
     String serviceDate;
     List<OrderItemDto> orderItemDtoList;
-
 }

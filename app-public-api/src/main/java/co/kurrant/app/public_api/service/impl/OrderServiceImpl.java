@@ -94,10 +94,11 @@ public class OrderServiceImpl implements OrderService {
         //카트에 담긴 아이템들을 결과 LIST에 담아주기
         for (OrderCartItem oc : orderCartItems){
             Integer price = oc.getDailyFood().getFood().getPrice();
-
+            Double countPrice = Double.valueOf(price); // 할인율을 구하기 위한 용도
             //count가 1이 아니면 가격 * count
             if (oc.getCount() != 1){
                 price = price * oc.getCount();
+                countPrice = Double.valueOf(price);
             }
 
             //정책 미확정으로 배송비 보류
@@ -107,20 +108,22 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal membershipPrice = BigDecimal.valueOf(0);
 
             if (user.getIsMembership().equals(1)) {
-                membershipPrice = BigDecimal.valueOf(price * 80 / 100);
-                price = membershipPrice.intValue();
+                membershipPrice = BigDecimal.valueOf(price - (price * 80 / 100));
+                price = price - membershipPrice.intValue();
             }
             //판매자 할인 가격
-            BigDecimal discountPrice = BigDecimal.valueOf(price * 85 / 100);
+            BigDecimal discountPrice = BigDecimal.valueOf(price - (price * 85 / 100));
             //개발 단계에서는 기본할인 + 기간할인 무조건 적용해서 진행
-            price = discountPrice.intValue();
+            price = price - discountPrice.intValue();
             //기간 할인 가격
-            BigDecimal periodDiscountPrice = BigDecimal.valueOf(price * 90 / 100);
-            price = periodDiscountPrice.intValue();
+            BigDecimal periodDiscountPrice = BigDecimal.valueOf((price - price * 90 / 100));
+            price = price - periodDiscountPrice.intValue();
 
+            //지원금 일괄 만원 적용(임시)
             BigDecimal supportPrice = BigDecimal.valueOf(10000);
 
-            System.out.println(price + "Before Price");
+            //할인율 구하기
+            BigDecimal discountRate = BigDecimal.valueOf(( countPrice - (double) Math.abs(price)) / countPrice);
 
             //price가 지원금보다 크거나 작을때 계산
             if (price <= supportPrice.intValue()){
@@ -130,17 +133,8 @@ public class OrderServiceImpl implements OrderService {
                 price = supportPrice.intValue() - price;
             }
 
-            System.out.println(price + " price");
+            result.add(orderCartItemMapper.toCartItemDto(oc,price,supportPrice,deliveryFee,membershipPrice,discountPrice,periodDiscountPrice, discountRate));
 
-            result.add(CartItemDto.builder()
-                    .orderCartItem(oc)
-                    .price(price)
-                    .supportPrice(supportPrice)
-                    .deliveryFee(deliveryFee)
-                    .membershipPrice(membershipPrice)
-                    .discountPrice(discountPrice)
-                    .periodDiscountPrice(periodDiscountPrice)
-                    .build());
         }
         return result;
     }
