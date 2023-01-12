@@ -11,8 +11,6 @@ import java.util.List;
 public interface UserClientService {
     // 고객사로 등록된 아파트 전체 리스트를 불러온다.
     List<ApartmentResponseDto> getApartments(SecurityUser securityUser);
-    // 고객사로 등록된 아파트 전체 리스트를 불러온다.
-    List<ApartmentResponseDto> getApartmentSpots(SecurityUser securityUser, BigInteger apartmentId);
     // 그룹별 스팟 상세조회
     ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId);
     // 유저의 Default 스팟을 등록한다

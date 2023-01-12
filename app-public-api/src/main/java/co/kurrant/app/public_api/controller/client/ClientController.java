@@ -31,15 +31,15 @@ public class ClientController {
                 .build();
     }
 
-    @Operation(summary = "아파트 그룹 정보 및 스팟 조회", description = "특정 아파트의 그룹과 스팟들을 조회한다.")
-    @GetMapping("/apartments/{apartmentId}")
-    public ResponseMessage getApartmentSpots(Authentication authentication, @PathVariable BigInteger apartmentId) {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
-        return ResponseMessage.builder()
-                .data(userClientService.getApartmentSpots(securityUser, apartmentId))
-                .message("아파트 전체 조회에 성공하셨습니다.")
-                .build();
-    }
+//    @Operation(summary = "아파트 그룹 정보 및 스팟 조회", description = "특정 아파트의 그룹과 스팟들을 조회한다.")
+//    @GetMapping("/apartments/{apartmentId}")
+//    public ResponseMessage getApartmentSpots(Authentication authentication, @PathVariable BigInteger apartmentId) {
+//        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+//        return ResponseMessage.builder()
+//                .data(userClientService.getApartmentSpots(securityUser, apartmentId))
+//                .message("아파트 전체 조회에 성공하셨습니다.")
+//                .build();
+//    }
 
     @Operation(summary = "유저가 속한 그룹의 정보 리스트", description = "유저가 속한 그룹의 정보 리스트를 조회한다.")
     @GetMapping("")
