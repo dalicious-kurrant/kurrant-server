@@ -96,9 +96,6 @@ public class FoodServiceImpl implements FoodService {
         BigDecimal discountRate = BigDecimal.valueOf(( countPrice - (double) Math.abs(price)) / countPrice);
 
         //결과값을 담아줄 List 생성
-        List<Object> result = new ArrayList<>();
-        result.add(foodMapper.toFoodDetailDto(food, originList, price, discountRate));
-
-        return result;
+        return foodMapper.toFoodDetailDto(food, originList, price, discountRate);
     }
 }

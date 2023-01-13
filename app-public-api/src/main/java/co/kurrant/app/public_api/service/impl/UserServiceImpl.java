@@ -183,9 +183,10 @@ public class UserServiceImpl implements UserService {
         // 기존에 존재하는 이메일인지 확인
         userValidator.isEmailValid(Provider.GENERAL, email);
 
-        // 다른 계정에서 주요 이메일(아이디)로 사용하는 이메일인지 확인
-        userValidator.isExistingMainEmail(email);
-
+        // 다른 계정에서 주요 이메일(아이디)로 사용하는 이메일인지 확인. 소셜로그인 계정과 이메일이 같을 경우 제외.
+        if(!user.getEmail().equals(setEmailAndPasswordDto.getEmail())) {
+            userValidator.isExistingMainEmail(email);
+        }
         // 인증을 진행한 유저인지 체크
         verifyUtil.isAuthenticated(email, RequiredAuth.MYPAGE_SETTING_EMAIL_AND_PASSWORD);
 
