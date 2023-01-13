@@ -62,8 +62,9 @@ public class OrderController {
     }
 
     @DeleteMapping("/me/order/cart/all")
-    public ResponseMessage deleteByUserId(SecurityUser securityUser) {
-        orderService.deleteByUserId(securityUser);
+    public ResponseMessage deleteAllByUserId(Authentication authentication) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        orderService.deleteAllByUserId(securityUser);
         return ResponseMessage.builder()
                 .message("장바구니의 모든 상품을 삭제했습니다.")
                 .build();

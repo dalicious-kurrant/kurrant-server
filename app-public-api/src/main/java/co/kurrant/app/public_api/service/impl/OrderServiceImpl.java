@@ -154,12 +154,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void deleteByUserId(SecurityUser securityUser) {
+    public void deleteAllByUserId(SecurityUser securityUser) {
         // order__cart_item에서 user_id에 해당되는 항목 모두 삭제
         User user = commonService.getUser(securityUser);
         List<OrderCart> cartList = orderCartRepository.findAllByUserId(user.getId());
         BigInteger cartId = cartList.get(0).getId();
-        qOrderCartItemRepository.deleteByCartId(cartId);
+        qOrderCartItemRepository.deleteAllByCartId(cartId);
     }
 
     @Override

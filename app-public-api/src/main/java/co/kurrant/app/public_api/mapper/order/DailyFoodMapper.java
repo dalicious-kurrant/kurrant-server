@@ -24,7 +24,8 @@ public interface DailyFoodMapper extends GenericMapper<DailyFoodDto, DailyFood> 
       @Mapping(source = "food", target = "food", qualifiedByName = "generateFood")
       @Mapping(source = "diningType", target = "diningType", qualifiedByName = "diningType")
       @Mapping(source = "status", target = "status", qualifiedByName = "status")
-      DailyFoodDto toDailyFoodDto(DailyFood dailyFood);
+      @Mapping(source = "discountRate", target = "discountRate")
+      DailyFoodDto toDailyFoodDto(DailyFood dailyFood, Integer discountRate);
 
 
       @Named("generateFood")
@@ -49,6 +50,4 @@ public interface DailyFoodMapper extends GenericMapper<DailyFoodDto, DailyFood> 
       default String status(FoodStatus status){
             return status.getStatus();
       }
-
-
 }
