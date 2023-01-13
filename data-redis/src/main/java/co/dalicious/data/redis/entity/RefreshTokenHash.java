@@ -16,6 +16,7 @@ public class RefreshTokenHash {
     @Indexed
     String userId;
 
+    @Indexed
     String refreshToken;
 
     @Builder
