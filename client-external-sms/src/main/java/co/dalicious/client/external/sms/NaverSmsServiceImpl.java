@@ -4,7 +4,7 @@ import co.dalicious.client.external.sms.dto.SmsMessageDto;
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
 import co.dalicious.client.external.sms.dto.SmsRequestDto;
 import co.dalicious.client.external.sms.dto.SmsResponseDto;
-import co.dalicious.data.redis.CertificationHashRepository;
+import co.dalicious.data.redis.repository.CertificationHashRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import co.dalicious.data.redis.RedisUtil;

@@ -15,7 +15,7 @@ import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
-import co.kurrant.app.public_api.service.CommonService;
+import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserClientServiceImpl implements UserClientService {
     private final ApartmentListMapper apartmentMapper;
-    private final CommonService commonService;
+    private final UserUtil userUtil;
     private final ApartmentRepository apartmentRepository;
     private final UserGroupRepository userGroupRepository;
     private final SpotRepository spotRepository;
@@ -43,7 +43,7 @@ public class UserClientServiceImpl implements UserClientService {
     @Transactional
     public ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId) {
         // 유저 정보 가져오기
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         // 유저가 가지고 있는 유저 스팟 가져오기
         List<UserSpot> userSpots = user.getUserSpots();
         // 스팟 정보 가져오기
@@ -70,7 +70,7 @@ public class UserClientServiceImpl implements UserClientService {
     @Transactional
     public BigInteger selectUserSpot(SecurityUser securityUser, BigInteger spotId) {
         // 유저를 조회한다.
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         // 스팟을 가져온다.
         Spot spot = spotRepository.findById(spotId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
@@ -125,7 +125,7 @@ public class UserClientServiceImpl implements UserClientService {
     @Transactional
     public BigInteger saveUserDefaultSpot(SecurityUser securityUser, ClientSpotDetailReqDto clientSpotDetailReqDto, BigInteger spotId) {
         // 유저 정보를 가져온다.
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         // 스팟을 가져온다.
         Spot spot = spotRepository.findById(spotId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
@@ -155,11 +155,32 @@ public class UserClientServiceImpl implements UserClientService {
         return userSpotRepository.save(newUserSpot).getId();
 
     }
+
+    @Override
+    @Transactional
+    public BigInteger updateUserHo(SecurityUser securityUser, ClientSpotDetailReqDto spotDetailReqDto, BigInteger spotId) {
+        // 유저 정보를 가져온다.
+        User user = userUtil.getUser(securityUser);
+        // 스팟을 가져온다.
+        Spot spot = spotRepository.findById(spotId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
+        );
+        // 기존에 존재하는 아파트 스팟이 있는지 확인한다.
+        Optional<UserSpot> userSpot = user.getUserSpots().stream()
+                .filter(v -> v.getSpot().equals(spot))
+                .findAny();
+        if(userSpot.isEmpty()) {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
+        userSpot.get().updateHo(spotDetailReqDto.getHo());
+        return userSpot.get().getId();
+    }
+
     @Override
     @Transactional
     public Integer withdrawClient(SecurityUser securityUser, BigInteger clientId) {
         // 유저를 조회한다.
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
         Group group = groupRepository.findById(clientId).orElseThrow(

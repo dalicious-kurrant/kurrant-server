@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface FoodService {
 
-    Object getDailyFood(Integer spotId, LocalDate selectedDate, SecurityUser securityUser);
+    Object getDailyFood(Integer spotId, LocalDate selectedDate);
 
     Object getFoodDetail(BigInteger foodId, SecurityUser securityUser);
 }

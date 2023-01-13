@@ -37,10 +37,11 @@ public class AuthServiceImpl implements AuthService {
 
     List<String> arr = new ArrayList<String>();
     arr.add(user.getRole().getAuthority());
-    String accessToken = jwtTokenProvider.createToken(user.getId().toString(), arr);
+//    String accessToken = jwtTokenProvider.createToken(user.getId().toString(), arr);
 
 
-    return LoginResponseDto.builder().accessToken(accessToken).expiresIn(86400).build();
+//    return LoginResponseDto.builder().accessToken(accessToken).expiresIn(86400).build();
+    return null;
   }
 
 }

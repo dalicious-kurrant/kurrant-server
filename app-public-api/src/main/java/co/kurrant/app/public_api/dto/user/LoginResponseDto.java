@@ -9,6 +9,7 @@ import lombok.Getter;
 @Getter
 public class LoginResponseDto {
   private String accessToken;
-  private Integer expiresIn;
+  private String refreshToken;
+  private Long expiresIn;
   private Integer spotStatus;
 }

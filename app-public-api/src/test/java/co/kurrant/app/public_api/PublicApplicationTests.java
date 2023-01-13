@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api;
 
-import co.dalicious.data.redis.CertificationHash;
-import co.dalicious.data.redis.CertificationHashRepository;
+import co.dalicious.data.redis.entity.CertificationHash;
+import co.dalicious.data.redis.repository.CertificationHashRepository;
 import co.dalicious.data.redis.RedisUtil;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.User;

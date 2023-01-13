@@ -197,6 +197,7 @@ project(':app-admin-api') {
 project(':client-core') {
     dependencies {
         implementation project(':system-core')
+        implementation project(':data-redis')
     }
 }
 

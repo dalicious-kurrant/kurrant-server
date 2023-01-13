@@ -23,6 +23,8 @@ public enum ExceptionEnum {
 	/* E403 */
 	FORBIDDEN(HttpStatus.FORBIDDEN, "E4030000", "접근 권한이 없습니다."),
 	SELL_STATUS_NOT_ALLOWED(HttpStatus.FORBIDDEN, "E4030001", "sellStatusNotAllowed"),
+	REFRESH_TOKEN_ERROR(HttpStatus.FORBIDDEN, "E4030002", "유효하지 않은 Refresh Token입니다."),
+	ACCESS_TOKEN_ERROR(HttpStatus.FORBIDDEN, "E4030003", "유효하지 않은 Access Token입니다."),
 
 	/* E404 */
 	NOT_FOUND(HttpStatus.NOT_FOUND, "E4040000", "notFound"),
