@@ -56,7 +56,7 @@ public class FoodServiceImpl implements FoodService {
                     discountRate = 388;
                 }
 
-                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(dailyFood, discountRate);
+                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(dailyFood);
 
                 resultList.add(dailyFoodDto);
             }
