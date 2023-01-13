@@ -24,8 +24,7 @@ public interface DailyFoodMapper extends GenericMapper<DailyFoodDto, DailyFood> 
       @Mapping(source = "food", target = "food", qualifiedByName = "generateFood")
       @Mapping(source = "diningType", target = "diningType", qualifiedByName = "diningType")
       @Mapping(source = "status", target = "status", qualifiedByName = "status")
-      @Mapping(source = "discountRate", target = "discountRate")
-      DailyFoodDto toDailyFoodDto(DailyFood dailyFood, Integer discountRate);
+      DailyFoodDto toDailyFoodDto(DailyFood dailyFood);
 
 
       @Named("generateFood")

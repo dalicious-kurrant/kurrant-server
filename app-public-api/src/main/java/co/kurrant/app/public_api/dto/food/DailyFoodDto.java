@@ -30,13 +30,11 @@ public class DailyFoodDto {
     String spicy;
     String img;
     String description;
-    Integer discountedPrice;
-    Integer discountRate;
 
     @Builder
     public DailyFoodDto(BigInteger id, LocalDate created, String diningType, Food food,
                         Boolean isSoldOut, BigInteger spotId, String status, LocalDate updated,
-                        LocalDate serviceDate, Integer discountedPrice, Integer discountRate){
+                        LocalDate serviceDate){
         this.id = id;
         this.created = DateUtils.format(created, "yyyy-MM-dd");
         this.diningType = diningType;
@@ -52,7 +50,5 @@ public class DailyFoodDto {
         this.spicy = food.getSpicy().getSpicy();
         this.img = food.getImg();
         this.description = food.getDescription();
-        this.discountedPrice = discountedPrice;
-        this.discountRate = discountRate;
     }
 }
