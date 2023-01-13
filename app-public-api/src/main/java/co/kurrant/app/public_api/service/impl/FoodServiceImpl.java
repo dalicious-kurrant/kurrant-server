@@ -18,8 +18,8 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -41,7 +41,8 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getDailyFood(Integer spotId, LocalDate selectedDate) {
+    public Object getDailyFood(Integer spotId, LocalDate selectedDate, SecurityUser securityUser) {
+        User user = commonService.getUser(securityUser);
         //결과값을 담아줄 LIST 생성
         List<DailyFoodDto> resultList = new ArrayList<>();
         //조건에 맞는 DailyFood 조회
@@ -50,7 +51,12 @@ public class FoodServiceImpl implements FoodService {
         if (!dailyFoodList.isEmpty()) {
             for (DailyFood dailyFood : dailyFoodList) {
 
-                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(dailyFood);
+                Integer discountRate = 0;
+                if (user.getIsMembership()){
+                    discountRate = 388;
+                }
+
+                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(dailyFood, discountRate);
 
                 resultList.add(dailyFoodDto);
             }
@@ -95,10 +101,6 @@ public class FoodServiceImpl implements FoodService {
         //할인율 구하기
         BigDecimal discountRate = BigDecimal.valueOf(( countPrice - (double) Math.abs(price)) / countPrice);
 
-        //결과값을 담아줄 List 생성
-        List<Object> result = new ArrayList<>();
-        result.add(foodMapper.toFoodDetailDto(food, originList, price, discountRate));
-
-        return result;
+        return  foodMapper.toFoodDetailDto(food, originList, price, discountRate);
     }
 }

@@ -16,7 +16,7 @@ public class QOrderCartItemRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public void deleteByCartId(BigInteger cartId) {
+    public void deleteAllByCartId(BigInteger cartId) {
         queryFactory
                 .delete(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(cartId))
