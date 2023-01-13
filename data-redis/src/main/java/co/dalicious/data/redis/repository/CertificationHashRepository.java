@@ -1,7 +1,7 @@
-package co.dalicious.data.redis;
+package co.dalicious.data.redis.repository;
 
+import co.dalicious.data.redis.entity.CertificationHash;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
 
 public interface CertificationHashRepository extends CrudRepository<CertificationHash, String> {
     CertificationHash findByCertificationNumber(String certificationNumber);

@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.client.dto.ApartmentSettingReqDto;
+import co.dalicious.domain.client.dto.GroupAndSpotIdReqDto;
 import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
@@ -43,9 +43,9 @@ public class ClientController {
     }
 
     @PostMapping("/apartments")
-    public ResponseMessage settingGroup(Authentication authentication, @RequestBody ApartmentSettingReqDto apartmentSettingReqDto) {
+    public ResponseMessage settingGroup(Authentication authentication, @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
-        userService.settingGroup(securityUser, apartmentSettingReqDto.getId());
+        userService.settingGroup(securityUser, groupAndSpotIdReqDto.getId());
         return ResponseMessage.builder()
                 .message("유저 그룹(기업) 설정에 성공하였습니다.")
                 .build();
@@ -63,12 +63,24 @@ public class ClientController {
                 .build();
     }
 
+    @Operation(summary = "아파트 스팟 상세주소 변경", description = "유저 스팟의 상세주소를 변경한다..")
+    @PutMapping("/apartments/spots/{spotId}")
+    public ResponseMessage updateUserHo(Authentication authentication,
+                                        @PathVariable BigInteger spotId,
+                                        @RequestBody(required = false) ClientSpotDetailReqDto spotDetailReqDto) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        return ResponseMessage.builder()
+                .data(userClientService.saveUserDefaultSpot(securityUser, spotDetailReqDto, spotId))
+                .message("스팟 등록에 성공하였습니다.")
+                .build();
+    }
+
     @Operation(summary = "스팟 선택", description = "유저의 기본 스팟을 등록한다.")
     @PostMapping("/spots")
     public ResponseMessage selectUserSpot(Authentication authentication,
-                                          @RequestBody ApartmentSettingReqDto apartmentSettingReqDto) {
+                                          @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
-        BigInteger result = userClientService.selectUserSpot(securityUser,apartmentSettingReqDto.getId());
+        BigInteger result = userClientService.selectUserSpot(securityUser, groupAndSpotIdReqDto.getId());
         return ResponseMessage.builder()
                 .data(result)
                 .message((result == null) ? "스팟 상세 주소 등록이 필요합니다" : "스팟 등록에 성공하였습니다.")
@@ -87,12 +99,12 @@ public class ClientController {
     }
 
     @Operation(summary = "그룹 탈퇴", description = "유저가 속한 그룹에서 나간다.")
-    @PostMapping("/{groupId}")
+    @PostMapping("")
     public ResponseMessage withdrawClient(Authentication authentication,
-                                          @PathVariable BigInteger groupId) {
+                                          @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
         SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
         return ResponseMessage.builder()
-                .data(userClientService.withdrawClient(securityUser, groupId))
+                .data(userClientService.withdrawClient(securityUser, groupAndSpotIdReqDto.getId()))
                 .message("그룹 탈퇴에 성공하였습니다.")
                 .build();
     }

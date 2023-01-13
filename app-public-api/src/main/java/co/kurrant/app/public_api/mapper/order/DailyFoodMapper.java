@@ -49,4 +49,6 @@ public interface DailyFoodMapper extends GenericMapper<DailyFoodDto, DailyFood> 
       default String status(FoodStatus status){
             return status.getStatus();
       }
+
+
 }

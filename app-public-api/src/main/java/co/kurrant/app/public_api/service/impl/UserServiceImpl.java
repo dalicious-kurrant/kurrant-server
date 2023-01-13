@@ -24,7 +24,7 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import co.kurrant.app.public_api.service.CommonService;
+import co.kurrant.app.public_api.service.UserUtil;
 
 import co.kurrant.app.public_api.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -45,7 +44,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final CommonService commonService;
+    private final UserUtil userUtil;
     private final SnsLoginService snsLoginService;
     private final UserValidator userValidator;
     private final PasswordEncoder passwordEncoder;
@@ -61,7 +60,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserHomeResponseDto getUserHomeInfo(SecurityUser securityUser) {
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         return userHomeInfoMapper.toDto(user);
     }
 
@@ -69,7 +68,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void connectSnsAccount(SecurityUser securityUser, SnsAccessToken snsAccessToken, String sns) {
         // 유저 정보 가져오기
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
 
         // 등록된 SNS 플랫폼인지 확인
         Provider provider = UserValidator.isValidProvider(sns);
@@ -113,7 +112,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void disconnectSnsAccount(SecurityUser securityUser, String sns) {
         // 유저 정보 가져오기
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
 
         // 등록된 SNS 플랫폼인지 확인
         Provider provider = UserValidator.isValidProvider(sns);
@@ -142,7 +141,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void changePhoneNumber(SecurityUser securityUser, ChangePhoneRequestDto changePhoneRequestDto) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
         // 로그인한 유저의 정보를 받아온다.
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         // 입력한 휴대폰 번호가 기존에 등록된 번호인지 확인한다.
         userValidator.isPhoneValid(changePhoneRequestDto.getPhone());
         // 인증번호가 일치하는지 확인한다.
@@ -155,7 +154,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void changePassword(SecurityUser securityUser, ChangePasswordDto changePasswordRequestDto) {
         // 로그인한 유저의 정보를 받아온다.
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         // 현재 비밀번호가 일치하는지 확인
         if (!passwordEncoder.matches(changePasswordRequestDto.getCurrantPassword(), user.getPassword())) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
@@ -178,7 +177,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void setEmailAndPassword(SecurityUser securityUser, SetEmailAndPasswordDto setEmailAndPasswordDto) {
         // 로그인한 유저의 정보를 받아온다.
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         String email = setEmailAndPasswordDto.getEmail();
 
         // 기존에 존재하는 이메일인지 확인
@@ -212,7 +211,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
         // 유저 정보 가져오기
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
         return MarketingAlarmResponseDto.builder()
                 .marketingAgree(user.getMarketingAgree())
@@ -226,7 +225,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
         // 유저 정보 가져오기
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         Boolean currantMarketingInfoAgree = user.getMarketingAgree();
         Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
         Boolean currantOrderAlarmAgree = user.getOrderAlarm();
@@ -286,7 +285,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserPersonalInfoDto getPersonalUserInfo(SecurityUser securityUser) {
         // 로그인한 유저 정보 가져오기
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         // 일반 로그인 정보를 가지고 있는 유저인지 검사
         List<ProviderEmail> providerEmails = user.getProviderEmails();
         UserPersonalInfoDto userPersonalInfoDto = userPersonalInfoMapper.toDto(user);
@@ -301,7 +300,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserInfoDto getUserInfo(SecurityUser securityUser) {
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
 //        Integer dailyMealCount =
 
@@ -316,7 +315,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     // TODO: 추후 백오피스 구현시 삭제
     public void settingGroup(SecurityUser securityUser, BigInteger groupId) {
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         List<UserGroup> userGroups =  user.getGroups();
@@ -358,7 +357,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public List<SpotListResponseDto> getClients(SecurityUser securityUser) {
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         // 그룹/스팟 정보 가져오기
         List<UserGroup> userGroups = user.getGroups();
         // 그룹/스팟 리스트를 담아줄 Dto 생성하기

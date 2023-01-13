@@ -9,6 +9,6 @@ import java.math.BigInteger;
 @Getter
 @Setter
 @Schema(description = "유저 아파트 그룹 설정 요청 DTO")
-public class ApartmentSettingReqDto {
+public class GroupAndSpotIdReqDto {
     BigInteger id;
 }

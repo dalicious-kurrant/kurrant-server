@@ -12,14 +12,14 @@ import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import co.kurrant.app.public_api.mapper.food.FoodMapper;
 import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.CommonService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.service.FoodService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -30,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FoodServiceImpl implements FoodService {
 
-    private final CommonService commonService;
+    private final UserUtil userUtil;
     private final FoodRepository foodRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
     private final QOriginRepository qOriginRepository;
@@ -41,8 +41,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getDailyFood(Integer spotId, LocalDate selectedDate, SecurityUser securityUser) {
-        User user = commonService.getUser(securityUser);
+    public Object getDailyFood(Integer spotId, LocalDate selectedDate) {
         //결과값을 담아줄 LIST 생성
         List<DailyFoodDto> resultList = new ArrayList<>();
         //조건에 맞는 DailyFood 조회
@@ -50,11 +49,6 @@ public class FoodServiceImpl implements FoodService {
         //값이 있다면 결과값으로 담아준다.
         if (!dailyFoodList.isEmpty()) {
             for (DailyFood dailyFood : dailyFoodList) {
-
-                Integer discountRate = 0;
-                if (user.getIsMembership()){
-                    discountRate = 388;
-                }
 
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(dailyFood);
 
@@ -68,7 +62,7 @@ public class FoodServiceImpl implements FoodService {
     @Transactional
     public Object getFoodDetail(BigInteger foodId, SecurityUser securityUser) {
 
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
 
         Food food = foodRepository.findOneById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
@@ -101,6 +95,10 @@ public class FoodServiceImpl implements FoodService {
         //할인율 구하기
         BigDecimal discountRate = BigDecimal.valueOf(( countPrice - (double) Math.abs(price)) / countPrice);
 
-        return  foodMapper.toFoodDetailDto(food, originList, price, discountRate);
+        //결과값을 담아줄 List 생성
+        List<Object> result = new ArrayList<>();
+        result.add(foodMapper.toFoodDetailDto(food, originList, price, discountRate));
+
+        return result;
     }
 }

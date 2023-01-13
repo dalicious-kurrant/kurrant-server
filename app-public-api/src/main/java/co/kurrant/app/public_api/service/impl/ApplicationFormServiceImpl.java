@@ -10,13 +10,12 @@ import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.client.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
-import co.kurrant.app.public_api.service.CommonService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.dalicious.domain.application_form.mapper.CorporationMealInfoReqMapper;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -28,7 +27,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ApplicationFormServiceImpl implements ApplicationFormService {
-    private final CommonService commonService;
+    private final UserUtil userUtil;
     private final ApplicationFormValidator applicationFormValidator;
     private final ApartmentApplicationFormMealRepository apartmentApplicationFormMealRepository;
     private final ApartmentApplicationFormRepository apartmentApplicationFormRepository;
@@ -47,7 +46,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public ApplicationFormDto registerApartmentSpot(SecurityUser securityuser, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto) {
         // 유저 아이디 가져오기
-        BigInteger userId = commonService.getUserId(securityuser);
+        BigInteger userId = userUtil.getUserId(securityuser);
 
         // 스팟 신청 정보 저장
         ApartmentApplicationForm apartmentApplicationForm = apartmentApplicationReqMapper.toEntity(apartmentApplicationFormRequestDto);
@@ -80,7 +79,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public ApplicationFormDto registerCorporationSpot(SecurityUser securityuser, CorporationApplicationFormRequestDto corporationApplicationFormRequestDto) {
         // 유저 아이디 가져오기
-        BigInteger userId = commonService.getUserId(securityuser);
+        BigInteger userId = userUtil.getUserId(securityuser);
         // 식사 정보 리스트 가져오기
         List<CorporationMealInfoRequestDto> mealInfoRequestDtoList = corporationApplicationFormRequestDto.getMealDetails();
         // 스팟 신청 기업의 등록 요청 스팟들 가져오기
@@ -116,7 +115,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public void updateCorporationApplicationFormMemo(SecurityUser securityUser, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto) {
         // 유저 아이디 가져오기
-        BigInteger userId = commonService.getUserId(securityUser);
+        BigInteger userId = userUtil.getUserId(securityUser);
         // 로그인 한 유저와 수정하려는 신청서의 작성자가 같은 사람인지 검사
         CorporationApplicationForm corporationApplicationForm = applicationFormValidator.isValidCorporationApplicationForm(userId, id);
         // 내용 업데이트

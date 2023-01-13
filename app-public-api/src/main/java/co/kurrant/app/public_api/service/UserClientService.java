@@ -18,6 +18,8 @@ public interface UserClientService {
     BigInteger selectUserSpot(SecurityUser securityUser, BigInteger spotId);
     // 유저의 Default 스팟을 등록한다
     BigInteger saveUserDefaultSpot(SecurityUser securityUser, ClientSpotDetailReqDto spotDetailReqDto, BigInteger spotId);
+    // 유저의 Default 스팟을 등록한다
+    BigInteger updateUserHo(SecurityUser securityUser, ClientSpotDetailReqDto spotDetailReqDto, BigInteger spotId);
     // 유저가 속한 그룹을 탈퇴한다.
     Integer withdrawClient(SecurityUser securityUser, BigInteger groupId);
 }

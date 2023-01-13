@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 public class PublicController {
     private final ClientService clientService;
     private final UserService userService;
-    private final UserClientService userClientService;
 
     @Operation(summary = "멤버십 구독 정보 조회", description = "멤버십 구독 정보를 조회한다.")
     @GetMapping("/membership")
