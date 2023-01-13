@@ -298,22 +298,22 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 2. Access Token 에서 UserId 를 가져오기.
-        Authentication authentication = jwtTokenProvider.getAuthentication(reissueTokenDto.getAccessToken());
-        String userId = authentication.getName();
+        String userId = jwtTokenProvider.getUserPk(reissueTokenDto.getAccessToken());
 
         // 3. UserId를 통해 Redis에서 Refresh Token 값 꺼내기
-        RefreshTokenHash refreshTokenHash = refreshTokenRepository.findByUserId(userId);
+        List<RefreshTokenHash> refreshTokenHashs = refreshTokenRepository.findAllByUserId(userId);
+
         // 4. 로그아웃 되어 Refresh Token이 존재하지 않는 경우 처리
-        if(refreshTokenHash == null) {
+        if(refreshTokenHashs == null) {
             throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
         }
         // 5. 잘못된 Refresh Token일 경우 예외 처리
-        String refreshToken = refreshTokenHash.getRefreshToken();
-        if (!reissueTokenDto.getRefreshToken().equals(refreshToken)) {
-            throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
-        }
+        RefreshTokenHash refreshTokenHash = refreshTokenHashs.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR));
 
         // 6. 새로운 토큰 생성
+        Authentication authentication = jwtTokenProvider.getAuthentication(reissueTokenDto.getAccessToken());
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         List<String> strAuthorities = new ArrayList<>();
         for (GrantedAuthority authority : authorities) {
@@ -327,6 +327,7 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(loginResponseDto.getRefreshToken())
                 .userId(userId)
                 .build();
+        refreshTokenRepository.save(newRefreshTokenHash);
         return loginResponseDto;
     }
 
@@ -337,12 +338,13 @@ public class AuthServiceImpl implements AuthService {
             throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
         }
         // 2. Access Token 에서 UserId 를 가져오기.
-        Authentication authentication = jwtTokenProvider.getAuthentication(tokenDto.getAccessToken());
-        String userId = authentication.getName();
+        String userId = jwtTokenProvider.getUserPk(tokenDto.getAccessToken());
 
         // 3. Redis 에서 해당 UserId로 저장된 Refresh Token 이 있는지 여부를 확인 후 존재할 경우 삭제.
-        if (refreshTokenRepository.findByUserId(userId) != null) {
-            refreshTokenRepository.deleteByUserId(userId);
+        // TODO: 다른 기기에서 로그인 한 유저들을 구분하기 위해서 특정 토큰만 받아와서 삭제하기
+        List<RefreshTokenHash> refreshTokenHashes = refreshTokenRepository.findAllByUserId(userId);
+        if (refreshTokenHashes != null) {
+            refreshTokenRepository.deleteAll(refreshTokenHashes);
         }
 
         // 4. 해당 Access Token 유효시간 가지고 와서 BlackList 로 저장하기

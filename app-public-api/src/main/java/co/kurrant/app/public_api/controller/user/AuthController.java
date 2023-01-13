@@ -133,7 +133,7 @@ public class AuthController {
     @PostMapping("/reissue")
     public ResponseMessage reissue(@RequestBody TokenDto dto) {
         return ResponseMessage.builder()
-                .message("로그인에 성공하였습니다.")
+                .message("토큰 재발급에 성공하였습니다.")
                 .data(authService.reissue(dto))
                 .build();
     }
