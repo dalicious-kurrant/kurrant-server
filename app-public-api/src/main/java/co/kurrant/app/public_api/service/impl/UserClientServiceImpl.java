@@ -191,7 +191,10 @@ public class UserClientServiceImpl implements UserClientService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND));
         // 유저 그룹 상태를 탈퇴로 만든다.
         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
-
+        List<UserSpot> userSpots = user.getUserSpots();
+        Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
+                .findAny();
+        userSpot.ifPresent(userSpotRepository::delete);
         // 다른 그룹이 존재하는지 여부에 따라 Return값 결정(스팟 선택 화면 || 그룹 신청 화면)
         return (groups.size() - 1 > 0) ? SpotStatus.NO_SPOT_BUT_HAS_CLIENT.getCode() : SpotStatus.NO_SPOT_AND_CLIENT.getCode();
     }
