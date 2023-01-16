@@ -7,6 +7,10 @@ build/
 .settings
 .settings/*
 .settings/
+.yaml
+.yml
+.db
+.properties
 org.eclipse.buildship.core.prefs
 
 ### STS ###
