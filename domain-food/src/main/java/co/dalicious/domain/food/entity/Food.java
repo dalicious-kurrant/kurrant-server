@@ -1,9 +1,10 @@
 package co.dalicious.domain.food.entity;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.makers.entity.Makers;
-import co.dalicious.system.util.Spicy;
+import co.dalicious.system.util.enums.Spicy;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -11,8 +12,9 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 
 @DynamicInsert
 @DynamicUpdate
@@ -33,15 +35,15 @@ public class Food {
 
     @Column(name = "price")
     @Comment("가격")
-    private Integer price;
+    private BigDecimal price;
 
-    @Column(name = "img")
+    @Embedded
     @Comment("이미지 경로")
-    private String img;
+    private Image image;
 
-    @Column(name = "discounted_rate")
-    @Comment("할인율")
-    private Integer discountedRate;
+    @OneToMany(mappedBy = "food")
+    @JsonBackReference(value = "food_fk")
+    private List<FoodDiscountPolicy> foodDiscountPolicyList;
 
     @Column(name = "spicy")
     @Comment("맵기정도")
@@ -56,15 +58,4 @@ public class Food {
     @Comment("설명")
     private String description;
 
-    @Builder
-    Food(BigInteger id, String name, Integer price, String img, Makers makers, String description, Integer discountedRate, Spicy spicy){
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.img = img;
-        this.spicy = spicy;
-        this.makers = makers;
-        this.description = description;
-        this.discountedRate = discountedRate;
-    }
 }

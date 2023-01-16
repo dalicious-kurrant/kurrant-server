@@ -1,9 +1,8 @@
 package co.dalicious.domain.order.entity;
 
 import  co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.enums.DiningType;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +14,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.time.LocalDate;
 

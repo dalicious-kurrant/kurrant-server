@@ -1,15 +1,13 @@
 package co.dalicious.domain.food.entity;
 
-import co.dalicious.system.util.DiningType;
-import co.dalicious.system.util.FoodStatus;
+import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.util.enums.FoodStatus;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.converter.FoodStatusConverter;
-import jdk.jshell.Snippet;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import net.bytebuddy.asm.Advice;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -17,11 +15,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.math.BigInteger;
-import javax.validation.constraints.NotNull;
-import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 
 @DynamicInsert

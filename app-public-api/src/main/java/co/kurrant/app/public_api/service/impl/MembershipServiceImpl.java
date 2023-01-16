@@ -12,8 +12,10 @@ import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
+import co.dalicious.system.util.enums.DiscountType;
 import co.kurrant.app.public_api.dto.user.MembershipDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -42,49 +44,15 @@ public class MembershipServiceImpl implements MembershipService {
     private final BigDecimal DELIVERY_FEE = new BigDecimal("2200.0");
     private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = BigDecimal.valueOf(MembershipSubscriptionType.YEAR.getDiscountedPrice() / 12);
     private final BigDecimal DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH = BigDecimal.valueOf(MembershipSubscriptionType.MONTH.getPrice()).subtract(REFUND_YEARLY_MEMBERSHIP_PER_MONTH);
+    private final MembershipDiscountPolicyRepository membershipDiscountPolicyRepository;
 
     @Override
     @Transactional
     public void joinMembership(User user, String subscriptionType) {
         // TODO: 현재, 멤버십을 중복 가입할 수 있게 만들어졌지만, 수정 필요
 
-        // 멤버십 구매 할인 혜택을 가지고 있는 유저인지 검증.
-
-        // 멤버십 결제 요청(진행중 상태)
-        String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
-        Order order = Order.builder()
-                .user(user)
-                .paymentType(PaymentType.BANK_TRANSFER)
-                .orderStatus(OrderStatus.PENDING_PAYMENT)
-                .orderType(OrderType.MEMBERSHIP)
-                .code(code)
-                .build();
-        orderRepository.save(order);
-
-        MembershipSubscriptionType membershipSubscriptionType = MembershipSubscriptionType.valueOf(subscriptionType);
-
-        // 결제 진행. 실패시 오류 날림
-        BigDecimal price = BigDecimal.valueOf(membershipSubscriptionType.getDiscountedPrice());
-
-        try {
-            int statusCode = requestPayment(code, price, 200);
-            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-            if (statusCode == 200) {
-                order.updateTotalPrice(price);
-                order.updateStatus(OrderStatus.COMPLETED);
-            }
-            // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
-            else {
-                order.updateStatus(OrderStatus.FAILED);
-                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-            }
-        } catch (ApiException e) {
-            order.updateStatus(OrderStatus.FAILED);
-            throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-        }
-
         // 이 사람이 기존에 멤버십을 가입했는 지 확인
-        Membership membership = null;
+        MembershipSubscriptionType membershipSubscriptionType = MembershipSubscriptionType.valueOf(subscriptionType);
         PeriodDto periodDto = null;
 
         if (user.getIsMembership()) {
@@ -106,9 +74,8 @@ public class MembershipServiceImpl implements MembershipService {
         }
 
         assert periodDto != null;
-
         // 멤버십 등록
-        membership = Membership.builder()
+        Membership membership = Membership.builder()
                 .autoPayment(true)
                 .membershipSubscriptionType(membershipSubscriptionType)
                 .user(user)
@@ -117,6 +84,65 @@ public class MembershipServiceImpl implements MembershipService {
                 .membershipStatus(MembershipStatus.PROCESSING)
                 .build();
         membershipRepository.save(membership);
+
+        // 연간 구독 구매자라면, 할인 정책 저장.
+        MembershipDiscountPolicy yearDescriptionDiscountPolicy = MembershipDiscountPolicy.builder()
+                .membership(membership)
+                .discountRate(membershipSubscriptionType.getDiscountRate())
+                .discountType(DiscountType.YEAR_DESCRIPTION_DISCOUNT)
+                .build();
+        membershipDiscountPolicyRepository.save(yearDescriptionDiscountPolicy);
+
+        /* TODO: 할인 혜택을 가지고 있는 유저인지 확인 후 할인 정책 저장.
+        MembershipDiscountPolicy periodDiscountPolicy = MembershipDiscountPolicy.builder()
+                .membership(membership)
+                .discountRate(membershipSubscriptionType.getDiscountRate())
+                .discountType(DiscountType.PERIOD_DISCOUNT)
+                .build();
+        membershipDiscountPolicyRepository.save(periodDiscountPolicy);
+         */
+
+        // 멤버십 결제 요청
+        String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
+        Order order = Order.builder()
+                .user(user)
+                .paymentType(PaymentType.BANK_TRANSFER)
+                .orderType(OrderType.MEMBERSHIP)
+                .code(code)
+                .build();
+        orderRepository.save(order);
+
+        // 멤버십 결제 내역 등록(진행중 상태)
+        OrderMembership orderMembership = OrderMembership.builder()
+                .order(order)
+                .orderStatus(OrderStatus.PROCESSING)
+                .membership(membership)
+                .build();
+        orderMembershipRepository.save(orderMembership);
+
+        OrderStatus orderStatus = null;
+
+        // 결제 진행. 실패시 오류 날림
+        BigDecimal price = BigDecimal.valueOf(membershipSubscriptionType.getDiscountedPrice());
+
+        try {
+            int statusCode = requestPayment(code, price, 200);
+            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
+            if (statusCode == 200) {
+                order.updateTotalPrice(price);
+                order.updateStatus(OrderStatus.COMPLETED);
+            }
+            // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
+            else {
+                order.updateStatus(OrderStatus.FAILED);
+                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+            }
+        } catch (ApiException e) {
+            order.updateStatus(OrderStatus.FAILED);
+            throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+        }
+
+
 
         // 멤버십 결제 내역 등록
         OrderMembership orderMembership = OrderMembership.builder()

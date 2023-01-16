@@ -7,6 +7,7 @@ import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.user.converter.PaymentTypeConverter;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -21,6 +22,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -41,11 +43,6 @@ public class Order {
     @Column(name = "e_order_type")
     @Comment("주문 타입(정기식사/멤버십/상품)")
     private OrderType orderType;
-
-    @Convert(converter = OrderStatusConverter.class)
-    @Column(name = "e_order_status")
-    @Comment("결제 진행 상태")
-    private OrderStatus orderStatus;
 
     @Column(name = "default_price", precision = 15)
     @Comment("상품 총액(할인되지 않은 가격)")
@@ -79,15 +76,16 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public void updateStatus(OrderStatus orderStatus) {
-        this.orderStatus = orderStatus;
-    }
+    @OneToMany(mappedBy = "order")
+    @JsonBackReference(value = "order_fk")
+    List<OrderItem> orderItems;
 
     @Builder
-    public Order(String code, OrderType orderType, OrderStatus orderStatus, PaymentType paymentType, User user) {
+    public Order(String code, OrderType orderType, BigDecimal defaultPrice, BigDecimal totalPrice, PaymentType paymentType, User user) {
         this.code = code;
         this.orderType = orderType;
-        this.orderStatus = orderStatus;
+        this.defaultPrice = defaultPrice;
+        this.totalPrice = totalPrice;
         this.paymentType = paymentType;
         this.user = user;
     }

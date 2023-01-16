@@ -1,6 +1,6 @@
 package co.dalicious.domain.user.dto;
 
-import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.enums.DiningType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;

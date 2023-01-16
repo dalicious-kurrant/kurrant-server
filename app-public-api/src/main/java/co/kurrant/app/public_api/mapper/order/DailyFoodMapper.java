@@ -4,8 +4,8 @@ import co.dalicious.client.core.mapper.GenericMapper;
 import co.dalicious.domain.food.entity.DailyFood;
 
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.system.util.DiningType;
-import co.dalicious.system.util.FoodStatus;
+import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.util.enums.FoodStatus;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

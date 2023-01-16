@@ -4,7 +4,7 @@
 //import co.dalicious.domain.address.entity.embeddable.Address;
 //import co.dalicious.domain.client.entity.Apartment;
 //import co.dalicious.domain.client.entity.Group;
-//import co.dalicious.system.util.DiningType;
+//import co.dalicious.system.util.enums.DiningType;
 //import org.junit.jupiter.api.DisplayName;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;

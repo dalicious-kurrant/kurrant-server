@@ -1,6 +1,6 @@
 package co.dalicious.system.util.converter;
 
-import co.dalicious.system.util.FoodStatus;
+import co.dalicious.system.util.enums.FoodStatus;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

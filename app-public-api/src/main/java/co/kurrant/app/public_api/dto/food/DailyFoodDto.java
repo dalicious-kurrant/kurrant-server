@@ -1,15 +1,10 @@
 package co.kurrant.app.public_api.dto.food;
 
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.DiningType;
-import co.dalicious.system.util.FoodStatus;
-import co.dalicious.system.util.Spicy;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.math.BigInteger;
 import java.time.LocalDate;

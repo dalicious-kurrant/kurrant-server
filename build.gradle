@@ -236,6 +236,7 @@ project(':domain-food') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-makers')
+        implementation project(':domain-file')
     }
 }
 
