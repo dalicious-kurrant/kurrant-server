@@ -69,13 +69,13 @@ jobs:
         echo "${{ secrets.CLIENT_EXTERNAL_SMS_PROPERTIES }}" > ./application-sms.properties
       shell: bash
 
-    - name: data-redis application-redis.properties 생성
+    - name: data-redis application-redis.yml 생성
       run: |
         cd ./data-redis/src/main
         mkdir resources
         cd resources
-        touch ./application-sms.properties
-        echo "${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}" > ./application-redis.properties
+        touch ./application-redis.yml
+        echo "${{ secrets.DATA_REDIS_REDIS_YML }}" > ./application-redis.yml
       shell: bash
 
     - name: domain-file application-s3.properties 생성
