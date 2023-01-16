@@ -1,8 +1,6 @@
 package co.dalicious.domain.order.entity;
 
-import co.dalicious.domain.order.converter.OrderStatusConverter;
 import co.dalicious.domain.order.converter.OrderTypeConverter;
-import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.user.converter.PaymentTypeConverter;
 import co.dalicious.domain.user.entity.enums.PaymentType;
@@ -47,6 +45,10 @@ public class Order {
     @Column(name = "default_price", precision = 15)
     @Comment("상품 총액(할인되지 않은 가격)")
     private BigDecimal defaultPrice;
+
+    @Column(name = "point", precision = 15)
+    @Comment("상품 총액(할인되지 않은 가격)")
+    private BigDecimal point;
 
     @Column(name = "total_price", precision = 15)
     @Comment("결제 총액(모든 할인이 들어간 가격)")

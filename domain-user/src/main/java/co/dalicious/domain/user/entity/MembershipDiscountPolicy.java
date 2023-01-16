@@ -4,6 +4,7 @@ import co.dalicious.system.util.enums.DiscountType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
@@ -13,6 +14,7 @@ import java.math.BigInteger;
 @Entity
 @Table(uniqueConstraints={@UniqueConstraint(columnNames={"food_id", "discount_type"})})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 public class MembershipDiscountPolicy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

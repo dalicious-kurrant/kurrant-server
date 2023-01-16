@@ -6,6 +6,7 @@ import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
 import co.dalicious.domain.order.repository.OrderRepository;
+import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.user.dto.PeriodDto;
 import co.dalicious.domain.user.entity.*;
@@ -42,9 +43,10 @@ public class MembershipServiceImpl implements MembershipService {
     private final OrderMembershipRepository orderMembershipRepository;
     private final OrderRepository orderRepository;
     private final BigDecimal DELIVERY_FEE = new BigDecimal("2200.0");
-    private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = BigDecimal.valueOf(MembershipSubscriptionType.YEAR.getDiscountedPrice() / 12);
-    private final BigDecimal DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH = BigDecimal.valueOf(MembershipSubscriptionType.MONTH.getPrice()).subtract(REFUND_YEARLY_MEMBERSHIP_PER_MONTH);
+    private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.YEAR.getDiscountedPrice() / 12;
+    private final BigDecimal DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.MONTH.getPrice().subtract(REFUND_YEARLY_MEMBERSHIP_PER_MONTH);
     private final MembershipDiscountPolicyRepository membershipDiscountPolicyRepository;
+    private final DiscountPolicy discountPolicy;
 
     @Override
     @Transactional
@@ -117,6 +119,8 @@ public class MembershipServiceImpl implements MembershipService {
                 .order(order)
                 .orderStatus(OrderStatus.PROCESSING)
                 .membership(membership)
+                .membershipSubscriptionType(membership.getMembershipSubscriptionType().getMembershipSubscriptionType())
+                .price(membership.getMembershipSubscriptionType().getPrice())
                 .build();
         orderMembershipRepository.save(orderMembership);
 
