@@ -7,50 +7,25 @@ import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.order.entity.OrderCart;
 import co.dalicious.domain.order.entity.OrderCartItem;
 import co.dalicious.system.util.DiningType;
+import co.kurrant.app.public_api.dto.order.UpdateCart;
 import jdk.jfr.Name;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 @Mapper(componentModel = "spring")
 public interface OrderCartItemMapper extends GenericMapper<OrderCartDto, OrderCartItem> {
-
-
-    @Mapping(source = "dailyFood", target = "dailyFood", qualifiedByName = "dailyFood")
-    @Mapping(source = "orderCart", target = "orderCart", qualifiedByName = "orderCart")
-    OrderCartItem toOrderCartItem(DailyFood dailyFood, OrderCart orderCart);
-
-    @Named("dailyFood")
-    default DailyFood dailyFood(DailyFood dailyFood){
-        return DailyFood.builder()
-                .id(dailyFood.getId())
-                .serviceDate(dailyFood.getServiceDate())
-                .status(dailyFood.getStatus())
-                .food(dailyFood.getFood())
-                .created(dailyFood.getCreated())
-                .updated(dailyFood.getUpdated())
-                .spotId(dailyFood.getSpotId())
-                .diningType(dailyFood.getDiningType())
-                .isSoldOut(dailyFood.getIsSoldOut())
-                .build();
-    }
-
-    @Named("orderCart")
-    default OrderCart orderCart(OrderCart orderCart){
-        return OrderCart.builder()
-                .id(orderCart.getId())
-                .userId(orderCart.getUserId())
-                .build();
-    }
 
     @Mapping(source = "dailyFood", target="dailyFood")
     OrderCartItem CreateOrderCartItem(DailyFood dailyFood, Integer count, OrderCart orderCart);
 
     @Mapping(source = "orderCartItem", target = "orderCartItem", qualifiedByName = "orderCartItem")
     @Mapping(source = "price", target = "price", qualifiedByName = "price")
-    CartItemDto toCartItemDto(OrderCartItem orderCartItem, Integer price, BigDecimal supportPrice,
+    @Mapping(source = "id", target="id")
+    CartItemDto toCartItemDto(BigInteger id, OrderCartItem orderCartItem, Integer price, BigDecimal supportPrice,
                               BigDecimal deliveryFee, BigDecimal membershipPrice, BigDecimal discountPrice,
                               BigDecimal periodDiscountPrice, BigDecimal discountRate);
 
@@ -68,5 +43,4 @@ public interface OrderCartItemMapper extends GenericMapper<OrderCartDto, OrderCa
     default Integer price(Integer price){
         return Math.abs(price);
     }
-
 }

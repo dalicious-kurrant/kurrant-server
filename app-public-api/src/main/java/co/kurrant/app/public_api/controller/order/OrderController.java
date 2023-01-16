@@ -71,11 +71,8 @@ public class OrderController {
     }
 
     @PatchMapping("/me/order/cart")
-    public ResponseMessage updateByFoodId(
-            Authentication authentication,
-            @RequestBody UpdateCartDto updateCartDto){
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
-        orderService.updateByFoodId(securityUser, updateCartDto);
+    public ResponseMessage updateByFoodId(@RequestBody UpdateCartDto updateCartDto){
+        orderService.updateByFoodId(updateCartDto);
         return ResponseMessage.builder()
                 .message("장바구니의 상품 수량이 수정됐습니다.")
                 .build();

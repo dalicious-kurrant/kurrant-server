@@ -12,6 +12,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
+import java.math.BigDecimal;
+
 @Mapper(componentModel = "spring")
 public interface DailyFoodMapper extends GenericMapper<DailyFoodDto, DailyFood> {
 
@@ -21,32 +23,24 @@ public interface DailyFoodMapper extends GenericMapper<DailyFoodDto, DailyFood> 
 
       DailyFoodDto toDto(DailyFood dailyFood);
 
-      @Mapping(source = "food", target = "food", qualifiedByName = "generateFood")
-      @Mapping(source = "diningType", target = "diningType", qualifiedByName = "diningType")
-      @Mapping(source = "status", target = "status", qualifiedByName = "status")
-      DailyFoodDto toDailyFoodDto(DailyFood dailyFood);
+      @Mapping(source = "dailyFood", target = "food", qualifiedByName = "generateFood")
+      @Mapping(source = "diningType", target = "diningType")
+      @Mapping(source = "status", target = "status")
+      DailyFoodDto toDailyFoodDto(DailyFood dailyFood,DiningType diningType,
+                                  FoodStatus status, Integer discountedPrice, BigDecimal discountRate);
 
 
       @Named("generateFood")
-      default Food generateFood(Food food){
+      default Food generateFood(DailyFood dailyFood){
             return Food.builder()
-                    .id(food.getId())
-                    .name(food.getName())
-                    .discountedRate(food.getDiscountedRate())
-                    .spicy(food.getSpicy())
-                    .price(food.getPrice())
-                    .makers(food.getMakers())
-                    .img(food.getImg())
-                    .description(food.getDescription())
+                    .id(dailyFood.getId())
+                    .name(dailyFood.getFood().getName())
+                    .discountedRate(dailyFood.getFood().getDiscountedRate())
+                    .spicy(dailyFood.getFood().getSpicy())
+                    .price(dailyFood.getFood().getPrice())
+                    .makers(dailyFood.getFood().getMakers())
+                    .img(dailyFood.getFood().getImg())
+                    .description(dailyFood.getFood().getDescription())
                     .build();
-      }
-      @Named("diningType")
-      default  String diningType(DiningType diningType){
-            return diningType.getDiningType();
-      }
-
-      @Named("status")
-      default String status(FoodStatus status){
-            return status.getStatus();
       }
 }

@@ -35,8 +35,6 @@ public class OrderCart {
     @ColumnDefault("1")
     private Integer type;
 
-
-
     @Builder
     public OrderCart(BigInteger id, BigInteger userId){
         this.id = id;

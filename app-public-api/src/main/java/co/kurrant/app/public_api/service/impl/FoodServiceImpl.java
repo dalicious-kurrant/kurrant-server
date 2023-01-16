@@ -8,6 +8,8 @@ import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.food.repository.QOriginRepository;
 import co.dalicious.domain.food.util.OriginList;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.FoodStatus;
 import co.kurrant.app.public_api.dto.food.DailyFoodDto;
 import co.kurrant.app.public_api.mapper.food.FoodMapper;
 import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
@@ -51,12 +53,21 @@ public class FoodServiceImpl implements FoodService {
         if (!dailyFoodList.isEmpty()) {
             for (DailyFood dailyFood : dailyFoodList) {
 
-                Integer discountRate = 0;
+                //기본할인율은 상품의 할인율을 그대로 적용(임시로 23.8% 적용)
+                BigDecimal discountRate = BigDecimal.valueOf(0.238);
+                //기본 가격은 상품가격 그대로 적용
+                Integer discountedPrice = dailyFood.getFood().getPrice();
+                double priceTemp = (double) 0;
+                //멤버십가입고객이면 멤버십 할인율 적용
                 if (user.getIsMembership()){
-                    discountRate = 388;
+                    discountRate = BigDecimal.valueOf(0.388);
                 }
+                priceTemp = discountedPrice - ((double) discountedPrice * discountRate.doubleValue());
+                discountedPrice = (int) priceTemp;
 
-                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(dailyFood);
+                DiningType diningType = dailyFood.getDiningType();
+                FoodStatus foodStatus = dailyFood.getStatus();
+                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(dailyFood,diningType, foodStatus, discountedPrice,discountRate);
 
                 resultList.add(dailyFoodDto);
             }
