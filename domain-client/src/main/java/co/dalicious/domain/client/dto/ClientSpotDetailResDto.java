@@ -22,6 +22,7 @@ public class ClientSpotDetailResDto {
     private String address;
     private Integer ho;
     private List<MealTypeInfo> mealTypeInfoList;
+    private BigInteger clientId;
     private String clientName;
 
     @Getter

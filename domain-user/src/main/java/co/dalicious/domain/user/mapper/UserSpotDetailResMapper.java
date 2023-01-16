@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import javax.transaction.Transactional;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,11 +23,17 @@ public interface UserSpotDetailResMapper {
     @Mapping(source = "spot.address", target = "address", qualifiedByName = "addressToString")
     @Mapping(source = "spot.group.mealInfos", target = "mealTypeInfoList", qualifiedByName = "getMealTypeInfoList")
     @Mapping(source = "spot.group", target = "clientName", qualifiedByName = "getGroupName")
+    @Mapping(source = "spot.group", target = "clientId", qualifiedByName = "getGroupId")
     ClientSpotDetailResDto toDto(UserSpot spot);
 
     @Named("addressToString")
     default String addressToString(Address address) {
         return address.addressToString();
+    }
+
+    @Named("getGroupId")
+    default BigInteger getGroupId(Group group) {
+        return group.getId();
     }
 
     @Named("getGroupName")
