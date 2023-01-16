@@ -74,8 +74,8 @@ jobs:
         cd ./data-redis/src/main
         mkdir resources
         cd resources
-        touch ./application-redis.yml
-        echo "${{ secrets.DATA_REDIS_REDIS_YML }}" > ./application-redis.yml
+        touch ./application-redis.properties
+        echo "${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}" > ./application-redis.properties
       shell: bash
 
     - name: domain-file application-s3.properties 생성

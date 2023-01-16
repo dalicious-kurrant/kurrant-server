@@ -17,7 +17,7 @@ import java.util.List;
 
 @Configuration
 @EnableRedisRepositories
-@PropertySource("classpath:application-redis.yml")
+@PropertySource("classpath:application-redis.properties")
 public class RedisConfig {
     @Value("${spring.redis.cluster.nodes}")
     private List<String> clusterNodes;
