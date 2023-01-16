@@ -6,6 +6,7 @@ import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
 import co.kurrant.app.public_api.service.UserService;
+import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class ClientController {
     @Operation(summary = "유저가 속한 그룹의 정보 리스트", description = "유저가 속한 그룹의 정보 리스트를 조회한다.")
     @GetMapping("")
     public ResponseMessage getClients(Authentication authentication) {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(userService.getClients(securityUser))
                 .message("그룹 조회에 성공하였습니다.")
@@ -35,7 +36,7 @@ public class ClientController {
     @Operation(summary = "고객사로 등록된 아파트 전체 조회", description = "고객사로 등록된 아파트들 전체를 조회한다.")
     @GetMapping("/apartments")
     public ResponseMessage getApartments(Authentication authentication) {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(userClientService.getApartments(securityUser))
                 .message("아파트 전체 조회에 성공하셨습니다.")
@@ -44,7 +45,7 @@ public class ClientController {
 
     @PostMapping("/apartments")
     public ResponseMessage settingGroup(Authentication authentication, @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.settingGroup(securityUser, groupAndSpotIdReqDto.getId());
         return ResponseMessage.builder()
                 .message("유저 그룹(기업) 설정에 성공하였습니다.")
@@ -56,7 +57,7 @@ public class ClientController {
     public ResponseMessage saveUserSpot(Authentication authentication,
                                         @PathVariable BigInteger spotId,
                                         @RequestBody(required = false) ClientSpotDetailReqDto spotDetailReqDto) {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(userClientService.saveUserDefaultSpot(securityUser, spotDetailReqDto, spotId))
                 .message("스팟 등록에 성공하였습니다.")
@@ -68,7 +69,7 @@ public class ClientController {
     public ResponseMessage updateUserHo(Authentication authentication,
                                         @PathVariable BigInteger spotId,
                                         @RequestBody(required = false) ClientSpotDetailReqDto spotDetailReqDto) {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(userClientService.saveUserDefaultSpot(securityUser, spotDetailReqDto, spotId))
                 .message("스팟 등록에 성공하였습니다.")
@@ -79,7 +80,7 @@ public class ClientController {
     @PostMapping("/spots")
     public ResponseMessage selectUserSpot(Authentication authentication,
                                           @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger result = userClientService.selectUserSpot(securityUser, groupAndSpotIdReqDto.getId());
         return ResponseMessage.builder()
                 .data(result)
@@ -91,7 +92,7 @@ public class ClientController {
     @GetMapping("/spots/{spotId}")
     public ResponseMessage getSpotDetail(Authentication authentication,
                                          @PathVariable BigInteger spotId) {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(userClientService.getSpotDetail(securityUser, spotId))
                 .message("스팟 상세 조회에 성공하였습니다.")
@@ -102,7 +103,7 @@ public class ClientController {
     @PostMapping("")
     public ResponseMessage withdrawClient(Authentication authentication,
                                           @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(userClientService.withdrawClient(securityUser, groupAndSpotIdReqDto.getId()))
                 .message("그룹 탈퇴에 성공하였습니다.")
