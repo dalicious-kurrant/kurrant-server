@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -125,6 +126,24 @@ public class AuthController {
         return ResponseMessage.builder()
                 .message("로그인에 성공하였습니다.")
                 .data(authService.login(dto))
+                .build();
+    }
+
+    @Operation(summary = "토큰 재발급", description = "토큰을 재발급한다.")
+    @PostMapping("/reissue")
+    public ResponseMessage reissue(@RequestBody TokenDto dto) {
+        return ResponseMessage.builder()
+                .message("토큰 재발급에 성공하였습니다.")
+                .data(authService.reissue(dto))
+                .build();
+    }
+
+    @Operation(summary = "로그아웃", description = "로그아웃을 수행한다.")
+    @PostMapping("/logout")
+    public ResponseMessage logout(@RequestBody TokenDto dto) {
+        authService.logout(dto);
+        return ResponseMessage.builder()
+                .message("로그아웃 되었습니다.")
                 .build();
     }
 }

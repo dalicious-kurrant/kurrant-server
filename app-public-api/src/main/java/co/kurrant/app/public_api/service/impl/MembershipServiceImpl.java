@@ -16,7 +16,7 @@ import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.kurrant.app.public_api.dto.user.MembershipDto;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.CommonService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.service.MembershipService;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -35,7 +35,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MembershipServiceImpl implements MembershipService {
-    private final CommonService commonService;
+    private final UserUtil userUtil;
     private final MembershipRepository membershipRepository;
     private final OrderMembershipRepository orderMembershipRepository;
     private final OrderRepository orderRepository;
@@ -253,7 +253,7 @@ public class MembershipServiceImpl implements MembershipService {
     @Override
     @Transactional
     public List<MembershipDto> retrieveMembership(SecurityUser securityUser) {
-        User user = commonService.getUser(securityUser);
+        User user = userUtil.getUser(securityUser);
         // 멤버십 종료 날짜의 오름차순으로 멤버십 정보를 조회한다.
 
         // create a specification to specify the conditions of the query

@@ -39,17 +39,9 @@ public class Food {
     @Comment("이미지 경로")
     private String img;
 
-    @Column(name = "discount_rate")
-    @Comment("판매자 할인율")
+    @Column(name = "discounted_rate")
+    @Comment("할인율")
     private Integer discountedRate;
-
-    @Column(name = "period_discount_rate")
-    @Comment("기간 할인율")
-    private Integer periodDiscountedRate;
-
-    @Column(name ="membership_discount_rate")
-    @Comment("멤버십 할인율")
-    private Integer membershipDiscountRate;
 
     @Column(name = "spicy")
     @Comment("맵기정도")
@@ -65,8 +57,7 @@ public class Food {
     private String description;
 
     @Builder
-    Food(BigInteger id, String name, Integer price, String img, Makers makers,
-         String description, Integer discountedRate, Spicy spicy, Integer periodDiscountedRate, Integer membershipDiscountRate){
+    Food(BigInteger id, String name, Integer price, String img, Makers makers, String description, Integer discountedRate, Spicy spicy){
         this.id = id;
         this.name = name;
         this.price = price;
@@ -75,7 +66,5 @@ public class Food {
         this.makers = makers;
         this.description = description;
         this.discountedRate = discountedRate;
-        this.periodDiscountedRate = periodDiscountedRate;
-        this.membershipDiscountRate = membershipDiscountRate;
     }
 }

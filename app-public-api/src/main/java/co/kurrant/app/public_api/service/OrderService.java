@@ -14,7 +14,7 @@ public interface OrderService {
 
     Object findCartById(SecurityUser securityUser);
 
-    void deleteAllByUserId(SecurityUser securityUser);
+    void deleteByUserId(SecurityUser securityUser);
 
     void deleteById(SecurityUser securityUser, Integer cartItemId);
 

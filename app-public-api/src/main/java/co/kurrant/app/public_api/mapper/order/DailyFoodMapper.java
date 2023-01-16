@@ -43,4 +43,5 @@ public interface DailyFoodMapper extends GenericMapper<DailyFoodDto, DailyFood> 
                     .description(dailyFood.getFood().getDescription())
                     .build();
       }
+
 }

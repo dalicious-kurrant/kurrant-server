@@ -1,13 +1,10 @@
-package co.dalicious.domain.client.mapper;
+package co.dalicious.domain.user.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
-import co.dalicious.domain.client.dto.SpotListResponseDto;
-import co.dalicious.domain.client.entity.CorporationMealInfo;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
-import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.system.util.DateUtils;
+import co.dalicious.domain.user.entity.UserSpot;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -16,15 +13,16 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Mapper(componentModel = "spring")
 @Transactional
-public interface SpotDetailResponseMapper {
-    @Mapping(source = "id", target = "spotId")
-    @Mapping(source = "name", target = "spotName")
-    @Mapping(source = "address", target = "address", qualifiedByName = "addressToString")
-    @Mapping(source = "group.mealInfos", target = "mealTypeInfoList", qualifiedByName = "getMealTypeInfoList")
-    @Mapping(source = "group", target = "clientName", qualifiedByName = "getGroupName")
-    ClientSpotDetailResDto toDto(Spot spot);
+public interface UserSpotDetailResMapper {
+    @Mapping(source = "spot.id", target = "spotId")
+    @Mapping(source = "spot.name", target = "spotName")
+    @Mapping(source = "spot.address", target = "address", qualifiedByName = "addressToString")
+    @Mapping(source = "spot.group.mealInfos", target = "mealTypeInfoList", qualifiedByName = "getMealTypeInfoList")
+    @Mapping(source = "spot.group", target = "clientName", qualifiedByName = "getGroupName")
+    ClientSpotDetailResDto toDto(UserSpot spot);
 
     @Named("addressToString")
     default String addressToString(Address address) {
@@ -45,3 +43,4 @@ public interface SpotDetailResponseMapper {
         return mealTypeInfos;
     }
 }
+

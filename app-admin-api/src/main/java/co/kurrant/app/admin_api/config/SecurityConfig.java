@@ -48,9 +48,10 @@ public class SecurityConfig {
         // "/actuator/health").permitAll() // 등록된 GET요청 리소스는 누구나 접근가능
         .anyRequest().hasRole("USER").and() // 그외 나머지 요청은 모두 인증된 회원만 접근 가능
         .exceptionHandling().accessDeniedHandler(new CustomAccessDeniedHandler()).and()
-        .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationHandler()).and()
-        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
-            UsernamePasswordAuthenticationFilter.class); // jwt
+        .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationHandler());
+//            .and()
+//        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, ),
+//            UsernamePasswordAuthenticationFilter.class); // jwt
                                                          // token
                                                          // 필터를
                                                          // id/password

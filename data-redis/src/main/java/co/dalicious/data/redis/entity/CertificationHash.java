@@ -1,4 +1,4 @@
-package co.dalicious.data.redis;
+package co.dalicious.data.redis.entity;
 
 import lombok.Builder;
 import lombok.Getter;

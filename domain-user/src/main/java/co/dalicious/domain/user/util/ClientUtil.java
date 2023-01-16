@@ -39,8 +39,10 @@ public class ClientUtil {
 
     public SpotStatus getSpotStatus(User user) {
         // 유저가 Default로 설정한 스팟을 가져온다.
-        UserSpot userSpot = user.getUserSpot();
-        if (userSpot == null) {
+        Optional<UserSpot> userSpot = user.getUserSpots().stream()
+                .filter(UserSpot::getIsDefault)
+                .findAny();
+        if (userSpot.isEmpty()) {
             // 유저가 속해있는 그룹이 있는지 조회한다.
             List<UserGroup> userGroups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
             if (userGroups.isEmpty()) {
@@ -52,7 +54,7 @@ public class ClientUtil {
         }
 
         // 가져온 스팟을 통해 그룹을 조회한다.
-        Spot spot = userSpot.getSpot();
+        Spot spot = userSpot.get().getSpot();
         Group group = spot.getGroup();
         // 유저가 그 그룹에 속해있는지 조회한다.
         Optional<UserGroup> userApartment = userGroupRepository.findOneByUserAndGroupAndClientStatus(user, group, ClientStatus.BELONG);

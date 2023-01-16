@@ -43,22 +43,14 @@ public class UserGroup {
     @Column(nullable = false)
     private ClientStatus clientStatus = ClientStatus.BELONG;
 
-    @Comment("아파트 유저의 세부주소 (호수)")
-    private Integer ho;
-
     public void updateStatus(ClientStatus clientStatus) {
         this.clientStatus = clientStatus;
     }
 
-    public void updateHo(Integer ho) {
-        this.ho = ho;
-    }
-
     @Builder
-    public UserGroup(Group group, User user, ClientStatus clientStatus, Integer ho) {
+    public UserGroup(Group group, User user, ClientStatus clientStatus) {
         this.group = group;
         this.user = user;
         this.clientStatus = clientStatus;
-        this.ho = ho;
     }
 }
