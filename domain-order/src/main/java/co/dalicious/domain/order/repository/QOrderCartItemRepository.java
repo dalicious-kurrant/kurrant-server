@@ -31,12 +31,11 @@ public class QOrderCartItemRepository {
                 .execute();
     }
 
-    public void updateByFoodId(OrderCartItem updateCartItem) {
+    public void updateByFoodId(BigInteger cartItemId, Integer count) {
         queryFactory
                 .update(orderCartItem)
-                .set(orderCartItem.count, updateCartItem.getCount())
-                .where(orderCartItem.dailyFood.id.eq(updateCartItem.getDailyFood().getId()),
-                        orderCartItem.orderCart.id.eq(updateCartItem.getOrderCart().getId()))
+                .set(orderCartItem.count, count)
+                .where(orderCartItem.id.eq(cartItemId))
                 .execute();
     }
 

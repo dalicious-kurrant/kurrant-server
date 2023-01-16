@@ -34,9 +34,9 @@ public class CartItemDto {
 
 
     @Builder
-    public CartItemDto(OrderCartItem orderCartItem, Integer price, BigDecimal supportPrice, BigDecimal deliveryFee,
+    public CartItemDto(BigInteger id, OrderCartItem orderCartItem, Integer price, BigDecimal supportPrice, BigDecimal deliveryFee,
                        BigDecimal membershipPrice, BigDecimal discountPrice, BigDecimal periodDiscountPrice, BigDecimal discountRate){
-        this.id = orderCartItem.getId();
+        this.id = id;
         this.name = orderCartItem.getDailyFood().getFood().getName();
         this.price = orderCartItem.getDailyFood().getFood().getPrice();
         this.img = orderCartItem.getDailyFood().getFood().getImg();

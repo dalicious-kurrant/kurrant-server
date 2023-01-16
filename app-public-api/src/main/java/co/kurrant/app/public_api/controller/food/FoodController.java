@@ -40,5 +40,4 @@ public class FoodController {
                 .message("상품 상세정보 조회 성공!")
                 .build();
     }
-
 }

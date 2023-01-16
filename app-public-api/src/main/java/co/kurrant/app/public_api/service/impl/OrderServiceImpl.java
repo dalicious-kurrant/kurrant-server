@@ -13,7 +13,6 @@ import co.dalicious.domain.order.entity.OrderCartItem;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.user.entity.User;
-
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
@@ -23,7 +22,6 @@ import co.kurrant.app.public_api.mapper.order.OrderDetailMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.service.OrderService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,7 +118,7 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal discountRate = BigDecimal.valueOf(( countPrice - (double) Math.abs(price)) / countPrice);
 
 
-            cartItemDtos.add(orderCartItemMapper.toCartItemDto(oc,price,supportPrice,deliveryFee,membershipPrice,discountPrice,periodDiscountPrice, discountRate));
+            cartItemDtos.add(orderCartItemMapper.toCartItemDto(oc.getId(),oc,price,supportPrice,deliveryFee,membershipPrice,discountPrice,periodDiscountPrice, discountRate));
 
         }
             //일일지원금과 합계금액 저장
@@ -167,22 +165,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void updateByFoodId(SecurityUser securityUser, UpdateCartDto updateCartDto) {
-        User user = userUtil.getUser(securityUser);
-        List<OrderCart> cartList = orderCartRepository.findAllByUserId(user.getId());
 
+    public void updateByFoodId(UpdateCartDto updateCartDto) {
         for (UpdateCart updateCart : updateCartDto.getUpdateCartList()){
-            //dailyFoodId를 담아준다.
-            DailyFood dailyFood = DailyFood.builder()
-                    .id(updateCart.getDailyFoodId())
-                    .build();
-
-            OrderCartItem updateCartItem = OrderCartItem.builder()
-                    .orderCart(cartList.get(0))
-                    .dailyFood(dailyFood)
-                    .count(updateCart.getCount())
-                    .build();
-            qOrderCartItemRepository.updateByFoodId(updateCartItem);
+            qOrderCartItemRepository.updateByFoodId(updateCart.getCartItemId(),updateCart.getCount());
         }
 
     }

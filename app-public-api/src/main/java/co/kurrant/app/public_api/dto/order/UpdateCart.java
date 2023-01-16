@@ -6,6 +6,7 @@ import java.math.BigInteger;
 
 @Data
 public class UpdateCart {
+    private BigInteger cartItemId;
     private BigInteger dailyFoodId;
     private Integer count;
 }

@@ -16,7 +16,7 @@ public interface OrderService {
 
     void deleteByUserId(SecurityUser securityUser);
 
-    void deleteById(SecurityUser securityUser, Integer dailyFoodId);
+    void deleteById(SecurityUser securityUser, Integer cartItemId);
 
-    void updateByFoodId(SecurityUser securityUser, UpdateCartDto updateCartDto);
+    void updateByFoodId(UpdateCartDto updateCartDto);
 }
