@@ -2,6 +2,7 @@ package co.dalicious.domain.board.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -43,6 +44,17 @@ public class Notice {
 
     @Column(name="type")
     @Comment("1:전체공지/ 2:스팟공지")
-    private Integer Type;
+    private Integer type;
+
+    @Builder
+    public Notice(BigInteger id, LocalDate created, LocalDate updated, String title, String content, Integer type){
+        this.id = id;
+        this.created = created;
+        this.updated = updated;
+        this.title = title;
+        this.content = content;
+        this.type = type;
+    }
+
 
 }

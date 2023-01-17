@@ -19,7 +19,7 @@ public class BoardController {
     private final BoardService boardService;
 
     @Operation(summary = "공지사항 조회", description = "공지사항을 불러온다.")
-    @GetMapping("")
+    @GetMapping("notice")
     public ResponseMessage noticeList(@RequestParam Integer type){
         return ResponseMessage.builder()
                 .data(boardService.noticeList(type))
@@ -27,6 +27,12 @@ public class BoardController {
                 .build();
     }
 
-
-
+    @Operation(summary = "고객센터 조회", description = "고객센터 페이지 조회")
+    @GetMapping("customer")
+    public ResponseMessage customerList(){
+        return ResponseMessage.builder()
+                .data(boardService.customerBoardList())
+                .message("고객센터 페이지를 불러오는데 성공했습니다.")
+                .build();
+    }
 }

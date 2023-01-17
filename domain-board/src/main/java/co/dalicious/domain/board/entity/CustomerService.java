@@ -1,8 +1,10 @@
 package co.dalicious.domain.board.entity;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import net.bytebuddy.asm.Advice;
 import org.hibernate.annotations.Comment;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -45,5 +47,18 @@ public class CustomerService {
     @Column(name="answer")
     @Lob
     private String answer;
+
+    @Builder
+    CustomerService(BigInteger id, LocalDate created, LocalDate updated, String title,
+                    Integer titleNo, Integer type, String question, String answer){
+        this.id = id;
+        this.created = created;
+        this.updated = updated;
+        this.title = title;
+        this.titleNo = titleNo;
+        this.type = type;
+        this.question = question;
+        this.answer = answer;
+    }
 
 }
