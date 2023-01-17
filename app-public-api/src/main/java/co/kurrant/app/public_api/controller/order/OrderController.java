@@ -6,6 +6,7 @@ import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderService;
 import co.kurrant.app.public_api.service.UserUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,6 +25,7 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    @Operation(summary = "유저 주문 정보 가져오기", description = "유저의 주문 정보를 가져온다.")
     @GetMapping("/me/order")
     public Object userOrderbyDate(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
@@ -34,6 +36,7 @@ public class OrderController {
                 .build();
     }
 
+    @Operation(summary = "장바구니 담기", description = "장바구니 생성 및 담기, 중복될 경우 수량+1")
     @PostMapping("/me/order/cart")
     public ResponseMessage saveOrderCart(Authentication authentication,
                                          @RequestBody OrderCartDto orderCartDto){
@@ -44,6 +47,7 @@ public class OrderController {
         return ResponseMessage.builder().message("아무일도 일어나지 않았습니다.").build();
     }
 
+    @Operation(summary = "장바구니 조회", description = "장바구니를 조회한다.")
     @GetMapping("/me/order/cart")
     public Object getCartItem(Authentication authentication){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
@@ -53,6 +57,7 @@ public class OrderController {
                 .build();
     }
 
+    @Operation(summary = "특정 장바구니 삭제", description = "DailyFoodId로 장바구니에 담긴 항목을 삭제")
     @DeleteMapping("/me/order/cart/{dailyFoodId}")
     public ResponseMessage deleteById(Authentication authentication,@PathVariable Integer dailyFoodId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
@@ -62,6 +67,7 @@ public class OrderController {
                 .build();
     }
 
+    @Operation(summary = "장바구니 전체 삭제", description = "장바구니에 담긴 모든 항목을 삭제한다.")
     @DeleteMapping("/me/order/cart/all")
     public ResponseMessage deleteByUserId(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
@@ -71,6 +77,7 @@ public class OrderController {
                 .build();
     }
 
+    @Operation(summary = "장바구니 수량 수정", description = "장바구니 수량을 수정한다.")
     @PatchMapping("/me/order/cart")
     public ResponseMessage updateByFoodId(@RequestBody UpdateCartDto updateCartDto){
         orderService.updateByFoodId(updateCartDto);
