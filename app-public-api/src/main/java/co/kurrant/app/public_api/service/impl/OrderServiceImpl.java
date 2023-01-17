@@ -9,19 +9,22 @@ import co.dalicious.domain.order.dto.OrderCartDto;
 import co.dalicious.domain.order.dto.OrderDetailDto;
 import co.dalicious.domain.order.dto.OrderItemDto;
 import co.dalicious.domain.order.entity.OrderCart;
-import co.dalicious.domain.order.entity.OrderCartItem;
+import co.dalicious.domain.order.entity.OrderCartDailyFood;
 import co.dalicious.domain.order.entity.OrderDailyFood;
+import co.dalicious.domain.order.mapper.OrderCartDailyFoodMapper;
+import co.dalicious.domain.order.mapper.OrderCartDailyFoodResMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
-import co.kurrant.app.public_api.mapper.order.OrderCartItemMapper;
 import co.kurrant.app.public_api.mapper.order.OrderCartMapper;
 import co.kurrant.app.public_api.mapper.order.OrderDetailMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.service.OrderService;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,13 +42,13 @@ public class OrderServiceImpl implements OrderService {
     private final FoodRepository foodRepository;
     private final OrderCartRepository orderCartRepository;
     private final QOrderCartRepository qOrderCartRepository;
-    private final OrderCartItemRepository orderCartItemRepository;
+    private final OrderCartDailyFoodRepository orderCartDailyFoodRepository;
     private final DailyFoodRepository dailyFoodRepository;
     private final QOrderCartItemRepository qOrderCartItemRepository;
     private final UserUtil userUtil;
     private final OrderDetailMapper orderDetailMapper;
-    private final OrderCartMapper orderCartMapper;
-    private final OrderCartItemMapper orderCartItemMapper;
+    private final OrderCartDailyFoodMapper orderCartDailyFoodMapper;
+    private final OrderCartDailyFoodResMapper orderCartDailyFoodResMapper;
 
     @Override
     @Transactional
@@ -74,6 +77,32 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    public Integer saveOrderCart(SecurityUser securityUser, OrderCartDto orderCartDto){
+        // 유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        // DailyFood 가져오기
+        DailyFood dailyFood = dailyFoodRepository.findById(orderCartDto.getDailyFoodId()).orElseThrow(
+                () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
+        );
+
+        // DailyFood가 중복될 경우는 추가하지 않고 count +1 처리
+        Optional<OrderCartDailyFood> orderCartDailyFood = orderCartDailyFoodRepository.findOneByUserAndDailyFood(user, dailyFood);
+        if(orderCartDailyFood.isPresent()) {
+            orderCartDailyFood.get().updateCount(orderCartDailyFood.get().getCount() + 1);
+            return 2;
+        }
+
+        // 중복되는 DailyFood가 장바구니에 존재하지 않는다면 추가하기
+        OrderCartDailyFood newOrderCartDailyFood = orderCartDailyFoodMapper.toEntity(user, dailyFood, orderCartDto.getCount());
+
+        //장바구니에 추가
+        orderCartDailyFoodRepository.save(newOrderCartDailyFood);
+        return 1;
+    }
+
+    @Override
+    @Transactional
     public Object findCartById(SecurityUser securityUser) {
         //유저정보 가져오기
         User user = userUtil.getUser(securityUser);
@@ -81,13 +110,13 @@ public class OrderServiceImpl implements OrderService {
         List<CartItemDto> cartItemDtos = new ArrayList<>();
 
         //유저정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
-        List<OrderCartItem> orderCartItems = qOrderCartItemRepository.getItems(qOrderCartRepository.getCartId(user.getId()));
+        List<OrderCartDailyFood> orderCartDailyFoods = qOrderCartItemRepository.getItems(qOrderCartRepository.getCartId(user.getId()));
 
         //지원금 일괄 만원 적용(임시)
         BigDecimal supportPrice = BigDecimal.valueOf(10000);
 
         //카트에 담긴 아이템들을 결과 LIST에 담아주기
-        for (OrderCartItem oc : orderCartItems){
+        for (OrderCartDailyFood oc : orderCartDailyFoods){
             Integer price = oc.getDailyFood().getFood().getPrice();
             Double countPrice = Double.valueOf(price); // 할인율을 구하기 위한 용도
             //count가 1이 아니면 가격 * count
@@ -118,7 +147,7 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal discountRate = BigDecimal.valueOf(( countPrice - (double) Math.abs(price)) / countPrice);
 
 
-            cartItemDtos.add(orderCartItemMapper.toCartItemDto(oc.getId(),oc,price,supportPrice,deliveryFee,membershipPrice,discountPrice,periodDiscountPrice, discountRate));
+            cartItemDtos.add(orderCartDailyFoodResMapper.toCartItemDto(oc.getId(),oc,price,supportPrice,deliveryFee,membershipPrice,discountPrice,periodDiscountPrice, discountRate));
 
         }
             //일일지원금과 합계금액 저장
@@ -165,46 +194,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-
     public void updateByFoodId(UpdateCartDto updateCartDto) {
         for (UpdateCart updateCart : updateCartDto.getUpdateCartList()){
             qOrderCartItemRepository.updateByFoodId(updateCart.getCartItemId(),updateCart.getCount());
         }
 
-    }
-
-    @Override
-    @Transactional
-    public Integer saveOrderCart(SecurityUser securityUser, OrderCartDto orderCartDto){
-        User user = userUtil.getUser(securityUser);
-
-        //장바구니가 없다면 장바구니 생성(CartId부여)
-       if(!qOrderCartRepository.existsByUserId(user.getId())){
-           OrderCart createOrderCart = orderCartMapper.newOrderCart(user.getId());
-           orderCartRepository.save(createOrderCart);
-       }
-
-        //장바구니에 넣어줄 Item 전처리
-        Optional<DailyFood> dailyFoodById = dailyFoodRepository.findById(orderCartDto.getDailyFoodId());
-        Optional<OrderCart> orderCart = qOrderCartRepository.findOneByUserId(user.getId());
-
-        //DailyFood가 중복될 경우는 추가하지 않고 count +1 처리
-        List<OrderCartItem> userCartItemList = qOrderCartItemRepository.getUserCartItemList(orderCart.get().getId());
-        if (!userCartItemList.isEmpty()){
-            for (OrderCartItem cartItem : userCartItemList){
-                //UserId로 조회한 카트에 담긴 아이템과 새로 넣으려는 아이템을 비교해서 DailyFoodId와 ServiceDate가 같다면 수량만 +1
-                if (dailyFoodById.get().getId().equals(cartItem.getDailyFood().getId()) &&
-                        dailyFoodById.get().getServiceDate().equals(cartItem.getServiceDate())){
-                    qOrderCartItemRepository.updateCount(cartItem.getId());
-                    return 2;
-                }
-            }
-        }
-        //장바구니에 넣어줄 Item 전처리
-        OrderCartItem orderCartItem = orderCartItemMapper.CreateOrderCartItem(dailyFoodById.get(),orderCartDto.getCount(), orderCart.get());
-
-        //장바구니에 추가
-        orderCartItemRepository.save(orderCartItem);
-        return 1;
     }
 }

@@ -1,8 +1,7 @@
 package co.dalicious.domain.order.dto;
 
 import co.dalicious.domain.makers.entity.Makers;
-import co.dalicious.domain.order.entity.OrderCartItem;
-import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.order.entity.OrderCartDailyFood;
 import co.dalicious.system.util.DateUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
@@ -34,19 +33,19 @@ public class CartItemDto {
 
 
     @Builder
-    public CartItemDto(BigInteger id, OrderCartItem orderCartItem, Integer price, BigDecimal supportPrice, BigDecimal deliveryFee,
+    public CartItemDto(BigInteger id, OrderCartDailyFood orderCartDailyFood, Integer price, BigDecimal supportPrice, BigDecimal deliveryFee,
                        BigDecimal membershipPrice, BigDecimal discountPrice, BigDecimal periodDiscountPrice, BigDecimal discountRate){
         this.id = id;
-        this.name = orderCartItem.getDailyFood().getFood().getName();
-        this.price = orderCartItem.getDailyFood().getFood().getPrice();
-        this.img = orderCartItem.getDailyFood().getFood().getImg();
-        this.makers = orderCartItem.getDailyFood().getFood().getMakers();
-        this.diningType = orderCartItem.getDiningType().getDiningType();
-        this.count = orderCartItem.getCount();
+        this.name = orderCartDailyFood.getDailyFood().getFood().getName();
+        this.price = orderCartDailyFood.getDailyFood().getFood().getPrice();
+        this.img = orderCartDailyFood.getDailyFood().getFood().getImg();
+        this.makers = orderCartDailyFood.getDailyFood().getFood().getMakers();
+        this.diningType = orderCartDailyFood.getDiningType().getDiningType();
+        this.count = orderCartDailyFood.getCount();
         this.discountRate = discountRate.doubleValue();
-        this.serviceDate = DateUtils.format(orderCartItem.getServiceDate(), "yyyy-MM-dd");
+        this.serviceDate = DateUtils.format(orderCartDailyFood.getServiceDate(), "yyyy-MM-dd");
         this.sumPrice = price;
-        this.dailyFoodId = orderCartItem.getDailyFood().getId();
+        this.dailyFoodId = orderCartDailyFood.getDailyFood().getId();
         this.supportPrice = supportPrice;
         this.deliveryFee = deliveryFee;
         this.membershipPrice = membershipPrice;

@@ -1,17 +1,18 @@
 package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.user.entity.User;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
+import java.time.LocalDate;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -27,17 +28,28 @@ public class OrderCart {
     @Column(name= "id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
-    @Column(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY,optional = false)
+    @JoinColumn
     @Comment("유저 Id")
-    private BigInteger userId;
+    private User user;
 
-    @Comment("장바구니 타입, 1:식사/2:마켓")
-    @ColumnDefault("1")
-    private Integer type;
+    @Column(name = "count")
+    @Comment("수량")
+    private Integer count;
 
-    @Builder
-    public OrderCart(BigInteger id, BigInteger userId){
-        this.id = id;
-        this.userId = userId;
+    @CreationTimestamp
+    @Column(name = "created_datetime",
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private LocalDate created;
+
+    @UpdateTimestamp
+    @Column(name = "updated_datetime",
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("수정일")
+    private LocalDate updated;
+
+    public void updateCount(Integer count) {
+        this.count = count;
     }
 }

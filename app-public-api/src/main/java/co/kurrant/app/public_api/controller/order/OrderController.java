@@ -53,8 +53,8 @@ public class OrderController {
                 .build();
     }
 
-    @DeleteMapping("/me/order/cart/{dailyFoodId}")
-    public ResponseMessage deleteById(Authentication authentication,@PathVariable Integer dailyFoodId) {
+    @DeleteMapping("/me/order/cart/{orderCartDailyFoodId}")
+    public ResponseMessage deleteById(Authentication authentication,@PathVariable BigInteger orderCartDailyFoodId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         orderService.deleteById(securityUser, dailyFoodId);
         return ResponseMessage.builder()

@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.food.dto.FoodDetailDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Origin;
@@ -44,7 +45,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate) {
+    public List<DailyFoodDto> getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
         // 스팟 정보 가져오기
@@ -70,7 +71,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getFoodDetail(BigInteger dailyFoodId, SecurityUser securityUser) {
+    public FoodDetailDto getFoodDetail(BigInteger dailyFoodId, SecurityUser securityUser) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
