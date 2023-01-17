@@ -43,7 +43,8 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getDailyFood(Integer spotId, LocalDate selectedDate) {
+    public Object getDailyFood(SecurityUser securityUser, Integer spotId, LocalDate selectedDate) {
+        User user = userUtil.getUser(securityUser);
         //결과값을 담아줄 LIST 생성
         List<DailyFoodDto> resultList = new ArrayList<>();
         //조건에 맞는 DailyFood 조회

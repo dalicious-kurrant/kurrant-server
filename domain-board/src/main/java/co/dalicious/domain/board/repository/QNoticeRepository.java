@@ -13,8 +13,7 @@ public class QNoticeRepository {
 
     public final JPAQueryFactory queryFactory;
 
-
-    public Object findAllByType(PageRequest pageRequest, Integer type) {
+    public Object findAllByType(Integer type) {
         return queryFactory.selectFrom(notice)
                 .where(notice.Type.eq(type))
                 .fetch();
