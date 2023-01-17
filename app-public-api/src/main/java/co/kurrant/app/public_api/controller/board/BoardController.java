@@ -35,7 +35,4 @@ public class BoardController {
                 .message("고객센터 페이지를 불러오는데 성공했습니다.")
                 .build();
     }
-
-
-
 }

@@ -1,7 +1,12 @@
 package co.kurrant.app.public_api.service;
 
-public interface BoardService {
-    Object noticeList(Integer type);
+import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
+import co.kurrant.app.public_api.dto.board.NoticeDto;
 
-    Object customerBoardList();
+import java.util.List;
+
+public interface BoardService {
+    List<NoticeDto> noticeList(Integer type);
+
+    List<CustomerServiceDto> customerBoardList();
 }

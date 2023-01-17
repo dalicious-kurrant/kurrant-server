@@ -5,19 +5,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 
-@Schema(description = "비밀번호 변경 요청 DTO")
+@Schema(description = "공지사항 응답 DTO")
 @Getter
 @Setter
 @NoArgsConstructor
-public class CustomerServiceDto {
-    private String title;
-    private String question;
-    private String answer;
+public class NoticeDto {
+    private BigInteger id;
     private String created;
     private String updated;
+    private String title;
+    private String content;
     private Integer type;
-    private Integer titleNo;
-
 }
+
