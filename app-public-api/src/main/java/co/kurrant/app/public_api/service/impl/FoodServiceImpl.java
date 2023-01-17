@@ -1,16 +1,18 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Origin;
+import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.food.repository.QOriginRepository;
-import co.dalicious.domain.food.util.OriginList;
+import co.dalicious.domain.food.util.OriginDto;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.system.util.enums.FoodStatus;
-import co.kurrant.app.public_api.dto.food.DailyFoodDto;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.kurrant.app.public_api.mapper.food.FoodMapper;
 import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -33,86 +35,50 @@ import java.util.List;
 public class FoodServiceImpl implements FoodService {
 
     private final UserUtil userUtil;
-    private final FoodRepository foodRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
-    private final QOriginRepository qOriginRepository;
     private final DailyFoodMapper dailyFoodMapper;
     private final FoodMapper foodMapper;
-
+    private final SpotRepository spotRepository;
+    private final DailyFoodRepository dailyFoodRepository;
 
 
     @Override
     @Transactional
-    public Object getDailyFood(Integer spotId, LocalDate selectedDate) {
+    public Object getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate) {
+        // 유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+        // 스팟 정보 가져오기
+        Spot spot = spotRepository.findById(spotId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
+        );
+        // 유저가 그 그룹의 스팟에 포함되는지 확인.
+        List<UserGroup> userGroups = user.getGroups();
+        userGroups.stream().filter(v -> v.getGroup().equals(spot.getGroup()))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
         //결과값을 담아줄 LIST 생성
         List<DailyFoodDto> resultList = new ArrayList<>();
         //조건에 맞는 DailyFood 조회
-        List<DailyFood> dailyFoodList =  qDailyFoodRepository.getDailyFood(BigInteger.valueOf(spotId), selectedDate);
+        List<DailyFood> dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(spotId, selectedDate);
         //값이 있다면 결과값으로 담아준다.
-        if (!dailyFoodList.isEmpty()) {
-            for (DailyFood dailyFood : dailyFoodList) {
-
-                //기본할인율은 상품의 할인율을 그대로 적용(임시로 23.8% 적용)
-                BigDecimal discountRate = BigDecimal.valueOf(0.238);
-                //기본 가격은 상품가격 그대로 적용
-                Integer discountedPrice = dailyFood.getFood().getPrice();
-                double priceTemp = (double) 0;
-                //멤버십가입고객이면 멤버십 할인율 적용
-                if (user.getIsMembership()){
-                    discountRate = BigDecimal.valueOf(0.388);
-                }
-                priceTemp = discountedPrice - ((double) discountedPrice * discountRate.doubleValue());
-                discountedPrice = (int) priceTemp;
-
-                DiningType diningType = dailyFood.getDiningType();
-                FoodStatus foodStatus = dailyFood.getStatus();
-                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(dailyFood,diningType, foodStatus, discountedPrice,discountRate);
-
-
-                resultList.add(dailyFoodDto);
-            }
+        for (DailyFood dailyFood : dailyFoodList) {
+            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood);
+            resultList.add(dailyFoodDto);
         }
-        return resultList;  //결과값 반환
+        return resultList;
     }
 
     @Override
     @Transactional
-    public Object getFoodDetail(BigInteger foodId, SecurityUser securityUser) {
-
+    public Object getFoodDetail(BigInteger dailyFoodId, SecurityUser securityUser) {
+        // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
-        Food food = foodRepository.findOneById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
+        );
+        Food food = dailyFood.getFood();
 
-        List<Origin> origin = qOriginRepository.findAllByFoodId(foodId);
-
-        List<OriginList> originList = new ArrayList<>();
-        for (Origin origin1 : origin){
-            OriginList originList2 =  OriginList.builder()
-                    .origin(origin1).build();
-            originList.add(originList2);
-        }
-
-        //할인금액
-        //멤버십 할인 가격
-        BigDecimal membershipPrice;
-        Integer price = food.getPrice();
-        Integer countPrice = food.getPrice();
-        if (user.getIsMembership()) {
-            membershipPrice = BigDecimal.valueOf(price - (price * 80L / 100));
-            price = price - membershipPrice.intValue();
-        }
-        //판매자 할인 가격
-        BigDecimal discountPrice = BigDecimal.valueOf(price - (price * 85L / 100));
-        //개발 단계에서는 기본할인 + 기간할인 무조건 적용해서 진행
-        price = price - discountPrice.intValue();
-        //기간 할인 가격
-        BigDecimal periodDiscountPrice = BigDecimal.valueOf((price - price * 90L / 100));
-        price = price - periodDiscountPrice.intValue();
-
-        //할인율 구하기
-        BigDecimal discountRate = BigDecimal.valueOf(( countPrice - (double) Math.abs(price)) / countPrice);
-
-        //결과값을 담아줄 List 생성
-        return foodMapper.toFoodDetailDto(food, originList, price, discountRate);
+        return foodMapper.toDto(food);
     }
 }

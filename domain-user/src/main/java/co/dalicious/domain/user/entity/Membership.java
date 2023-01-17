@@ -2,6 +2,7 @@ package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.converter.MembershipStatusConverter;
 import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
+import co.dalicious.domain.user.dto.PeriodDto;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -73,12 +74,18 @@ public class Membership {
     private List<MembershipDiscountPolicy> membershipDiscountPolicyList;
 
     @Builder
-    public Membership(MembershipStatus membershipStatus, MembershipSubscriptionType membershipSubscriptionType, LocalDate startDate, LocalDate endDate, Boolean autoPayment, User user) {
+    public Membership(MembershipStatus membershipStatus, MembershipSubscriptionType membershipSubscriptionType, Boolean autoPayment) {
         this.membershipStatus = membershipStatus;
         this.membershipSubscriptionType = membershipSubscriptionType;
-        this.startDate = startDate;
-        this.endDate = endDate;
         this.autoPayment = autoPayment;
+    }
+
+    public void setDate(PeriodDto periodDto) {
+        this.startDate = periodDto.getStartDate();
+        this.endDate = periodDto.getEndDate();
+    }
+
+    public void setUser(User user) {
         this.user = user;
     }
 

@@ -10,7 +10,7 @@ import co.dalicious.domain.order.dto.OrderDetailDto;
 import co.dalicious.domain.order.dto.OrderItemDto;
 import co.dalicious.domain.order.entity.OrderCart;
 import co.dalicious.domain.order.entity.OrderCartItem;
-import co.dalicious.domain.order.entity.OrderItem;
+import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
@@ -35,7 +35,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    private final QOrderItemRepository qOrderItemRepository;
+    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final FoodRepository foodRepository;
     private final OrderCartRepository orderCartRepository;
     private final QOrderCartRepository qOrderCartRepository;
@@ -55,13 +55,13 @@ public class OrderServiceImpl implements OrderService {
 
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
-        List<OrderItem> orderItemList = qOrderItemRepository.findByServiceDateBetween(startDate, endDate);
+        List<OrderDailyFood> orderItemList = qOrderDailyFoodRepository.findByServiceDateBetween(startDate, endDate);
 
         orderItemList.forEach( x -> {
             orderDetailDto.setId(x.getId());
             orderDetailDto.setServiceDate(DateUtils.format(x.getServiceDate(), "yyyy-MM-dd") );
 
-            Optional<Food> food = foodRepository.findOneById(x.getFoodId());
+            Optional<Food> food = foodRepository.findOneById(x.getId());
 
             OrderItemDto orderItemDto = orderDetailMapper.toOrderItemDto(food.get(), x);
 

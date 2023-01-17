@@ -39,11 +39,11 @@ public class DiscountPolicyImpl implements DiscountPolicy {
                 }
             }
             // 1. 멤버십 할인 적용
-            totalPrice = discountByRate(foodPrice, membershipDiscountPolicyRate);
+            totalPrice = discountedTotalPrice(foodPrice, membershipDiscountPolicyRate);
             // 2. 판매자 할인 적용
-            totalPrice = discountByRate(foodPrice, makersDiscountPolicyRate);
+            totalPrice = discountedTotalPrice(foodPrice, makersDiscountPolicyRate);
             // 3. 기간 할인 적용
-            totalPrice = discountByRate(foodPrice, periodDiscountPolicyRate);
+            totalPrice = discountedTotalPrice(foodPrice, periodDiscountPolicyRate);
             // 개수 곱하기
             totalPrice = totalPrice.multiply(BigDecimal.valueOf(count));
 
@@ -63,21 +63,23 @@ public class DiscountPolicyImpl implements DiscountPolicy {
                 }
             }
             // 1. 연간 구독 할인 적용
-            totalPrice = discountByRate(membershipPrice, yearSubscriptionDiscountPolicyRate);
+            totalPrice = discountedTotalPrice(membershipPrice, yearSubscriptionDiscountPolicyRate);
             // 2. 기간 할인 적용
-            totalPrice = discountByRate(totalPrice, periodDiscountPolicyRate);
+            totalPrice = discountedTotalPrice(totalPrice, periodDiscountPolicyRate);
             return totalPrice;
         }
         throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
     }
 
-    @Override
-    public BigDecimal discountByRate(BigDecimal price, Integer discountRate) {
+    public static BigDecimal discountedTotalPrice(BigDecimal price, Integer discountRate) {
         return price.multiply(BigDecimal.valueOf((100 - discountRate) / 100));
     }
 
-    @Override
-    public BigDecimal discountByPoint(BigDecimal price, BigDecimal point) {
+    public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
+        return price.multiply(BigDecimal.valueOf(discountRate / 100));
+    }
+
+    public static BigDecimal discountByPoint(BigDecimal price, BigDecimal point) {
         return price.subtract(point);
     }
 

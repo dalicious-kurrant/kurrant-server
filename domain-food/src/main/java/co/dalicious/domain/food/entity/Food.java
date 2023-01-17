@@ -41,9 +41,13 @@ public class Food {
     @Comment("이미지 경로")
     private Image image;
 
-    @OneToMany(mappedBy = "food")
+    @OneToMany(mappedBy = "food", orphanRemoval = true)
     @JsonBackReference(value = "food_fk")
     private List<FoodDiscountPolicy> foodDiscountPolicyList;
+
+    @OneToMany(mappedBy = "food", orphanRemoval = true)
+    @JsonBackReference(value = "food_fk")
+    private List<Origin> origins;
 
     @Column(name = "spicy")
     @Comment("맵기정도")

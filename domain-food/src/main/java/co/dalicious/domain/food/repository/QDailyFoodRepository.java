@@ -2,6 +2,7 @@ package co.dalicious.domain.food.repository;
 
 
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.system.util.enums.FoodStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -18,11 +19,14 @@ public class QDailyFoodRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public List<DailyFood> getDailyFood(BigInteger spotId, LocalDate selectedDate) {
+    public List<DailyFood> getSellingAndSoldOutDailyFood(BigInteger spotId, LocalDate selectedDate) {
         return queryFactory
                 .selectFrom(dailyFood)
-                .where(dailyFood.spotId.eq(spotId),
-                        dailyFood.serviceDate.eq(selectedDate))
+                .where(dailyFood.spot.id.eq(spotId),
+                        dailyFood.serviceDate.loe(selectedDate),
+                        dailyFood.foodStatus.eq(FoodStatus.SALES),
+                        dailyFood.foodStatus.eq(FoodStatus.SOLD_OUT)
+                        )
                 .fetch();
     }
 

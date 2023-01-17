@@ -6,20 +6,23 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 @Schema(description = "멤버십 구독 정보 응답 DTO")
 @Getter
 @Setter
 public class MembershipSubscriptionTypeDto {
     private String membershipSubscriptionType;
-    private double price;
+    private BigDecimal price;
     private int discountRate;
-    private double discountedPrice;
+    private BigDecimal discountedPrice;
 
     @Builder
     public MembershipSubscriptionTypeDto(MembershipSubscriptionType membershipSubscriptionType) {
         this.membershipSubscriptionType = membershipSubscriptionType.getMembershipSubscriptionType();
         this.price = membershipSubscriptionType.getPrice();
         this.discountRate = membershipSubscriptionType.getDiscountRate();
-        this.discountedPrice = membershipSubscriptionType.getDiscountedPrice();
+        this.discountedPrice = price.multiply(BigDecimal.valueOf(discountRate / 100));
     }
 }

@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.util;
 
 import co.dalicious.domain.order.entity.Order;
+import co.dalicious.domain.order.entity.OrderMembership;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.user.entity.Membership;
@@ -33,17 +34,17 @@ public class OrderUtil {
         return code;
     }
 
-    public static void refundOrderMembership(User user, Order order, Membership membership) {
-        if(order.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+    public static void refundOrderMembership(User user, OrderMembership orderMembership, Membership membership) {
+        if(orderMembership.getOrderStatus().equals(OrderStatus.COMPLETED)) {
             membership.changeMembershipStatus(MembershipStatus.PROCESSING);
             membership.changeAutoPaymentStatus(true);
             user.changeMembershipStatus(true);
         }
-        else if(order.getOrderStatus().equals(OrderStatus.AUTO_REFUND)) {
+        else if(orderMembership.getOrderStatus().equals(OrderStatus.AUTO_REFUND)) {
             membership.changeMembershipStatus(MembershipStatus.AUTO_REFUND);
             membership.changeAutoPaymentStatus(false);
             user.changeMembershipStatus(false);
-        } else if (order.getOrderStatus().equals(OrderStatus.MANUAL_REFUNDED)) {
+        } else if (orderMembership.getOrderStatus().equals(OrderStatus.MANUAL_REFUNDED)) {
             membership.changeMembershipStatus(MembershipStatus.BACK_OFFICE_REFUND);
             membership.changeAutoPaymentStatus(false);
             user.changeMembershipStatus(false);

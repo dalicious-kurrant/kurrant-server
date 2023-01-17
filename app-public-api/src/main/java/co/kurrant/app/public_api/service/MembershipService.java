@@ -1,12 +1,13 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.domain.order.dto.OrderMembershipReqDto;
+import co.dalicious.domain.order.dto.OrderMembershipResDto;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
-import co.kurrant.app.public_api.dto.user.MembershipDto;
+import co.dalicious.domain.user.dto.MembershipDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface MembershipService {
@@ -16,7 +17,9 @@ public interface MembershipService {
     // 유저가 멤버십을 자동 결제할 시 사용할 결제 수단을 정한다.
     void saveMembershipAutoPayment(SecurityUser securityUser);
     // 유저가 멤버십에 가입한다
-    void joinMembership(User user, String subscriptionType);
+    void joinMembership(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto);
+    // 멤버십 결제 정보를 가져온다.
+    OrderMembershipResDto getOrderMembership(SecurityUser securityUser, Integer subscriptionType);
     // 유저가 멤버십을 환불한다
     void refundMembership(User user, Order order, Membership membership);
     // 유저가 멤버십을 해지 또는 환불한다

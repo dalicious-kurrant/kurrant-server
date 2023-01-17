@@ -2,7 +2,6 @@ package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.enums.DiningType;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -36,7 +35,7 @@ public class OrderDailyFood extends OrderItem{
     @Comment("식사타입: 아침,점심,저녁")
     private DiningType diningType;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "food_id", nullable = false)
     @Comment("식품 ID")
     private Food food;

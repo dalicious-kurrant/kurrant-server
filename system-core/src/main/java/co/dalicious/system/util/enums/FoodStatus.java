@@ -7,7 +7,7 @@ import java.util.Arrays;
 @Getter
 public enum FoodStatus {
 
-    SALES_END("판매종료", 0),
+    SOLD_OUT("판매종료", 0),
     SALES("판매중", 1),
     REQUEST("일정요청", 2),
     APPROVAL("일정승인", 3),

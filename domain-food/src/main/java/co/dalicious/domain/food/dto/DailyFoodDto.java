@@ -1,19 +1,27 @@
 package co.dalicious.domain.food.dto;
 
-import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.util.OriginDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.math.BigInteger;
 
-@Schema(description = "식품 상세정보 DTO")
+@Schema(description = "식단 응답 DTO")
 @Getter
 @Setter
-public class FoodDetailDto {
+public class DailyFoodDto {
+    private BigInteger id;
+    private String diningType;
+    private BigInteger foodId;
+    private String foodName;
+    private Boolean isSoldOut;
+    private BigInteger spotId;
+    private String serviceDate;
     private String makersName;
-    private String name;
+    private String spicy;
+    private String image;
+    private String description;
     private BigDecimal price;
     private BigDecimal membershipDiscountedPrice;
     private Integer membershipDiscountedRate;
@@ -21,8 +29,4 @@ public class FoodDetailDto {
     private Integer makersDiscountedRate;
     private BigDecimal periodDiscountedPrice;
     private Integer periodDiscountedRate;
-    private String image;
-    private String spicy;
-    private String description;
-    private List<OriginDto> origins;
 }

@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.order.dto.OrderMembershipReqDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.service.MembershipService;
@@ -30,10 +31,20 @@ public class MembershipController {
 
 
     @Operation(summary = "멤버십 구매", description = "유저가 멤버십에 가입한다")
-    @PostMapping("/{subscriptionType}")
-    public ResponseMessage joinMembership(Authentication authentication, @PathVariable String subscriptionType) {
+    @PostMapping("")
+    public ResponseMessage joinMembership(Authentication authentication, @RequestBody OrderMembershipReqDto orderMembershipReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        membershipService.joinMembership(userUtil.getUser(securityUser), subscriptionType);
+        membershipService.joinMembership(securityUser, orderMembershipReqDto);
+        return ResponseMessage.builder()
+                .message("멤버십 구매에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "멤버십 주문 정보 가져오기", description = "유저가 멤버십 주문 정보를 불러온다.")
+    @GetMapping("/{subscriptionType}")
+    public ResponseMessage getOrderMembership(Authentication authentication, @PathVariable Integer subscriptionType) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        membershipService.getOrderMembership(securityUser, subscriptionType);
         return ResponseMessage.builder()
                 .message("멤버십 구매에 성공하였습니다.")
                 .build();

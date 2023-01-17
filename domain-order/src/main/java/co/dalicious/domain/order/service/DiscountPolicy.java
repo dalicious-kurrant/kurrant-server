@@ -10,8 +10,4 @@ public interface DiscountPolicy {
     BigDecimal orderTotalPrice(List<OrderItem> orderItemList);
     // 상품별 총 할인 금액
     BigDecimal orderItemTotalPrice(OrderItem orderItem);
-    // 정률 할인
-    BigDecimal discountByRate(BigDecimal price, Integer discountRate);
-    // 포인트 할인
-    BigDecimal discountByPoint(BigDecimal price, BigDecimal point);
 }

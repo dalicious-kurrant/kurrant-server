@@ -24,19 +24,22 @@ public class FoodController {
 
     @Operation(summary = "식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
     @GetMapping("/dailyfoods")
-    public ResponseMessage getDailyFood(@RequestParam Integer spotId, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate) {
+    public ResponseMessage getDailyFood(Authentication authentication,
+                                        @RequestParam BigInteger spotId,
+                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                        .data(foodService.getDailyFood(spotId, selectedDate))
+                        .data(foodService.getDailyFood(securityUser, spotId, selectedDate))
                         .message("식단 불러오기에 성공하였습니다.")
                         .build();
     }
 
     @Operation(summary = "메뉴 상세정보 불러오기", description = "특정 메뉴의 상세정보를 불러온다.")
-    @GetMapping("/{foodId}")
-    public ResponseMessage getFoodDetail(Authentication authentication, @PathVariable BigInteger foodId){
+    @GetMapping("/{dailyfoodId}")
+    public ResponseMessage getFoodDetail(Authentication authentication, @PathVariable BigInteger dailyfoodId){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(foodService.getFoodDetail(foodId, securityUser))
+                .data(foodService.getFoodDetail(dailyfoodId, securityUser))
                 .message("상품 상세정보 조회 성공!")
                 .build();
     }

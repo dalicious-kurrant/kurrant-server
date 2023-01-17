@@ -61,4 +61,8 @@ public class OrderItem {
         this.orderStatus = orderStatus;
         this.order = order;
     }
+
+    public void updateOrderStatus (OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
+    }
 }
