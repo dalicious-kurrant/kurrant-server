@@ -1,14 +1,14 @@
 package co.kurrant.app.public_api.controller.board;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.BoardService;
+import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "8. Board")
 @RestController
@@ -35,4 +35,25 @@ public class BoardController {
                 .message("고객센터 페이지를 불러오는데 성공했습니다.")
                 .build();
     }
+
+    @Operation(summary = "알림센터 조회", description = "알림센터 조회")
+    @GetMapping("alarms")
+    public ResponseMessage alarmList(Authentication authentication){
+        SecurityUser securityUser =  UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(boardService.alarmBoardList(securityUser))
+                .message("알람을 불러오는데 성공했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "모든 알림 삭제", description = "모든 알림 삭제")
+    @DeleteMapping("alarms")
+    public ResponseMessage deleteAllAlarm(Authentication authentication){
+        SecurityUser securityUser =  UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(boardService.deleteAllAlarm(securityUser))
+                .message("알림을 모두 지웠습니다.")
+                .build();
+    }
+
 }
