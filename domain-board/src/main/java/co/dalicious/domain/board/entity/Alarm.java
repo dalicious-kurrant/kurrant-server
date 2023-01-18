@@ -1,16 +1,16 @@
 package co.dalicious.domain.board.entity;
 
 import co.dalicious.domain.board.converter.AlarmTypeConverter;
-import co.dalicious.domain.board.entity.enums.AlarmType;
+import co.dalicious.domain.board.entity.enums.AlarmBoardType;
 import co.dalicious.domain.user.entity.User;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.math.BigInteger;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -30,15 +30,22 @@ public class Alarm {
 
     @Convert(converter = AlarmTypeConverter.class)
     @Column(name ="alarm_type", columnDefinition = "VARCHAR(45)")
-    private AlarmType type;
+    private AlarmBoardType type;
 
-    @CreatedDate
-    @Column(name="created_date", columnDefinition = "DATE")
-    private LocalDate created;
+    @Column(name="created_date", columnDefinition = "DATETIME")
+    private LocalDateTime created;
 
     @ManyToOne(optional = false)
     @JoinColumn(name="user_id",nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private User user;
 
-
+    @Builder
+    public Alarm(BigInteger id, String title, String content, String type, LocalDateTime created, BigInteger user){
+        this.id = id;
+        this.title = title;
+        this.content = content;
+        this.type = AlarmBoardType.valueOf(type);
+        this.created = created;
+        this.user = User.builder().id(user).build();
+    }
 }

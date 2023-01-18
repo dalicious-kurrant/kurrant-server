@@ -2,16 +2,13 @@ package co.kurrant.app.public_api.dto.board;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
 
 @Schema(description = "비밀번호 변경 요청 DTO")
 @Getter
 @Setter
-@NoArgsConstructor
 public class CustomerServiceDto {
     private BigInteger id;
     private String title;

@@ -373,4 +373,11 @@ public class UserServiceImpl implements UserService {
         }
         return spotListResponseDtoList;
     }
+
+    @Override
+    public void saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) {
+        User user = userUtil.getUser(securityUser);
+
+
+    }
 }
