@@ -39,10 +39,8 @@ public class ClientUtil {
 
     public SpotStatus getSpotStatus(User user) {
         // 유저가 Default로 설정한 스팟을 가져온다.
-        Optional<UserSpot> userSpot = user.getUserSpots().stream()
-                .filter(UserSpot::getIsDefault)
-                .findAny();
-        if (userSpot.isEmpty()) {
+        List<UserSpot> userSpots = user.getUserSpots();
+        if (userSpots.isEmpty()) {
             // 유저가 속해있는 그룹이 있는지 조회한다.
             List<UserGroup> userGroups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
             if (userGroups.isEmpty()) {
@@ -54,15 +52,22 @@ public class ClientUtil {
         }
 
         // 가져온 스팟을 통해 그룹을 조회한다.
-        Spot spot = userSpot.get().getSpot();
-        Group group = spot.getGroup();
-        // 유저가 그 그룹에 속해있는지 조회한다.
-        Optional<UserGroup> userApartment = userGroupRepository.findOneByUserAndGroupAndClientStatus(user, group, ClientStatus.BELONG);
-        if (userApartment.isEmpty()) {
-            throw new ApiException(ExceptionEnum.SPOT_DATA_INTEGRITY_ERROR);
+        Optional<UserSpot> userSpot = userSpots.stream()
+                .filter(UserSpot::getIsDefault)
+                .findAny();
+        if(userSpot.isPresent()) {
+            Spot spot = userSpot.get().getSpot();
+            Group group = spot.getGroup();
+            // 유저가 그 그룹에 속해있는지 조회한다.
+            Optional<UserGroup> userGroup = userGroupRepository.findOneByUserAndGroupAndClientStatus(user, group, ClientStatus.BELONG);
+            if (userGroup.isEmpty()) {
+                throw new ApiException(ExceptionEnum.SPOT_DATA_INTEGRITY_ERROR);
+            }
+            // 그룹과 스팟이 모두 존재할 경우
+            return SpotStatus.HAS_SPOT_AND_CLIENT;
+        } else {
+            return SpotStatus.NO_SPOT_BUT_HAS_CLIENT;
         }
 
-        // 그룹과 스팟이 모두 존재할 경우
-        return SpotStatus.HAS_SPOT_AND_CLIENT;
     }
 }
