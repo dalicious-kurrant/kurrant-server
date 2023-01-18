@@ -2,7 +2,6 @@ package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.user.entity.User;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
@@ -10,7 +9,6 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
@@ -22,7 +20,7 @@ import java.time.LocalDate;
 @Table(name = "order__cart")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorValue("TYPE")
-public class OrderCart {
+public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name= "id", columnDefinition = "BIGINT UNSIGNED")

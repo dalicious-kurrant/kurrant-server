@@ -2,19 +2,16 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodDetailDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.entity.Origin;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
-import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
-import co.dalicious.domain.food.repository.QOriginRepository;
-import co.dalicious.domain.food.util.OriginDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.food.dto.DailyFoodDto;
-import co.kurrant.app.public_api.mapper.food.FoodMapper;
+import co.dalicious.domain.food.mapper.FoodMapper;
 import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -25,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -63,7 +59,8 @@ public class FoodServiceImpl implements FoodService {
         List<DailyFood> dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(spotId, selectedDate);
         //값이 있다면 결과값으로 담아준다.
         for (DailyFood dailyFood : dailyFoodList) {
-            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood);
+            DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
+            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood, discountDto);
             resultList.add(dailyFoodDto);
         }
         return resultList;
@@ -79,7 +76,8 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
         Food food = dailyFood.getFood();
+        DiscountDto discountDto = DiscountDto.getDiscount(food);
 
-        return foodMapper.toDto(food);
+        return foodMapper.toDto(food, discountDto);
     }
 }

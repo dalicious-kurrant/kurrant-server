@@ -1,14 +1,14 @@
 package co.kurrant.app.public_api.mapper.order;
 
 import co.dalicious.client.core.mapper.GenericMapper;
-import co.dalicious.domain.order.dto.CartItemDto;
-import co.dalicious.domain.order.entity.OrderCartDailyFood;
+import co.dalicious.domain.order.dto.CartDailyFoodDto;
+import co.dalicious.domain.order.entity.CartDailyFood;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface CartItemMapper extends GenericMapper<CartItemDto, OrderCartDailyFood> {
+public interface CartItemMapper extends GenericMapper<CartDailyFoodDto, CartDailyFood> {
 
-    CartItemDto toDto(OrderCartDailyFood orderCartDailyFood);
+    CartDailyFoodDto toDto(CartDailyFood orderCartDailyFood);
 
-    OrderCartDailyFood toEntity(CartItemDto cartItemDto);
+    CartDailyFood toEntity(CartDailyFoodDto cartItemDto);
 }

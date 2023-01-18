@@ -22,24 +22,24 @@ import java.util.Optional;
 
 @Mapper(componentModel = "spring")
 public interface DailyFoodMapper extends GenericMapper<DailyFoodDto, DailyFood> {
-      @Mapping(source = "diningType.diningType", target = "diningType")
-      @Mapping(source = "food.id", target = "foodId")
-      @Mapping(source = "food.name", target = "foodName")
-      @Mapping(source = "foodStatus", target = "isSoldOut", qualifiedByName = "isSoldOut")
-      @Mapping(source = "spot.id", target = "spotId")
-      @Mapping(source = "serviceDate", target = "serviceDate", qualifiedByName = "serviceDateToString")
-      @Mapping(source = "food.makers.name", target = "makersName")
-      @Mapping(source = "food.spicy.spicy", target = "spicy")
-      @Mapping(source = "food.image.location", target = "image")
-      @Mapping(source = "food.description", target = "description")
-      @Mapping(source = "food.price", target = "price")
-      @Mapping(source = "food", target = "membershipDiscountedPrice", qualifiedByName = "discount.membershipDiscountedPrice")
-      @Mapping(source = "food", target = "membershipDiscountedRate", qualifiedByName = "discount.membershipDiscountedRate")
-      @Mapping(source = "food", target = "makersDiscountedPrice", qualifiedByName = "discount.makersDiscountedPrice")
-      @Mapping(source = "food", target = "makersDiscountedRate", qualifiedByName = "discount.makersDiscountedRate")
-      @Mapping(source = "food", target = "periodDiscountedPrice", qualifiedByName = "discount.periodDiscountedPrice")
-      @Mapping(source = "food", target = "periodDiscountedRate", qualifiedByName = "discount.periodDiscountedRate")
-      DailyFoodDto toDto(DailyFood dailyFood);
+      @Mapping(source = "dailyFood.diningType.diningType", target = "diningType")
+      @Mapping(source = "dailyFood.food.id", target = "foodId")
+      @Mapping(source = "dailyFood.food.name", target = "foodName")
+      @Mapping(source = "dailyFood.foodStatus", target = "isSoldOut", qualifiedByName = "isSoldOut")
+      @Mapping(source = "dailyFood.spot.id", target = "spotId")
+      @Mapping(source = "dailyFood.serviceDate", target = "serviceDate", qualifiedByName = "serviceDateToString")
+      @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
+      @Mapping(source = "dailyFood.food.spicy.spicy", target = "spicy")
+      @Mapping(source = "dailyFood.food.image.location", target = "image")
+      @Mapping(source = "dailyFood.food.description", target = "description")
+      @Mapping(source = "dailyFood.food.price", target = "price")
+      @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountPrice")
+      @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")
+      @Mapping(source = "discountDto.makersDiscountPrice", target = "makersDiscountPrice")
+      @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
+      @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
+      @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
+      DailyFoodDto toDto(DailyFood dailyFood, DiscountDto discountDto);
 
       @Named("isSoldOut")
       default Boolean isSoldOut(FoodStatus foodStatus) {
@@ -57,53 +57,5 @@ public interface DailyFoodMapper extends GenericMapper<DailyFoodDto, DailyFood> 
                     .filter(v -> v.getDiscountType().equals(DiscountType.MEMBERSHIP_DISCOUNT))
                     .findAny();
             return foodDiscountPolicyOptional.map(FoodDiscountPolicy::getDiscountRate).orElse(null);
-      }
-
-      @Named("discount")
-      default DiscountDto getDiscount(Food food) {
-            DiscountDto discountDto = new DiscountDto();
-            // 기본 가격
-            BigDecimal price = food.getPrice();
-            discountDto.setPrice(price);
-            // 할인 비율
-            Integer membershipDiscountedRate = 0;
-            Integer makersDiscountedRate = 0;
-            Integer periodDiscountedRate = 0;
-            // 할인 가격
-            BigDecimal membershipDiscountedPrice = null;
-            BigDecimal makersDiscountedPrice = null;
-            BigDecimal periodDiscountedPrice = null;
-
-            for(FoodDiscountPolicy foodDiscountPolicy : food.getFoodDiscountPolicyList()) {
-                  switch (foodDiscountPolicy.getDiscountType()) {
-                        case MEMBERSHIP_DISCOUNT -> membershipDiscountedRate = foodDiscountPolicy.getDiscountRate();
-                        case MAKERS_DISCOUNT -> makersDiscountedRate = foodDiscountPolicy.getDiscountRate();
-                        case PERIOD_DISCOUNT -> periodDiscountedRate = foodDiscountPolicy.getDiscountRate();
-                  }
-            }
-
-            // 1. 멤버십 할인
-            if(membershipDiscountedRate != 0) {
-                  membershipDiscountedPrice = DiscountPolicyImpl.discountedTotalPrice(price, membershipDiscountedRate);
-                  price = membershipDiscountedPrice;
-            }
-            // 2. 메이커스 할인
-            if(makersDiscountedRate != 0) {
-                  makersDiscountedPrice = DiscountPolicyImpl.discountedTotalPrice(price, makersDiscountedRate);
-                  price = makersDiscountedPrice;
-            }
-            // 3. 기간 할인
-            if(periodDiscountedRate != 0) {
-                  periodDiscountedPrice = DiscountPolicyImpl.discountedTotalPrice(price, periodDiscountedRate);
-                  price = membershipDiscountedPrice;
-            }
-            discountDto.setMembershipDiscountedRate(membershipDiscountedRate);
-            discountDto.setMembershipDiscountedPrice(membershipDiscountedPrice);
-            discountDto.setMakersDiscountedRate(makersDiscountedRate);
-            discountDto.setMakersDiscountedPrice(makersDiscountedPrice);
-            discountDto.setPeriodDiscountedRate(periodDiscountedRate);
-            discountDto.setPeriodDiscountedPrice(periodDiscountedPrice);
-
-            return discountDto;
       }
 }

@@ -1,6 +1,6 @@
 package co.dalicious.domain.order.repository;
 
-import co.dalicious.domain.order.entity.OrderCartDailyFood;
+import co.dalicious.domain.order.entity.CartDailyFood;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -39,14 +39,14 @@ public class QOrderCartItemRepository {
                 .execute();
     }
 
-    public List<OrderCartDailyFood> getItems(BigInteger cartId) {
+    public List<CartDailyFood> getItems(BigInteger cartId) {
         return queryFactory
                 .selectFrom(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(cartId))
                 .fetch();
     }
 
-    public List<OrderCartDailyFood> findDuplicatedItem(BigInteger cartId, BigInteger dailyFoodId) {
+    public List<CartDailyFood> findDuplicatedItem(BigInteger cartId, BigInteger dailyFoodId) {
         return queryFactory
                 .selectFrom(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(cartId),
@@ -55,7 +55,7 @@ public class QOrderCartItemRepository {
     }
 
 
-    public List<OrderCartDailyFood> getUserCartItemList(BigInteger id) {
+    public List<CartDailyFood> getUserCartItemList(BigInteger id) {
         return queryFactory.selectFrom(orderCartItem)
                 .where(orderCartItem.orderCart.id.eq(id))
                 .fetch();

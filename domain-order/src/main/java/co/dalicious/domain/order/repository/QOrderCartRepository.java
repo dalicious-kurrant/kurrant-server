@@ -1,6 +1,6 @@
 package co.dalicious.domain.order.repository;
 
-import co.dalicious.domain.order.entity.OrderCart;
+import co.dalicious.domain.order.entity.Cart;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -26,7 +26,7 @@ public class QOrderCartRepository {
     }
 
 
-    public Optional<OrderCart> findOneByUserId(BigInteger id) {
+    public Optional<Cart> findOneByUserId(BigInteger id) {
         return Optional.ofNullable(queryFactory
                 .selectFrom(orderCart)
                 .where(orderCart.userId.eq(id))
