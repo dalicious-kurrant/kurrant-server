@@ -8,12 +8,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -35,14 +34,17 @@ public class OrderMembership extends OrderItem{
     private String membershipSubscriptionType;
 
     @Column(name = "price")
+    @ColumnDefault("0")
     @Comment("상품 가격")
     private BigDecimal price;
 
     @Column(name = "discounted_price")
+    @ColumnDefault("0")
     @Comment("상품 할인 가격")
     private BigDecimal discountedPrice;
 
     @Column(name = "period_discounted_rate")
+    @ColumnDefault("0")
     @Comment("기간 할인율")
     private Integer periodDiscountedRate;
 

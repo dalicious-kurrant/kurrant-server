@@ -39,11 +39,11 @@ public class DiscountPolicyImpl implements DiscountPolicy {
                 }
             }
             // 1. 멤버십 할인 적용
-            totalPrice = discountedTotalPrice(foodPrice, membershipDiscountPolicyRate);
+            totalPrice = discountedPriceByRate(foodPrice, membershipDiscountPolicyRate);
             // 2. 판매자 할인 적용
-            totalPrice = discountedTotalPrice(foodPrice, makersDiscountPolicyRate);
+            totalPrice = discountedPriceByRate(foodPrice, makersDiscountPolicyRate);
             // 3. 기간 할인 적용
-            totalPrice = discountedTotalPrice(foodPrice, periodDiscountPolicyRate);
+            totalPrice = discountedPriceByRate(foodPrice, periodDiscountPolicyRate);
             // 개수 곱하기
             totalPrice = totalPrice.multiply(BigDecimal.valueOf(count));
 
@@ -51,36 +51,36 @@ public class DiscountPolicyImpl implements DiscountPolicy {
         }
         // Membership일 경우
         if (orderItem instanceof OrderMembership) {
-            if (((OrderMembership) orderItem).getMembership() != null) {
-                List<MembershipDiscountPolicy> membershipDiscountPolicyList = ((OrderMembership) orderItem).getMembership().getMembershipDiscountPolicyList();
-                BigDecimal membershipPrice = ((OrderMembership) orderItem).getMembership().getMembershipSubscriptionType().getPrice();
-                BigDecimal totalPrice;
-                Integer yearSubscriptionDiscountPolicyRate = 0;
-                Integer periodDiscountPolicyRate = 0;
-                for (MembershipDiscountPolicy membershipDiscountPolicy : membershipDiscountPolicyList) {
-                    switch (membershipDiscountPolicy.getDiscountType()) {
-                        case YEAR_DESCRIPTION_DISCOUNT ->
-                                yearSubscriptionDiscountPolicyRate = membershipDiscountPolicy.getDiscountRate();
-                        case PERIOD_DISCOUNT -> periodDiscountPolicyRate = membershipDiscountPolicy.getDiscountRate();
-                    }
-                }
-                // 1. 연간 구독 할인 적용
-                totalPrice = discountedTotalPrice(membershipPrice, yearSubscriptionDiscountPolicyRate);
-                // 2. 기간 할인 적용
-                totalPrice = discountedTotalPrice(totalPrice, periodDiscountPolicyRate);
-                return totalPrice;
+            List<MembershipDiscountPolicy> membershipDiscountPolicyList = ((OrderMembership) orderItem).getMembership().getMembershipDiscountPolicyList();
+            BigDecimal membershipPrice = ((OrderMembership) orderItem).getMembership().getMembershipSubscriptionType().getPrice();
+            // 할인 정책이 존재하지 않을 경우 판매가격 return.
+            if(membershipDiscountPolicyList == null || membershipDiscountPolicyList.isEmpty()) {
+                return membershipPrice;
             }
-            throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
+            // 할인 정책이 존재할 경우 계산
+            BigDecimal totalPrice;
+            Integer yearSubscriptionDiscountPolicyRate = 0;
+            Integer periodDiscountPolicyRate = 0;
+            for (MembershipDiscountPolicy membershipDiscountPolicy : membershipDiscountPolicyList) {
+                switch (membershipDiscountPolicy.getDiscountType()) {
+                    case YEAR_DESCRIPTION_DISCOUNT ->
+                            yearSubscriptionDiscountPolicyRate = membershipDiscountPolicy.getDiscountRate();
+                    case PERIOD_DISCOUNT -> periodDiscountPolicyRate = membershipDiscountPolicy.getDiscountRate();
+                }
+            }
+            // 1. 연간 구독 할인 적용
+            totalPrice = discountedPriceByRate(membershipPrice, yearSubscriptionDiscountPolicyRate);
+            // 2. 기간 할인 적용
+            totalPrice = discountedPriceByRate(totalPrice, periodDiscountPolicyRate);
+            return totalPrice;
         }
-        List<MembershipDiscountPolicy> membershipDiscountPolicyList = ((OrderMembership) orderItem).getMembership().getMembershipDiscountPolicyList();
-        return ((OrderMembership) orderItem).getMembership().getMembershipSubscriptionType().getPrice();
+        throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
     }
-
-    public static BigDecimal discountedTotalPrice(BigDecimal price, Integer discountRate) {
+    public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
         return price.multiply(BigDecimal.valueOf((100 - discountRate) / 100));
     }
 
-    public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
+    public static BigDecimal discountPriceByRate(BigDecimal price, Integer discountRate) {
         return price.multiply(BigDecimal.valueOf(discountRate / 100));
     }
 
