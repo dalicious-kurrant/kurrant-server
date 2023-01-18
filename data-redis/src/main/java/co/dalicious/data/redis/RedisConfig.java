@@ -17,15 +17,16 @@ import java.util.List;
 
 @Configuration
 @EnableRedisRepositories
-@PropertySource("classpath:application-redis.yml")
+@PropertySource("classpath:application-redis.properties")
 public class RedisConfig {
-    @Value("${spring.redis.cluster.nodes}")
-    private List<String> clusterNodes;
+    @Value("${spring.redis.host}")
+    private String host;
 
+    @Value("${spring.redis.port}")
+    private int port;
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration(clusterNodes);
-        return new LettuceConnectionFactory(redisClusterConfiguration);
+        return new LettuceConnectionFactory(host, port);
     }
 
     @Bean
