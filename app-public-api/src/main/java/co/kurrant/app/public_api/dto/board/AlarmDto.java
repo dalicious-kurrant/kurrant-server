@@ -16,6 +16,6 @@ public class AlarmDto {
     private String content;
     private String created;
     private String title;
-    private Integer alarmType;
+    private Integer type;
     private BigInteger userId;
 }
