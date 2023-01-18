@@ -4,6 +4,7 @@ import co.dalicious.domain.order.dto.CartDto;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 public interface OrderService {
@@ -11,11 +12,11 @@ public interface OrderService {
 
     Integer saveOrderCart(SecurityUser securityUser, CartDto cartDto);
 
-    Object findCartById(SecurityUser securityUser);
+    Object findUserCart(SecurityUser securityUser);
+
+    void deleteById(SecurityUser securityUser, BigInteger cartItemId);
 
     void deleteByUserId(SecurityUser securityUser);
-
-    void deleteById(SecurityUser securityUser, Integer cartItemId);
 
     void updateByFoodId(UpdateCartDto updateCartDto);
 }

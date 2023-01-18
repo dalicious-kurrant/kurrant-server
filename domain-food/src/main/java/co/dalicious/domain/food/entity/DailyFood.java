@@ -53,7 +53,7 @@ public class DailyFood {
     private LocalDate serviceDate;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "food_id", columnDefinition = "BIGINT UNSIGNED")
+    @JoinColumn(name = "food_id")
     private Food food;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

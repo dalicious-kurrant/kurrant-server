@@ -4,7 +4,7 @@ import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodDetailDto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Origin;
-import co.dalicious.domain.food.util.OriginDto;
+import co.dalicious.domain.food.dto.OriginDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -15,11 +15,12 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface FoodMapper {
     @Mapping(source = "food.makers.name", target = "makersName")
-    @Mapping(source = "discountDto.membershipDiscountedPrice", target = "membershipDiscountedPrice")
-    @Mapping(source = "discountDto.membershipDiscountedRate", target = "membershipDiscountedRate")
-    @Mapping(source = "discountDto.makersDiscountedRate", target = "makersDiscountedRate")
-    @Mapping(source = "discountDto.periodDiscountedPrice", target = "periodDiscountedPrice")
-    @Mapping(source = "discountDto.periodDiscountedRate", target = "periodDiscountedRate")
+    @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountedPrice")
+    @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountedRate")
+    @Mapping(source = "discountDto.makersDiscountPrice", target = "makersDiscountedPrice")
+    @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountedRate")
+    @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountedPrice")
+    @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountedRate")
     @Mapping(source = "discountDto.price", target = "price")
     @Mapping(source = "food.image.location", target = "image")
     @Mapping(source = "food.spicy.spicy", target = "spicy")

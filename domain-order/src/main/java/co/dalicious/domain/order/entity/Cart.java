@@ -50,4 +50,9 @@ public class Cart {
     public void updateCount(Integer count) {
         this.count = count;
     }
+
+    public Cart(User user, Integer count) {
+        this.user = user;
+        this.count = count;
+    }
 }

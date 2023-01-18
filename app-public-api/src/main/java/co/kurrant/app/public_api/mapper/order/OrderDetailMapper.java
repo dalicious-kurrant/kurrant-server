@@ -14,18 +14,18 @@ import java.util.Optional;
 
 @Mapper(componentModel = "spring")
 public interface OrderDetailMapper extends GenericMapper<OrderItemDto, OrderItem> {
-    OrderItemDto toDto(OrderItem orderItem);
-    OrderItem toEntity(OrderItemDto orderItemDto);
-
-
-    @Mapping(source = "food", target = "food", qualifiedByName = "food")
-    @Mapping(source = "orderItem", target = "orderItem", qualifiedByName = "orderItem")
-    OrderItemDto toOrderItemDto(Food food, OrderItem orderItem);
-
-    @Named("food")
-    default Food food(Food food){return food;}
-
-    @Named("orderItem")
-    default OrderItem orderItem(OrderItem orderItem){ return orderItem;}
+//    OrderItemDto toDto(OrderItem orderItem);
+//    OrderItem toEntity(OrderItemDto orderItemDto);
+//
+//
+//    @Mapping(source = "food", target = "food", qualifiedByName = "food")
+//    @Mapping(source = "orderItem", target = "orderItem", qualifiedByName = "orderItem")
+//    OrderItemDto toOrderItemDto(Food food, OrderItem orderItem);
+//
+//    @Named("food")
+//    default Food food(Food food){return food;}
+//
+//    @Named("orderItem")
+//    default OrderItem orderItem(OrderItem orderItem){ return orderItem;}
 
 }

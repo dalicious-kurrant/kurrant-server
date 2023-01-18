@@ -19,7 +19,7 @@ import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
-import co.dalicious.domain.user.mapper.MembershipResMapper;
+import co.dalicious.domain.order.mapper.OrderMembershipResMapper;
 import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
@@ -58,7 +58,7 @@ public class MembershipServiceImpl implements MembershipService {
     private final MembershipDiscountPolicyRepository membershipDiscountPolicyRepository;
     private final DiscountPolicy discountPolicy;
     private final OrderUserInfoMapper orderUserInfoMapper;
-    private final MembershipResMapper membershipResMapper;
+    private final OrderMembershipResMapper orderMembershipResMapper;
 
     @Override
     @Transactional
@@ -338,7 +338,7 @@ public class MembershipServiceImpl implements MembershipService {
 
         for (OrderMembership orderMembership : orderMemberships) {
             // membershipDto를 생성한다.
-            MembershipDto membershipDto = membershipResMapper.toDto(orderMembership.getMembership());
+            MembershipDto membershipDto = orderMembershipResMapper.toDto(orderMembership);
             membershipDto.setPrice(orderMembership.getPrice());
             membershipDto.setDiscountedPrice(orderMembership.getOrder().getTotalPrice());
             membershipDtos.add(membershipDto);

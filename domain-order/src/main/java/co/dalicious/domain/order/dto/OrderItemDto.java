@@ -14,12 +14,4 @@ public class OrderItemDto {
     private String diningType;
     private String img;
     private Integer count;
-
-    @Builder
-    OrderItemDto(Food food, OrderItem orderItem){
-        this.name = food.getName();
-        this.diningType = orderItem.getEDiningType();
-        this.img = food.getImg();
-        this.count = orderItem.getCount();
-    }
 }

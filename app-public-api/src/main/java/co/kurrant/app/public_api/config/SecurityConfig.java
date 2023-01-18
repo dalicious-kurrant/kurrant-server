@@ -2,7 +2,6 @@ package co.kurrant.app.public_api.config;
 
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.data.redis.repository.BlackListTokenRepository;
-import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

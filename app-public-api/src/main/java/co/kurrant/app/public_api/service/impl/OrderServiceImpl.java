@@ -25,6 +25,8 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -38,44 +40,42 @@ public class OrderServiceImpl implements OrderService {
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final FoodRepository foodRepository;
     private final CartRepository orderCartRepository;
-    private final QOrderCartRepository qOrderCartRepository;
     private final CartDailyFoodRepository cartDailyFoodRepository;
     private final DailyFoodRepository dailyFoodRepository;
-    private final QOrderCartItemRepository qOrderCartItemRepository;
+    private final QCartItemRepository qOrderCartItemRepository;
     private final UserUtil userUtil;
-    private final OrderDetailMapper orderDetailMapper;
     private final CartDailyFoodMapper orderCartDailyFoodMapper;
     private final CartDailyFoodResMapper cartDailyFoodResMapper;
-    private final CartDailyFoodResMapper orderCartDailyFoodResMapper;
 
     @Override
     @Transactional
-    public Object findOrderByServiceDate(LocalDate startDate, LocalDate endDate){
-        List<OrderDetailDto> resultList = new ArrayList<>();
-        OrderDetailDto orderDetailDto = new OrderDetailDto();
-
-        List<OrderItemDto> orderItemDtoList = new ArrayList<>();
-
-        List<OrderDailyFood> orderItemList = qOrderDailyFoodRepository.findByServiceDateBetween(startDate, endDate);
-
-        orderItemList.forEach( x -> {
-            orderDetailDto.setId(x.getId());
-            orderDetailDto.setServiceDate(DateUtils.format(x.getServiceDate(), "yyyy-MM-dd") );
-
-            Optional<Food> food = foodRepository.findOneById(x.getId());
-
-            OrderItemDto orderItemDto = orderDetailMapper.toOrderItemDto(food.get(), x);
-
-            orderItemDtoList.add(orderItemDto);
-            orderDetailDto.setOrderItemDtoList(orderItemDtoList);
-            resultList.add(orderDetailDto);
-        });
-        return resultList;
+    public Object findOrderByServiceDate(LocalDate startDate, LocalDate endDate) {
+//        List<OrderDetailDto> resultList = new ArrayList<>();
+//        OrderDetailDto orderDetailDto = new OrderDetailDto();
+//
+//        List<OrderItemDto> orderItemDtoList = new ArrayList<>();
+//
+//        List<OrderDailyFood> orderItemList = qOrderDailyFoodRepository.findByServiceDateBetween(startDate, endDate);
+//
+//        orderItemList.forEach(x -> {
+//            orderDetailDto.setId(x.getId());
+//            orderDetailDto.setServiceDate(DateUtils.format(x.getServiceDate(), "yyyy-MM-dd"));
+//
+//            Optional<Food> food = foodRepository.findOneById(x.getId());
+//
+//            OrderItemDto orderItemDto = orderDetailMapper.toOrderItemDto(food.get(), x);
+//
+//            orderItemDtoList.add(orderItemDto);
+//            orderDetailDto.setOrderItemDtoList(orderItemDtoList);
+//            resultList.add(orderDetailDto);
+//        });
+//        return resultList;
+        return null;
     }
 
     @Override
     @Transactional
-    public Integer saveOrderCart(SecurityUser securityUser, CartDto cartDto){
+    public Integer saveOrderCart(SecurityUser securityUser, CartDto cartDto) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
@@ -86,13 +86,13 @@ public class OrderServiceImpl implements OrderService {
 
         // DailyFood가 중복될 경우는 추가하지 않고 count +1 처리
         Optional<CartDailyFood> orderCartDailyFood = cartDailyFoodRepository.findOneByUserAndDailyFood(user, dailyFood);
-        if(orderCartDailyFood.isPresent()) {
+        if (orderCartDailyFood.isPresent()) {
             orderCartDailyFood.get().updateCount(orderCartDailyFood.get().getCount() + 1);
             return 2;
         }
 
         // 중복되는 DailyFood가 장바구니에 존재하지 않는다면 추가하기
-        CartDailyFood newOrderCartDailyFood = orderCartDailyFoodMapper.toEntity(user, dailyFood, cartDto.getCount());
+        CartDailyFood newOrderCartDailyFood = orderCartDailyFoodMapper.toEntity(user, cartDto.getCount(), dailyFood);
 
         //장바구니에 추가
         cartDailyFoodRepository.save(newOrderCartDailyFood);
@@ -101,26 +101,49 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Object findCartById(SecurityUser securityUser) {
+    public Object findUserCart(SecurityUser securityUser) {
         //유저정보 가져오기
         User user = userUtil.getUser(securityUser);
+
         //결과값 저장을 위한 LIST 생성
-        List<CartDailyFoodDto> cartItemDtos = new ArrayList<>();
+        List<CartDailyFoodDto> cartDailyFoodListDtos = new ArrayList<>();
+        MultiValueMap<DiningTypeServiceDate, CartDailyFoodDto.DailyFood> cartDailyFoodMap = new LinkedMultiValueMap<>();
+        List<DiningTypeServiceDate> diningTypeServiceDates = new ArrayList<>();
+
         //유저정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
         List<CartDailyFood> cartDailyFoods = cartDailyFoodRepository.findAllByUser(user);
         for (CartDailyFood cartDailyFood : cartDailyFoods) {
+            // CartDailyFood Dto화
             DiscountDto discountDto = DiscountDto.getDiscount(cartDailyFood.getDailyFood().getFood());
-            cartItemDtos.add(cartDailyFoodResMapper.toDto(cartDailyFood, discountDto));
+            CartDailyFoodDto.DailyFood dailyFood = cartDailyFoodResMapper.toDto(cartDailyFood, discountDto);
+            // DiningType과 ServiceDate 기준으로 매핑
+            DiningTypeServiceDate diningTypeServiceDate = new DiningTypeServiceDate(cartDailyFood.getDailyFood().getServiceDate(), cartDailyFood.getDailyFood().getDiningType());
+            diningTypeServiceDates.add(diningTypeServiceDate);
+            cartDailyFoodMap.add(diningTypeServiceDate, dailyFood);
         }
+
+        // DiningType과 ServiceDate 기준에 따라 응답 DTO 생성
+        // TODO: 지원금 정책 수정 필요
+        for (DiningTypeServiceDate diningTypeServiceDate : diningTypeServiceDates) {
+            CartDailyFoodDto cartDailyFoodDto = CartDailyFoodDto.builder()
+                    .serviceDate(DateUtils.format(diningTypeServiceDate.getServiceDate(), "yyyy-MM-dd"))
+                    .diningType(diningTypeServiceDate.getDiningType().getDiningType())
+                    .supportPrice(BigDecimal.ZERO)
+                    .cartDailyFoods(cartDailyFoodMap.get(diningTypeServiceDate))
+                    .build();
+            cartDailyFoodListDtos.add(cartDailyFoodDto);
+        }
+
+        // 배송시간과 식사일정에 맞춰서 Dto 매핑하기
         // TODO: 배송비 정책 결정시 수정 필요
         BigDecimal deliveryFee;
-        if(user.getIsMembership()) {
+        if (user.getIsMembership()) {
             deliveryFee = BigDecimal.ZERO;
         } else {
             deliveryFee = BigDecimal.valueOf(2200L);
         }
         return CartResDto.builder()
-                .cartDailyFoodDtoList(cartItemDtos)
+                .cartDailyFoodDtoList(cartDailyFoodListDtos)
                 .userPoint(user.getPoint())
                 .deliveryFee(deliveryFee)
                 .build();
@@ -128,28 +151,27 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void deleteByUserId(SecurityUser securityUser) {
-        // order__cart_item에서 user_id에 해당되는 항목 모두 삭제
+    public void deleteById(SecurityUser securityUser, BigInteger cartDailyFoodId) {
+        //cart_id와 food_id가 같은 경우 삭제
         User user = userUtil.getUser(securityUser);
-        List<Cart> cartList = orderCartRepository.findAllByUserId(user.getId());
-        BigInteger cartId = cartList.get(0).getId();
-        qOrderCartItemRepository.deleteByCartId(cartId);
+
+        qOrderCartItemRepository.deleteByUserAndCartDailyFoodId(user, cartDailyFoodId);
     }
 
     @Override
     @Transactional
-    public void deleteById(SecurityUser securityUser, Integer dailyFoodId) {
-        //cart_id와 food_id가 같은 경우 삭제
+    public void deleteByUserId(SecurityUser securityUser) {
+        // order__cart_item에서 user_id에 해당되는 항목 모두 삭제
         User user = userUtil.getUser(securityUser);
-        List<Cart> cartList = orderCartRepository.findAllByUserId(user.getId());
-        qOrderCartItemRepository.deleteByFoodId(cartList.get(0).getId(), dailyFoodId);
+        List<Cart> cartList = orderCartRepository.findAllByUser(user);
+        qOrderCartItemRepository.deleteByCartId(cartList);
     }
 
     @Override
     @Transactional
     public void updateByFoodId(UpdateCartDto updateCartDto) {
-        for (UpdateCart updateCart : updateCartDto.getUpdateCartList()){
-            qOrderCartItemRepository.updateByFoodId(updateCart.getCartItemId(),updateCart.getCount());
+        for (UpdateCart updateCart : updateCartDto.getUpdateCartList()) {
+            qOrderCartItemRepository.updateByFoodId(updateCart.getCartItemId(), updateCart.getCount());
         }
 
     }

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Mapper(componentModel = "spring")
-public interface DailyFoodMapper extends GenericMapper<DailyFoodDto, DailyFood> {
+public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.diningType.diningType", target = "diningType")
       @Mapping(source = "dailyFood.food.id", target = "foodId")
       @Mapping(source = "dailyFood.food.name", target = "foodName")

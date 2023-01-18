@@ -19,8 +19,8 @@ public enum DiscountType {
         this.code = code;
     }
 
-    public static DiningType ofCode(Integer code) {
-        return Arrays.stream(DiningType.values()).filter(v -> v.getCode().equals(code))
+    public static DiscountType ofCode(Integer code) {
+        return Arrays.stream(DiscountType.values()).filter(v -> v.getCode().equals(code))
                 .findAny()
                 .orElseThrow(() -> new IllegalArgumentException("일치하는 할인 타입이 존재하지 않습니다."));
     }

@@ -1,6 +1,5 @@
 package co.dalicious.domain.food.dto;
 
-import co.dalicious.domain.food.util.OriginDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 

@@ -269,6 +269,7 @@ project(':domain-order') {
         implementation project(':domain-user')
         implementation project(':domain-food')
         implementation project(':domain-makers')
+        implementation project(':domain-file')
         implementation project(':domain-address')
         implementation project(':domain-client')
     }

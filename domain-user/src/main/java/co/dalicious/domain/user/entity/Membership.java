@@ -69,7 +69,7 @@ public class Membership {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "membership")
+    @OneToMany(mappedBy = "membership", orphanRemoval = true)
     @JsonBackReference(value = "membership_fk")
     private List<MembershipDiscountPolicy> membershipDiscountPolicyList;
 

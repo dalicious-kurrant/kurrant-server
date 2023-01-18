@@ -7,8 +7,8 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface CartItemMapper extends GenericMapper<CartDailyFoodDto, CartDailyFood> {
-
-    CartDailyFoodDto toDto(CartDailyFood orderCartDailyFood);
-
-    CartDailyFood toEntity(CartDailyFoodDto cartItemDto);
+//
+//    CartDailyFoodDto toDto(CartDailyFood orderCartDailyFood);
+//
+//    CartDailyFood toEntity(CartDailyFoodDto cartItemDto);
 }

@@ -24,9 +24,10 @@ public class MembershipDto {
     private int membershipUsingPeriod;
 
     @Builder
-    public MembershipDto(BigInteger id, String membershipSubscriptionType, LocalDate startDate, LocalDate endDate, int membershipUsingPeriod) {
-        this.id = id;
+    public MembershipDto(String membershipSubscriptionType, BigDecimal price, BigDecimal discountedPrice, LocalDate startDate, LocalDate endDate, int membershipUsingPeriod) {
         this.membershipSubscriptionType = membershipSubscriptionType;
+        this.price = price;
+        this.discountedPrice = discountedPrice;
         this.startDate = DateUtils.format(startDate, "yyyy-MM-dd");
         this.endDate = DateUtils.format(endDate, "yyyy-MM-dd");;
         this.membershipUsingPeriod = membershipUsingPeriod;
