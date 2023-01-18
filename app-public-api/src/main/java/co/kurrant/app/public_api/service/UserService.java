@@ -38,4 +38,6 @@ public interface UserService {
     List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo();
     // 유저가 속한 그룹 정보 리스트
     List<SpotListResponseDto> getClients(SecurityUser securityUser);
+
+    void saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto);
 }
