@@ -8,10 +8,8 @@ import co.dalicious.domain.board.repository.QAlarmRepository;
 import co.dalicious.domain.board.repository.QCustomerBoardRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
 import co.dalicious.domain.user.entity.User;
-import co.kurrant.app.public_api.dto.board.AlarmDto;
 import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
 import co.kurrant.app.public_api.dto.board.NoticeDto;
-import co.kurrant.app.public_api.mapper.board.AlarmMapper;
 import co.kurrant.app.public_api.mapper.board.CustomerServiceMapper;
 import co.kurrant.app.public_api.mapper.board.NoticeMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -31,7 +29,6 @@ public class BoardServiceImpl implements BoardService {
     private final QCustomerBoardRepository qCustomerBoardRepository;
     private final QAlarmRepository qAlarmRepository;
     private final NoticeMapper noticeMapper;
-    private final AlarmMapper alarmMapper;
     private final CustomerServiceMapper customerServiceMapper;
     private final UserUtil userUtil;
 
@@ -56,14 +53,9 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public List<AlarmDto> alarmBoardList(SecurityUser securityUser) {
+    public List<Alarm> alarmBoardList(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
-        List<AlarmDto> result = new ArrayList<>();
-        List<Alarm> alarmList = qAlarmRepository.findAllByUserId(user.getId());
-        for (Alarm alarm : alarmList){
-            result.add(alarmMapper.toDto(alarm));
-        }
-        return result;
+        return qAlarmRepository.findAllByUserId(user.getId());
     }
 
     @Override
