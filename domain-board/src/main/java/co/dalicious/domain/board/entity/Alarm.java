@@ -39,6 +39,4 @@ public class Alarm {
     @ManyToOne(optional = false)
     @JoinColumn(name="user_id",nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private User user;
-
-
 }

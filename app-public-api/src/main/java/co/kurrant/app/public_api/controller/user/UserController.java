@@ -120,4 +120,17 @@ public class UserController {
                 .data(changeMarketingDto)
                 .build();
     }
+
+    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
+    public ResponseMessage saveCreditCard(Authentication authentication,
+                                      @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
+        return ResponseMessage.builder()
+                .message("결제 카드 등록에 성공하셨습니다.")
+                .build();
+
+    }
+
+
 }
