@@ -122,6 +122,7 @@ public class UserController {
     }
 
     @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
+    @PostMapping("/cards")
     public ResponseMessage saveCreditCard(Authentication authentication,
                                       @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto){
         SecurityUser securityUser = UserUtil.securityUser(authentication);

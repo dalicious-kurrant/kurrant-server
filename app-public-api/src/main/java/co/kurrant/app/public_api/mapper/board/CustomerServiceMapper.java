@@ -6,6 +6,6 @@ import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface CustomerServiceMapper extends GenericMapper<CustomerServiceDto, CustomerService> {
+public interface CustomerServiceMapper {
     CustomerServiceDto toDto(CustomerService customerService);
 }

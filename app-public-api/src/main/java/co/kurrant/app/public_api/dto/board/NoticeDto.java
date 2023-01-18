@@ -6,17 +6,14 @@ import lombok.Setter;
 
 import java.math.BigInteger;
 
-@Schema(description = "비밀번호 변경 요청 DTO")
+@Schema(description = "공지사항 응답 DTO")
 @Getter
 @Setter
-public class CustomerServiceDto {
+public class NoticeDto {
     private BigInteger id;
-    private String title;
-    private String question;
-    private String answer;
     private String created;
     private String updated;
+    private String title;
+    private String content;
     private Integer type;
-    private Integer titleNo;
-
 }

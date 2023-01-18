@@ -11,7 +11,6 @@ import java.math.BigInteger;
 @Schema(description = "결제 카드 등록 요청 DTO")
 @Getter
 @Setter
-@NoArgsConstructor
 public class SaveCreditCardRequestDto {
     @ApiParam(value = "카드번호")
     private String cardNumber;

@@ -1,20 +1,19 @@
 package co.dalicious.domain.board.converter;
 
-import co.dalicious.domain.board.entity.enums.AlarmType;
-import co.dalicious.system.util.DiningType;
+import co.dalicious.domain.board.entity.enums.AlarmBoardType;
 
 import javax.persistence.AttributeConverter;
 
-public class AlarmTypeConverter implements AttributeConverter<AlarmType, Integer> {
+public class AlarmTypeConverter implements AttributeConverter<AlarmBoardType, Integer> {
 
     @Override
-    public Integer convertToDatabaseColumn(AlarmType alarmType) {
-        return alarmType.getCode();
+    public Integer convertToDatabaseColumn(AlarmBoardType alarmBoardType) {
+        return alarmBoardType.getCode();
     }
 
     @Override
-    public AlarmType convertToEntityAttribute(Integer dbData) {
-        return AlarmType.ofCode(dbData);
+    public AlarmBoardType convertToEntityAttribute(Integer dbData) {
+        return AlarmBoardType.ofCode(dbData);
     }
 
 }
