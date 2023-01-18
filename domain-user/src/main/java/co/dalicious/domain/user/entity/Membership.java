@@ -28,7 +28,6 @@ import java.util.List;
 public class Membership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @NotNull
     @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 

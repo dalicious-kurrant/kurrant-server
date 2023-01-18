@@ -23,7 +23,7 @@ public class DiscountPolicyImpl implements DiscountPolicy {
     @Override
     public BigDecimal orderItemTotalPrice(OrderItem orderItem) {
         // DailyFood 일 경우
-        if(orderItem instanceof OrderDailyFood) {
+        if (orderItem instanceof OrderDailyFood) {
             List<FoodDiscountPolicy> foodDiscountPolicyList = ((OrderDailyFood) orderItem).getFood().getFoodDiscountPolicyList();
             BigDecimal foodPrice = ((OrderDailyFood) orderItem).getFood().getPrice();
             BigDecimal totalPrice;
@@ -50,25 +50,30 @@ public class DiscountPolicyImpl implements DiscountPolicy {
             return totalPrice;
         }
         // Membership일 경우
-        if(orderItem instanceof OrderMembership) {
-            List<MembershipDiscountPolicy> membershipDiscountPolicyList = ((OrderMembership) orderItem).getMembership().getMembershipDiscountPolicyList();
-            BigDecimal membershipPrice = ((OrderMembership) orderItem).getMembership().getMembershipSubscriptionType().getPrice();
-            BigDecimal totalPrice;
-            Integer yearSubscriptionDiscountPolicyRate = 0;
-            Integer periodDiscountPolicyRate = 0;
-            for (MembershipDiscountPolicy membershipDiscountPolicy : membershipDiscountPolicyList) {
-                switch (membershipDiscountPolicy.getDiscountType()) {
-                    case YEAR_DESCRIPTION_DISCOUNT -> yearSubscriptionDiscountPolicyRate = membershipDiscountPolicy.getDiscountRate();
-                    case PERIOD_DISCOUNT -> periodDiscountPolicyRate = membershipDiscountPolicy.getDiscountRate();
+        if (orderItem instanceof OrderMembership) {
+            if (((OrderMembership) orderItem).getMembership() != null) {
+                List<MembershipDiscountPolicy> membershipDiscountPolicyList = ((OrderMembership) orderItem).getMembership().getMembershipDiscountPolicyList();
+                BigDecimal membershipPrice = ((OrderMembership) orderItem).getMembership().getMembershipSubscriptionType().getPrice();
+                BigDecimal totalPrice;
+                Integer yearSubscriptionDiscountPolicyRate = 0;
+                Integer periodDiscountPolicyRate = 0;
+                for (MembershipDiscountPolicy membershipDiscountPolicy : membershipDiscountPolicyList) {
+                    switch (membershipDiscountPolicy.getDiscountType()) {
+                        case YEAR_DESCRIPTION_DISCOUNT ->
+                                yearSubscriptionDiscountPolicyRate = membershipDiscountPolicy.getDiscountRate();
+                        case PERIOD_DISCOUNT -> periodDiscountPolicyRate = membershipDiscountPolicy.getDiscountRate();
+                    }
                 }
+                // 1. 연간 구독 할인 적용
+                totalPrice = discountedTotalPrice(membershipPrice, yearSubscriptionDiscountPolicyRate);
+                // 2. 기간 할인 적용
+                totalPrice = discountedTotalPrice(totalPrice, periodDiscountPolicyRate);
+                return totalPrice;
             }
-            // 1. 연간 구독 할인 적용
-            totalPrice = discountedTotalPrice(membershipPrice, yearSubscriptionDiscountPolicyRate);
-            // 2. 기간 할인 적용
-            totalPrice = discountedTotalPrice(totalPrice, periodDiscountPolicyRate);
-            return totalPrice;
+            throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
         }
-        throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
+        List<MembershipDiscountPolicy> membershipDiscountPolicyList = ((OrderMembership) orderItem).getMembership().getMembershipDiscountPolicyList();
+        return ((OrderMembership) orderItem).getMembership().getMembershipSubscriptionType().getPrice();
     }
 
     public static BigDecimal discountedTotalPrice(BigDecimal price, Integer discountRate) {

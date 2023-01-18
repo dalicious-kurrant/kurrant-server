@@ -32,7 +32,6 @@ import java.util.List;
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @NotNull
     @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 

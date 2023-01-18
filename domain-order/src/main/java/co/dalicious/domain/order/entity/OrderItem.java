@@ -30,7 +30,6 @@ public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("주문상세 PK")
-    @NotNull
     @Column(name="id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 

@@ -69,18 +69,18 @@ public class MembershipServiceImpl implements MembershipService {
         MembershipSubscriptionType membershipSubscriptionType = MembershipSubscriptionType.ofCode(orderMembershipReqDto.getSubscriptionType());
         // 1. 기본 가격이 일치하는지 확인
         BigDecimal defaultPrice = membershipSubscriptionType.getPrice();
-        if (!orderMembershipReqDto.getDefaultPrice().equals(defaultPrice)) {
+        if (!(orderMembershipReqDto.getDefaultPrice().compareTo(defaultPrice) == 0)) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
         // 2. 연간 구독 할인 가격이 일치하는지 확인
         BigDecimal yearDescriptionDiscountPrice = DiscountPolicyImpl.discountedPriceByRate(membershipSubscriptionType.getPrice(), membershipSubscriptionType.getDiscountRate());
-        if (!orderMembershipReqDto.getYearDescriptionDiscountPrice().equals(yearDescriptionDiscountPrice)) {
+        if (!(orderMembershipReqDto.getYearDescriptionDiscountPrice().compareTo(yearDescriptionDiscountPrice) == 0)) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
         // 3. 기간 할인 가격이 일치하는지 확인
         // TODO: 기간할인 추가시 기간할인 조회 로직 추가 필요
         BigDecimal periodDiscountPrice = BigDecimal.ZERO;
-        if (!orderMembershipReqDto.getPeriodDiscountPrice().equals(periodDiscountPrice)) {
+        if (!(orderMembershipReqDto.getPeriodDiscountPrice().compareTo(periodDiscountPrice) == 0)) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
@@ -153,8 +153,6 @@ public class MembershipServiceImpl implements MembershipService {
                 .price(membership.getMembershipSubscriptionType().getPrice())
                 .build();
         orderMembershipRepository.save(orderMembership);
-
-        OrderStatus orderStatus = null;
 
         // 결제 진행. 실패시 오류 날림
         BigDecimal price = discountPolicy.orderItemTotalPrice(orderMembership);
@@ -332,15 +330,14 @@ public class MembershipServiceImpl implements MembershipService {
         Sort sort = Sort.by(Sort.Direction.ASC, "endDate");
 
         // execute the query using the repository
-        List<OrderMembership> orderMemberships = orderMembershipRepository.findAll(specification, sort);
+        List<Membership> memberships = membershipRepository.findAll(specification, sort);
+        List<OrderMembership> orderMemberships = orderMembershipRepository.findAllByMembership(memberships);
 
         List<MembershipDto> membershipDtos = new ArrayList<>();
 
         for (OrderMembership orderMembership : orderMemberships) {
             // membershipDto를 생성한다.
             MembershipDto membershipDto = orderMembershipResMapper.toDto(orderMembership);
-            membershipDto.setPrice(orderMembership.getPrice());
-            membershipDto.setDiscountedPrice(orderMembership.getOrder().getTotalPrice());
             membershipDtos.add(membershipDto);
         }
         // 멤버십 종료 날짜의 내림차순으로 멤버십 이용내역을 반환한다.

@@ -44,9 +44,9 @@ public class MembershipController {
     @GetMapping("/{subscriptionType}")
     public ResponseMessage getOrderMembership(Authentication authentication, @PathVariable Integer subscriptionType) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        membershipService.getOrderMembership(securityUser, subscriptionType);
         return ResponseMessage.builder()
-                .message("멤버십 구매에 성공하였습니다.")
+                .data(membershipService.getOrderMembership(securityUser, subscriptionType))
+                .message("멤버십 주문 정보 가져오기에 성공하였습니다.")
                 .build();
     }
 
