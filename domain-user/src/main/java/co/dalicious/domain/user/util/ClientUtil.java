@@ -40,7 +40,7 @@ public class ClientUtil {
     public SpotStatus getSpotStatus(User user) {
         // 유저가 Default로 설정한 스팟을 가져온다.
         List<UserSpot> userSpots = user.getUserSpots();
-        if (userSpots.isEmpty()) {
+        if (userSpots == null || userSpots.isEmpty()) {
             // 유저가 속해있는 그룹이 있는지 조회한다.
             List<UserGroup> userGroups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
             if (userGroups.isEmpty()) {
