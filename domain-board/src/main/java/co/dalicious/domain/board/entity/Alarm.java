@@ -6,11 +6,11 @@ import co.dalicious.domain.user.entity.User;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.math.BigInteger;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -32,9 +32,9 @@ public class Alarm {
     @Column(name ="alarm_type", columnDefinition = "VARCHAR(45)")
     private AlarmType type;
 
-    @CreatedDate
-    @Column(name="created_date", columnDefinition = "DATE")
-    private LocalDate created;
+    @CreationTimestamp
+    @Column(name="created_date", columnDefinition = "DATETIME")
+    private LocalDateTime created;
 
     @ManyToOne(optional = false)
     @JoinColumn(name="user_id",nullable = false, columnDefinition = "BIGINT UNSIGNED")
