@@ -22,8 +22,8 @@ public class CorporationMealInfo extends MealInfo{
     private BigDecimal supportPrice;
 
     @Builder
-    public CorporationMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Group group, BigDecimal supportPrice) {
-        super(diningType, deliveryTime, lastOrderTime, serviceDays, group);
+    public CorporationMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Spot spot, BigDecimal supportPrice) {
+        super(diningType, deliveryTime, lastOrderTime, serviceDays, spot);
         this.supportPrice = supportPrice;
     }
 }

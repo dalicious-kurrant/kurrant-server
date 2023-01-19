@@ -17,7 +17,7 @@ import static co.dalicious.domain.user.entity.QMembership.membership;
 public class QMembershipRepository {
     public final JPAQueryFactory queryFactory;
 
-    public Optional<Membership> findUserCurrentMembership(User user, LocalDate now) {
+    public Membership findUserCurrentMembership(User user, LocalDate now) {
         long count = queryFactory
                 .selectFrom(membership)
                 .where(membership.user.eq(user),
@@ -27,11 +27,12 @@ public class QMembershipRepository {
         if(count > 1){
             throw new IllegalStateException("Expected only one membership, but found :"+count);
         }
-        return Optional.ofNullable(queryFactory
+        Membership membership1 = queryFactory
                 .selectFrom(membership)
                 .where(membership.user.eq(user),
                         membership.startDate.loe(now),
                         membership.endDate.goe(now))
-                .fetchOne());
+                .fetchOne();
+        return membership1;
     }
 }

@@ -23,7 +23,7 @@ public interface MembershipService {
     // 유저가 멤버십을 환불한다
     void refundMembership(User user, Order order, Membership membership);
     // 유저가 멤버십을 해지 또는 환불한다
-    void unsubscribeMembership(User user);
+    void unsubscribeMembership(SecurityUser securityUser);
     // 유저가 멤버십을 이용하는 동안 받았던 정기식사 혜택 금액을 조회한다.
     void getDailyFoodPriceBenefits(User user);
     // 유저가 멤버십을 이용하는 동안 받았던 마켓 할인 금액을 조회한다.

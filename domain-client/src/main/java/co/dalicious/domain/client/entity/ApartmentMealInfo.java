@@ -16,7 +16,7 @@ import java.time.LocalTime;
 public class ApartmentMealInfo extends MealInfo {
     @Builder
 
-    public ApartmentMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Group group) {
-        super(diningType, deliveryTime, lastOrderTime, serviceDays, group);
+    public ApartmentMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Spot spot) {
+        super(diningType, deliveryTime, lastOrderTime, serviceDays, spot);
     }
 }

@@ -54,7 +54,7 @@ public class MembershipController {
     @PostMapping("/unsubscribing")
     public ResponseMessage unsubscribingMembership(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        membershipService.unsubscribeMembership(userUtil.getUser(securityUser));
+        membershipService.unsubscribeMembership(securityUser);
         return ResponseMessage.builder()
                 .message("멤버십 해지/환불에 성공하였습니다.")
                 .build();

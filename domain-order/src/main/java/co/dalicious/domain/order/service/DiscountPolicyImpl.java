@@ -4,7 +4,9 @@ import co.dalicious.domain.food.entity.FoodDiscountPolicy;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderMembership;
+import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.MembershipDiscountPolicy;
+import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.springframework.stereotype.Component;
@@ -41,9 +43,9 @@ public class DiscountPolicyImpl implements DiscountPolicy {
             // 1. 멤버십 할인 적용
             totalPrice = discountedPriceByRate(foodPrice, membershipDiscountPolicyRate);
             // 2. 판매자 할인 적용
-            totalPrice = discountedPriceByRate(foodPrice, makersDiscountPolicyRate);
+            totalPrice = discountedPriceByRate(totalPrice, makersDiscountPolicyRate);
             // 3. 기간 할인 적용
-            totalPrice = discountedPriceByRate(foodPrice, periodDiscountPolicyRate);
+            totalPrice = discountedPriceByRate(totalPrice, periodDiscountPolicyRate);
             // 개수 곱하기
             totalPrice = totalPrice.multiply(BigDecimal.valueOf(count));
 
@@ -51,11 +53,18 @@ public class DiscountPolicyImpl implements DiscountPolicy {
         }
         // Membership일 경우
         if (orderItem instanceof OrderMembership) {
-            List<MembershipDiscountPolicy> membershipDiscountPolicyList = ((OrderMembership) orderItem).getMembership().getMembershipDiscountPolicyList();
+            Membership membership = ((OrderMembership) orderItem).getMembership();
+            List<MembershipDiscountPolicy> membershipDiscountPolicyList = membership.getMembershipDiscountPolicyList();
             BigDecimal membershipPrice = ((OrderMembership) orderItem).getMembership().getMembershipSubscriptionType().getPrice();
             // 할인 정책이 존재하지 않을 경우 판매가격 return.
             if(membershipDiscountPolicyList == null || membershipDiscountPolicyList.isEmpty()) {
-                return membershipPrice;
+                if(membership.getMembershipSubscriptionType().equals(MembershipSubscriptionType.MONTH)) {
+                    return membershipPrice;
+                }
+                else if(membership.getMembershipSubscriptionType().equals(MembershipSubscriptionType.YEAR)) {
+                    return discountedPriceByRate(membershipPrice, MembershipSubscriptionType.YEAR.getDiscountRate());
+                }
+                throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
             }
             // 할인 정책이 존재할 경우 계산
             BigDecimal totalPrice;
@@ -77,7 +86,7 @@ public class DiscountPolicyImpl implements DiscountPolicy {
         throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
     }
     public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
-        return price.multiply(BigDecimal.valueOf((100 - discountRate) / 100));
+        return price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100));
     }
 
     public static BigDecimal discountPriceByRate(BigDecimal price, Integer discountRate) {

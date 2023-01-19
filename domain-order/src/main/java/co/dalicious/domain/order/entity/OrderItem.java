@@ -3,6 +3,7 @@ package co.dalicious.domain.order.entity;
 import co.dalicious.domain.order.converter.OrderStatusConverter;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -15,6 +16,7 @@ import javax.persistence.Table;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -39,16 +41,16 @@ public class OrderItem {
     private OrderStatus orderStatus;
 
     @CreationTimestamp
-    @Column(name = "created", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("생성일")
-    private LocalDate created;
+    private Timestamp createdDateTime;
 
-    @UpdateTimestamp
-    @Column(name = "updated",
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
-    private LocalDate updated;
+    private Timestamp updatedDateTime;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn

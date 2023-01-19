@@ -44,18 +44,18 @@ public class DiscountDto {
 
         // 1. 멤버십 할인
         if(membershipDiscountedRate != 0) {
-            membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((membershipDiscountedRate) / 100));;
-            price = membershipDiscountedPrice;
+            membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((membershipDiscountedRate / 100.0)));;
+            price = price.subtract(membershipDiscountedPrice);
         }
         // 2. 메이커스 할인
         if(makersDiscountedRate != 0) {
-            makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100));
-            price = makersDiscountedPrice;
+            makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
+            price = price.subtract(makersDiscountedPrice);
         }
         // 3. 기간 할인
         if(periodDiscountedRate != 0) {
-            periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100));
-            price = membershipDiscountedPrice;
+            periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
+            price = price.subtract(periodDiscountedPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);

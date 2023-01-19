@@ -84,10 +84,10 @@ public class OrderServiceImpl implements OrderService {
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
 
-        // DailyFood가 중복될 경우는 추가하지 않고 count +1 처리
+        // DailyFood가 중복될 경우는 추가하지 않고 count 수만큼 수량 증가 처리
         Optional<CartDailyFood> orderCartDailyFood = cartDailyFoodRepository.findOneByUserAndDailyFood(user, dailyFood);
         if (orderCartDailyFood.isPresent()) {
-            orderCartDailyFood.get().updateCount(orderCartDailyFood.get().getCount() + 1);
+            orderCartDailyFood.get().updateCount(orderCartDailyFood.get().getCount() + cartDto.getCount());
             return 2;
         }
 

@@ -1,11 +1,13 @@
 package co.dalicious.domain.order.mapper;
 
+import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderMembership;
 import co.dalicious.domain.user.dto.MembershipDto;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.util.MembershipUtil;
 import org.mapstruct.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 
@@ -16,7 +18,7 @@ public interface OrderMembershipResMapper {
     @Mapping(source = "membership.endDate", target = "endDate")
     @Mapping(source = "membership", target = "membershipUsingPeriod", qualifiedByName = "calculateMembershipUsingPeriod")
     @Mapping(source = "price", target = "price")
-    @Mapping(source = "discountedPrice", target = "discountedPrice")
+    @Mapping(target = "discountedPrice", expression = "java(orderMembership.getPrice().subtract(orderMembership.getDiscountPrice()))")
     MembershipDto toDto(OrderMembership orderMembership);
 
     @Named("calculateMembershipUsingPeriod")

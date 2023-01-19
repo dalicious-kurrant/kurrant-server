@@ -162,6 +162,7 @@ public class MembershipServiceImpl implements MembershipService {
             // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
             if (statusCode == 200) {
                 order.updateTotalPrice(price);
+                orderMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(price));
                 orderMembership.updateOrderStatus(OrderStatus.COMPLETED);
             }
             // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
@@ -229,13 +230,18 @@ public class MembershipServiceImpl implements MembershipService {
         if(orderMembership == null) {
             throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
         }
+        // 자동 환불 설정
+        orderMembership.updateOrderStatus(OrderStatus.AUTO_REFUND);
+        OrderUtil.refundOrderMembership(user, orderMembership);
 
         // 주문 상태 변경
-        orderMembership.updateOrderStatus(OrderStatus.AUTO_REFUND);
-        // TODO: 결제 취소.
-        OrderUtil.refundOrderMembership(user, orderMembership, membership);
+        if(price.compareTo(BigDecimal.ZERO) == 0) {
+            return;
+        }
+
         // TODO: 지불한 금액이 사용한 금액보다 크다면 환불 필요.
-        if (paidPrice.compareTo(price) > 0) {
+        if (price.compareTo(BigDecimal.ZERO) != 0 && paidPrice.compareTo(price) > 0) {
+            orderMembership.updateOrderStatus(OrderStatus.COMPLETED);
             OrderMembership orderMembership1 = OrderMembership.builder()
                     .orderStatus(OrderStatus.PRICE_DEDUCTION)
                     .order(order)
@@ -249,19 +255,21 @@ public class MembershipServiceImpl implements MembershipService {
 
     @Override
     @Transactional
-    public void unsubscribeMembership(User user) {
+    public void unsubscribeMembership(SecurityUser securityUser) {
+        // 유저 가져오기
+        User user = userUtil.getUser(securityUser);
         // 멤버십 사용중인 유저인지 가져오기
         if (!user.getIsMembership()) {
             throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
         }
         // 현재 사용중인 멤버십 가져오기
-        Optional<Membership> userCurrentMembership = QmembershipRepository.findUserCurrentMembership(user, LocalDate.now());
+        Membership userCurrentMembership = QmembershipRepository.findUserCurrentMembership(user, LocalDate.now());
 
-        if (userCurrentMembership.isEmpty()) {
+        if (userCurrentMembership == null) {
             throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
         }
         // 멤버십 주문 가져오기
-        OrderMembership orderMembership = orderMembershipRepository.findOneByMembership(userCurrentMembership.get()).orElseThrow(
+        OrderMembership orderMembership = orderMembershipRepository.findOneByMembership(userCurrentMembership).orElseThrow(
                 () -> new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND)
         );
         // 주문 상태가 "완료됨"이 아닌 경우 제외
@@ -273,14 +281,13 @@ public class MembershipServiceImpl implements MembershipService {
 
 
         // 사용한 날짜 계산하기
-        int membershipUsingDays = userCurrentMembership.get().getStartDate().until(LocalDate.now()).getDays();
+        int membershipUsingDays = userCurrentMembership.getStartDate().until(LocalDate.now()).getDays();
 
         // 7일 이하일 경우 멤버십 환불
         if (membershipUsingDays <= 7) {
-            refundMembership(user, orderMembership.getOrder(), userCurrentMembership.get());
-            return;
+            refundMembership(user, orderMembership.getOrder(), userCurrentMembership);
         }
-        userCurrentMembership.get().changeAutoPaymentStatus(false);
+        userCurrentMembership.changeAutoPaymentStatus(false);
     }
 
     @Override

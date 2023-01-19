@@ -116,16 +116,12 @@ public class Order {
         this.orderType = orderType;
     }
 
-    public void setDefaultPrice(BigDecimal defaultPrice) {
+    public void updateDefaultPrice(BigDecimal defaultPrice) {
         this.defaultPrice = defaultPrice;
     }
 
     public void setPoint(BigDecimal point) {
         this.point = point;
-    }
-
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
     }
 
     public void setPaymentType(PaymentType paymentType) {

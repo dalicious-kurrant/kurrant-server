@@ -22,7 +22,7 @@ import java.util.Optional;
 
 @Mapper(componentModel = "spring")
 public interface DailyFoodMapper {
-      @Mapping(source = "dailyFood.diningType.diningType", target = "diningType")
+      @Mapping(source = "dailyFood.diningType.code", target = "diningType")
       @Mapping(source = "dailyFood.food.id", target = "foodId")
       @Mapping(source = "dailyFood.food.name", target = "foodName")
       @Mapping(source = "dailyFood.foodStatus", target = "isSoldOut", qualifiedByName = "isSoldOut")

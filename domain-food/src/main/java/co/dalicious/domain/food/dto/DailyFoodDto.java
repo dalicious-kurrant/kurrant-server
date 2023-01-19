@@ -12,7 +12,7 @@ import java.math.BigInteger;
 @Setter
 public class DailyFoodDto {
     private BigInteger id;
-    private String diningType;
+    private Integer diningType;
     private BigInteger foodId;
     private String foodName;
     private Boolean isSoldOut;

@@ -33,28 +33,29 @@ public class OrderMembership extends OrderItem{
     @Comment("멤버십 구독 타입")
     private String membershipSubscriptionType;
 
-    @Column(name = "price")
-    @ColumnDefault("0")
+    @Column(name = "price", columnDefinition="Decimal(15,2) default '0.00'")
     @Comment("상품 가격")
     private BigDecimal price;
 
-    @Column(name = "discounted_price")
-    @ColumnDefault("0")
-    @Comment("상품 할인 가격")
-    private BigDecimal discountedPrice;
+    @Column(name = "discount_price", columnDefinition="Decimal(15,2) default '0.00'")
+    @Comment("할인한 가격")
+    private BigDecimal discountPrice;
 
-    @Column(name = "period_discounted_rate")
-    @ColumnDefault("0")
+    @Column(name = "period_discounted_rate", columnDefinition="Decimal(15,2) default '0.00'")
     @Comment("기간 할인율")
     private Integer periodDiscountedRate;
 
     @Builder
-    public OrderMembership(OrderStatus orderStatus, Order order, Membership membership, String membershipSubscriptionType, BigDecimal price, BigDecimal discountedPrice, Integer periodDiscountedRate) {
+    public OrderMembership(OrderStatus orderStatus, Order order, Membership membership, String membershipSubscriptionType, BigDecimal price, BigDecimal discountPrice, Integer periodDiscountedRate) {
         super(orderStatus, order);
         this.membership = membership;
         this.membershipSubscriptionType = membershipSubscriptionType;
         this.price = price;
-        this.discountedPrice = discountedPrice;
+        this.discountPrice = discountPrice;
         this.periodDiscountedRate = periodDiscountedRate;
+    }
+
+    public void updateDiscountPrice(BigDecimal discountPrice) {
+        this.discountPrice = discountPrice;
     }
 }

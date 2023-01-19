@@ -63,16 +63,16 @@ public class MealInfo {
     private Timestamp updatedDateTime;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JsonManagedReference(value = "client__apartment_fk")
+    @JsonManagedReference(value = "client__spot_fk")
     @JoinColumn
     @Comment("그룹")
-    private Group group;
+    private Spot spot;
 
-    public MealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Group group) {
+    public MealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Spot spot) {
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
         this.lastOrderTime = lastOrderTime;
         this.serviceDays = serviceDays;
-        this.group = group;
+        this.spot = spot;
     }
 }

@@ -24,9 +24,7 @@ public class QDailyFoodRepository {
                 .selectFrom(dailyFood)
                 .where(dailyFood.spot.id.eq(spotId),
                         dailyFood.serviceDate.loe(selectedDate),
-                        dailyFood.foodStatus.eq(FoodStatus.SALES),
-                        dailyFood.foodStatus.eq(FoodStatus.SOLD_OUT)
-                        )
+                        dailyFood.foodStatus.eq(FoodStatus.SALES).or(dailyFood.foodStatus.eq(FoodStatus.SOLD_OUT)))
                 .fetch();
     }
 
