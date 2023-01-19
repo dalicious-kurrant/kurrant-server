@@ -20,7 +20,7 @@ import java.time.LocalDate;
 public class DailyFoodDto {
     BigInteger id;
     String created;
-    String diningType;
+    Integer diningType;
     BigInteger foodId;
 
     String foodName;
@@ -43,7 +43,7 @@ public class DailyFoodDto {
 
 
     @Builder
-    public DailyFoodDto(BigInteger id, LocalDate created, String diningType, Food food,
+    public DailyFoodDto(BigInteger id, LocalDate created, Integer diningType, Food food,
                         Boolean isSoldOut, BigInteger spotId, String status, LocalDate updated,
                         LocalDate serviceDate, Integer discountedPrice, BigDecimal discountRate){
         this.id = id;
