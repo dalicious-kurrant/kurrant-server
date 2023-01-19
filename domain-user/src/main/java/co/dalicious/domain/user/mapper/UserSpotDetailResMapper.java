@@ -21,7 +21,7 @@ public interface UserSpotDetailResMapper {
     @Mapping(source = "spot.id", target = "spotId")
     @Mapping(source = "spot.name", target = "spotName")
     @Mapping(source = "spot.address", target = "address", qualifiedByName = "addressToString")
-    @Mapping(source = "spot.group.mealInfos", target = "mealTypeInfoList", qualifiedByName = "getMealTypeInfoList")
+    @Mapping(source = "spot.mealInfos", target = "mealTypeInfoList", qualifiedByName = "getMealTypeInfoList")
     @Mapping(source = "spot.group", target = "clientName", qualifiedByName = "getGroupName")
     @Mapping(source = "spot.group", target = "clientId", qualifiedByName = "getGroupId")
     ClientSpotDetailResDto toDto(UserSpot spot);

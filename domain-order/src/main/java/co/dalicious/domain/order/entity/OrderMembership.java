@@ -1,18 +1,20 @@
 package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.Membership;
+import co.dalicious.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 
@@ -21,42 +23,39 @@ import java.sql.Timestamp;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "order__order_membership")
-public class OrderMembership {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
-    @Comment("멤버십 결제 PK")
-    private BigInteger id;
-
-
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "created_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("생성일")
-    private Timestamp createdDateTime;
-
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "updated_datetime", nullable = false,
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("수정일")
-    private Timestamp updatedDateTime;
-
-    @NotNull
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
-
+@Table(name = "order__membership")
+public class OrderMembership extends OrderItem{
     @NotNull
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "membership_id", nullable = false)
     private Membership membership;
 
+    @Comment("멤버십 구독 타입")
+    private String membershipSubscriptionType;
+
+    @Column(name = "price", columnDefinition="Decimal(15,2) default '0.00'")
+    @Comment("상품 가격")
+    private BigDecimal price;
+
+    @Column(name = "discount_price", columnDefinition="Decimal(15,2) default '0.00'")
+    @Comment("할인한 가격")
+    private BigDecimal discountPrice;
+
+    @Column(name = "period_discounted_rate", columnDefinition="Decimal(15,2) default '0.00'")
+    @Comment("기간 할인율")
+    private Integer periodDiscountedRate;
+
     @Builder
-    public OrderMembership(Order order, Membership membership) {
-        this.order = order;
+    public OrderMembership(OrderStatus orderStatus, Order order, Membership membership, String membershipSubscriptionType, BigDecimal price, BigDecimal discountPrice, Integer periodDiscountedRate) {
+        super(orderStatus, order);
         this.membership = membership;
+        this.membershipSubscriptionType = membershipSubscriptionType;
+        this.price = price;
+        this.discountPrice = discountPrice;
+        this.periodDiscountedRate = periodDiscountedRate;
+    }
+
+    public void updateDiscountPrice(BigDecimal discountPrice) {
+        this.discountPrice = discountPrice;
     }
 }

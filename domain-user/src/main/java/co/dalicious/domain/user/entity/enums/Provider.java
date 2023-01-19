@@ -1,9 +1,6 @@
 package co.dalicious.domain.user.entity.enums;
 
-import co.dalicious.system.util.DiningType;
 import lombok.Getter;
-
-import java.util.Arrays;
 
 @Getter
 public enum Provider {

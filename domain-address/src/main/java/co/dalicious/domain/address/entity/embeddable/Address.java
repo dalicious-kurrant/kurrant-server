@@ -18,7 +18,7 @@ import org.springframework.data.geo.Point;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Address {
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-  @Column(name = "created_datetime",
+  @Column(name = "image_created_datetime",
       columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) COMMENT '생성일'")
   private Timestamp createdDateTime;
 

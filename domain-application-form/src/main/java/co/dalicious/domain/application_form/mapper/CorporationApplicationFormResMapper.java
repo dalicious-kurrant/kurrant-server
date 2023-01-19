@@ -12,7 +12,7 @@ import co.dalicious.domain.application_form.entity.enums.PriceAverage;
 import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
-import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.enums.DiningType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;

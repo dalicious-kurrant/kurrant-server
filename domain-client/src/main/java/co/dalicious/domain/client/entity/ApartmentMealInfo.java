@@ -1,6 +1,6 @@
 package co.dalicious.domain.client.entity;
 
-import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.enums.DiningType;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,7 +16,7 @@ import java.time.LocalTime;
 public class ApartmentMealInfo extends MealInfo {
     @Builder
 
-    public ApartmentMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Group group) {
-        super(diningType, deliveryTime, lastOrderTime, serviceDays, group);
+    public ApartmentMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Spot spot) {
+        super(diningType, deliveryTime, lastOrderTime, serviceDays, spot);
     }
 }

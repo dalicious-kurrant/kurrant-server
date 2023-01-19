@@ -2,8 +2,10 @@ package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.converter.MembershipStatusConverter;
 import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
+import co.dalicious.domain.user.dto.PeriodDto;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -17,6 +19,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -25,7 +28,6 @@ import java.time.LocalDate;
 public class Membership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @NotNull
     @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
@@ -66,13 +68,23 @@ public class Membership {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @OneToMany(mappedBy = "membership", orphanRemoval = true)
+    @JsonBackReference(value = "membership_fk")
+    private List<MembershipDiscountPolicy> membershipDiscountPolicyList;
+
     @Builder
-    public Membership(MembershipStatus membershipStatus, MembershipSubscriptionType membershipSubscriptionType, LocalDate startDate, LocalDate endDate, Boolean autoPayment, User user) {
+    public Membership(MembershipStatus membershipStatus, MembershipSubscriptionType membershipSubscriptionType, Boolean autoPayment) {
         this.membershipStatus = membershipStatus;
         this.membershipSubscriptionType = membershipSubscriptionType;
-        this.startDate = startDate;
-        this.endDate = endDate;
         this.autoPayment = autoPayment;
+    }
+
+    public void setDate(PeriodDto periodDto) {
+        this.startDate = periodDto.getStartDate();
+        this.endDate = periodDto.getEndDate();
+    }
+
+    public void setUser(User user) {
         this.user = user;
     }
 

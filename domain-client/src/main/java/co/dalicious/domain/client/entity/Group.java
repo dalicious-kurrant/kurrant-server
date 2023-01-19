@@ -1,7 +1,7 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.enums.DiningType;
 import co.dalicious.system.util.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -68,12 +68,6 @@ public class Group {
     @JsonBackReference(value = "client__apartment_fk")
     @Comment("스팟 리스트")
     List<Spot> spots;
-
-    @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
-    @JsonBackReference(value = "client__apartment_fk")
-    @Comment("식사 정보 리스트")
-    List<MealInfo> mealInfos;
-
     public Group(Address address, List<DiningType> diningTypes, String name, BigInteger managerId) {
         this.address = address;
         this.diningTypes = diningTypes;

@@ -3,7 +3,7 @@ package co.dalicious.domain.application_form.entity;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentMealInfoRequestDto;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
-import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.enums.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;

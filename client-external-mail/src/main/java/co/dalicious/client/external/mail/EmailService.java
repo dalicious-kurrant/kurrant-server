@@ -1,17 +1,12 @@
 package co.dalicious.client.external.mail;
 
 import co.dalicious.data.redis.RedisUtil;
-import co.dalicious.system.util.GenerateRandomNumber;
-import co.dalicious.system.util.RequiredAuth;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Random;
 
 @PropertySource("classpath:application-mail.properties")
 @Slf4j

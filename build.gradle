@@ -236,7 +236,9 @@ project(':domain-file') {
 project(':domain-food') {
     dependencies {
         implementation project(':system-core')
+        implementation project(':domain-client')
         implementation project(':domain-makers')
+        implementation project(':domain-file')
     }
 }
 
@@ -268,6 +270,9 @@ project(':domain-order') {
         implementation project(':domain-user')
         implementation project(':domain-food')
         implementation project(':domain-makers')
+        implementation project(':domain-file')
+        implementation project(':domain-address')
+        implementation project(':domain-client')
     }
 }
 

@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.dto.user;
+package co.dalicious.domain.user.dto;
 
 import co.dalicious.system.util.DateUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,8 +24,7 @@ public class MembershipDto {
     private int membershipUsingPeriod;
 
     @Builder
-    public MembershipDto(BigInteger id, String membershipSubscriptionType, BigDecimal price, BigDecimal discountedPrice, LocalDate startDate, LocalDate endDate, int membershipUsingPeriod) {
-        this.id = id;
+    public MembershipDto(String membershipSubscriptionType, BigDecimal price, BigDecimal discountedPrice, LocalDate startDate, LocalDate endDate, int membershipUsingPeriod) {
         this.membershipSubscriptionType = membershipSubscriptionType;
         this.price = price;
         this.discountedPrice = discountedPrice;

@@ -13,11 +13,13 @@ public enum OrderStatus {
     FAILED("주문실패", 4L),
     COMPLETED("결제완료", 5L),
     WAIT_DELIVERY("배송대기", 6L),
-    CANCELED("취소", 6L),
-    DELIVERING("배송중", 7L),
-    DELIVERED("수령/진행완료", 8L),
-    MANUAL_REFUNDED("수동 환불", 9L),
-    AUTO_REFUND("자동 환불", 10L);
+    CANCELED("취소", 7L),
+    DELIVERING("배송중", 8L),
+    DELIVERED("배송완료", 9L),
+    RECEIPT_COMPLETE("수령완료", 10L),
+    MANUAL_REFUNDED("수동 환불", 11L),
+    AUTO_REFUND("자동 환불", 12L),
+    PRICE_DEDUCTION("사용금액 차감", 13L);
 
     private final String orderStatus;
     private final Long code;

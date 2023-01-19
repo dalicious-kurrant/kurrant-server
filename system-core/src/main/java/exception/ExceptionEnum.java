@@ -41,6 +41,9 @@ public enum ExceptionEnum {
 	SPOT_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040009", "스팟을 찾을 수 없습니다."),
 	CLIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040010", "그룹을 찾을 수 없습니다."),
 	NOT_SET_SPOT(HttpStatus.NOT_FOUND, "E4040011", "등록되지 않은 스팟입니다."),
+	ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040012", "주문하려는 상품에 문제가 있습니다"),
+	DAILY_FOOD_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040013", "식단을 찾을 수 없습니다"),
+	PRICE_INTEGRITY_ERROR(HttpStatus.NOT_FOUND, "E4040014", "주문 요청 가격과 실제 가격에 차이가 있습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),

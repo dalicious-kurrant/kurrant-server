@@ -1,27 +1,23 @@
 package co.dalicious.domain.food.entity;
 
-import co.dalicious.system.util.DiningType;
-import co.dalicious.system.util.FoodStatus;
+import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.util.enums.FoodStatus;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.converter.FoodStatusConverter;
-import jdk.jshell.Snippet;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import net.bytebuddy.asm.Advice;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.math.BigInteger;
-import javax.validation.constraints.NotNull;
-import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 
 
 @DynamicInsert
@@ -51,33 +47,18 @@ public class DailyFood {
 
     @Convert(converter = FoodStatusConverter.class)
     @Column(name = "e_status")
-    private FoodStatus status;
-
-    @Column(name = "is_sold_out")
-    private Boolean isSoldOut;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "food_id", columnDefinition = "BIGINT UNSIGNED")
-    private Food food;
-
-    @Column(name = "spot_id", columnDefinition = "BIGINT UNSIGNED")
-    private BigInteger spotId;
+    private FoodStatus foodStatus;
 
     @Column(name = "service_date", columnDefinition = "DATE")
     private LocalDate serviceDate;
 
-    @Builder
-    DailyFood(BigInteger id, DiningType diningType, LocalDate created, LocalDate updated,
-              FoodStatus status, Boolean isSoldOut, Food food, BigInteger spotId, LocalDate serviceDate){
-        this.id = id;
-        this.diningType = diningType;
-        this.created = created;
-        this.updated = updated;
-        this.status = status;
-        this.isSoldOut = isSoldOut;
-        this.food = food;
-        this.spotId = spotId;
-        this.serviceDate = serviceDate;
-    }
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "food_id")
+    private Food food;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn
+    @Comment("스팟")
+    private Spot spot;
 
 }

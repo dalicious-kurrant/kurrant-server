@@ -15,7 +15,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Tag(name = "4. Food")
-@RequestMapping(value = "/v1/foods")
+@RequestMapping(value = "/v1/dailyfoods")
 @RestController
 @RequiredArgsConstructor
 public class FoodController {
@@ -23,9 +23,9 @@ public class FoodController {
     private final FoodService foodService;
 
     @Operation(summary = "식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
-    @GetMapping("/dailyfoods")
+    @GetMapping("")
     public ResponseMessage getDailyFood(Authentication authentication,
-                                        @RequestParam Integer spotId,
+                                        @RequestParam BigInteger spotId,
                                         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
@@ -35,11 +35,11 @@ public class FoodController {
     }
 
     @Operation(summary = "메뉴 상세정보 불러오기", description = "특정 메뉴의 상세정보를 불러온다.")
-    @GetMapping("/{foodId}")
-    public ResponseMessage getFoodDetail(Authentication authentication, @PathVariable BigInteger foodId){
+    @GetMapping("/{dailyfoodId}")
+    public ResponseMessage getFoodDetail(Authentication authentication, @PathVariable BigInteger dailyfoodId){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(foodService.getFoodDetail(foodId, securityUser))
+                .data(foodService.getFoodDetail(dailyfoodId, securityUser))
                 .message("상품 상세정보 조회 성공!")
                 .build();
     }

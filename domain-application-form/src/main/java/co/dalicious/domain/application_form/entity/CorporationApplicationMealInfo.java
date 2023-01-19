@@ -2,7 +2,7 @@ package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.application_form.converter.PriceAverageConverter;
 import co.dalicious.domain.application_form.entity.enums.PriceAverage;
-import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.enums.DiningType;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;

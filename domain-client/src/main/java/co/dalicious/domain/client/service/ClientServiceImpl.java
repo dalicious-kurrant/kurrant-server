@@ -7,7 +7,7 @@ import co.dalicious.domain.client.dto.CorporationRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.enums.DiningType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -43,18 +43,7 @@ public class ClientServiceImpl implements ClientService{
                 .build();
 
         apartmentRepository.save(apartment);
-
-        for (ApartmentRequestDto.Meal meal : meals) {
-            ApartmentMealInfo apartmentMealInfo = ApartmentMealInfo.builder()
-                    .group(apartment)
-                    .deliveryTime(DateUtils.stringToTime(meal.getDeliveryTime(), ":"))
-                    .lastOrderTime(DateUtils.stringToTime(meal.getLastOrderTime(), ":"))
-                    .diningType(DiningType.ofCode(meal.getDiningType()))
-                    .serviceDays(meal.getServiceDays())
-                    .build();
-            apartmentMealInfoRepository.save(apartmentMealInfo);
-        }
-
+        List<Spot> spots = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             CreateAddressRequestDto spotAddressDto = new CreateAddressRequestDto();
             spotAddressDto.setZipCode(String.valueOf(10000 + i));
@@ -69,8 +58,21 @@ public class ClientServiceImpl implements ClientService{
                     .address(spotAddress)
                     .name("스팟" + (i + 1))
                     .build();
-            spotRepository.save(spot);
+            spots.add(spotRepository.save(spot));
         }
+        for(Spot spot : spots) {
+            for (ApartmentRequestDto.Meal meal : meals) {
+                ApartmentMealInfo apartmentMealInfo = ApartmentMealInfo.builder()
+                        .spot(spot)
+                        .deliveryTime(DateUtils.stringToTime(meal.getDeliveryTime(), ":"))
+                        .lastOrderTime(DateUtils.stringToTime(meal.getLastOrderTime(), ":"))
+                        .diningType(DiningType.ofCode(meal.getDiningType()))
+                        .serviceDays(meal.getServiceDays())
+                        .build();
+                apartmentMealInfoRepository.save(apartmentMealInfo);
+            }
+        }
+
     }
 
     // TODO: 백오피스 구현시 추후 삭제
@@ -92,18 +94,7 @@ public class ClientServiceImpl implements ClientService{
 
         corporationRepository.save(corporation);
 
-        for(CorporationRequestDto.Meal meal : meals) {
-            CorporationMealInfo corporationMealInfo = CorporationMealInfo.builder()
-                    .group(corporation)
-                    .deliveryTime(DateUtils.stringToTime(meal.getDeliveryTime(), ":"))
-                    .lastOrderTime(DateUtils.stringToTime(meal.getLastOrderTime(), ":"))
-                    .diningType(DiningType.ofCode(meal.getDiningType()))
-                    .supportPrice(meal.getSupportPrice())
-                    .serviceDays(meal.getServiceDays())
-                    .build();
-            corporationMealInfoRepository.save(corporationMealInfo);
-        }
-
+        List<Spot> spots = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             CreateAddressRequestDto spotAddressDto = new CreateAddressRequestDto();
             spotAddressDto.setZipCode(String.valueOf(10000 + i));
@@ -118,8 +109,23 @@ public class ClientServiceImpl implements ClientService{
                     .diningTypes(convertToEntityAttribute(corporationInfo.getDiningTypes()))
                     .address(spotAddress)
                     .build();
-            corporationSpotRepository.save(spot);
+            spots.add(corporationSpotRepository.save(spot));
         }
+        for(Spot spot : spots) {
+            for(CorporationRequestDto.Meal meal : meals) {
+                CorporationMealInfo corporationMealInfo = CorporationMealInfo.builder()
+                        .spot(spot)
+                        .deliveryTime(DateUtils.stringToTime(meal.getDeliveryTime(), ":"))
+                        .lastOrderTime(DateUtils.stringToTime(meal.getLastOrderTime(), ":"))
+                        .diningType(DiningType.ofCode(meal.getDiningType()))
+                        .supportPrice(meal.getSupportPrice())
+                        .serviceDays(meal.getServiceDays())
+                        .build();
+                corporationMealInfoRepository.save(corporationMealInfo);
+            }
+        }
+
+
     }
 
     public List<DiningType> convertToEntityAttribute(String dbData) {

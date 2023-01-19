@@ -1,4 +1,4 @@
-package co.dalicious.system.util;
+package co.dalicious.system.util.enums;
 
 import lombok.Getter;
 
