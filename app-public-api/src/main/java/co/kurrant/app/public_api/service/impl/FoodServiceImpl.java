@@ -4,6 +4,7 @@ import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodDetailDto;
+import co.dalicious.domain.food.dto.RetrieveDailyFoodDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
@@ -12,6 +13,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.dalicious.domain.food.mapper.FoodMapper;
+import co.dalicious.system.util.enums.DiningType;
 import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -41,7 +43,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public List<DailyFoodDto> getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate) {
+    public RetrieveDailyFoodDto getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
         // 스팟 정보 가져오기
@@ -53,17 +55,25 @@ public class FoodServiceImpl implements FoodService {
         userGroups.stream().filter(v -> v.getGroup().equals(spot.getGroup()))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
-        //결과값을 담아줄 LIST 생성
-        List<DailyFoodDto> resultList = new ArrayList<>();
-        //조건에 맞는 DailyFood 조회
+        // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
+        List<Integer> diningTypes = new ArrayList<>();
+        for (DiningType diningType : spot.getDiningTypes()) {
+            diningTypes.add(diningType.getCode());
+        }
+        // 결과값을 담아줄 LIST 생성
+        List<DailyFoodDto> dailyFoodDtos = new ArrayList<>();
+        // 조건에 맞는 DailyFood 조회
         List<DailyFood> dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(spotId, selectedDate);
-        //값이 있다면 결과값으로 담아준다.
+        // 값이 있다면 결과값으로 담아준다.
         for (DailyFood dailyFood : dailyFoodList) {
             DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
             DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood, discountDto);
-            resultList.add(dailyFoodDto);
+            dailyFoodDtos.add(dailyFoodDto);
         }
-        return resultList;
+        return RetrieveDailyFoodDto.builder()
+                .diningTypes(diningTypes)
+                .dailyFoodDtos(dailyFoodDtos)
+                .build();
     }
 
     @Override

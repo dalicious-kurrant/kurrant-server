@@ -2,7 +2,6 @@ package co.kurrant.app.admin_api.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import co.kurrant.app.admin_api.dto.LoginRequestDto;
 import co.kurrant.app.admin_api.dto.LoginResponseDto;
