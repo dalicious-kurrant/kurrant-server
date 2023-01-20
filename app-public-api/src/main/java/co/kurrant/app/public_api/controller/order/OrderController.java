@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.List;
 
 @Tag(name = "3. Order")
 @RequestMapping(value = "/v1/users")
@@ -77,8 +78,9 @@ public class OrderController {
 
     @Operation(summary = "장바구니 수량 수정", description = "장바구니 수량을 수정한다.")
     @PatchMapping("/me/order/cart")
-    public ResponseMessage updateByFoodId(@RequestBody UpdateCartDto updateCartDto) {
-        orderService.updateByFoodId(updateCartDto);
+    public ResponseMessage updateByFoodId(Authentication authentication, @RequestBody UpdateCartDto updateCartDto) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        orderService.updateByFoodId(securityUser, updateCartDto);
         return ResponseMessage.builder()
                 .message("장바구니의 상품 수량이 수정됐습니다.")
                 .build();

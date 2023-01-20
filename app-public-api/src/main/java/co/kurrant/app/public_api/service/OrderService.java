@@ -6,6 +6,7 @@ import co.kurrant.app.public_api.model.SecurityUser;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.List;
 
 public interface OrderService {
     Object findOrderByServiceDate(LocalDate startDate, LocalDate endDate);
@@ -18,5 +19,5 @@ public interface OrderService {
 
     void deleteByUserId(SecurityUser securityUser);
 
-    void updateByFoodId(UpdateCartDto updateCartDto);
+    void updateByFoodId(SecurityUser securityUser, UpdateCartDto updateCartDto);
 }

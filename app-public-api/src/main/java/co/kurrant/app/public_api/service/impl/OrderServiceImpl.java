@@ -169,10 +169,23 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void updateByFoodId(UpdateCartDto updateCartDto) {
+    public void updateByFoodId(SecurityUser securityUser, UpdateCartDto updateCartDto) {
+        // 유저 정보를 가져온다
+        User user = userUtil.getUser(securityUser);
+        // 요청한 장바구니 아이템을 유저가 가지고 있는지 검증한다. 아니라면 예외처리
+        List<CartDailyFood> cartDailyFoods = cartDailyFoodRepository.findAllByUser(user);
+        List<CartDailyFood> selectedCarts = new ArrayList<>();
         for (UpdateCart updateCart : updateCartDto.getUpdateCartList()) {
-            qOrderCartItemRepository.updateByFoodId(updateCart.getCartItemId(), updateCart.getCount());
+            CartDailyFood cartDailyFood = cartDailyFoods.stream().filter(v -> v.getId().compareTo(updateCart.getCartItemId()) == 0)
+                    .findAny()
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
+            selectedCarts.add(cartDailyFood);
         }
-
+        // 수량을 업데이트 한다.
+        for (UpdateCart updateCart : updateCartDto.getUpdateCartList()) {
+            Optional<CartDailyFood> selectedCart = selectedCarts.stream().filter(v -> v.getId().compareTo(updateCart.getCartItemId()) == 0)
+                    .findAny();
+            selectedCart.ifPresent(cartDailyFood -> cartDailyFood.updateCount(updateCart.getCount()));
+        }
     }
 }
