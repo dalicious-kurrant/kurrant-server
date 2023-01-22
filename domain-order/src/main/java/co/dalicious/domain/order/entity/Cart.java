@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,7 @@ import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @Entity
@@ -36,16 +38,16 @@ public class Cart {
     private Integer count;
 
     @CreationTimestamp
-    @Column(name = "created_datetime",
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("생성일")
-    private LocalDate created;
+    private Timestamp createdDateTime;
 
-    @UpdateTimestamp
-    @Column(name = "updated_datetime",
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
-    private LocalDate updated;
+    private Timestamp updatedDateTime;
 
     public void updateCount(Integer count) {
         this.count = count;

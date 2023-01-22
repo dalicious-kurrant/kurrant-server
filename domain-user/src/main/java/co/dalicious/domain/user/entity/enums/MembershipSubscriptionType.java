@@ -7,8 +7,8 @@ import java.util.Arrays;
 
 @Getter
 public enum MembershipSubscriptionType {
-    MONTH("월간구독", BigDecimal.valueOf(12000.0), 0,1),
-    YEAR("연간구독",BigDecimal.valueOf(144000.0), 20, 2);
+    MONTH("월간구독", BigDecimal.valueOf(10000.0), 0,1),
+    YEAR("연간구독",BigDecimal.valueOf(120000.0), 20, 2);
 
     private final String membershipSubscriptionType;
     private final BigDecimal price;
