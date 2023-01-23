@@ -1,7 +1,7 @@
 package kr.autohero.combined;
 
 
-import co.dalicious.domain.user.dto.PeriodDto;
+import co.dalicious.system.util.PeriodDto;
 import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.util.MembershipUtil;
 import org.junit.jupiter.api.Assertions;

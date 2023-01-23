@@ -2,7 +2,6 @@ package co.kurrant.app.public_api.repository;
 
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

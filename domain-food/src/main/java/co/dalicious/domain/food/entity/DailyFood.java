@@ -6,6 +6,7 @@ import co.dalicious.system.util.enums.FoodStatus;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.converter.FoodStatusConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +17,7 @@ import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -38,12 +40,17 @@ public class DailyFood {
     private DiningType diningType;
 
     @CreationTimestamp
-    @Column(name = "created")
-    private LocalDate created;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private Timestamp createdDateTime;
 
     @UpdateTimestamp
-    @Column(name = "updated")
-    private LocalDate updated;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("수정일")
+    private Timestamp updatedDateTime;
+
 
     @Convert(converter = FoodStatusConverter.class)
     @Column(name = "e_status")

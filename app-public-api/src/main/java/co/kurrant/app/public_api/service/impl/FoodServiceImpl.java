@@ -13,6 +13,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.dalicious.domain.food.mapper.FoodMapper;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.util.enums.DiningType;
 import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -52,7 +53,7 @@ public class FoodServiceImpl implements FoodService {
         );
         // 유저가 그 그룹의 스팟에 포함되는지 확인.
         List<UserGroup> userGroups = user.getGroups();
-        userGroups.stream().filter(v -> v.getGroup().equals(spot.getGroup()))
+        userGroups.stream().filter(v -> v.getGroup().equals(spot.getGroup()) && v.getClientStatus().equals(ClientStatus.BELONG))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
         // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인

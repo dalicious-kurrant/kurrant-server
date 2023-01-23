@@ -2,7 +2,7 @@ package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.converter.MembershipStatusConverter;
 import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
-import co.dalicious.domain.user.dto.PeriodDto;
+import co.dalicious.system.util.PeriodDto;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import com.fasterxml.jackson.annotation.JsonBackReference;

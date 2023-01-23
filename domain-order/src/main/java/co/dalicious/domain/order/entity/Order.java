@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.order.converter.OrderTypeConverter;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.enums.OrderType;
@@ -14,19 +15,22 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.List;
 
+@DynamicInsert
+@DynamicUpdate
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Table(name = "order__order")
 public class Order {
@@ -38,20 +42,6 @@ public class Order {
     @NotNull
     @Column(name = "code")
     private String code;
-
-    @Convert(converter = OrderTypeConverter.class)
-    @Column(name = "e_order_type")
-    @Comment("주문 타입(정기식사/멤버십/상품)")
-    private OrderType orderType;
-
-    @Comment("그룹명")
-    private String groupName;
-
-    @Comment("스팟명")
-    private String spotName;
-
-    @Comment("상세주소")
-    private String ho;
 
     @Embedded
     @Comment("배송지")
@@ -97,23 +87,14 @@ public class Order {
     @JsonBackReference(value = "order_fk")
     List<OrderItem> orderItems;
 
-    @Builder
-    public Order(String code, OrderType orderType, PaymentType paymentType) {
+    public Order(String code, PaymentType paymentType) {
         this.code = code;
-        this.orderType = orderType;
         this.paymentType = paymentType;
     }
 
     public void updateOrderUserInfo(OrderUserInfoDto orderUserInfoDto) {
-        this.groupName = orderUserInfoDto.getGroupName();
-        this.spotName = orderUserInfoDto.getSpotName();
-        this.ho = orderUserInfoDto.getSpotName();
         this.address = orderUserInfoDto.getAddress();
         this.user = orderUserInfoDto.getUser();
-    }
-
-    public void setOrderType(OrderType orderType) {
-        this.orderType = orderType;
     }
 
     public void updateDefaultPrice(BigDecimal defaultPrice) {

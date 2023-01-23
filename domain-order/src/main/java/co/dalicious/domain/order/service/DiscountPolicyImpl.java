@@ -1,9 +1,9 @@
 package co.dalicious.domain.order.service;
 
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
-import co.dalicious.domain.order.entity.OrderDailyFood;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.OrderItem;
-import co.dalicious.domain.order.entity.OrderMembership;
+import co.dalicious.domain.order.entity.OrderItemMembership;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.MembershipDiscountPolicy;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
@@ -25,11 +25,11 @@ public class DiscountPolicyImpl implements DiscountPolicy {
     @Override
     public BigDecimal orderItemTotalPrice(OrderItem orderItem) {
         // DailyFood 일 경우
-        if (orderItem instanceof OrderDailyFood) {
-            List<FoodDiscountPolicy> foodDiscountPolicyList = ((OrderDailyFood) orderItem).getFood().getFoodDiscountPolicyList();
-            BigDecimal foodPrice = ((OrderDailyFood) orderItem).getFood().getPrice();
+        if (orderItem instanceof OrderItemDailyFood) {
+            List<FoodDiscountPolicy> foodDiscountPolicyList = ((OrderItemDailyFood) orderItem).getFood().getFoodDiscountPolicyList();
+            BigDecimal foodPrice = ((OrderItemDailyFood) orderItem).getFood().getPrice();
             BigDecimal totalPrice;
-            Integer count = ((OrderDailyFood) orderItem).getCount();
+            Integer count = ((OrderItemDailyFood) orderItem).getCount();
             Integer membershipDiscountPolicyRate = 0;
             Integer makersDiscountPolicyRate = 0;
             Integer periodDiscountPolicyRate = 0;
@@ -52,10 +52,10 @@ public class DiscountPolicyImpl implements DiscountPolicy {
             return totalPrice;
         }
         // Membership일 경우
-        if (orderItem instanceof OrderMembership) {
-            Membership membership = ((OrderMembership) orderItem).getMembership();
+        if (orderItem instanceof OrderItemMembership) {
+            Membership membership = ((OrderItemMembership) orderItem).getMembership();
             List<MembershipDiscountPolicy> membershipDiscountPolicyList = membership.getMembershipDiscountPolicyList();
-            BigDecimal membershipPrice = ((OrderMembership) orderItem).getMembership().getMembershipSubscriptionType().getPrice();
+            BigDecimal membershipPrice = ((OrderItemMembership) orderItem).getMembership().getMembershipSubscriptionType().getPrice();
             // 할인 정책이 존재하지 않을 경우 판매가격 return.
             if(membershipDiscountPolicyList == null || membershipDiscountPolicyList.isEmpty()) {
                 if(membership.getMembershipSubscriptionType().equals(MembershipSubscriptionType.MONTH)) {

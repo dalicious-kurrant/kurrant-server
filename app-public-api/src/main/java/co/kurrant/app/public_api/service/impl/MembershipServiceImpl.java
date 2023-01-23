@@ -5,16 +5,17 @@ import co.dalicious.domain.order.dto.OrderMembershipResDto;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderItem;
+import co.dalicious.domain.order.entity.OrderItemMembership;
 import co.dalicious.domain.order.entity.OrderMembership;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
+import co.dalicious.domain.order.repository.OrderItemMembershipRepository;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
-import co.dalicious.domain.order.repository.OrderRepository;
 import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.service.DiscountPolicyImpl;
 import co.dalicious.domain.order.util.OrderUtil;
-import co.dalicious.domain.user.dto.PeriodDto;
+import co.dalicious.system.util.PeriodDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
@@ -42,7 +43,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -50,8 +50,8 @@ public class MembershipServiceImpl implements MembershipService {
     private final UserUtil userUtil;
     private final MembershipRepository membershipRepository;
     private final QMembershipRepository QmembershipRepository;
+    private final OrderItemMembershipRepository orderItemMembershipRepository;
     private final OrderMembershipRepository orderMembershipRepository;
-    private final OrderRepository orderRepository;
     private final BigDecimal DELIVERY_FEE = new BigDecimal("2200.0");
     private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.YEAR.getPrice().multiply(BigDecimal.valueOf((100 - MembershipSubscriptionType.YEAR.getDiscountRate()) * 0.01)).divide(BigDecimal.valueOf(12));
     private final BigDecimal DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.MONTH.getPrice().subtract(REFUND_YEARLY_MEMBERSHIP_PER_MONTH);
@@ -134,44 +134,43 @@ public class MembershipServiceImpl implements MembershipService {
 
         // 멤버십 결제 요청
         String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
-        Order order = Order.builder()
+        OrderMembership order = OrderMembership.builder()
                 .code(code)
-                .orderType(OrderType.MEMBERSHIP)
                 .paymentType(PaymentType.ofCode(orderMembershipReqDto.getPaymentType()))
                 .build();
         // 유저 정보 저장
         OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
         order.updateOrderUserInfo(orderUserInfoDto);
-        orderRepository.save(order);
+        orderMembershipRepository.save(order);
 
         // 멤버십 결제 내역 등록(진행중 상태)
-        OrderMembership orderMembership = OrderMembership.builder()
+        OrderItemMembership orderItemMembership = OrderItemMembership.builder()
                 .order(order)
                 .orderStatus(OrderStatus.PROCESSING)
                 .membership(membership)
                 .membershipSubscriptionType(membership.getMembershipSubscriptionType().getMembershipSubscriptionType())
                 .price(membership.getMembershipSubscriptionType().getPrice())
                 .build();
-        orderMembershipRepository.save(orderMembership);
+        orderItemMembershipRepository.save(orderItemMembership);
 
         // 결제 진행. 실패시 오류 날림
-        BigDecimal price = discountPolicy.orderItemTotalPrice(orderMembership);
+        BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
 
         try {
             int statusCode = requestPayment(code, price, 200);
             // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
             if (statusCode == 200) {
                 order.updateTotalPrice(price);
-                orderMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(price));
-                orderMembership.updateOrderStatus(OrderStatus.COMPLETED);
+                orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(price));
+                orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
             }
             // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
             else {
-                orderMembership.updateOrderStatus(OrderStatus.FAILED);
+                orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
                 throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
             }
         } catch (ApiException e) {
-            orderMembership.updateOrderStatus(OrderStatus.FAILED);
+            orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
         }
         user.changeMembershipStatus(true);
@@ -207,32 +206,29 @@ public class MembershipServiceImpl implements MembershipService {
         // TODO: 연간구독 해지시, membership endDate update.
         BigDecimal price = BigDecimal.ZERO;
 
-        List<Order> dailyFoodOrders = orderRepository.findAllByUserAndOrderType(user, OrderType.DAILYFOOD);
         // 정기 식사 배송비 계산
-        price = price.add(DELIVERY_FEE.multiply(BigDecimal.valueOf(dailyFoodOrders.size())));
 
         // 정기 식사 할인율 계산
 
         // 마켓 상품 할인 계산
-        List<Order> productDiscountedPrice = orderRepository.findAllByUserAndOrderType(user, OrderType.PRODUCT);
 
         // 멤버십 결제금액 가져오기
         BigDecimal paidPrice = order.getTotalPrice();
 
         // 멤버십 결제 가져오기
         List<OrderItem> orderItems = order.getOrderItems();
-        OrderMembership orderMembership = null;
+        OrderItemMembership orderItemMembership = null;
         for (OrderItem orderItem : orderItems) {
             if(orderItem.getOrderStatus().equals(OrderStatus.COMPLETED)) {
-                orderMembership = (OrderMembership) orderItem;
+                orderItemMembership = (OrderItemMembership) orderItem;
             }
         }
-        if(orderMembership == null) {
+        if(orderItemMembership == null) {
             throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
         }
         // 자동 환불 설정
-        orderMembership.updateOrderStatus(OrderStatus.AUTO_REFUND);
-        OrderUtil.refundOrderMembership(user, orderMembership);
+        orderItemMembership.updateOrderStatus(OrderStatus.AUTO_REFUND);
+        OrderUtil.refundOrderMembership(user, orderItemMembership);
 
         // 주문 상태 변경
         if(price.compareTo(BigDecimal.ZERO) == 0) {
@@ -241,15 +237,15 @@ public class MembershipServiceImpl implements MembershipService {
 
         // TODO: 지불한 금액이 사용한 금액보다 크다면 환불 필요.
         if (price.compareTo(BigDecimal.ZERO) != 0 && paidPrice.compareTo(price) > 0) {
-            orderMembership.updateOrderStatus(OrderStatus.COMPLETED);
-            OrderMembership orderMembership1 = OrderMembership.builder()
+            orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
+            OrderItemMembership orderItemMembership1 = OrderItemMembership.builder()
                     .orderStatus(OrderStatus.PRICE_DEDUCTION)
                     .order(order)
                     .membership(membership)
                     .membershipSubscriptionType(membership.getMembershipSubscriptionType().getMembershipSubscriptionType())
                     .price(paidPrice.subtract(price))
                     .build();
-            orderMembershipRepository.save(orderMembership1);
+            orderItemMembershipRepository.save(orderItemMembership1);
         }
     }
 
@@ -269,11 +265,11 @@ public class MembershipServiceImpl implements MembershipService {
             throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
         }
         // 멤버십 주문 가져오기
-        OrderMembership orderMembership = orderMembershipRepository.findOneByMembership(userCurrentMembership).orElseThrow(
+        OrderItemMembership orderItemMembership = orderItemMembershipRepository.findOneByMembership(userCurrentMembership).orElseThrow(
                 () -> new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND)
         );
         // 주문 상태가 "완료됨"이 아닌 경우 제외
-        if (!orderMembership.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+        if (!orderItemMembership.getOrderStatus().equals(OrderStatus.COMPLETED)) {
             throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
         }
 
@@ -285,7 +281,7 @@ public class MembershipServiceImpl implements MembershipService {
 
         // 7일 이하일 경우 멤버십 환불
         if (membershipUsingDays <= 7) {
-            refundMembership(user, orderMembership.getOrder(), userCurrentMembership);
+            refundMembership(user, orderItemMembership.getOrder(), userCurrentMembership);
         }
         userCurrentMembership.changeAutoPaymentStatus(false);
     }
@@ -338,13 +334,13 @@ public class MembershipServiceImpl implements MembershipService {
 
         // execute the query using the repository
         List<Membership> memberships = membershipRepository.findAll(specification, sort);
-        List<OrderMembership> orderMemberships = orderMembershipRepository.findAllByMembership(memberships);
+        List<OrderItemMembership> orderItemMemberships = orderItemMembershipRepository.findAllByMembership(memberships);
 
         List<MembershipDto> membershipDtos = new ArrayList<>();
 
-        for (OrderMembership orderMembership : orderMemberships) {
+        for (OrderItemMembership orderItemMembership : orderItemMemberships) {
             // membershipDto를 생성한다.
-            MembershipDto membershipDto = orderMembershipResMapper.toDto(orderMembership);
+            MembershipDto membershipDto = orderMembershipResMapper.toDto(orderItemMembership);
             membershipDtos.add(membershipDto);
         }
         // 멤버십 종료 날짜의 내림차순으로 멤버십 이용내역을 반환한다.

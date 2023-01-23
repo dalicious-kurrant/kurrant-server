@@ -1,4 +1,4 @@
-package co.dalicious.domain.user.dto;
+package co.dalicious.system.util;
 
 import lombok.Builder;
 import lombok.Getter;

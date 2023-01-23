@@ -1,13 +1,15 @@
 package co.dalicious.domain.order.service;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.order.entity.Order;
+import co.dalicious.domain.client.entity.Apartment;
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.user.entity.User;
 
 import java.math.BigDecimal;
 
 public interface DeliveryFeePolicy {
-    BigDecimal getUserDeliveryFee(Order order);
+    BigDecimal getApartmentUserDeliveryFee(User user, Apartment apartment);
+    BigDecimal getCorporationDeliveryFee(User user, Corporation corporation);
     // 그룹이 아파트이고, 멤버십을 구매한 경우
     BigDecimal getMembershipApartmentDeliveryFee();
     // 그룹이 아파트이고, 멤버십을 구매하지 않은 경우
@@ -18,4 +20,6 @@ public interface DeliveryFeePolicy {
     BigDecimal getNoMembershipCorporationDeliveryFeeLower50();
     // 그룹이 기업이고, 기업이 멤버십을 지원하지 않으며, 기업 인원이 50명 이상일 경우
     BigDecimal getNoMembershipCorporationDeliveryFeeUpper50(Address address);
+    // 그룹이 기업이고, 기업이 멤버십을 지원하지 않으며, 기존게 가입된 고객사이며, 기업 인원이 50명 이상일 경우
+    BigDecimal getNoMembershipExistedCorporationDeliveryFeeUpper50(Address address);
 }

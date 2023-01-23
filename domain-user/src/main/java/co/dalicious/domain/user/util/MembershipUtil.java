@@ -1,22 +1,15 @@
 package co.dalicious.domain.user.util;
 
-import co.dalicious.domain.user.dto.PeriodDto;
+import co.dalicious.system.util.PeriodDto;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.MembershipRepository;
-import co.dalicious.domain.user.repository.UserRepository;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import net.bytebuddy.asm.Advice;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.Period;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor

@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.client.entity.Spot;
 import  co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.user.entity.User;
 import lombok.AccessLevel;
@@ -20,14 +21,20 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "order__cart_item")
 public class CartDailyFood extends Cart {
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="dailyFood_id")
     @Comment("장바구니에 담긴 음식 ID")
     private DailyFood dailyFood;
 
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name="spot_id")
+    @Comment("장바구니에 담긴 음식 상품의 배송지")
+    private Spot spot;
+
     @Builder
-    public CartDailyFood(User user, Integer count, DailyFood dailyFood) {
+    public CartDailyFood(User user, Integer count, DailyFood dailyFood, Spot spot) {
         super(user, count);
         this.dailyFood = dailyFood;
+        this.spot = spot;
     }
 }

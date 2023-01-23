@@ -1,22 +1,24 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
-import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.Cart;
 import co.dalicious.domain.order.entity.CartDailyFood;
-import co.dalicious.domain.order.entity.OrderDailyFood;
+import co.dalicious.domain.order.entity.UserSupportPriceHistory;
 import co.dalicious.domain.order.mapper.CartDailyFoodMapper;
 import co.dalicious.domain.order.mapper.CartDailyFoodResMapper;
 import co.dalicious.domain.order.repository.*;
+import co.dalicious.domain.order.service.DeliveryFeePolicy;
+import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.PeriodDto;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
-import co.kurrant.app.public_api.mapper.order.OrderDetailMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.service.OrderService;
@@ -36,16 +38,17 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
-
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
-    private final FoodRepository foodRepository;
     private final CartRepository orderCartRepository;
     private final CartDailyFoodRepository cartDailyFoodRepository;
     private final DailyFoodRepository dailyFoodRepository;
     private final QCartItemRepository qOrderCartItemRepository;
+    private final QUserSupportPriceHistoryRepository qUserSupportPriceHistoryRepository;
     private final UserUtil userUtil;
     private final CartDailyFoodMapper orderCartDailyFoodMapper;
     private final CartDailyFoodResMapper cartDailyFoodResMapper;
+    private final DeliveryFeePolicy deliveryFeePolicy;
+    private final UserSupportPriceUtil userSupportPriceUtil;
+    private final GroupRepository groupRepository;
 
     @Override
     @Transactional
@@ -101,51 +104,92 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Object findUserCart(SecurityUser securityUser) {
+    public CartResDto findUserCart(SecurityUser securityUser) {
         //유저정보 가져오기
         User user = userUtil.getUser(securityUser);
 
         //결과값 저장을 위한 LIST 생성
-        List<CartDailyFoodDto> cartDailyFoodListDtos = new ArrayList<>();
-        MultiValueMap<DiningTypeServiceDate, CartDailyFoodDto.DailyFood> cartDailyFoodMap = new LinkedMultiValueMap<>();
-        List<DiningTypeServiceDate> diningTypeServiceDates = new ArrayList<>();
+        MultiValueMap<Spot, CartDailyFood> spotDailyFoodMap = new LinkedMultiValueMap<>();
+        List<CartResDto.SpotCarts> spotCartsList = new ArrayList<>();
+        BigDecimal totalDeliveryFee = BigDecimal.ZERO;
 
-        //유저정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
+        // 유저 정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
         List<CartDailyFood> cartDailyFoods = cartDailyFoodRepository.findAllByUser(user);
-        for (CartDailyFood cartDailyFood : cartDailyFoods) {
-            // CartDailyFood Dto화
-            DiscountDto discountDto = DiscountDto.getDiscount(cartDailyFood.getDailyFood().getFood());
-            CartDailyFoodDto.DailyFood dailyFood = cartDailyFoodResMapper.toDto(cartDailyFood, discountDto);
-            // DiningType과 ServiceDate 기준으로 매핑
-            DiningTypeServiceDate diningTypeServiceDate = new DiningTypeServiceDate(cartDailyFood.getDailyFood().getServiceDate(), cartDailyFood.getDailyFood().getDiningType());
-            diningTypeServiceDates.add(diningTypeServiceDate);
-            cartDailyFoodMap.add(diningTypeServiceDate, dailyFood);
-        }
 
-        // DiningType과 ServiceDate 기준에 따라 응답 DTO 생성
-        // TODO: 지원금 정책 수정 필요
-        for (DiningTypeServiceDate diningTypeServiceDate : diningTypeServiceDates) {
-            CartDailyFoodDto cartDailyFoodDto = CartDailyFoodDto.builder()
-                    .serviceDate(DateUtils.format(diningTypeServiceDate.getServiceDate(), "yyyy-MM-dd"))
-                    .diningType(diningTypeServiceDate.getDiningType().getDiningType())
-                    .supportPrice(BigDecimal.ZERO)
-                    .cartDailyFoods(cartDailyFoodMap.get(diningTypeServiceDate))
+        // 장바구니에 담긴 상품이 없다면 null 값 return
+        if(cartDailyFoods.isEmpty()) {
+            return null;
+        }
+        // 스팟별로 식단 나누기
+        for (CartDailyFood spotDailyFood : cartDailyFoods) {
+            spotDailyFoodMap.add(spotDailyFood.getSpot(), spotDailyFood);
+        }
+        for(Spot spot : spotDailyFoodMap.keySet()) {
+            // TODO: Fetch.LAZY 적용시 Spot과 Group가 Proxy이기 때문에 instanceof 사용 불가능함.
+            //  현재 CartDailyFood -> Spot -> Group Fetch.EAGER 설정. 추후 수정 필요
+            Group group = spot.getGroup();
+            // 식사일정(DiningType), 날짜별(serviceDate)로 장바구니 아이템 구분하기
+            List<CartDailyFoodDto> cartDailyFoodListDtos = new ArrayList<>();
+            MultiValueMap<DiningTypeServiceDate, CartDailyFood> cartDailyFoodMap = new LinkedMultiValueMap<>();
+            MultiValueMap<DiningTypeServiceDate, CartDailyFoodDto.DailyFood> cartDailyFoodDtoMap = new LinkedMultiValueMap<>();
+            List<DiningTypeServiceDate> diningTypeServiceDates = new ArrayList<>();
+            for (CartDailyFood cartDailyFood : Objects.requireNonNull(spotDailyFoodMap.get(spot))) {
+                // 식사일정과 날짜 기준으로 DailyFood 매핑
+                DiningTypeServiceDate diningTypeServiceDate = new DiningTypeServiceDate(cartDailyFood.getDailyFood().getServiceDate(), cartDailyFood.getDailyFood().getDiningType());
+                diningTypeServiceDates.add(diningTypeServiceDate);
+                cartDailyFoodMap.add(diningTypeServiceDate, cartDailyFood);
+                // CartDailyFood Dto화
+                DiscountDto discountDto = DiscountDto.getDiscount(cartDailyFood.getDailyFood().getFood());
+                CartDailyFoodDto.DailyFood dailyFood = cartDailyFoodResMapper.toDto(cartDailyFood, discountDto);
+                cartDailyFoodDtoMap.add(diningTypeServiceDate, dailyFood);
+            }
+            // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
+            PeriodDto periodDto = userSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDates);
+            // ServiceDate에 해당하는 사용 지원금 리스트 받아오기
+            List<UserSupportPriceHistory> userSupportPriceHistories = qUserSupportPriceHistoryRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
+            // 배송비 및 지원금 계산
+            for (DiningTypeServiceDate diningTypeServiceDate : diningTypeServiceDates) {
+                BigDecimal supportPrice = BigDecimal.ZERO;
+                List<CartDailyFood> ClassifiedCartDailyFoods = cartDailyFoodMap.get(diningTypeServiceDate);
+                // 배송비 가져오기
+                assert ClassifiedCartDailyFoods != null;
+                // 하루 주문 상품이 5개가 넘을 경우 배송비 추가 부과
+                int bundleByDeliveryFee = (ClassifiedCartDailyFoods.size() % 5 == 0) ? ClassifiedCartDailyFoods.size() / 5 : (ClassifiedCartDailyFoods.size() / 5) + 1;
+                if(!user.getIsMembership() && bundleByDeliveryFee > 1 && group instanceof Apartment) {
+                    totalDeliveryFee = totalDeliveryFee.add(deliveryFeePolicy.getApartmentUserDeliveryFee(user, (Apartment) group).multiply(BigDecimal.valueOf(bundleByDeliveryFee)));
+                }
+                else if(group instanceof Corporation){
+                    totalDeliveryFee = totalDeliveryFee.add(deliveryFeePolicy.getCorporationDeliveryFee(user, (Corporation) group));
+                }
+                // 사용 가능한 지원금 가져오기
+                if(spot instanceof CorporationSpot) {
+                    supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, diningTypeServiceDate.getDiningType());
+                    // 기존에 사용한 지원금이 있다면 차감
+                    BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDate.getServiceDate());
+                    supportPrice = supportPrice.subtract(usedSupportPrice);
+                }
+                CartDailyFoodDto cartDailyFoodDto = CartDailyFoodDto.builder()
+                        .serviceDate(DateUtils.format(diningTypeServiceDate.getServiceDate(), "yyyy-MM-dd"))
+                        .diningType(diningTypeServiceDate.getDiningType().getDiningType())
+                        .supportPrice(supportPrice)
+                        .cartDailyFoods(cartDailyFoodDtoMap.get(diningTypeServiceDate))
+                        .build();
+                cartDailyFoodListDtos.add(cartDailyFoodDto);
+            }
+
+            CartResDto.SpotCarts spotCarts = CartResDto.SpotCarts.builder()
+                    .spotId(spot.getId())
+                    .spotName(spot.getName())
+                    .cartDailyFoodDtoList(cartDailyFoodListDtos)
                     .build();
-            cartDailyFoodListDtos.add(cartDailyFoodDto);
+            spotCartsList.add(spotCarts);
         }
 
-        // 배송시간과 식사일정에 맞춰서 Dto 매핑하기
-        // TODO: 배송비 정책 결정시 수정 필요
-        BigDecimal deliveryFee;
-        if (user.getIsMembership()) {
-            deliveryFee = BigDecimal.ZERO;
-        } else {
-            deliveryFee = BigDecimal.valueOf(2200L);
-        }
+        // 스팟별로 배송시간과 식사일정에 따른 Dto 매핑하기
         return CartResDto.builder()
-                .cartDailyFoodDtoList(cartDailyFoodListDtos)
+                .spotCarts(spotCartsList)
                 .userPoint(user.getPoint())
-                .deliveryFee(deliveryFee)
+                .deliveryFee(totalDeliveryFee)
                 .build();
     }
 
