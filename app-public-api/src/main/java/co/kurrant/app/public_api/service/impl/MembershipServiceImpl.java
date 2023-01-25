@@ -185,11 +185,11 @@ public class MembershipServiceImpl implements MembershipService {
         if (membershipSubscriptionType == MembershipSubscriptionType.YEAR) {
             yearSubscriptionDiscountRate = membershipSubscriptionType.getDiscountRate();
         }
-        BigDecimal yearSubscriptionDiscountPrice = OrderUtil.discountedPriceByRate(defaultPrice, yearSubscriptionDiscountRate);
+        BigDecimal yearSubscriptionDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, yearSubscriptionDiscountRate);
         // 2. 기간 할인이 적용되는 유저인지 확인
         User user = userUtil.getUser(securityUser);
         Integer periodDiscountRate = 0;
-        BigDecimal periodDiscountPrice = OrderUtil.discountedPriceByRate(defaultPrice.subtract(yearSubscriptionDiscountPrice), periodDiscountRate);
+        BigDecimal periodDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice.subtract(yearSubscriptionDiscountPrice), periodDiscountRate);
         // 3. 할인이 적용된 최종 가격 도출
         return OrderMembershipResDto.builder()
                 .subscriptionType(subscriptionType)
