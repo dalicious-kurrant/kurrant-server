@@ -27,10 +27,6 @@ public class OrderItemDailyFood extends OrderItem{
     @Comment("서비스 날짜")
     private LocalDate serviceDate;
 
-    @Column(name = "is_check")
-    @Comment("중복여부")
-    private Boolean check;
-
     @Column(name = "e_dining_type")
     @Comment("식사타입: 아침,점심,저녁")
     private DiningType diningType;
@@ -68,10 +64,9 @@ public class OrderItemDailyFood extends OrderItem{
     private Integer periodDiscountedRate;
 
     @Builder
-    public OrderItemDailyFood(OrderStatus orderStatus, Order order, LocalDate serviceDate, Boolean check, DiningType diningType, Food food, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountedRate, Integer membershipDiscountedRate, Integer periodDiscountedRate) {
+    public OrderItemDailyFood(OrderStatus orderStatus, Order order, LocalDate serviceDate, DiningType diningType, Food food, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountedRate, Integer membershipDiscountedRate, Integer periodDiscountedRate) {
         super(orderStatus, order);
         this.serviceDate = serviceDate;
-        this.check = check;
         this.diningType = diningType;
         this.food = food;
         this.name = name;

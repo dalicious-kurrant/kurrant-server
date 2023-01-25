@@ -137,17 +137,8 @@ public class CartServiceImpl implements CartService {
             // 배송비 및 지원금 계산
             for (DiningTypeServiceDate diningTypeServiceDate : diningTypeServiceDates) {
                 BigDecimal supportPrice = BigDecimal.ZERO;
-                List<CartDailyFood> ClassifiedCartDailyFoods = cartDailyFoodMap.get(diningTypeServiceDate);
                 // 배송비 가져오기
-                assert ClassifiedCartDailyFoods != null;
-                // 하루 주문 상품이 5개가 넘을 경우 배송비 추가 부과
-                int bundleByDeliveryFee = (ClassifiedCartDailyFoods.size() % 5 == 0) ? ClassifiedCartDailyFoods.size() / 5 : (ClassifiedCartDailyFoods.size() / 5) + 1;
-                if(!user.getIsMembership() && bundleByDeliveryFee > 1 && group instanceof Apartment) {
-                    totalDeliveryFee = totalDeliveryFee.add(deliveryFeePolicy.getApartmentUserDeliveryFee(user, (Apartment) group).multiply(BigDecimal.valueOf(bundleByDeliveryFee)));
-                }
-                else if(group instanceof Corporation){
-                    totalDeliveryFee = totalDeliveryFee.add(deliveryFeePolicy.getCorporationDeliveryFee(user, (Corporation) group));
-                }
+                totalDeliveryFee = totalDeliveryFee.add(deliveryFeePolicy.getGroupDeliveryFee(user, group));
                 // 사용 가능한 지원금 가져오기
                 if(spot instanceof CorporationSpot) {
                     supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, diningTypeServiceDate.getDiningType());
@@ -166,6 +157,7 @@ public class CartServiceImpl implements CartService {
             CartResDto.SpotCarts spotCarts = CartResDto.SpotCarts.builder()
                     .spotId(spot.getId())
                     .spotName(spot.getName())
+                    .groupName(spot.getGroup().getName())
                     .cartDailyFoodDtoList(cartDailyFoodListDtos)
                     .build();
             spotCartsList.add(spotCarts);

@@ -28,12 +28,10 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
-    public List<BigInteger> findAllByFoodId(BigInteger foodId, LocalDate serviceDate) {
+    public List<DailyFood> findAllByFoodIds(List<BigInteger> foodIds) {
         return queryFactory
-                .select(dailyFood.id)
-                .from(dailyFood)
-                .where(dailyFood.food.id.eq(foodId),
-                        dailyFood.serviceDate.eq(serviceDate))
+                .selectFrom(dailyFood)
+                .where(dailyFood.food.id.in(foodIds))
                 .fetch();
     }
 }
