@@ -177,6 +177,7 @@ project(':app-public-api') {
         implementation project(':domain-order')
         implementation project(':domain-board')
         implementation project(':domain-file')
+        implementation project(':domain-payment')
         implementation project(':client-external-mail')
         implementation project(':client-external-sms')
         implementation project(':data-redis')
@@ -275,6 +276,14 @@ project(':domain-order') {
         implementation project(':domain-client')
     }
 }
+
+project(':domain-payment') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-user')
+    }
+}
+
 
 project(':domain-application-form') {
     dependencies {

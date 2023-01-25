@@ -6,8 +6,16 @@ import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.payment.dto.CreditCardSaveDto;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
+import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
+import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
+import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
-import co.dalicious.domain.user.entity.*;
+import co.dalicious.domain.user.entity.ProviderEmail;
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.Provider;
@@ -21,26 +29,32 @@ import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
+import co.kurrant.app.public_api.service.UserService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import co.kurrant.app.public_api.service.UserUtil;
-
-import co.kurrant.app.public_api.service.UserService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +71,9 @@ public class UserServiceImpl implements UserService {
     private final UserPersonalInfoMapper userPersonalInfoMapper;
     private final GroupResponseMapper groupResponseMapper;
     private final GroupRepository groupRepository;
+    private final QCreditCardInfoRepository qCreditCardInfoRepository;
+    private final CreditCardInfoRepository creditCardInfoRepository;
+    private final CreditCardInfoSaveMapper creditCardInfoSaveMapper;
 
     @Override
     @Transactional
@@ -359,7 +376,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public List<SpotListResponseDto> getClients(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
-        // 그룹/스팟 정보 가져오기
+        // 그룹/스팟 정보 가져오기r
         List<UserGroup> userGroups = user.getGroups();
         // 그룹/스팟 리스트를 담아줄 Dto 생성하기
         List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
@@ -378,6 +395,76 @@ public class UserServiceImpl implements UserService {
     public void saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) {
         User user = userUtil.getUser(securityUser);
 
+        /*영문 대소문자, 숫자, 특수문자 -, _, =, ., @로 이루어진 최소 2자 이상 최대 300자 이하의 문자열*/
+        //ASCII코드상 숫자 48~57 / 영대문자 65~90 / 영소문자 97~122
+        String customerKey = TossUtil.CreateCustomerKey();
 
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.tosspayments.com/v1/billing/authorizations/card"))
+                .header("Authorization", "Basic dGVzdF9za196WExrS0V5cE5BcldtbzUwblgzbG1lYXhZRzVSOg==")
+                .header("Content-Type", "application/json")
+                .method("POST", HttpRequest.BodyPublishers.ofString("{\"cardNumber\":\""+saveCreditCardRequestDto.getCardNumber()+"\",\"cardExpirationYear\":\""+saveCreditCardRequestDto.getExpirationYear()+"\",\"cardExpirationMonth\":\""+saveCreditCardRequestDto.getExpirationMonth()+"\",\"cardPassword\":\""+ saveCreditCardRequestDto.getCardPassword()+"\",\"customerIdentityNumber\":\""+saveCreditCardRequestDto.getIdentityNumber()+"\",\"customerKey\":\""+customerKey+"\"}"))
+                .build();
+
+        HttpResponse<String> response = null;
+        try {
+            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(response.body() + " 바디바디");
+        String[] strings = response.body().split(",");
+        /*
+        빌링키  / 카드번호 / 카드회사 / 카드타입 / 오너타입
+        * */
+        String billingKey = null;
+        String cardNumber = null;
+        String cardCompany = null;
+        String cardType = null;
+        String ownerType = null;
+
+        for (String body : strings){
+            if (body.contains("billingKey")){
+                String[] billingKeyTemp = body.split(":");
+                billingKey = billingKeyTemp[1].substring(1,billingKeyTemp[1].length()-1);
+                System.out.println("billingKey : " + billingKey);
+            }
+            if (body.contains("cardNumber")){
+                String[] cardNumbers = body.split(":");
+                cardNumber = cardNumbers[1].substring(1,cardNumbers[1].length()-1);
+                System.out.println("cardNumber : " + cardNumber);
+            }
+            if(body.contains("cardCompany")){
+                String[] cardCompanys = body.split(":");
+                cardCompany = cardCompanys[1].substring(1,cardCompanys[1].length()-1);
+                System.out.println("cardCompany : " + cardCompany);
+            }
+            if(body.contains("cardType")){
+                String[] cardTypes = body.split(":");
+                cardType = cardTypes[1].substring(1,cardTypes[1].length()-1);
+                System.out.println("cardType : " + cardType);
+            }
+            if(body.contains("ownerType")){
+                String[] ownerTypes = body.split(":");
+                ownerType = ownerTypes[1].substring(1,ownerTypes[1].length()-3);
+                System.out.println("ownerType : " + ownerType);
+            }
+        }
+        //CreditCard 저장을 위한 DTO 매핑
+        CreditCardInfo creditCardInfo = creditCardInfoSaveMapper.toSaveEntity(cardNumber, user.getId(), ownerType, cardType, customerKey, billingKey, cardCompany);
+//        CreditCardSaveDto creditCardSaveDto = creditCardInfoSaveMapper.toSaveDto(cardNumber, user.getId(), ownerType, cardType, customerKey, billingKey, cardCompany);
+
+
+//        System.out.println(creditCardSaveDto.getUserId().toString() + " userId");®®
+//        System.out.println(cardNumber + " cardNumber");
+//        System.out.println(ownerType + " ownerType");
+//        System.out.println(cardType + " cardType");
+//        System.out.println(customerKey + " customerKey");
+//        System.out.println(billingKey + " billingKey");
+//        System.out.println(cardCompany + " cardCompany");
+
+        creditCardInfoRepository.save(creditCardInfo);
     }
 }
