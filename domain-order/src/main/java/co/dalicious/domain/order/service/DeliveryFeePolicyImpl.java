@@ -15,6 +15,16 @@ import java.math.BigDecimal;
 public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
 
     @Override
+    public BigDecimal getGroupDeliveryFee(User user, Group group) {
+        if(group instanceof Apartment) {
+            return getApartmentUserDeliveryFee(user, (Apartment) group);
+        } else if (group instanceof Corporation) {
+            return getCorporationDeliveryFee(user, (Corporation) group);
+        }
+        throw new ApiException(ExceptionEnum.NOT_FOUND);
+    }
+
+    @Override
     public BigDecimal getApartmentUserDeliveryFee(User user, Apartment apartment) {
         Boolean isMembership = user.getIsMembership();
         if (isMembership) {

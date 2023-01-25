@@ -1,9 +1,9 @@
 package co.kurrant.app.public_api.mapper.user;
 
-import co.dalicious.client.core.mapper.GenericMapper;
 import co.dalicious.domain.user.dto.ProviderEmailDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.util.MembershipUtil;
 import co.kurrant.app.public_api.dto.user.UserPersonalInfoDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,7 +13,7 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = MembershipUtil.class)
 @Transactional
 public interface UserPersonalInfoMapper {
     @Mapping(target = "avatar", source = "avatar.location")
