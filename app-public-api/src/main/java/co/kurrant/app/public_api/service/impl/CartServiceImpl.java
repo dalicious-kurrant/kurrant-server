@@ -32,6 +32,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -66,7 +67,8 @@ public class CartServiceImpl implements CartService {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         // 주문 시간이 지났는지 확인하기
-        if(LocalTime.now().isAfter(mealInfo.getLastOrderTime())) {
+        LocalDateTime lastOrderTime = LocalDateTime.of(dailyFood.getServiceDate(), mealInfo.getLastOrderTime());
+        if(LocalDateTime.now().isAfter(lastOrderTime)) {
             throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
         }
         // 상품이 품절되었는지 확인하기
