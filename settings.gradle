@@ -25,6 +25,7 @@ include 'domain-order'
 include 'domain-food'
 include 'domain-makers'
 include 'domain-client'
+include 'domain-payment'
 include 'domain-application-form'
 
 include 'app-public-api'
