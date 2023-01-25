@@ -1,15 +1,26 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.user.entity.User;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
+import co.kurrant.app.public_api.service.UserUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Service
+@RequiredArgsConstructor
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
+    private final UserUtil userUtil;
+
     @Override
-    public void orderDailyFoods() {
+    public void orderDailyFoods(SecurityUser securityUser, BigInteger spotId) {
+        // 유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
     }
 
     @Override

@@ -56,7 +56,7 @@ public class OrderUtil {
     }
 
     public static BigDecimal discountPriceByRate(BigDecimal price, Integer discountRate) {
-        return price.multiply(BigDecimal.valueOf(discountRate / 100));
+        return price.multiply(BigDecimal.valueOf(discountRate / 100.0));
     }
 
     public static Boolean isMembership(User user, Group group) {
