@@ -11,18 +11,12 @@ import java.time.LocalDate;
 
 @Mapper(componentModel = "spring")
 public interface OrderMembershipResMapper {
-    @Mapping(source = "membership.membershipSubscriptionType.membershipSubscriptionType", target = "membershipSubscriptionType")
-    @Mapping(source = "membership.startDate", target = "startDate")
-    @Mapping(source = "membership.endDate", target = "endDate")
-    @Mapping(source = "membership", target = "membershipUsingPeriod", qualifiedByName = "calculateMembershipUsingPeriod")
-    @Mapping(source = "price", target = "price")
+    @Mapping(source = "orderItemMembership.id", target = "id")
+    @Mapping(source = "orderItemMembership.membership.membershipSubscriptionType.membershipSubscriptionType", target = "membershipSubscriptionType")
+    @Mapping(source = "orderItemMembership.membership.startDate", target = "startDate")
+    @Mapping(source = "orderItemMembership.membership.endDate", target = "endDate")
+    @Mapping(source = "orderItemMembership.price", target = "price")
+    @Mapping(source = "membershipUsingPeriod", target = "membershipUsingPeriod")
     @Mapping(target = "discountedPrice", expression = "java(orderItemMembership.getPrice().subtract(orderItemMembership.getDiscountPrice()))")
-    MembershipDto toDto(OrderItemMembership orderItemMembership);
-
-    @Named("calculateMembershipUsingPeriod")
-    default int calculateMembershipUsingPeriod(Membership membership) {
-        LocalDate startDate = membership.getStartDate();
-        LocalDate endDate = membership.getEndDate();
-        return MembershipUtil.getPeriodWithStartAndEndDate(startDate, endDate);
-    }
+    MembershipDto toDto(OrderItemMembership orderItemMembership, int membershipUsingPeriod);
 }

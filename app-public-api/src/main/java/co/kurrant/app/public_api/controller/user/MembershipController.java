@@ -51,7 +51,7 @@ public class MembershipController {
     }
 
     @Operation(summary = "멤버십 해지/환불", description = "유저가 멤버십을 해지 또는 환불한다")
-    @PostMapping("/unsubscribing")
+    @GetMapping("/unsubscribing")
     public ResponseMessage unsubscribingMembership(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         membershipService.unsubscribeMembership(securityUser);
