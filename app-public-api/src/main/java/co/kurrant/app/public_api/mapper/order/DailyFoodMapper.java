@@ -1,25 +1,20 @@
 package co.kurrant.app.public_api.mapper.order;
 
-import co.dalicious.client.core.mapper.GenericMapper;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
-import co.dalicious.domain.order.service.DiscountPolicyImpl;
+import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.enums.DiscountType;
 import co.dalicious.system.util.enums.FoodStatus;
 import co.dalicious.domain.food.dto.DailyFoodDto;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = FoodUtil.class)
 public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.diningType.code", target = "diningType")
       @Mapping(source = "dailyFood.food.id", target = "foodId")
@@ -32,6 +27,7 @@ public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.food.image.location", target = "image")
       @Mapping(source = "dailyFood.food.description", target = "description")
       @Mapping(source = "dailyFood.food.price", target = "price")
+      @Mapping(target = "discountedPrice", expression = "java(FoodUtil.getFoodTotalDiscountedPrice(dailyFood.getFood(), discountDto))")
       @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountPrice")
       @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")
       @Mapping(source = "discountDto.makersDiscountPrice", target = "makersDiscountPrice")

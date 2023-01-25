@@ -23,6 +23,7 @@ public class DailyFoodDto {
     private String image;
     private String description;
     private BigDecimal price;
+    private BigDecimal discountedPrice;
     private BigDecimal membershipDiscountPrice;
     private Integer membershipDiscountRate;
     private BigDecimal makersDiscountPrice;

@@ -10,6 +10,7 @@ import co.dalicious.system.util.DateUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
@@ -24,6 +25,9 @@ class PublicApplicationTests {
 
 	@Autowired
 	private CertificationHashRepository certificationHashRepository;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
 
 	@Test

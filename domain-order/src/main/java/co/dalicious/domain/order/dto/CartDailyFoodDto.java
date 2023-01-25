@@ -26,6 +26,7 @@ public class CartDailyFoodDto {
         String makers;
         Integer count;
         BigDecimal price;
+        BigDecimal discountedPrice;
         Integer membershipDiscountRate;
         Integer membershipDiscountPrice;
         Integer makersDiscountRate;

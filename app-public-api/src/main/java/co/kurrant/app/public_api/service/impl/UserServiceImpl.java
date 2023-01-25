@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -337,7 +338,6 @@ public class UserServiceImpl implements UserService {
         userGroupRepository.save(userCorporation);
     }
     @Override
-    @Transactional
     public List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo() {
         List<MembershipSubscriptionTypeDto> membershipSubscriptionTypeDtos = new ArrayList<>();
 

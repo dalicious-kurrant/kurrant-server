@@ -20,6 +20,11 @@ public class DiscountDto {
     private BigDecimal periodDiscountPrice;
     private Integer periodDiscountRate;
 
+    public void updateMembershipDiscount(BigDecimal membershipDiscountPrice, Integer membershipDiscountRate) {
+        this.membershipDiscountPrice = membershipDiscountPrice;
+        this.membershipDiscountRate = membershipDiscountRate;
+    }
+
     public static DiscountDto getDiscount(Food food) {
         DiscountDto discountDto = new DiscountDto();
         // 기본 가격
@@ -30,9 +35,9 @@ public class DiscountDto {
         Integer makersDiscountedRate = 0;
         Integer periodDiscountedRate = 0;
         // 할인 가격
-        BigDecimal membershipDiscountedPrice = null;
-        BigDecimal makersDiscountedPrice = null;
-        BigDecimal periodDiscountedPrice = null;
+        BigDecimal membershipDiscountedPrice = BigDecimal.ZERO;
+        BigDecimal makersDiscountedPrice = BigDecimal.ZERO;
+        BigDecimal periodDiscountedPrice = BigDecimal.ZERO;
 
         for(FoodDiscountPolicy foodDiscountPolicy : food.getFoodDiscountPolicyList()) {
             switch (foodDiscountPolicy.getDiscountType()) {

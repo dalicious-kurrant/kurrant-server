@@ -9,6 +9,7 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.food.dto.DailyFoodDto;
@@ -68,6 +69,7 @@ public class FoodServiceImpl implements FoodService {
         // 값이 있다면 결과값으로 담아준다.
         for (DailyFood dailyFood : dailyFoodList) {
             DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
+            OrderUtil.checkMembershipAndUpdateDiscountDto(user, spot.getGroup(), discountDto);
             DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood, discountDto);
             dailyFoodDtos.add(dailyFoodDto);
         }
@@ -88,7 +90,7 @@ public class FoodServiceImpl implements FoodService {
         );
         Food food = dailyFood.getFood();
         DiscountDto discountDto = DiscountDto.getDiscount(food);
-
+        OrderUtil.checkMembershipAndUpdateDiscountDto(user, dailyFood.getSpot().getGroup(), discountDto);
         return foodMapper.toDto(food, discountDto);
     }
 }

@@ -23,6 +23,6 @@ public class MembershipSubscriptionTypeDto {
         this.membershipSubscriptionType = membershipSubscriptionType.getMembershipSubscriptionType();
         this.price = membershipSubscriptionType.getPrice();
         this.discountRate = membershipSubscriptionType.getDiscountRate();
-        this.discountedPrice = price.multiply(BigDecimal.valueOf(discountRate / 100));
+        this.discountedPrice = membershipSubscriptionType.getPrice().multiply(BigDecimal.valueOf((100 - membershipSubscriptionType.getDiscountRate()) / 100.0));
     }
 }

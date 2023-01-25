@@ -52,7 +52,6 @@ public class MembershipServiceImpl implements MembershipService {
     private final QMembershipRepository QmembershipRepository;
     private final OrderItemMembershipRepository orderItemMembershipRepository;
     private final OrderMembershipRepository orderMembershipRepository;
-    private final BigDecimal DELIVERY_FEE = new BigDecimal("2200.0");
     private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.YEAR.getPrice().multiply(BigDecimal.valueOf((100 - MembershipSubscriptionType.YEAR.getDiscountRate()) * 0.01)).divide(BigDecimal.valueOf(12));
     private final BigDecimal DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.MONTH.getPrice().subtract(REFUND_YEARLY_MEMBERSHIP_PER_MONTH);
     private final MembershipDiscountPolicyRepository membershipDiscountPolicyRepository;
@@ -73,7 +72,7 @@ public class MembershipServiceImpl implements MembershipService {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
         // 2. 연간 구독 할인 가격이 일치하는지 확인
-        BigDecimal yearDescriptionDiscountPrice = DiscountPolicyImpl.discountedPriceByRate(membershipSubscriptionType.getPrice(), membershipSubscriptionType.getDiscountRate());
+        BigDecimal yearDescriptionDiscountPrice = OrderUtil.discountPriceByRate(membershipSubscriptionType.getPrice(), membershipSubscriptionType.getDiscountRate());
         if (!(orderMembershipReqDto.getYearDescriptionDiscountPrice().compareTo(yearDescriptionDiscountPrice) == 0)) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
@@ -178,6 +177,7 @@ public class MembershipServiceImpl implements MembershipService {
 
     @Override
     public OrderMembershipResDto getOrderMembership(SecurityUser securityUser, Integer subscriptionType) {
+        // TODO: 결제 수단 구현 완료시 Response 값에 유저 결제 수단 정보가 포함될 수 있도록 한다.
         MembershipSubscriptionType membershipSubscriptionType = MembershipSubscriptionType.ofCode(subscriptionType);
         BigDecimal defaultPrice = membershipSubscriptionType.getPrice();
         // 1. 월간 구독인지 연간 구독인지 확인 후 할인 금액 도출
@@ -185,11 +185,11 @@ public class MembershipServiceImpl implements MembershipService {
         if (membershipSubscriptionType == MembershipSubscriptionType.YEAR) {
             yearSubscriptionDiscountRate = membershipSubscriptionType.getDiscountRate();
         }
-        BigDecimal yearSubscriptionDiscountPrice = DiscountPolicyImpl.discountedPriceByRate(defaultPrice, yearSubscriptionDiscountRate);
+        BigDecimal yearSubscriptionDiscountPrice = OrderUtil.discountedPriceByRate(defaultPrice, yearSubscriptionDiscountRate);
         // 2. 기간 할인이 적용되는 유저인지 확인
         User user = userUtil.getUser(securityUser);
         Integer periodDiscountRate = 0;
-        BigDecimal periodDiscountPrice = DiscountPolicyImpl.discountedPriceByRate(defaultPrice.subtract(yearSubscriptionDiscountPrice), periodDiscountRate);
+        BigDecimal periodDiscountPrice = OrderUtil.discountedPriceByRate(defaultPrice.subtract(yearSubscriptionDiscountPrice), periodDiscountRate);
         // 3. 할인이 적용된 최종 가격 도출
         return OrderMembershipResDto.builder()
                 .subscriptionType(subscriptionType)

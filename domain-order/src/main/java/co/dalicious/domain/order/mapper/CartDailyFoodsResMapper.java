@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.CartDailyFoodDto;
 import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.system.util.DateUtils;
@@ -8,11 +9,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import java.awt.*;
 import java.time.LocalDate;
 
-@Mapper(componentModel = "spring")
-public interface CartDailyFoodResMapper {
+@Mapper(componentModel = "spring", imports = FoodUtil.class)
+public interface CartDailyFoodsResMapper {
     @Mapping(source = "cartDailyFood.id", target = "id")
     @Mapping(source = "cartDailyFood.dailyFood.id", target = "dailyFoodId")
     @Mapping(source = "cartDailyFood.dailyFood.food.name", target = "name")
@@ -20,6 +20,7 @@ public interface CartDailyFoodResMapper {
     @Mapping(source = "cartDailyFood.dailyFood.food.makers.name", target = "makers")
     @Mapping(source = "cartDailyFood.count", target = "count")
     @Mapping(source = "cartDailyFood.dailyFood.food.price", target = "price")
+    @Mapping(target = "discountedPrice", expression = "java(FoodUtil.getFoodTotalDiscountedPrice(cartDailyFood.getDailyFood().getFood(), discountDto))")
     @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountPrice")
     @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")
     @Mapping(source = "discountDto.makersDiscountPrice", target = "makersDiscountPrice")

@@ -5,6 +5,7 @@ import co.dalicious.domain.food.dto.FoodDetailDto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Origin;
 import co.dalicious.domain.food.dto.OriginDto;
+import co.dalicious.domain.food.util.FoodUtil;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -12,7 +13,7 @@ import org.mapstruct.Named;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = FoodUtil.class)
 public interface FoodMapper {
     @Mapping(source = "food.makers.name", target = "makersName")
     @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountedPrice")
@@ -22,6 +23,7 @@ public interface FoodMapper {
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountedPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountedRate")
     @Mapping(source = "discountDto.price", target = "price")
+    @Mapping(target = "discountedPrice", expression = "java(FoodUtil.getFoodTotalDiscountedPrice(food, discountDto))")
     @Mapping(source = "food.image.location", target = "image")
     @Mapping(source = "food.spicy.spicy", target = "spicy")
     @Mapping(source = "food.description", target = "description")

@@ -1,14 +1,14 @@
-package co.dalicious.client.core;
+package co.kurrant.app.public_api.service;
 
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-class ClientCoreApplicationTests {
+@SpringBootTest
+@RequiredArgsConstructor
+public class LoginTest {
     private final PasswordEncoder passwordEncoder;
-
-    ClientCoreApplicationTests(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Test
     void test() {

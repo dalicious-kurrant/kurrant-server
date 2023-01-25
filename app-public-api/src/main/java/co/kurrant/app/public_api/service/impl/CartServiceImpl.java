@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
@@ -10,18 +9,19 @@ import co.dalicious.domain.order.entity.Cart;
 import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.domain.order.entity.UserSupportPriceHistory;
 import co.dalicious.domain.order.mapper.CartDailyFoodMapper;
-import co.dalicious.domain.order.mapper.CartDailyFoodResMapper;
+import co.dalicious.domain.order.mapper.CartDailyFoodsResMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
+import co.dalicious.system.util.enums.FoodStatus;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
-import co.kurrant.app.public_api.service.OrderService;
+import co.kurrant.app.public_api.service.CartService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -32,12 +32,12 @@ import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class OrderServiceImpl implements OrderService {
+public class CartServiceImpl implements CartService {
     private final CartRepository orderCartRepository;
     private final CartDailyFoodRepository cartDailyFoodRepository;
     private final DailyFoodRepository dailyFoodRepository;
@@ -45,36 +45,9 @@ public class OrderServiceImpl implements OrderService {
     private final QUserSupportPriceHistoryRepository qUserSupportPriceHistoryRepository;
     private final UserUtil userUtil;
     private final CartDailyFoodMapper orderCartDailyFoodMapper;
-    private final CartDailyFoodResMapper cartDailyFoodResMapper;
+    private final CartDailyFoodsResMapper cartDailyFoodsResMapper;
     private final DeliveryFeePolicy deliveryFeePolicy;
     private final UserSupportPriceUtil userSupportPriceUtil;
-    private final GroupRepository groupRepository;
-
-    @Override
-    @Transactional
-    public Object findOrderByServiceDate(LocalDate startDate, LocalDate endDate) {
-//        List<OrderDetailDto> resultList = new ArrayList<>();
-//        OrderDetailDto orderDetailDto = new OrderDetailDto();
-//
-//        List<OrderItemDto> orderItemDtoList = new ArrayList<>();
-//
-//        List<OrderDailyFood> orderItemList = qOrderDailyFoodRepository.findByServiceDateBetween(startDate, endDate);
-//
-//        orderItemList.forEach(x -> {
-//            orderDetailDto.setId(x.getId());
-//            orderDetailDto.setServiceDate(DateUtils.format(x.getServiceDate(), "yyyy-MM-dd"));
-//
-//            Optional<Food> food = foodRepository.findOneById(x.getId());
-//
-//            OrderItemDto orderItemDto = orderDetailMapper.toOrderItemDto(food.get(), x);
-//
-//            orderItemDtoList.add(orderItemDto);
-//            orderDetailDto.setOrderItemDtoList(orderItemDtoList);
-//            resultList.add(orderDetailDto);
-//        });
-//        return resultList;
-        return null;
-    }
 
     @Override
     @Transactional
@@ -86,6 +59,20 @@ public class OrderServiceImpl implements OrderService {
         DailyFood dailyFood = dailyFoodRepository.findById(cartDto.getDailyFoodId()).orElseThrow(
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
+
+        // TODO: 상품마다 주문시간이 다른 경우가 존재하는지 확인
+        List<MealInfo> mealInfos = dailyFood.getSpot().getMealInfos();
+        MealInfo mealInfo = mealInfos.stream().filter(v -> v.getDiningType().equals(dailyFood.getDiningType()))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        // 주문 시간이 지났는지 확인하기
+        if(LocalTime.now().isAfter(mealInfo.getLastOrderTime())) {
+            throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
+        }
+        // 상품이 품절되었는지 확인하기
+        if(!dailyFood.getFoodStatus().equals(FoodStatus.SALES)) {
+            throw new ApiException(ExceptionEnum.SOLD_OUT);
+        }
 
         // DailyFood가 중복될 경우는 추가하지 않고 count 수만큼 수량 증가 처리
         Optional<CartDailyFood> orderCartDailyFood = cartDailyFoodRepository.findOneByUserAndDailyFood(user, dailyFood);
@@ -140,7 +127,7 @@ public class OrderServiceImpl implements OrderService {
                 cartDailyFoodMap.add(diningTypeServiceDate, cartDailyFood);
                 // CartDailyFood Dto화
                 DiscountDto discountDto = DiscountDto.getDiscount(cartDailyFood.getDailyFood().getFood());
-                CartDailyFoodDto.DailyFood dailyFood = cartDailyFoodResMapper.toDto(cartDailyFood, discountDto);
+                CartDailyFoodDto.DailyFood dailyFood = cartDailyFoodsResMapper.toDto(cartDailyFood, discountDto);
                 cartDailyFoodDtoMap.add(diningTypeServiceDate, dailyFood);
             }
             // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
@@ -176,7 +163,6 @@ public class OrderServiceImpl implements OrderService {
                         .build();
                 cartDailyFoodListDtos.add(cartDailyFoodDto);
             }
-
             CartResDto.SpotCarts spotCarts = CartResDto.SpotCarts.builder()
                     .spotId(spot.getId())
                     .spotName(spot.getName())
@@ -195,7 +181,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void deleteById(SecurityUser securityUser, BigInteger cartDailyFoodId) {
+    public void deleteByCartItemId(SecurityUser securityUser, BigInteger cartDailyFoodId) {
         //cart_id와 food_id가 같은 경우 삭제
         User user = userUtil.getUser(securityUser);
 
@@ -204,7 +190,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void deleteByUserId(SecurityUser securityUser) {
+    public void deleteAllCartItemByUserId(SecurityUser securityUser) {
         // order__cart_item에서 user_id에 해당되는 항목 모두 삭제
         User user = userUtil.getUser(securityUser);
         List<Cart> cartList = orderCartRepository.findAllByUser(user);
@@ -213,7 +199,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void updateByFoodId(SecurityUser securityUser, UpdateCartDto updateCartDto) {
+    public void updateByDailyFoodId(SecurityUser securityUser, UpdateCartDto updateCartDto) {
         // 유저 정보를 가져온다
         User user = userUtil.getUser(securityUser);
         // 요청한 장바구니 아이템을 유저가 가지고 있는지 검증한다. 아니라면 예외처리

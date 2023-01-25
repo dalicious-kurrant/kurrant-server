@@ -1,22 +1,24 @@
 package co.dalicious.domain.order.util;
 
+import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.order.entity.OrderItemMembership;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.system.util.GenerateRandomNumber;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Component
 @RequiredArgsConstructor
 public class OrderUtil {
-    private final MembershipRepository membershipRepository;
 
     // 주문 코드 생성
     public static String generateOrderCode(OrderType orderType, BigInteger userId) {
@@ -48,4 +50,29 @@ public class OrderUtil {
             user.changeMembershipStatus(false);
         }
     }
+
+    public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
+        return price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100));
+    }
+
+    public static BigDecimal discountPriceByRate(BigDecimal price, Integer discountRate) {
+        return price.multiply(BigDecimal.valueOf(discountRate / 100));
+    }
+
+    public static Boolean isMembership(User user, Group group) {
+        if(user.getIsMembership()) {
+            return true;
+        }
+        if(group instanceof Corporation) {
+            return ((Corporation) group).getIsMembershipSupport();
+        }
+        return false;
+    }
+
+    public static void checkMembershipAndUpdateDiscountDto(User user, Group group, DiscountDto discountDto) {
+        if(!isMembership(user, group)) {
+            discountDto.updateMembershipDiscount(BigDecimal.ZERO, 0);
+        }
+    }
+
 }

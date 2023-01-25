@@ -21,9 +21,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "order__order_item_membership")
 public class OrderItemMembership extends OrderItem{
-    @NotNull
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "membership_id", nullable = false)
+    @JoinColumn(name = "membership_id")
     private Membership membership;
 
     @Comment("멤버십 구독 타입")

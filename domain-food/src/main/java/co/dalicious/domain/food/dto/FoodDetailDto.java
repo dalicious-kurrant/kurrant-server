@@ -13,6 +13,7 @@ public class FoodDetailDto {
     private String makersName;
     private String name;
     private BigDecimal price;
+    private BigDecimal discountedPrice;
     private BigDecimal membershipDiscountedPrice;
     private Integer membershipDiscountedRate;
     private BigDecimal makersDiscountedPrice;

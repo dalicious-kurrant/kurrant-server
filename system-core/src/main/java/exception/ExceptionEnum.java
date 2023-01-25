@@ -17,6 +17,8 @@ public enum ExceptionEnum {
 	CANNOT_CONNECT_SNS(HttpStatus.BAD_REQUEST, "E4000005", "소셜 로그인 인증에 실패하였습니다."),
 	CHANGED_PASSWORD_SAME(HttpStatus.BAD_REQUEST, "E4000006", "전과 같은 비밀번호는 사용할 수 없습니다."),
 	IS_NOT_APPROPRIATE_EMPLOYEE_COUNT(HttpStatus.BAD_REQUEST, "E4000007", "사원의 수는 0 이상이어야합니다."),
+	LAST_ORDER_TIME_PASSED(HttpStatus.BAD_REQUEST, "E4000008", "상품 주문 가능시간이 지났습니다."),
+	SOLD_OUT(HttpStatus.BAD_REQUEST, "E4000009", "품절된 상품입니다."),
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
 	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "비밀번호가 일치하지 않습니다."),
