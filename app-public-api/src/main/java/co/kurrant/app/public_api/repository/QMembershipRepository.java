@@ -21,7 +21,7 @@ public class QMembershipRepository {
                 .selectFrom(membership)
                 .where(membership.user.eq(user),
                         membership.startDate.loe(now),
-                        membership.endDate.goe(now))
+                        membership.endDate.gt(now))
                 .fetchCount();
         if(count > 1){
             throw new IllegalStateException("Expected only one membership, but found :"+count);

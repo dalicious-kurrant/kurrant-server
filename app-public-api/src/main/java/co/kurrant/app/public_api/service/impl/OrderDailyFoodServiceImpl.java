@@ -66,8 +66,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if(spot instanceof CorporationSpot) {
                 supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, DiningType.ofCode(Integer.parseInt(cartDailyFoodDto.getDiningType())));
                 // 기존에 사용한 지원금이 있다면 차감
-                BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDate.getServiceDate());
-                supportPrice = supportPrice.subtract(usedSupportPrice);
+//                BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDate.getServiceDate());
+//                supportPrice = supportPrice.subtract(usedSupportPrice);
             }
             cartDailyFoodDto.getSupportPrice();
             for (CartDailyFoodDto.DailyFood dailyFood : cartDailyFoodDto.getCartDailyFoods()) {

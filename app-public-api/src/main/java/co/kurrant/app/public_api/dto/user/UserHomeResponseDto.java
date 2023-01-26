@@ -22,4 +22,5 @@ public class UserHomeResponseDto {
     private BigInteger spotId;
     private String spot;
     private BigDecimal point;
+    private int membershipUsingPeriod;
 }

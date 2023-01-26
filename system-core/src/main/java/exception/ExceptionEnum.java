@@ -52,7 +52,8 @@ public enum ExceptionEnum {
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
-	ALREADY_EXISTING_GROUP(HttpStatus.CONFLICT, "E4090001", "이미 그룹에 가입된 유저입니다."),
+	ALREADY_EXISTING_GROUP(HttpStatus.CONFLICT, "E4090002", "이미 그룹에 가입된 유저입니다."),
+	ALREADY_EXISTING_MEMBERSHIP(HttpStatus.CONFLICT, "E4090003", "이미 멤버십 가입이 된 유저입니다."),
 
   	/* E500 */
 	FAIL_TO_SEND_CERTIFICATION_NUMBER(HttpStatus.INTERNAL_SERVER_ERROR, "E5000001", "failToSendCertificationNumber"),
