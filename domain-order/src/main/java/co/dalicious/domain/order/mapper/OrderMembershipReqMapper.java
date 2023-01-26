@@ -8,9 +8,9 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface OrderMembershipReqMapper {
-    @Mapping(target = "orderStatus", constant = "PROCESSING")
-    @Mapping(source = "order", target = "order")
-    @Mapping(source = "membership", target = "membership")
-    @Mapping(source = "membership.membershipSubscriptionType.price", target = "price")
-    OrderItemMembership toEntity(Order order, Membership membership);
+//    @Mapping(target = "orderStatus", constant = "PROCESSING")
+//    @Mapping(source = "order", target = "order")
+//    @Mapping(source = "membership", target = "membership")
+//    @Mapping(source = "membership.membershipSubscriptionType.price", target = "price")
+//    OrderItemMembership toEntity(Order order, Membership membership);
 }

@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserService;
@@ -126,7 +127,12 @@ public class UserController {
     public ResponseMessage saveCreditCard(Authentication authentication,
                                       @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
+        Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
+        if (result == 2){
+            return ResponseMessage.builder()
+                    .message("같은 카드가 이미 등록되어 있습니다.")
+                    .build();
+        }
         return ResponseMessage.builder()
                 .message("결제 카드 등록에 성공하셨습니다.")
                 .build();
@@ -140,6 +146,15 @@ public class UserController {
         return ResponseMessage.builder()
                 .message("결제 카드 목록 조회에 성공했습니다.")
                 .data(userService.getCardList(securityUser))
+                .build();
+    }
+
+    @Operation(summary = "기본 결제 카드 등록", description = "기본 결제로 등록한다.")
+    @PatchMapping("/cards/setting")
+    public ResponseMessage patchDefaultCard(@RequestBody CreditCardDefaultSettingDto creditCardDefaultSettingDto){
+        userService.patchDefaultCard(creditCardDefaultSettingDto);
+        return ResponseMessage.builder()
+                .message("카드 디폴트타입 변경을 완료했습니다.")
                 .build();
     }
 

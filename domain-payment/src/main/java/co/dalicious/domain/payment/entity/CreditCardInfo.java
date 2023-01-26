@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
@@ -25,7 +24,7 @@ public class CreditCardInfo {
     @Column(name="card_number", columnDefinition = "VARCHAR(16)")
     private String cardNumber;
 
-    @Comment(value = "카드 번호")
+    @Comment(value = "카드 회사")
     @Column(name="card_company", columnDefinition = "VARCHAR(16)")
     private String cardCompany;
 
@@ -38,7 +37,7 @@ public class CreditCardInfo {
     private String cardType;
 
     @Comment(value = "디폴트 타입, 1:기본 결제카드, 2:멤버십 결제카드, 0:아무것도 아님")
-    @Column(name="card_type", columnDefinition = "VARCHAR(16)")
+    @Column(name="default_type", columnDefinition = "VARCHAR(16)")
     private Integer defaultType;
 
     @ManyToOne(optional = false)

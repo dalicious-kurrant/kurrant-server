@@ -7,6 +7,7 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.dto.CartDailyFoodDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
+import co.dalicious.domain.order.entity.UserSupportPriceHistory;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
@@ -66,8 +67,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if(spot instanceof CorporationSpot) {
                 supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, DiningType.ofCode(Integer.parseInt(cartDailyFoodDto.getDiningType())));
                 // 기존에 사용한 지원금이 있다면 차감
-                BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDate.getServiceDate());
-                supportPrice = supportPrice.subtract(usedSupportPrice);
+                //BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDate.getServiceDate());
+                //supportPrice = supportPrice.subtract(usedSupportPrice);
             }
             cartDailyFoodDto.getSupportPrice();
             for (CartDailyFoodDto.DailyFood dailyFood : cartDailyFoodDto.getCartDailyFoods()) {
