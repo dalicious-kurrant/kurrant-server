@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.service.impl;
+package co.kurrant.app.public_api.controller.food.service.impl;
 
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
@@ -8,6 +8,7 @@ import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
+import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
 import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
@@ -27,25 +28,23 @@ import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.enums.RequiredAuth;
+import co.kurrant.app.public_api.controller.food.service.UserService;
+import co.kurrant.app.public_api.controller.food.service.UserUtil;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -501,10 +500,66 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void patchDefaultCard(CreditCardDefaultSettingDto creditCardDefaultSettingDto) {
+    public void patchDefaultCard(SecurityUser securityUser, CreditCardDefaultSettingDto creditCardDefaultSettingDto) {
+        User user = userUtil.getUser(securityUser);
+
         //입력받은 ID에 해당하는 카드 조회
         Optional<CreditCardInfo> updateCardInfo = creditCardInfoRepository.findById(creditCardDefaultSettingDto.getCardId());
-        //해당 카드를 입력받은 디폴트 번호로 수정
-        qCreditCardInfoRepository.patchDefaultCard(updateCardInfo, creditCardDefaultSettingDto.getDefaultType());
+
+        //DefaultType을 변경요청하는 경우는 3가지가 있다. 0/1(기본)/2(멤버십)
+
+        //0으로 변경 요청한 경우는 그냥 0으로 변경해준다.
+        if (creditCardDefaultSettingDto.getDefaultType() == 0){
+            //해당 카드를 입력받은 디폴트 번호로 수정
+            qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), creditCardDefaultSettingDto.getDefaultType());
+        }
+
+        //1로 변경 요청한 경우, 기존 DefaultType이 1인 카드를 0으로 변경하고, 해당 카드가 DefaultType이 2인 카드라면 3으로 변경해준다.
+        if (creditCardDefaultSettingDto.getDefaultType() == 1){
+            //해당카드가 DefaultType이 2일경우 3으로 변경, 다른 모든카드는 0으로 변경
+           if (updateCardInfo.get().getDefaultType() == 2){
+               Integer defaultType = 3;
+               //해당 카드를 DefaultType 3으로 변경
+               qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), defaultType);
+               //변경한 카드 외에 나머지를 모두 0으로 변경
+               qCreditCardInfoRepository.patchOtherCardAllZero(updateCardInfo.get().getId(), user.getId());
+           }
+           //해당카드가 DefaultType이 1이나 3일 경우는 의미가 없으므로, 0일 경우에 1로 변경하고 기존 1을 0으로, 기존 3을 2로 변경한다.
+            if (updateCardInfo.get().getDefaultType() == 0){
+                qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), creditCardDefaultSettingDto.getDefaultType());
+                //기존 1을 0으로
+                qCreditCardInfoRepository.patchOneToZero(updateCardInfo.get().getId(), user.getId());
+                //기존 3을 2로
+                qCreditCardInfoRepository.patchThreeToTwo(updateCardInfo.get().getId(),user.getId());
+            }
+        }
+
+        //2로 변경 요청한 경우, 기존 DefaultType이 2인 카드를 0으로 변경하고 해당 카드가 DefaultType이 1인 카드라면 3으로 변경해준다.
+        if (creditCardDefaultSettingDto.getDefaultType() == 2 ){
+            //해당카드가 DefaultType이 1일경우 3으로 변경, 다른 모든카드는 0으로 변경
+            if (updateCardInfo.get().getDefaultType() == 1){
+                Integer defaultType = 3;
+                //해당 카드를 DefaultType 3으로 변경
+                qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), defaultType);
+                //변경한 카드 외에 나머지를 모두 0으로 변경
+                qCreditCardInfoRepository.patchOtherCardAllZero(updateCardInfo.get().getId(), user.getId());
+            }
+            //해당카드가 2나 3이면 변경의 의미가 없으므로 0인 경우에만 2로 바꾸고 기존 2를 0으로 기존 3을 1로 바꾼다.
+            if (updateCardInfo.get().getDefaultType() == 0){
+                qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), creditCardDefaultSettingDto.getDefaultType());
+                //기존 2를 0으로
+                qCreditCardInfoRepository.patchTwoToZero(updateCardInfo.get().getId(), user.getId());
+                //기존 3을 1로
+                qCreditCardInfoRepository.patchThreeToZero(updateCardInfo.get().getId(), user.getId());
+            }
+        }
+
+
+    }
+
+    @Override
+    @Transactional
+    public void deleteCard(DeleteCreditCardDto deleteCreditCardDto) {
+        qCreditCardInfoRepository.deleteCard(deleteCreditCardDto.getCardId());
     }
 }
