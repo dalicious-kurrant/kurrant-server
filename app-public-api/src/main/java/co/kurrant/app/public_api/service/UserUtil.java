@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.controller.food.service;
+package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
