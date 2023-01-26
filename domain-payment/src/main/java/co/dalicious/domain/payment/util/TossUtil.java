@@ -1,10 +1,12 @@
 package co.dalicious.domain.payment.util;
 
+import java.net.URI;
+import java.net.http.HttpRequest;
 import java.util.Random;
 
 public class TossUtil {
 
-    public static String CreateCustomerKey() {
+    public String createCustomerKey() {
         int leftLimit = 48; // 숫자 '0'
         int rightLimit = 122; // 영소문자 'z'
         int targetStringLength = 50; // 길이제한
@@ -18,4 +20,15 @@ public class TossUtil {
 
         return generatedString;
     }
+
+    public HttpRequest cardRegisterRequest(String cardNumber, String expirationYear, String expirationMonth,
+                          String cardPassword, String identityNumber, String customerKey){
+        return HttpRequest.newBuilder()
+                .uri(URI.create("https://api.tosspayments.com/v1/billing/authorizations/card"))
+                .header("Authorization", "Basic dGVzdF9za196WExrS0V5cE5BcldtbzUwblgzbG1lYXhZRzVSOg==")
+                .header("Content-Type", "application/json")
+                .method("POST", HttpRequest.BodyPublishers.ofString("{\"cardNumber\":\""+cardNumber+"\",\"cardExpirationYear\":\""+expirationYear+"\",\"cardExpirationMonth\":\""+expirationMonth+"\",\"cardPassword\":\""+cardPassword+"\",\"customerIdentityNumber\":\""+identityNumber+"\",\"customerKey\":\""+customerKey+"\"}"))
+                .build();
+    }
+
 }

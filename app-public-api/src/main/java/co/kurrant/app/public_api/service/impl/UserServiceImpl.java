@@ -6,7 +6,6 @@ import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
-import co.dalicious.domain.payment.dto.CreditCardSaveDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
@@ -44,7 +43,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -60,6 +58,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserUtil userUtil;
+    private final TossUtil tossUtil;
     private final SnsLoginService snsLoginService;
     private final UserValidator userValidator;
     private final PasswordEncoder passwordEncoder;
@@ -395,22 +394,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) {
         User user = userUtil.getUser(securityUser);
 
         /*영문 대소문자, 숫자, 특수문자 -, _, =, ., @로 이루어진 최소 2자 이상 최대 300자 이하의 문자열*/
         //ASCII코드상 숫자 48~57 / 영대문자 65~90 / 영소문자 97~122
-        String customerKey = TossUtil.CreateCustomerKey();
+        String customerKey = tossUtil.createCustomerKey();
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.tosspayments.com/v1/billing/authorizations/card"))
-                .header("Authorization", "Basic dGVzdF9za196WExrS0V5cE5BcldtbzUwblgzbG1lYXhZRzVSOg==")
-                .header("Content-Type", "application/json")
-                .method("POST", HttpRequest.BodyPublishers.ofString("{\"cardNumber\":\""+saveCreditCardRequestDto.getCardNumber()+"\",\"cardExpirationYear\":\""+saveCreditCardRequestDto.getExpirationYear()+"\",\"cardExpirationMonth\":\""+saveCreditCardRequestDto.getExpirationMonth()+"\",\"cardPassword\":\""+ saveCreditCardRequestDto.getCardPassword()+"\",\"customerIdentityNumber\":\""+saveCreditCardRequestDto.getIdentityNumber()+"\",\"customerKey\":\""+customerKey+"\"}"))
-                .build();
+        String identityNumber = saveCreditCardRequestDto.getIdentityNumber().substring(2);
+
+        //TOSS에 요청하기 위한 request 객체 빌드
+        HttpRequest request = tossUtil.cardRegisterRequest(saveCreditCardRequestDto.getCardNumber(), saveCreditCardRequestDto.getExpirationYear(),saveCreditCardRequestDto.getExpirationMonth(),
+                                                            saveCreditCardRequestDto.getCardPassword(), identityNumber, customerKey);
 
         HttpResponse<String> response = null;
         try {
+            //응답값 받아오기
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -428,46 +428,40 @@ public class UserServiceImpl implements UserService {
         String cardType = null;
         String ownerType = null;
 
+        //필요한 정보들을 저장해준다.
         for (String body : strings){
             if (body.contains("billingKey")){
                 String[] billingKeyTemp = body.split(":");
                 billingKey = billingKeyTemp[1].substring(1,billingKeyTemp[1].length()-1);
-                System.out.println("billingKey : " + billingKey);
             }
             if (body.contains("cardNumber")){
                 String[] cardNumbers = body.split(":");
                 cardNumber = cardNumbers[1].substring(1,cardNumbers[1].length()-1);
-                System.out.println("cardNumber : " + cardNumber);
             }
             if(body.contains("cardCompany")){
-                String[] cardCompanys = body.split(":");
-                cardCompany = cardCompanys[1].substring(1,cardCompanys[1].length()-1);
-                System.out.println("cardCompany : " + cardCompany);
+                String[] cardCompanyArray = body.split(":");
+                cardCompany = cardCompanyArray[1].substring(1,cardCompanyArray[1].length()-1);
             }
             if(body.contains("cardType")){
                 String[] cardTypes = body.split(":");
                 cardType = cardTypes[1].substring(1,cardTypes[1].length()-1);
-                System.out.println("cardType : " + cardType);
             }
             if(body.contains("ownerType")){
                 String[] ownerTypes = body.split(":");
                 ownerType = ownerTypes[1].substring(1,ownerTypes[1].length()-3);
-                System.out.println("ownerType : " + ownerType);
             }
         }
-        //CreditCard 저장을 위한 DTO 매핑
+        //CreditCard 저장을 위한 엔티티 매핑
         CreditCardInfo creditCardInfo = creditCardInfoSaveMapper.toSaveEntity(cardNumber, user.getId(), ownerType, cardType, customerKey, billingKey, cardCompany);
-//        CreditCardSaveDto creditCardSaveDto = creditCardInfoSaveMapper.toSaveDto(cardNumber, user.getId(), ownerType, cardType, customerKey, billingKey, cardCompany);
 
-
-//        System.out.println(creditCardSaveDto.getUserId().toString() + " userId");®®
-//        System.out.println(cardNumber + " cardNumber");
-//        System.out.println(ownerType + " ownerType");
-//        System.out.println(cardType + " cardType");
-//        System.out.println(customerKey + " customerKey");
-//        System.out.println(billingKey + " billingKey");
-//        System.out.println(cardCompany + " cardCompany");
-
+        //카드정보 저장
         creditCardInfoRepository.save(creditCardInfo);
+    }
+
+    @Override
+    public Object getCardList(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        List<CreditCardInfo> creditCardInfoList = qCreditCardInfoRepository.findAllByUserId(user.getId());
+        return creditCardInfoList;
     }
 }
