@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
@@ -36,6 +37,10 @@ public class CreditCardInfo {
     @Column(name="card_type", columnDefinition = "VARCHAR(16)")
     private String cardType;
 
+    @Comment(value = "디폴트 타입, 1:기본 결제카드, 2:멤버십 결제카드, 0:아무것도 아님")
+    @Column(name="card_type", columnDefinition = "VARCHAR(16)")
+    private Integer defaultType;
+
     @ManyToOne(optional = false)
     @JoinColumn(name="user_id")
     private User user;
@@ -47,7 +52,9 @@ public class CreditCardInfo {
     private String billingKey;
 
     @Builder
-    CreditCardInfo(String cardNumber, User user, String ownerType, String cardType, String customerKey, String billingKey, String cardCompany){
+    CreditCardInfo(String cardNumber, User user, String ownerType,
+                   String cardType, String customerKey, String billingKey,
+                   String cardCompany, Integer defaultType){
         this.cardNumber = cardNumber;
         this.user = user;
         this.ownerType = ownerType;
@@ -55,5 +62,6 @@ public class CreditCardInfo {
         this.customerKey = customerKey;
         this.billingKey = billingKey;
         this.cardCompany = cardCompany;
+        this.defaultType = defaultType;
     }
 }

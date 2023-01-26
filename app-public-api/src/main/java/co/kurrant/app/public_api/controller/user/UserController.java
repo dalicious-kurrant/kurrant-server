@@ -133,5 +133,15 @@ public class UserController {
 
     }
 
+    @Operation(summary = "결제 카드 조회", description = "결제 카드를 조회한다.")
+    @GetMapping("/cards")
+    public ResponseMessage getCardList(Authentication authentication){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .message("결제 카드 목록 조회에 성공했습니다.")
+                .data(userService.getCardList(securityUser))
+                .build();
+    }
+
 
 }
