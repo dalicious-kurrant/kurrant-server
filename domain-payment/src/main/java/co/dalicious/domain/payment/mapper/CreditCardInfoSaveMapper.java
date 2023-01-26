@@ -13,14 +13,6 @@ import java.math.BigInteger;
 public interface CreditCardInfoSaveMapper {
 
 
-    CreditCardInfo toEntity(String cardNumber, User user, String ownerType, String cardType, String customerKey, String billingKey);
-
-
-//    @Mapping(source="userId", target = "userId", qualifiedByName = "userById")
-//    CreditCardSaveDto toSaveDto(String cardNumber, BigInteger userId, String ownerType, String cardType, String customerKey, String billingKey, String cardCompany);
-
-
-
     @Mapping(source="id", target = "user", qualifiedByName = "userById")
     CreditCardInfo toSaveEntity(String cardNumber, BigInteger id, String ownerType, String cardType, String customerKey, String billingKey, String cardCompany);
 
