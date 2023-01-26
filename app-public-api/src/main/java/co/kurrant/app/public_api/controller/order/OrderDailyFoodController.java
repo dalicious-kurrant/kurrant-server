@@ -6,23 +6,23 @@ import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
 
-@RestController
+@Tag(name = "6. Group")
 @RequiredArgsConstructor
+@RequestMapping(value = "/v1/users/me/orders")
+@RestController
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
     @Operation(summary = "유저 주문 정보 가져오기", description = "유저의 주문 정보를 가져온다.")
-    @GetMapping("/me/order")
+    @GetMapping("")
     public ResponseMessage userOrderByDate(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
@@ -32,8 +32,8 @@ public class OrderDailyFoodController {
                 .build();
     }
 
-    @PostMapping("/me/order/{spotId}")
-    public ResponseMessage userOrderByDate(Authentication authentication, BigInteger spotId, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
+    @PostMapping("/{spotId}")
+    public ResponseMessage userOrderByDate(Authentication authentication, @PathVariable BigInteger spotId, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto, spotId);
         return ResponseMessage.builder()
