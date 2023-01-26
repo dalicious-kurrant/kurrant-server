@@ -449,8 +449,9 @@ public class UserServiceImpl implements UserService {
                 ownerType = ownerTypes[1].substring(1,ownerTypes[1].length()-3);
             }
         }
+        Integer defaultType = 0;
         //CreditCard 저장을 위한 엔티티 매핑
-        CreditCardInfo creditCardInfo = creditCardInfoSaveMapper.toSaveEntity(cardNumber, user.getId(), ownerType, cardType, customerKey, billingKey, cardCompany);
+        CreditCardInfo creditCardInfo = creditCardInfoSaveMapper.toSaveEntity(cardNumber, user.getId(), ownerType, cardType, customerKey, billingKey, cardCompany, defaultType);
 
         //카드정보 저장
         creditCardInfoRepository.save(creditCardInfo);
