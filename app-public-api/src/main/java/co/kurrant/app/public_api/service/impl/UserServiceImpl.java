@@ -79,7 +79,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserHomeResponseDto getUserHomeInfo(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
-        return userHomeInfoMapper.toDto(user);
+        UserHomeResponseDto userHomeResponseDto = userHomeInfoMapper.toDto(user);
+        userHomeResponseDto.setMembershipUsingPeriod(membershipUtil.getUserPeriodOfUsingMembership(user));
+        return userHomeResponseDto;
     }
 
     @Override

@@ -50,7 +50,6 @@ public interface UserHomeInfoMapper {
     default BigInteger getGroupId(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
         Optional<UserSpot> userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny();
-        if(userSpot.isEmpty()) return null;
-        return userSpot.get().getSpot().getGroup().getId();
+        return userSpot.map(spot -> spot.getSpot().getGroup().getId()).orElse(null);
     }
 }
