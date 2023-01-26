@@ -19,7 +19,7 @@ public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.diningType.code", target = "diningType")
       @Mapping(source = "dailyFood.food.id", target = "foodId")
       @Mapping(source = "dailyFood.food.name", target = "foodName")
-      @Mapping(source = "dailyFood.foodStatus", target = "isSoldOut", qualifiedByName = "isSoldOut")
+      @Mapping(source = "dailyFood.foodStatus", target = "status", qualifiedByName = "getStatus")
       @Mapping(source = "dailyFood.spot.id", target = "spotId")
       @Mapping(source = "dailyFood.serviceDate", target = "serviceDate", qualifiedByName = "serviceDateToString")
       @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
@@ -36,9 +36,9 @@ public interface DailyFoodMapper {
       @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
       DailyFoodDto toDto(DailyFood dailyFood, DiscountDto discountDto);
 
-      @Named("isSoldOut")
-      default Boolean isSoldOut(FoodStatus foodStatus) {
-            return foodStatus.equals(FoodStatus.SOLD_OUT);
+      @Named("getStatus")
+      default Integer getStatus(FoodStatus foodStatus) {
+            return foodStatus.getCode();
       }
 
       @Named("serviceDateToString")

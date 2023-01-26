@@ -9,9 +9,10 @@ public enum FoodStatus {
 
     SOLD_OUT("판매종료", 0),
     SALES("판매중", 1),
-    REQUEST("일정요청", 2),
-    APPROVAL("일정승인", 3),
-    WAITING("등록대기", 4);
+    PASS_LAST_ORDER_TIME("주문마감", 2),
+    REQUEST("일정요청", 3),
+    APPROVAL("일정승인", 4),
+    WAITING("등록대기", 5);
 
     private final String status;
     private final Integer code;

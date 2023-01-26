@@ -92,6 +92,13 @@ public class Order {
         this.paymentType = paymentType;
     }
 
+    public Order(String code, Address address, PaymentType paymentType, User user) {
+        this.code = code;
+        this.address = address;
+        this.paymentType = paymentType;
+        this.user = user;
+    }
+
     public void updateOrderUserInfo(OrderUserInfoDto orderUserInfoDto) {
         this.address = orderUserInfoDto.getAddress();
         this.user = orderUserInfoDto.getUser();

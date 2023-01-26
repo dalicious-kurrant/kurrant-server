@@ -14,6 +14,7 @@ public class CartDailyFoodDto {
     String serviceDate;
     String diningType;
     BigDecimal supportPrice;
+    BigDecimal deliveryFee;
     List<DailyFood> cartDailyFoods;
 
     @Getter
@@ -21,6 +22,7 @@ public class CartDailyFoodDto {
     public static class DailyFood {
         BigInteger id;
         BigInteger dailyFoodId;
+        Integer status;
         String name;
         String image;
         String makers;
@@ -28,18 +30,19 @@ public class CartDailyFoodDto {
         BigDecimal price;
         BigDecimal discountedPrice;
         Integer membershipDiscountRate;
-        Integer membershipDiscountPrice;
+        BigDecimal membershipDiscountPrice;
         Integer makersDiscountRate;
-        Integer makersDiscountPrice;
+        BigDecimal makersDiscountPrice;
         Integer periodDiscountRate;
-        Integer periodDiscountPrice;
+        BigDecimal periodDiscountPrice;
     }
 
     @Builder
-    public CartDailyFoodDto(String serviceDate, String diningType, BigDecimal supportPrice, List<DailyFood> cartDailyFoods) {
+    public CartDailyFoodDto(String serviceDate, String diningType, BigDecimal supportPrice, BigDecimal deliveryFee, List<DailyFood> cartDailyFoods) {
         this.serviceDate = serviceDate;
         this.diningType = diningType;
         this.supportPrice = supportPrice;
+        this.deliveryFee = deliveryFee;
         this.cartDailyFoods = cartDailyFoods;
     }
 }

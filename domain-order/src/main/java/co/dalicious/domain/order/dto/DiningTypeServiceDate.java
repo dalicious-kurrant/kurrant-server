@@ -13,7 +13,7 @@ public class DiningTypeServiceDate {
     LocalDate serviceDate;
     DiningType diningType;
 
-    public DiningTypeServiceDate( LocalDate serviceDate, DiningType diningType) {
+    public DiningTypeServiceDate(LocalDate serviceDate, DiningType diningType) {
         this.serviceDate = serviceDate;
         this.diningType = diningType;
     }
