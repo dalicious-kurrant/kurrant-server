@@ -1,9 +1,13 @@
 package co.dalicious.domain.payment.util;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.util.Random;
 
+@Component
 public class TossUtil {
 
     public String createCustomerKey() {

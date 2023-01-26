@@ -6,7 +6,10 @@ import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
+import co.dalicious.domain.payment.dto.CreditCardResponseDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
 import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
@@ -35,6 +38,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -73,6 +77,7 @@ public class UserServiceImpl implements UserService {
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
     private final CreditCardInfoSaveMapper creditCardInfoSaveMapper;
+    private final CreditCardInfoMapper creditCardInfoMapper;
 
     @Override
     @Transactional
@@ -393,7 +398,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) {
+    public Integer saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) {
         User user = userUtil.getUser(securityUser);
 
         /*영문 대소문자, 숫자, 특수문자 -, _, =, ., @로 이루어진 최소 2자 이상 최대 300자 이하의 문자열*/
@@ -405,7 +410,6 @@ public class UserServiceImpl implements UserService {
         //TOSS에 요청하기 위한 request 객체 빌드
         HttpRequest request = tossUtil.cardRegisterRequest(saveCreditCardRequestDto.getCardNumber(), saveCreditCardRequestDto.getExpirationYear(),saveCreditCardRequestDto.getExpirationMonth(),
                                                             saveCreditCardRequestDto.getCardPassword(), identityNumber, customerKey);
-
         HttpResponse<String> response = null;
         try {
             //응답값 받아오기
@@ -416,6 +420,9 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException(e);
         }
         System.out.println(response.body() + " 바디바디");
+
+
+
         String[] strings = response.body().split(",");
         /*
         빌링키  / 카드번호 / 카드회사 / 카드타입 / 오너타입
@@ -449,18 +456,55 @@ public class UserServiceImpl implements UserService {
                 ownerType = ownerTypes[1].substring(1,ownerTypes[1].length()-3);
             }
         }
-        Integer defaultType = 0;
+        Integer defaultType = saveCreditCardRequestDto.getDefaultType();
+
+
+        //카드 등록하기전에 중복카드가 존재하는지 확인
+        List<CreditCardInfo> cardInfoList = qCreditCardInfoRepository.findAllByUserId(user.getId());
+        if (cardInfoList.size() != 0){
+            if (defaultType == null){
+                defaultType = 0;
+            }
+             for (CreditCardInfo card : cardInfoList){
+                 if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany())){
+                     return 2;
+                 }
+             }
+        }
+        //중복카드가 없고 디폴트타입이 null일 경우는 디폴트 타입으로 설정
+        if (cardInfoList.size() == 0 && defaultType == null){
+            defaultType = 1;
+        }
+
         //CreditCard 저장을 위한 엔티티 매핑
         CreditCardInfo creditCardInfo = creditCardInfoSaveMapper.toSaveEntity(cardNumber, user.getId(), ownerType, cardType, customerKey, billingKey, cardCompany, defaultType);
 
         //카드정보 저장
         creditCardInfoRepository.save(creditCardInfo);
+        return 1;
     }
 
     @Override
-    public Object getCardList(SecurityUser securityUser) {
+    public List<CreditCardResponseDto> getCardList(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
         List<CreditCardInfo> creditCardInfoList = qCreditCardInfoRepository.findAllByUserId(user.getId());
-        return creditCardInfoList;
+        //결과값 담아줄 LIST 생성
+        List<CreditCardResponseDto> resultList = new ArrayList<>();
+
+        for (CreditCardInfo creditCardInfo : creditCardInfoList){
+            CreditCardResponseDto creditCardResponseDto = creditCardInfoMapper.toDto(creditCardInfo);
+            resultList.add(creditCardResponseDto);
+
+        }
+        return resultList;
+    }
+
+    @Override
+    @Transactional
+    public void patchDefaultCard(CreditCardDefaultSettingDto creditCardDefaultSettingDto) {
+        //입력받은 ID에 해당하는 카드 조회
+        Optional<CreditCardInfo> updateCardInfo = creditCardInfoRepository.findById(creditCardDefaultSettingDto.getCardId());
+        //해당 카드를 입력받은 디폴트 번호로 수정
+        qCreditCardInfoRepository.patchDefaultCard(updateCardInfo, creditCardDefaultSettingDto.getDefaultType());
     }
 }

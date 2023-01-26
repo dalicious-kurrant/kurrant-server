@@ -3,10 +3,7 @@ package co.kurrant.app.public_api.dto.user;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigInteger;
 
 @Schema(description = "결제 카드 등록 요청 DTO")
 @Getter
@@ -24,4 +21,6 @@ public class SaveCreditCardRequestDto {
     private String identityNumber;
     @ApiParam(value = "카드 검증번호(CVC)")
     private String cardVaildationCode;
+    @ApiParam(value = "디폴트타입: 1=기본 결제카드, 2=멤버십 결제카드, 0=아무것도아닌카드")
+    private Integer defaultType;
 }

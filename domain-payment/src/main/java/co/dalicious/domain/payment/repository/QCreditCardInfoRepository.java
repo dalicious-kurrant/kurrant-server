@@ -6,8 +6,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 
 import static co.dalicious.domain.payment.entity.QCreditCardInfo.creditCardInfo;
 
@@ -46,5 +48,13 @@ public class QCreditCardInfoRepository {
         return queryFactory.selectFrom(creditCardInfo)
                 .where(creditCardInfo.user.id.eq(id))
                 .fetch();
+    }
+
+
+    public long patchDefaultCard(Optional<CreditCardInfo> updateCardInfo, Integer defaultType) {
+        return queryFactory.update(creditCardInfo)
+                .set(creditCardInfo.defaultType, defaultType)
+                .where(creditCardInfo.id.eq(updateCardInfo.get().getId()))
+                .execute();
     }
 }
