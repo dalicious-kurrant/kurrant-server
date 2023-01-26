@@ -2,10 +2,11 @@ package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
+import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.controller.food.service.UserService;
+import co.kurrant.app.public_api.controller.food.service.UserUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -149,12 +150,22 @@ public class UserController {
                 .build();
     }
 
-    @Operation(summary = "기본 결제 카드 등록", description = "기본 결제로 등록한다.")
+    @Operation(summary = "디폴트타입 변경", description = "디폴트 타입을 변경한다")
     @PatchMapping("/cards/setting")
-    public ResponseMessage patchDefaultCard(@RequestBody CreditCardDefaultSettingDto creditCardDefaultSettingDto){
-        userService.patchDefaultCard(creditCardDefaultSettingDto);
+    public ResponseMessage patchDefaultCard(Authentication authentication, @RequestBody CreditCardDefaultSettingDto creditCardDefaultSettingDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.patchDefaultCard(securityUser, creditCardDefaultSettingDto);
         return ResponseMessage.builder()
                 .message("카드 디폴트타입 변경을 완료했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "결제 카드 삭제", description = "결제 카드를 삭제한다.")
+    @DeleteMapping("/cards")
+    public ResponseMessage deleteCard(@RequestBody DeleteCreditCardDto deleteCreditCardDto){
+        userService.deleteCard(deleteCreditCardDto);
+        return ResponseMessage.builder()
+                .message("결제 카드를 삭제 했습니다.")
                 .build();
     }
 

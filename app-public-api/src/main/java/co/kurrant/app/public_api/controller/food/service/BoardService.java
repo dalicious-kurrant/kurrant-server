@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.service;
+package co.kurrant.app.public_api.controller.food.service;
 
 import co.dalicious.domain.board.entity.Alarm;
 import co.kurrant.app.public_api.dto.board.AlarmResponseDto;

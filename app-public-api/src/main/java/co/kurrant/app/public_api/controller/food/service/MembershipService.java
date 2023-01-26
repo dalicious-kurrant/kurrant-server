@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.service;
+package co.kurrant.app.public_api.controller.food.service;
 
 import co.dalicious.domain.order.dto.OrderMembershipReqDto;
 import co.dalicious.domain.order.dto.OrderMembershipResDto;

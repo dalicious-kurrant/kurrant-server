@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.service.impl;
+package co.kurrant.app.public_api.controller.food.service.impl;
 
 import co.dalicious.domain.order.dto.OrderMembershipReqDto;
 import co.dalicious.domain.order.dto.OrderMembershipResDto;
@@ -13,7 +13,6 @@ import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
 import co.dalicious.domain.order.repository.OrderItemMembershipRepository;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
 import co.dalicious.domain.order.service.DiscountPolicy;
-import co.dalicious.domain.order.service.DiscountPolicyImpl;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.domain.user.entity.*;
@@ -26,10 +25,10 @@ import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.enums.DiscountType;
 import co.dalicious.domain.user.dto.MembershipDto;
+import co.kurrant.app.public_api.controller.food.service.MembershipService;
+import co.kurrant.app.public_api.controller.food.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.repository.QMembershipRepository;
-import co.kurrant.app.public_api.service.UserUtil;
-import co.kurrant.app.public_api.service.MembershipService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.controller.order;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.kurrant.app.public_api.service.OrderDailyFoodService;
+import co.kurrant.app.public_api.controller.food.service.OrderDailyFoodService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;

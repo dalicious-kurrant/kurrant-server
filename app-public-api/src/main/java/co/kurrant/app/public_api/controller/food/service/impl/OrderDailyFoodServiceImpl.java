@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.service.impl;
+package co.kurrant.app.public_api.controller.food.service.impl;
 
 import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Spot;
@@ -7,15 +7,14 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.dto.CartDailyFoodDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
-import co.dalicious.domain.order.entity.UserSupportPriceHistory;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.util.enums.DiningType;
+import co.kurrant.app.public_api.controller.food.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.OrderDailyFoodService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.controller.food.service.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
