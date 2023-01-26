@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.controller.food.service.impl;
+package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.dto.ApartmentResponseDto;
 import co.dalicious.domain.client.entity.*;
@@ -13,9 +13,9 @@ import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
-import co.kurrant.app.public_api.controller.food.service.UserUtil;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.controller.food.service.UserClientService;
+import co.kurrant.app.public_api.service.UserClientService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;

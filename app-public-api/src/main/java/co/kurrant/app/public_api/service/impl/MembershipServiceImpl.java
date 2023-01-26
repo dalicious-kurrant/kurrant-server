@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.controller.food.service.impl;
+package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.order.dto.OrderMembershipReqDto;
 import co.dalicious.domain.order.dto.OrderMembershipResDto;
@@ -25,8 +25,8 @@ import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.enums.DiscountType;
 import co.dalicious.domain.user.dto.MembershipDto;
-import co.kurrant.app.public_api.controller.food.service.MembershipService;
-import co.kurrant.app.public_api.controller.food.service.UserUtil;
+import co.kurrant.app.public_api.service.MembershipService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.repository.QMembershipRepository;
 import exception.ApiException;

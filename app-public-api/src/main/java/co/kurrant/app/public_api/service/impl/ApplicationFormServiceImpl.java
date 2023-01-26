@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.controller.food.service.impl;
+package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.apartment.*;
@@ -7,8 +7,8 @@ import co.dalicious.domain.application_form.entity.*;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.public_api.controller.food.service.ApplicationFormService;
-import co.kurrant.app.public_api.controller.food.service.UserUtil;
+import co.kurrant.app.public_api.service.ApplicationFormService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.dto.client.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.dalicious.domain.application_form.mapper.CorporationMealInfoReqMapper;
