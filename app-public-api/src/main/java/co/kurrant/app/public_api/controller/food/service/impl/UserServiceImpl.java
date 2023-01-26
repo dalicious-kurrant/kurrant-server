@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.controller.food.service.impl;
+package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
@@ -28,8 +28,8 @@ import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.enums.RequiredAuth;
-import co.kurrant.app.public_api.controller.food.service.UserService;
-import co.kurrant.app.public_api.controller.food.service.UserUtil;
+import co.kurrant.app.public_api.service.UserService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
