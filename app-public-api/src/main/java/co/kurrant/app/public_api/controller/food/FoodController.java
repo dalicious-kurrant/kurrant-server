@@ -2,8 +2,8 @@ package co.kurrant.app.public_api.controller.food;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.FoodService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.controller.food.service.FoodService;
+import co.kurrant.app.public_api.controller.food.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

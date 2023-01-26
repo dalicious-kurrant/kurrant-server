@@ -1,14 +1,13 @@
-package co.kurrant.app.public_api.service.impl;
+package co.kurrant.app.public_api.controller.food.service.impl;
 
 import co.dalicious.domain.board.entity.Alarm;
 import co.dalicious.domain.board.entity.CustomerService;
 import co.dalicious.domain.board.entity.Notice;
-import co.dalicious.domain.board.entity.enums.AlarmBoardType;
-import co.dalicious.domain.board.repository.NoticeRepository;
 import co.dalicious.domain.board.repository.QAlarmRepository;
 import co.dalicious.domain.board.repository.QCustomerBoardRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
 import co.dalicious.domain.user.entity.User;
+import co.kurrant.app.public_api.controller.food.service.BoardService;
 import co.kurrant.app.public_api.dto.board.AlarmResponseDto;
 import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
 import co.kurrant.app.public_api.dto.board.NoticeDto;
@@ -16,8 +15,7 @@ import co.kurrant.app.public_api.mapper.board.AlarmMapper;
 import co.kurrant.app.public_api.mapper.board.CustomerServiceMapper;
 import co.kurrant.app.public_api.mapper.board.NoticeMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.BoardService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.controller.food.service.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

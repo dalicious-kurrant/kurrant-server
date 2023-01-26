@@ -1,8 +1,9 @@
-package co.kurrant.app.public_api.service;
+package co.kurrant.app.public_api.controller.food.service;
 
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
+import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -45,5 +46,7 @@ public interface UserService {
 
     List<CreditCardResponseDto> getCardList(SecurityUser securityUser);
 
-    void patchDefaultCard(CreditCardDefaultSettingDto creditCardDefaultSettingDto);
+    void patchDefaultCard(SecurityUser securityUser, CreditCardDefaultSettingDto creditCardDefaultSettingDto);
+
+    void deleteCard(DeleteCreditCardDto deleteCreditCardDto);
 }
