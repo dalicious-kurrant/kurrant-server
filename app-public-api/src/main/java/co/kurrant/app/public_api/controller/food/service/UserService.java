@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.service;
+package co.kurrant.app.public_api.controller.food.service;
 
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;

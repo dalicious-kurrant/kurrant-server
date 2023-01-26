@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.service.impl;
+package co.kurrant.app.public_api.controller.food.service.impl;
 
 import exception.ApiException;
 import exception.ExceptionEnum;

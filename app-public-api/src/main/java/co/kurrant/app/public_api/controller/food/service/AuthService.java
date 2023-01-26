@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.service;
+package co.kurrant.app.public_api.controller.food.service;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
 import co.dalicious.client.external.mail.MailMessageDto;
