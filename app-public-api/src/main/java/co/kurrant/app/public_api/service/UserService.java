@@ -40,4 +40,6 @@ public interface UserService {
     List<SpotListResponseDto> getClients(SecurityUser securityUser);
 
     void saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto);
+
+    Object getCardList(SecurityUser securityUser);
 }
