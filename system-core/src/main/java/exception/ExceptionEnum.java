@@ -19,6 +19,10 @@ public enum ExceptionEnum {
 	IS_NOT_APPROPRIATE_EMPLOYEE_COUNT(HttpStatus.BAD_REQUEST, "E4000007", "사원의 수는 0 이상이어야합니다."),
 	LAST_ORDER_TIME_PASSED(HttpStatus.BAD_REQUEST, "E4000008", "상품 주문 가능시간이 지났습니다."),
 	SOLD_OUT(HttpStatus.BAD_REQUEST, "E4000009", "품절된 상품입니다."),
+	NOT_MATCHED_PRICE(HttpStatus.BAD_REQUEST, "E4000010", "금액이 일치하지 않습니다."),
+	NOT_MATCHED_DELIVERY_FEE(HttpStatus.BAD_REQUEST, "E4000011", "배송비가 일치하지 않습니다."),
+	NOT_MATCHED_SUPPORT_PRICE(HttpStatus.BAD_REQUEST, "E4000012", "회사 지원금이 일치하지 않습니다."),
+	NOT_MATCHED_ITEM_COUNT(HttpStatus.BAD_REQUEST, "E4000012", "요청 수량이 일치하지 않습니다"),
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
 	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "비밀번호가 일치하지 않습니다."),

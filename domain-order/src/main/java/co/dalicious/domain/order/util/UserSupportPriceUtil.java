@@ -50,4 +50,14 @@ public class UserSupportPriceUtil {
                 .endDate(latestServiceDate)
                 .build();
     }
+
+    public static BigDecimal getUsableSupportPrice(BigDecimal itemPrice, BigDecimal usableSupportPrice) {
+        if(itemPrice.compareTo(usableSupportPrice) <= 0) {
+            return itemPrice;
+        }
+        else {
+            return usableSupportPrice;
+        }
+
+    }
 }

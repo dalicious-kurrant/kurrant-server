@@ -339,6 +339,8 @@ public class MembershipServiceImpl implements MembershipService {
         List<Membership> memberships = membershipRepository.findAll(specification, sort);
         List<OrderItemMembership> orderItemMemberships = orderItemMembershipRepository.findAllByMembership(memberships);
 
+        // 멤버십 종료 날짜의 내림차순으로 멤버십 이용내역을 반환한다.
+        Collections.reverse(orderItemMemberships);
         List<MembershipDto> membershipDtos = new ArrayList<>();
         int membershipUsingPeriod = 0;
         for (OrderItemMembership orderItemMembership : orderItemMemberships) {
@@ -347,8 +349,6 @@ public class MembershipServiceImpl implements MembershipService {
             MembershipDto membershipDto = orderMembershipResMapper.toDto(orderItemMembership, membershipUsingPeriod);
             membershipDtos.add(membershipDto);
         }
-        // 멤버십 종료 날짜의 내림차순으로 멤버십 이용내역을 반환한다.
-        Collections.reverse(membershipDtos);
         return membershipDtos;
     }
 

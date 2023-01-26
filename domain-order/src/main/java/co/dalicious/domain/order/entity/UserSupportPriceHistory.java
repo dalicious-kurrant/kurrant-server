@@ -6,6 +6,7 @@ import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -70,4 +71,15 @@ public class  UserSupportPriceHistory {
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
+
+    @Builder
+    public UserSupportPriceHistory(User user, Group group, BigDecimal usingSupportPrice, LocalDate serviceDate, DiningType diningType, OrderItem orderItem, Boolean status) {
+        this.user = user;
+        this.group = group;
+        this.usingSupportPrice = usingSupportPrice;
+        this.serviceDate = serviceDate;
+        this.diningType = diningType;
+        this.orderItem = orderItem;
+        this.status = status;
+    }
 }

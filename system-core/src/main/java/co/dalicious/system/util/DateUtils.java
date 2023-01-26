@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 
 public class DateUtils {
     public static String toISO(Date date) {
@@ -48,5 +49,10 @@ public class DateUtils {
 
     public static String timeToString(LocalTime time) {
         return time.format(DateTimeFormatter.ofPattern("HH:mm"));
+    }
+
+    public static LocalDate stringToDate(String strLocalDate) {
+        String[] stringList = strLocalDate.split("-");
+        return LocalDate.of(Integer.parseInt(stringList[0]),Integer.parseInt(stringList[1]), Integer.parseInt(stringList[2]));
     }
 }

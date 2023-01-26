@@ -53,18 +53,18 @@ public class OrderItemDailyFood extends OrderItem{
 
     @Column(name = "makers_discounted_rate")
     @Comment("메이커스 할인율")
-    private Integer makersDiscountedRate;
+    private Integer makersDiscountRate;
 
     @Column(name = "membership_discounted_rate")
     @Comment("멤버십 할인율")
-    private Integer membershipDiscountedRate;
+    private Integer membershipDiscountRate;
 
     @Column(name = "period_discounted_rate")
     @Comment("기간 할인율")
-    private Integer periodDiscountedRate;
+    private Integer periodDiscountRate;
 
     @Builder
-    public OrderItemDailyFood(OrderStatus orderStatus, Order order, LocalDate serviceDate, DiningType diningType, Food food, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountedRate, Integer membershipDiscountedRate, Integer periodDiscountedRate) {
+    public OrderItemDailyFood(OrderStatus orderStatus, Order order, LocalDate serviceDate, DiningType diningType, Food food, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountRate, Integer membershipDiscountRate, Integer periodDiscountRate) {
         super(orderStatus, order);
         this.serviceDate = serviceDate;
         this.diningType = diningType;
@@ -73,8 +73,8 @@ public class OrderItemDailyFood extends OrderItem{
         this.price = price;
         this.discountedPrice = discountedPrice;
         this.count = count;
-        this.makersDiscountedRate = makersDiscountedRate;
-        this.membershipDiscountedRate = membershipDiscountedRate;
-        this.periodDiscountedRate = periodDiscountedRate;
+        this.makersDiscountRate = makersDiscountRate;
+        this.membershipDiscountRate = membershipDiscountRate;
+        this.periodDiscountRate = periodDiscountRate;
     }
 }

@@ -12,6 +12,7 @@ import co.dalicious.domain.order.mapper.CartDailyFoodMapper;
 import co.dalicious.domain.order.mapper.CartDailyFoodsResMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
+import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
@@ -100,7 +101,6 @@ public class CartServiceImpl implements CartService {
         //결과값 저장을 위한 LIST 생성
         MultiValueMap<Spot, CartDailyFood> spotDailyFoodMap = new LinkedMultiValueMap<>();
         List<CartResDto.SpotCarts> spotCartsList = new ArrayList<>();
-        BigDecimal totalDeliveryFee = BigDecimal.ZERO;
 
         // 유저 정보로 카드 정보 불러와서 카트에 담긴 아이템 찾기
         List<CartDailyFood> cartDailyFoods = cartDailyFoodRepository.findAllByUser(user);
@@ -129,6 +129,7 @@ public class CartServiceImpl implements CartService {
                 cartDailyFoodMap.add(diningTypeServiceDate, cartDailyFood);
                 // CartDailyFood Dto화
                 DiscountDto discountDto = DiscountDto.getDiscount(cartDailyFood.getDailyFood().getFood());
+                OrderUtil.checkMembershipAndUpdateDiscountDto(user, group, discountDto);
                 CartDailyFoodDto.DailyFood dailyFood = cartDailyFoodsResMapper.toDto(cartDailyFood, discountDto);
                 cartDailyFoodDtoMap.add(diningTypeServiceDate, dailyFood);
             }
@@ -139,8 +140,7 @@ public class CartServiceImpl implements CartService {
             // 배송비 및 지원금 계산
             for (DiningTypeServiceDate diningTypeServiceDate : diningTypeServiceDates) {
                 BigDecimal supportPrice = BigDecimal.ZERO;
-                // 배송비 가져오기
-                totalDeliveryFee = totalDeliveryFee.add(deliveryFeePolicy.getGroupDeliveryFee(user, group));
+                BigDecimal deliveryFee = deliveryFeePolicy.getGroupDeliveryFee(user, group);
                 // 사용 가능한 지원금 가져오기
                 if(spot instanceof CorporationSpot) {
                     supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, diningTypeServiceDate.getDiningType());
@@ -152,6 +152,7 @@ public class CartServiceImpl implements CartService {
                         .serviceDate(DateUtils.format(diningTypeServiceDate.getServiceDate(), "yyyy-MM-dd"))
                         .diningType(diningTypeServiceDate.getDiningType().getDiningType())
                         .supportPrice(supportPrice)
+                        .deliveryFee(deliveryFee)
                         .cartDailyFoods(cartDailyFoodDtoMap.get(diningTypeServiceDate))
                         .build();
                 cartDailyFoodListDtos.add(cartDailyFoodDto);
@@ -169,7 +170,6 @@ public class CartServiceImpl implements CartService {
         return CartResDto.builder()
                 .spotCarts(spotCartsList)
                 .userPoint(user.getPoint())
-                .deliveryFee(totalDeliveryFee)
                 .build();
     }
 

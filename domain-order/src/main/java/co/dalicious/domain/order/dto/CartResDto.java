@@ -14,13 +14,11 @@ import java.util.List;
 @Schema(description = "장바구니 응답 DTO")
 public class CartResDto {
     List<SpotCarts> spotCarts;
-    BigDecimal deliveryFee;
     BigDecimal userPoint;
 
     @Builder
-    public CartResDto(List<SpotCarts> spotCarts, BigDecimal deliveryFee, BigDecimal userPoint) {
+    public CartResDto(List<SpotCarts> spotCarts, BigDecimal userPoint) {
         this.spotCarts = spotCarts;
-        this.deliveryFee = deliveryFee;
         this.userPoint = userPoint;
     }
 

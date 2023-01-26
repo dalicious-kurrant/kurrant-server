@@ -15,7 +15,7 @@ public class DailyFoodDto {
     private Integer diningType;
     private BigInteger foodId;
     private String foodName;
-    private Boolean isSoldOut;
+    private Integer status;
     private BigInteger spotId;
     private String serviceDate;
     private String makersName;

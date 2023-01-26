@@ -70,9 +70,7 @@ public class OrderUtil {
     }
 
     public static void checkMembershipAndUpdateDiscountDto(User user, Group group, DiscountDto discountDto) {
-        if(!isMembership(user, group)) {
-            discountDto.updateMembershipDiscount(BigDecimal.ZERO, 0);
-        }
+       discountDto.isMembership(isMembership(user, group));
     }
 
 }

@@ -1,7 +1,7 @@
 package co.dalicious.domain.order.repository;
 
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.order.entity.UserSupportPriceHistory;
-import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +21,15 @@ public class QUserSupportPriceHistoryRepository {
         return queryFactory
                 .selectFrom(userSupportPriceHistory)
                 .where(userSupportPriceHistory.user.eq(user),
+                        userSupportPriceHistory.serviceDate.between(startDate,endDate))
+                .fetch();
+    }
+
+    public List<UserSupportPriceHistory> findAllUserSupportPriceHistoryBySpotBetweenServiceDate(User user, Group group, LocalDate startDate, LocalDate endDate) {
+        return queryFactory
+                .selectFrom(userSupportPriceHistory)
+                .where(userSupportPriceHistory.user.eq(user),
+                        userSupportPriceHistory.group.eq(group),
                         userSupportPriceHistory.serviceDate.between(startDate,endDate))
                 .fetch();
     }
