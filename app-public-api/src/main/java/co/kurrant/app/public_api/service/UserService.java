@@ -1,6 +1,8 @@
 package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.client.dto.SpotListResponseDto;
+import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
+import co.dalicious.domain.payment.dto.CreditCardResponseDto;
 import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -39,5 +41,9 @@ public interface UserService {
     // 유저가 속한 그룹 정보 리스트
     List<SpotListResponseDto> getClients(SecurityUser securityUser);
 
-    void saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto);
+    Integer saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto);
+
+    List<CreditCardResponseDto> getCardList(SecurityUser securityUser);
+
+    void patchDefaultCard(CreditCardDefaultSettingDto creditCardDefaultSettingDto);
 }

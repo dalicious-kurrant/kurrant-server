@@ -63,6 +63,7 @@ public class MembershipServiceImpl implements MembershipService {
     @Transactional
     public void joinMembership(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto) {
         User user = userUtil.getUser(securityUser);
+        // TODO: 현재, 멤버십을 중복 가입할 수 있게 만들어졌지만, 수정 필요
         // 금액 정보가 일치하는지 확인
         MembershipSubscriptionType membershipSubscriptionType = MembershipSubscriptionType.ofCode(orderMembershipReqDto.getSubscriptionType());
         // 1. 기본 가격이 일치하는지 확인
@@ -83,16 +84,12 @@ public class MembershipServiceImpl implements MembershipService {
         }
 
         // 이 사람이 기존에 멤버십을 가입했는 지 확인
-        // TODO: 현재, 멤버십을 중복 가입할 수 있게 만들어졌지만, 수정 필요
         PeriodDto periodDto = null;
         if (user.getIsMembership()) {
             List<Membership> memberships = membershipRepository.findAllByUserOrderByEndDateDesc(user);
             if (memberships != null && !memberships.isEmpty()) {
                 Membership recentMembership = memberships.get(0);
                 LocalDate currantEndDate = recentMembership.getEndDate();
-                if(LocalDate.now().isBefore(currantEndDate)) {
-                    throw new ApiException(ExceptionEnum.ALREADY_EXISTING_MEMBERSHIP);
-                }
                 // 구독 타입에 따라 기간 정하기
                 periodDto = (membershipSubscriptionType.equals(MembershipSubscriptionType.MONTH)) ?
                         MembershipUtil.getStartAndEndDateMonthly(currantEndDate) :

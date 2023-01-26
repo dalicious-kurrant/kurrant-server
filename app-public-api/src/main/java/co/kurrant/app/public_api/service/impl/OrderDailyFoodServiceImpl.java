@@ -9,13 +9,6 @@ import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.CartDailyFoodDto;
 import co.dalicious.domain.order.dto.DiningTypeServiceDate;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
-import co.dalicious.domain.order.entity.*;
-import co.dalicious.domain.order.mapper.OrderDailyFoodItemMapper;
-import co.dalicious.domain.order.mapper.OrderDailyFoodMapper;
-import co.dalicious.domain.order.mapper.UserSupportPriceHistoryReqMapper;
-import co.dalicious.domain.order.repository.*;
-import co.dalicious.domain.order.service.DeliveryFeePolicy;
-import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
@@ -112,7 +105,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 // 기존에 사용한 지원금이 있다면 차감
                 BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()));
                 supportPrice = supportPrice.subtract(usedSupportPrice);
-            }
             if(cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
                 throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
             }
