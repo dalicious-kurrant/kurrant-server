@@ -1,11 +1,16 @@
 package co.dalicious.client.oauth;
 
 import co.dalicious.domain.user.entity.enums.Provider;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
 
 @Service
 public class SnsLoginServiceImpl implements SnsLoginService{
@@ -113,6 +118,25 @@ public class SnsLoginServiceImpl implements SnsLoginService{
 
     @Override
     public SnsLoginResponseDto getFacebookLoginUserInfo(String accessToken) {
+        return null;
+    }
+
+    public Payload decodeFromIdToken(String id_token) {
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(id_token);
+            JWTClaimsSet getPayload = SignedJWT.parse(id_token).getJWTClaimsSet();
+            ObjectMapper objectMapper = new ObjectMapper();
+            Payload payload = objectMapper.readValue(getPayload.toJSONObject().toString(), Payload.class);
+            System.out.println(payload);
+
+            if (payload != null) {
+                return payload;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return null;
     }
 }
