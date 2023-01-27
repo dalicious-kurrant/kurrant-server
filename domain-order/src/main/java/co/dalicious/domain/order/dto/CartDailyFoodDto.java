@@ -10,6 +10,7 @@ import java.util.List;
 @Schema(description = "장바구니 조회 DTO")
 @Getter
 @Setter
+@NoArgsConstructor
 public class CartDailyFoodDto {
     String serviceDate;
     String diningType;
@@ -19,6 +20,7 @@ public class CartDailyFoodDto {
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class DailyFood {
         BigInteger id;
         BigInteger dailyFoodId;

@@ -20,6 +20,7 @@ import co.dalicious.domain.order.repository.OrderDailyFoodRepository;
 import co.dalicious.domain.order.repository.OrderItemDailyFoodRepository;
 import co.dalicious.domain.order.repository.QCartDailyFoodRepository;
 import co.dalicious.domain.order.repository.UserSupportPriceHistoryRepository;
+import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
@@ -89,12 +90,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         // 프론트에서 제공한 정보와 실제 정보가 일치하는지 확인
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 배송비 일치 점증 및 배송비 계산
-            if(cartDailyFoodDto.getDeliveryFee().compareTo(deliveryFeePolicy.getGroupDeliveryFee(user, group)) != 0) {
+            if (cartDailyFoodDto.getDeliveryFee().compareTo(deliveryFeePolicy.getGroupDeliveryFee(user, group)) != 0) {
                 throw new ApiException(ExceptionEnum.NOT_MATCHED_DELIVERY_FEE);
             }
             totalDeliveryFee = totalDeliveryFee.add(cartDailyFoodDto.getDeliveryFee());
 
-            diningTypeServiceDates.add(new DiningTypeServiceDate(DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofCode(Integer.parseInt(cartDailyFoodDto.getDiningType()))));
+            diningTypeServiceDates.add(new DiningTypeServiceDate(DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType())));
             for (CartDailyFoodDto.DailyFood dailyFood : cartDailyFoodDto.getCartDailyFoods()) {
                 cartDailyFoodIds.add(dailyFood.getId());
             }
@@ -110,28 +111,40 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 2. 주문 음식 가격이 일치하는지 검증 및 주문 저장
+            // 2. 유저 사용가능 지원금 일치 검증
+            BigDecimal supportPrice = BigDecimal.ZERO;
+            if (spot instanceof CorporationSpot) {
+                supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, DiningType.ofString(cartDailyFoodDto.getDiningType()));
+                // 기존에 사용한 지원금이 있다면 차감
+                BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()));
+                supportPrice = supportPrice.subtract(usedSupportPrice);
+                if (cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
+                    throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
+                }
+            }
+            // 3. 주문 음식 가격이 일치하는지 검증 및 주문 저장
             for (CartDailyFoodDto.DailyFood cartDailyFood : cartDailyFoodDto.getCartDailyFoods()) {
                 CartDailyFood selectedCartDailyFood = cartDailyFoods.stream().filter(v -> v.getId().equals(cartDailyFood.getId()))
                         .findAny()
                         .orElseThrow(() -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND));
                 // 주문 수량이 일치하는지 확인
-                if(!selectedCartDailyFood.getCount().equals(cartDailyFood.getCount())) {
+                if (!selectedCartDailyFood.getCount().equals(cartDailyFood.getCount())) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_ITEM_COUNT);
                 }
                 // 멤버십에 가입하지 않은 경우 멤버십 할인이 적용되지 않은 가격으로 보임
                 DiscountDto discountDto = DiscountDto.getDiscount(selectedCartDailyFood.getDailyFood().getFood());
                 OrderUtil.checkMembershipAndUpdateDiscountDto(user, group, discountDto);
                 // 금액 일치 확인
-                if(cartDailyFood.getDiscountedPrice().compareTo(FoodUtil.getFoodTotalDiscountedPrice(selectedCartDailyFood.getDailyFood().getFood(), discountDto)) != 0) {
+                if (cartDailyFood.getDiscountedPrice().compareTo(FoodUtil.getFoodTotalDiscountedPrice(selectedCartDailyFood.getDailyFood().getFood(), discountDto)) != 0) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }
-                if(cartDailyFood.getPrice().compareTo(selectedCartDailyFood.getDailyFood().getFood().getPrice()) != 0 ||
-                    cartDailyFood.getMakersDiscountRate().compareTo(discountDto.getMakersDiscountRate()) != 0 ||
-                    cartDailyFood.getMakersDiscountPrice().compareTo(discountDto.getMakersDiscountPrice()) != 0 ||
-                    cartDailyFood.getMembershipDiscountRate().compareTo(discountDto.getMembershipDiscountRate()) != 0 ||
-                    cartDailyFood.getMembershipDiscountPrice().compareTo(discountDto.getMembershipDiscountPrice()) != 0 ||
-                    cartDailyFood.getPeriodDiscountRate().compareTo(discountDto.getPeriodDiscountRate()) != 0 ||
-                    cartDailyFood.getPeriodDiscountPrice().compareTo(discountDto.getPeriodDiscountPrice()) != 0
+                if (cartDailyFood.getPrice().compareTo(selectedCartDailyFood.getDailyFood().getFood().getPrice()) != 0 ||
+                        cartDailyFood.getMakersDiscountRate().compareTo(discountDto.getMakersDiscountRate()) != 0 ||
+                        cartDailyFood.getMakersDiscountPrice().compareTo(discountDto.getMakersDiscountPrice()) != 0 ||
+                        cartDailyFood.getMembershipDiscountRate().compareTo(discountDto.getMembershipDiscountRate()) != 0 ||
+                        cartDailyFood.getMembershipDiscountPrice().compareTo(discountDto.getMembershipDiscountPrice()) != 0 ||
+                        cartDailyFood.getPeriodDiscountRate().compareTo(discountDto.getPeriodDiscountRate()) != 0 ||
+                        cartDailyFood.getPeriodDiscountPrice().compareTo(discountDto.getPeriodDiscountPrice()) != 0
                 ) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }
@@ -163,6 +176,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
         }
         qCartDailyFoodRepository.deleteByCartDailyFoodList(cartDailyFoods);
+
+        // TODO: 포인트 사용, 전체 지원금 검증
     }
 
     @Override

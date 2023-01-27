@@ -4,7 +4,6 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.dto.ApartmentRequestDto;
 import co.dalicious.domain.client.dto.CorporationRequestDto;
 import co.dalicious.domain.client.service.ClientService;
-import co.kurrant.app.public_api.service.UserClientService;
 import co.kurrant.app.public_api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
