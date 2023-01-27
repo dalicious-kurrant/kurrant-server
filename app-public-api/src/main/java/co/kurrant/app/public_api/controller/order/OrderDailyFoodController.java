@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
-@Tag(name = "6. Group")
+@Tag(name = "3. Order")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/users/me/orders")
 @RestController

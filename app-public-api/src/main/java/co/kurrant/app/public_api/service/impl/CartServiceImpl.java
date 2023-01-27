@@ -118,14 +118,12 @@ public class CartServiceImpl implements CartService {
             Group group = spot.getGroup();
             // 식사일정(DiningType), 날짜별(serviceDate)로 장바구니 아이템 구분하기
             List<CartDailyFoodDto> cartDailyFoodListDtos = new ArrayList<>();
-            MultiValueMap<DiningTypeServiceDate, CartDailyFood> cartDailyFoodMap = new LinkedMultiValueMap<>();
             MultiValueMap<DiningTypeServiceDate, CartDailyFoodDto.DailyFood> cartDailyFoodDtoMap = new LinkedMultiValueMap<>();
-            List<DiningTypeServiceDate> diningTypeServiceDates = new ArrayList<>();
+            Set<DiningTypeServiceDate> diningTypeServiceDates = new HashSet<>();
             for (CartDailyFood cartDailyFood : Objects.requireNonNull(spotDailyFoodMap.get(spot))) {
                 // 식사일정과 날짜 기준으로 DailyFood 매핑
                 DiningTypeServiceDate diningTypeServiceDate = new DiningTypeServiceDate(cartDailyFood.getDailyFood().getServiceDate(), cartDailyFood.getDailyFood().getDiningType());
                 diningTypeServiceDates.add(diningTypeServiceDate);
-                cartDailyFoodMap.add(diningTypeServiceDate, cartDailyFood);
                 // CartDailyFood Dto화
                 DiscountDto discountDto = DiscountDto.getDiscount(cartDailyFood.getDailyFood().getFood());
                 OrderUtil.checkMembershipAndUpdateDiscountDto(user, group, discountDto);

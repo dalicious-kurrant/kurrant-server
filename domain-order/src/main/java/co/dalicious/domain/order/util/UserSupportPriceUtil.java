@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -36,7 +37,7 @@ public class UserSupportPriceUtil {
         }
         return usedSupportPrice;
     }
-    public PeriodDto getEarliestAndLatestServiceDate(List<DiningTypeServiceDate> diningTypeServiceDates) {
+    public PeriodDto getEarliestAndLatestServiceDate(Set<DiningTypeServiceDate> diningTypeServiceDates) {
         // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
         LocalDate earliestServiceDate = diningTypeServiceDates.stream()
                 .min(Comparator.comparing(DiningTypeServiceDate::getServiceDate))
