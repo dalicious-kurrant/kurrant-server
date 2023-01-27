@@ -9,6 +9,19 @@ import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.CartDailyFoodDto;
 import co.dalicious.domain.order.dto.DiningTypeServiceDate;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
+import co.dalicious.domain.order.entity.CartDailyFood;
+import co.dalicious.domain.order.entity.OrderDailyFood;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.UserSupportPriceHistory;
+import co.dalicious.domain.order.mapper.OrderDailyFoodItemMapper;
+import co.dalicious.domain.order.mapper.OrderDailyFoodMapper;
+import co.dalicious.domain.order.mapper.UserSupportPriceHistoryReqMapper;
+import co.dalicious.domain.order.repository.OrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.OrderItemDailyFoodRepository;
+import co.dalicious.domain.order.repository.QCartDailyFoodRepository;
+import co.dalicious.domain.order.repository.UserSupportPriceHistoryRepository;
+import co.dalicious.domain.order.service.DeliveryFeePolicy;
+import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
@@ -88,7 +101,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
-        PeriodDto periodDto = userSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDates);
+//        PeriodDto periodDto = userSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDates);
 
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
@@ -96,21 +109,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot));
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
-<<<<<<< Updated upstream
-            // 2. 유저 사용가능 지원금 일치 검증
-            BigDecimal supportPrice = BigDecimal.ZERO;
-            if(spot instanceof CorporationSpot) {
-                supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, DiningType.ofCode(Integer.parseInt(cartDailyFoodDto.getDiningType())));
-                // 기존에 사용한 지원금이 있다면 차감
-                BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()));
-                supportPrice = supportPrice.subtract(usedSupportPrice);
-            if(cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
-                throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
-            }
-            // 3. 주문 음식 가격이 일치하는지 검증 및 주문 저장
-=======
             // 2. 주문 음식 가격이 일치하는지 검증 및 주문 저장
->>>>>>> Stashed changes
             for (CartDailyFoodDto.DailyFood cartDailyFood : cartDailyFoodDto.getCartDailyFoods()) {
                 CartDailyFood selectedCartDailyFood = cartDailyFoods.stream().filter(v -> v.getId().equals(cartDailyFood.getId()))
                         .findAny()
