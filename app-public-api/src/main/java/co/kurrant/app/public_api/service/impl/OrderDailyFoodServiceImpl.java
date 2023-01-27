@@ -61,6 +61,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
     private final UserSupportPriceHistoryReqMapper userSupportPriceHistoryReqMapper;
     private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
+    private final QUserSupportPriceHistoryRepository qUserSupportPriceHistoryRepository;
 
     @Override
     @Transactional
@@ -102,7 +103,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
-//        PeriodDto periodDto = userSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDates);
+        PeriodDto periodDto = userSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDates);
 
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
@@ -111,6 +112,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 2. 주문 음식 가격이 일치하는지 검증 및 주문 저장
+            List<UserSupportPriceHistory> userSupportPriceHistories = qUserSupportPriceHistoryRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
             // 2. 유저 사용가능 지원금 일치 검증
             BigDecimal supportPrice = BigDecimal.ZERO;
             if (spot instanceof CorporationSpot) {
@@ -150,20 +152,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
                 OrderItemDailyFood orderItemDailyFood = orderDailyFoodItemMapper.toEntity(cartDailyFood, selectedCartDailyFood, orderDailyFood);
                 orderItemDailyFoodRepository.save(orderItemDailyFood);
-
-                // 3. 유저 사용가능 지원금 일치 검증
-                BigDecimal supportPrice = BigDecimal.ZERO;
-
-                if (spot instanceof CorporationSpot) {
-                    List<UserSupportPriceHistory> userSupportPriceHistories = userSupportPriceHistoryRepository.findAllByUserAndGroupAndServiceDate(user, group, orderItemDailyFood.getServiceDate());
-                    supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, DiningType.ofString(cartDailyFoodDto.getDiningType()));
-                    // 기존에 사용한 지원금이 있다면 차감
-                    BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()));
-                    supportPrice = supportPrice.subtract(usedSupportPrice);
-                    if (cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
-                        throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
-                    }
-                }
 
                 defaultPrice = defaultPrice.add(selectedCartDailyFood.getDailyFood().getFood().getPrice());
                 BigDecimal dailyFoodPrice = cartDailyFood.getPrice().subtract(cartDailyFood.getDiscountedPrice()).multiply(BigDecimal.valueOf(cartDailyFood.getCount()));
