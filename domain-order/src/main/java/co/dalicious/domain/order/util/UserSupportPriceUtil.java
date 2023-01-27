@@ -28,10 +28,10 @@ public class UserSupportPriceUtil {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
         return mealInfo.getSupportPrice();
     }
-    public BigDecimal getUsedSupportPrice(List<UserSupportPriceHistory> userSupportPriceHistories, LocalDate serviceDate) {
+    public BigDecimal getUsedSupportPrice(List<UserSupportPriceHistory> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
         BigDecimal usedSupportPrice = BigDecimal.ZERO;
         for (UserSupportPriceHistory userSupportPriceHistory : userSupportPriceHistories) {
-            if(userSupportPriceHistory.getServiceDate().equals(serviceDate)) {
+            if(userSupportPriceHistory.getServiceDate().equals(serviceDate) && userSupportPriceHistory.getDiningType().equals(diningType)) {
                 usedSupportPrice = usedSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
             }
         }

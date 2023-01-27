@@ -85,7 +85,7 @@ public class MembershipServiceImpl implements MembershipService {
         // 이 사람이 기존에 멤버십을 가입했는 지 확인
         PeriodDto periodDto = null;
         if (user.getIsMembership()) {
-            List<Membership> memberships = membershipRepository.findAllByUserOrderByEndDateDesc(user);
+            List<Membership> memberships = membershipRepository.findAllByUserOrderByCreatedDateTimeDesc(user);
             if (memberships != null && !memberships.isEmpty()) {
                 Membership recentMembership = memberships.get(0);
                 LocalDate currantEndDate = recentMembership.getEndDate();

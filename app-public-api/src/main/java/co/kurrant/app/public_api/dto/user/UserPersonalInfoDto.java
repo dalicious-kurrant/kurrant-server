@@ -16,7 +16,7 @@ public class UserPersonalInfoDto {
     private String email;
     private String avatar;
     private List<ProviderEmailDto> providerEmails;
-    private Integer usingMembershipPeriod;
+    private Integer membershipPeriod;
 
     public void hasGeneralProvider(Boolean hasGeneralProvider) {
         this.hasGeneralProvider = hasGeneralProvider;

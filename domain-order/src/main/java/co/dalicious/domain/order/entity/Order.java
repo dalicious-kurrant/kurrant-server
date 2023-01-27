@@ -108,15 +108,15 @@ public class Order {
         this.defaultPrice = defaultPrice;
     }
 
-    public void setPoint(BigDecimal point) {
+    public void updatePoint(BigDecimal point) {
         this.point = point;
     }
 
-    public void setPaymentType(PaymentType paymentType) {
+    public void updatePaymentType(PaymentType paymentType) {
         this.paymentType = paymentType;
     }
 
-    public void setUser(User user) {
+    public void updateUser(User user) {
         this.user = user;
     }
 

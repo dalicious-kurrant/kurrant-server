@@ -183,4 +183,8 @@ public class User {
     public void changeMembershipStatus(Boolean isMembership) {
       this.isMembership = isMembership;
     }
+
+    public void updatePoint(BigDecimal point) {
+        this.point = point;
+    }
 }
