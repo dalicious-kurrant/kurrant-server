@@ -21,6 +21,8 @@ import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
+import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
+import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
@@ -36,8 +38,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -48,6 +52,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final UserUtil userUtil;
+    private final TossUtil tossUtil;
     private final SpotRepository spotRepository;
     private final QCartDailyFoodRepository qCartDailyFoodRepository;
     private final UserSupportPriceUtil userSupportPriceUtil;
@@ -55,6 +60,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderDailyFoodMapper orderDailyFoodMapper;
     private final OrderDailyFoodItemMapper orderDailyFoodItemMapper;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
+    private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
     private final UserSupportPriceHistoryReqMapper userSupportPriceHistoryReqMapper;
     private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
@@ -178,7 +184,16 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
         BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getUserPoint());
         // TODO: 결제 모듈 구현시  수정
+        // cardId로 customerKey를 가져오기
+        String customerKey = qCreditCardInfoRepository.findCustomerKeyByCardId(orderItemDailyFoodReqDto.getCardId());
+        //orderName 생성
+        String orderName = makeOrderName(cartDailyFoods);
+
         try {
+            HttpResponse<String> stringHttpResponse = tossUtil.payToCard(customerKey, payPrice.intValue(), orderDailyFood.getCode(), orderName);
+            System.out.println(stringHttpResponse + "결제 Response값");
+
+
             int statusCode = requestPayment(orderDailyFood.getCode(), payPrice, 200);
             // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
             if (statusCode == 200) {
@@ -205,6 +220,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
             }
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+        } catch (IOException e) {
+            throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
         qCartDailyFoodRepository.deleteByCartDailyFoodList(cartDailyFoods);
@@ -241,5 +260,19 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     // TODO: 결제 모듈 구현시 수정
     public int requestPayment(String paymentCode, BigDecimal price, int statusCode) {
         return statusCode;
+    }
+
+    //orderName생성
+    private String makeOrderName(List<CartDailyFood> cartDailyFoods){
+        //장바구니에 담긴 아이템이 1개라면 상품명을 그대로 리턴
+        if (cartDailyFoods.size() == 1){
+            return cartDailyFoods.get(0).getDailyFood().getFood().getName();
+        }
+
+        //장바구니에 담긴 아이템이 2개 이상이라면 "상품명 외 size-1 건"
+        String firstFoodName = cartDailyFoods.get(0).getDailyFood().getFood().getName();
+        Integer foodSize = cartDailyFoods.size() - 1;
+        String orderName = firstFoodName + "외" + foodSize + "건";
+        return orderName;
     }
 }

@@ -2,14 +2,12 @@ package co.dalicious.domain.payment.repository;
 
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.user.entity.User;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
 
 import static co.dalicious.domain.payment.entity.QCreditCardInfo.creditCardInfo;
 
@@ -121,5 +119,12 @@ public class QCreditCardInfoRepository {
                         creditCardInfo.user.id.eq(userId),
                         creditCardInfo.id.ne(cardId))
                 .execute();
+    }
+
+    public String findCustomerKeyByCardId(BigInteger cardId) {
+        return queryFactory
+                .select(creditCardInfo.customerKey)
+                .where(creditCardInfo.id.eq(cardId))
+                .fetchOne();
     }
 }

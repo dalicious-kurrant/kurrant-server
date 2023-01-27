@@ -3,8 +3,11 @@ package co.dalicious.domain.payment.util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Random;
 
 @Component
@@ -33,6 +36,16 @@ public class TossUtil {
                 .header("Content-Type", "application/json")
                 .method("POST", HttpRequest.BodyPublishers.ofString("{\"cardNumber\":\""+cardNumber+"\",\"cardExpirationYear\":\""+expirationYear+"\",\"cardExpirationMonth\":\""+expirationMonth+"\",\"cardPassword\":\""+cardPassword+"\",\"customerIdentityNumber\":\""+identityNumber+"\",\"customerKey\":\""+customerKey+"\"}"))
                 .build();
+    }
+
+    public HttpResponse<String> payToCard(String customerKey, Integer amount,String orderId, String orderName) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.tosspayments.com/v1/billing/{billingKey}"))
+                .header("Authorization", "Basic dGVzdF9za19ZWjFhT3dYN0s4bWdwYnEyUjRRVnlReHp2TlBHOg==")
+                .header("Content-Type", "application/json")
+                .method("POST", HttpRequest.BodyPublishers.ofString("{\"customerKey\":\""+customerKey+"\",\"amount\":"+amount+",\"orderId\":\""+orderId+"\",\"orderName\":\""+orderName+"\"}"))
+                .build();
+       return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
     }
 
 }
