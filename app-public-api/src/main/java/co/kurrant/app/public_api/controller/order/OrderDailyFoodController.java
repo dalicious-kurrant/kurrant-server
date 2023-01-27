@@ -37,7 +37,7 @@ public class OrderDailyFoodController {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto, spotId);
         return ResponseMessage.builder()
-                .message("주문 불러오기에 성공하였습니다.")
+                .message("식사 주문에 성공하였습니다.")
                 .build();
     }
 }

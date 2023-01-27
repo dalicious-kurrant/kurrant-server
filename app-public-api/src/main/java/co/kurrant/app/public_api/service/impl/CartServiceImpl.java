@@ -17,6 +17,7 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
+import co.dalicious.system.util.enums.DiningType;
 import co.dalicious.system.util.enums.FoodStatus;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
@@ -142,7 +143,7 @@ public class CartServiceImpl implements CartService {
                 if(spot instanceof CorporationSpot) {
                     supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, diningTypeServiceDate.getDiningType());
                     // 기존에 사용한 지원금이 있다면 차감
-                    BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDate.getServiceDate());
+                    BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDate.getServiceDate(), diningTypeServiceDate.getDiningType());
                     supportPrice = supportPrice.subtract(usedSupportPrice);
                 }
                 CartDailyFoodDto cartDailyFoodDto = CartDailyFoodDto.builder()

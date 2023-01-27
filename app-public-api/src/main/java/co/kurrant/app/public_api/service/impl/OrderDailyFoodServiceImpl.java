@@ -13,13 +13,10 @@ import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.UserSupportPriceHistory;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.mapper.OrderDailyFoodItemMapper;
 import co.dalicious.domain.order.mapper.OrderDailyFoodMapper;
 import co.dalicious.domain.order.mapper.UserSupportPriceHistoryReqMapper;
-import co.dalicious.domain.order.repository.OrderDailyFoodRepository;
-import co.dalicious.domain.order.repository.OrderItemDailyFoodRepository;
-import co.dalicious.domain.order.repository.QCartDailyFoodRepository;
-import co.dalicious.domain.order.repository.UserSupportPriceHistoryRepository;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.OrderUtil;
@@ -80,13 +77,21 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
 
+        // 사용 요청 포인트가 유저가 현재 가지고 있는 포인트보다 적은지 검증
+        if(orderItemDailyFoodReqDto.getUserPoint().compareTo(user.getPoint()) > 0) {
+            throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
+        }
+
+        Set<DiningTypeServiceDate> diningTypeServiceDates = new HashSet<>();
+        List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
+        List<BigInteger> cartDailyFoodIds = new ArrayList<>();
+        BigDecimal defaultPrice = BigDecimal.ZERO;
+        BigDecimal totalDeliveryFee = BigDecimal.ZERO;
+        BigDecimal totalSupportPrice = BigDecimal.ZERO;
+        BigDecimal totalDailyFoodPrice = BigDecimal.ZERO;
+
         // 식사타입(DiningType)과 날짜별(serviceDate) 식사들 가져오기
         List<CartDailyFoodDto> cartDailyFoodDtoList = orderItemDailyFoodReqDto.getCartDailyFoodDtoList();
-        Set<DiningTypeServiceDate> diningTypeServiceDates = new HashSet<>();
-        List<BigInteger> cartDailyFoodIds = new ArrayList<>();
-        BigDecimal totalDeliveryFee = BigDecimal.ZERO;
-        BigDecimal defaultPrice = BigDecimal.ZERO;
-        BigDecimal totalDailyFoodPrice = BigDecimal.ZERO;
 
         // 프론트에서 제공한 정보와 실제 정보가 일치하는지 확인
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
@@ -111,14 +116,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot));
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
-            // 2. 주문 음식 가격이 일치하는지 검증 및 주문 저장
+            // 2. 유저 사용 지원금 가져오기
             List<UserSupportPriceHistory> userSupportPriceHistories = qUserSupportPriceHistoryRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
-            // 2. 유저 사용가능 지원금 일치 검증
+
             BigDecimal supportPrice = BigDecimal.ZERO;
             if (spot instanceof CorporationSpot) {
                 supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, DiningType.ofString(cartDailyFoodDto.getDiningType()));
                 // 기존에 사용한 지원금이 있다면 차감
-                BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()));
+                BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType()));
                 supportPrice = supportPrice.subtract(usedSupportPrice);
                 if (cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
@@ -151,18 +156,57 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }
                 OrderItemDailyFood orderItemDailyFood = orderDailyFoodItemMapper.toEntity(cartDailyFood, selectedCartDailyFood, orderDailyFood);
-                orderItemDailyFoodRepository.save(orderItemDailyFood);
+                orderItemDailyFoods.add(orderItemDailyFoodRepository.save(orderItemDailyFood));
 
                 defaultPrice = defaultPrice.add(selectedCartDailyFood.getDailyFood().getFood().getPrice());
-                BigDecimal dailyFoodPrice = cartDailyFood.getPrice().subtract(cartDailyFood.getDiscountedPrice()).multiply(BigDecimal.valueOf(cartDailyFood.getCount()));
+                BigDecimal dailyFoodPrice = cartDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(cartDailyFood.getCount()));
                 totalDailyFoodPrice = totalDailyFoodPrice.add(dailyFoodPrice);
 
                 // 지원금 사용 저장
-                BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(dailyFoodPrice, supportPrice);
-                UserSupportPriceHistory userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
-                userSupportPriceHistoryRepository.save(userSupportPriceHistory);
+                if(spot instanceof CorporationSpot) {
+                    BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(dailyFoodPrice, supportPrice);
+                    if(usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
+                        UserSupportPriceHistory userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                        userSupportPriceHistoryRepository.save(userSupportPriceHistory);
+                        totalSupportPrice = totalSupportPrice.add(usableSupportPrice);
+                        supportPrice = supportPrice.subtract(usableSupportPrice);
+                    }
+                }
             }
         }
+
+        // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
+        BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getUserPoint());
+        // TODO: 결제 모듈 구현시  수정
+        try {
+            int statusCode = requestPayment(orderDailyFood.getCode(), payPrice, 200);
+            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
+            if (statusCode == 200) {
+                // 주문서 내용 업데이트 및 사용 포인트 차감
+                orderDailyFood.updateDefaultPrice(defaultPrice);
+                orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getUserPoint());
+                orderDailyFood.updateTotalPrice(payPrice);
+
+                for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                    orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
+                }
+
+                user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getUserPoint()));
+            }
+            // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
+            else {
+                for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                    orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
+                }
+                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+            }
+        } catch (ApiException e) {
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
+            }
+            throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+        }
+
         qCartDailyFoodRepository.deleteByCartDailyFoodList(cartDailyFoods);
 
         // TODO: 포인트 사용, 전체 지원금 검증
@@ -192,5 +236,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 //        });
 //        return resultList;
         return null;
+    }
+
+    // TODO: 결제 모듈 구현시 수정
+    public int requestPayment(String paymentCode, BigDecimal price, int statusCode) {
+        return statusCode;
     }
 }

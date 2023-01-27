@@ -311,7 +311,7 @@ public class UserServiceImpl implements UserService {
         // 일반 로그인 정보를 가지고 있는 유저인지 검사
         List<ProviderEmail> providerEmails = user.getProviderEmails();
         UserPersonalInfoDto userPersonalInfoDto = userPersonalInfoMapper.toDto(user);
-        userPersonalInfoDto.setUsingMembershipPeriod(membershipUtil.getUserPeriodOfUsingMembership(user));
+        userPersonalInfoDto.setMembershipPeriod(membershipUtil.getUserPeriodOfUsingMembership(user));
         Boolean hasGeneralProvider = providerEmails.stream()
                 .anyMatch(e -> e.getProvider().equals(Provider.GENERAL));
 
