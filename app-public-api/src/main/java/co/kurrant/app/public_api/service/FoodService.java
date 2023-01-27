@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface FoodService {
 
-    RetrieveDailyFoodDto getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate);
+    RetrieveDailyFoodDto getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate, Integer diningType);
 
     FoodDetailDto getFoodDetail(BigInteger foodId, SecurityUser securityUser);
 }

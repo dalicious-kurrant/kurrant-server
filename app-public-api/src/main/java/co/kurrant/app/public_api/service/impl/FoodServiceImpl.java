@@ -45,7 +45,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public RetrieveDailyFoodDto getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate) {
+    public RetrieveDailyFoodDto getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate, Integer diningTypeCode) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
         // 스팟 정보 가져오기
@@ -57,26 +57,44 @@ public class FoodServiceImpl implements FoodService {
         userGroups.stream().filter(v -> v.getGroup().equals(spot.getGroup()) && v.getClientStatus().equals(ClientStatus.BELONG))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
-        // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
-        List<Integer> diningTypes = new ArrayList<>();
-        for (DiningType diningType : spot.getDiningTypes()) {
-            diningTypes.add(diningType.getCode());
-        }
-        // 결과값을 담아줄 LIST 생성
+        List<DailyFood> dailyFoodList;
         List<DailyFoodDto> dailyFoodDtos = new ArrayList<>();
-        // 조건에 맞는 DailyFood 조회
-        List<DailyFood> dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(spotId, selectedDate);
-        // 값이 있다면 결과값으로 담아준다.
-        for (DailyFood dailyFood : dailyFoodList) {
-            DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
-            OrderUtil.checkMembershipAndUpdateDiscountDto(user, spot.getGroup(), discountDto);
-            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood, discountDto);
-            dailyFoodDtos.add(dailyFoodDto);
+
+        if(diningTypeCode != null) {
+            DiningType diningType = DiningType.ofCode(diningTypeCode);
+            dailyFoodList = qDailyFoodRepository.findAllBySpotAndSelectedDateAndDiningType(spot, selectedDate, diningType);
+
+            for (DailyFood dailyFood : dailyFoodList) {
+                DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
+                OrderUtil.checkMembershipAndUpdateDiscountDto(user, spot.getGroup(), discountDto);
+                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood, discountDto);
+                dailyFoodDtos.add(dailyFoodDto);
+            }
+            return RetrieveDailyFoodDto.builder()
+                    .dailyFoodDtos(dailyFoodDtos)
+                    .build();
         }
-        return RetrieveDailyFoodDto.builder()
-                .diningTypes(diningTypes)
-                .dailyFoodDtos(dailyFoodDtos)
-                .build();
+        else {
+            // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
+            List<Integer> diningTypes = new ArrayList<>();
+            for (DiningType diningType : spot.getDiningTypes()) {
+                diningTypes.add(diningType.getCode());
+            }
+            // 결과값을 담아줄 LIST 생성
+            // 조건에 맞는 DailyFood 조회
+            dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(spotId, selectedDate);
+            // 값이 있다면 결과값으로 담아준다.
+            for (DailyFood dailyFood : dailyFoodList) {
+                DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
+                OrderUtil.checkMembershipAndUpdateDiscountDto(user, spot.getGroup(), discountDto);
+                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood, discountDto);
+                dailyFoodDtos.add(dailyFoodDto);
+            }
+            return RetrieveDailyFoodDto.builder()
+                    .diningTypes(diningTypes)
+                    .dailyFoodDtos(dailyFoodDtos)
+                    .build();
+        }
     }
 
     @Override

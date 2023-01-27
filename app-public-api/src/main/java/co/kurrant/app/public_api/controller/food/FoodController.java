@@ -26,10 +26,11 @@ public class FoodController {
     @GetMapping("")
     public ResponseMessage getDailyFood(Authentication authentication,
                                         @RequestParam BigInteger spotId,
-                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate) {
+                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate,
+                                        @RequestParam(required = false) Integer diningType) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                        .data(foodService.getDailyFood(securityUser, spotId, selectedDate))
+                        .data(foodService.getDailyFood(securityUser, spotId, selectedDate, diningType))
                         .message("식단 불러오기에 성공하였습니다.")
                         .build();
     }

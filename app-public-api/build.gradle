@@ -17,6 +17,8 @@ dependencies {
 	implementation 'com.querydsl:querydsl-jpa:4.4.0'
 	implementation "com.querydsl:querydsl-core:4.4.0"
 
+	implementation 'com.nimbusds:nimbus-jose-jwt:9.25.6'
+
 	implementation 'io.springfox:springfox-boot-starter:3.0.0'
 	implementation 'io.springfox:springfox-swagger-ui:3.0.0'
 	
