@@ -1,8 +1,6 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.client.core.filter.provider.JwtTokenProvider;
-import co.dalicious.client.oauth.SnsLoginServiceImpl;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.kurrant.app.public_api.dto.user.*;
@@ -29,13 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final SnsLoginServiceImpl snsLoginService;
-
-    @GetMapping("/appleLoginTest")
-    public void AppleLoginTest(@RequestBody SnsAccessToken snsAccessToken) {
-        String strSnsAccessToken = snsAccessToken.getSnsAccessToken();
-        snsLoginService.decodeFromIdToken(strSnsAccessToken);
-    }
 
     @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보 를 불러온다.")
     @GetMapping("")

@@ -20,7 +20,6 @@ public class SnsLoginServiceImpl implements SnsLoginService{
             case NAVER -> getNaverLoginUserInfo(accessToken);
             case KAKAO -> getKakaoLoginUserInfo(accessToken);
             case GOOGLE -> getGoogleLoginUserInfo(accessToken);
-            case APPLE -> getAppleLoginUserInfo(accessToken);
             case FACEBOOK -> getFacebookLoginUserInfo(accessToken);
             default -> null;
         };
@@ -112,31 +111,21 @@ public class SnsLoginServiceImpl implements SnsLoginService{
     }
 
     @Override
-    public SnsLoginResponseDto getAppleLoginUserInfo(String accessToken) {
-        return null;
+    public SnsLoginResponseDto getAppleLoginUserInfo(AppleLoginDto appleLoginDto) {
+        if(appleLoginDto == null) {
+            throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
+        }
+        String email = appleLoginDto.getUser().getEmail();
+        String name = (appleLoginDto.getUser().getName() == null) ?
+                null : appleLoginDto.getUser().getName().getLastName() + appleLoginDto.getUser().getName().getFirstName();
+        return SnsLoginResponseDto.builder()
+                .email(email)
+                .name(name)
+                .build();
     }
 
     @Override
     public SnsLoginResponseDto getFacebookLoginUserInfo(String accessToken) {
-        return null;
-    }
-
-    public Payload decodeFromIdToken(String id_token) {
-
-        try {
-            SignedJWT signedJWT = SignedJWT.parse(id_token);
-            JWTClaimsSet getPayload = SignedJWT.parse(id_token).getJWTClaimsSet();
-            ObjectMapper objectMapper = new ObjectMapper();
-            Payload payload = objectMapper.readValue(getPayload.toJSONObject().toString(), Payload.class);
-            System.out.println(payload);
-
-            if (payload != null) {
-                return payload;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         return null;
     }
 }

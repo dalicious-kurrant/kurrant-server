@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
+import co.dalicious.client.oauth.AppleLoginDto;
 import co.dalicious.data.redis.entity.BlackListTokenHash;
 import co.dalicious.data.redis.entity.RefreshTokenHash;
 import co.dalicious.data.redis.repository.BlackListTokenRepository;
@@ -289,6 +290,45 @@ public class AuthServiceImpl implements AuthService {
         providerEmailRepository.save(newProviderEmail2);
         return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
 
+    }
+
+    @Override
+    public LoginResponseDto appleLoginOrJoin(AppleLoginDto appleLoginDto) {
+        Provider provider = Provider.APPLE;
+        // Vendor 로그인 시도
+        SnsLoginResponseDto snsLoginResponseDto = snsLoginService.getAppleLoginUserInfo(appleLoginDto);
+
+        String email = snsLoginResponseDto.getEmail();
+        String name = snsLoginResponseDto.getName();
+
+        // 해당 아이디를 가지고 있는 유저가 존재하지는 지 확인.
+        Optional<ProviderEmail> providerEmail = providerEmailRepository.findOneByProviderAndEmail(provider, email);
+
+        // 이미 소셜로그인으로 가입한 이력이 있는 유저라면 토큰 발행
+        if (providerEmail.isPresent()) {
+            User user = providerEmail.orElseThrow().getUser();
+            SpotStatus spotStatus = clientUtil.getSpotStatus(user);
+            return getLoginAccessToken(user, spotStatus);
+        }
+
+        // 소셜 로그인으로 가입한 이력은 없지만, 소셜 로그인 이메일과 ProviderEmail에 동일한 이메일이 있는지 확인
+        List<ProviderEmail> providerEmails = providerEmailRepository.findAllByEmail(email);
+        // 동일한 이메일로 가입한 이력이 있는 유저를 가져온다.
+        if (!providerEmails.isEmpty()) {
+            User user = providerEmails.get(0).getUser();
+            ProviderEmail newProviderEmail = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
+            providerEmailRepository.save(newProviderEmail);
+            return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
+        }
+
+        // 어떤 것도 가입되지 않은 유저라면 계정 생성
+        UserDto userDto = UserDto.builder().role(Role.USER).email(email).name(name).build();
+
+        User user = userRepository.save(userMapper.toEntity(userDto));
+
+        ProviderEmail newProviderEmail2 = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
+        providerEmailRepository.save(newProviderEmail2);
+        return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
     }
 
     @Override
