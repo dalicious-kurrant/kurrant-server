@@ -1,6 +1,8 @@
 package co.dalicious.client.oauth;
 
 import co.dalicious.domain.user.entity.enums.Provider;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -10,6 +12,9 @@ import exception.ExceptionEnum;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Base64;
+import java.util.Map;
 
 
 @Service
@@ -111,11 +116,19 @@ public class SnsLoginServiceImpl implements SnsLoginService{
     }
 
     @Override
-    public SnsLoginResponseDto getAppleLoginUserInfo(AppleLoginDto appleLoginDto) {
+    public SnsLoginResponseDto getAppleLoginUserInfo(AppleLoginDto appleLoginDto) throws JsonProcessingException {
         if(appleLoginDto == null) {
             throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
         }
-        String email = appleLoginDto.getUser().getEmail();
+        String idToken = appleLoginDto.getId_token();
+        String payloadJWT = idToken.split("\\.")[1];
+        Base64.Decoder decoder = Base64.getUrlDecoder();
+        String payload = new String(decoder.decode(payloadJWT));
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> returnMap = mapper.readValue(payload, Map.class);
+
+        String email = (String) returnMap.get("email");
         String name = (appleLoginDto.getUser().getName() == null) ?
                 null : appleLoginDto.getUser().getName().getLastName() + appleLoginDto.getUser().getName().getFirstName();
         return SnsLoginResponseDto.builder()
