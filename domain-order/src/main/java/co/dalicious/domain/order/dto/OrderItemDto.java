@@ -1,17 +1,19 @@
 package co.dalicious.domain.order.dto;
 
-import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.order.entity.OrderItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+
+import java.math.BigInteger;
 
 @Schema(description = "해당 날짜에 주문한 음식들")
 @Getter
 @Setter
 @AllArgsConstructor
 public class OrderItemDto {
+    private BigInteger id;
     private String name;
-    private String diningType;
-    private String img;
+    private Integer orderStatus;
+    private String makers;
+    private String image;
     private Integer count;
 }

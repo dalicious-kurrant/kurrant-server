@@ -17,7 +17,7 @@ public interface CartService {
 
     void deleteByCartItemId(SecurityUser securityUser, BigInteger cartItemId);
 
-    void deleteAllCartItemByUserId(SecurityUser securityUser);
+    void deleteAllSpotCartItemByUserId(SecurityUser securityUser, BigInteger spotId);
 
     void updateByDailyFoodId(SecurityUser securityUser, UpdateCartDto updateCartDto);
 }
