@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface OrderDailyFoodService {
-    // 정기식사를 구매한다.
+    // 정기식사를 구매한다
     void orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto, BigInteger spotId);
     // 식사 일정을 조회한다.
     List<OrderDetailDto> findOrderByServiceDate(SecurityUser securityUser, LocalDate startDate, LocalDate endDate);
