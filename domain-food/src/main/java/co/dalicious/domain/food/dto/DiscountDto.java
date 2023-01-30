@@ -67,6 +67,47 @@ public class DiscountDto {
         return discountDto;
     }
 
+    public static DiscountDto getDiscountWithNoMembership(Food food) {
+        DiscountDto discountDto = new DiscountDto();
+        // 기본 가격
+        BigDecimal price = food.getPrice();
+        discountDto.setPrice(price);
+        // 할인 비율
+        Integer membershipDiscountedRate = 0;
+        Integer makersDiscountedRate = 0;
+        Integer periodDiscountedRate = 0;
+        // 할인 가격
+        BigDecimal membershipDiscountedPrice = BigDecimal.ZERO;
+        BigDecimal makersDiscountedPrice = BigDecimal.ZERO;
+        BigDecimal periodDiscountedPrice = BigDecimal.ZERO;
+
+        for(FoodDiscountPolicy foodDiscountPolicy : food.getFoodDiscountPolicyList()) {
+            switch (foodDiscountPolicy.getDiscountType()) {
+                case MAKERS_DISCOUNT -> makersDiscountedRate = foodDiscountPolicy.getDiscountRate();
+                case PERIOD_DISCOUNT -> periodDiscountedRate = foodDiscountPolicy.getDiscountRate();
+            }
+        }
+
+        // 1. 메이커스 할인
+        if(makersDiscountedRate != 0) {
+            makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
+            price = price.subtract(makersDiscountedPrice);
+        }
+        // 2. 기간 할인
+        if(periodDiscountedRate != 0) {
+            periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
+            price = price.subtract(periodDiscountedPrice);
+        }
+        discountDto.setMembershipDiscountRate(membershipDiscountedRate);
+        discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
+        discountDto.setMakersDiscountRate(makersDiscountedRate);
+        discountDto.setMakersDiscountPrice(makersDiscountedPrice);
+        discountDto.setPeriodDiscountRate(periodDiscountedRate);
+        discountDto.setPeriodDiscountPrice(periodDiscountedPrice);
+
+        return discountDto;
+    }
+
     public void isMembership(Boolean isMembership) {
         if(!isMembership) {
             this.membershipDiscountPrice = BigDecimal.ZERO;

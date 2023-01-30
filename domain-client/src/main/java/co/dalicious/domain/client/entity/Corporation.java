@@ -21,7 +21,7 @@ import java.util.List;
 @Getter
 @Table(name = "client__corporation")
 public class Corporation extends Group{
-    @Column(name = "is_membership_support", columnDefinition = "tinyint(1) default 0")
+    @Column(name = "is_membership_support")
     @Comment("기업 멤버십 지원 여부")
     private Boolean isMembershipSupport;
 
@@ -29,15 +29,15 @@ public class Corporation extends Group{
     @Comment("사원수")
     private Integer employeeCount;
 
-    @Column(name = "is_garbage", columnDefinition = "tinyint(1) default 0")
+    @Column(name = "is_garbage")
     @Comment("쓰레기 수거 서비스 사용 유무")
     private Boolean isGarbage;
 
-    @Column(name = "is_hot_storage", columnDefinition = "tinyint(1) default 0")
+    @Column(name = "is_hot_storage")
     @Comment("온장고 대여 서비스 사용 유무")
     private Boolean isHotStorage;
 
-    @Column(name = "is_setting", columnDefinition = "tinyint(1) default 0")
+    @Column(name = "is_setting")
     @Comment("식사 세팅 지원 서비스 사용 유무")
     private Boolean isSetting;
 

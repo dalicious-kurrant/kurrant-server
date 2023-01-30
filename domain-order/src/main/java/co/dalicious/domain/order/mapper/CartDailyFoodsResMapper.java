@@ -21,6 +21,7 @@ public interface CartDailyFoodsResMapper {
     @Mapping(source = "cartDailyFood.dailyFood.food.makers.name", target = "makers")
     @Mapping(source = "cartDailyFood.count", target = "count")
     @Mapping(source = "cartDailyFood.dailyFood.food.price", target = "price")
+    @Mapping(source = "cartDailyFood.dailyFood.capacity", target = "capacity")
     @Mapping(target = "discountedPrice", expression = "java(FoodUtil.getFoodTotalDiscountedPrice(cartDailyFood.getDailyFood().getFood(), discountDto))")
     @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountPrice")
     @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")

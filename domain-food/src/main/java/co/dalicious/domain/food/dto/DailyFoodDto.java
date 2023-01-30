@@ -15,6 +15,7 @@ public class DailyFoodDto {
     private Integer diningType;
     private BigInteger foodId;
     private String foodName;
+    private Integer capacity;
     private Integer status;
     private BigInteger spotId;
     private String serviceDate;

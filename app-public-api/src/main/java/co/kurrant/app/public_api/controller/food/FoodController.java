@@ -26,20 +26,30 @@ public class FoodController {
     @GetMapping("")
     public ResponseMessage getDailyFood(Authentication authentication,
                                         @RequestParam BigInteger spotId,
-                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate) {
+                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate selectedDate,
+                                        @RequestParam(required = false) Integer diningType) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                        .data(foodService.getDailyFood(securityUser, spotId, selectedDate))
+                        .data(foodService.getDailyFood(securityUser, spotId, selectedDate, diningType))
                         .message("식단 불러오기에 성공하였습니다.")
                         .build();
     }
 
     @Operation(summary = "메뉴 상세정보 불러오기", description = "특정 메뉴의 상세정보를 불러온다.")
-    @GetMapping("/{dailyfoodId}")
-    public ResponseMessage getFoodDetail(Authentication authentication, @PathVariable BigInteger dailyfoodId){
+    @GetMapping("/{dailyFoodId}")
+    public ResponseMessage getFoodDetail(Authentication authentication, @PathVariable BigInteger dailyFoodId){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(foodService.getFoodDetail(dailyfoodId, securityUser))
+                .data(foodService.getFoodDetail(dailyFoodId, securityUser))
+                .message("상품 상세정보 조회 성공!")
+                .build();
+    }
+
+    @Operation(summary = "메뉴 할인 정보 불러오기", description = "특정 메뉴의 할인 정보를 불러온다.")
+    @GetMapping("/{dailyFoodId}/discount")
+    public ResponseMessage getFoodDiscount(Authentication authentication, @PathVariable BigInteger dailyFoodId){
+        return ResponseMessage.builder()
+                .data(foodService.getFoodDiscount(dailyFoodId))
                 .message("상품 상세정보 조회 성공!")
                 .build();
     }

@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.oauth.AppleLoginDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.kurrant.app.public_api.dto.user.*;
@@ -64,6 +65,16 @@ public class UserController {
     public ResponseMessage connectSnsAccount(Authentication authentication, @RequestBody SnsAccessToken snsAccessToken, @PathVariable String sns) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.connectSnsAccount(securityUser, snsAccessToken, sns);
+        return ResponseMessage.builder()
+                .message("SNS 계정 연결에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "애플 SNS 계정 연결", description = "SNS 계정을 연결한다.")
+    @PostMapping("/connectingApple/")
+    public ResponseMessage connectSnsAccount(Authentication authentication, @RequestBody AppleLoginDto appleLoginDto) throws JsonProcessingException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.connectAppleAccount(securityUser, appleLoginDto);
         return ResponseMessage.builder()
                 .message("SNS 계정 연결에 성공하였습니다.")
                 .build();

@@ -20,6 +20,7 @@ public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.food.id", target = "foodId")
       @Mapping(source = "dailyFood.food.name", target = "foodName")
       @Mapping(source = "dailyFood.foodStatus", target = "status", qualifiedByName = "getStatus")
+      @Mapping(source = "dailyFood.capacity", target = "capacity")
       @Mapping(source = "dailyFood.spot.id", target = "spotId")
       @Mapping(source = "dailyFood.serviceDate", target = "serviceDate", qualifiedByName = "serviceDateToString")
       @Mapping(source = "dailyFood.food.makers.name", target = "makersName")

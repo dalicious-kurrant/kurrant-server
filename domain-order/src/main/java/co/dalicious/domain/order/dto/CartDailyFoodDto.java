@@ -25,6 +25,7 @@ public class CartDailyFoodDto {
         BigInteger id;
         BigInteger dailyFoodId;
         Integer status;
+        Integer capacity;
         String name;
         String image;
         String makers;
