@@ -2,9 +2,7 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
-import co.dalicious.domain.food.dto.DiscountDto;
-import co.dalicious.domain.food.dto.FoodDetailDto;
-import co.dalicious.domain.food.dto.RetrieveDailyFoodDto;
+import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
@@ -12,7 +10,6 @@ import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.dalicious.domain.food.mapper.FoodMapper;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.util.enums.DiningType;
@@ -110,5 +107,17 @@ public class FoodServiceImpl implements FoodService {
         DiscountDto discountDto = DiscountDto.getDiscount(food);
         OrderUtil.checkMembershipAndUpdateDiscountDto(user, dailyFood.getSpot().getGroup(), discountDto);
         return foodMapper.toDto(food, discountDto);
+    }
+
+    @Override
+    @Transactional
+    public RetrieveDiscountDto getFoodDiscount(BigInteger dailyFoodId) {
+        DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
+        );
+
+        Food food = dailyFood.getFood();
+        DiscountDto discountDto = DiscountDto.getDiscount(food);
+        return new RetrieveDiscountDto(discountDto);
     }
 }

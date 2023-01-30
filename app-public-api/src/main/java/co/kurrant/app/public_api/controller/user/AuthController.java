@@ -122,7 +122,7 @@ public class AuthController {
 
     @Operation(summary = "소셜 로그인/회원가입 요청", description = "소셜 로그인/회원가입을 수행한다.")
     @PostMapping("/loginApple")
-    public ResponseMessage appleLoginOrJoin(@RequestBody AppleLoginDto appleLoginDto) {
+    public ResponseMessage appleLoginOrJoin(@RequestBody AppleLoginDto appleLoginDto) throws JsonProcessingException {
         return ResponseMessage.builder()
                 .message("소셜로그인을 성공하셨습니다.")
                 .data(authService.appleLoginOrJoin(appleLoginDto))

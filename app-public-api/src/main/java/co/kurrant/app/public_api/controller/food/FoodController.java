@@ -36,11 +36,20 @@ public class FoodController {
     }
 
     @Operation(summary = "메뉴 상세정보 불러오기", description = "특정 메뉴의 상세정보를 불러온다.")
-    @GetMapping("/{dailyfoodId}")
-    public ResponseMessage getFoodDetail(Authentication authentication, @PathVariable BigInteger dailyfoodId){
+    @GetMapping("/{dailyFoodId}")
+    public ResponseMessage getFoodDetail(Authentication authentication, @PathVariable BigInteger dailyFoodId){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(foodService.getFoodDetail(dailyfoodId, securityUser))
+                .data(foodService.getFoodDetail(dailyFoodId, securityUser))
+                .message("상품 상세정보 조회 성공!")
+                .build();
+    }
+
+    @Operation(summary = "메뉴 할인 정보 불러오기", description = "특정 메뉴의 할인 정보를 불러온다.")
+    @GetMapping("/{dailyFoodId}/discount")
+    public ResponseMessage getFoodDiscount(Authentication authentication, @PathVariable BigInteger dailyFoodId){
+        return ResponseMessage.builder()
+                .data(foodService.getFoodDiscount(dailyFoodId))
                 .message("상품 상세정보 조회 성공!")
                 .build();
     }

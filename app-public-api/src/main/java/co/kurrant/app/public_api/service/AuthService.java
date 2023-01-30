@@ -23,7 +23,7 @@ public interface AuthService {
     LoginResponseDto login(LoginRequestDto loginRequestDto);
     // SNS 로그인 / 회원가입
     LoginResponseDto snsLoginOrJoin(String sns, SnsAccessToken snsAccessToken);
-    LoginResponseDto appleLoginOrJoin(AppleLoginDto appleLoginDto);
+    LoginResponseDto appleLoginOrJoin(AppleLoginDto appleLoginDto) throws JsonProcessingException;
     // Access Token 재발급
     LoginTokenDto reissue(TokenDto reissueTokenDto);
     // 로그아웃

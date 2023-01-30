@@ -293,7 +293,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public LoginResponseDto appleLoginOrJoin(AppleLoginDto appleLoginDto) {
+    public LoginResponseDto appleLoginOrJoin(AppleLoginDto appleLoginDto) throws JsonProcessingException {
         Provider provider = Provider.APPLE;
         // Vendor 로그인 시도
         SnsLoginResponseDto snsLoginResponseDto = snsLoginService.getAppleLoginUserInfo(appleLoginDto);

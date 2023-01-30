@@ -1,6 +1,7 @@
 package co.dalicious.client.oauth;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
@@ -11,6 +12,7 @@ public class AppleLoginDto {
     String nonce;
     String state;
     UserInfo user;
+    Boolean autoLogin;
 
     @Getter
     @Setter
