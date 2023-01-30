@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.client.oauth.AppleLoginDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
@@ -21,6 +22,7 @@ public interface UserService {
     UserHomeResponseDto getUserHomeInfo(SecurityUser securityUser);
     // SNS 계정 연결
     void connectSnsAccount(SecurityUser securityUser, SnsAccessToken snsAccessToken, String sns);
+    void connectAppleAccount(SecurityUser securityUser, AppleLoginDto appleLoginDto) throws JsonProcessingException;
     // SNS 계정 해제
     void disconnectSnsAccount(SecurityUser securityUser, String sns);
     // 휴대폰 번호 변경

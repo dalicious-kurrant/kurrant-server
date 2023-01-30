@@ -36,8 +36,23 @@ public class DailyFood {
     private BigInteger id;
 
     @Convert(converter = DiningTypeConverter.class)
-    @Column(name = "dining_type")
     private DiningType diningType;
+
+    @Column(columnDefinition = "INT DEFAULT 0")
+    @Comment("음식 공급 수량")
+    private Integer maxCapacity;
+
+    @Column(columnDefinition = "INT DEFAULT 0")
+    @Comment("남은 주문 가능 수량")
+    private Integer capacity;
+
+    @Convert(converter = FoodStatusConverter.class)
+    @Column(name = "e_status")
+    @Comment("음식 상태(판매종료(0), 판매중(1), 주문마감(2), 일정요청(3), 일정승인(4), 등록대기(5))")
+    private FoodStatus foodStatus;
+
+    @Column(name = "service_date", columnDefinition = "DATE")
+    private LocalDate serviceDate;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -51,14 +66,6 @@ public class DailyFood {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-
-    @Convert(converter = FoodStatusConverter.class)
-    @Column(name = "e_status")
-    private FoodStatus foodStatus;
-
-    @Column(name = "service_date", columnDefinition = "DATE")
-    private LocalDate serviceDate;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "food_id")
     private Food food;
@@ -68,4 +75,13 @@ public class DailyFood {
     @Comment("스팟")
     private Spot spot;
 
+    public void updateFoodStatus(FoodStatus foodStatus) {
+        this.foodStatus = foodStatus;
+    }
+
+    public Integer subtractCapacity(Integer foodCount) {
+        this.capacity = this.capacity - foodCount;
+
+        return this.capacity;
+    }
 }

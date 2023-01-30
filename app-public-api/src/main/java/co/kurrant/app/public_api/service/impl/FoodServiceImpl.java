@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.*;
@@ -13,6 +14,7 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.food.mapper.FoodMapper;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.util.enums.FoodStatus;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,13 +60,23 @@ public class FoodServiceImpl implements FoodService {
         List<DailyFood> dailyFoodList;
         List<DailyFoodDto> dailyFoodDtos = new ArrayList<>();
 
+        // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
+        List<MealInfo> mealInfoList = spot.getMealInfos();
+
         if(diningTypeCode != null) {
             DiningType diningType = DiningType.ofCode(diningTypeCode);
             dailyFoodList = qDailyFoodRepository.findAllBySpotAndSelectedDateAndDiningType(spot, selectedDate, diningType);
 
             for (DailyFood dailyFood : dailyFoodList) {
-                DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
-                OrderUtil.checkMembershipAndUpdateDiscountDto(user, spot.getGroup(), discountDto);
+                // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
+                MealInfo mealInfo = mealInfoList.stream().filter(v -> v.getDiningType().equals(dailyFood.getDiningType()))
+                        .findAny()
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
+                if(LocalDate.now().equals(dailyFood.getServiceDate()) && LocalTime.now().isAfter(mealInfo.getLastOrderTime())) {
+                    dailyFood.updateFoodStatus(FoodStatus.PASS_LAST_ORDER_TIME);
+                }
+
+                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), dailyFood.getFood());
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood, discountDto);
                 dailyFoodDtos.add(dailyFoodDto);
             }
@@ -82,8 +95,15 @@ public class FoodServiceImpl implements FoodService {
             dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(spotId, selectedDate);
             // 값이 있다면 결과값으로 담아준다.
             for (DailyFood dailyFood : dailyFoodList) {
-                DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
-                OrderUtil.checkMembershipAndUpdateDiscountDto(user, spot.getGroup(), discountDto);
+                // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
+                MealInfo mealInfo = mealInfoList.stream().filter(v -> v.getDiningType().equals(dailyFood.getDiningType()))
+                        .findAny()
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
+                if(LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate()) && LocalTime.now().isAfter(mealInfo.getLastOrderTime())) {
+                    dailyFood.updateFoodStatus(FoodStatus.PASS_LAST_ORDER_TIME);
+                }
+
+                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), dailyFood.getFood());
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood, discountDto);
                 dailyFoodDtos.add(dailyFoodDto);
             }
@@ -104,8 +124,7 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
         Food food = dailyFood.getFood();
-        DiscountDto discountDto = DiscountDto.getDiscount(food);
-        OrderUtil.checkMembershipAndUpdateDiscountDto(user, dailyFood.getSpot().getGroup(), discountDto);
+        DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getSpot().getGroup(), food);
         return foodMapper.toDto(food, discountDto);
     }
 
