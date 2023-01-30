@@ -293,6 +293,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public LoginResponseDto appleLoginOrJoin(AppleLoginDto appleLoginDto) throws JsonProcessingException {
         Provider provider = Provider.APPLE;
         // Vendor 로그인 시도

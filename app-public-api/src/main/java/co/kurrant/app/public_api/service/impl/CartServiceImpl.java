@@ -36,6 +36,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -155,6 +156,12 @@ public class CartServiceImpl implements CartService {
                         .build();
                 cartDailyFoodListDtos.add(cartDailyFoodDto);
             }
+            // 주문날짜가 빠른 순서와 식사일정이 빠른 것 정렬
+            cartDailyFoodListDtos = cartDailyFoodListDtos.stream()
+                    .sorted(Comparator.comparing((CartDailyFoodDto v) -> DateUtils.stringToDate(v.getServiceDate()))
+                            .thenComparing(v -> DiningType.ofString(v.getDiningType()))
+                    )
+                    .collect(Collectors.toList());
             CartResDto.SpotCarts spotCarts = CartResDto.SpotCarts.builder()
                     .spotId(spot.getId())
                     .spotName(spot.getName())
