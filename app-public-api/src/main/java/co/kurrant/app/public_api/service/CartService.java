@@ -7,10 +7,11 @@ import co.kurrant.app.public_api.model.SecurityUser;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.List;
 
 public interface CartService {
 
-    Integer saveOrderCart(SecurityUser securityUser, CartDto cartDto);
+    void saveOrderCart(SecurityUser securityUser, List<CartDto> cartDtoList);
 
     CartResDto findUserCart(SecurityUser securityUser);
 

@@ -24,6 +24,8 @@ public enum ExceptionEnum {
 	NOT_MATCHED_SUPPORT_PRICE(HttpStatus.BAD_REQUEST, "E4000012", "회사 지원금이 일치하지 않습니다."),
 	NOT_MATCHED_ITEM_COUNT(HttpStatus.BAD_REQUEST, "E4000012", "요청 수량이 일치하지 않습니다"),
 	HAS_LESS_POINT_THAN_REQUEST(HttpStatus.BAD_REQUEST, "E4000013", "포인트 잔액이 부족합니다."),
+	OVER_ITEM_CAPACITY(HttpStatus.BAD_REQUEST, "E4000014", "상품의 개수가 부족합니다."),
+	ALREADY_EXISTING_MEMBERSHIP(HttpStatus.BAD_REQUEST, "E4000015", "이미 멤버십이 존재합니다."),
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
 	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "비밀번호가 일치하지 않습니다."),

@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.CartDailyFoodDto;
 import co.dalicious.domain.order.dto.DiningTypeServiceDate;
@@ -27,6 +28,7 @@ import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.util.enums.FoodStatus;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -139,8 +141,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_ITEM_COUNT);
                 }
                 // 멤버십에 가입하지 않은 경우 멤버십 할인이 적용되지 않은 가격으로 보임
-                DiscountDto discountDto = DiscountDto.getDiscount(selectedCartDailyFood.getDailyFood().getFood());
-                OrderUtil.checkMembershipAndUpdateDiscountDto(user, group, discountDto);
+                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, selectedCartDailyFood.getDailyFood().getFood());
                 // 금액 일치 확인
                 if (cartDailyFood.getDiscountedPrice().compareTo(FoodUtil.getFoodTotalDiscountedPrice(selectedCartDailyFood.getDailyFood().getFood(), discountDto)) != 0) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
@@ -172,11 +173,26 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                         supportPrice = supportPrice.subtract(usableSupportPrice);
                     }
                 }
+                
+                // 주문 개수 차감
+                Integer capacity = selectedCartDailyFood.getDailyFood().subtractCapacity(cartDailyFood.getCount());
+                if(capacity < 0) {
+                    throw new ApiException(ExceptionEnum.OVER_ITEM_CAPACITY);
+                }
+                if(capacity == 0) {
+                    selectedCartDailyFood.getDailyFood().updateFoodStatus(FoodStatus.SOLD_OUT);
+                }
             }
         }
 
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
         BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getUserPoint());
+        if(payPrice.compareTo(orderItemDailyFoodReqDto.getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getSupportPrice()) != 0) {
+            throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+        }
+
+
+
         // TODO: 결제 모듈 구현시  수정
         try {
             int statusCode = requestPayment(orderDailyFood.getCode(), payPrice, 200);

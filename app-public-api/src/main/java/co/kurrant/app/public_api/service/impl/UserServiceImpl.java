@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.oauth.AppleLoginDto;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
@@ -107,6 +108,46 @@ public class UserServiceImpl implements UserService {
         if (snsLoginResponseDto == null) {
             throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
         }
+
+        String email = snsLoginResponseDto.getEmail();
+
+        // 해당 아이디를 가지고 있는 유저가 존재하지는 지 확인.
+        Optional<ProviderEmail> providerEmail = providerEmailRepository.findOneByProviderAndEmail(provider, email);
+
+        // 존재한다면 예외 발생
+        if (providerEmail.isPresent()) {
+            throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
+        }
+        // 존재하지 않는다면 저장하기.
+        else {
+            ProviderEmail newProviderEmail = ProviderEmail.builder()
+                    .provider(provider)
+                    .email(email)
+                    .user(user)
+                    .build();
+
+            providerEmailRepository.save(newProviderEmail);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void connectAppleAccount(SecurityUser securityUser, AppleLoginDto appleLoginDto) throws JsonProcessingException {
+        String sns = "APPLE";
+        // 유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        // 등록된 SNS 플랫폼인지 확인
+        Provider provider = UserValidator.isValidProvider(sns);
+
+        // 현재 로그인 한 아이디가 같은 Vendor의 아이디와 연결되어있는지 체크
+        List<ProviderEmail> providerEmails = providerEmailRepository.findAllByUser(user);
+        if (providerEmails.stream().anyMatch(pe -> pe.getProvider().equals(provider))) {
+            throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
+        }
+
+        // Vendor 로그인 시도
+        SnsLoginResponseDto snsLoginResponseDto = snsLoginService.getAppleLoginUserInfo(appleLoginDto);
 
         String email = snsLoginResponseDto.getEmail();
 
