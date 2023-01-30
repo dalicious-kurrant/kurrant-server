@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface OrderItemMembershipRepository extends JpaRepository<OrderItemMembership, Long> {
     Optional<OrderItemMembership> findOneByMembership(Membership membership);
-    @Query("SELECT om FROM OrderItemMembership om WHERE om.membership IN :memberships")
+    @Query("SELECT om FROM OrderItemMembership om WHERE om.membership IN :memberships ORDER BY om.membership.endDate ASC")
     List<OrderItemMembership> findAllByMembership(@Param("memberships") List<Membership> memberships);
 
 }
