@@ -13,13 +13,12 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mapper(componentModel = "spring", imports = MembershipUtil.class)
+@Mapper(componentModel = "spring")
 @Transactional
 public interface UserPersonalInfoMapper {
     @Mapping(target = "avatar", source = "avatar.location")
     @Mapping(target = "gourmetType", source = "gourmetType.gourmetType")
     @Mapping(target = "providerEmails", source = "providerEmails", qualifiedByName = "providerEmailsToDto")
-    @Mapping(target = "membershipPeriod", expression = "java(membershipUtil.getUserPeriodOfUsingMembership(user))")
     UserPersonalInfoDto toDto(User user);
 
     @Named("providerEmailsToDto")
