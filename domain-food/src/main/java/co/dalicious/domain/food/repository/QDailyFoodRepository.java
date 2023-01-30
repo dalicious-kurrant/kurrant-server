@@ -33,7 +33,7 @@ public class QDailyFoodRepository {
     public List<DailyFood> findAllByFoodIds(List<BigInteger> foodIds) {
         return queryFactory
                 .selectFrom(dailyFood)
-                .where(dailyFood.food.id.in(foodIds))
+                .where(dailyFood.id.in(foodIds))
                 .fetch();
     }
 
