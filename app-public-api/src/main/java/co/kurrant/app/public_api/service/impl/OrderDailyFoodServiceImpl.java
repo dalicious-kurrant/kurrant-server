@@ -5,7 +5,6 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
-import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.CartDailyFoodDto;
 import co.dalicious.domain.order.dto.DiningTypeServiceDate;
@@ -193,7 +192,44 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
 
 
-        // TODO: 결제 모듈 구현시  수정
+        /* TODO: @이상진님! 결제 성공하면 추가해주세요
+        // cardId로 customerKey를 가져오기
+        CreditCardInfo creditCard = qCreditCardInfoRepository.findCustomerKeyByCardId(orderItemDailyFoodReqDto.getCardId());
+        //orderName 생성
+        String orderName = makeOrderName(cartDailyFoods);
+        try {
+            int statusCode = requestPayment(orderDailyFood.getCode(), payPrice, 200);
+            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
+            if (statusCode == 200) {
+                // 주문서 내용 업데이트 및 사용 포인트 차감
+                orderDailyFood.updateDefaultPrice(defaultPrice);
+                orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getUserPoint());
+                orderDailyFood.updateTotalPrice(payPrice);
+
+                for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                    orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
+                }
+
+                user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getUserPoint()));
+            }
+            // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
+            else {
+                for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                    orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
+                }
+                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+            }
+        } catch (ApiException e) {
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
+            }
+            throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+        } catch (IOException e) {
+            throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        } catch (InterruptedException | ParseException e) {
+            throw new RuntimeException(e);
+        } */
+
         try {
             int statusCode = requestPayment(orderDailyFood.getCode(), payPrice, 200);
             // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
