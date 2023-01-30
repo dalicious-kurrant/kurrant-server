@@ -19,14 +19,13 @@ import java.util.List;
 @EnableRedisRepositories
 @PropertySource("classpath:application-redis.properties")
 public class RedisConfig {
-    @Value("${spring.redis.host}")
-    private String host;
+    @Value("${spring.redis.cluster.nodes}")
+    private List<String> clusterNodes;
 
-    @Value("${spring.redis.port}")
-    private int port;
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory(host, port);
+        RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration(clusterNodes);
+        return new LettuceConnectionFactory(redisClusterConfiguration);
     }
 
     @Bean
