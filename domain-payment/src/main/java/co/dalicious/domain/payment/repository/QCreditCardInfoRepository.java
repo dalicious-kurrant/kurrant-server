@@ -121,9 +121,9 @@ public class QCreditCardInfoRepository {
                 .execute();
     }
 
-    public String findCustomerKeyByCardId(BigInteger cardId) {
+    public CreditCardInfo findCustomerKeyByCardId(BigInteger cardId) {
         return queryFactory
-                .select(creditCardInfo.customerKey)
+                .selectFrom(creditCardInfo)
                 .where(creditCardInfo.id.eq(cardId))
                 .fetchOne();
     }

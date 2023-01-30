@@ -413,6 +413,9 @@ public class UserServiceImpl implements UserService {
         try {
             //응답값 받아오기
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200){
+                throw new ApiException(ExceptionEnum.FAIL_TO_CREDITCARD_REGIST);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
