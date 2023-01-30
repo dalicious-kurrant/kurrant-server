@@ -7,6 +7,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -21,6 +22,7 @@ import java.util.Base64;
 import java.util.Random;
 
 @Component
+@PropertySource("classpath:application-payment.yaml")
 public class TossUtil {
 
     private String secretKey;
