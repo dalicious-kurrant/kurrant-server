@@ -26,7 +26,7 @@ public class QDailyFoodRepository {
                 .selectFrom(dailyFood)
                 .where(dailyFood.spot.id.eq(spotId),
                         dailyFood.serviceDate.eq(selectedDate),
-                        dailyFood.foodStatus.eq(FoodStatus.SALES).or(dailyFood.foodStatus.eq(FoodStatus.SOLD_OUT)))
+                        dailyFood.foodStatus.in(FoodStatus.SALES, FoodStatus.SOLD_OUT, FoodStatus.PASS_LAST_ORDER_TIME))
                 .fetch();
     }
 
@@ -43,7 +43,7 @@ public class QDailyFoodRepository {
                 .where(dailyFood.spot.eq(spot),
                         dailyFood.serviceDate.eq(selectedDate),
                         dailyFood.diningType.eq(diningType),
-                        dailyFood.foodStatus.eq(FoodStatus.SALES)
+                        dailyFood.foodStatus.in(FoodStatus.SALES, FoodStatus.SOLD_OUT, FoodStatus.PASS_LAST_ORDER_TIME)
                         )
                 .fetch();
     }
