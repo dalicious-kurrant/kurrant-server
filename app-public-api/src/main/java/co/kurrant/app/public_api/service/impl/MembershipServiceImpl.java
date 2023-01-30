@@ -9,35 +9,47 @@ import co.dalicious.domain.order.entity.OrderItemMembership;
 import co.dalicious.domain.order.entity.OrderMembership;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
+import co.dalicious.domain.order.mapper.OrderMembershipResMapper;
 import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
 import co.dalicious.domain.order.repository.OrderItemMembershipRepository;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
+import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.service.DiscountPolicyImpl;
 import co.dalicious.domain.order.util.OrderUtil;
-import co.dalicious.system.util.PeriodDto;
-import co.dalicious.domain.user.entity.*;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
+import co.dalicious.domain.payment.util.TossUtil;
+import co.dalicious.domain.user.dto.MembershipDto;
+import co.dalicious.domain.user.entity.Membership;
+import co.dalicious.domain.user.entity.MembershipDiscountPolicy;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
-import co.dalicious.domain.order.mapper.OrderMembershipResMapper;
 import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
+import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiscountType;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.dalicious.domain.user.dto.MembershipDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.repository.QMembershipRepository;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.service.MembershipService;
+
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -48,9 +60,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MembershipServiceImpl implements MembershipService {
     private final UserUtil userUtil;
+    private final TossUtil tossUtil;
     private final MembershipRepository membershipRepository;
     private final QMembershipRepository QmembershipRepository;
     private final OrderItemMembershipRepository orderItemMembershipRepository;
+
+    private final QCreditCardInfoRepository qCreditCardInfoRepository;
+    private final QOrderRepository qOrderRepository;
     private final OrderMembershipRepository orderMembershipRepository;
     private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.YEAR.getPrice().multiply(BigDecimal.valueOf((100 - MembershipSubscriptionType.YEAR.getDiscountRate()) * 0.01)).divide(BigDecimal.valueOf(12));
     private final BigDecimal DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.MONTH.getPrice().subtract(REFUND_YEARLY_MEMBERSHIP_PER_MONTH);
@@ -158,13 +174,25 @@ public class MembershipServiceImpl implements MembershipService {
         // 결제 진행. 실패시 오류 날림
         BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
 
+        CreditCardInfo creditCardInfo = qCreditCardInfoRepository.findCustomerKeyByCardId(orderMembershipReqDto.getCardId());
+        String customerKey = creditCardInfo.getCustomerKey();
+        String billingKey = creditCardInfo.getBillingKey();
+
         try {
-            int statusCode = requestPayment(code, price, 200);
+            JSONObject payResult = tossUtil.payToCard(customerKey, price.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType(), billingKey);
+
             // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-            if (statusCode == 200) {
+            if (payResult.get("status").equals("DONE")) {
                 order.updateTotalPrice(price);
                 orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(price));
                 orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
+
+                //Order 테이블에 paymentKey와 receiptUrl 업데이트
+                JSONObject receipt = (JSONObject) payResult.get("receipt");
+                String receiptUrl = receipt.get("url").toString();
+
+                String paymentKey = (String) payResult.get("paymentKey");
+                qOrderRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderItemMembership.getOrder().getId());
             }
             // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
             else {
@@ -174,6 +202,8 @@ public class MembershipServiceImpl implements MembershipService {
         } catch (ApiException e) {
             orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+        } catch (IOException | InterruptedException | ParseException e) {
+            throw new RuntimeException(e);
         }
         user.changeMembershipStatus(true);
     }
@@ -316,6 +346,7 @@ public class MembershipServiceImpl implements MembershipService {
     // TODO: 결제 모듈 구현시 수정
     @Transactional
     public int requestPayment(String paymentCode, BigDecimal price, int statusCode) {
+
         return statusCode;
     }
 

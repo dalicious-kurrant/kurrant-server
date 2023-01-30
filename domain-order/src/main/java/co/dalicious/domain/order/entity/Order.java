@@ -64,6 +64,15 @@ public class Order {
     @Comment("결제 타입")
     private PaymentType paymentType;
 
+
+    @Column(name="payment_key", columnDefinition = "VARCHAR(255)")
+    @Comment("토스 조회용 페이먼트키")
+    private String paymentKey;
+
+    @Column(name="receipt_url", columnDefinition = "VARCHAR(255)")
+    @Comment("영수증 URL")
+    private String receiptUrl;
+
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(name = "created_datetime", nullable = false,

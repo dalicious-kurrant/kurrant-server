@@ -22,6 +22,9 @@ import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
+import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
@@ -35,9 +38,13 @@ import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -50,6 +57,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final UserUtil userUtil;
+    private final TossUtil tossUtil;
     private final SpotRepository spotRepository;
     private final QCartDailyFoodRepository qCartDailyFoodRepository;
     private final UserSupportPriceUtil userSupportPriceUtil;
@@ -57,6 +65,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderDailyFoodMapper orderDailyFoodMapper;
     private final OrderDailyFoodItemMapper orderDailyFoodItemMapper;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
+    private final QOrderRepository qOrderRepository;
+    private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
     private final UserSupportPriceHistoryReqMapper userSupportPriceHistoryReqMapper;
     private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
@@ -75,6 +85,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Group group = spot.getGroup();
         // 유저가 그 그룹의 스팟에 포함되는지 확인.
         List<UserGroup> userGroups = user.getGroups();
+        System.out.println(group.getId() + "group");
+        System.out.println(user.getGroups().get(0).getId() );
         userGroups.stream().filter(v -> v.getGroup().equals(group) && v.getClientStatus().equals(ClientStatus.BELONG))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
@@ -141,7 +153,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_ITEM_COUNT);
                 }
                 // 멤버십에 가입하지 않은 경우 멤버십 할인이 적용되지 않은 가격으로 보임
+
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, selectedCartDailyFood.getDailyFood().getFood());
+
                 // 금액 일치 확인
                 if (cartDailyFood.getDiscountedPrice().compareTo(FoodUtil.getFoodTotalDiscountedPrice(selectedCartDailyFood.getDailyFood().getFood(), discountDto)) != 0) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
@@ -184,7 +198,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
             }
         }
-
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
         BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getUserPoint());
         if(payPrice.compareTo(orderItemDailyFoodReqDto.getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getSupportPrice()) != 0) {
@@ -194,10 +207,23 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
 
         // TODO: 결제 모듈 구현시  수정
+        // cardId로 customerKey를 가져오기
+        CreditCardInfo creditCard = qCreditCardInfoRepository.findCustomerKeyByCardId(orderItemDailyFoodReqDto.getCardId());
+        //orderName 생성
+        String orderName = makeOrderName(cartDailyFoods);
+
+
         try {
-            int statusCode = requestPayment(orderDailyFood.getCode(), payPrice, 200);
+            JSONObject jsonObject = tossUtil.payToCard(creditCard.getCustomerKey(), payPrice.intValue(), orderDailyFood.getCode(), orderName, creditCard.getBillingKey());
+            System.out.println(jsonObject + "결제 Response값");
+            System.out.println(jsonObject.get("paymentKey") + " paymentKey 값");
+
+            String status = (String) jsonObject.get("status");
+            System.out.println(status);
+            //int statusCode = requestPayment(orderDailyFood.getCode(), payPrice, 200);
+
             // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-            if (statusCode == 200) {
+            if (status.equals("DONE")) {
                 // 주문서 내용 업데이트 및 사용 포인트 차감
                 orderDailyFood.updateDefaultPrice(defaultPrice);
                 orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getUserPoint());
@@ -208,6 +234,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
 
                 user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getUserPoint()));
+
+                //Order 테이블에 paymentKey와 receiptUrl 업데이트
+                JSONObject receipt = (JSONObject) jsonObject.get("receipt");
+                String receiptUrl = receipt.get("url").toString();
+
+                String paymentKey = (String) jsonObject.get("paymentKey");
+                qOrderRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderDailyFood.getId());
             }
             // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
             else {
@@ -221,6 +254,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
             }
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+        } catch (IOException e) {
+            throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        } catch (InterruptedException | ParseException e) {
+            throw new RuntimeException(e);
         }
 
         qCartDailyFoodRepository.deleteByCartDailyFoodList(cartDailyFoods);
@@ -257,5 +294,19 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     // TODO: 결제 모듈 구현시 수정
     public int requestPayment(String paymentCode, BigDecimal price, int statusCode) {
         return statusCode;
+    }
+
+    //orderName생성
+    private String makeOrderName(List<CartDailyFood> cartDailyFoods){
+        //장바구니에 담긴 아이템이 1개라면 상품명을 그대로 리턴
+        if (cartDailyFoods.size() == 1){
+            return cartDailyFoods.get(0).getDailyFood().getFood().getName();
+        }
+
+        //장바구니에 담긴 아이템이 2개 이상이라면 "상품명 외 size-1 건"
+        String firstFoodName = cartDailyFoods.get(0).getDailyFood().getFood().getName();
+        Integer foodSize = cartDailyFoods.size() - 1;
+        String orderName = firstFoodName + "외" + foodSize + "건";
+        return orderName;
     }
 }
