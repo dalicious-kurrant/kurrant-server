@@ -71,7 +71,7 @@ public class UserController {
     }
 
     @Operation(summary = "애플 SNS 계정 연결", description = "SNS 계정을 연결한다.")
-    @PostMapping("/connectingApple/")
+    @PostMapping("/connectingApple")
     public ResponseMessage connectSnsAccount(Authentication authentication, @RequestBody AppleLoginDto appleLoginDto) throws JsonProcessingException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.connectAppleAccount(securityUser, appleLoginDto);
