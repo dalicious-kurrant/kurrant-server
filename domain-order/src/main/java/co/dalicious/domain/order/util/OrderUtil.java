@@ -3,6 +3,7 @@ package co.dalicious.domain.order.util;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItemMembership;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
@@ -63,14 +64,14 @@ public class OrderUtil {
         if(user.getIsMembership()) {
             return true;
         }
-        if(group instanceof Corporation) {
-            return ((Corporation) group).getIsMembershipSupport();
+        if(group instanceof Corporation corporation) {
+            return corporation.getIsMembershipSupport();
         }
         return false;
     }
 
-    public static void checkMembershipAndUpdateDiscountDto(User user, Group group, DiscountDto discountDto) {
-       discountDto.isMembership(isMembership(user, group));
+    public static DiscountDto checkMembershipAndGetDiscountDto(User user, Group group, Food food) {
+        return (isMembership(user, group)) ? DiscountDto.getDiscount(food) : DiscountDto.getDiscountWithNoMembership(food);
     }
 
 }

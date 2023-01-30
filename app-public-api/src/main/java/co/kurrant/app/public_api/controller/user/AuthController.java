@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
+import co.dalicious.client.oauth.AppleLoginDto;
 import co.dalicious.system.util.enums.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.AuthService;
@@ -111,10 +112,20 @@ public class AuthController {
 
     @Operation(summary = "소셜 로그인/회원가입 요청", description = "소셜 로그인/회원가입을 수행한다.")
     @PostMapping("/login/{sns}")
-    public ResponseMessage snsLoginOrJoin(@PathVariable String sns, @RequestBody SnsAccessToken snsAccessToken) {
+    public ResponseMessage snsLoginOrJoin(@PathVariable String sns,
+                                          @RequestBody SnsAccessToken snsAccessToken) {
         return ResponseMessage.builder()
                 .message("소셜로그인을 성공하셨습니다.")
                 .data(authService.snsLoginOrJoin(sns, snsAccessToken))
+                .build();
+    }
+
+    @Operation(summary = "소셜 로그인/회원가입 요청", description = "소셜 로그인/회원가입을 수행한다.")
+    @PostMapping("/loginApple")
+    public ResponseMessage appleLoginOrJoin(@RequestBody AppleLoginDto appleLoginDto) throws JsonProcessingException {
+        return ResponseMessage.builder()
+                .message("소셜로그인을 성공하셨습니다.")
+                .data(authService.appleLoginOrJoin(appleLoginDto))
                 .build();
     }
 

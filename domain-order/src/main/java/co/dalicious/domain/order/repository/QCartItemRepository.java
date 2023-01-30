@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.repository;
 
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.Cart;
 import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.domain.user.entity.User;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.util.List;
 
+import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.order.entity.QCart.cart;
 import static co.dalicious.domain.order.entity.QCartDailyFood.cartDailyFood;
 
@@ -32,40 +34,9 @@ public class QCartItemRepository {
                 .execute();
     }
 
-    public void updateByFoodId(BigInteger cartItemId, Integer count) {
-        queryFactory
-                .update(cart)
-                .set(cart.count, count)
-                .where(cart.id.eq(cartItemId))
-                .execute();
-    }
-
-    public List<Cart> getItems(BigInteger cartId) {
-        return queryFactory
-                .selectFrom(cart)
-                .where(cart.id.eq(cartId))
-                .fetch();
-    }
-
-    public List<CartDailyFood> findDuplicatedItem(BigInteger cartId, BigInteger dailyFoodId) {
-        return queryFactory
-                .selectFrom(cartDailyFood)
-                .where(cart.id.eq(cartId),
-                        cartDailyFood.dailyFood.id.eq(dailyFoodId))
-                .fetch();
-    }
-
-
-    public List<CartDailyFood> getUserCartItemList(BigInteger id) {
+   public List<CartDailyFood> findByUserAndDailyFoods(User user, List<DailyFood> dailyFoodIds) {
         return queryFactory.selectFrom(cartDailyFood)
-                .where(cartDailyFood.id.eq(id))
+                .where(cartDailyFood.dailyFood.in(dailyFoodIds), cartDailyFood.user.eq(user))
                 .fetch();
-    }
-
-    public void updateCount(BigInteger id) {
-            queryFactory.update(cartDailyFood)
-                .where(cartDailyFood.id.eq(id))
-                .set(cartDailyFood.count, cartDailyFood.count.add(1))
-                .execute();
-    }
+   }
 }

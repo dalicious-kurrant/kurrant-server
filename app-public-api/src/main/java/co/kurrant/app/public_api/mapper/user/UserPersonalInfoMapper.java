@@ -19,6 +19,7 @@ public interface UserPersonalInfoMapper {
     @Mapping(target = "avatar", source = "avatar.location")
     @Mapping(target = "gourmetType", source = "gourmetType.gourmetType")
     @Mapping(target = "providerEmails", source = "providerEmails", qualifiedByName = "providerEmailsToDto")
+    @Mapping(target = "membershipPeriod", expression = "java(membershipUtil.getUserPeriodOfUsingMembership(user))")
     UserPersonalInfoDto toDto(User user);
 
     @Named("providerEmailsToDto")

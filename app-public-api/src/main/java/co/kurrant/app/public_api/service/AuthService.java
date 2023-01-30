@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.service;
 import co.dalicious.client.core.dto.request.LoginTokenDto;
 import co.dalicious.client.external.mail.MailMessageDto;
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
+import co.dalicious.client.oauth.AppleLoginDto;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.user.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,6 +23,7 @@ public interface AuthService {
     LoginResponseDto login(LoginRequestDto loginRequestDto);
     // SNS 로그인 / 회원가입
     LoginResponseDto snsLoginOrJoin(String sns, SnsAccessToken snsAccessToken);
+    LoginResponseDto appleLoginOrJoin(AppleLoginDto appleLoginDto) throws JsonProcessingException;
     // Access Token 재발급
     LoginTokenDto reissue(TokenDto reissueTokenDto);
     // 로그아웃

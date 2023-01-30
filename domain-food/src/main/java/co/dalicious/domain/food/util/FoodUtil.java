@@ -25,6 +25,6 @@ public class FoodUtil {
     }
 
     public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
-        return price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100));
+        return price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100.0));
     }
 }

@@ -1,11 +1,21 @@
 package co.dalicious.client.oauth;
 
 import co.dalicious.domain.user.entity.enums.Provider;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Base64;
+import java.util.Map;
+
 
 @Service
 public class SnsLoginServiceImpl implements SnsLoginService{
@@ -15,7 +25,6 @@ public class SnsLoginServiceImpl implements SnsLoginService{
             case NAVER -> getNaverLoginUserInfo(accessToken);
             case KAKAO -> getKakaoLoginUserInfo(accessToken);
             case GOOGLE -> getGoogleLoginUserInfo(accessToken);
-            case APPLE -> getAppleLoginUserInfo(accessToken);
             case FACEBOOK -> getFacebookLoginUserInfo(accessToken);
             default -> null;
         };
@@ -107,12 +116,51 @@ public class SnsLoginServiceImpl implements SnsLoginService{
     }
 
     @Override
-    public SnsLoginResponseDto getAppleLoginUserInfo(String accessToken) {
-        return null;
+    public SnsLoginResponseDto getAppleLoginUserInfo(AppleLoginDto appleLoginDto) throws JsonProcessingException {
+        if(appleLoginDto == null) {
+            throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
+        }
+        String idToken = appleLoginDto.getId_token();
+        String payloadJWT = idToken.split("\\.")[1];
+        Base64.Decoder decoder = Base64.getUrlDecoder();
+        String payload = new String(decoder.decode(payloadJWT));
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> returnMap = mapper.readValue(payload, Map.class);
+
+        String email = (String) returnMap.get("email");
+        String name = (appleLoginDto.getUser() == null) ?
+                null : appleLoginDto.getUser().getName().getLastName() + appleLoginDto.getUser().getName().getFirstName();
+        return SnsLoginResponseDto.builder()
+                .email(email)
+                .name(name)
+                .build();
     }
 
     @Override
     public SnsLoginResponseDto getFacebookLoginUserInfo(String accessToken) {
-        return null;
+        // 헤더에 응답으로 받은 구글 계정정보 받아오기 위한 Access Token 넣기
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        accessToken = "Bearer " + accessToken;
+        headers.set("Authorization", accessToken);
+
+        // HttpEntity 생성.
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Send the request and retrieve the response
+        FacebookLoginResponseDto response = restTemplate.postForEntity(
+                "https://graph.facebook.com/v15.0/me?fields=id,name,email", requestEntity, FacebookLoginResponseDto.class).getBody();
+
+        if(response == null) {
+            throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
+        }
+
+        return SnsLoginResponseDto.builder()
+                .email(response.getEmail())
+                .name(response.getName())
+                .build();
     }
 }

@@ -1,9 +1,7 @@
 package co.kurrant.app.public_api.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -22,4 +20,5 @@ public class UserHomeResponseDto {
     private BigInteger spotId;
     private String spot;
     private BigDecimal point;
+    private int membershipUsingPeriod;
 }
