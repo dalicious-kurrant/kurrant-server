@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
@@ -55,6 +56,7 @@ public class CartServiceImpl implements CartService {
     private final CartDailyFoodsResMapper cartDailyFoodsResMapper;
     private final DeliveryFeePolicy deliveryFeePolicy;
     private final UserSupportPriceUtil userSupportPriceUtil;
+    private final SpotRepository spotRepository;
 
     @Override
     @Transactional
@@ -69,7 +71,7 @@ public class CartServiceImpl implements CartService {
         // DailyFood 가져오기
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByFoodIds(dailyFoodIds);
 
-        if(dailyFoods.isEmpty()) {
+        if (dailyFoods.isEmpty()) {
             throw new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND);
         }
 
@@ -89,25 +91,30 @@ public class CartServiceImpl implements CartService {
 
             // 주문 시간이 지났는지 확인하기
             LocalDateTime lastOrderTime = LocalDateTime.of(dailyFood.getServiceDate(), mealInfo.getLastOrderTime());
-            if(LocalDateTime.now().isAfter(lastOrderTime)) {
+            if (LocalDateTime.now().isAfter(lastOrderTime)) {
                 throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
             }
 
             // 상품이 품절되었는지 확인하기
-            if(!dailyFood.getFoodStatus().equals(FoodStatus.SALES)) {
+            if (!dailyFood.getFoodStatus().equals(FoodStatus.SALES)) {
                 throw new ApiException(ExceptionEnum.SOLD_OUT);
             }
 
             // DailyFood가 중복될 경우는 추가하지 않고 count 수만큼 수량 증가 처리
             Optional<CartDailyFood> cartDailyFood = cartDailyFoods.stream().filter(v -> v.getDailyFood().equals(dailyFood))
                     .findAny();
-            cartDailyFood.ifPresent(food -> food.updateCount(food.getCount() + cartDto.getCount()));
 
-            // 중복되는 DailyFood가 장바구니에 존재하지 않는다면 추가하기
-            CartDailyFood newOrderCartDailyFood = orderCartDailyFoodMapper.toEntity(user, cartDto.getCount(), dailyFood);
+            if(cartDailyFood.isPresent()) {
+                cartDailyFood.get().updateCount(cartDailyFood.get().getCount() + cartDto.getCount());
+            }
+            else {
+                // 중복되는 DailyFood가 장바구니에 존재하지 않는다면 추가하기
+                CartDailyFood newOrderCartDailyFood = orderCartDailyFoodMapper.toEntity(user, cartDto.getCount(), dailyFood);
 
-            //장바구니에 추가
-            cartDailyFoodRepository.save(newOrderCartDailyFood);
+                //장바구니에 추가
+                cartDailyFoodRepository.save(newOrderCartDailyFood);
+            }
+
         }
     }
 
@@ -125,14 +132,14 @@ public class CartServiceImpl implements CartService {
         List<CartDailyFood> cartDailyFoods = cartDailyFoodRepository.findAllByUser(user);
 
         // 장바구니에 담긴 상품이 없다면 null 값 return
-        if(cartDailyFoods.isEmpty()) {
+        if (cartDailyFoods.isEmpty()) {
             return null;
         }
         // 스팟별로 식단 나누기
         for (CartDailyFood spotDailyFood : cartDailyFoods) {
             spotDailyFoodMap.add(spotDailyFood.getSpot(), spotDailyFood);
         }
-        for(Spot spot : spotDailyFoodMap.keySet()) {
+        for (Spot spot : spotDailyFoodMap.keySet()) {
             // TODO: Fetch.LAZY 적용시 Spot과 Group가 Proxy이기 때문에 instanceof 사용 불가능함.
             //  현재 CartDailyFood -> Spot -> Group Fetch.EAGER 설정. 추후 수정 필요
             Group group = spot.getGroup();
@@ -160,7 +167,7 @@ public class CartServiceImpl implements CartService {
                 BigDecimal supportPrice = BigDecimal.ZERO;
                 BigDecimal deliveryFee = deliveryFeePolicy.getGroupDeliveryFee(user, group);
                 // 사용 가능한 지원금 가져오기
-                if(spot instanceof CorporationSpot) {
+                if (spot instanceof CorporationSpot) {
                     supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, diningTypeServiceDate.getDiningType());
                     // 기존에 사용한 지원금이 있다면 차감
                     BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDate.getServiceDate(), diningTypeServiceDate.getDiningType());
@@ -185,7 +192,7 @@ public class CartServiceImpl implements CartService {
                     .spotId(spot.getId())
                     .spotName(spot.getName())
                     .groupName(spot.getGroup().getName())
-                    .clientStatus((spot instanceof ApartmentSpot)? 0 : 1)
+                    .clientStatus((spot instanceof ApartmentSpot) ? 0 : 1)
                     .cartDailyFoodDtoList(cartDailyFoodListDtos)
                     .build();
             spotCartsList.add(spotCarts);
@@ -209,10 +216,13 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public void deleteAllCartItemByUserId(SecurityUser securityUser) {
+    public void deleteAllSpotCartItemByUserId(SecurityUser securityUser, BigInteger spotId) {
         // order__cart_item에서 user_id에 해당되는 항목 모두 삭제
         User user = userUtil.getUser(securityUser);
-        List<Cart> cartList = orderCartRepository.findAllByUser(user);
+        Spot spot = spotRepository.findById(spotId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
+        );
+        List<Cart> cartList = orderCartRepository.findAllByUserAndSpot(user, spot);
         qOrderCartItemRepository.deleteByCartId(cartList);
     }
 

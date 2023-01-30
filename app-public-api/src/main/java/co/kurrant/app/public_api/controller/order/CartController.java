@@ -16,20 +16,22 @@ import java.math.BigInteger;
 import java.util.List;
 
 @Tag(name = "3. Cart")
-@RequestMapping(value = "/v1/users/me/order/cart")
+@RequestMapping(value = "/v1/users/me/carts")
 @RestController
 @RequiredArgsConstructor
 public class CartController {
 
     private final CartService cartService;
 
-    @Operation(summary = "장바구니 담기", description = "장바구니 생성 및 담기, 중복될 경우 수량+1")
+    @Operation(summary = "장바구니 담기", description = "장바구니 생성 및 담기")
     @PostMapping("")
     public ResponseMessage saveOrderCart(Authentication authentication,
                                          @RequestBody List<CartDto> cartDtoList) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         cartService.saveOrderCart(securityUser, cartDtoList);
-        return ResponseMessage.builder().message("아무일도 일어나지 않았습니다.").build();
+        return ResponseMessage.builder()
+                .message("장바구니 담기에 성공하였습니다.")
+                .build();
     }
 
     @Operation(summary = "장바구니 조회", description = "장바구니를 조회한다.")
@@ -52,12 +54,12 @@ public class CartController {
     }
 
     @Operation(summary = "장바구니 전체 삭제", description = "장바구니에 담긴 모든 항목을 삭제한다.")
-    @DeleteMapping("/all")
-    public ResponseMessage deleteByUserId(Authentication authentication) {
+    @DeleteMapping("/spots/{spotId}")
+    public ResponseMessage deleteByUserId(Authentication authentication, @PathVariable BigInteger spotId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        cartService.deleteAllCartItemByUserId(securityUser);
+        cartService.deleteAllSpotCartItemByUserId(securityUser, spotId);
         return ResponseMessage.builder()
-                .message("장바구니의 모든 상품을 삭제했습니다.")
+                .message("해당 스팟 장바구니의 모든 상품을 삭제했습니다.")
                 .build();
     }
 
