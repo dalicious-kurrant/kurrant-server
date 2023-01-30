@@ -1,8 +1,5 @@
 package co.dalicious.domain.payment.util;
 
-import exception.ApiException;
-import exception.ExceptionEnum;
-import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -14,15 +11,13 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Random;
 
 @Component
-@PropertySource("classpath:application-payment.yaml")
+@PropertySource("classpath:application-payment.properties")
 public class TossUtil {
 
     private String secretKey;

@@ -78,13 +78,13 @@ jobs:
         echo "${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}" > ./application-redis.properties
       shell: bash
 
-    - name: domain-payment application.yaml 생성
+    - name: domain-payment application-payment.properties 생성
       run: |
         cd ./domain-payment/src/main
         mkdir resources
         cd resources
         touch ./application-payment.properties
-        echo "${{ secrets.DOMAIN_PAYMENT_YAML }}" > ./application-payment.yaml
+        echo "${{ secrets.DOMAIN_PAYMENT_PROPERTIES }}" > ./application-payment.properties
       shell: bash
 
     - name: domain-file application-s3.properties 생성
