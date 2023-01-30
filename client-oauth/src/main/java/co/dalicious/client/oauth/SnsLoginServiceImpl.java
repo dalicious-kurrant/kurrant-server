@@ -129,7 +129,7 @@ public class SnsLoginServiceImpl implements SnsLoginService{
         Map<String, Object> returnMap = mapper.readValue(payload, Map.class);
 
         String email = (String) returnMap.get("email");
-        String name = (appleLoginDto.getUser().getName() == null) ?
+        String name = (appleLoginDto.getUser() == null) ?
                 null : appleLoginDto.getUser().getName().getLastName() + appleLoginDto.getUser().getName().getFirstName();
         return SnsLoginResponseDto.builder()
                 .email(email)
