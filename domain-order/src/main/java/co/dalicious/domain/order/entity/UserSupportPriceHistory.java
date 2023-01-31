@@ -5,6 +5,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -53,6 +54,7 @@ public class  UserSupportPriceHistory {
 
     @OneToOne(optional = false)
     @JoinColumn
+    @JsonManagedReference(value = "order_item_fk")
     @Comment("지원금 사용 아이템")
     private OrderItem orderItem;
 

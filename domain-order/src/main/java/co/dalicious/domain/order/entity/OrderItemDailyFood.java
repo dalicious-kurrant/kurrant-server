@@ -3,6 +3,8 @@ package co.dalicious.domain.order.entity;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.enums.DiningType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,7 +46,7 @@ public class OrderItemDailyFood extends OrderItem{
     private BigDecimal price;
 
     @Column(name = "discounted_price")
-    @Comment("상품 총 할인 가격")
+    @Comment("할인된 가격")
     private BigDecimal discountedPrice;
 
     @Column(name = "count")
@@ -62,6 +64,11 @@ public class OrderItemDailyFood extends OrderItem{
     @Column(name = "period_discounted_rate")
     @Comment("기간 할인율")
     private Integer periodDiscountRate;
+
+    @OneToOne(mappedBy = "orderItem", orphanRemoval = true)
+    @JsonBackReference(value = "order_item_fk")
+    @Comment("정기식사에 사용된 지원금")
+    private UserSupportPriceHistory userSupportPriceHistory;
 
     @Builder
     public OrderItemDailyFood(OrderStatus orderStatus, Order order, LocalDate serviceDate, DiningType diningType, Food food, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountRate, Integer membershipDiscountRate, Integer periodDiscountRate) {
