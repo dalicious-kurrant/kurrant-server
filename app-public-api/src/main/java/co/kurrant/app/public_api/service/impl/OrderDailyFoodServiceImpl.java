@@ -66,10 +66,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderItemDailyFoodListMapper orderItemDailyFoodListMapper;
     private final OrderDailyFoodHistoryMapper orderDailyFoodHistoryMapper;
 
-    private final QCreditCardInfoRepository qCreditCardInfoRepository;
-    private final TossUtil tossUtil;
-    private final QOrderRepository qOrderRepository;
-
     @Override
     @Transactional
     public void orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto, BigInteger spotId) {
@@ -312,20 +308,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         if (cartDailyFoods.size() == 1){
             return cartDailyFoods.get(0).getDailyFood().getFood().getName();
         }
-        //장바구니에 담긴 아이템이 2개 이상이라면 "상품명 외 size-1 건"
-        String firstFoodName = cartDailyFoods.get(0).getDailyFood().getFood().getName();
-        Integer foodSize = cartDailyFoods.size() - 1;
-        String orderName = firstFoodName + "외" + foodSize + "건";
-        return orderName;
-    }
-
-    //orderName생성
-    private String makeOrderName(List<CartDailyFood> cartDailyFoods){
-        //장바구니에 담긴 아이템이 1개라면 상품명을 그대로 리턴
-        if (cartDailyFoods.size() == 1){
-            return cartDailyFoods.get(0).getDailyFood().getFood().getName();
-        }
-
         //장바구니에 담긴 아이템이 2개 이상이라면 "상품명 외 size-1 건"
         String firstFoodName = cartDailyFoods.get(0).getDailyFood().getFood().getName();
         Integer foodSize = cartDailyFoods.size() - 1;
