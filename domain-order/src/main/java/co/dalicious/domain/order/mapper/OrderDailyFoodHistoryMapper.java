@@ -25,6 +25,7 @@ public interface OrderDailyFoodHistoryMapper {
     OrderDailyFoodDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
     @Mapping(source = "order.id", target = "id")
+    @Mapping(source = "order.orderType.code", target = "orderType")
     @Mapping(source = "order.code", target = "code")
     @Mapping(target = "orderDate", expression = "java(DateUtils.toISOLocalDate(order.getCreatedDateTime()))")
     @Mapping(source = "orderItems", target = "orderItems")

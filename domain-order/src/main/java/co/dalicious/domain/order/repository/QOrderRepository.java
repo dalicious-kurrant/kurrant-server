@@ -1,6 +1,8 @@
 package co.dalicious.domain.order.repository;
 
+import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.QOrder;
+import co.dalicious.domain.user.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -8,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.List;
 
 import static co.dalicious.domain.order.entity.QOrder.order;
 
@@ -29,4 +33,14 @@ public class QOrderRepository {
             throw new ApiException(ExceptionEnum.UPDATE_ORDER_FAILED);
         }
     }
+
+//    public List<Order> findAllOrderByUserFilterByOrderTypeAndPeriod(User user, Integer orderType, LocalDate startDate, LocalDate endDate) {
+//        // 기간을 지정하지 않은 경우
+//        if(startDate == null && endDate == null) {
+//            return queryFactory.selectFrom(order)
+//                    .where(order.user.eq(user))
+//                    .orderBy(order.createdDateTime.desc())
+//                    .fetch();
+//        }
+//    }
 }

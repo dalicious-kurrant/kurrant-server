@@ -45,10 +45,22 @@ public class OrderDailyFoodController {
 
     @Operation(summary = "정기식사 구매내역", description = "정기 식사 구매내역을 조회한다.")
     @GetMapping("/histories")
-    public ResponseMessage userOrderDailyFoodHistory(Authentication authentication) {
+    public ResponseMessage userOrderDailyFoodHistory(Authentication authentication,
+                                                     @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                     @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+                                                     @RequestParam(required = false) Integer orderType) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.findUserOrderDailyFoodHistory(securityUser))
+                .data(orderDailyFoodService.findUserOrderDailyFoodHistory(securityUser, startDate, endDate, orderType))
+                .message("정기식사 구매 내역 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "정기식사 구매내역 상세", description = "정기 식사 구매내역 상세를 가져온다.")
+    @GetMapping("/{orderId}")
+    public ResponseMessage userOrderDailyFoodDetail(Authentication authentication, @PathVariable BigInteger orderId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
                 .message("정기식사 구매 내역 조회에 성공하였습니다.")
                 .build();
     }

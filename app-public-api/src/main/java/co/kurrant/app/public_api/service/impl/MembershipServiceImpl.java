@@ -154,6 +154,7 @@ public class MembershipServiceImpl implements MembershipService {
         String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
         OrderMembership order = OrderMembership.builder()
                 .code(code)
+                .orderType(OrderType.MEMBERSHIP)
                 .paymentType(PaymentType.ofCode(orderMembershipReqDto.getPaymentType()))
                 .build();
         // 유저 정보 저장
