@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final UserUtil userUtil;
+    private final TossUtil tossUtil;
     private final SpotRepository spotRepository;
     private final QCartDailyFoodRepository qCartDailyFoodRepository;
     private final UserSupportPriceUtil userSupportPriceUtil;
@@ -55,6 +56,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderDailyFoodMapper orderDailyFoodMapper;
     private final OrderDailyFoodItemMapper orderDailyFoodItemMapper;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
+    private final QOrderRepository qOrderRepository;
+    private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
     private final UserSupportPriceHistoryReqMapper userSupportPriceHistoryReqMapper;
     private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
@@ -200,6 +203,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         CreditCardInfo creditCard = qCreditCardInfoRepository.findCustomerKeyByCardId(orderItemDailyFoodReqDto.getCardId());
         //orderName 생성
         String orderName = makeOrderName(cartDailyFoods);
+
+
         try {
             JSONObject jsonObject = tossUtil.payToCard(creditCard.getCustomerKey(), payPrice.intValue(), orderDailyFood.getCode(), orderName, creditCard.getBillingKey());
             System.out.println(jsonObject + "결제 Response값");
@@ -217,9 +222,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                 }
                 user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getUserPoint()));
+
                 //Order 테이블에 paymentKey와 receiptUrl 업데이트
                 JSONObject receipt = (JSONObject) jsonObject.get("receipt");
                 String receiptUrl = receipt.get("url").toString();
+
                 String paymentKey = (String) jsonObject.get("paymentKey");
                 qOrderRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderDailyFood.getId());
             }
@@ -305,6 +312,20 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         if (cartDailyFoods.size() == 1){
             return cartDailyFoods.get(0).getDailyFood().getFood().getName();
         }
+        //장바구니에 담긴 아이템이 2개 이상이라면 "상품명 외 size-1 건"
+        String firstFoodName = cartDailyFoods.get(0).getDailyFood().getFood().getName();
+        Integer foodSize = cartDailyFoods.size() - 1;
+        String orderName = firstFoodName + "외" + foodSize + "건";
+        return orderName;
+    }
+
+    //orderName생성
+    private String makeOrderName(List<CartDailyFood> cartDailyFoods){
+        //장바구니에 담긴 아이템이 1개라면 상품명을 그대로 리턴
+        if (cartDailyFoods.size() == 1){
+            return cartDailyFoods.get(0).getDailyFood().getFood().getName();
+        }
+
         //장바구니에 담긴 아이템이 2개 이상이라면 "상품명 외 size-1 건"
         String firstFoodName = cartDailyFoods.get(0).getDailyFood().getFood().getName();
         Integer foodSize = cartDailyFoods.size() - 1;
