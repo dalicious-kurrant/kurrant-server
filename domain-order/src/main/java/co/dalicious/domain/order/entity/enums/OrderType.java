@@ -6,20 +6,20 @@ import java.util.Arrays;
 
 @Getter
 public enum OrderType {
-    DAILYFOOD("정기 식사 결제", 1L),
-    PRODUCT("마켓 상품 결제", 2L),
-    MEMBERSHIP("멤버십 결제", 3L);
+    DAILYFOOD("정기 식사 결제", 1),
+    PRODUCT("마켓 상품 결제", 2),
+    MEMBERSHIP("멤버십 결제", 3);
 
 
     private final String orderType;
-    private final Long code;
+    private final Integer code;
 
-    OrderType(String orderType, Long code) {
+    OrderType(String orderType, Integer code) {
         this.orderType = orderType;
         this.code = code;
     }
 
-    public static OrderType ofCode(Long code) {
+    public static OrderType ofCode(Integer code) {
         return Arrays.stream(OrderType.values())
                 .filter(v -> v.getCode().equals(code))
                 .findAny()
