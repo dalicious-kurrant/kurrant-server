@@ -223,6 +223,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 orderDailyFood.updateDefaultPrice(defaultPrice);
                 orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getUserPoint());
                 orderDailyFood.updateTotalPrice(payPrice);
+                orderDailyFood.updateTotalDeliveryFee(totalDeliveryFee);
                 for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                     orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                 }
@@ -294,7 +295,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public List<OrderDailyFoodDto> findUserOrderDailyFoodHistory(SecurityUser securityUser) {
+    public List<OrderDailyFoodDto> findUserOrderDailyFoodHistory(SecurityUser securityUser, LocalDate startDate, LocalDate endDate, Integer orderType) {
         User user = userUtil.getUser(securityUser);
 
         List<OrderDailyFoodDto> orderDailyFoodDtos = new ArrayList<>();

@@ -13,6 +13,7 @@ import java.util.List;
 @Schema(description = "주문 내역 조회 DTO")
 public class OrderDailyFoodDto {
     private BigInteger id;
+    private Integer orderType;
     private String code;
     private String orderDate;
     private List<OrderItem> orderItems;

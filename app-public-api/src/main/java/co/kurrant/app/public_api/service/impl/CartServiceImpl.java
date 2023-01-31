@@ -100,6 +100,11 @@ public class CartServiceImpl implements CartService {
                 throw new ApiException(ExceptionEnum.SOLD_OUT);
             }
 
+            // 장바구니에 담는 상품이 재고보다 많은지 확인하기
+            if(dailyFood.getMaxCapacity() < cartDto.getCount() || dailyFood.getCapacity() < cartDto.getCount()) {
+                throw new ApiException(ExceptionEnum.OVER_ITEM_CAPACITY);
+            }
+
             // DailyFood가 중복될 경우는 추가하지 않고 count 수만큼 수량 증가 처리
             Optional<CartDailyFood> cartDailyFood = cartDailyFoods.stream().filter(v -> v.getDailyFood().equals(dailyFood))
                     .findAny();

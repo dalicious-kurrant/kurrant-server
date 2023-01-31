@@ -20,6 +20,7 @@ public interface OrderDailyFoodMapper {
     @Mapping(source = "spot.group.name", target = "groupName")
     @Mapping(source = "spot.name", target = "spotName")
     @Mapping(source = "spot", target = "spot")
+    @Mapping(target = "orderType", constant = "DAILYFOOD")
     OrderDailyFood toEntity(User user, Spot spot);
 
     @Named("getCode")

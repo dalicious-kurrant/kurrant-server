@@ -12,7 +12,6 @@ import co.dalicious.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
@@ -38,6 +37,12 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
+
+    @Convert(converter = OrderTypeConverter.class)
+    @Column(name = "e_order_type")
+    @Comment("주문 타입")
+    private OrderType orderType;
+
 
     @NotNull
     @Column(name = "code")
@@ -65,11 +70,11 @@ public class Order {
     private PaymentType paymentType;
 
 
-    @Column(name="payment_key", columnDefinition = "VARCHAR(255)")
+    @Column(name = "payment_key", columnDefinition = "VARCHAR(255)")
     @Comment("토스 조회용 페이먼트키")
     private String paymentKey;
 
-    @Column(name="receipt_url", columnDefinition = "VARCHAR(255)")
+    @Column(name = "receipt_url", columnDefinition = "VARCHAR(255)")
     @Comment("영수증 URL")
     private String receiptUrl;
 
@@ -96,13 +101,15 @@ public class Order {
     @JsonBackReference(value = "order_fk")
     List<OrderItem> orderItems;
 
-    public Order(String code, PaymentType paymentType) {
+    public Order(String code, PaymentType paymentType, OrderType orderType) {
+        this.orderType = orderType;
         this.code = code;
         this.paymentType = paymentType;
     }
 
-    public Order(String code, Address address, PaymentType paymentType, User user) {
+    public Order(String code, OrderType orderType, Address address, PaymentType paymentType, User user) {
         this.code = code;
+        this.orderType = orderType;
         this.address = address;
         this.paymentType = paymentType;
         this.user = user;
