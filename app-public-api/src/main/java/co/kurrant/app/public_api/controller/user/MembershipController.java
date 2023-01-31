@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 public class MembershipController {
-    private final UserUtil userUtil;
     private final MembershipService membershipService;
     @Operation(summary = "멤버십 이용내역", description = "유저의 멤버십 이용 내역을 조회한다.")
     @GetMapping("")

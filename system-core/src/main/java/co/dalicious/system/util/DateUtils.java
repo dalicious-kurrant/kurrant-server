@@ -3,6 +3,7 @@ package co.dalicious.system.util;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -42,6 +43,16 @@ public class DateUtils {
         SimpleDateFormat sdf;
         sdf = new SimpleDateFormat(formatString);
         return sdf.format(timestamp);
+    }
+
+    public static String format(LocalDate date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        return date.format(formatter);
+    }
+
+    public static Timestamp localDateToTimestamp(LocalDate localDate) {
+        LocalDateTime localDateTime = LocalDateTime.of(localDate.getYear(), localDate.getMonth(), localDate.getDayOfMonth(), 0, 0, 0);
+        return Timestamp.valueOf(localDateTime);
     }
 
     public static LocalTime stringToTime(String str, String separator) {

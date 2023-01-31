@@ -40,9 +40,8 @@ public class Order {
 
     @Convert(converter = OrderTypeConverter.class)
     @Column(name = "e_order_type")
-    @Comment("주문 타입")
+    @Comment("주문 타입: 정기식사 결제(1), 마켓 결제(2), 멤버십 결제(3)")
     private OrderType orderType;
-
 
     @NotNull
     @Column(name = "code")

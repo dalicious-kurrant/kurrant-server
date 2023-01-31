@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service;
 
-import co.dalicious.domain.order.dto.OrderDailyFoodDto;
+import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
+import co.dalicious.domain.order.dto.OrderHistoryDto;
 import co.dalicious.domain.order.dto.OrderDetailDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -15,5 +16,7 @@ public interface OrderDailyFoodService {
     // 식사 일정을 조회한다.
     List<OrderDetailDto> findOrderByServiceDate(SecurityUser securityUser, LocalDate startDate, LocalDate endDate);
     // 구매 내역을 조회한다.
-    List<OrderDailyFoodDto> findUserOrderDailyFoodHistory(SecurityUser securityUser, LocalDate startDate, LocalDate endDate, Integer orderType);
+    List<OrderHistoryDto> findUserOrderDailyFoodHistory(SecurityUser securityUser, LocalDate startDate, LocalDate endDate, Integer orderType);
+    // 구매 내역 상세를 조회한다.
+    OrderDailyFoodDetailDto getOrderDailyFoodDetail(SecurityUser securityUser, BigInteger orderId);
 }

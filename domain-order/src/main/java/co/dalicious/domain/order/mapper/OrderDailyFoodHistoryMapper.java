@@ -1,6 +1,6 @@
 package co.dalicious.domain.order.mapper;
 
-import co.dalicious.domain.order.dto.OrderDailyFoodDto;
+import co.dalicious.domain.order.dto.OrderHistoryDto;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.system.util.DateUtils;
@@ -22,14 +22,14 @@ public interface OrderDailyFoodHistoryMapper {
     @Mapping(source = "count", target = "count")
     @Mapping(target = "price", expression = "java(getPayedPrice(orderItemDailyFood))")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
-    OrderDailyFoodDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
+    OrderHistoryDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
     @Mapping(source = "order.id", target = "id")
     @Mapping(source = "order.orderType.code", target = "orderType")
     @Mapping(source = "order.code", target = "code")
     @Mapping(target = "orderDate", expression = "java(DateUtils.toISOLocalDate(order.getCreatedDateTime()))")
     @Mapping(source = "orderItems", target = "orderItems")
-    OrderDailyFoodDto orderToDto(Order order, List<OrderDailyFoodDto.OrderItem> orderItems);
+    OrderHistoryDto orderToDto(Order order, List<OrderHistoryDto.OrderItem> orderItems);
 
     @Named("getPayedPrice")
     default BigDecimal getPayedPrice(OrderItemDailyFood orderItemDailyFood) {

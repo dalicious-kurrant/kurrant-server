@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
 @Getter
@@ -17,20 +18,22 @@ public class OrderDailyFoodDetailDto {
     private String spotName;
     private String ho;
     private String address;
-    private BigDecimal totalPrice;
+    private BigDecimal defaultPrice;
     private BigDecimal supportPrice;
     private BigDecimal membershipDiscountPrice;
     private BigDecimal makersDiscountPrice;
     private BigDecimal periodDiscountPrice;
     private BigDecimal deliveryFee;
     private BigDecimal point;
-    private BigDecimal totalDiscountedPrice;
-    private String paymentType;
+    private BigDecimal totalPrice;
+    private BigDecimal discountPrice;
+    private String paymentInfo;
     private List<OrderItem> orderItems;
 
     @Getter
     @Setter
     public static class OrderItem {
+        private BigInteger id;
         private String image;
         private String serviceDate;
         private Integer diningType;

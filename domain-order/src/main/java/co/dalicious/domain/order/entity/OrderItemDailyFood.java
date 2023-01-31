@@ -53,13 +53,13 @@ public class OrderItemDailyFood extends OrderItem{
     @Comment("수량")
     private Integer count;
 
-    @Column(name = "makers_discounted_rate")
-    @Comment("메이커스 할인율")
-    private Integer makersDiscountRate;
-
     @Column(name = "membership_discounted_rate")
     @Comment("멤버십 할인율")
     private Integer membershipDiscountRate;
+
+    @Column(name = "makers_discounted_rate")
+    @Comment("메이커스 할인율")
+    private Integer makersDiscountRate;
 
     @Column(name = "period_discounted_rate")
     @Comment("기간 할인율")
@@ -83,5 +83,34 @@ public class OrderItemDailyFood extends OrderItem{
         this.makersDiscountRate = makersDiscountRate;
         this.membershipDiscountRate = membershipDiscountRate;
         this.periodDiscountRate = periodDiscountRate;
+    }
+
+    public BigDecimal getMembershipDiscountPrice() {
+        return this.price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count));
+    }
+
+    public BigDecimal getMakersDiscountPrice() {
+        BigDecimal price = this.price;
+        BigDecimal membershipDiscountedPrice = BigDecimal.ZERO;
+        if(this.membershipDiscountRate != 0) {
+            membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0)));;
+            price = price.subtract(membershipDiscountedPrice);
+        }
+        return price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count));
+    }
+
+    public BigDecimal getPeriodDiscountPrice() {
+        BigDecimal price = this.price;
+        BigDecimal membershipDiscountedPrice = BigDecimal.ZERO;
+        BigDecimal makersDiscountPrice = BigDecimal.ZERO;
+        if(this.membershipDiscountRate != 0) {
+            membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0)));;
+            price = price.subtract(membershipDiscountedPrice);
+        }
+        if(this.makersDiscountRate != 0) {
+            makersDiscountPrice = price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0)));;
+            price = price.subtract(makersDiscountPrice);
+        }
+        return price.multiply(BigDecimal.valueOf((this.periodDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count));
     }
 }
