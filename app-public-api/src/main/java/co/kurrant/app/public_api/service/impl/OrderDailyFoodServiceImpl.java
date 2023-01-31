@@ -66,6 +66,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderItemDailyFoodListMapper orderItemDailyFoodListMapper;
     private final OrderDailyFoodHistoryMapper orderDailyFoodHistoryMapper;
 
+    private final QCreditCardInfoRepository qCreditCardInfoRepository;
+    private final TossUtil tossUtil;
+    private final QOrderRepository qOrderRepository;
+
     @Override
     @Transactional
     public void orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto, BigInteger spotId) {
@@ -84,7 +88,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
 
         // 사용 요청 포인트가 유저가 현재 가지고 있는 포인트보다 적은지 검증
-        if(orderItemDailyFoodReqDto.getUserPoint().compareTo(user.getPoint()) > 0) {
+        if (orderItemDailyFoodReqDto.getUserPoint().compareTo(user.getPoint()) > 0) {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
 
@@ -168,22 +172,22 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 totalDailyFoodPrice = totalDailyFoodPrice.add(dailyFoodPrice);
 
                 // 지원금 사용 저장
-                if(spot instanceof CorporationSpot) {
+                if (spot instanceof CorporationSpot) {
                     BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(dailyFoodPrice, supportPrice);
-                    if(usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
+                    if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
                         UserSupportPriceHistory userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
                         userSupportPriceHistoryRepository.save(userSupportPriceHistory);
                         totalSupportPrice = totalSupportPrice.add(usableSupportPrice);
                         supportPrice = supportPrice.subtract(usableSupportPrice);
                     }
                 }
-                
+
                 // 주문 개수 차감
                 Integer capacity = selectedCartDailyFood.getDailyFood().subtractCapacity(cartDailyFood.getCount());
-                if(capacity < 0) {
+                if (capacity < 0) {
                     throw new ApiException(ExceptionEnum.OVER_ITEM_CAPACITY);
                 }
-                if(capacity == 0) {
+                if (capacity == 0) {
                     selectedCartDailyFood.getDailyFood().updateFoodStatus(FoodStatus.SOLD_OUT);
                 }
             }
@@ -191,13 +195,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
         BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getUserPoint());
-        if(payPrice.compareTo(orderItemDailyFoodReqDto.getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getSupportPrice()) != 0) {
+        if (payPrice.compareTo(orderItemDailyFoodReqDto.getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getSupportPrice()) != 0) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
-
-
-        // TODO: 결제 모듈 구현시  수정
         // cardId로 customerKey를 가져오기
         CreditCardInfo creditCard = qCreditCardInfoRepository.findCustomerKeyByCardId(orderItemDailyFoodReqDto.getCardId());
         //orderName 생성
@@ -210,7 +211,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
             String status = (String) jsonObject.get("status");
             System.out.println(status);
-            //int statusCode = requestPayment(orderDailyFood.getCode(), payPrice, 200);
 
             // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
             if (status.equals("DONE")) {
@@ -218,11 +218,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 orderDailyFood.updateDefaultPrice(defaultPrice);
                 orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getUserPoint());
                 orderDailyFood.updateTotalPrice(payPrice);
-
                 for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                     orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                 }
-
                 user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getUserPoint()));
 
                 //Order 테이블에 paymentKey와 receiptUrl 업데이트
@@ -251,8 +249,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         qCartDailyFoodRepository.deleteByCartDailyFoodList(cartDailyFoods);
-
-        // TODO: 포인트 사용, 전체 지원금 검증
     }
 
     @Override
@@ -310,9 +306,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         return orderDailyFoodDtos;
     }
 
-    // TODO: 결제 모듈 구현시 수정
-    public int requestPayment(String paymentCode, BigDecimal price, int statusCode) {
-        return statusCode;
+    //orderName생성
+    private String makeOrderName(List<CartDailyFood> cartDailyFoods){
+        //장바구니에 담긴 아이템이 1개라면 상품명을 그대로 리턴
+        if (cartDailyFoods.size() == 1){
+            return cartDailyFoods.get(0).getDailyFood().getFood().getName();
+        }
+        //장바구니에 담긴 아이템이 2개 이상이라면 "상품명 외 size-1 건"
+        String firstFoodName = cartDailyFoods.get(0).getDailyFood().getFood().getName();
+        Integer foodSize = cartDailyFoods.size() - 1;
+        String orderName = firstFoodName + "외" + foodSize + "건";
+        return orderName;
     }
 
     //orderName생성
@@ -329,3 +333,4 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         return orderName;
     }
 }
+
