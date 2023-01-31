@@ -15,7 +15,6 @@ import co.dalicious.domain.order.repository.OrderItemMembershipRepository;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.order.service.DiscountPolicy;
-import co.dalicious.domain.order.service.DiscountPolicyImpl;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
@@ -32,8 +31,6 @@ import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiscountType;
-import co.kurrant.app.public_api.model.SecurityUser;
-import co.dalicious.domain.user.dto.MembershipDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.repository.QMembershipRepository;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -302,13 +299,6 @@ public class MembershipServiceImpl implements MembershipService {
         OrderItemMembership orderItemMembership = orderItemMembershipRepository.findOneByMembership(userCurrentMembership).orElseThrow(
                 () -> new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND)
         );
-        // 주문 상태가 "완료됨"이 아닌 경우 제외
-        if (!orderItemMembership.getOrderStatus().equals(OrderStatus.COMPLETED)) {
-            throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
-        }
-
-        // 멤버십 주문 내역 가져오기
-
 
         // 사용한 날짜 계산하기
         int membershipUsingDays = userCurrentMembership.getStartDate().until(LocalDate.now()).getDays();

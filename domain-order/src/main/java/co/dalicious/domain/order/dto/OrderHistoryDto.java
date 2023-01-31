@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @Schema(description = "주문 내역 조회 DTO")
-public class OrderDailyFoodDto {
+public class OrderHistoryDto {
     private BigInteger id;
     private Integer orderType;
     private String code;

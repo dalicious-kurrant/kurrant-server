@@ -72,6 +72,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final SseService sseService;
     private final NotificationHashRepository notificationHashRepository;
     private final OrderDailyFoodHistoryMapper orderDailyFoodHistoryMapper;
+    private final OrderDailyFoodDetailMapper orderDailyFoodDetailMapper;
 
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final TossUtil tossUtil;
@@ -174,7 +175,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 OrderItemDailyFood orderItemDailyFood = orderDailyFoodItemMapper.toEntity(cartDailyFood, selectedCartDailyFood, orderDailyFood);
                 orderItemDailyFoods.add(orderItemDailyFoodRepository.save(orderItemDailyFood));
 
-                defaultPrice = defaultPrice.add(selectedCartDailyFood.getDailyFood().getFood().getPrice());
+                defaultPrice = defaultPrice.add(selectedCartDailyFood.getDailyFood().getFood().getPrice().multiply(BigDecimal.valueOf(cartDailyFood.getCount())));
                 BigDecimal dailyFoodPrice = cartDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(cartDailyFood.getCount()));
                 totalDailyFoodPrice = totalDailyFoodPrice.add(dailyFoodPrice);
 
@@ -295,21 +296,37 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public List<OrderDailyFoodDto> findUserOrderDailyFoodHistory(SecurityUser securityUser, LocalDate startDate, LocalDate endDate, Integer orderType) {
+    public List<OrderHistoryDto> findUserOrderDailyFoodHistory(SecurityUser securityUser, LocalDate startDate, LocalDate endDate, Integer orderType) {
         User user = userUtil.getUser(securityUser);
 
-        List<OrderDailyFoodDto> orderDailyFoodDtos = new ArrayList<>();
+        List<OrderHistoryDto> orderHistoryDtos = new ArrayList<>();
 
-        List<OrderDailyFood> orderDailyFoods = orderDailyFoodRepository.findAllByUserOrderByCreatedDateTimeDesc(user);
-        for (OrderDailyFood orderDailyFood : orderDailyFoods) {
-            List<OrderDailyFoodDto.OrderItem> orderItems = new ArrayList<>();
-            List<OrderItem> orderItemList = orderDailyFood.getOrderItems();
+        List<Order> orders = qOrderRepository.findAllOrderByUserFilterByOrderTypeAndPeriod(user, orderType, startDate, endDate);
+        for (Order order : orders) {
+            List<OrderHistoryDto.OrderItem> orderItems = new ArrayList<>();
+            List<OrderItem> orderItemList = order.getOrderItems();
+            // TODO: 마켓, 케이터링 구현시 instanceOf로 조건 나누기
             for (OrderItem orderItem : orderItemList) {
                 orderItems.add(orderDailyFoodHistoryMapper.orderItemDailyFoodToDto((OrderItemDailyFood) orderItem));
             }
-            orderDailyFoodDtos.add(orderDailyFoodHistoryMapper.orderToDto(orderDailyFood, orderItems));
+            orderHistoryDtos.add(orderDailyFoodHistoryMapper.orderToDto(order, orderItems));
         }
-        return orderDailyFoodDtos;
+        return orderHistoryDtos;
+    }
+
+    @Override
+    @Transactional
+    public OrderDailyFoodDetailDto getOrderDailyFoodDetail(SecurityUser securityUser, BigInteger orderId) {
+        User user = userUtil.getUser(securityUser);
+        OrderDailyFood orderDailyFood = orderDailyFoodRepository.findById(orderId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.NOT_FOUND)
+        );
+        List<OrderDailyFoodDetailDto.OrderItem> orderItemList = new ArrayList<>();
+        List<OrderItem> orderItems = orderDailyFood.getOrderItems();
+        for (OrderItem orderItem : orderItems) {
+            orderItemList.add(orderDailyFoodDetailMapper.orderItemDailyFoodToDto((OrderItemDailyFood) orderItem));
+        }
+        return orderDailyFoodDetailMapper.orderToDto(orderDailyFood, orderItemList);
     }
 
     //orderName생성
@@ -321,8 +338,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         //장바구니에 담긴 아이템이 2개 이상이라면 "상품명 외 size-1 건"
         String firstFoodName = cartDailyFoods.get(0).getDailyFood().getFood().getName();
         Integer foodSize = cartDailyFoods.size() - 1;
-        String orderName = firstFoodName + "외" + foodSize + "건";
-        return orderName;
+        return firstFoodName + "외" + foodSize + "건";
     }
 
     private void findOrderByServiceDateNotification(SecurityUser securityUser) {

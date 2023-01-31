@@ -61,6 +61,7 @@ public class OrderDailyFoodController {
     public ResponseMessage userOrderDailyFoodDetail(Authentication authentication, @PathVariable BigInteger orderId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
+                .data(orderDailyFoodService.getOrderDailyFoodDetail(securityUser, orderId))
                 .message("정기식사 구매 내역 조회에 성공하였습니다.")
                 .build();
     }
