@@ -1,8 +1,6 @@
 package co.dalicious.domain.order.mapper;
 
-import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
-import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;

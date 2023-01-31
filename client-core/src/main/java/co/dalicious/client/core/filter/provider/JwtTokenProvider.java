@@ -37,9 +37,11 @@ public class JwtTokenProvider {
     private final UserDetailsService userDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 2 * 60 * 60 * 1000L; // 2시간
-    private static final long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
+//    private static final long ACCESS_TOKEN_EXPIRE_TIME = 2 * 60 * 60 * 1000L; // 2시간
+//    private static final long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
 
+    private static final long ACCESS_TOKEN_EXPIRE_TIME =  30 * 1000L; // 30초
+    private static final long REFRESH_TOKEN_EXPIRE_TIME = 60 * 1000L; // 1분
     @PostConstruct
     protected void init() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
