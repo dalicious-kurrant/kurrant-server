@@ -19,6 +19,7 @@ import co.kurrant.app.public_api.service.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,6 +67,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional
     public Long deleteAllAlarm(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
         return qAlarmRepository.deleteAllAlarm(user.getId());
