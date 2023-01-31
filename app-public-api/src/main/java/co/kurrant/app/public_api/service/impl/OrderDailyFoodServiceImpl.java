@@ -194,6 +194,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
         BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getUserPoint());
+        System.out.println(totalDailyFoodPrice + "totalDailyFoodPrice, " + totalDeliveryFee + "totalDeliveryFee, " + totalSupportPrice + "totalSupportPrice");
+        System.out.println(payPrice + "payPrice");
+        System.out.println(totalSupportPrice + "totalSupportPrice");
         if(payPrice.compareTo(orderItemDailyFoodReqDto.getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getSupportPrice()) != 0) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
@@ -206,14 +209,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         //orderName 생성
         String orderName = makeOrderName(cartDailyFoods);
 
-
         try {
             JSONObject jsonObject = tossUtil.payToCard(creditCard.getCustomerKey(), payPrice.intValue(), orderDailyFood.getCode(), orderName, creditCard.getBillingKey());
             System.out.println(jsonObject + "결제 Response값");
-            System.out.println(jsonObject.get("paymentKey") + " paymentKey 값");
 
             String status = (String) jsonObject.get("status");
-            System.out.println(status);
             //int statusCode = requestPayment(orderDailyFood.getCode(), payPrice, 200);
 
             // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경

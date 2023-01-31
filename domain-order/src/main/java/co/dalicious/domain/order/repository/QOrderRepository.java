@@ -29,4 +29,11 @@ public class QOrderRepository {
             throw new ApiException(ExceptionEnum.UPDATE_ORDER_FAILED);
         }
     }
+
+    public String getPaymentKey(BigInteger orderItemId) {
+        return queryFactory.select(order.paymentKey)
+                .from(order)
+                .where(order.orderItems.any().id.eq(orderItemId))
+                .fetchOne();
+    }
 }
