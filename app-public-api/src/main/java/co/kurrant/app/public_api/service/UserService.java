@@ -9,6 +9,9 @@ import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -44,7 +47,7 @@ public interface UserService {
     // 유저가 속한 그룹 정보 리스트
     List<SpotListResponseDto> getClients(SecurityUser securityUser);
 
-    Integer saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto);
+    Integer saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException;
 
     List<CreditCardResponseDto> getCardList(SecurityUser securityUser);
 

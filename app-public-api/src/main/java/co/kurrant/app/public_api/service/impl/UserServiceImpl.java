@@ -40,6 +40,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -440,7 +442,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Integer saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) {
+    public Integer saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
         User user = userUtil.getUser(securityUser);
 
         /*영문 대소문자, 숫자, 특수문자 -, _, =, ., @로 이루어진 최소 2자 이상 최대 300자 이하의 문자열*/
@@ -450,57 +452,23 @@ public class UserServiceImpl implements UserService {
         String identityNumber = saveCreditCardRequestDto.getIdentityNumber().substring(2);
 
         //TOSS에 요청하기 위한 request 객체 빌드
-        HttpRequest request = tossUtil.cardRegisterRequest(saveCreditCardRequestDto.getCardNumber(), saveCreditCardRequestDto.getExpirationYear(),saveCreditCardRequestDto.getExpirationMonth(),
-                                                            saveCreditCardRequestDto.getCardPassword(), identityNumber, customerKey);
-        HttpResponse<String> response = null;
-        try {
-            //응답값 받아오기
-            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200){
-                throw new ApiException(ExceptionEnum.FAIL_TO_CREDITCARD_REGIST);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        JSONObject response = tossUtil.cardRegisterRequest(saveCreditCardRequestDto.getCardNumber(), saveCreditCardRequestDto.getExpirationYear(), saveCreditCardRequestDto.getExpirationMonth(),
+                saveCreditCardRequestDto.getCardPassword(), identityNumber, customerKey);
+
+        //빌링키가 없다면 Exception 처리
+        if (!response.containsKey("billingKey")) {
+            throw new ApiException(ExceptionEnum.FAIL_TO_CREDITCARD_REGIST);
         }
-        System.out.println(response.body() + " 바디바디");
-
-
-
-        String[] strings = response.body().split(",");
         /*
         빌링키  / 카드번호 / 카드회사 / 카드타입 / 오너타입
         * */
-        String billingKey = null;
-        String cardNumber = null;
-        String cardCompany = null;
-        String cardType = null;
-        String ownerType = null;
+        String billingKey = response.get("billingKey").toString();
+        String cardNumber = response.get("cardNumber").toString();
+        String cardCompany = response.get("cardCompany").toString();
+        JSONObject cardObject = (JSONObject) response.get("card");
+        String cardType = cardObject.get("cardType").toString();
+        String ownerType = cardObject.get("ownerType").toString();
 
-        //필요한 정보들을 저장해준다.
-        for (String body : strings){
-            if (body.contains("billingKey")){
-                String[] billingKeyTemp = body.split(":");
-                billingKey = billingKeyTemp[1].substring(1,billingKeyTemp[1].length()-1);
-            }
-            if (body.contains("cardNumber")){
-                String[] cardNumbers = body.split(":");
-                cardNumber = cardNumbers[1].substring(1,cardNumbers[1].length()-1);
-            }
-            if(body.contains("cardCompany")){
-                String[] cardCompanyArray = body.split(":");
-                cardCompany = cardCompanyArray[1].substring(1,cardCompanyArray[1].length()-1);
-            }
-            if(body.contains("cardType")){
-                String[] cardTypes = body.split(":");
-                cardType = cardTypes[1].substring(1,cardTypes[1].length()-1);
-            }
-            if(body.contains("ownerType")){
-                String[] ownerTypes = body.split(":");
-                ownerType = ownerTypes[1].substring(1,ownerTypes[1].length()-3);
-            }
-        }
         Integer defaultType = saveCreditCardRequestDto.getDefaultType();
 
 

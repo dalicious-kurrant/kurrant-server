@@ -12,9 +12,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.parser.ParseException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -137,7 +139,7 @@ public class UserController {
     @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
     @PostMapping("/cards")
     public ResponseMessage saveCreditCard(Authentication authentication,
-                                      @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto){
+                                      @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
         if (result == 2){
