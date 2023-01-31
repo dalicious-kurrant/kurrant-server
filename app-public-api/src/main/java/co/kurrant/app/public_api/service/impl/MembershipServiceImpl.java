@@ -181,6 +181,7 @@ public class MembershipServiceImpl implements MembershipService {
 
             // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
             if (payResult.get("status").equals("DONE")) {
+                order.updateDefaultPrice(defaultPrice);
                 order.updateTotalPrice(price);
                 orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(price));
                 orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
