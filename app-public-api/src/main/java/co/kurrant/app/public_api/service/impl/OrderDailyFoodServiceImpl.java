@@ -13,10 +13,7 @@ import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.order.mapper.OrderDailyFoodItemMapper;
-import co.dalicious.domain.order.mapper.OrderDailyFoodMapper;
-import co.dalicious.domain.order.mapper.OrderItemDailyFoodListMapper;
-import co.dalicious.domain.order.mapper.UserSupportPriceHistoryReqMapper;
+import co.dalicious.domain.order.mapper.*;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.OrderUtil;
@@ -68,6 +65,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderItemDailyFoodListMapper orderItemDailyFoodListMapper;
     private final SseService sseService;
     private final NotificationHashRepository notificationHashRepository;
+    private final OrderDailyFoodHistoryMapper orderDailyFoodHistoryMapper;
 
     @Override
     @Transactional
@@ -274,12 +272,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public List<OrderDetailDto> findOrderByServiceDate(LocalDate startDate, LocalDate endDate, SecurityUser securityUser) {
+    public List<OrderDetailDto> findOrderByServiceDate(SecurityUser securityUser, LocalDate startDate, LocalDate endDate) {
+        // 유저정보 가져오기
+        User user = userUtil.getUser(securityUser);
         List<OrderDetailDto> orderDetailDtos = new ArrayList<>();
         Set<DiningTypeServiceDate> diningTypeServiceDates = new HashSet<>();
         MultiValueMap<DiningTypeServiceDate, OrderItemDto> multiValueMap = new LinkedMultiValueMap<>();
 
-        List<OrderItemDailyFood> orderItemList = qOrderDailyFoodRepository.findByServiceDateBetween(startDate, endDate);
+        List<OrderItemDailyFood> orderItemList = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user ,startDate, endDate);
         for (OrderItemDailyFood orderItemDailyFood : orderItemList) {
             DiningTypeServiceDate diningTypeServiceDate = new DiningTypeServiceDate(orderItemDailyFood.getServiceDate(), orderItemDailyFood.getDiningType());
             diningTypeServiceDates.add(diningTypeServiceDate);
@@ -306,6 +306,25 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         findOrderByServiceDateNotification(securityUser);
 
         return orderDetailDtos;
+    }
+
+    @Override
+    @Transactional
+    public List<OrderDailyFoodDto> findUserOrderDailyFoodHistory(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+
+        List<OrderDailyFoodDto> orderDailyFoodDtos = new ArrayList<>();
+
+        List<OrderDailyFood> orderDailyFoods = orderDailyFoodRepository.findAllByUserOrderByCreatedDateTimeDesc(user);
+        for (OrderDailyFood orderDailyFood : orderDailyFoods) {
+            List<OrderDailyFoodDto.OrderItem> orderItems = new ArrayList<>();
+            List<OrderItem> orderItemList = orderDailyFood.getOrderItems();
+            for (OrderItem orderItem : orderItemList) {
+                orderItems.add(orderDailyFoodHistoryMapper.orderItemDailyFoodToDto((OrderItemDailyFood) orderItem));
+            }
+            orderDailyFoodDtos.add(orderDailyFoodHistoryMapper.orderToDto(orderDailyFood, orderItems));
+        }
+        return orderDailyFoodDtos;
     }
 
     // TODO: 결제 모듈 구현시 수정

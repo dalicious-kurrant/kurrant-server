@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.user.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -17,10 +18,10 @@ public class QOrderDailyFoodRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public List<OrderItemDailyFood> findByServiceDateBetween(LocalDate startDate, LocalDate endDate) {
+    public List<OrderItemDailyFood> findByUserAndServiceDateBetween(User user, LocalDate startDate, LocalDate endDate) {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
-                .where(orderItemDailyFood.serviceDate.between(startDate,endDate))
+                .where(orderItemDailyFood.order.user.eq(user), orderItemDailyFood.serviceDate.between(startDate,endDate))
                 .fetch();
     }
 
