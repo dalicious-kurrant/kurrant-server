@@ -210,7 +210,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         try {
             JSONObject jsonObject = tossUtil.payToCard(creditCard.getCustomerKey(), payPrice.intValue(), orderDailyFood.getCode(), orderName, creditCard.getBillingKey());
             System.out.println(jsonObject + "결제 Response값");
-            System.out.println(jsonObject.get("paymentKey") + " paymentKey 값");
 
             String status = (String) jsonObject.get("status");
             System.out.println(status);
