@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import java.math.BigInteger;
@@ -30,6 +31,7 @@ public class Alarm {
 
     @Convert(converter = AlarmTypeConverter.class)
     @Column(name ="alarm_type", columnDefinition = "VARCHAR(45)")
+    @Comment("0 : 프로모션 / 1: 이벤트 / 2: 쿠폰 / 3: 정기식사 / 4: 공지 / 5: 스팟공지 / 6: 주문상태")
     private AlarmBoardType type;
 
     @Column(name="created_date", columnDefinition = "DATETIME")
