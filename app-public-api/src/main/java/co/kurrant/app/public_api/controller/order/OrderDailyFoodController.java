@@ -57,8 +57,28 @@ public class OrderDailyFoodController {
     }
 
     @Operation(summary = "정기식사 구매내역 상세", description = "정기 식사 구매내역 상세를 가져온다.")
-    @GetMapping("/{orderId}")
+    @GetMapping("/{orderId}/refund")
     public ResponseMessage userOrderDailyFoodDetail(Authentication authentication, @PathVariable BigInteger orderId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.getOrderDailyFoodDetail(securityUser, orderId))
+                .message("정기식사 구매 내역 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "정기식사 전체 환불", description = "주문 내역의 모든 정기식사 상품을 환불한다.")
+    @GetMapping("/{orderId}")
+    public ResponseMessage userOrderDailyFoodRefund(Authentication authentication, @PathVariable BigInteger orderId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.getOrderDailyFoodDetail(securityUser, orderId))
+                .message("정기식사 구매 내역 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "정기식사 부분 환불", description = "주문한 한 정기식사 상품을 환불한다.")
+    @GetMapping("/{orderId}/dailyFoods/{orderItemId}")
+    public ResponseMessage userOrderItemDailyFoodRefund(Authentication authentication, @PathVariable BigInteger orderId, @PathVariable BigInteger orderItemId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getOrderDailyFoodDetail(securityUser, orderId))
