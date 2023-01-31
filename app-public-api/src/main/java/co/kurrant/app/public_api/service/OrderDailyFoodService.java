@@ -15,5 +15,5 @@ public interface OrderDailyFoodService {
     // 식사 일정을 조회한다.
     List<OrderDetailDto> findOrderByServiceDate(SecurityUser securityUser, LocalDate startDate, LocalDate endDate);
     // 구매 내역을 조회한다.
-    List<OrderDailyFoodDto> findUserOrderDailyFoodHistory(SecurityUser securityUser);
+    List<OrderDailyFoodDto> findUserOrderDailyFoodHistory(SecurityUser securityUser, LocalDate startDate, LocalDate endDate, Integer orderType);
 }

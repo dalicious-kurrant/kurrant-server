@@ -43,8 +43,8 @@ public class QDailyFoodRepository {
                 .where(dailyFood.spot.eq(spot),
                         dailyFood.serviceDate.eq(selectedDate),
                         dailyFood.diningType.eq(diningType),
-                        dailyFood.foodStatus.in(FoodStatus.SALES, FoodStatus.SOLD_OUT, FoodStatus.PASS_LAST_ORDER_TIME)
-                        )
+                        dailyFood.foodStatus.in(FoodStatus.SALES)
+                )
                 .fetch();
     }
 }

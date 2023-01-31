@@ -3,6 +3,7 @@ package co.dalicious.domain.order.entity;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
+import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import lombok.AccessLevel;
@@ -22,7 +23,8 @@ import java.math.BigDecimal;
 @Getter
 @Table(name = "order__daily_food")
 public class OrderDailyFood extends Order{
-
+    @Column(precision = 15)
+    private BigDecimal totalDeliveryFee;
     @Comment("그룹명")
     private String groupName;
 
@@ -43,11 +45,15 @@ public class OrderDailyFood extends Order{
         this.ho = orderUserInfoDto.getSpotName();
     }
 
-    public OrderDailyFood(String code, Address address, PaymentType paymentType, User user, String groupName, String spotName, String ho, Spot spot) {
-        super(code, address, paymentType, user);
+    public OrderDailyFood(String code, OrderType orderType, Address address, PaymentType paymentType, User user, String groupName, String spotName, String ho, Spot spot) {
+        super(code, orderType, address, paymentType, user);
         this.groupName = groupName;
         this.spotName = spotName;
         this.ho = ho;
         this.spot = spot;
+    }
+
+    public void updateTotalDeliveryFee(BigDecimal totalDeliveryFee) {
+        this.totalDeliveryFee = totalDeliveryFee;
     }
 }
