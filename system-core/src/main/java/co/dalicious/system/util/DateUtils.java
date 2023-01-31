@@ -21,6 +21,12 @@ public class DateUtils {
         return sdf.format(ts);
     }
 
+    public static String toISOLocalDate(Timestamp ts) {
+        SimpleDateFormat sdf;
+        sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(ts);
+    }
+
     public static String format(Date date, String formatString) {
         SimpleDateFormat sdf;
         sdf = new SimpleDateFormat(formatString);

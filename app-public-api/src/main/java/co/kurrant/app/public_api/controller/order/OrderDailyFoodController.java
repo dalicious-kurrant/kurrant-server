@@ -23,21 +23,33 @@ public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
     @Operation(summary = "유저 주문 정보 가져오기", description = "유저의 주문 정보를 가져온다.")
     @GetMapping("")
-    public ResponseMessage userOrderByDate(
+    public ResponseMessage userOrderByDate(Authentication authentication,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.findOrderByServiceDate(startDate, endDate))
+                .data(orderDailyFoodService.findOrderByServiceDate(securityUser, startDate, endDate))
                 .message("주문 불러오기에 성공하였습니다.")
                 .build();
     }
 
+    @Operation(summary = "정기 식사 주문하기", description = "정기 식사를 구매한다.")
     @PostMapping("/{spotId}")
     public ResponseMessage userOrderByDate(Authentication authentication, @PathVariable BigInteger spotId, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto, spotId);
         return ResponseMessage.builder()
                 .message("식사 주문에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "정기식사 구매내역", description = "정기 식사 구매내역을 조회한다.")
+    @GetMapping("/histories")
+    public ResponseMessage userOrderDailyFoodHistory(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.findUserOrderDailyFoodHistory(securityUser))
+                .message("정기식사 구매 내역 조회에 성공하였습니다.")
                 .build();
     }
 }
