@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.repository;
 
+import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.QOrder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
@@ -8,8 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import static co.dalicious.domain.order.entity.QOrder.order;
+import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 
 @Repository
 @RequiredArgsConstructor
@@ -32,8 +35,9 @@ public class QOrderRepository {
 
     public String getPaymentKey(BigInteger orderItemId) {
         return queryFactory.select(order.paymentKey)
-                .from(order)
-                .where(order.orderItems.any().id.eq(orderItemId))
+                .from(order,orderItem)
+                .where(order.id.eq(orderItem.order.id),
+                        orderItem.id.eq(orderItemId))
                 .fetchOne();
     }
 }

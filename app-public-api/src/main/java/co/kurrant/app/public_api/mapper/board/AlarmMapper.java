@@ -35,5 +35,4 @@ public interface AlarmMapper{
     default String created(LocalDateTime created){
         return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(created);
     }
-
 }
