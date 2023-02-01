@@ -61,8 +61,11 @@ public class MembershipController {
 
     @Operation(summary = "멤버십 혜택 금액 가져오기", description = "유저가 멤버십을 이용하는 동안 받았던 혜택 금액을 조회한다.")
     @GetMapping("/benefits")
-    public void getPriceBenefits(Authentication authentication) {
+    public ResponseMessage getPriceBenefits(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .message("멤버십 혜택 금액 가져오기에 성공하였습니다.")
+                .build();
     }
 
     @Operation(summary = "멤버십 자동 결제 수단 저장하기", description = "유저가 멤버십을 자동 결제할 시 사용할 결제 수단을 정한다.")
