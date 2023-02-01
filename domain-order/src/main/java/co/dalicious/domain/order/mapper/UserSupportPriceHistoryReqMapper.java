@@ -18,9 +18,9 @@ public interface UserSupportPriceHistoryReqMapper {
     @Mapping(source = "orderItemDailyFood.order.user", target = "user")
     @Mapping(source = "orderItemDailyFood.order", target = "group", qualifiedByName = "getGroup")
     @Mapping(source = "supportPrice", target = "usingSupportPrice")
-    @Mapping(source = "orderItemDailyFood.serviceDate", target = "serviceDate")
-    @Mapping(source = "orderItemDailyFood.diningType", target = "diningType")
-    @Mapping(source = "orderItemDailyFood", target = "orderItem")
+    @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup.serviceDate", target = "serviceDate")
+    @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup.diningType", target = "diningType")
+    @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
     @Mapping(target = "status", constant = "true")
     UserSupportPriceHistory toEntity(OrderItemDailyFood orderItemDailyFood, BigDecimal supportPrice);
 

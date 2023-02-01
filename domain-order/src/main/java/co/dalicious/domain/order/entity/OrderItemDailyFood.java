@@ -23,16 +23,7 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "order__order_item_dailyfood")
-public class OrderItemDailyFood extends OrderItem{
-    @Column(name = "service_date", nullable = false,
-            columnDefinition = "TIMESTAMP(6)")
-    @Comment("서비스 날짜")
-    private LocalDate serviceDate;
-
-    @Column(name = "e_dining_type")
-    @Comment("식사타입: 아침,점심,저녁")
-    private DiningType diningType;
-
+public class OrderItemDailyFood extends OrderItem {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "food_id", nullable = false)
     @Comment("식품 ID")
@@ -65,16 +56,15 @@ public class OrderItemDailyFood extends OrderItem{
     @Comment("기간 할인율")
     private Integer periodDiscountRate;
 
-    @OneToOne(mappedBy = "orderItem", orphanRemoval = true)
-    @JsonBackReference(value = "order_item_fk")
-    @Comment("정기식사에 사용된 지원금")
-    private UserSupportPriceHistory userSupportPriceHistory;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn
+    @JsonManagedReference(value = "order_item_daily_food_group_fk")
+    @Comment("식사 타입/배송날짜 기준 정기식사 주문 구분")
+    private OrderItemDailyFoodGroup orderItemDailyFoodGroup;
 
     @Builder
-    public OrderItemDailyFood(OrderStatus orderStatus, Order order, LocalDate serviceDate, DiningType diningType, Food food, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountRate, Integer membershipDiscountRate, Integer periodDiscountRate) {
+    public OrderItemDailyFood(OrderStatus orderStatus, Order order, Food food, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountRate, Integer membershipDiscountRate, Integer periodDiscountRate, OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
         super(orderStatus, order);
-        this.serviceDate = serviceDate;
-        this.diningType = diningType;
         this.food = food;
         this.name = name;
         this.price = price;
@@ -83,6 +73,7 @@ public class OrderItemDailyFood extends OrderItem{
         this.makersDiscountRate = makersDiscountRate;
         this.membershipDiscountRate = membershipDiscountRate;
         this.periodDiscountRate = periodDiscountRate;
+        this.orderItemDailyFoodGroup = orderItemDailyFoodGroup;
     }
 
     public BigDecimal getMembershipDiscountPrice() {

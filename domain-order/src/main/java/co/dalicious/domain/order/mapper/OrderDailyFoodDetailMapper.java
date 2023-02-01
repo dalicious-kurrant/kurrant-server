@@ -37,8 +37,8 @@ public interface OrderDailyFoodDetailMapper {
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "food.image.location", target = "image")
-    @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getServiceDate()))")
-    @Mapping(source = "diningType.code", target = "diningType")
+    @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate()))")
+    @Mapping(source = "orderItemDailyFoodGroup.diningType.code", target = "diningType")
     @Mapping(source = "food.makers.name", target = "makers")
     @Mapping(source = "name", target = "foodName")
     @Mapping(source = "count", target = "count")
@@ -57,7 +57,7 @@ public interface OrderDailyFoodDetailMapper {
         BigDecimal supportPrice = BigDecimal.ZERO;
         for (OrderItem orderItem : orderItems) {
             OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) orderItem;
-            supportPrice = supportPrice.add((orderItemDailyFood.getUserSupportPriceHistory() == null) ? BigDecimal.ZERO : orderItemDailyFood.getUserSupportPriceHistory().getUsingSupportPrice());
+            supportPrice = supportPrice.add((orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistory() == null) ? BigDecimal.ZERO : orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistory().getUsingSupportPrice());
         }
         return supportPrice;
     }

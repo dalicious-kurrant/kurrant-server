@@ -17,8 +17,8 @@ public interface OrderDailyFoodHistoryMapper {
     @Mapping(source = "food.makers.name", target = "makersName")
     @Mapping(source = "food.name", target = "name")
     @Mapping(source = "food.image.location", target = "image")
-    @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getServiceDate(), \"yyyy-MM-dd\"))")
-    @Mapping(source = "diningType.code", target = "diningType")
+    @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate()))")
+    @Mapping(source = "orderItemDailyFoodGroup.diningType.code", target = "diningType")
     @Mapping(source = "count", target = "count")
     @Mapping(target = "price", expression = "java(getPayedPrice(orderItemDailyFood))")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
@@ -33,7 +33,7 @@ public interface OrderDailyFoodHistoryMapper {
 
     @Named("getPayedPrice")
     default BigDecimal getPayedPrice(OrderItemDailyFood orderItemDailyFood) {
-        BigDecimal userSupportPrice = (orderItemDailyFood.getUserSupportPriceHistory() == null) ? BigDecimal.ZERO : orderItemDailyFood.getUserSupportPriceHistory().getUsingSupportPrice();
+        BigDecimal userSupportPrice = (orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistory() == null) ? BigDecimal.ZERO : orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistory().getUsingSupportPrice();
         return orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())).subtract(userSupportPrice);
     }
 }
