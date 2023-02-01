@@ -11,6 +11,7 @@ import org.hibernate.annotations.Comment;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
@@ -19,19 +20,13 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "payment__cancel_history")
 public class PaymentCancelHistory {
-
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
+    @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
-    @CreatedDate
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "created_datetime",
-            columnDefinition = "DATETIME")
     @Comment("취소시간")
-    private LocalDateTime createdDateTime;
+    private LocalDateTime cancelDateTime;
 
     @Comment("취소사유")
     @Column(name="cancel_reason", columnDefinition = "VARCHAR(255)")
@@ -39,10 +34,10 @@ public class PaymentCancelHistory {
 
     @Comment("취소금액")
     @Column(name="cancel_price", columnDefinition = "INT")
-    private Integer cancelPrice;
+    private BigDecimal cancelPrice;
 
     @Column(name = "refundable_price", columnDefinition = "")
-    private Integer refundablePrice;
+    private BigDecimal refundablePrice;
 
     @Comment("취소영수증 URL")
     @Column(name = "checkout_url", columnDefinition = "VARCHAR(255)")
@@ -52,16 +47,16 @@ public class PaymentCancelHistory {
     @Column(name = "order_code", columnDefinition = "VARCHAR(255)")
     private String orderCode;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
     private CreditCardInfo creditCardInfo;
 
-    @OneToOne(optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
     private OrderItem orderItem;
 
     @Builder
-    public PaymentCancelHistory(String cancelReason, Integer cancelPrice, Integer refundablePrice,
+    public PaymentCancelHistory(String cancelReason, BigDecimal cancelPrice, BigDecimal refundablePrice,
                                 String checkOutUrl, String orderCode, CreditCardInfo creditCardInfo,
                                 OrderItem orderItem){
         this.cancelReason = cancelReason;
