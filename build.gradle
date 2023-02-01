@@ -187,6 +187,7 @@ project(':app-public-api') {
         implementation project(':client-external-mail')
         implementation project(':client-external-sms')
         implementation project(':data-redis')
+        implementation project(':client-sse')
     }
 }
 
@@ -311,5 +312,13 @@ project(':client-external-sms') {
     dependencies {
         implementation project(':system-core')
         implementation project(':data-redis')
+    }
+}
+
+project(':client-sse') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':data-redis')
+        implementation project(':domain-user')
     }
 }
