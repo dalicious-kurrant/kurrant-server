@@ -21,7 +21,7 @@ public class QOrderDailyFoodRepository {
     public List<OrderItemDailyFood> findByUserAndServiceDateBetween(User user, LocalDate startDate, LocalDate endDate) {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
-                .where(orderItemDailyFood.order.user.eq(user), orderItemDailyFood.serviceDate.between(startDate,endDate))
+                .where(orderItemDailyFood.order.user.eq(user), orderItemDailyFood.orderItemDailyFoodGroup.serviceDate.between(startDate,endDate))
                 .fetch();
     }
 }

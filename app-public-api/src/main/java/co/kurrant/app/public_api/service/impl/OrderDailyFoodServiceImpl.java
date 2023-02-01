@@ -66,6 +66,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderItemDailyFoodListMapper orderItemDailyFoodListMapper;
     private final OrderDailyFoodHistoryMapper orderDailyFoodHistoryMapper;
     private final OrderDailyFoodDetailMapper orderDailyFoodDetailMapper;
+    private final OrderItemDailyFoodGroupRepository orderItemDailyFoodGroupRepository;
 
     @Override
     @Transactional
@@ -89,7 +90,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
 
-        Set<DiningTypeServiceDate> diningTypeServiceDates = new HashSet<>();
+        Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
         List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
         List<BigInteger> cartDailyFoodIds = new ArrayList<>();
         BigDecimal defaultPrice = BigDecimal.ZERO;
@@ -108,14 +109,15 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
             totalDeliveryFee = totalDeliveryFee.add(cartDailyFoodDto.getDeliveryFee());
 
-            diningTypeServiceDates.add(new DiningTypeServiceDate(DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType())));
+            diningTypeServiceDateDtos.add(new DiningTypeServiceDateDto(DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType())));
+
             for (CartDailyFoodDto.DailyFood dailyFood : cartDailyFoodDto.getCartDailyFoods()) {
                 cartDailyFoodIds.add(dailyFood.getId());
             }
         }
 
         // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
-        PeriodDto periodDto = userSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDates);
+        PeriodDto periodDto = userSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
 
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
@@ -127,6 +129,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             List<UserSupportPriceHistory> userSupportPriceHistories = qUserSupportPriceHistoryRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
 
             BigDecimal supportPrice = BigDecimal.ZERO;
+            BigDecimal orderItemGroupTotalPrice = BigDecimal.ZERO;
             if (spot instanceof CorporationSpot) {
                 supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, DiningType.ofString(cartDailyFoodDto.getDiningType()));
                 // 기존에 사용한 지원금이 있다면 차감
@@ -136,7 +139,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
                 }
             }
-            // 3. 주문 음식 가격이 일치하는지 검증 및 주문 저장
+            // 3. 배송일과 지원금 저장하기
+            OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.save(orderDailyFoodItemMapper.dtoToOrderItemDailyFoodGroup(cartDailyFoodDto));
+            OrderItemDailyFood orderItemDailyFood = null;
+            // 4. 주문 음식 가격이 일치하는지 검증 및 주문 저장
             for (CartDailyFoodDto.DailyFood cartDailyFood : cartDailyFoodDto.getCartDailyFoods()) {
                 CartDailyFood selectedCartDailyFood = cartDailyFoods.stream().filter(v -> v.getId().equals(cartDailyFood.getId()))
                         .findAny()
@@ -161,23 +167,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 ) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }
-                OrderItemDailyFood orderItemDailyFood = orderDailyFoodItemMapper.toEntity(cartDailyFood, selectedCartDailyFood, orderDailyFood);
+                orderItemDailyFood = orderDailyFoodItemMapper.dtoToOrderItemDailyFood(cartDailyFood, selectedCartDailyFood, orderDailyFood, orderItemDailyFoodGroup);
                 orderItemDailyFoods.add(orderItemDailyFoodRepository.save(orderItemDailyFood));
 
                 defaultPrice = defaultPrice.add(selectedCartDailyFood.getDailyFood().getFood().getPrice().multiply(BigDecimal.valueOf(cartDailyFood.getCount())));
                 BigDecimal dailyFoodPrice = cartDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(cartDailyFood.getCount()));
+                orderItemGroupTotalPrice = orderItemGroupTotalPrice.add(dailyFoodPrice);
                 totalDailyFoodPrice = totalDailyFoodPrice.add(dailyFoodPrice);
-
-                // 지원금 사용 저장
-                if (spot instanceof CorporationSpot) {
-                    BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(dailyFoodPrice, supportPrice);
-                    if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
-                        UserSupportPriceHistory userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
-                        userSupportPriceHistoryRepository.save(userSupportPriceHistory);
-                        totalSupportPrice = totalSupportPrice.add(usableSupportPrice);
-                        supportPrice = supportPrice.subtract(usableSupportPrice);
-                    }
-                }
 
                 // 주문 개수 차감
                 Integer capacity = selectedCartDailyFood.getDailyFood().subtractCapacity(cartDailyFood.getCount());
@@ -186,6 +182,16 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
                 if (capacity == 0) {
                     selectedCartDailyFood.getDailyFood().updateFoodStatus(FoodStatus.SOLD_OUT);
+                }
+            }
+
+            // 5. 지원금 사용 저장
+            if (spot instanceof CorporationSpot) {
+                BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
+                if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
+                    UserSupportPriceHistory userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                    userSupportPriceHistoryRepository.save(userSupportPriceHistory);
+                    totalSupportPrice = totalSupportPrice.add(usableSupportPrice);
                 }
             }
         }
@@ -255,23 +261,21 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         // 유저정보 가져오기
         User user = userUtil.getUser(securityUser);
         List<OrderDetailDto> orderDetailDtos = new ArrayList<>();
-        Set<DiningTypeServiceDate> diningTypeServiceDates = new HashSet<>();
-        MultiValueMap<DiningTypeServiceDate, OrderItemDto> multiValueMap = new LinkedMultiValueMap<>();
+        Set<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = new HashSet<>();
+        MultiValueMap<OrderItemDailyFoodGroup, OrderItemDto> multiValueMap = new LinkedMultiValueMap<>();
 
         List<OrderItemDailyFood> orderItemList = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user ,startDate, endDate);
         for (OrderItemDailyFood orderItemDailyFood : orderItemList) {
-            DiningTypeServiceDate diningTypeServiceDate = new DiningTypeServiceDate(orderItemDailyFood.getServiceDate(), orderItemDailyFood.getDiningType());
-            diningTypeServiceDates.add(diningTypeServiceDate);
-
+            orderItemDailyFoodGroups.add(orderItemDailyFood.getOrderItemDailyFoodGroup());
             OrderItemDto orderItemDto = orderItemDailyFoodListMapper.toDto(orderItemDailyFood);
-            multiValueMap.add(diningTypeServiceDate, orderItemDto);
+            multiValueMap.add(orderItemDailyFood.getOrderItemDailyFoodGroup(), orderItemDto);
         }
 
-        for (DiningTypeServiceDate diningTypeServiceDate : diningTypeServiceDates) {
+        for (OrderItemDailyFoodGroup OrderItemDailyFoodGroup : orderItemDailyFoodGroups) {
             OrderDetailDto orderDetailDto = OrderDetailDto.builder()
-                    .serviceDate(DateUtils.format(diningTypeServiceDate.getServiceDate(), "yyyy-MM-dd"))
-                    .diningType(diningTypeServiceDate.getDiningType().getDiningType())
-                    .orderItemDtoList(multiValueMap.get(diningTypeServiceDate))
+                    .serviceDate(DateUtils.format(OrderItemDailyFoodGroup.getServiceDate(), "yyyy-MM-dd"))
+                    .diningType(OrderItemDailyFoodGroup.getDiningType().getDiningType())
+                    .orderItemDtoList(multiValueMap.get(OrderItemDailyFoodGroup))
                     .build();
             orderDetailDtos.add(orderDetailDto);
         }

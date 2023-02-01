@@ -54,9 +54,9 @@ public class  UserSupportPriceHistory {
 
     @OneToOne(optional = false)
     @JoinColumn
-    @JsonManagedReference(value = "order_item_fk")
+    @JsonManagedReference(value = "order_item_daily_food_group_fk")
     @Comment("지원금 사용 아이템")
-    private OrderItem orderItem;
+    private OrderItemDailyFoodGroup orderItemDailyFoodGroup;
 
     @Column(columnDefinition = "tinyint(1) default 1")
     @Comment("지원금 사용 취소 유무")
@@ -75,13 +75,13 @@ public class  UserSupportPriceHistory {
     private Timestamp updatedDateTime;
 
     @Builder
-    public UserSupportPriceHistory(User user, Group group, BigDecimal usingSupportPrice, LocalDate serviceDate, DiningType diningType, OrderItem orderItem, Boolean status) {
+    public UserSupportPriceHistory(User user, Group group, BigDecimal usingSupportPrice, LocalDate serviceDate, DiningType diningType, OrderItemDailyFoodGroup orderItemDailyFoodGroup, Boolean status) {
         this.user = user;
         this.group = group;
         this.usingSupportPrice = usingSupportPrice;
         this.serviceDate = serviceDate;
         this.diningType = diningType;
-        this.orderItem = orderItem;
+        this.orderItemDailyFoodGroup = orderItemDailyFoodGroup;
         this.status = status;
     }
 }
