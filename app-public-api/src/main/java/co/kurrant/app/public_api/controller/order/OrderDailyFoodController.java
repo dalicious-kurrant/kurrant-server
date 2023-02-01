@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @RestController
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
-    @Operation(summary = "유저 주문 정보 가져오기", description = "유저의 주문 정보를 가져온다.")
+    @Operation(summary = "유저 식사 일정 가져오기", description = "유저의 주문 정보를 가져온다.")
     @GetMapping("")
     public ResponseMessage userOrderByDate(Authentication authentication,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
@@ -29,7 +29,7 @@ public class OrderDailyFoodController {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.findOrderByServiceDate(securityUser, startDate, endDate))
-                .message("주문 불러오기에 성공하였습니다.")
+                .message("식사 일정 불러오기에 성공하였습니다.")
                 .build();
     }
 
@@ -56,19 +56,19 @@ public class OrderDailyFoodController {
                 .build();
     }
 
-    @Operation(summary = "정기식사 구매내역 상세", description = "정기 식사 구매내역 상세를 가져온다.")
-    @GetMapping("/{orderId}/refund")
-    public ResponseMessage userOrderDailyFoodDetail(Authentication authentication, @PathVariable BigInteger orderId) {
+    @Operation(summary = "정기식사 구매 상세 내역조회", description = "정기식사 구매 내역 상세를 가져온다..")
+    @GetMapping("/{orderId}")
+    public ResponseMessage userOrderDailyFoodRefund(Authentication authentication, @PathVariable BigInteger orderId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getOrderDailyFoodDetail(securityUser, orderId))
-                .message("정기식사 구매 내역 조회에 성공하였습니다.")
+                .message("정기식사 구매 상세 내역 조회에 성공하였습니다.")
                 .build();
     }
 
-    @Operation(summary = "정기식사 전체 환불", description = "주문 내역의 모든 정기식사 상품을 환불한다.")
-    @GetMapping("/{orderId}")
-    public ResponseMessage userOrderDailyFoodRefund(Authentication authentication, @PathVariable BigInteger orderId) {
+    @Operation(summary = "정기식사 전체 환불", description = "정기 식사 구매내역 상세를 가져온다.")
+    @GetMapping("/{orderId}/refund")
+    public ResponseMessage userOrderDailyFoodDetail(Authentication authentication, @PathVariable BigInteger orderId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getOrderDailyFoodDetail(securityUser, orderId))

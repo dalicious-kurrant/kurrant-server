@@ -123,9 +123,8 @@ public class FoodServiceImpl implements FoodService {
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
-        Food food = dailyFood.getFood();
-        DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getSpot().getGroup(), food);
-        return foodMapper.toDto(food, discountDto);
+        DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getSpot().getGroup(), dailyFood.getFood());
+        return foodMapper.toDto(dailyFood, discountDto);
     }
 
     @Override

@@ -27,7 +27,8 @@ public class OrderDailyFoodDetailDto {
     private BigDecimal point;
     private BigDecimal totalPrice;
     private BigDecimal discountPrice;
-    private String paymentInfo;
+    private String cardNumber;
+    private String cardCompany;
     private List<OrderItem> orderItems;
 
     @Getter
@@ -40,6 +41,7 @@ public class OrderDailyFoodDetailDto {
         private String makers;
         private String foodName;
         private Integer count;
+        private BigDecimal price;
         private Integer orderStatus;
 
     }

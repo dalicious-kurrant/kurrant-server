@@ -36,6 +36,7 @@ import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
@@ -275,6 +276,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         for (OrderItemDailyFood orderItemDailyFood : orderItemList) {
             orderItemDailyFoodGroups.add(orderItemDailyFood.getOrderItemDailyFoodGroup());
             OrderItemDto orderItemDto = orderItemDailyFoodListMapper.toDto(orderItemDailyFood);
+            // 상속 비교를 하기 위해 프록시 해제
+            OrderDailyFood orderDailyFood = (OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder());
+            orderItemDto.setGroupName(orderDailyFood.getGroupName());
+            orderItemDto.setSpotName(orderDailyFood.getSpotName());
             multiValueMap.add(orderItemDailyFood.getOrderItemDailyFoodGroup(), orderItemDto);
         }
 
