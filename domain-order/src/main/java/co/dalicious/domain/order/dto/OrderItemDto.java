@@ -11,9 +11,14 @@ import java.math.BigInteger;
 @AllArgsConstructor
 public class OrderItemDto {
     private BigInteger id;
+    private BigInteger dailyFoodId;
     private String name;
     private Integer orderStatus;
     private String makers;
     private String image;
     private Integer count;
+    private String groupName;
+    private String spotName;
+
+
 }

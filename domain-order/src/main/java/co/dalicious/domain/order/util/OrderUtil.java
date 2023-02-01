@@ -27,6 +27,7 @@ public class OrderUtil {
             case DAILYFOOD -> "S";
             case PRODUCT -> "P";
             case MEMBERSHIP -> "M";
+            case CATERING -> "C";
         };
         LocalDate now = LocalDate.now();
         code += now.toString().replace("-", "");

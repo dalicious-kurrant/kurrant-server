@@ -23,6 +23,7 @@ public interface UserHomeInfoMapper {
     @Mapping(source = "userSpots", target = "spotId", qualifiedByName = "getSpotId")
     @Mapping(source = "userSpots", target = "spot", qualifiedByName = "getSpotName")
     @Mapping(source = "userSpots", target = "groupId", qualifiedByName = "getGroupId")
+    @Mapping(source = "userSpots", target = "groupName", qualifiedByName = "getGroupName")
     UserHomeResponseDto toDto(User user);
 
     @Named("getSpotTypeCode")
@@ -51,5 +52,12 @@ public interface UserHomeInfoMapper {
         if(userSpots.isEmpty()) return null;
         Optional<UserSpot> userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny();
         return userSpot.map(spot -> spot.getSpot().getGroup().getId()).orElse(null);
+    }
+
+    @Named("getGroupName")
+    default String getGroupName(List<UserSpot> userSpots) {
+        if(userSpots.isEmpty()) return null;
+        Optional<UserSpot> userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny();
+        return userSpot.map(spot -> spot.getSpot().getGroup().getName()).orElse(null);
     }
 }

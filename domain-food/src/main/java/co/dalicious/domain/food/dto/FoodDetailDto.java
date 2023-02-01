@@ -12,6 +12,7 @@ import java.util.List;
 public class FoodDetailDto {
     private String makersName;
     private String name;
+    private Integer capacity;
     private BigDecimal price;
     private BigDecimal discountedPrice;
     private BigDecimal membershipDiscountedPrice;

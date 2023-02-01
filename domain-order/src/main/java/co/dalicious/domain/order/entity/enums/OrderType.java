@@ -6,9 +6,10 @@ import java.util.Arrays;
 
 @Getter
 public enum OrderType {
-    DAILYFOOD("정기 식사 결제", 1),
-    PRODUCT("마켓 상품 결제", 2),
-    MEMBERSHIP("멤버십 결제", 3);
+    DAILYFOOD("정기식사", 1),
+    PRODUCT("마켓", 2),
+    MEMBERSHIP("멤버십", 3),
+    CATERING("케이터링", 4);
 
 
     private final String orderType;

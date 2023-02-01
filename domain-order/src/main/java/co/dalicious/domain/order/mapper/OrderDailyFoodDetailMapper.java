@@ -31,7 +31,8 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "orderDailyFood.point", target = "point")
     @Mapping(source = "orderDailyFood.totalPrice", target = "totalPrice")
     @Mapping(target = "discountPrice", expression = "java(orderDailyFood.getDefaultPrice().subtract(orderDailyFood.getTotalPrice()))")
-    @Mapping(target = "paymentInfo", expression = "java(getPaymentInfo())")
+    @Mapping(source = "orderDailyFood.creditCardInfo.cardNumber", target = "cardNumber", qualifiedByName = "getCardEndNumber")
+    @Mapping(source = "orderDailyFood.creditCardInfo.cardCompany", target = "cardCompany")
     @Mapping(source = "orderItems", target = "orderItems")
     OrderDailyFoodDetailDto orderToDto(OrderDailyFood orderDailyFood, List<OrderDailyFoodDetailDto.OrderItem> orderItems);
 
@@ -43,6 +44,7 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "name", target = "foodName")
     @Mapping(source = "count", target = "count")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
+    @Mapping(target = "price", expression = "java(getPayedPrice(orderItemDailyFood))")
     OrderDailyFoodDetailDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
     // TODO: 상진님과 의논 필요 -> Order에 카드정보를 저장할 지.
@@ -93,5 +95,16 @@ public interface OrderDailyFoodDetailMapper {
             getPeriodDiscountPrice = getPeriodDiscountPrice.add(orderItemDailyFood.getPeriodDiscountPrice());
         }
         return getPeriodDiscountPrice;
+    }
+
+    @Named("getPayedPrice")
+    default BigDecimal getPayedPrice(OrderItemDailyFood orderItemDailyFood) {
+        BigDecimal userSupportPrice = (orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistory() == null) ? BigDecimal.ZERO : orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistory().getUsingSupportPrice();
+        return orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())).subtract(userSupportPrice);
+    }
+
+    @Named("getCardEndNumber")
+    default String getCardEndNumber(String cardNumber) {
+        return cardNumber.substring(cardNumber.length() - 4);
     }
 }
