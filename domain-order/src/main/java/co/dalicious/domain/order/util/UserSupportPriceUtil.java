@@ -3,7 +3,7 @@ package co.dalicious.domain.order.util;
 import co.dalicious.domain.client.entity.CorporationMealInfo;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.order.dto.DiningTypeServiceDate;
+import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.domain.order.entity.UserSupportPriceHistory;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiningType;
@@ -37,14 +37,14 @@ public class UserSupportPriceUtil {
         }
         return usedSupportPrice;
     }
-    public PeriodDto getEarliestAndLatestServiceDate(Set<DiningTypeServiceDate> diningTypeServiceDates) {
+    public PeriodDto getEarliestAndLatestServiceDate(Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos) {
         // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
-        LocalDate earliestServiceDate = diningTypeServiceDates.stream()
-                .min(Comparator.comparing(DiningTypeServiceDate::getServiceDate))
+        LocalDate earliestServiceDate = diningTypeServiceDateDtos.stream()
+                .min(Comparator.comparing(DiningTypeServiceDateDto::getServiceDate))
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND)).getServiceDate();
 
-        LocalDate latestServiceDate = diningTypeServiceDates.stream()
-                .max(Comparator.comparing(DiningTypeServiceDate::getServiceDate))
+        LocalDate latestServiceDate = diningTypeServiceDateDtos.stream()
+                .max(Comparator.comparing(DiningTypeServiceDateDto::getServiceDate))
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND)).getServiceDate();
         return PeriodDto.builder()
                 .startDate(earliestServiceDate)
