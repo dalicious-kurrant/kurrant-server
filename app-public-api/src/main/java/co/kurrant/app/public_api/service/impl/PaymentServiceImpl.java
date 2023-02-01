@@ -9,16 +9,15 @@ import co.dalicious.domain.order.repository.QOrderItemRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.payment.dto.PaymentCancelRequestDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
-import co.dalicious.domain.payment.entity.PaymentCancelHistory;
-import co.dalicious.domain.payment.mapper.PaymentCancleHistoryMapper;
-import co.dalicious.domain.payment.repository.PaymentCancelHistoryRepository;
+import co.dalicious.domain.order.entity.PaymentCancelHistory;
+import co.dalicious.domain.order.mapper.PaymentCancleHistoryMapper;
+import co.dalicious.domain.order.repository.PaymentCancelHistoryRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.PaymentService;
 import co.kurrant.app.public_api.service.UserUtil;
-import com.sun.xml.bind.v2.TODO;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.Optional;
 
 @Service

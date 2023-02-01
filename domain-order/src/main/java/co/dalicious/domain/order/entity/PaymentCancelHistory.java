@@ -1,6 +1,6 @@
-package co.dalicious.domain.payment.entity;
+package co.dalicious.domain.order.entity;
 
-import co.dalicious.domain.order.entity.OrderItem;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;

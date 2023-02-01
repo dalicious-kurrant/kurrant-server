@@ -1,7 +1,6 @@
 package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.order.entity.QOrder;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
@@ -13,13 +12,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 
 import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
+
 
 @Repository
 @RequiredArgsConstructor
