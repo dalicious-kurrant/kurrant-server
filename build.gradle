@@ -289,7 +289,6 @@ project(':domain-payment') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
-        implementation project(':domain-order')
     }
 }
 
