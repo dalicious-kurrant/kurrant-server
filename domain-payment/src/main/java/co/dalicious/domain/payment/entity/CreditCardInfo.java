@@ -17,7 +17,7 @@ import java.math.BigInteger;
 public class CreditCardInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+    @Column(nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
     @Comment(value = "카드 번호")

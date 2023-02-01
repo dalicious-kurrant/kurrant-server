@@ -6,6 +6,7 @@ import co.dalicious.domain.order.converter.OrderTypeConverter;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.util.OrderUtil;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.user.converter.PaymentTypeConverter;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.entity.User;
@@ -99,6 +100,10 @@ public class Order {
     @OneToMany(mappedBy = "order")
     @JsonBackReference(value = "order_fk")
     List<OrderItem> orderItems;
+
+    @ManyToOne(fetch = FetchType.LAZY,optional = false)
+    @JoinColumn
+    private CreditCardInfo creditCardInfo;
 
     public Order(String code, PaymentType paymentType, OrderType orderType) {
         this.orderType = orderType;

@@ -16,6 +16,7 @@ public class UserHomeResponseDto {
     private String email;
     private Boolean isMembership;
     private BigInteger groupId;
+    private BigInteger groupName;
     private Integer spotType;
     private BigInteger spotId;
     private String spot;
