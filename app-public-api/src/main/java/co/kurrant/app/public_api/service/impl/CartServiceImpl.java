@@ -83,7 +83,7 @@ public class CartServiceImpl implements CartService {
         // 장바구니에 이미 같은 상품이 존재한다면 가져오기
         List<CartDailyFood> cartDailyFoods = qOrderCartItemRepository.findByUserAndDailyFoods(user, dailyFoods);
         List<CartDailyFood> cartDailyFoodList = cartDailyFoodRepository.findAllByUser(user);
-        Integer cartCount = 0;
+        Integer cartCount = cartDailyFoodList.size();
 
         for (CartDto cartDto : cartDtoList) {
             DailyFood dailyFood = dailyFoods.stream().filter(v -> v.getId().equals(cartDto.getDailyFoodId()))
