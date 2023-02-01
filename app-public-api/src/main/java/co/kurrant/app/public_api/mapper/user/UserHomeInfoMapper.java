@@ -23,7 +23,7 @@ public interface UserHomeInfoMapper {
     @Mapping(source = "userSpots", target = "spotId", qualifiedByName = "getSpotId")
     @Mapping(source = "userSpots", target = "spot", qualifiedByName = "getSpotName")
     @Mapping(source = "userSpots", target = "groupId", qualifiedByName = "getGroupId")
-    @Mapping(source = "userSpots", target = "groupName", qualifiedByName = "getGroupName")
+    @Mapping(source = "userSpots", target = "group", qualifiedByName = "getGroupName")
     UserHomeResponseDto toDto(User user);
 
     @Named("getSpotTypeCode")
