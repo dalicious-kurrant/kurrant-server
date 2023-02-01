@@ -28,6 +28,7 @@ import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiscountType;
@@ -71,6 +72,7 @@ public class MembershipServiceImpl implements MembershipService {
     private final DiscountPolicy discountPolicy;
     private final OrderUserInfoMapper orderUserInfoMapper;
     private final OrderMembershipResMapper orderMembershipResMapper;
+    private final QMembershipRepository qMembershipRepository;
 
     @Override
     @Transactional
@@ -312,6 +314,11 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
+    public void getMembershipBenefit(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+    }
+
+    @Override
     @Transactional
     public void getDailyFoodPriceBenefits(User user) {
 
@@ -332,14 +339,6 @@ public class MembershipServiceImpl implements MembershipService {
     @Override
     public void getMarketPointBenefits(User user) {
 
-    }
-
-
-    // TODO: 결제 모듈 구현시 수정
-    @Transactional
-    public int requestPayment(String paymentCode, BigDecimal price, int statusCode) {
-
-        return statusCode;
     }
 
     @Override
