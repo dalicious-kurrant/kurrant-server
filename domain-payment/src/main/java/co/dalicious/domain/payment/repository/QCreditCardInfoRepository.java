@@ -127,4 +127,11 @@ public class QCreditCardInfoRepository {
                 .where(creditCardInfo.id.eq(cardId))
                 .fetchOne();
     }
+
+    public CreditCardInfo findCardIdByCardNumber(String paymentCardNumber, BigInteger id) {
+        return queryFactory.selectFrom(creditCardInfo)
+                .where(creditCardInfo.user.id.eq(id),
+                        creditCardInfo.cardNumber.eq(paymentCardNumber))
+                .fetchOne();
+    }
 }
