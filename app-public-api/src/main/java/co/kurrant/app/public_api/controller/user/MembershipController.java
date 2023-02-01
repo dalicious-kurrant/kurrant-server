@@ -64,6 +64,7 @@ public class MembershipController {
     public ResponseMessage getPriceBenefits(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
+                .data(membershipService.getMembershipBenefit(securityUser))
                 .message("멤버십 혜택 금액 가져오기에 성공하였습니다.")
                 .build();
     }
