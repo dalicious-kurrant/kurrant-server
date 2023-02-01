@@ -139,7 +139,7 @@ public class CartServiceImpl implements CartService {
         if (cartDailyFoods.isEmpty()) {
             return CartResDto.builder()
                     .userPoint(user.getPoint())
-                    .spotCarts(null)
+                    .spotCarts(spotCartsList)
                     .build();
         }
         // 스팟별로 식단 나누기

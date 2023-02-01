@@ -109,7 +109,5 @@ public class PaymentServiceImpl implements PaymentService {
 
         //orderItem의 Status를 변경한다.
         qOrderItemRepository.updateStatusToSeven(paymentCancelRequestDto.getOrderItemId());
-
-
     }
 }
