@@ -26,7 +26,6 @@ public enum ExceptionEnum {
 	HAS_LESS_POINT_THAN_REQUEST(HttpStatus.BAD_REQUEST, "E4000013", "포인트 잔액이 부족합니다."),
 	OVER_ITEM_CAPACITY(HttpStatus.BAD_REQUEST, "E4000014", "상품의 개수가 부족합니다."),
 	ALREADY_EXISTING_MEMBERSHIP(HttpStatus.BAD_REQUEST, "E4000015", "이미 멤버십이 존재합니다."),
-	ALREADY_EXISTING_NAME(HttpStatus.BAD_REQUEST, "E4000015", "이미 유저 이름이 존재합니다."),
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
 	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "비밀번호가 일치하지 않습니다."),
@@ -58,6 +57,7 @@ public enum ExceptionEnum {
 	NOT_FOUND_DELIVERY_FEE_POLICY(HttpStatus.NOT_FOUND, "E4040018", "배송비 정책을 가져올 수 없습니다."),
 	NOT_FOUND_MEAL_INFO(HttpStatus.NOT_FOUND, "E4040015", "식사 정보를 가져올 수 없습니다."),
 	CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040016", "카드 정보를 가져올 수 없습니다."),
+	ALREADY_READ(HttpStatus.CONFLICT,"E4040015", "읽을 알림이 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
