@@ -1,9 +1,12 @@
 package co.dalicious.client.sse;
 
 import co.dalicious.domain.user.entity.User;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.w3c.dom.html.HTMLTableRowElement;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
@@ -86,6 +89,9 @@ public class SseService {
         List<Notification> notificationList =
                 notificationRepository.findAllByUserAndTypeAndIsRead(user, NotificationType.ofCode(notificationDto.getType()), false);
         System.out.println("notificationList.size() = " + notificationList.size());
+        if(notificationList.size() <= 0) {
+            throw new ApiException(ExceptionEnum.ALREADY_READ);
+        }
 
         for (Notification noty : notificationList) {
             noty.updateIsRead(true);
