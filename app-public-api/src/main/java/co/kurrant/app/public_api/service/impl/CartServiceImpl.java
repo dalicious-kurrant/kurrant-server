@@ -134,7 +134,10 @@ public class CartServiceImpl implements CartService {
 
         // 장바구니에 담긴 상품이 없다면 null 값 return
         if (cartDailyFoods.isEmpty()) {
-            return null;
+            return CartResDto.builder()
+                    .userPoint(user.getPoint())
+                    .spotCarts(null)
+                    .build();
         }
         // 스팟별로 식단 나누기
         for (CartDailyFood spotDailyFood : cartDailyFoods) {
