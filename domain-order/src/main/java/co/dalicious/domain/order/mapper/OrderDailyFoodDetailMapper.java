@@ -34,6 +34,7 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "orderDailyFood.creditCardInfo.cardNumber", target = "cardNumber", qualifiedByName = "getCardEndNumber")
     @Mapping(source = "orderDailyFood.creditCardInfo.cardCompany", target = "cardCompany")
     @Mapping(source = "orderItems", target = "orderItems")
+    @Mapping(source = "orderDailyFood.receiptUrl", target = "receiptUrl")
     OrderDailyFoodDetailDto orderToDto(OrderDailyFood orderDailyFood, List<OrderDailyFoodDetailDto.OrderItem> orderItems);
 
     @Mapping(source = "id", target = "id")

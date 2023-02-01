@@ -9,6 +9,7 @@ import co.dalicious.domain.user.entity.User;
 import java.math.BigDecimal;
 
 public interface DeliveryFeePolicy {
+    BigDecimal getDeliveryFee();
     BigDecimal getGroupDeliveryFee(User user, Group group);
     BigDecimal getApartmentUserDeliveryFee(User user, Apartment apartment);
     BigDecimal getCorporationDeliveryFee(User user, Corporation corporation);
