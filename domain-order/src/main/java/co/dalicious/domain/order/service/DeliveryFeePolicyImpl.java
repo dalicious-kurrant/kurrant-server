@@ -14,6 +14,13 @@ import java.math.BigDecimal;
 @Component
 public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
 
+    private static final BigDecimal DELIVERY_FEE = BigDecimal.valueOf(3500L);
+
+    @Override
+    public BigDecimal getDeliveryFee() {
+        return DELIVERY_FEE;
+    }
+
     @Override
     public BigDecimal getGroupDeliveryFee(User user, Group group) {
         if(group instanceof Apartment) {
@@ -53,7 +60,7 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
 
     @Override
     public BigDecimal getNoMembershipApartmentDeliveryFee() {
-        return BigDecimal.valueOf(3500L);
+        return DELIVERY_FEE;
     }
 
     @Override
@@ -63,7 +70,7 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
 
     @Override
     public BigDecimal getNoMembershipCorporationDeliveryFeeLower50() {
-        return BigDecimal.valueOf(3500L);
+        return DELIVERY_FEE;
     }
 
     @Override

@@ -28,8 +28,8 @@ public class CartController {
     public ResponseMessage saveOrderCart(Authentication authentication,
                                          @RequestBody List<CartDto> cartDtoList) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        cartService.saveOrderCart(securityUser, cartDtoList);
         return ResponseMessage.builder()
+                .data(cartService.saveOrderCart(securityUser, cartDtoList))
                 .message("장바구니 담기에 성공하였습니다.")
                 .build();
     }

@@ -45,8 +45,8 @@ public class OrderDailyFood extends Order{
         this.ho = orderUserInfoDto.getSpotName();
     }
 
-    public OrderDailyFood(String code, OrderType orderType, Address address, PaymentType paymentType, User user, String groupName, String spotName, String ho, Spot spot) {
-        super(code, orderType, address, paymentType, user);
+    public OrderDailyFood(String code, OrderType orderType, String receiptUrl,Address address, PaymentType paymentType, User user, String groupName, String spotName, String ho, Spot spot) {
+        super(code, orderType, address, paymentType, user, receiptUrl);
         this.groupName = groupName;
         this.spotName = spotName;
         this.ho = ho;

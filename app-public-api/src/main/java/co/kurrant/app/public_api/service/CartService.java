@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.domain.order.dto.CartDailyFoodDto;
 import co.dalicious.domain.order.dto.CartDto;
 import co.dalicious.domain.order.dto.CartResDto;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
@@ -11,7 +12,7 @@ import java.util.List;
 
 public interface CartService {
 
-    void saveOrderCart(SecurityUser securityUser, List<CartDto> cartDtoList);
+    Integer saveOrderCart(SecurityUser securityUser, List<CartDto> cartDtoList);
 
     CartResDto findUserCart(SecurityUser securityUser);
 
