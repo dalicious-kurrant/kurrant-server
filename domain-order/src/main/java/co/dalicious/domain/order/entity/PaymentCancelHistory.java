@@ -51,21 +51,23 @@ public class PaymentCancelHistory {
     @JoinColumn
     private CreditCardInfo creditCardInfo;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn
+    private Order order;
+
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
     private OrderItem orderItem;
 
-    @Builder
-    public PaymentCancelHistory(String cancelReason, BigDecimal cancelPrice, BigDecimal refundablePrice,
-                                String checkOutUrl, String orderCode, CreditCardInfo creditCardInfo,
-                                OrderItem orderItem){
+    public PaymentCancelHistory(LocalDateTime cancelDateTime, String cancelReason, BigDecimal cancelPrice, BigDecimal refundablePrice, String checkOutUrl, String orderCode, CreditCardInfo creditCardInfo, Order order, OrderItem orderItem) {
+        this.cancelDateTime = cancelDateTime;
         this.cancelReason = cancelReason;
         this.cancelPrice = cancelPrice;
         this.refundablePrice = refundablePrice;
         this.checkOutUrl = checkOutUrl;
         this.orderCode = orderCode;
         this.creditCardInfo = creditCardInfo;
+        this.order = order;
         this.orderItem = orderItem;
     }
-
 }
