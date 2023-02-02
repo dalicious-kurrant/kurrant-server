@@ -3,6 +3,7 @@ package co.dalicious.domain.order.entity;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.enums.OrderType;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -24,7 +25,7 @@ import javax.persistence.*;
 public class OrderMembership extends Order{
 
     @Builder
-    public OrderMembership(String code, PaymentType paymentType, OrderType orderType) {
-        super(code, paymentType, orderType);
+    public OrderMembership(String code, PaymentType paymentType, OrderType orderType, CreditCardInfo creditCardInfo) {
+        super(code, paymentType, orderType, creditCardInfo);
     }
 }

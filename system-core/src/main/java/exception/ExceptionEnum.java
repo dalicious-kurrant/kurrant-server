@@ -44,7 +44,7 @@ public enum ExceptionEnum {
 	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040004", "일치하는 유저를 찾을 수 없습니다."),
 	CERTIFICATION_NUMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040004", "인증번호가 일치하지 않습니다."),
 	SNS_PLATFORM_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040005", "일치하는 SNS 플랫폼을 찾을 수 없습니다."),
-	GENERAL_PROVIDER_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040005", "이메일/비밀번호 설정이 필요합니다."),
+	GENERAL_PROVIDER_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040017", "이메일/비밀번호 설정이 필요합니다."),
 	FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040006", "파일을 찾을 수 없습니다."),
 	MEMBERSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040007", "멤버십을 찾을 수 없습니다."),
 	APPLICATION_FORM_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040008", "스팟 신청 내역을 찾을 수 없습니다."),
@@ -55,7 +55,8 @@ public enum ExceptionEnum {
 	DAILY_FOOD_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040013", "식단을 찾을 수 없습니다"),
 	PRICE_INTEGRITY_ERROR(HttpStatus.NOT_FOUND, "E4040014", "주문 요청 가격과 실제 가격에 차이가 있습니다."),
 	NOT_FOUND_DELIVERY_FEE_POLICY(HttpStatus.NOT_FOUND, "E4040015", "배송비 정책을 가져올 수 없습니다."),
-	NOT_FOUND_MEAL_INFO(HttpStatus.NOT_FOUND, "E4040015", "식사 정보를 가져올 수 없습니다."),
+	NOT_FOUND_MEAL_INFO(HttpStatus.NOT_FOUND, "E4040016", "식사 정보를 가져올 수 없습니다."),
+	NOT_FOUND_CARD_INFO(HttpStatus.NOT_FOUND, "E4040018", "카드 정보를 가져올 수 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),

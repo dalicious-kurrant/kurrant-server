@@ -17,6 +17,7 @@ import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.dto.MembershipDto;
@@ -53,6 +54,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +64,7 @@ public class MembershipServiceImpl implements MembershipService {
     private final MembershipRepository membershipRepository;
     private final QMembershipRepository QmembershipRepository;
     private final OrderItemMembershipRepository orderItemMembershipRepository;
+    private final CreditCardInfoRepository creditCardInfoRepository;
 
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final QOrderRepository qOrderRepository;
@@ -149,12 +152,17 @@ public class MembershipServiceImpl implements MembershipService {
         membershipDiscountPolicyRepository.save(periodDiscountPolicy);
          */
 
+        //카드정보 가져오기
+        Optional<CreditCardInfo> creditCardInfoOptional = creditCardInfoRepository.findById(orderMembershipReqDto.getCardId());
+        creditCardInfoOptional.orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_CARD_INFO));
+
         // 멤버십 결제 요청
         String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
         OrderMembership order = OrderMembership.builder()
                 .code(code)
                 .orderType(OrderType.MEMBERSHIP)
                 .paymentType(PaymentType.ofCode(orderMembershipReqDto.getPaymentType()))
+                .creditCardInfo(creditCardInfoOptional.get())
                 .build();
         // 유저 정보 저장
         OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
