@@ -105,10 +105,11 @@ public class Order {
     @JoinColumn
     private CreditCardInfo creditCardInfo;
 
-    public Order(String code, PaymentType paymentType, OrderType orderType) {
+    public Order(String code, PaymentType paymentType, OrderType orderType, CreditCardInfo creditCardInfo) {
         this.orderType = orderType;
         this.code = code;
         this.paymentType = paymentType;
+        this.creditCardInfo = creditCardInfo;
     }
 
     public Order(String code, OrderType orderType, Address address, PaymentType paymentType, User user) {
