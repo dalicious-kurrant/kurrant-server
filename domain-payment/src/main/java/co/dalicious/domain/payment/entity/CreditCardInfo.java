@@ -9,6 +9,7 @@ import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -49,6 +50,7 @@ public class CreditCardInfo {
 
     @Column(name="billing_key", columnDefinition = "VARCHAR(64)")
     private String billingKey;
+
 
     @Builder
     CreditCardInfo(String cardNumber, User user, String ownerType,
