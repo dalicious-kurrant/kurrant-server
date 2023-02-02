@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.order.entity.OrderItem;
+import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.order.repository.OrderRepository;
@@ -9,7 +8,6 @@ import co.dalicious.domain.order.repository.QOrderItemRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.payment.dto.PaymentCancelRequestDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
-import co.dalicious.domain.order.entity.PaymentCancelHistory;
 import co.dalicious.domain.order.mapper.PaymentCancleHistoryMapper;
 import co.dalicious.domain.order.repository.PaymentCancelHistoryRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
@@ -28,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -53,24 +52,31 @@ public class PaymentServiceImpl implements PaymentService {
 
         User user = userUtil.getUser(securityUser);
 
-        Optional<OrderItem> orderItem = orderItemRepository.findById(paymentCancelRequestDto.getOrderItemId());
+        OrderItem orderItem = orderItemRepository.findById(paymentCancelRequestDto.getOrderItemId()).orElseThrow(
+                () -> new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND)
+        );
 
-        Optional<Order> order = orderRepository.findById(orderItem.get().getOrder().getId());
-        //userId 검증
-        if (!order.get().getUser().getId().equals(user.getId())){
+        Order order = orderItem.getOrder();
+
+        OrderItemDailyFoodGroup orderItemDailyFoodGroup = ((OrderItemDailyFood) orderItem).getOrderItemDailyFoodGroup();
+        // 취소하려는 주문의 유저가 일치하는지 확인
+        if (!order.getUser().equals(user)){
             throw new ApiException(ExceptionEnum.PAYMENT_CANCELLATION_FAILED);
         }
         //paymentKey 가져오기
-        String paymentKey = qOrderRepository.getPaymentKey(paymentCancelRequestDto.getOrderItemId());
+        String paymentKey = order.getPaymentKey();
 
-        //취소할 주문이 없다면
-        if (paymentKey == null){
+        //결제 정보가 없을 경우
+        if (paymentKey == null || order.getCreditCardInfo() == null){
+            if(order.getTotalPrice().compareTo(BigDecimal.ZERO) == 0) {
+                orderItem.updateOrderStatus(OrderStatus.CANCELED);
+                return;
+            }
             throw new ApiException(ExceptionEnum.NOT_FOUND);
         }
-        System.out.println(paymentKey + " paymentKey 확인");
 
         //상태값이 이미 7L(취소)인지
-        if (orderItem.get().getOrderStatus().equals(OrderStatus.CANCELED)){
+        if (orderItem.getOrderStatus().equals(OrderStatus.CANCELED)){
             throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
         }
 
@@ -81,6 +87,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         String orderCode = response.get("orderId").toString();
         System.out.println(orderCode + "orderCode");
+
         JSONObject checkout = (JSONObject) response.get("checkout");
         String checkOutUrl = checkout.get("url").toString();
         System.out.println(checkOutUrl + "checkOutUrl");
@@ -102,8 +109,8 @@ public class PaymentServiceImpl implements PaymentService {
         CreditCardInfo creditCardInfo = qCreditCardInfoRepository.findCardIdByCardNumber(paymentCardNumber, user.getId());
 
         //결제 취소 후 기록을 저장한다.
-        System.out.println(orderItem.get().getId());
-        PaymentCancelHistory paymentCancelHistory = paymentCancleHistoryMapper.toEntity(paymentCancelRequestDto.getCancelReason(), paymentCancelRequestDto.getCancelAmount(), orderItem.get(), orderCode, checkOutUrl, refundablePrice, creditCardInfo);
+        System.out.println(orderItem.getId());
+        PaymentCancelHistory paymentCancelHistory = paymentCancleHistoryMapper.toEntity(paymentCancelRequestDto.getCancelReason(), paymentCancelRequestDto.getCancelAmount(), orderItem, orderCode, checkOutUrl, refundablePrice, creditCardInfo);
 
         paymentCancelHistoryRepository.save(paymentCancelHistory);
 

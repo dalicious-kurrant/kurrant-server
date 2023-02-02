@@ -4,6 +4,7 @@ import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.util.OrderUtil;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -21,7 +22,8 @@ public interface OrderDailyFoodMapper {
     @Mapping(source = "spot.name", target = "spotName")
     @Mapping(source = "spot", target = "spot")
     @Mapping(target = "orderType", constant = "DAILYFOOD")
-    OrderDailyFood toEntity(User user, Spot spot);
+    @Mapping(source = "creditCardInfo", target = "creditCardInfo")
+    OrderDailyFood toEntity(User user, Spot spot, CreditCardInfo creditCardInfo);
 
     @Named("getCode")
     default String getCode(BigInteger userId) {
