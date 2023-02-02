@@ -4,6 +4,7 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.enums.OrderType;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import lombok.AccessLevel;
@@ -45,8 +46,9 @@ public class OrderDailyFood extends Order{
         this.ho = orderUserInfoDto.getSpotName();
     }
 
-    public OrderDailyFood(String code, OrderType orderType, Address address, PaymentType paymentType, User user, String groupName, String spotName, String ho, Spot spot) {
-        super(code, orderType, address, paymentType, user);
+    public OrderDailyFood(String code, OrderType orderType, Address address, PaymentType paymentType, User user, String receiptUrl, CreditCardInfo creditCardInfo, BigDecimal totalDeliveryFee, String groupName, String spotName, String ho, Spot spot) {
+        super(code, orderType, address, paymentType, user, receiptUrl, creditCardInfo);
+        this.totalDeliveryFee = totalDeliveryFee;
         this.groupName = groupName;
         this.spotName = spotName;
         this.ho = ho;

@@ -3,23 +3,24 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.domain.order.dto.OrderMembershipReqDto;
 import co.dalicious.domain.order.dto.OrderMembershipResDto;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
-import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.order.entity.OrderItem;
-import co.dalicious.domain.order.entity.OrderItemMembership;
-import co.dalicious.domain.order.entity.OrderMembership;
+import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.OrderMembershipResMapper;
 import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
 import co.dalicious.domain.order.repository.OrderItemMembershipRepository;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
+import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
+import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
+import co.dalicious.domain.user.dto.DailyFoodMembershipDiscountDto;
+import co.dalicious.domain.user.dto.MembershipBenefitDto;
 import co.dalicious.domain.user.dto.MembershipDto;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.MembershipDiscountPolicy;
@@ -27,9 +28,9 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.mapper.MembershipBenefitMapper;
 import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
-import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiscountType;
@@ -55,6 +56,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -75,6 +78,9 @@ public class MembershipServiceImpl implements MembershipService {
     private final DiscountPolicy discountPolicy;
     private final OrderUserInfoMapper orderUserInfoMapper;
     private final OrderMembershipResMapper orderMembershipResMapper;
+    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final DeliveryFeePolicy deliveryFeePolicy;
+    private final MembershipBenefitMapper membershipBenefitMapper;
     private final QMembershipRepository qMembershipRepository;
 
     @Override
@@ -154,7 +160,7 @@ public class MembershipServiceImpl implements MembershipService {
 
         //카드정보 가져오기
         Optional<CreditCardInfo> creditCardInfoOptional = creditCardInfoRepository.findById(orderMembershipReqDto.getCardId());
-        creditCardInfoOptional.orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_CARD_INFO));
+        creditCardInfoOptional.orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
 
         // 멤버십 결제 요청
         String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
@@ -322,14 +328,35 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
-    public void getMembershipBenefit(SecurityUser securityUser) {
+    public MembershipBenefitDto getMembershipBenefit(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime threeMonthAgo = LocalDate.now().minusMonths(3).atStartOfDay();
+
+        Membership membership = qMembershipRepository.findUserCurrentMembership(user, now.toLocalDate());
+
+        // 멤버십 이용 금액 혜택을 받은 주문 상품 가져오기
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllWhichGetMembershipBenefit(user, now, threeMonthAgo);
+
+        // 최근 3개월동안 멤버십을 통해 할인 받은 정기식사 할인 금액을 가져온다.
+        DailyFoodMembershipDiscountDto dailyFoodMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoods);
+
+        return membershipBenefitMapper.toDto(membership, dailyFoodMembershipDiscountDto);
     }
 
     @Override
     @Transactional
-    public void getDailyFoodPriceBenefits(User user) {
-
+    public DailyFoodMembershipDiscountDto getDailyFoodPriceBenefits(List<OrderItemDailyFood> orderItemDailyFoods) {
+        BigDecimal totalMembershipDiscountPrice = BigDecimal.ZERO;
+        BigDecimal totalMembershipDiscountDeliveryFee = BigDecimal.ZERO;
+        Set<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = new HashSet<>();
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            totalMembershipDiscountPrice = totalMembershipDiscountPrice.add(orderItemDailyFood.getMembershipDiscountPrice());
+            orderItemDailyFoodGroups.add(orderItemDailyFood.getOrderItemDailyFoodGroup());
+        }
+        totalMembershipDiscountDeliveryFee = totalMembershipDiscountDeliveryFee.add(deliveryFeePolicy.getDeliveryFee().multiply(BigDecimal.valueOf(orderItemDailyFoodGroups.size())));
+        return new DailyFoodMembershipDiscountDto(totalMembershipDiscountPrice, totalMembershipDiscountDeliveryFee);
     }
 
     @Override

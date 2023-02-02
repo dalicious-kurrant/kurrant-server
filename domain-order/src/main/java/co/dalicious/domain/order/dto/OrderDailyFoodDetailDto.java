@@ -29,6 +29,7 @@ public class OrderDailyFoodDetailDto {
     private BigDecimal discountPrice;
     private String cardNumber;
     private String cardCompany;
+    private String receiptUrl;
     private List<OrderItem> orderItems;
 
     @Getter

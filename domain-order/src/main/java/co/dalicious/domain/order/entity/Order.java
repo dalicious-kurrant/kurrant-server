@@ -112,12 +112,14 @@ public class Order {
         this.creditCardInfo = creditCardInfo;
     }
 
-    public Order(String code, OrderType orderType, Address address, PaymentType paymentType, User user) {
+    public Order(String code, OrderType orderType, Address address, PaymentType paymentType, User user, String receiptUrl, CreditCardInfo creditCardInfo) {
         this.code = code;
         this.orderType = orderType;
         this.address = address;
         this.paymentType = paymentType;
         this.user = user;
+        this.creditCardInfo = creditCardInfo;
+        this.receiptUrl = receiptUrl;
     }
 
     public void updateOrderUserInfo(OrderUserInfoDto orderUserInfoDto) {
