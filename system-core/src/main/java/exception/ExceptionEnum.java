@@ -56,7 +56,7 @@ public enum ExceptionEnum {
 	PRICE_INTEGRITY_ERROR(HttpStatus.NOT_FOUND, "E4040014", "주문 요청 가격과 실제 가격에 차이가 있습니다."),
 	NOT_FOUND_DELIVERY_FEE_POLICY(HttpStatus.NOT_FOUND, "E4040015", "배송비 정책을 가져올 수 없습니다."),
 	NOT_FOUND_MEAL_INFO(HttpStatus.NOT_FOUND, "E4040015", "식사 정보를 가져올 수 없습니다."),
-	ALREADY_READ(HttpStatus.CONFLICT,"E4040015", "읽을 알람이 없습니다..")
+	ALREADY_READ(HttpStatus.NOT_FOUND,"E4040015", "읽을 알람이 없습니다..")
 
 	/* E409 */,
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),

@@ -1,10 +1,9 @@
 package co.kurrant.app.public_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.client.sse.NotificationDto;
+import co.dalicious.client.sse.NotificationReqDto;
 import co.dalicious.client.sse.SseService;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.repository.UserRepository;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -17,27 +16,22 @@ import java.math.BigInteger;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/v1/notification")
 public class SseController {
 
     private final SseService sseService;
     private final UserUtil userUtil;
-    private final UserRepository userRepository;
 
-    @GetMapping(value = "/subscribe", produces = "text/event-stream")
-    public ResponseMessage subscribe(Authentication authentication,
+    @GetMapping(value = "/v1/notification/subscribe", produces = "text/event-stream")
+    public SseEmitter subscribe(Authentication authentication,
                                      @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
         System.out.println("authentication = " + authentication);
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);
-        return ResponseMessage.builder()
-                .data(sseService.subscribe(userId, lastEventId))
-                .message("구독에 성공하였습니다.")
-                .build();
+        return sseService.subscribe(userId, lastEventId);
     }
 
-    @PostMapping("/read")
-    public ResponseMessage readNotification(Authentication authentication, @RequestBody NotificationDto notificationDto) {
+    @PostMapping("/v1/notification/read")
+    public ResponseMessage readNotification(Authentication authentication, @RequestBody NotificationReqDto notificationDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         User user = userUtil.getUser(securityUser);
         return ResponseMessage.builder()

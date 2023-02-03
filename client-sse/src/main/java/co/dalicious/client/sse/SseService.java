@@ -6,7 +6,6 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import org.w3c.dom.html.HTMLTableRowElement;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
@@ -21,7 +20,6 @@ public class SseService {
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
     private final EmitterRepository emitterRepository;
     private final NotificationRepository notificationRepository;
-//    private final QNotificationRepository qNotificationRepository;
 
     public SseEmitter subscribe(BigInteger userId, String lastEventId) {
         //구독한 유저를 특정하기 위한 id.
@@ -68,7 +66,7 @@ public class SseService {
     }
 
     private Notification createNotification(User receiver, NotificationType type, String content) {
-        return new Notification(type, receiver,false, content);
+        return new Notification(type, receiver,false, new NotificationContent(content));
     }
 
     //client에게 이벤트 보내기
@@ -76,7 +74,7 @@ public class SseService {
         try {
             emitter.send(SseEmitter.event()
                     .id(id)
-                    .name("sse")
+                    .name("message")
                     .data(data));
         } catch (IOException exception) {
             emitterRepository.deleteById(id);
@@ -85,7 +83,7 @@ public class SseService {
     }
 
     @Transactional
-    public Boolean readNotification(User user, NotificationDto notificationDto) {
+    public Boolean readNotification(User user, NotificationReqDto notificationDto) {
         List<Notification> notificationList =
                 notificationRepository.findAllByUserAndTypeAndIsRead(user, NotificationType.ofCode(notificationDto.getType()), false);
         System.out.println("notificationList.size() = " + notificationList.size());
