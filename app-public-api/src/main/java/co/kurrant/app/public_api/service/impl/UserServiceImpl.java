@@ -1,6 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.client.oauth.AppleLoginDto;
+import co.dalicious.client.oauth.AppleAndroidLoginDto;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
@@ -49,15 +49,13 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -136,7 +134,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void connectAppleAccount(SecurityUser securityUser, AppleLoginDto appleLoginDto) throws JsonProcessingException {
+    public void connectAppleAccount(SecurityUser securityUser, Map<String,Object> appleLoginDto) throws JsonProcessingException {
         String sns = "APPLE";
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);

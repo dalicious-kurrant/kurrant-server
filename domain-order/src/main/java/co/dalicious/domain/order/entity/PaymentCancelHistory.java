@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.user.converter.RefundPriceDto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -29,14 +30,19 @@ public class PaymentCancelHistory {
     private LocalDateTime cancelDateTime;
 
     @Comment("취소사유")
-    @Column(name="cancel_reason", columnDefinition = "VARCHAR(255)")
+    @Column(columnDefinition = "VARCHAR(255)")
     private String cancelReason;
 
-    @Comment("취소금액")
-    @Column(name="cancel_price", columnDefinition = "INT")
+    @Comment("포인트 환불 금액")
+    @Column(columnDefinition = "DECIMAL(15, 2)")
+    private BigDecimal refundPointPrice;
+
+    @Comment("카드 환불 금액")
+    @Column(columnDefinition = "DECIMAL(15, 2)")
     private BigDecimal cancelPrice;
 
-    @Column(name = "refundable_price", columnDefinition = "")
+    @Comment("환불 가능한 금액")
+    @Column(columnDefinition = "DECIMAL(15, 2)")
     private BigDecimal refundablePrice;
 
     @Comment("취소영수증 URL")
@@ -59,15 +65,17 @@ public class PaymentCancelHistory {
     @JoinColumn
     private OrderItem orderItem;
 
-    public PaymentCancelHistory(LocalDateTime cancelDateTime, String cancelReason, BigDecimal cancelPrice, BigDecimal refundablePrice, String checkOutUrl, String orderCode, CreditCardInfo creditCardInfo, Order order, OrderItem orderItem) {
-        this.cancelDateTime = cancelDateTime;
+
+    public PaymentCancelHistory(String cancelReason, RefundPriceDto refundPriceDto, OrderItemDailyFood orderDailyItemFood, String checkOutUrl, String orderCode, BigDecimal refundablePrice, CreditCardInfo creditCardInfo) {
+        this.cancelDateTime = LocalDateTime.now();
         this.cancelReason = cancelReason;
-        this.cancelPrice = cancelPrice;
+        this.refundPointPrice = refundPriceDto.getPoint();
+        this.cancelPrice = refundPriceDto.getPrice();
         this.refundablePrice = refundablePrice;
         this.checkOutUrl = checkOutUrl;
         this.orderCode = orderCode;
         this.creditCardInfo = creditCardInfo;
-        this.order = order;
-        this.orderItem = orderItem;
+        this.order = orderDailyItemFood.getOrder();
+        this.orderItem = orderDailyItemFood;
     }
 }

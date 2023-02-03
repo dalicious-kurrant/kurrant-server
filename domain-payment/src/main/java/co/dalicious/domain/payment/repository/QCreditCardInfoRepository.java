@@ -134,4 +134,11 @@ public class QCreditCardInfoRepository {
                         creditCardInfo.cardNumber.eq(paymentCardNumber))
                 .fetchOne();
     }
+
+    public CreditCardInfo findOneCardIdByCardIdAndUser(BigInteger id, User user) {
+        return queryFactory.selectFrom(creditCardInfo)
+                .where(creditCardInfo.user.eq(user),
+                        creditCardInfo.id.eq(id))
+                .fetchOne();
+    }
 }

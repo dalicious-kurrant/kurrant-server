@@ -7,6 +7,7 @@ import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.UserSupportPriceHistory;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -21,11 +22,12 @@ public interface UserSupportPriceHistoryReqMapper {
     @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup.serviceDate", target = "serviceDate")
     @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup.diningType", target = "diningType")
     @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
-    @Mapping(target = "status", constant = "true")
+    @Mapping(target = "monetaryStatus", constant = "DEDUCTION")
     UserSupportPriceHistory toEntity(OrderItemDailyFood orderItemDailyFood, BigDecimal supportPrice);
 
     @Named("getGroup")
     default Group getGroup(Order order) {
+        order = (Order) Hibernate.unproxy(order);
         if(order instanceof OrderDailyFood) {
             return ((OrderDailyFood) order).getSpot().getGroup();
         }

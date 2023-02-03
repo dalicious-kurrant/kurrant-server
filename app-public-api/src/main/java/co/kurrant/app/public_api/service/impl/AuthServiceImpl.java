@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
-import co.dalicious.client.oauth.AppleLoginDto;
+import co.dalicious.client.oauth.AppleIPhoneLoginDto;
 import co.dalicious.data.redis.entity.BlackListTokenHash;
 import co.dalicious.data.redis.entity.RefreshTokenHash;
 import co.dalicious.data.redis.repository.BlackListTokenRepository;
@@ -25,6 +25,7 @@ import co.kurrant.app.public_api.service.AuthService;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserMapper;
 import co.kurrant.app.public_api.util.VerifyUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
@@ -50,10 +51,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
@@ -294,8 +292,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public LoginResponseDto appleLoginOrJoin(AppleLoginDto appleLoginDto) throws JsonProcessingException {
+    public LoginResponseDto appleLoginOrJoin(Map<String,Object> appleLoginDto) throws JsonProcessingException {
         Provider provider = Provider.APPLE;
+
         // Vendor 로그인 시도
         SnsLoginResponseDto snsLoginResponseDto = snsLoginService.getAppleLoginUserInfo(appleLoginDto);
 

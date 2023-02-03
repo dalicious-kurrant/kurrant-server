@@ -1,6 +1,8 @@
 package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.order.converter.MonetaryStatusConverter;
+import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.enums.DiningType;
@@ -24,7 +26,7 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "user__support_price_history")
-public class  UserSupportPriceHistory {
+public class UserSupportPriceHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
@@ -52,15 +54,15 @@ public class  UserSupportPriceHistory {
     @Comment("식사 타입")
     private DiningType diningType;
 
-    @OneToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
     @JsonManagedReference(value = "order_item_daily_food_group_fk")
     @Comment("지원금 사용 아이템")
     private OrderItemDailyFoodGroup orderItemDailyFoodGroup;
 
-    @Column(columnDefinition = "tinyint(1) default 1")
+    @Convert(converter = MonetaryStatusConverter.class)
     @Comment("지원금 사용 취소 유무")
-    private Boolean status;
+    private MonetaryStatus monetaryStatus;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -75,13 +77,17 @@ public class  UserSupportPriceHistory {
     private Timestamp updatedDateTime;
 
     @Builder
-    public UserSupportPriceHistory(User user, Group group, BigDecimal usingSupportPrice, LocalDate serviceDate, DiningType diningType, OrderItemDailyFoodGroup orderItemDailyFoodGroup, Boolean status) {
+    public UserSupportPriceHistory(User user, Group group, BigDecimal usingSupportPrice, LocalDate serviceDate, DiningType diningType, OrderItemDailyFoodGroup orderItemDailyFoodGroup, MonetaryStatus monetaryStatus) {
         this.user = user;
         this.group = group;
         this.usingSupportPrice = usingSupportPrice;
         this.serviceDate = serviceDate;
         this.diningType = diningType;
         this.orderItemDailyFoodGroup = orderItemDailyFoodGroup;
-        this.status = status;
+        this.monetaryStatus = monetaryStatus;
+    }
+
+    public void updateMonetaryStatus(MonetaryStatus monetaryStatus) {
+        this.monetaryStatus = monetaryStatus;
     }
 }
