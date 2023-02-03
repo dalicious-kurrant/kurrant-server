@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
-import co.dalicious.client.oauth.AppleLoginDto;
+import co.dalicious.client.oauth.AppleAndroidLoginDto;
 import co.dalicious.system.util.enums.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.service.AuthService;
@@ -19,6 +19,7 @@ import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 
 @Tag(name = "1. Auth")
 @RequiredArgsConstructor
@@ -120,9 +121,9 @@ public class AuthController {
                 .build();
     }
 
-    @Operation(summary = "소셜 로그인/회원가입 요청", description = "소셜 로그인/회원가입을 수행한다.")
+    @Operation(summary = "애플 소셜 로그인/회원가입 요청", description = "소셜 로그인/회원가입을 수행한다.")
     @PostMapping("/loginApple")
-    public ResponseMessage appleLoginOrJoin(@RequestBody AppleLoginDto appleLoginDto) throws JsonProcessingException {
+    public ResponseMessage appleLoginOrJoin(@RequestBody Map<String,Object> appleLoginDto) throws JsonProcessingException {
         return ResponseMessage.builder()
                 .message("소셜로그인을 성공하셨습니다.")
                 .data(authService.appleLoginOrJoin(appleLoginDto))

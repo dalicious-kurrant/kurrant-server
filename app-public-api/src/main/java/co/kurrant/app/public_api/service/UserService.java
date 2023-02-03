@@ -1,6 +1,6 @@
 package co.kurrant.app.public_api.service;
 
-import co.dalicious.client.oauth.AppleLoginDto;
+import co.dalicious.client.oauth.AppleAndroidLoginDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
@@ -17,6 +17,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
     // 마이페이지(홈) 유저 정보 가져오기
@@ -25,7 +26,7 @@ public interface UserService {
     UserHomeResponseDto getUserHomeInfo(SecurityUser securityUser);
     // SNS 계정 연결
     void connectSnsAccount(SecurityUser securityUser, SnsAccessToken snsAccessToken, String sns);
-    void connectAppleAccount(SecurityUser securityUser, AppleLoginDto appleLoginDto) throws JsonProcessingException;
+    void connectAppleAccount(SecurityUser securityUser, Map<String,Object> appleLoginDto) throws JsonProcessingException;
     // SNS 계정 해제
     void disconnectSnsAccount(SecurityUser securityUser, String sns);
     // 휴대폰 번호 변경

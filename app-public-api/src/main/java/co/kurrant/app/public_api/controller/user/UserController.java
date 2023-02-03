@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.client.oauth.AppleLoginDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.kurrant.app.public_api.dto.user.*;
@@ -20,6 +19,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -74,7 +74,7 @@ public class UserController {
 
     @Operation(summary = "애플 SNS 계정 연결", description = "SNS 계정을 연결한다.")
     @PostMapping("/connectingApple")
-    public ResponseMessage connectSnsAccount(Authentication authentication, @RequestBody AppleLoginDto appleLoginDto) throws JsonProcessingException {
+    public ResponseMessage connectSnsAccount(Authentication authentication, @RequestBody Map<String,Object> appleLoginDto) throws JsonProcessingException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.connectAppleAccount(securityUser, appleLoginDto);
         return ResponseMessage.builder()

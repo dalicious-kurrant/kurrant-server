@@ -13,7 +13,7 @@ public enum OrderStatus {
     FAILED("주문실패", 4L),
     COMPLETED("결제완료", 5L),
     WAIT_DELIVERY("배송대기", 6L),
-    WAITING_CANCEL("취소 대기", 7L),
+    WAITING_CANCEL("취소대기", 7L),
     CANCELED("취소", 8L),
     DELIVERING("배송중", 9L),
     DELIVERED("배송완료", 10L),

@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 public interface OrderDailyFoodItemMapper {
     @Mapping(target = "orderStatus", constant = "PENDING_PAYMENT")
     @Mapping(source = "order", target = "order")
-    @Mapping(source = "cartDailyFood.dailyFood.food", target = "food")
+    @Mapping(source = "cartDailyFood.dailyFood", target = "dailyFood")
     @Mapping(source = "cartDailyFood.dailyFood.food.name", target = "name")
     @Mapping(source = "cartDailyFood.dailyFood.food.price", target = "price")
     @Mapping(source = "cartDailyFoodDto.discountedPrice", target = "discountedPrice")

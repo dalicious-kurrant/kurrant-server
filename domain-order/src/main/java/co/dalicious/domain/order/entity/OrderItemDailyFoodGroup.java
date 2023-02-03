@@ -14,6 +14,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
@@ -45,19 +46,19 @@ public class OrderItemDailyFoodGroup {
     private DiningType diningType;
 
     @Comment("배송비")
-    private BigInteger deliveryFee;
+    private BigDecimal deliveryFee;
 
-    @OneToOne(mappedBy = "orderItemDailyFoodGroup", orphanRemoval = true)
+    @OneToMany(mappedBy = "orderItemDailyFoodGroup", orphanRemoval = true)
     @JsonBackReference(value = "order_item_daily_food_group_fk")
     @Comment("정기식사에 사용된 지원금")
-    private UserSupportPriceHistory userSupportPriceHistory;
+    private List<UserSupportPriceHistory> userSupportPriceHistories;
 
     @OneToMany(mappedBy = "orderItemDailyFoodGroup", cascade = CascadeType.ALL)
     @JsonBackReference(value = "order_item_daily_food_group_fk")
     private List<OrderItemDailyFood> orderDailyFoods;
 
     @Builder
-    public OrderItemDailyFoodGroup(OrderStatus orderStatus, LocalDate serviceDate, DiningType diningType, BigInteger deliveryFee) {
+    public OrderItemDailyFoodGroup(OrderStatus orderStatus, LocalDate serviceDate, DiningType diningType, BigDecimal deliveryFee) {
         this.orderStatus = orderStatus;
         this.serviceDate = serviceDate;
         this.diningType = diningType;

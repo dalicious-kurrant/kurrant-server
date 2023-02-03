@@ -2,16 +2,19 @@ package co.kurrant.app.public_api.controller.order;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
+import co.kurrant.app.public_api.dto.order.IdDto;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.parser.ParseException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
@@ -67,21 +70,21 @@ public class OrderDailyFoodController {
     }
 
     @Operation(summary = "정기식사 전체 환불", description = "정기 식사 구매내역 상세를 가져온다.")
-    @GetMapping("/{orderId}/refund")
-    public ResponseMessage userOrderDailyFoodDetail(Authentication authentication, @PathVariable BigInteger orderId) {
+    @PostMapping("/refund")
+    public ResponseMessage userOrderDailyFoodDetail(Authentication authentication, @RequestBody IdDto idDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
+        orderDailyFoodService.cancelOrderDailyFood(securityUser, idDto.getId());
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.getOrderDailyFoodDetail(securityUser, orderId))
-                .message("정기식사 구매 내역 조회에 성공하였습니다.")
+                .message("전체 주문 환불에 성공하였습니다.")
                 .build();
     }
 
     @Operation(summary = "정기식사 부분 환불", description = "주문한 한 정기식사 상품을 환불한다.")
-    @GetMapping("/{orderId}/dailyFoods/{orderItemId}")
-    public ResponseMessage userOrderItemDailyFoodRefund(Authentication authentication, @PathVariable BigInteger orderId, @PathVariable BigInteger orderItemId) {
+    @PostMapping("/{orderId}/dailyFoods/refund")
+    public ResponseMessage userOrderItemDailyFoodRefund(Authentication authentication, @PathVariable BigInteger orderId, @RequestBody IdDto idDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
+        orderDailyFoodService.cancelOrderItemDailyFood(securityUser, orderId, idDto.getId());
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.getOrderDailyFoodDetail(securityUser, orderId))
                 .message("정기식사 구매 내역 조회에 성공하였습니다.")
                 .build();
     }

@@ -81,7 +81,11 @@ public class DailyFood {
 
     public Integer subtractCapacity(Integer foodCount) {
         this.capacity = this.capacity - foodCount;
+        return this.capacity;
+    }
 
+    public Integer addCapacity(Integer foodCount) {
+        this.capacity += foodCount;
         return this.capacity;
     }
 }

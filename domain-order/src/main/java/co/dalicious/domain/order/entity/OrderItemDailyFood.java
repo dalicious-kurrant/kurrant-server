@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.enums.DiningType;
@@ -27,7 +28,7 @@ public class OrderItemDailyFood extends OrderItem {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "food_id", nullable = false)
     @Comment("식품 ID")
-    private Food food;
+    private DailyFood dailyFood;
 
     @Comment("식품 이름")
     private String name;
@@ -63,9 +64,9 @@ public class OrderItemDailyFood extends OrderItem {
     private OrderItemDailyFoodGroup orderItemDailyFoodGroup;
 
     @Builder
-    public OrderItemDailyFood(OrderStatus orderStatus, Order order, Food food, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountRate, Integer membershipDiscountRate, Integer periodDiscountRate, OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
+    public OrderItemDailyFood(OrderStatus orderStatus, Order order, DailyFood dailyFood, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountRate, Integer membershipDiscountRate, Integer periodDiscountRate, OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
         super(orderStatus, order);
-        this.food = food;
+        this.dailyFood = dailyFood;
         this.name = name;
         this.price = price;
         this.discountedPrice = discountedPrice;
@@ -103,5 +104,9 @@ public class OrderItemDailyFood extends OrderItem {
             price = price.subtract(makersDiscountPrice);
         }
         return price.multiply(BigDecimal.valueOf((this.periodDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count));
+    }
+
+    public BigDecimal getOrderItemTotalPrice() {
+        return this.discountedPrice.multiply(BigDecimal.valueOf(this.count));
     }
 }
