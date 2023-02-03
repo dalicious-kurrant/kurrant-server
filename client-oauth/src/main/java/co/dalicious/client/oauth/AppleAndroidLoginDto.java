@@ -1,12 +1,11 @@
 package co.dalicious.client.oauth;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class AppleLoginDto {
+public class AppleAndroidLoginDto {
     String id_token;
     String code;
     String nonce;

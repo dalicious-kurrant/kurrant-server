@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.domain.order.entity.UserSupportPriceHistory;
+import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiningType;
 import exception.ApiException;
@@ -21,23 +22,39 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 public class UserSupportPriceUtil {
-    public BigDecimal getGroupSupportPriceByDiningType(Spot spot, DiningType diningType) {
+    public static BigDecimal getGroupSupportPriceByDiningType(Spot spot, DiningType diningType) {
         List<MealInfo> mealInfos = spot.getMealInfos();
         CorporationMealInfo mealInfo = (CorporationMealInfo) mealInfos.stream().filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
         return mealInfo.getSupportPrice();
     }
-    public BigDecimal getUsedSupportPrice(List<UserSupportPriceHistory> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
+
+    public static BigDecimal getUsedSupportPrice(List<UserSupportPriceHistory> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
         BigDecimal usedSupportPrice = BigDecimal.ZERO;
         for (UserSupportPriceHistory userSupportPriceHistory : userSupportPriceHistories) {
-            if(userSupportPriceHistory.getServiceDate().equals(serviceDate) && userSupportPriceHistory.getDiningType().equals(diningType)) {
+            if (userSupportPriceHistory.getServiceDate().equals(serviceDate) && userSupportPriceHistory.getDiningType().equals(diningType)) {
+                if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
+                    usedSupportPrice = usedSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
+                } else if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.REFUND)) {
+                    usedSupportPrice = usedSupportPrice.subtract(userSupportPriceHistory.getUsingSupportPrice());
+                }
+            }
+        }
+        return usedSupportPrice;
+    }
+
+    public static BigDecimal getUsedSupportPrice(List<UserSupportPriceHistory> userSupportPriceHistories) {
+        BigDecimal usedSupportPrice = BigDecimal.ZERO;
+        for (UserSupportPriceHistory userSupportPriceHistory : userSupportPriceHistories) {
+            if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
                 usedSupportPrice = usedSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
             }
         }
         return usedSupportPrice;
     }
-    public PeriodDto getEarliestAndLatestServiceDate(Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos) {
+
+    public static PeriodDto getEarliestAndLatestServiceDate(Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos) {
         // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
         LocalDate earliestServiceDate = diningTypeServiceDateDtos.stream()
                 .min(Comparator.comparing(DiningTypeServiceDateDto::getServiceDate))
@@ -53,10 +70,9 @@ public class UserSupportPriceUtil {
     }
 
     public static BigDecimal getUsableSupportPrice(BigDecimal itemPrice, BigDecimal usableSupportPrice) {
-        if(itemPrice.compareTo(usableSupportPrice) <= 0) {
+        if (itemPrice.compareTo(usableSupportPrice) <= 0) {
             return itemPrice;
-        }
-        else {
+        } else {
             return usableSupportPrice;
         }
 

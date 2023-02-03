@@ -26,8 +26,8 @@ public class DiscountPolicyImpl implements DiscountPolicy {
     public BigDecimal orderItemTotalPrice(OrderItem orderItem) {
         // DailyFood 일 경우
         if (orderItem instanceof OrderItemDailyFood) {
-            List<FoodDiscountPolicy> foodDiscountPolicyList = ((OrderItemDailyFood) orderItem).getFood().getFoodDiscountPolicyList();
-            BigDecimal foodPrice = ((OrderItemDailyFood) orderItem).getFood().getPrice();
+            List<FoodDiscountPolicy> foodDiscountPolicyList = ((OrderItemDailyFood) orderItem).getDailyFood().getFood().getFoodDiscountPolicyList();
+            BigDecimal foodPrice = ((OrderItemDailyFood) orderItem).getDailyFood().getFood().getPrice();
             BigDecimal totalPrice;
             Integer count = ((OrderItemDailyFood) orderItem).getCount();
             Integer membershipDiscountPolicyRate = 0;

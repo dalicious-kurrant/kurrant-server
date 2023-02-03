@@ -1,12 +1,8 @@
 package co.dalicious.client.oauth;
 
 import co.dalicious.domain.user.entity.enums.Provider;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.Payload;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.springframework.http.*;
@@ -116,21 +112,40 @@ public class SnsLoginServiceImpl implements SnsLoginService{
     }
 
     @Override
-    public SnsLoginResponseDto getAppleLoginUserInfo(AppleLoginDto appleLoginDto) throws JsonProcessingException {
+    public SnsLoginResponseDto getAppleLoginUserInfo(Map<String,Object> appleLoginDto) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        String idToken;
+        String name;
+
         if(appleLoginDto == null) {
             throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
         }
-        String idToken = appleLoginDto.getId_token();
+        if(appleLoginDto.get("user") instanceof String) {
+            AppleIPhoneLoginDto appleIPhoneLoginDto = mapper.convertValue(appleLoginDto, AppleIPhoneLoginDto.class);
+            idToken = appleIPhoneLoginDto.getIdentityToken();
+            if(appleIPhoneLoginDto.getFullName().getFamilyName() != null && appleIPhoneLoginDto.getFullName().getGivenName() != null) {
+                name = appleIPhoneLoginDto.getFullName().getFamilyName() + appleIPhoneLoginDto.getFullName().getGivenName();
+            }
+            else {
+                name = null;
+            }
+        }
+        else {
+            AppleAndroidLoginDto appleAndroidLoginDto = mapper.convertValue(appleLoginDto, AppleAndroidLoginDto.class);
+            idToken = appleAndroidLoginDto.getId_token();
+            name = (appleAndroidLoginDto.getUser() == null) ?
+                    null : appleAndroidLoginDto.getUser().getName().getLastName() + appleAndroidLoginDto.getUser().getName().getFirstName();
+        }
+
         String payloadJWT = idToken.split("\\.")[1];
         Base64.Decoder decoder = Base64.getUrlDecoder();
         String payload = new String(decoder.decode(payloadJWT));
 
-        ObjectMapper mapper = new ObjectMapper();
+
         Map<String, Object> returnMap = mapper.readValue(payload, Map.class);
 
         String email = (String) returnMap.get("email");
-        String name = (appleLoginDto.getUser() == null) ?
-                null : appleLoginDto.getUser().getName().getLastName() + appleLoginDto.getUser().getName().getFirstName();
+
         return SnsLoginResponseDto.builder()
                 .email(email)
                 .name(name)

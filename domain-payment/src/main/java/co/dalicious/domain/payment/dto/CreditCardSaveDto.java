@@ -3,10 +3,8 @@ package co.dalicious.domain.payment.dto;
 import co.dalicious.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigInteger;
 
 @Getter
 @Schema(description = "CreditCardInfo 저장용 DTO")

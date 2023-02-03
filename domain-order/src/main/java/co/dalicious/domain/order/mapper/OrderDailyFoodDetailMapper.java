@@ -1,16 +1,18 @@
 package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
-import co.dalicious.domain.order.entity.OrderDailyFood;
-import co.dalicious.domain.order.entity.OrderItem;
-import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.*;
+import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.system.util.DateUtils;
+import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface OrderDailyFoodDetailMapper {
@@ -38,10 +40,10 @@ public interface OrderDailyFoodDetailMapper {
     OrderDailyFoodDetailDto orderToDto(OrderDailyFood orderDailyFood, List<OrderDailyFoodDetailDto.OrderItem> orderItems);
 
     @Mapping(source = "id", target = "id")
-    @Mapping(source = "food.image.location", target = "image")
+    @Mapping(source = "dailyFood.food.image.location", target = "image")
     @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate()))")
     @Mapping(source = "orderItemDailyFoodGroup.diningType.code", target = "diningType")
-    @Mapping(source = "food.makers.name", target = "makers")
+    @Mapping(source = "dailyFood.food.makers.name", target = "makers")
     @Mapping(source = "name", target = "foodName")
     @Mapping(source = "count", target = "count")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
@@ -58,9 +60,18 @@ public interface OrderDailyFoodDetailMapper {
     default BigDecimal getSupportPrice(OrderDailyFood orderDailyFood) {
         List<OrderItem> orderItems = orderDailyFood.getOrderItems();
         BigDecimal supportPrice = BigDecimal.ZERO;
+        Set<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = new HashSet<>();
+
         for (OrderItem orderItem : orderItems) {
-            OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) orderItem;
-            supportPrice = supportPrice.add((orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistory() == null) ? BigDecimal.ZERO : orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistory().getUsingSupportPrice());
+            orderItemDailyFoodGroups.add(((OrderItemDailyFood) orderItem).getOrderItemDailyFoodGroup());
+        }
+
+        for (OrderItemDailyFoodGroup orderItemDailyFoodGroup : orderItemDailyFoodGroups) {
+            for (UserSupportPriceHistory userSupportPriceHistory : orderItemDailyFoodGroup.getUserSupportPriceHistories()) {
+                if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
+                    supportPrice = supportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
+                }
+            }
         }
         return supportPrice;
     }
@@ -100,8 +111,15 @@ public interface OrderDailyFoodDetailMapper {
 
     @Named("getPayedPrice")
     default BigDecimal getPayedPrice(OrderItemDailyFood orderItemDailyFood) {
-        BigDecimal userSupportPrice = (orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistory() == null) ? BigDecimal.ZERO : orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistory().getUsingSupportPrice();
-        return orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())).subtract(userSupportPrice);
+        BigDecimal supportPrice = BigDecimal.ZERO;
+        List<UserSupportPriceHistory> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
+        for (UserSupportPriceHistory userSupportPriceHistory : userSupportPriceHistories) {
+            if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
+                supportPrice = supportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
+            }
+        }
+        return orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())).subtract(supportPrice);
+
     }
 
     @Named("getCardEndNumber")
