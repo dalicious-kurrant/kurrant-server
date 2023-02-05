@@ -44,7 +44,7 @@ public class MembershipUtil {
 
     // 현재까지의 멤버십 이용 기간 출력
     public int getUserPeriodOfUsingMembership(User user) {
-        List<Membership> membershipList = membershipRepository.findAllByUserOrderByEndDateDesc(user);
+        List<Membership> membershipList = membershipRepository.findAllByUserOrderByCreatedDateTimeDesc(user);
         List<Membership> autoPaymentMembership = membershipList.stream()
                 .takeWhile(Membership::getAutoPayment).toList();
 
