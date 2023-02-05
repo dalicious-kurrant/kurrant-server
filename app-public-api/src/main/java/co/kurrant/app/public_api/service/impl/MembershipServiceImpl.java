@@ -18,6 +18,7 @@ import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
+import co.dalicious.domain.payment.util.CreditCardValidator;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.dto.DailyFoodMembershipDiscountDto;
 import co.dalicious.domain.user.dto.MembershipBenefitDto;
@@ -68,8 +69,6 @@ public class MembershipServiceImpl implements MembershipService {
     private final QMembershipRepository QmembershipRepository;
     private final OrderItemMembershipRepository orderItemMembershipRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
-
-    private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final QOrderRepository qOrderRepository;
     private final OrderMembershipRepository orderMembershipRepository;
     private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.YEAR.getPrice().multiply(BigDecimal.valueOf((100 - MembershipSubscriptionType.YEAR.getDiscountRate()) * 0.01)).divide(BigDecimal.valueOf(12));
@@ -105,15 +104,18 @@ public class MembershipServiceImpl implements MembershipService {
         if (!(orderMembershipReqDto.getPeriodDiscountPrice().compareTo(periodDiscountPrice) == 0)) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
+        // 4. 총 가격이 일치하는지 확인
+        BigDecimal totalPrice = defaultPrice.subtract(yearDescriptionDiscountPrice).subtract(periodDiscountPrice);
+        if(!(orderMembershipReqDto.getTotalPrice().compareTo(totalPrice) == 0)) {
+            throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+        }
 
         // 이 사람이 기존에 멤버십을 가입했는 지 확인
-        // TODO: 현재, 멤버십을 중복 가입할 수 있게 만들어졌지만, 수정 필요
         PeriodDto periodDto = null;
         if (user.getIsMembership()) {
-            List<Membership> memberships = membershipRepository.findAllByUserOrderByEndDateDesc(user);
-            if (memberships != null && !memberships.isEmpty()) {
-                Membership recentMembership = memberships.get(0);
-                LocalDate currantEndDate = recentMembership.getEndDate();
+            Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
+            if (membership != null) {
+                LocalDate currantEndDate = membership.getEndDate();
                 if(LocalDate.now().isBefore(currantEndDate)) {
                     throw new ApiException(ExceptionEnum.ALREADY_EXISTING_MEMBERSHIP);
                 }
@@ -159,8 +161,9 @@ public class MembershipServiceImpl implements MembershipService {
          */
 
         //카드정보 가져오기
-        Optional<CreditCardInfo> creditCardInfoOptional = creditCardInfoRepository.findById(orderMembershipReqDto.getCardId());
-        creditCardInfoOptional.orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
+        CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(orderMembershipReqDto.getCardId()).
+                orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
+        CreditCardValidator.isValidCreditCard(creditCardInfo, user);
 
         // 멤버십 결제 요청
         String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
@@ -168,7 +171,7 @@ public class MembershipServiceImpl implements MembershipService {
                 .code(code)
                 .orderType(OrderType.MEMBERSHIP)
                 .paymentType(PaymentType.ofCode(orderMembershipReqDto.getPaymentType()))
-                .creditCardInfo(creditCardInfoOptional.get())
+                .creditCardInfo(creditCardInfo)
                 .build();
         // 유저 정보 저장
         OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
@@ -188,7 +191,6 @@ public class MembershipServiceImpl implements MembershipService {
         // 결제 진행. 실패시 오류 날림
         BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
 
-        CreditCardInfo creditCardInfo = qCreditCardInfoRepository.findCustomerKeyByCardId(orderMembershipReqDto.getCardId());
         String customerKey = creditCardInfo.getCustomerKey();
         String billingKey = creditCardInfo.getBillingKey();
 
@@ -335,6 +337,10 @@ public class MembershipServiceImpl implements MembershipService {
         LocalDateTime threeMonthAgo = LocalDate.now().minusMonths(3).atStartOfDay();
 
         Membership membership = qMembershipRepository.findUserCurrentMembership(user, now.toLocalDate());
+
+        if(membership == null) {
+            throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
+        }
 
         // 멤버십 이용 금액 혜택을 받은 주문 상품 가져오기
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllWhichGetMembershipBenefit(user, now, threeMonthAgo);

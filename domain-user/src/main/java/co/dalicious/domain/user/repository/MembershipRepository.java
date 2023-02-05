@@ -12,6 +12,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
-    List<Membership> findAllByUserOrderByEndDateDesc(@NotNull User user);
+    List<Membership> findAllByUserOrderByCreatedDateTimeDesc(@NotNull User user);
     List<Membership> findAll(Specification<Membership> specification, Sort sort);
 }

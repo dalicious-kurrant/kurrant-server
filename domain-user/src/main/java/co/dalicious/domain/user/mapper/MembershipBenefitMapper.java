@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface MembershipBenefitMapper {
     @Mapping(target = "nextPayDate", expression = "java(DateUtils.format(membership.getEndDate(), \"yyyy년 MM월 dd일\"))")
-    @Mapping(source = "dailyFoodMembershipDiscountDto.totalMembershipDiscountPrice", target = "deliveryFee")
-    @Mapping(source = "dailyFoodMembershipDiscountDto.totalMembershipDiscountDeliveryFee", target = "dailyFoodDiscountPrice")
+    @Mapping(source = "dailyFoodMembershipDiscountDto.totalMembershipDiscountDeliveryFee", target = "deliveryFee")
+    @Mapping(source = "dailyFoodMembershipDiscountDto.totalMembershipDiscountPrice", target = "dailyFoodDiscountPrice")
     MembershipBenefitDto toDto(Membership membership, DailyFoodMembershipDiscountDto dailyFoodMembershipDiscountDto);
 }
