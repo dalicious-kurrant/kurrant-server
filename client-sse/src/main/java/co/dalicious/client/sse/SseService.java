@@ -2,15 +2,14 @@ package co.dalicious.client.sse;
 
 import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
-import co.dalicious.domain.user.entity.User;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
@@ -69,6 +68,7 @@ public class SseService {
         );
     }
 
+    //notification 생성
     private NotificationHash createNotification(BigInteger receiverId, Integer type, String content) {
         return NotificationHash.builder()
                 .type(type)
@@ -95,15 +95,25 @@ public class SseService {
     public Boolean readNotification(BigInteger userId, NotificationReqDto notificationDto) {
         List<NotificationHash> notificationList =
                 notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, notificationDto.getType(), false);
-        System.out.println("notificationList.size() = " + notificationList.size());
-        if(notificationList.size() <= 0) {
-            throw new ApiException(ExceptionEnum.ALREADY_READ);
-        }
 
-        for (NotificationHash noty : notificationList) {
-            notificationHashRepository.delete(noty);
-        }
+        //읽을 알림이 있는지 확인
+        if(notificationList.size() == 0 || notificationList.isEmpty()) { throw new ApiException(ExceptionEnum.ALREADY_READ); }
 
+        // 읽은 알림 지우기
+        for (NotificationHash noty : notificationList) { notificationHashRepository.delete(noty); }
+
+        //알림을 읽음
         return true;
+    }
+
+    @Transactional(readOnly = true)
+    public Integer getAllNotification(BigInteger userId, Integer type) {
+        List<NotificationHash> notificationList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
+
+        //읽을 알림이 있는지 확인
+        if(notificationList.size() == 0 || notificationList.isEmpty()) { throw new ApiException(ExceptionEnum.ALREADY_READ); }
+
+        //읽을 알림의 갯수 보내기
+        return notificationList.size();
     }
 }
