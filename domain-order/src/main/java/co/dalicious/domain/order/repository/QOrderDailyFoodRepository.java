@@ -47,4 +47,11 @@ public class QOrderDailyFoodRepository {
                         orderItemDailyFood.dailyFood.serviceDate.goe(LocalDate.now()))
                 .fetch();
     }
+
+    public  List<OrderItemDailyFood> findByServiceDate(LocalDate today) {
+        return queryFactory
+                .selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.serviceDate.eq(today))
+                .fetch();
+    }
 }
