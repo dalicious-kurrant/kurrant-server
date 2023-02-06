@@ -97,10 +97,13 @@ public class SseService {
                 notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, notificationDto.getType(), false);
 
         //읽을 알림이 있는지 확인
-        if(notificationList.size() == 0 || notificationList.isEmpty()) { throw new ApiException(ExceptionEnum.ALREADY_READ); }
+        if(notificationList.size() == 0) { throw new ApiException(ExceptionEnum.ALREADY_READ); }
 
-        // 읽은 알림 지우기
-        for (NotificationHash noty : notificationList) { notificationHashRepository.delete(noty); }
+        // 알림 읽기
+        for(NotificationHash noty : notificationList) {
+            noty.updateRead(true);
+            notificationHashRepository.save(noty);
+        }
 
         //알림을 읽음
         return true;
@@ -111,7 +114,7 @@ public class SseService {
         List<NotificationHash> notificationList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
 
         //읽을 알림이 있는지 확인
-        if(notificationList.size() == 0 || notificationList.isEmpty()) { throw new ApiException(ExceptionEnum.ALREADY_READ); }
+        if(notificationList.size() == 0) { throw new ApiException(ExceptionEnum.ALREADY_READ); }
 
         //읽을 알림의 갯수 보내기
         return notificationList.size();

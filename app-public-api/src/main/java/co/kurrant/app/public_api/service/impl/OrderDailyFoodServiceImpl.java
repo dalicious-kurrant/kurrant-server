@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.sse.SseService;
 import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -28,13 +29,13 @@ import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiningType;
 import co.dalicious.system.util.enums.FoodStatus;
+import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import net.bytebuddy.asm.Advice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -42,7 +43,10 @@ import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.time.*;
+import java.time.chrono.ChronoLocalDateTime;
+import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,7 +67,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QUserSupportPriceHistoryRepository qUserSupportPriceHistoryRepository;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final OrderItemDailyFoodListMapper orderItemDailyFoodListMapper;
-    private final UserSpotRepository userSpotRepository;
+    private final SseService sseService;
 
     @Override
     @Transactional
@@ -299,7 +303,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 )
                 .collect(Collectors.toList());
 
-        findOrderByServiceDateNoty(securityUser, startDate, endDate);
+        findOrderByServiceDateNotification(securityUser);
 
         return orderDetailDtos;
     }
@@ -309,14 +313,15 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         return statusCode;
     }
 
-    private void findOrderByServiceDateNoty(SecurityUser securityUser, LocalDate startDate, LocalDate endDate) {
+    private void findOrderByServiceDateNotification(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
+        LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        String dayOfWeek = now.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
+
+        //등록한 스팟
         List<UserSpot> userSpots = user.getUserSpots();
-
-        //등록한 스팟이 있는지 확인
         if(userSpots.size() == 0) { return; }
-
-        // 등록된 스팟 중 default 설정 된 스팟을 찾기
+        // 등록된 스팟 중 default 설정 된 스팟
         Spot defaultSpot = null;
         for(UserSpot userSpot : userSpots) {
             if(userSpot.getIsDefault()) {
@@ -324,21 +329,60 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 break;
             }
         }
+        if(defaultSpot == null) { return; }
 
-        //default 스팟의 서비스 일, 시간을 확인
+        //default 스팟의 식사 타입, 서비스 가능일, 마감시간을 확인
         List<MealInfo> mealInfos = defaultSpot.getMealInfos();
-        List<String> serviceDays = new ArrayList<>();
-
-        //현재 시간
-        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
-
+        List<OrderByServiceDateNotyDto> notyDtos = new ArrayList<>();
         for(MealInfo mealInfo : mealInfos) {
-            // 조식인 경우
-            if(mealInfo.getDiningType() == DiningType.MORNING) {
+            OrderByServiceDateNotyDto notyDto = OrderByServiceDateNotyDto.builder()
+                    .type(mealInfo.getDiningType())
+                    .serviceDays(List.of(mealInfo.getServiceDays().split(", ")))
+                    .lastOrderTime(mealInfo.getLastOrderTime())
+                    .build();
+
+            notyDtos.add(notyDto);
+        }
+
+        // 오늘 주문 여부 확인
+        List<OrderItemDailyFood> todayOrderFoods = qOrderDailyFoodRepository.findByServiceDate(now);
+        if(todayOrderFoods.size() == 0) { lastOrderNotification(user, now, dayOfWeek, notyDtos); }
+
+        // 오늘 주문은 있는데 다음주 주문이 없을 때
+        LocalDate startDate = now.plusDays(7);
+        LocalDate endDate = now.plusDays(7);
+        List<OrderItemDailyFood> nextWeekOrderFoods =  qOrderDailyFoodRepository.findByServiceDateBetween(startDate, endDate);
+
+        // 오늘 기준 7일 후 일주일 간의 주문 내역이 없고,
+        for(OrderByServiceDateNotyDto notyDto : notyDtos) {
+
+            //
+            if(notyDto.getServiceDays().size() <= nextWeekOrderFoods.size()) {
 
             }
-            // 중식인 경우
-            // 석식인 경우
+        }
+
+    }
+
+    private void lastOrderNotification(User user, LocalDate now, String dayOfWeek, List<OrderByServiceDateNotyDto> notyDtos) {
+
+        //오늘 주문한게 없고,
+        for (OrderByServiceDateNotyDto notyDto : notyDtos) {
+            boolean serviceDay = notyDto.getServiceDays().stream().anyMatch(dayOfWeek::contains);
+            //오늘이 서비스 가능일이 아니면 나가기
+            if(!serviceDay) return;
+
+            // 서비스 가능일 이고,
+            LocalTime curranTime = LocalTime.now();
+            LocalTime notificationTime = notyDto.getLastOrderTime().minusHours(2);
+            // 마감까지 2시간 이상 남았을 때.
+            if(curranTime.isBefore(notificationTime)) return;
+
+            // 마감까지 남은 시간이 2시간 보다 작을 때.
+            SimpleDateFormat format = new SimpleDateFormat("hh:mm a");
+
+            String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + format.format(notyDto.getLastOrderTime()) + "까지 해야 할인을 받을 수 있어요!";
+            sseService.send(user.getId(), 4, content);
         }
     }
 }

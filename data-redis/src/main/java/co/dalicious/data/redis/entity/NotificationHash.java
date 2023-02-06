@@ -14,6 +14,7 @@ public class NotificationHash {
     @Id
     String id;
 
+    // 1: 전체공지, 2: 스팟공지, 3: 구매후기, 4: 마감주문, 5: 다음주문, 6: 스팟등록
     @Indexed
     Integer type;
 
@@ -35,12 +36,16 @@ public class NotificationHash {
     }
 
     private void checkNotificationContent(String content){
-        if(content.isEmpty() || content == null) {
+        if(content == null || content.isEmpty()) {
             this.content = null;
         } else if(content.length() > 50) {
             this.content = content.substring(0, 50);
         } else {
             this.content = content;
         }
+    }
+
+    public void updateRead(boolean isRead) {
+        this.isRead = isRead;
     }
 }
