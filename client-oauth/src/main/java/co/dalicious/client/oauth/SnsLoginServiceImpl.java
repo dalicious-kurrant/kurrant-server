@@ -148,7 +148,7 @@ public class SnsLoginServiceImpl implements SnsLoginService{
 
         return SnsLoginResponseDto.builder()
                 .email(email)
-                .name(name)
+                .name((name == null) ? "이름없음" : name)
                 .build();
     }
 

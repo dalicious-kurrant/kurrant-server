@@ -55,4 +55,5 @@ public interface UserService {
     void patchDefaultCard(SecurityUser securityUser, CreditCardDefaultSettingDto creditCardDefaultSettingDto);
 
     void deleteCard(DeleteCreditCardDto deleteCreditCardDto);
+    void changeName(SecurityUser securityUser, ChangeNameDto changeNameDto);
 }

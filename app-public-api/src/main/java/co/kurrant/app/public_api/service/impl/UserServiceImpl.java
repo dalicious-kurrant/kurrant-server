@@ -576,4 +576,16 @@ public class UserServiceImpl implements UserService {
     public void deleteCard(DeleteCreditCardDto deleteCreditCardDto) {
         qCreditCardInfoRepository.deleteCard(deleteCreditCardDto.getCardId());
     }
+
+    @Override
+    @Transactional
+    public void changeName(SecurityUser securityUser, ChangeNameDto changeNameDto) {
+        User user = userUtil.getUser(securityUser);
+
+        if(!user.getName().equals("이름없음")) {
+            throw new ApiException(ExceptionEnum.ALREADY_EXISTING_NAME);
+        }
+
+        user.updateName(changeNameDto.getName());
+    }
 }

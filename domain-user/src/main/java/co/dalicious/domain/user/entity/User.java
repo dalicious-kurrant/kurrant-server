@@ -187,4 +187,8 @@ public class User {
     public void updatePoint(BigDecimal point) {
         this.point = point;
     }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
 }
