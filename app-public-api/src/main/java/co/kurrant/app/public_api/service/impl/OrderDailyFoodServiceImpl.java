@@ -479,6 +479,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
     }
 
+    private void findOrderByServiceDateNoty(SecurityUser securityUser, LocalDate startDate, LocalDate endDate) {
+        User user = userUtil.getUser(securityUser);
+        List<UserGroup> userGroups = user.getGroups();
 
+    }
 }
 
