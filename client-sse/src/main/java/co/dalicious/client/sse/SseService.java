@@ -1,5 +1,7 @@
 package co.dalicious.client.sse;
 
+import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.user.entity.User;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -7,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -19,7 +22,7 @@ public class SseService {
 
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
     private final EmitterRepository emitterRepository;
-    private final NotificationRepository notificationRepository;
+    private final NotificationHashRepository notificationHashRepository;
 
     public SseEmitter subscribe(BigInteger userId, String lastEventId) {
         //구독한 유저를 특정하기 위한 id.
@@ -47,11 +50,12 @@ public class SseService {
         return emitter;
     }
 
-    public void send(User receiver, NotificationType type, String content) {
-        Notification notification = createNotification(receiver, type, content);
+    @Transactional
+    public void send(BigInteger receiver, Integer type, String content) {
+        NotificationHash notification = createNotification(receiver, type, content);
         String id = String.valueOf(receiver);
 
-        notificationRepository.save(notification);
+        notificationHashRepository.save(notification);
 
         // 로그인 한 유저의 SseEmitter 모두 가져오기
         Map<String, SseEmitter> sseEmitters = emitterRepository.findAllStartWithById(id);
@@ -65,8 +69,13 @@ public class SseService {
         );
     }
 
-    private Notification createNotification(User receiver, NotificationType type, String content) {
-        return new Notification(type, receiver,false, new NotificationContent(content));
+    private NotificationHash createNotification(BigInteger receiverId, Integer type, String content) {
+        return NotificationHash.builder()
+                .type(type)
+                .userId(receiverId)
+                .isRead(false)
+                .content(content)
+                .build();
     }
 
     //client에게 이벤트 보내기
@@ -83,17 +92,16 @@ public class SseService {
     }
 
     @Transactional
-    public Boolean readNotification(User user, NotificationReqDto notificationDto) {
-        List<Notification> notificationList =
-                notificationRepository.findAllByUserAndTypeAndIsRead(user, NotificationType.ofCode(notificationDto.getType()), false);
+    public Boolean readNotification(BigInteger userId, NotificationReqDto notificationDto) {
+        List<NotificationHash> notificationList =
+                notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, notificationDto.getType(), false);
         System.out.println("notificationList.size() = " + notificationList.size());
         if(notificationList.size() <= 0) {
             throw new ApiException(ExceptionEnum.ALREADY_READ);
         }
 
-        for (Notification noty : notificationList) {
-            noty.updateIsRead(true);
-            notificationRepository.save(noty);
+        for (NotificationHash noty : notificationList) {
+            notificationHashRepository.delete(noty);
         }
 
         return true;

@@ -33,9 +33,9 @@ public class SseController {
     @PostMapping("/v1/notification/read")
     public ResponseMessage readNotification(Authentication authentication, @RequestBody NotificationReqDto notificationDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        User user = userUtil.getUser(securityUser);
+        BigInteger userId = userUtil.getUserId(securityUser);
         return ResponseMessage.builder()
-                .data(sseService.readNotification(user, notificationDto))
+                .data(sseService.readNotification(userId, notificationDto))
                 .message("알림을 읽으셨습니다.").build();
     }
 }
