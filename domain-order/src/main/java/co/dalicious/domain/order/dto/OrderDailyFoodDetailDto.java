@@ -30,13 +30,7 @@ public class OrderDailyFoodDetailDto {
     private String cardNumber;
     private String cardCompany;
     private String receiptUrl;
-    private BigDecimal refundPayPrice;
-    private BigDecimal refundItemPrice;
-    private BigDecimal refundSupportPrice;
-    private BigDecimal refundDeliveryFee;
-    private BigDecimal refundDeduction;
-    private BigDecimal refundTotalPrice;
-    private BigDecimal refundTotalPoint;
+    private RefundDto refundDto;
     private List<OrderItem> orderItems;
 
     @Getter
@@ -52,5 +46,29 @@ public class OrderDailyFoodDetailDto {
         private BigDecimal price;
         private Integer orderStatus;
 
+    }
+
+    @Getter
+    @Setter
+    public static class RefundDto {
+        private BigDecimal refundPayPrice;
+        private BigDecimal refundItemPrice;
+        private BigDecimal refundSupportPrice;
+        private BigDecimal refundDeliveryFee;
+        private BigDecimal refundDeduction;
+        private BigDecimal refundTotalPrice;
+        private BigDecimal refundCardPrice;
+        private BigDecimal refundTotalPoint;
+
+        public RefundDto(BigDecimal refundPayPrice, BigDecimal refundItemPrice, BigDecimal refundSupportPrice, BigDecimal refundDeliveryFee, BigDecimal refundDeduction, BigDecimal refundTotalPrice, BigDecimal refundCardPrice, BigDecimal refundTotalPoint) {
+            this.refundPayPrice = refundPayPrice;
+            this.refundItemPrice = refundItemPrice;
+            this.refundSupportPrice = refundSupportPrice;
+            this.refundDeliveryFee = refundDeliveryFee;
+            this.refundDeduction = refundDeduction;
+            this.refundTotalPrice = refundTotalPrice;
+            this.refundCardPrice = refundCardPrice;
+            this.refundTotalPoint = refundTotalPoint;
+        }
     }
 }
