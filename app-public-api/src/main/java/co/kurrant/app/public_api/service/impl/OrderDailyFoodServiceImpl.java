@@ -8,18 +8,15 @@ import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.*;
-import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.order.mapper.*;
+import co.dalicious.domain.order.mapper.OrderDailyFoodItemMapper;
+import co.dalicious.domain.order.mapper.OrderDailyFoodMapper;
+import co.dalicious.domain.order.mapper.OrderItemDailyFoodListMapper;
+import co.dalicious.domain.order.mapper.UserSupportPriceHistoryReqMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
-import co.dalicious.domain.payment.entity.CreditCardInfo;
-import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
-import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
-import co.dalicious.domain.payment.util.TossUtil;
-import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
@@ -33,15 +30,11 @@ import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -311,6 +304,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 )
                 .collect(Collectors.toList());
 
+        findOrderByServiceDateNoty(securityUser, startDate, endDate);
+
         return orderDetailDtos;
     }
 
@@ -483,6 +478,34 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         User user = userUtil.getUser(securityUser);
         List<UserGroup> userGroups = user.getGroups();
 
+        List<UserSpot> userSpots = user.getUserSpots();
+
+        //등록한 스팟이 있는지 확인
+        if(userSpots.size() == 0) { return; }
+
+        // 등록된 스팟 중 default 설정 된 스팟을 찾기
+        Spot defaultSpot = null;
+        for(UserSpot userSpot : userSpots) {
+            if(userSpot.getIsDefault()) {
+                defaultSpot = userSpot.getSpot();
+                break;
+            }
+        }
+
+        //default 스팟의 서비스 일, 시간을 확인
+        List<MealInfo> mealInfos = defaultSpot.getMealInfos();
+        List<String> serviceDays = new ArrayList<>();
+
+        //현재 시간
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+
+        for(MealInfo mealInfo : mealInfos) {
+            // 조식인 경우
+            if(mealInfo.getDiningType() == DiningType.MORNING) {
+
+            }
+            // 중식인 경우
+            // 석식인 경우
+        }
     }
 }
-
