@@ -73,7 +73,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
     private final OrderUtil orderUtil;
     private final OrderRepository orderRepository;
-    private final PaymentCancleHistoryMapper paymentCancleHistoryMapper;
 
     @Override
     @Transactional
@@ -339,15 +338,33 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Transactional
     public OrderDailyFoodDetailDto getOrderDailyFoodDetail(SecurityUser securityUser, BigInteger orderId) {
         User user = userUtil.getUser(securityUser);
+
         OrderDailyFood orderDailyFood = orderDailyFoodRepository.findById(orderId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
+
+        if(!orderDailyFood.getUser().equals(user)) {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
+
         List<OrderDailyFoodDetailDto.OrderItem> orderItemList = new ArrayList<>();
+        List<OrderItem> refundItems = new ArrayList<>();
         List<OrderItem> orderItems = orderDailyFood.getOrderItems();
+        OrderDailyFoodDetailDto.RefundDto refundDto = null;
+        // TODO: 마켓/케이터링 구현시 instanceOf
         for (OrderItem orderItem : orderItems) {
             orderItemList.add(orderDailyFoodDetailMapper.orderItemDailyFoodToDto((OrderItemDailyFood) orderItem));
+            if(orderItem.getOrderStatus().equals(OrderStatus.CANCELED)) {
+                refundItems.add((OrderItemDailyFood) orderItem);
+            }
         }
-        return orderDailyFoodDetailMapper.orderToDto(orderDailyFood, orderItemList);
+        // 환불 내역이 존재한다면
+        if(!refundItems.isEmpty()) {
+            List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderItems(refundItems);
+            refundDto = orderUtil.getRefundReceipt(refundItems, paymentCancelHistories);
+        }
+
+        return orderDailyFoodDetailMapper.orderToDto(orderDailyFood, orderItemList, refundDto);
     }
 
     @Override
