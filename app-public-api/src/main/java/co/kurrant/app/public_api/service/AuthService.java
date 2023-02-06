@@ -22,6 +22,7 @@ public interface AuthService {
     User signUp(SignUpRequestDto signUpRequestDto);
     // 로그인
     LoginResponseDto login(LoginRequestDto loginRequestDto);
+    LoginResponseDto lookingAround();
     // SNS 로그인 / 회원가입
     LoginResponseDto snsLoginOrJoin(String sns, SnsAccessToken snsAccessToken);
     LoginResponseDto appleLoginOrJoin(Map<String,Object> appleLoginDto) throws JsonProcessingException;

@@ -50,7 +50,6 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(target = "price", expression = "java(getPayedPrice(orderItemDailyFood))")
     OrderDailyFoodDetailDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
-    // TODO: 상진님과 의논 필요 -> Order에 카드정보를 저장할 지.
     @Named("getPaymentInfo")
     default String getPaymentInfo() {
         return "신한(1234)";
