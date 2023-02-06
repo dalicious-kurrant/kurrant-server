@@ -40,8 +40,8 @@ public class OrderDailyFoodController {
     @PostMapping("/{spotId}")
     public ResponseMessage userOrderByDate(Authentication authentication, @PathVariable BigInteger spotId, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto, spotId);
         return ResponseMessage.builder()
+                .data(orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto, spotId))
                 .message("식사 주문에 성공하였습니다.")
                 .build();
     }
@@ -71,7 +71,7 @@ public class OrderDailyFoodController {
 
     @Operation(summary = "정기식사 전체 환불", description = "정기 식사 구매내역 상세를 가져온다.")
     @PostMapping("/refund")
-    public ResponseMessage userOrderDailyFoodDetail(Authentication authentication, @RequestBody IdDto idDto) {
+    public ResponseMessage userOrderDailyFoodDetail(Authentication authentication, @RequestBody IdDto idDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         orderDailyFoodService.cancelOrderDailyFood(securityUser, idDto.getId());
         return ResponseMessage.builder()

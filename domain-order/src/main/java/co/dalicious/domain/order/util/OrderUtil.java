@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -113,18 +114,41 @@ public class OrderUtil {
         return totalPrice;
     }
 
+    public static Boolean isLastOrderItemOfGroup(OrderItemDailyFood orderItemDailyFood) {
+        OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
+        List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
+        for (OrderItemDailyFood itemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
+            if(itemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+                orderItemDailyFoods.add(itemDailyFood);
+            }
+        }
+        if(orderItemDailyFoods.size() == 1 && orderItemDailyFoods.get(0).equals(orderItemDailyFood)) {
+            return true;
+        }
+        return false;
+    }
+
     // OrderItemDailyFoodGroup당 환불 금액
     public static RefundPriceDto getRefundPrice(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories,  BigDecimal usingPoint) {
+        OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
-        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFood.getOrderItemDailyFoodGroup());
+        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
         // 식사 일정에 따른 아이템 금액
-        BigDecimal itemsPrice = getItemPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFood.getOrderItemDailyFoodGroup());
+        BigDecimal itemsPrice = getItemPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
         // 사용한 지원금
-        BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories());
+        BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
         // 환불 요청 금액
         BigDecimal requestRefundPrice = orderItemDailyFood.getOrderItemTotalPrice();
+        // 배송비
+        BigDecimal deliveryFee = BigDecimal.ZERO;
         // 업데이트 되어야할 지원금
         BigDecimal renewSupportPrice = usedSupportPrice;
+        Boolean isLastOrderItemOfGroup = isLastOrderItemOfGroup(orderItemDailyFood);
+        // 배송비를 돌려줘야 하는 상황인지 확인.
+        if(isLastOrderItemOfGroup(orderItemDailyFood) && orderItemDailyFoodGroup.getDeliveryFee().compareTo(BigDecimal.ZERO) > 0) {
+            deliveryFee = orderItemDailyFoodGroup.getDeliveryFee();
+            requestRefundPrice = requestRefundPrice.add(orderItemDailyFoodGroup.getDeliveryFee());
+        }
 
         // 1. 지원금을 업데이트 시켜야하는 상황인지 확인(식사 일정 별 구매한 모든 정기 식사 가격 - 환불 요청 아이템 가격 < 사용한 회사 지원금)
         Boolean needToUpdateSupportPrice = itemsPrice.subtract(requestRefundPrice).compareTo(usedSupportPrice) < 0;
@@ -134,7 +158,7 @@ public class OrderUtil {
             renewSupportPrice = itemsPrice.subtract(requestRefundPrice);
             requestRefundPrice = requestRefundPrice.subtract(getDeductedSupportPrice(usedSupportPrice, renewSupportPrice));
             if(requestRefundPrice.compareTo(BigDecimal.ZERO) == 0) {
-                return new RefundPriceDto(BigDecimal.ZERO, renewSupportPrice, BigDecimal.ZERO);
+                return new RefundPriceDto(BigDecimal.ZERO, deliveryFee, renewSupportPrice, BigDecimal.ZERO, isLastOrderItemOfGroup);
             }
         }
 
@@ -148,7 +172,7 @@ public class OrderUtil {
                     throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
                 }
             }
-            return new RefundPriceDto(requestRefundPrice, renewSupportPrice, BigDecimal.ZERO);
+            return new RefundPriceDto(requestRefundPrice, deliveryFee, renewSupportPrice, BigDecimal.ZERO, isLastOrderItemOfGroup);
         }
 
         // 4. 환불 가능 금액 < 환불 요청 금액
@@ -156,7 +180,7 @@ public class OrderUtil {
             if(requestRefundPrice.subtract(refundablePrice).compareTo(usingPoint) > 0) {
                 throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
             }
-            return new RefundPriceDto(refundablePrice, renewSupportPrice, requestRefundPrice.subtract(refundablePrice));
+            return new RefundPriceDto(refundablePrice, deliveryFee, renewSupportPrice, requestRefundPrice.subtract(refundablePrice), isLastOrderItemOfGroup);
         }
         throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
     }
@@ -203,7 +227,7 @@ public class OrderUtil {
         String paymentCardNumber = card.get("number").toString();
 
         //결제 취소 후 기록을 저장한다.
-        return paymentCancleHistoryMapper.toEntity(cancelReason, refundPriceDto, orderItem, orderCode, checkOutUrl, BigDecimal.valueOf(refundablePrice), creditCardInfo);
+        return paymentCancleHistoryMapper.toEntity(cancelReason, refundPriceDto, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice), creditCardInfo);
 
     }
 

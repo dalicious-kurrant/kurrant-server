@@ -52,6 +52,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +60,7 @@ import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -255,11 +257,13 @@ public class MembershipServiceImpl implements MembershipService {
     public void refundMembership(User user, Order order, Membership membership) {
         // TODO: 연간구독 해지시, membership endDate update.
         BigDecimal price = BigDecimal.ZERO;
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, membership.getStartDate(), membership.getEndDate());
+        DailyFoodMembershipDiscountDto dailyFoodMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoods);
 
         // 정기 식사 배송비 계산
-
+        price = price.add(dailyFoodMembershipDiscountDto.getTotalMembershipDiscountDeliveryFee());
         // 정기 식사 할인율 계산
-
+        price = price.add(dailyFoodMembershipDiscountDto.getTotalMembershipDiscountPrice());
         // 마켓 상품 할인 계산
 
         // 멤버십 결제금액 가져오기
@@ -338,6 +342,10 @@ public class MembershipServiceImpl implements MembershipService {
 
         Membership membership = qMembershipRepository.findUserCurrentMembership(user, now.toLocalDate());
 
+        OrderItemMembership orderItemMembership = orderItemMembershipRepository.findOneByMembership(membership).orElseThrow(
+                () -> new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND)
+        );
+
         if(membership == null) {
             throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
         }
@@ -348,7 +356,15 @@ public class MembershipServiceImpl implements MembershipService {
         // 최근 3개월동안 멤버십을 통해 할인 받은 정기식사 할인 금액을 가져온다.
         DailyFoodMembershipDiscountDto dailyFoodMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoods);
 
-        return membershipBenefitMapper.toDto(membership, dailyFoodMembershipDiscountDto);
+        // 환불 가능 금액 계산하기
+        List<OrderItemDailyFood> orderItemDailyFoodList = orderItemDailyFoods.stream().filter(v -> v.getCreatedDateTime().after(Timestamp.valueOf(membership.getStartDate().atStartOfDay())) &&
+                v.getCreatedDateTime().before(Timestamp.valueOf(membership.getEndDate().atTime(23, 59, 59)))).toList();
+        DailyFoodMembershipDiscountDto dailyFoodCurrentMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoodList);
+
+        BigDecimal refundablePrice = orderItemMembership.getOrder().getTotalPrice().subtract(dailyFoodCurrentMembershipDiscountDto.getTotalMembershipDiscountPrice()).subtract(dailyFoodCurrentMembershipDiscountDto.getTotalMembershipDiscountDeliveryFee());
+
+
+        return membershipBenefitMapper.toDto(membership, dailyFoodMembershipDiscountDto, refundablePrice);
     }
 
     @Override

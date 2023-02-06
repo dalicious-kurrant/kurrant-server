@@ -37,4 +37,12 @@ public class QOrderDailyFoodRepository {
                         orderItemDailyFood.membershipDiscountRate.gt(0))
                 .fetch();
     }
+
+    public List<OrderItemDailyFood> findAllMealScheduleByUser(User user) {
+        return queryFactory
+                .selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.order.user.eq(user),
+                        orderItemDailyFood.dailyFood.serviceDate.goe(LocalDate.now()))
+                .fetch();
+    }
 }

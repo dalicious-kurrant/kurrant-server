@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class MembershipBenefitDto {
-    @Schema(description = "다을 결제 예정일")
+    @Schema(description = "다음 결제 예정일")
     private String nextPayDate;
     private String membershipSubscriptionType;
     private BigDecimal deliveryFee;
@@ -21,4 +21,5 @@ public class MembershipBenefitDto {
     private BigDecimal productBuyPoint;
     private BigDecimal totalPointBenefitPrice;
     private BigDecimal membershipRefundablePrice;
+    private BigDecimal refundablePrice;
 }
