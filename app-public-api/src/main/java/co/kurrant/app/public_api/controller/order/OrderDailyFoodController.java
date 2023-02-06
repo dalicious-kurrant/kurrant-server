@@ -24,10 +24,12 @@ public class OrderDailyFoodController {
     @Operation(summary = "유저 주문 정보 가져오기", description = "유저의 주문 정보를 가져온다.")
     @GetMapping("")
     public ResponseMessage userOrderByDate(
+            Authentication authentication,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.findOrderByServiceDate(startDate, endDate))
+                .data(orderDailyFoodService.findOrderByServiceDate(startDate, endDate, securityUser))
                 .message("주문 불러오기에 성공하였습니다.")
                 .build();
     }

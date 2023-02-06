@@ -264,7 +264,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public List<OrderDetailDto> findOrderByServiceDate(LocalDate startDate, LocalDate endDate) {
+    public List<OrderDetailDto> findOrderByServiceDate(LocalDate startDate, LocalDate endDate, SecurityUser securityUser) {
         List<OrderDetailDto> orderDetailDtos = new ArrayList<>();
         Set<DiningTypeServiceDate> diningTypeServiceDates = new HashSet<>();
         MultiValueMap<DiningTypeServiceDate, OrderItemDto> multiValueMap = new LinkedMultiValueMap<>();
@@ -299,5 +299,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     // TODO: 결제 모듈 구현시 수정
     public int requestPayment(String paymentCode, BigDecimal price, int statusCode) {
         return statusCode;
+    }
+
+    private void findOrderByServiceDateNoty(SecurityUser securityUser, LocalDate startDate, LocalDate endDate) {
+        User user = userUtil.getUser(securityUser);
+        List<UserGroup> userGroups = user.getGroups();
+        
     }
 }

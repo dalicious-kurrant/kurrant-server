@@ -11,5 +11,5 @@ import java.util.List;
 public interface OrderDailyFoodService {
     // 정기식사를 구매한다
     void orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto, BigInteger spotId);
-    List<OrderDetailDto> findOrderByServiceDate(LocalDate startDate, LocalDate endDate);
+    List<OrderDetailDto> findOrderByServiceDate(LocalDate startDate, LocalDate endDate, SecurityUser securityUser);
 }
