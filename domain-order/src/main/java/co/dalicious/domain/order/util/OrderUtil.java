@@ -231,4 +231,16 @@ public class OrderUtil {
 
     }
 
+    public PaymentCancelHistory cancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, RefundPriceDto refundPriceDto, List<PaymentCancelHistory> paymentCancelHistories) throws IOException, ParseException {
+        Order order = orderItemDailyFood.getOrder();
+        // 남은 환불 가능 금액 = 총 상품 금액 - 남은 환불 금액
+        BigDecimal refundablePrice = order.getTotalPrice().subtract(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())));
+        if(!paymentCancelHistories.isEmpty()) {
+            paymentCancelHistories = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).collect(Collectors.toList());
+            refundablePrice = paymentCancelHistories.get(0).getRefundablePrice();
+        }
+
+        return paymentCancleHistoryMapper.toEntity("주문 전체 취소", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundablePrice, order.getCreditCardInfo());
+
+    }
 }

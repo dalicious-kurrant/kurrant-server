@@ -24,5 +24,5 @@ public interface OrderDailyFoodService {
     // 주문 전체를 환불한다.
     void cancelOrderDailyFood(SecurityUser securityUser, BigInteger orderId);
     // 주문 상품을 환불한다
-    void cancelOrderItemDailyFood(SecurityUser securityUser, BigInteger orderId, BigInteger orderItemId) throws IOException, ParseException;
+    void cancelOrderItemDailyFood(SecurityUser securityUser, BigInteger orderItemId) throws IOException, ParseException;
 }

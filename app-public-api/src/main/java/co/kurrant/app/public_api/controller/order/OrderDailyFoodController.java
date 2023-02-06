@@ -80,10 +80,10 @@ public class OrderDailyFoodController {
     }
 
     @Operation(summary = "정기식사 부분 환불", description = "주문한 한 정기식사 상품을 환불한다.")
-    @PostMapping("/{orderId}/dailyFoods/refund")
-    public ResponseMessage userOrderItemDailyFoodRefund(Authentication authentication, @PathVariable BigInteger orderId, @RequestBody IdDto idDto) throws IOException, ParseException {
+    @PostMapping("/dailyFoods/refund")
+    public ResponseMessage userOrderItemDailyFoodRefund(Authentication authentication, @RequestBody IdDto idDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        orderDailyFoodService.cancelOrderItemDailyFood(securityUser, orderId, idDto.getId());
+        orderDailyFoodService.cancelOrderItemDailyFood(securityUser, idDto.getId());
         return ResponseMessage.builder()
                 .message("정기식사 구매 내역 조회에 성공하였습니다.")
                 .build();

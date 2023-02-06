@@ -36,8 +36,6 @@ public class UserSupportPriceUtil {
             if (userSupportPriceHistory.getServiceDate().equals(serviceDate) && userSupportPriceHistory.getDiningType().equals(diningType)) {
                 if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
                     usedSupportPrice = usedSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
-                } else if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.REFUND)) {
-                    usedSupportPrice = usedSupportPrice.subtract(userSupportPriceHistory.getUsingSupportPrice());
                 }
             }
         }
