@@ -30,6 +30,13 @@ public class OrderDailyFoodDetailDto {
     private String cardNumber;
     private String cardCompany;
     private String receiptUrl;
+    private BigDecimal refundPayPrice;
+    private BigDecimal refundItemPrice;
+    private BigDecimal refundSupportPrice;
+    private BigDecimal refundDeliveryFee;
+    private BigDecimal refundDeduction;
+    private BigDecimal refundTotalPrice;
+    private BigDecimal refundTotalPoint;
     private List<OrderItem> orderItems;
 
     @Getter

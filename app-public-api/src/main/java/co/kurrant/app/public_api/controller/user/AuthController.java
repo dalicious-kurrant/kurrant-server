@@ -140,6 +140,15 @@ public class AuthController {
                 .build();
     }
 
+    @Operation(summary = "둘러보기", description = "GUEST 토큰을 리턴한다.")
+    @PostMapping("/lookingAround")
+    public ResponseMessage lookingAround() {
+        return ResponseMessage.builder()
+                .message("둘러보기 요청에 성공하였습니다.")
+                .data(authService.lookingAround())
+                .build();
+    }
+
     @Operation(summary = "토큰 재발급", description = "토큰을 재발급한다.")
     @PostMapping("/reissue")
     public ResponseMessage reissue(@RequestBody TokenDto dto) {

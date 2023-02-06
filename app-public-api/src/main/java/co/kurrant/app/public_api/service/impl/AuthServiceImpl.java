@@ -245,6 +245,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
+    public LoginResponseDto lookingAround() {
+        User user = userRepository.findOneByEmail("test@dalicious.co").orElseThrow(
+                () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
+        );
+        SpotStatus spotStatus = clientUtil.getSpotStatus(user);
+        return getLoginAccessToken(user, spotStatus);
+    }
+
+    @Override
+    @Transactional
     public LoginResponseDto snsLoginOrJoin(String sns, SnsAccessToken snsAccessToken) {
         Provider provider = Provider.valueOf(sns);
         // Vendor 로그인 시도
