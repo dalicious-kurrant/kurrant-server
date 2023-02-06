@@ -182,5 +182,15 @@ public class UserController {
                 .build();
     }
 
+    @Operation(summary = "이름변경", description = "로그인한 유저의 이름이 없을시(애플로그인) 이름을 설정한다.")
+    @PostMapping("/setting/name")
+    public ResponseMessage changeName(Authentication authentication ,@RequestBody ChangeNameDto changeNameDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.changeName(securityUser, changeNameDto);
+        return ResponseMessage.builder()
+                .message("유저 이름이 변경되었습니다.")
+                .build();
+    }
+
 
 }
