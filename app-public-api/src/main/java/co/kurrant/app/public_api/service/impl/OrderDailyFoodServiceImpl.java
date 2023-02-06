@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
@@ -19,8 +20,11 @@ import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiningType;
 import co.dalicious.system.util.enums.FoodStatus;
@@ -30,6 +34,7 @@ import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.asm.Advice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -37,7 +42,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,6 +63,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QUserSupportPriceHistoryRepository qUserSupportPriceHistoryRepository;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final OrderItemDailyFoodListMapper orderItemDailyFoodListMapper;
+    private final UserSpotRepository userSpotRepository;
 
     @Override
     @Transactional
@@ -293,6 +299,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 )
                 .collect(Collectors.toList());
 
+        findOrderByServiceDateNoty(securityUser, startDate, endDate);
+
         return orderDetailDtos;
     }
 
@@ -303,7 +311,34 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     private void findOrderByServiceDateNoty(SecurityUser securityUser, LocalDate startDate, LocalDate endDate) {
         User user = userUtil.getUser(securityUser);
-        List<UserGroup> userGroups = user.getGroups();
-        
+        List<UserSpot> userSpots = user.getUserSpots();
+
+        //등록한 스팟이 있는지 확인
+        if(userSpots.size() == 0) { return; }
+
+        // 등록된 스팟 중 default 설정 된 스팟을 찾기
+        Spot defaultSpot = null;
+        for(UserSpot userSpot : userSpots) {
+            if(userSpot.getIsDefault()) {
+                defaultSpot = userSpot.getSpot();
+                break;
+            }
+        }
+
+        //default 스팟의 서비스 일, 시간을 확인
+        List<MealInfo> mealInfos = defaultSpot.getMealInfos();
+        List<String> serviceDays = new ArrayList<>();
+
+        //현재 시간
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+
+        for(MealInfo mealInfo : mealInfos) {
+            // 조식인 경우
+            if(mealInfo.getDiningType() == DiningType.MORNING) {
+
+            }
+            // 중식인 경우
+            // 석식인 경우
+        }
     }
 }
