@@ -166,7 +166,7 @@ public class CartServiceImpl implements CartService {
                 cartDailyFoodDtoMap.add(diningTypeServiceDateDto, cartFood);
             }
             // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
-            PeriodDto periodDto = userSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+            PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
             // ServiceDate에 해당하는 사용 지원금 리스트 받아오기
             List<UserSupportPriceHistory> userSupportPriceHistories = qUserSupportPriceHistoryRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
             // 배송비 및 지원금 계산
@@ -175,9 +175,9 @@ public class CartServiceImpl implements CartService {
                 BigDecimal deliveryFee = deliveryFeePolicy.getGroupDeliveryFee(user, group);
                 // 사용 가능한 지원금 가져오기
                 if (spot instanceof CorporationSpot) {
-                    supportPrice = userSupportPriceUtil.getGroupSupportPriceByDiningType(spot, diningTypeServiceDateDto.getDiningType());
+                    supportPrice = UserSupportPriceUtil.getGroupSupportPriceByDiningType(spot, diningTypeServiceDateDto.getDiningType());
                     // 기존에 사용한 지원금이 있다면 차감
-                    BigDecimal usedSupportPrice = userSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDateDto.getServiceDate(), diningTypeServiceDateDto.getDiningType());
+                    BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDateDto.getServiceDate(), diningTypeServiceDateDto.getDiningType());
                     supportPrice = supportPrice.subtract(usedSupportPrice);
                 }
                 CartDailyFoodDto cartDailyFoodDto = CartDailyFoodDto.builder()

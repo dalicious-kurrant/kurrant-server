@@ -334,6 +334,7 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
+    @Transactional
     public MembershipBenefitDto getMembershipBenefit(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
 
@@ -343,7 +344,7 @@ public class MembershipServiceImpl implements MembershipService {
         Membership membership = qMembershipRepository.findUserCurrentMembership(user, now.toLocalDate());
 
         OrderItemMembership orderItemMembership = orderItemMembershipRepository.findOneByMembership(membership).orElseThrow(
-                () -> new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND)
+                () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
 
         if(membership == null) {

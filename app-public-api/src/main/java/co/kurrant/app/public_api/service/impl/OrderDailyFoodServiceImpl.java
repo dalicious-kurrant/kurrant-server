@@ -73,6 +73,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
     private final OrderUtil orderUtil;
     private final OrderRepository orderRepository;
+    private final PaymentCancleHistoryMapper paymentCancleHistoryMapper;
 
     @Override
     @Transactional
@@ -358,21 +359,26 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
 
+        BigDecimal price = BigDecimal.ZERO;
+        BigDecimal deliveryFee = BigDecimal.ZERO;
+        BigDecimal point = BigDecimal.ZERO;
+
+        // 이전에 환불을 진행한 경우
+        List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
+
         for(OrderItem orderItem : order.getOrderItems()) {
             OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) orderItem;
             // 상태값이 이미 7L(취소)인지 확인
-            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)){
+            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
                 throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
             }
-
-            // 이전에 환불을 진행한 경우
-            List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
 
             BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories());
 
             RefundPriceDto refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
-
-            CreditCardInfo creditCardInfo = order.getCreditCardInfo();
+            price = price.add(refundPriceDto.getPrice());
+            deliveryFee = deliveryFee.add(refundPriceDto.getDeliveryFee());
+            point = point.add(refundPriceDto.getPoint());
 
             if(!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
                 List<UserSupportPriceHistory> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
@@ -387,8 +393,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
             // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
             if(refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
-                PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), creditCardInfo, "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
-                paymentCancelHistoryRepository.save(paymentCancelHistory);
+                PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
+                paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
             }
 
             user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
@@ -400,13 +406,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
         }
 
-
-
+        tossUtil.cardCancelOne(order.getPaymentKey(), "전체 주문 취소", price.intValue());
     }
 
     @Override
     @Transactional
-    public void cancelOrderItemDailyFood(SecurityUser securityUser, BigInteger orderId, BigInteger orderItemId) throws IOException, ParseException {
+    public void cancelOrderItemDailyFood(SecurityUser securityUser, BigInteger orderItemId) throws IOException, ParseException {
         User user = userUtil.getUser(securityUser);
 
         OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(orderItemId).orElseThrow(
