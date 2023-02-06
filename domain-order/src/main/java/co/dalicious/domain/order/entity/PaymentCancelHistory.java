@@ -2,14 +2,10 @@ package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.user.converter.RefundPriceDto;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
-import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -36,6 +32,10 @@ public class PaymentCancelHistory {
     @Comment("포인트 환불 금액")
     @Column(columnDefinition = "DECIMAL(15, 2)")
     private BigDecimal refundPointPrice;
+
+    @Comment("배송비 환불 금액")
+    @Column(columnDefinition = "DECIMAL(15, 2)")
+    private BigDecimal refundDeliveryFee;
 
     @Comment("카드 환불 금액")
     @Column(columnDefinition = "DECIMAL(15, 2)")
@@ -71,6 +71,7 @@ public class PaymentCancelHistory {
         this.cancelReason = cancelReason;
         this.refundPointPrice = refundPriceDto.getPoint();
         this.cancelPrice = refundPriceDto.getPrice();
+        this.refundDeliveryFee = refundPriceDto.getDeliveryFee();
         this.refundablePrice = refundablePrice;
         this.checkOutUrl = checkOutUrl;
         this.orderCode = orderCode;

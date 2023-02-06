@@ -65,5 +65,7 @@ public class OrderItemDailyFoodGroup {
         this.deliveryFee = deliveryFee;
     }
 
-
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
+    }
 }

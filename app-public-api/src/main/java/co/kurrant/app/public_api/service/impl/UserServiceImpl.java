@@ -7,6 +7,7 @@ import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
@@ -78,6 +79,7 @@ public class UserServiceImpl implements UserService {
     private final CreditCardInfoRepository creditCardInfoRepository;
     private final CreditCardInfoSaveMapper creditCardInfoSaveMapper;
     private final CreditCardInfoMapper creditCardInfoMapper;
+    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
 
     @Override
     @Transactional
@@ -368,7 +370,7 @@ public class UserServiceImpl implements UserService {
     public UserInfoDto getUserInfo(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
         Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
-//        Integer dailyMealCount =
+//        Integer dailyMealCount = qOrderDailyFoodRepository.
 
         return UserInfoDto.builder()
                 .user(user)

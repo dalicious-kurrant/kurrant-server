@@ -31,4 +31,12 @@ public class QOrderDailyFoodRepository {
                 .where(orderItemDailyFood.serviceDate.eq(today))
                 .fetch();
     }
+
+    public List<OrderItemDailyFood> findAllMealScheduleByUser(User user) {
+        return queryFactory
+                .selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.order.user.eq(user),
+                        orderItemDailyFood.dailyFood.serviceDate.goe(LocalDate.now()))
+                .fetch();
+    }
 }
