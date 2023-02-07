@@ -12,6 +12,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import javax.persistence.criteria.CriteriaBuilder;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +54,8 @@ public class SseService {
 
     @Transactional
     public void send(BigInteger receiver, Integer type, String content) {
-        NotificationHash notification = createNotification(receiver, type, content);
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        NotificationHash notification = createNotification(receiver, type, content, today);
         String id = String.valueOf(receiver);
 
         notificationHashRepository.save(notification);
@@ -69,12 +73,13 @@ public class SseService {
     }
 
     //notification 생성
-    private NotificationHash createNotification(BigInteger receiverId, Integer type, String content) {
+    private NotificationHash createNotification(BigInteger receiverId, Integer type, String content, LocalDate today) {
         return NotificationHash.builder()
                 .type(type)
                 .userId(receiverId)
                 .isRead(false)
                 .content(content)
+                .createDate(today)
                 .build();
     }
 
