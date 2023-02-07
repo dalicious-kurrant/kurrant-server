@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
-
+@CrossOrigin(origins="*", allowedHeaders = "*")
 @Tag(name = "5. Public")
 @RequestMapping(value = "/v1/public")
 @RestController
