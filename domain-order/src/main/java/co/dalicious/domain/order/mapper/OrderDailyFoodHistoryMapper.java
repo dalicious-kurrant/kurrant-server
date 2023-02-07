@@ -21,7 +21,7 @@ public interface OrderDailyFoodHistoryMapper {
     @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
     @Mapping(source = "dailyFood.food.name", target = "name")
     @Mapping(source = "dailyFood.food.image.location", target = "image")
-    @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate()))")
+    @Mapping(target = "serviceDate", expression = "teUtils.format(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate()))")
     @Mapping(source = "orderItemDailyFoodGroup.diningType.code", target = "diningType")
     @Mapping(source = "count", target = "count")
     @Mapping(target = "price", expression = "java(getPayedPrice(orderItemDailyFood))")

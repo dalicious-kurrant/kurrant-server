@@ -53,7 +53,7 @@ public class OrderUtil {
         return code;
     }
 
-    public static void refundOrderMembership(User user, OrderItemMembership orderItemMembership) {
+    public static void orderMembershipStatusUpdate(User user, OrderItemMembership orderItemMembership) {
         if (orderItemMembership.getOrderStatus().equals(OrderStatus.COMPLETED)) {
             orderItemMembership.getMembership().changeMembershipStatus(MembershipStatus.PROCESSING);
             orderItemMembership.getMembership().changeAutoPaymentStatus(true);
@@ -258,6 +258,36 @@ public class OrderUtil {
         return oldPrice.subtract(renewSupportPrice);
     }
 
+    public PaymentCancelHistory cancelOrderItemMembership(String paymentKey, CreditCardInfo creditCardInfo, String cancelReason, OrderItemMembership orderItem, BigDecimal refundPrice) throws IOException, ParseException {
+        //결제 취소 요청
+        JSONObject response = tossUtil.cardCancelOne(paymentKey, cancelReason, refundPrice.intValue());
+        System.out.println(response);
+
+        String orderCode = response.get("orderId").toString();
+
+        JSONObject checkout = (JSONObject) response.get("checkout");
+        String checkOutUrl = checkout.get("url").toString();
+        JSONArray cancels = (JSONArray) response.get("cancels");
+        Integer refundablePrice = null;
+
+        if (cancels.size() != 0 && cancels.size() != 1) {
+            for (Object cancel : cancels) {
+                JSONObject cancel1 = (JSONObject) cancel;
+                refundablePrice = Integer.valueOf(cancel1.get("refundableAmount").toString());
+                System.out.println(refundablePrice + " = refundablePrice");
+            }
+        }
+        JSONObject cancel = (JSONObject) cancels.get(0);
+        refundablePrice = Integer.valueOf(cancel.get("refundableAmount").toString());
+
+        JSONObject card = (JSONObject) response.get("card");
+        String paymentCardNumber = card.get("number").toString();
+
+        //결제 취소 후 기록을 저장한다.
+        return paymentCancleHistoryMapper.orderItemMembershipToEntity(cancelReason, refundPrice, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice), creditCardInfo);
+
+    }
+
     public PaymentCancelHistory cancelOrderItemDailyFood(String paymentKey, CreditCardInfo creditCardInfo, String cancelReason, OrderItemDailyFood orderItem, RefundPriceDto refundPriceDto) throws IOException, ParseException {
         //결제 취소 요청
         JSONObject response = tossUtil.cardCancelOne(paymentKey, cancelReason, refundPriceDto.getPrice().intValue());
@@ -284,11 +314,11 @@ public class OrderUtil {
         String paymentCardNumber = card.get("number").toString();
 
         //결제 취소 후 기록을 저장한다.
-        return paymentCancleHistoryMapper.toEntity(cancelReason, refundPriceDto, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice), creditCardInfo);
+        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity(cancelReason, refundPriceDto, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice), creditCardInfo);
 
     }
 
-    public PaymentCancelHistory cancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, RefundPriceDto refundPriceDto, List<PaymentCancelHistory> paymentCancelHistories) throws IOException, ParseException {
+    public PaymentCancelHistory cancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, RefundPriceDto refundPriceDto, List<PaymentCancelHistory> paymentCancelHistories) {
         Order order = orderItemDailyFood.getOrder();
         // 남은 환불 가능 금액 = 총 상품 금액 - 남은 환불 금액
         BigDecimal refundablePrice = order.getTotalPrice().subtract(refundPriceDto.getPrice());
@@ -297,7 +327,7 @@ public class OrderUtil {
             refundablePrice = paymentCancelHistories.get(0).getRefundablePrice().subtract(refundPriceDto.getPrice());
         }
 
-        return paymentCancleHistoryMapper.toEntity("주문 전체 취소", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundablePrice, order.getCreditCardInfo());
+        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity("주문 전체 취소", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundablePrice, order.getCreditCardInfo());
 
     }
 }

@@ -8,8 +8,11 @@ import co.kurrant.app.public_api.service.MembershipService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.parser.ParseException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @Tag(name = "5. Membership")
 @RequestMapping(value = "/v1/users/membership")
@@ -51,7 +54,7 @@ public class MembershipController {
 
     @Operation(summary = "멤버십 해지/환불", description = "유저가 멤버십을 해지 또는 환불한다")
     @GetMapping("/unsubscribing")
-    public ResponseMessage unsubscribingMembership(Authentication authentication) {
+    public ResponseMessage unsubscribingMembership(Authentication authentication) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         membershipService.unsubscribeMembership(securityUser);
         return ResponseMessage.builder()

@@ -65,18 +65,17 @@ public class PaymentCancelHistory {
     @JoinColumn
     private OrderItem orderItem;
 
-
-    public PaymentCancelHistory(String cancelReason, RefundPriceDto refundPriceDto, OrderItemDailyFood orderDailyItemFood, String checkOutUrl, String orderCode, BigDecimal refundablePrice, CreditCardInfo creditCardInfo) {
-        this.cancelDateTime = LocalDateTime.now();
+    public PaymentCancelHistory(LocalDateTime cancelDateTime, String cancelReason, BigDecimal refundPointPrice, BigDecimal refundDeliveryFee, BigDecimal cancelPrice, BigDecimal refundablePrice, String checkOutUrl, String orderCode, CreditCardInfo creditCardInfo, Order order, OrderItem orderItem) {
+        this.cancelDateTime = cancelDateTime;
         this.cancelReason = cancelReason;
-        this.refundPointPrice = refundPriceDto.getPoint();
-        this.cancelPrice = refundPriceDto.getPrice();
-        this.refundDeliveryFee = refundPriceDto.getDeliveryFee();
+        this.refundPointPrice = refundPointPrice;
+        this.refundDeliveryFee = refundDeliveryFee;
+        this.cancelPrice = cancelPrice;
         this.refundablePrice = refundablePrice;
         this.checkOutUrl = checkOutUrl;
         this.orderCode = orderCode;
         this.creditCardInfo = creditCardInfo;
-        this.order = orderDailyItemFood.getOrder();
-        this.orderItem = orderDailyItemFood;
+        this.order = order;
+        this.orderItem = orderItem;
     }
 }
