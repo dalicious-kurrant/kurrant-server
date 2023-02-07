@@ -15,6 +15,7 @@ include 'client-core'
 include 'client-external-sms'
 include 'client-external-mail'
 include 'client-oauth'
+include 'client-sse'
 
 include 'domain-address'
 include 'domain-banner'

@@ -30,6 +30,13 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
+    public  List<OrderItemDailyFood> findByServiceDate(LocalDate today) {
+        return queryFactory
+                .selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.dailyFood.serviceDate.eq(today))
+                .fetch();
+    }
+
     public List<OrderItemDailyFood> findAllWhichGetMembershipBenefit(User user, LocalDateTime now, LocalDateTime threeMonthAgo) {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
