@@ -13,6 +13,7 @@ public class MembershipBenefitDto {
     private String nextPayDate;
     private String membershipSubscriptionType;
     private BigDecimal deliveryFee;
+    private BigDecimal supportDeliveryFee;
     private BigDecimal dailyFoodDiscountPrice;
     private BigDecimal productDiscountPrice;
     private BigDecimal totalDiscountBenefitPrice;
@@ -20,6 +21,5 @@ public class MembershipBenefitDto {
     private BigDecimal productReviewPoint;
     private BigDecimal productBuyPoint;
     private BigDecimal totalPointBenefitPrice;
-    private BigDecimal membershipRefundablePrice;
     private BigDecimal refundablePrice;
 }
