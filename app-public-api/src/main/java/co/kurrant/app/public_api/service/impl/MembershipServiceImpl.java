@@ -3,23 +3,22 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.domain.order.dto.OrderMembershipReqDto;
 import co.dalicious.domain.order.dto.OrderMembershipResDto;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
-import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.order.entity.OrderItem;
-import co.dalicious.domain.order.entity.OrderItemMembership;
-import co.dalicious.domain.order.entity.OrderMembership;
+import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.OrderMembershipResMapper;
 import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
-import co.dalicious.domain.order.repository.OrderItemMembershipRepository;
-import co.dalicious.domain.order.repository.OrderMembershipRepository;
-import co.dalicious.domain.order.repository.QOrderRepository;
+import co.dalicious.domain.order.mapper.PaymentCancleHistoryMapper;
+import co.dalicious.domain.order.repository.*;
+import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
-import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
+import co.dalicious.domain.payment.util.CreditCardValidator;
 import co.dalicious.domain.payment.util.TossUtil;
+import co.dalicious.domain.user.dto.DailyFoodMembershipDiscountDto;
+import co.dalicious.domain.user.dto.MembershipBenefitDto;
 import co.dalicious.domain.user.dto.MembershipDto;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.MembershipDiscountPolicy;
@@ -27,9 +26,9 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.mapper.MembershipBenefitMapper;
 import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
-import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiscountType;
@@ -50,11 +49,13 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -65,8 +66,6 @@ public class MembershipServiceImpl implements MembershipService {
     private final QMembershipRepository QmembershipRepository;
     private final OrderItemMembershipRepository orderItemMembershipRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
-
-    private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final QOrderRepository qOrderRepository;
     private final OrderMembershipRepository orderMembershipRepository;
     private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.YEAR.getPrice().multiply(BigDecimal.valueOf((100 - MembershipSubscriptionType.YEAR.getDiscountRate()) * 0.01)).divide(BigDecimal.valueOf(12));
@@ -75,7 +74,12 @@ public class MembershipServiceImpl implements MembershipService {
     private final DiscountPolicy discountPolicy;
     private final OrderUserInfoMapper orderUserInfoMapper;
     private final OrderMembershipResMapper orderMembershipResMapper;
+    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final DeliveryFeePolicy deliveryFeePolicy;
+    private final MembershipBenefitMapper membershipBenefitMapper;
     private final QMembershipRepository qMembershipRepository;
+    private final OrderUtil orderUtil;
+    private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
 
     @Override
     @Transactional
@@ -99,15 +103,18 @@ public class MembershipServiceImpl implements MembershipService {
         if (!(orderMembershipReqDto.getPeriodDiscountPrice().compareTo(periodDiscountPrice) == 0)) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
+        // 4. 총 가격이 일치하는지 확인
+        BigDecimal totalPrice = defaultPrice.subtract(yearDescriptionDiscountPrice).subtract(periodDiscountPrice);
+        if(!(orderMembershipReqDto.getTotalPrice().compareTo(totalPrice) == 0)) {
+            throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+        }
 
         // 이 사람이 기존에 멤버십을 가입했는 지 확인
-        // TODO: 현재, 멤버십을 중복 가입할 수 있게 만들어졌지만, 수정 필요
         PeriodDto periodDto = null;
         if (user.getIsMembership()) {
-            List<Membership> memberships = membershipRepository.findAllByUserOrderByEndDateDesc(user);
-            if (memberships != null && !memberships.isEmpty()) {
-                Membership recentMembership = memberships.get(0);
-                LocalDate currantEndDate = recentMembership.getEndDate();
+            Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
+            if (membership != null) {
+                LocalDate currantEndDate = membership.getEndDate();
                 if(LocalDate.now().isBefore(currantEndDate)) {
                     throw new ApiException(ExceptionEnum.ALREADY_EXISTING_MEMBERSHIP);
                 }
@@ -153,8 +160,9 @@ public class MembershipServiceImpl implements MembershipService {
          */
 
         //카드정보 가져오기
-        Optional<CreditCardInfo> creditCardInfoOptional = creditCardInfoRepository.findById(orderMembershipReqDto.getCardId());
-        creditCardInfoOptional.orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_CARD_INFO));
+        CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(orderMembershipReqDto.getCardId()).
+                orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
+        CreditCardValidator.isValidCreditCard(creditCardInfo, user);
 
         // 멤버십 결제 요청
         String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
@@ -162,7 +170,7 @@ public class MembershipServiceImpl implements MembershipService {
                 .code(code)
                 .orderType(OrderType.MEMBERSHIP)
                 .paymentType(PaymentType.ofCode(orderMembershipReqDto.getPaymentType()))
-                .creditCardInfo(creditCardInfoOptional.get())
+                .creditCardInfo(creditCardInfo)
                 .build();
         // 유저 정보 저장
         OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
@@ -182,7 +190,6 @@ public class MembershipServiceImpl implements MembershipService {
         // 결제 진행. 실패시 오류 날림
         BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
 
-        CreditCardInfo creditCardInfo = qCreditCardInfoRepository.findCustomerKeyByCardId(orderMembershipReqDto.getCardId());
         String customerKey = creditCardInfo.getCustomerKey();
         String billingKey = creditCardInfo.getBillingKey();
 
@@ -244,15 +251,9 @@ public class MembershipServiceImpl implements MembershipService {
 
     @Override
     @Transactional
-    public void refundMembership(User user, Order order, Membership membership) {
+    public void refundMembership(User user, Order order, Membership membership) throws IOException, ParseException {
         // TODO: 연간구독 해지시, membership endDate update.
-        BigDecimal price = BigDecimal.ZERO;
-
-        // 정기 식사 배송비 계산
-
-        // 정기 식사 할인율 계산
-
-        // 마켓 상품 할인 계산
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, membership.getStartDate(), membership.getEndDate());
 
         // 멤버십 결제금액 가져오기
         BigDecimal paidPrice = order.getTotalPrice();
@@ -268,32 +269,27 @@ public class MembershipServiceImpl implements MembershipService {
         if(orderItemMembership == null) {
             throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
         }
+
+        // 환불 가능 금액 계산하기
+        BigDecimal refundPrice = getRefundableMembershipPrice(orderItemDailyFoods, orderItemMembership);
+
         // 자동 환불 설정
         orderItemMembership.updateOrderStatus(OrderStatus.AUTO_REFUND);
-        OrderUtil.refundOrderMembership(user, orderItemMembership);
+        OrderUtil.orderMembershipStatusUpdate(user, orderItemMembership);
 
         // 주문 상태 변경
-        if(price.compareTo(BigDecimal.ZERO) == 0) {
-            return;
+        if(paidPrice.compareTo(refundPrice) < 0) {
+            throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
-        // TODO: 지불한 금액이 사용한 금액보다 크다면 환불 필요.
-        if (price.compareTo(BigDecimal.ZERO) != 0 && paidPrice.compareTo(price) > 0) {
-            orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
-            OrderItemMembership orderItemMembership1 = OrderItemMembership.builder()
-                    .orderStatus(OrderStatus.PRICE_DEDUCTION)
-                    .order(order)
-                    .membership(membership)
-                    .membershipSubscriptionType(membership.getMembershipSubscriptionType().getMembershipSubscriptionType())
-                    .price(paidPrice.subtract(price))
-                    .build();
-            orderItemMembershipRepository.save(orderItemMembership1);
-        }
+        // 취소 내역 저장
+        PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemMembership(order.getPaymentKey(), order.getCreditCardInfo(), "멤버십 환불", orderItemMembership, refundPrice);
+        paymentCancelHistoryRepository.save(paymentCancelHistory);
     }
 
     @Override
     @Transactional
-    public void unsubscribeMembership(SecurityUser securityUser) {
+    public void unsubscribeMembership(SecurityUser securityUser) throws IOException, ParseException {
         // 유저 가져오기
         User user = userUtil.getUser(securityUser);
         // 멤버십 사용중인 유저인지 가져오기
@@ -322,30 +318,57 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
-    public void getMembershipBenefit(SecurityUser securityUser) {
+    @Transactional
+    public MembershipBenefitDto getMembershipBenefit(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime threeMonthAgo = LocalDate.now().minusMonths(3).atStartOfDay();
+
+        Membership membership = qMembershipRepository.findUserCurrentMembership(user, now.toLocalDate());
+
+        OrderItemMembership orderItemMembership = orderItemMembershipRepository.findOneByMembership(membership).orElseThrow(
+                () -> new ApiException(ExceptionEnum.NOT_FOUND)
+        );
+
+        if(membership == null) {
+            throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
+        }
+
+        // 멤버십 이용 금액 혜택을 받은 주문 상품 가져오기
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllWhichGetMembershipBenefit(user, now, threeMonthAgo);
+
+        // 최근 3개월동안 멤버십을 통해 할인 받은 정기식사 할인 금액을 가져온다.
+        DailyFoodMembershipDiscountDto dailyFoodMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoods);
+
+        // 환불 가능 금액 계산하기
+        BigDecimal refundablePrice = getRefundableMembershipPrice(orderItemDailyFoods, orderItemMembership);
+
+        return membershipBenefitMapper.toDto(membership, dailyFoodMembershipDiscountDto, refundablePrice);
     }
 
     @Override
     @Transactional
-    public void getDailyFoodPriceBenefits(User user) {
-
+    public DailyFoodMembershipDiscountDto getDailyFoodPriceBenefits(List<OrderItemDailyFood> orderItemDailyFoods) {
+        BigDecimal totalMembershipDiscountPrice = BigDecimal.ZERO;
+        BigDecimal totalMembershipDiscountDeliveryFee = BigDecimal.ZERO;
+        Set<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = new HashSet<>();
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            totalMembershipDiscountPrice = totalMembershipDiscountPrice.add(orderItemDailyFood.getMembershipDiscountPrice());
+            orderItemDailyFoodGroups.add(orderItemDailyFood.getOrderItemDailyFoodGroup());
+        }
+        totalMembershipDiscountDeliveryFee = totalMembershipDiscountDeliveryFee.add(deliveryFeePolicy.getDeliveryFee().multiply(BigDecimal.valueOf(orderItemDailyFoodGroups.size())));
+        return new DailyFoodMembershipDiscountDto(totalMembershipDiscountPrice, totalMembershipDiscountDeliveryFee);
     }
 
     @Override
-    @Transactional
-    public void getMarketPriceBenefits(User user) {
+    public BigDecimal getRefundableMembershipPrice(List<OrderItemDailyFood> orderItemDailyFoods, OrderItemMembership orderItemMembership) {
+        Membership membership = orderItemMembership.getMembership();
+        List<OrderItemDailyFood> orderItemDailyFoodList = orderItemDailyFoods.stream().filter(v -> v.getCreatedDateTime().after(Timestamp.valueOf(membership.getStartDate().atStartOfDay())) &&
+                v.getCreatedDateTime().before(Timestamp.valueOf(membership.getEndDate().atTime(23, 59, 59)))).toList();
+        DailyFoodMembershipDiscountDto dailyFoodCurrentMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoodList);
 
-    }
-
-    @Override
-    @Transactional
-    public void getDailyFoodPointBenefits(User user) {
-
-    }
-
-    @Override
-    public void getMarketPointBenefits(User user) {
+        return orderItemMembership.getOrder().getTotalPrice().subtract(dailyFoodCurrentMembershipDiscountDto.getTotalMembershipDiscountPrice()).subtract(dailyFoodCurrentMembershipDiscountDto.getTotalMembershipDiscountDeliveryFee());
 
     }
 
@@ -382,11 +405,6 @@ public class MembershipServiceImpl implements MembershipService {
         return membershipDtos;
     }
 
-    @Override
-    @Transactional
-    public void saveMembershipAutoPayment(SecurityUser securityUser) {
-
-    }
 
     public void yearlyDescriptionRefund(Membership membership) {
         // 월간 구독권인지, 연간 구독권인지 구분 필요

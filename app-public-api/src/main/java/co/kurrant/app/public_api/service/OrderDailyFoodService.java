@@ -13,8 +13,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface OrderDailyFoodService {
-    // 정기식사를 구매한다
-    void orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto, BigInteger spotId);
+    // 정기식사를 구매한다.
+    BigInteger orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto, BigInteger spotId);
     // 식사 일정을 조회한다.
     List<OrderDetailDto> findOrderByServiceDate(SecurityUser securityUser, LocalDate startDate, LocalDate endDate);
     // 구매 내역을 조회한다.
@@ -22,7 +22,7 @@ public interface OrderDailyFoodService {
     // 구매 내역 상세를 조회한다.
     OrderDailyFoodDetailDto getOrderDailyFoodDetail(SecurityUser securityUser, BigInteger orderId);
     // 주문 전체를 환불한다.
-    void cancelOrderDailyFood(SecurityUser securityUser, BigInteger orderId);
+    void cancelOrderDailyFood(SecurityUser securityUser, BigInteger orderId) throws IOException, ParseException;
     // 주문 상품을 환불한다
     void cancelOrderItemDailyFood(SecurityUser securityUser, BigInteger orderItemId) throws IOException, ParseException;
 }

@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static co.dalicious.domain.order.entity.QOrder.order;
+import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 
 
 @Repository
@@ -35,6 +36,14 @@ public class QOrderRepository {
         if (update != 1){
             throw new ApiException(ExceptionEnum.UPDATE_ORDER_FAILED);
         }
+    }
+
+    public String getPaymentKey(BigInteger orderItemId) {
+        return queryFactory.select(order.paymentKey)
+                .from(order,orderItem)
+                .where(order.id.eq(orderItem.order.id),
+                        orderItem.id.eq(orderItemId))
+                .fetchOne();
     }
 
     public List<Order> findAllOrderByUserFilterByOrderTypeAndPeriod(User user, Integer orderType, LocalDate startDate, LocalDate endDate) {

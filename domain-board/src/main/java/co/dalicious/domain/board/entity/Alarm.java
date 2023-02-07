@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.math.BigInteger;
@@ -34,6 +35,7 @@ public class Alarm {
     @Comment("0 : 프로모션 / 1: 이벤트 / 2: 쿠폰 / 3: 정기식사 / 4: 공지 / 5: 스팟공지 / 6: 주문상태")
     private AlarmBoardType type;
 
+    @CreatedDate
     @Column(name="created_date", columnDefinition = "DATETIME")
     private LocalDateTime created;
 
