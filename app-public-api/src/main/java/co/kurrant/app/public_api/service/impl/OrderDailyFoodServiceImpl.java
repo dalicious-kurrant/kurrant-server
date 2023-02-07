@@ -364,14 +364,23 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // 다음주 주문이 없을 때
-        // 하루에 한 번만 알림 보내기
+        // 하루에 한 번만 알림 보내기 - 알림을 읽었으면 그날 하루는 더 이상 보내지 않음.
         List<NotificationHash> todayAlreadySendNotys =
                 notificationHashRepository.findByUserIdAndTypeAndIsReadAndCreateDate(user.getId(), 5, true, now);
         if(todayAlreadySendNotys.size() != 0) return;
 
         // 알림을 보낸적 없으면
-        LocalDate startDate = now.plusDays(7);
-        LocalDate endDate = now.plusDays(7);
+        LocalDate startDate = switch (dayOfWeek) {
+            case "월" -> now.plusDays(7);
+            case "화" -> now.plusDays(6);
+            case "수" -> now.plusDays(5);
+            case "목" -> now.plusDays(4);
+            case "금" -> now.plusDays(3);
+            case "토" -> now.plusDays(2);
+            case "일" -> now.plusDays(1);
+            default -> null;
+        };
+        LocalDate endDate = startDate.plusDays(7);
         List<OrderItemDailyFood> nextWeekOrderFoods =  qOrderDailyFoodRepository.findByServiceDateBetween(startDate, endDate);
         if(nextWeekOrderFoods.size() == 0) {
             sseService.send(user.getId(), 5, "다음주 식사 구매하셨나요?");
