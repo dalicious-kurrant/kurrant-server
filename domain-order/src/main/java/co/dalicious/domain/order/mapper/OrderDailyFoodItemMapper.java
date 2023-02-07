@@ -6,13 +6,14 @@ import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
+import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.enums.DiningType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.math.BigDecimal;
 
-@Mapper(componentModel = "spring", imports = DiningType.class)
+@Mapper(componentModel = "spring", imports = { DiningType.class, DateUtils.class })
 public interface OrderDailyFoodItemMapper {
     @Mapping(target = "orderStatus", constant = "PENDING_PAYMENT")
     @Mapping(source = "order", target = "order")
@@ -29,7 +30,7 @@ public interface OrderDailyFoodItemMapper {
 
 
     @Mapping(target = "orderStatus", constant = "PENDING_PAYMENT")
-    @Mapping(target = "serviceDate", expression = "java(DateUtils.format(cartDailyFoodDto.getServiceDate()))")
+    @Mapping(target = "serviceDate", expression = "java(DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()))")
     @Mapping(target = "diningType", expression = "java(DiningType.ofString(cartDailyFoodDto.getDiningType()))")
     @Mapping(source = "deliveryFee", target = "deliveryFee")
     OrderItemDailyFoodGroup dtoToOrderItemDailyFoodGroup(CartDailyFoodDto cartDailyFoodDto);
