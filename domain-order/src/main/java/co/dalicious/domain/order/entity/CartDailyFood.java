@@ -26,7 +26,7 @@ public class CartDailyFood extends Cart {
     @Comment("장바구니에 담긴 음식 ID")
     private DailyFood dailyFood;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="spot_id")
     @Comment("장바구니에 담긴 음식 상품의 배송지")
     private Spot spot;

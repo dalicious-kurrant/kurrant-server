@@ -55,7 +55,7 @@ public class Food {
     @Comment("맵기정도")
     private Spicy spicy;
 
-    @ManyToOne(fetch = FetchType.EAGER ,optional = false)
+    @ManyToOne(fetch = FetchType.LAZY ,optional = false)
     @JoinColumn(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("메이커스 ID")
     private Makers makers;
