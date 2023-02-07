@@ -413,8 +413,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
                 paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
             }
-
-            user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
             orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
             orderItemDailyFood.getDailyFood().addCapacity(orderItemDailyFood.getCount());
 
@@ -422,7 +420,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
             }
         }
-
+        user.updatePoint(user.getPoint().add(point));
         tossUtil.cardCancelOne(order.getPaymentKey(), "전체 주문 취소", price.intValue());
     }
 
