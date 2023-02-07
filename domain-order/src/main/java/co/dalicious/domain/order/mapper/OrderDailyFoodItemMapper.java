@@ -29,7 +29,7 @@ public interface OrderDailyFoodItemMapper {
 
 
     @Mapping(target = "orderStatus", constant = "PENDING_PAYMENT")
-    @Mapping(source = "serviceDate", target = "serviceDate")
+    @Mapping(target = "serviceDate", expression = "java(DateUtils.format(cartDailyFoodDto.getServiceDate()))")
     @Mapping(target = "diningType", expression = "java(DiningType.ofString(cartDailyFoodDto.getDiningType()))")
     @Mapping(source = "deliveryFee", target = "deliveryFee")
     OrderItemDailyFoodGroup dtoToOrderItemDailyFoodGroup(CartDailyFoodDto cartDailyFoodDto);

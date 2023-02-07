@@ -11,6 +11,7 @@ import java.math.BigInteger;
 @Getter
 @Setter
 public class UserHomeResponseDto {
+    private BigInteger userId;
     private String name;
     private String phone;
     private String email;

@@ -1,12 +1,14 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.client.oauth.AppleAndroidLoginDto;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
@@ -41,6 +43,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.asm.Advice;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,11 +56,10 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -370,12 +372,31 @@ public class UserServiceImpl implements UserService {
     public UserInfoDto getUserInfo(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
         Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
-//        Integer dailyMealCount = qOrderDailyFoodRepository.
+
+        // 식사 일정 개수 구하기
+        Integer dailyMealCount = 0;
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllMealScheduleByUser(user);
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            if(orderItemDailyFood.getDailyFood().getServiceDate().equals(LocalDate.now())) {
+                Optional<MealInfo> mealInfo = orderItemDailyFood.getDailyFood().getSpot().getMealInfos().stream()
+                        .filter(v -> v.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType())).findAny();
+                if(mealInfo.isEmpty()) {
+                    throw new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO);
+                }
+                LocalTime deliveryTime = mealInfo.get().getDeliveryTime();
+                if(LocalTime.now().isAfter(deliveryTime)) {
+                    orderItemDailyFoods.remove(orderItemDailyFood);
+                }
+            }
+        }
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            dailyMealCount += orderItemDailyFood.getCount();
+        }
 
         return UserInfoDto.builder()
                 .user(user)
                 .membershipPeriod(membershipPeriod)
-//                .dailyMealCount()
+                .dailyMealCount(dailyMealCount)
                 .build();
     }
 

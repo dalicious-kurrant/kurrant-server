@@ -8,10 +8,8 @@ import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.OrderMembershipResMapper;
 import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
-import co.dalicious.domain.order.repository.OrderItemMembershipRepository;
-import co.dalicious.domain.order.repository.OrderMembershipRepository;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
-import co.dalicious.domain.order.repository.QOrderRepository;
+import co.dalicious.domain.order.mapper.PaymentCancleHistoryMapper;
+import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.util.OrderUtil;
@@ -80,6 +78,8 @@ public class MembershipServiceImpl implements MembershipService {
     private final DeliveryFeePolicy deliveryFeePolicy;
     private final MembershipBenefitMapper membershipBenefitMapper;
     private final QMembershipRepository qMembershipRepository;
+    private final OrderUtil orderUtil;
+    private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
 
     @Override
     @Transactional
@@ -251,17 +251,9 @@ public class MembershipServiceImpl implements MembershipService {
 
     @Override
     @Transactional
-    public void refundMembership(User user, Order order, Membership membership) {
+    public void refundMembership(User user, Order order, Membership membership) throws IOException, ParseException {
         // TODO: 연간구독 해지시, membership endDate update.
-        BigDecimal price = BigDecimal.ZERO;
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, membership.getStartDate(), membership.getEndDate());
-        DailyFoodMembershipDiscountDto dailyFoodMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoods);
-
-        // 정기 식사 배송비 계산
-        price = price.add(dailyFoodMembershipDiscountDto.getTotalMembershipDiscountDeliveryFee());
-        // 정기 식사 할인율 계산
-        price = price.add(dailyFoodMembershipDiscountDto.getTotalMembershipDiscountPrice());
-        // 마켓 상품 할인 계산
 
         // 멤버십 결제금액 가져오기
         BigDecimal paidPrice = order.getTotalPrice();
@@ -277,32 +269,27 @@ public class MembershipServiceImpl implements MembershipService {
         if(orderItemMembership == null) {
             throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
         }
+
+        // 환불 가능 금액 계산하기
+        BigDecimal refundPrice = getRefundableMembershipPrice(orderItemDailyFoods, orderItemMembership);
+
         // 자동 환불 설정
         orderItemMembership.updateOrderStatus(OrderStatus.AUTO_REFUND);
-        OrderUtil.refundOrderMembership(user, orderItemMembership);
+        OrderUtil.orderMembershipStatusUpdate(user, orderItemMembership);
 
         // 주문 상태 변경
-        if(price.compareTo(BigDecimal.ZERO) == 0) {
-            return;
+        if(paidPrice.compareTo(refundPrice) < 0) {
+            throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
-        // TODO: 지불한 금액이 사용한 금액보다 크다면 환불 필요.
-        if (price.compareTo(BigDecimal.ZERO) != 0 && paidPrice.compareTo(price) > 0) {
-            orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
-            OrderItemMembership orderItemMembership1 = OrderItemMembership.builder()
-                    .orderStatus(OrderStatus.PRICE_DEDUCTION)
-                    .order(order)
-                    .membership(membership)
-                    .membershipSubscriptionType(membership.getMembershipSubscriptionType().getMembershipSubscriptionType())
-                    .price(paidPrice.subtract(price))
-                    .build();
-            orderItemMembershipRepository.save(orderItemMembership1);
-        }
+        // 취소 내역 저장
+        PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemMembership(order.getPaymentKey(), order.getCreditCardInfo(), "멤버십 환불", orderItemMembership, refundPrice);
+        paymentCancelHistoryRepository.save(paymentCancelHistory);
     }
 
     @Override
     @Transactional
-    public void unsubscribeMembership(SecurityUser securityUser) {
+    public void unsubscribeMembership(SecurityUser securityUser) throws IOException, ParseException {
         // 유저 가져오기
         User user = userUtil.getUser(securityUser);
         // 멤버십 사용중인 유저인지 가져오기
@@ -355,12 +342,7 @@ public class MembershipServiceImpl implements MembershipService {
         DailyFoodMembershipDiscountDto dailyFoodMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoods);
 
         // 환불 가능 금액 계산하기
-        List<OrderItemDailyFood> orderItemDailyFoodList = orderItemDailyFoods.stream().filter(v -> v.getCreatedDateTime().after(Timestamp.valueOf(membership.getStartDate().atStartOfDay())) &&
-                v.getCreatedDateTime().before(Timestamp.valueOf(membership.getEndDate().atTime(23, 59, 59)))).toList();
-        DailyFoodMembershipDiscountDto dailyFoodCurrentMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoodList);
-
-        BigDecimal refundablePrice = orderItemMembership.getOrder().getTotalPrice().subtract(dailyFoodCurrentMembershipDiscountDto.getTotalMembershipDiscountPrice()).subtract(dailyFoodCurrentMembershipDiscountDto.getTotalMembershipDiscountDeliveryFee());
-
+        BigDecimal refundablePrice = getRefundableMembershipPrice(orderItemDailyFoods, orderItemMembership);
 
         return membershipBenefitMapper.toDto(membership, dailyFoodMembershipDiscountDto, refundablePrice);
     }
@@ -380,19 +362,13 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
-    @Transactional
-    public void getMarketPriceBenefits(User user) {
+    public BigDecimal getRefundableMembershipPrice(List<OrderItemDailyFood> orderItemDailyFoods, OrderItemMembership orderItemMembership) {
+        Membership membership = orderItemMembership.getMembership();
+        List<OrderItemDailyFood> orderItemDailyFoodList = orderItemDailyFoods.stream().filter(v -> v.getCreatedDateTime().after(Timestamp.valueOf(membership.getStartDate().atStartOfDay())) &&
+                v.getCreatedDateTime().before(Timestamp.valueOf(membership.getEndDate().atTime(23, 59, 59)))).toList();
+        DailyFoodMembershipDiscountDto dailyFoodCurrentMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoodList);
 
-    }
-
-    @Override
-    @Transactional
-    public void getDailyFoodPointBenefits(User user) {
-
-    }
-
-    @Override
-    public void getMarketPointBenefits(User user) {
+        return orderItemMembership.getOrder().getTotalPrice().subtract(dailyFoodCurrentMembershipDiscountDto.getTotalMembershipDiscountPrice()).subtract(dailyFoodCurrentMembershipDiscountDto.getTotalMembershipDiscountDeliveryFee());
 
     }
 
@@ -429,11 +405,6 @@ public class MembershipServiceImpl implements MembershipService {
         return membershipDtos;
     }
 
-    @Override
-    @Transactional
-    public void saveMembershipAutoPayment(SecurityUser securityUser) {
-
-    }
 
     public void yearlyDescriptionRefund(Membership membership) {
         // 월간 구독권인지, 연간 구독권인지 구분 필요
