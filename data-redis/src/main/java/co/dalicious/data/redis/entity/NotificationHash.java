@@ -17,7 +17,7 @@ public class NotificationHash {
     @Id
     String id;
 
-    // 1: 전체공지, 2: 스팟공지, 3: 구매후기, 4: 마감시간, 5: 다음주 주문, 6: 스팟등록
+    // 1: 전체공지, 2: 스팟공지, 3: 구매후기, 4: 마감시간, 5: 다음주 주문
     @Indexed
     Integer type;
 

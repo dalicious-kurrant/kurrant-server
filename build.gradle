@@ -184,6 +184,7 @@ project(':app-public-api') {
         implementation project(':domain-board')
         implementation project(':domain-file')
         implementation project(':domain-payment')
+        implementation project(':domain-review')
         implementation project(':client-external-mail')
         implementation project(':client-external-sms')
         implementation project(':data-redis')
@@ -322,5 +323,16 @@ project(':client-sse') {
         implementation project(':system-core')
         implementation project(':data-redis')
         implementation project(':domain-user')
+    }
+}
+
+project(':domain-review') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-user')
+        implementation project(':domain-order')
+        implementation project(':domain-food')
+        implementation project(':domain-makers')
+        implementation project(':domain-file')
     }
 }

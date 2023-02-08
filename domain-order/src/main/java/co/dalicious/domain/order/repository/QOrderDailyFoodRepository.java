@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.repository;
 
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.User;
