@@ -29,6 +29,7 @@ import co.kurrant.app.public_api.service.CartService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -52,10 +53,7 @@ public class CartServiceImpl implements CartService {
     private final CartDailyFoodMapper orderCartDailyFoodMapper;
     private final CartDailyFoodsResMapper cartDailyFoodsResMapper;
     private final DeliveryFeePolicy deliveryFeePolicy;
-    private final UserSupportPriceUtil userSupportPriceUtil;
     private final SpotRepository spotRepository;
-    private final CorporationApplicationFormRepository corporationApplicationFormRepository;
-
     @Override
     @Transactional
     public Integer saveOrderCart(SecurityUser securityUser, List<CartDto> cartDtoList) {
@@ -147,8 +145,6 @@ public class CartServiceImpl implements CartService {
             spotDailyFoodMap.add(spotDailyFood.getSpot(), spotDailyFood);
         }
         for (Spot spot : spotDailyFoodMap.keySet()) {
-            // TODO: Fetch.LAZY 적용시 Spot과 Group가 Proxy이기 때문에 instanceof 사용 불가능함.
-            //  현재 CartDailyFood -> Spot -> Group Fetch.EAGER 설정. 추후 수정 필요
             Group group = spot.getGroup();
             // 식사일정(DiningType), 날짜별(serviceDate)로 장바구니 아이템 구분하기
             List<CartDailyFoodDto> cartDailyFoodListDtos = new ArrayList<>();
@@ -172,8 +168,10 @@ public class CartServiceImpl implements CartService {
             // 배송비 및 지원금 계산
             for (DiningTypeServiceDateDto diningTypeServiceDateDto : diningTypeServiceDateDtos) {
                 BigDecimal supportPrice = BigDecimal.ZERO;
+                group = (Group) Hibernate.unproxy(group);
                 BigDecimal deliveryFee = deliveryFeePolicy.getGroupDeliveryFee(user, group);
                 // 사용 가능한 지원금 가져오기
+                spot = (Spot) Hibernate.unproxy(spot);
                 if (spot instanceof CorporationSpot) {
                     supportPrice = UserSupportPriceUtil.getGroupSupportPriceByDiningType(spot, diningTypeServiceDateDto.getDiningType());
                     // 기존에 사용한 지원금이 있다면 차감

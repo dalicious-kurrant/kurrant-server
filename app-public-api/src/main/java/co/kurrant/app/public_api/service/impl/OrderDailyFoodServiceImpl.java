@@ -19,7 +19,9 @@ import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
+import co.dalicious.domain.payment.dto.PaymentConfirmDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
@@ -27,9 +29,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiningType;
 import co.dalicious.system.util.enums.FoodStatus;
@@ -37,23 +37,23 @@ import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
-import org.hibernate.Hibernate;
-import org.json.simple.JSONObject;
+import com.sun.xml.bind.v2.TODO;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.time.*;
-import java.time.chrono.ChronoLocalDateTime;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -383,7 +383,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public void cancelOrderDailyFood(SecurityUser securityUser, BigInteger orderId) throws IOException, ParseException, org.json.simple.parser.ParseException {
+    public void cancelOrderDailyFood(SecurityUser securityUser, BigInteger orderId) throws IOException, ParseException {
         User user = userUtil.getUser(securityUser);
 
         Order order = orderRepository.findOneByIdAndUser(orderId, user).orElseThrow(
@@ -501,6 +501,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         //등록한 스팟
         List<UserSpot> userSpots = user.getUserSpots();
+        System.out.println("userSpots.size() = " + userSpots.size());
         if(userSpots.size() == 0) { return; }
         // 등록된 스팟 중 default 설정 된 스팟
         Spot defaultSpot = null;
@@ -602,4 +603,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             sseService.send(user.getId(), 4, content);
         }
     }
+
+    @Transactional
+    @Override
+    public JSONObject paymentsConfirm(PaymentConfirmDto paymentConfirmDto) throws IOException, ParseException {
+        JSONObject jsonObject = tossUtil.paymentConfirm(paymentConfirmDto.getPaymentKey(), paymentConfirmDto.getAmount(), paymentConfirmDto.getOrderId());
+        //TODO: 경태님의 작업을 위해 결제승인만 만들어두었습니다
+        return jsonObject;
+
+    }
 }
+

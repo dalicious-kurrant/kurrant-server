@@ -132,6 +132,7 @@ public class TossUtil {
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
 
+
         //요청 JSON 오브젝트 생성
         JSONObject obj = new JSONObject();
         obj.put("cancelReason", cancelReason);
@@ -150,17 +151,51 @@ public class TossUtil {
         JSONObject jsonObject = (JSONObject) parser.parse(reader);
         responseStream.close();
         return jsonObject;
-
-        /*HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.tosspayments.com/v1/payments/4f5G2XX3kYJWrxhMrDSkJ/cancel"))
-                .header("Authorization", "Basic dGVzdF9za19ZWjFhT3dYN0s4bWdwYnEyUjRRVnlReHp2TlBHOg==")
-                .header("Content-Type", "application/json")
-                .method("POST", HttpRequest.BodyPublishers.ofString("{\"cancelReason\":\"고객이 취소를 원함\",\"cancelAmount\":1000}"))
-                .build();
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println(response.body());*/
     }
 
+    //결제승인
+    public JSONObject paymentConfirm(String paymentKey, Integer amount, String orderId) throws IOException, ParseException {
+        Base64.Encoder encode = Base64.getEncoder();
+        byte[] encodeByte = encode.encode(secretKey.getBytes("UTF-8"));
+        String authorizations = "Basic "+ new String(encodeByte, 0, encodeByte.length);
+
+        URL url = new URL("https://api.tosspayments.com/v1/payments/confirm");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestProperty("Authorization", authorizations);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        JSONObject obj = new JSONObject();
+        obj.put("paymentKey", paymentKey);
+        obj.put("amount", amount);
+        obj.put("orderId", orderId);
+
+        OutputStream outputStream = connection.getOutputStream();
+        outputStream.write(obj.toString().getBytes("UTF-8"));
+
+        int code = connection.getResponseCode();
+        boolean isSuccess = code == 200? true : false;
+
+        InputStream responseStream = isSuccess? connection.getInputStream(): connection.getErrorStream();
+
+        Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8);
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) parser.parse(reader);
+        responseStream.close();
+        return jsonObject;
+    }
+
+
+        /*
+        * HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.tosspayments.com/v1/payments/confirm"))
+    .header("Authorization", "Basic dGVzdF9za196WExrS0V5cE5BcldtbzUwblgzbG1lYXhZRzVSOg==")
+    .header("Content-Type", "application/json")
+    .method("POST", HttpRequest.BodyPublishers.ofString("{\"paymentKey\":\"3R6B0i8FCb4myEgVQSDK0\",\"amount\":15000,\"orderId\":\"x5Qmqd0sA2RR1WQT1sUd_\"}"))
+    .build();
+HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+        * */
 
 
 

@@ -52,7 +52,7 @@ public class Spot {
     @Comment("식사 타입")
     private List<DiningType> diningTypes;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "client_group_id")
     @JsonManagedReference(value = "client__group_fk")
     @Comment("그룹")

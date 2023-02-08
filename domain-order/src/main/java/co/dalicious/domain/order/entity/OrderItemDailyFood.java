@@ -1,10 +1,7 @@
 package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.system.util.enums.DiningType;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -16,7 +13,6 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @DynamicInsert
 @DynamicUpdate
