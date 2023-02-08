@@ -128,7 +128,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 식사타입(DiningType)과 날짜별(serviceDate) 식사들 가져오기
         List<CartDailyFoodDto> cartDailyFoodDtoList = orderItemDailyFoodReqDto.getCartDailyFoodDtoList();
-
         // 프론트에서 제공한 정보와 실제 정보가 일치하는지 확인
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 배송비 일치 점증 및 배송비 계산
