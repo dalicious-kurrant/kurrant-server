@@ -68,6 +68,10 @@ public class DateUtils {
         return time.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
+    public static String timeToStringWithAMPM(LocalTime time) {
+        return time.format(DateTimeFormatter.ofPattern("HH:mm a"));
+    }
+
     public static LocalDate stringToDate(String strLocalDate) {
         String[] stringList = strLocalDate.split("-");
         return LocalDate.of(Integer.parseInt(stringList[0]),Integer.parseInt(stringList[1]), Integer.parseInt(stringList[2]));
