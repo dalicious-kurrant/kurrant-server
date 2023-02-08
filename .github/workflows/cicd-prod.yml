@@ -9,7 +9,7 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "release" ]
 
 permissions:
   contents: read
@@ -127,9 +127,9 @@ jobs:
     - name: 배포
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.HOST }}
+        host: ${{ secrets.PROD_HOST }}
         username: ubuntu
-        key: ${{ secrets.PRIVATE_KEY }}
+        key: ${{ secrets.PROD_PRIVATE_KEY }}
         envs: GITHUB_SHA
         script: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
