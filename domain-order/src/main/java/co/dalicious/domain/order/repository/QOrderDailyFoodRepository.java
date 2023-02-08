@@ -51,7 +51,7 @@ public class QOrderDailyFoodRepository {
     public  List<OrderItemDailyFood> findByServiceDate(LocalDate today) {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
-                .where(orderItemDailyFood.serviceDate.eq(today))
+                .where(orderItemDailyFood.dailyFood.serviceDate.eq(today))
                 .fetch();
     }
 }

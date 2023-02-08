@@ -1,6 +1,8 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -10,15 +12,17 @@ import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.*;
+import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.order.mapper.OrderDailyFoodItemMapper;
-import co.dalicious.domain.order.mapper.OrderDailyFoodMapper;
-import co.dalicious.domain.order.mapper.OrderItemDailyFoodListMapper;
-import co.dalicious.domain.order.mapper.UserSupportPriceHistoryReqMapper;
+import co.dalicious.domain.order.mapper.*;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
+import co.dalicious.domain.payment.util.TossUtil;
+import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
@@ -33,6 +37,8 @@ import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
+import org.hibernate.Hibernate;
+import org.json.simple.JSONObject;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +46,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.json.simple.parser.ParseException;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -75,6 +83,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
     private final OrderUtil orderUtil;
     private final OrderRepository orderRepository;
+    private final SseService sseService;
+    private final NotificationHashRepository notificationHashRepository;
 
     @Override
     @Transactional
@@ -373,7 +383,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public void cancelOrderDailyFood(SecurityUser securityUser, BigInteger orderId) throws IOException, ParseException {
+    public void cancelOrderDailyFood(SecurityUser securityUser, BigInteger orderId) throws IOException, ParseException, org.json.simple.parser.ParseException {
         User user = userUtil.getUser(securityUser);
 
         Order order = orderRepository.findOneByIdAndUser(orderId, user).orElseThrow(
@@ -523,7 +533,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         // 제공하는 dining type 중 하나라도 하지 않았다면
         HashSet<DiningType> mealInfoDiningType = new HashSet<>();
         HashSet<DiningType> todayOrderFoodDiningType = new HashSet<>();
-        todayOrderFoods.stream().forEach(order -> todayOrderFoodDiningType.add(order.getDiningType()));
+        todayOrderFoods.stream().forEach(order -> todayOrderFoodDiningType.add(order.getDailyFood().getDiningType()));
         notyDtos.stream().forEach(info -> mealInfoDiningType.add(info.getType()));
         System.out.println("todayOrderFoodDiningType.size() = " + todayOrderFoodDiningType.size());
         System.out.println("mealInfoDiningType = " + mealInfoDiningType.size());
@@ -549,7 +559,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             default -> null;
         };
         LocalDate endDate = startDate.plusDays(7);
-        List<OrderItemDailyFood> nextWeekOrderFoods =  qOrderDailyFoodRepository.findByServiceDateBetween(startDate, endDate);
+        List<OrderItemDailyFood> nextWeekOrderFoods =  qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, startDate, endDate);
         if(nextWeekOrderFoods.size() == 0) {
             sseService.send(user.getId(), 5, "다음주 식사 구매하셨나요?");
             return;
@@ -558,7 +568,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         HashSet<String> nextWeekOrderFoodServiceDays = new HashSet<>();
         HashSet<String> mealInfoServiceDays = new HashSet<>();
         nextWeekOrderFoods.stream().forEach(order ->
-                nextWeekOrderFoodServiceDays.add(order.getServiceDate().getDayOfWeek().getDisplayName(TextStyle.SHORT,Locale.KOREA)));
+                nextWeekOrderFoodServiceDays.add(order.getDailyFood().getServiceDate().getDayOfWeek().getDisplayName(TextStyle.SHORT,Locale.KOREA)));
         for(OrderByServiceDateNotyDto notyDto : notyDtos) {
             notyDto.getServiceDays().stream().forEach(serviceDay -> mealInfoServiceDays.add(serviceDay));
         }

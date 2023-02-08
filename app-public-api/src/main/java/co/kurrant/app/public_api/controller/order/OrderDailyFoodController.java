@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.controller.order;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
+import co.kurrant.app.public_api.dto.order.IdDto;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -11,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.json.simple.parser.ParseException;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
@@ -29,7 +32,7 @@ public class OrderDailyFoodController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.findOrderByServiceDate(startDate, endDate, securityUser))
+                .data(orderDailyFoodService.findOrderByServiceDate(securityUser, startDate, endDate))
                 .message("주문 불러오기에 성공하였습니다.")
                 .build();
     }
