@@ -596,10 +596,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             // 마감까지 2시간 이상 남았을 때.
             if(curranTime.isBefore(notificationTime)) return;
 
-            // 마감까지 남은 시간이 2시간 보다 작을 때.
-            SimpleDateFormat format = new SimpleDateFormat("hh:mm a");
-
-            String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + format.format(notyDto.getLastOrderTime()) + "까지 해야 할인을 받을 수 있어요!";
+            String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(notyDto.getLastOrderTime()) + "까지 해야 할인을 받을 수 있어요!";
             sseService.send(user.getId(), 4, content);
         }
     }
