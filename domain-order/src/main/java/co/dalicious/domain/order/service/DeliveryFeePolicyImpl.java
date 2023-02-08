@@ -7,6 +7,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.user.entity.User;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -23,6 +24,7 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
 
     @Override
     public BigDecimal getGroupDeliveryFee(User user, Group group) {
+        group = (Group) Hibernate.unproxy(group);
         if(group instanceof Apartment) {
             return getApartmentUserDeliveryFee(user, (Apartment) group);
         } else if (group instanceof Corporation) {
