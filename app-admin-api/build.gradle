@@ -7,6 +7,12 @@ dependencies {
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation'
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
 	implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.6.11'
-	
+
+	// https://mvnrepository.com/artifact/org.apache.poi/poi
+	implementation group: 'org.apache.poi', name: 'poi', version: '4.1.2'
+	implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'
+	// https://mvnrepository.com/artifact/org.apache.tika/tika-core
+	implementation group: 'org.apache.tika', name: 'tika-core', version: '2.3.0'
+
 	testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 }
