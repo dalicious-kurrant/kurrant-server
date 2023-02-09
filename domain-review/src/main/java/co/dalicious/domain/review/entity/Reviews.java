@@ -5,6 +5,8 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +22,7 @@ import java.sql.Timestamp;
 @Getter
 @NoArgsConstructor
 @Table(name = "review__review")
-public class Reviews {
+public class Reviews implements Cloneable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
@@ -31,16 +33,32 @@ public class Reviews {
     @Comment("리뷰 내용-최소 10자 이상")
     private String content;
 
+    @Column(name = "content_origin")
+    @Comment("원본 리뷰 내용")
+    private String contentOrigin;
+
     @Embedded
     private Image image;
+
+    @Column(name = "image_origin")
+    @Comment("원본 리뷰 이미지 경로")
+    private String imageOrigin;
 
     @Column(name = "satisfaction", nullable = false)
     @Comment("만족도")
     private Integer satisfaction;
 
+    @Column(name = "satisfaction_origin")
+    @Comment("원본 만족도")
+    private Integer satisfactionOrigin;
+
     @Column(name = "for_makers")
     @Comment("사장님에게만 보이기")
     private Boolean forMakers;
+
+    @Column(name = "is_delete")
+    @Comment("삭제 여부")
+    private Boolean isDelete;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -72,9 +90,12 @@ public class Reviews {
     private Food food;
 
     @Builder
-    public Reviews(String content, Integer satisfaction, Boolean forMakers, User user, OrderItem orderItem, Food food) {
+    public Reviews(String content, String contentOrigin, String imageOrigin, Integer satisfaction, Integer satisfactionOrigin, Boolean forMakers, User user, OrderItem orderItem, Food food) {
         this.content = content;
+        this.contentOrigin = contentOrigin;
+        this.imageOrigin = imageOrigin;
         this.satisfaction = satisfaction;
+        this.satisfactionOrigin = satisfactionOrigin;
         this.forMakers = forMakers;
         this.user = user;
         this.orderItem = orderItem;

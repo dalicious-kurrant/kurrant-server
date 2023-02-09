@@ -13,12 +13,4 @@ public class ReviewDto {
     private String image;
     private String content;
     private Boolean forMakers;
-
-    @Builder
-    public ReviewDto(Integer satisfaction, String image, String content, Boolean forMakers) {
-        this.satisfaction = satisfaction;
-        this.image = image;
-        this.content = content;
-        this.forMakers = forMakers;
-    }
 }
