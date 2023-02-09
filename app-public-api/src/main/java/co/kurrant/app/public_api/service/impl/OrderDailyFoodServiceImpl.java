@@ -9,6 +9,7 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.*;
@@ -21,7 +22,6 @@ import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.dto.PaymentConfirmDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
-import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
@@ -32,12 +32,10 @@ import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.system.util.enums.FoodStatus;
 import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
-import com.sun.xml.bind.v2.TODO;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -208,7 +206,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     throw new ApiException(ExceptionEnum.OVER_ITEM_CAPACITY);
                 }
                 if (capacity == 0) {
-                    selectedCartDailyFood.getDailyFood().updateFoodStatus(FoodStatus.SOLD_OUT);
+                    selectedCartDailyFood.getDailyFood().updateFoodStatus(DailyFoodStatus.SOLD_OUT);
                 }
             }
 
@@ -368,7 +366,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         for (OrderItem orderItem : orderItems) {
             orderItemList.add(orderDailyFoodDetailMapper.orderItemDailyFoodToDto((OrderItemDailyFood) orderItem));
             if(orderItem.getOrderStatus().equals(OrderStatus.CANCELED)) {
-                refundItems.add((OrderItemDailyFood) orderItem);
+                refundItems.add(orderItem);
             }
         }
         // 환불 내역이 존재한다면
@@ -422,7 +420,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
 
             // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
-            if(refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
+            if(refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0 || refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
                 PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
                 paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
             }

@@ -25,7 +25,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "application_form__apartement")
-public class ApartmentApplicationForm {
+public class  ApartmentApplicationForm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("아파트 스팟 개설 신청서 id")
@@ -34,7 +34,7 @@ public class ApartmentApplicationForm {
 
     @Convert(converter = ProgressStatusConverter.class)
     @Column(name = "e_progress_status")
-    @Comment("진행 상황")
+    @Comment("진행 상황(1. 스팟 개설 신청 2.운영 사항 협의 3.스팟 개설 완료, 4.미승인)")
     private ProgressStatus progressStatus;
 
     @Column

@@ -1,6 +1,5 @@
 package co.dalicious.domain.user.entity;
 
-import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.user.converter.ClientStatusConverter;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
@@ -10,10 +9,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 
 @Entity
 @Getter
@@ -42,6 +43,16 @@ public class UserGroup {
     @Comment("가입/탈퇴 상태")
     @Column(nullable = false)
     private ClientStatus clientStatus = ClientStatus.BELONG;
+
+    @CreationTimestamp
+    @Column(name = "created_datetime", nullable = false, insertable = false, updatable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) COMMENT '생성일'")
+    private Timestamp createdDateTime;
+
+    @UpdateTimestamp
+    @Column(name = "updated_datetime", nullable = false, insertable = false, updatable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) ON UPDATE NOW(6) COMMENT '수정일'")
+    private Timestamp updatedDateTime;
 
     public void updateStatus(ClientStatus clientStatus) {
         this.clientStatus = clientStatus;

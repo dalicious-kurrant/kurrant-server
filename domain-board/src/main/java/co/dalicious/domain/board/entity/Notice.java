@@ -14,6 +14,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -27,19 +28,23 @@ public class Notice {
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
-    @CreatedDate
-    @Column(name="created")
-    private LocalDate created;
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private Timestamp createdDateTime;
 
-    @LastModifiedDate
-    @Column(name="updated")
-    private LocalDate updated;
-
-    @Column(name="name")
+    @UpdateTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("수정일")
+    private Timestamp updatedDateTime;
+    
+    @Comment("공지 제목")
     private String title;
-
-    @Column(name="content")
+    
     @Lob
+    @Comment("공지 내용")
     private String content;
 
     @Column(name="type")
@@ -47,14 +52,10 @@ public class Notice {
     private Integer type;
 
     @Builder
-    public Notice(BigInteger id, LocalDate created, LocalDate updated, String title, String content, Integer type){
+    public Notice(BigInteger id, String title, String content, Integer type){
         this.id = id;
-        this.created = created;
-        this.updated = updated;
         this.title = title;
         this.content = content;
         this.type = type;
     }
-
-
 }

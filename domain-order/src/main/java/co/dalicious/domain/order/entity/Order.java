@@ -45,6 +45,7 @@ public class Order {
     private OrderType orderType;
 
     @NotNull
+    @Comment("주문 코드")
     @Column(name = "code")
     private String code;
 

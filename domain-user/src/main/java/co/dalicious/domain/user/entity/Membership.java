@@ -40,7 +40,7 @@ public class Membership {
     @NotNull
     @Column(name = "e_subscription_type")
     @Convert(converter = MembershipSubscriptionTypeConverter.class)
-    @Comment("멤버십 구독 타입(월간/연간)")
+    @Comment("멤버십 구독 타입(1. 월간 2.연간)")
     private MembershipSubscriptionType membershipSubscriptionType;
 
 

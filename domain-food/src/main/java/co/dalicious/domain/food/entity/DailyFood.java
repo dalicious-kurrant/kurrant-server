@@ -1,14 +1,12 @@
 package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.food.converter.DailyFoodStatusConverter;
+import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.system.util.enums.FoodStatus;
 import co.dalicious.system.util.converter.DiningTypeConverter;
-import co.dalicious.system.util.converter.FoodStatusConverter;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
@@ -19,7 +17,6 @@ import javax.persistence.Table;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.List;
 
 
 @DynamicInsert
@@ -36,6 +33,7 @@ public class DailyFood {
     private BigInteger id;
 
     @Convert(converter = DiningTypeConverter.class)
+    @Comment("식사 일정")
     private DiningType diningType;
 
     @Column(columnDefinition = "INT DEFAULT 0")
@@ -46,12 +44,13 @@ public class DailyFood {
     @Comment("남은 주문 가능 수량")
     private Integer capacity;
 
-    @Convert(converter = FoodStatusConverter.class)
+    @Convert(converter = DailyFoodStatusConverter.class)
     @Column(name = "e_status")
-    @Comment("음식 상태(판매종료(0), 판매중(1), 주문마감(2), 일정요청(3), 일정승인(4), 등록대기(5))")
-    private FoodStatus foodStatus;
+    @Comment("음식 상태(0. 판매종료 1. 판매중, 2. 주문마감, 3. 일정요청, 4. 일정승인, 5. 등록대기)")
+    private DailyFoodStatus dailyFoodStatus;
 
     @Column(name = "service_date", columnDefinition = "DATE")
+    @Comment("배송 날짜")
     private LocalDate serviceDate;
 
     @CreationTimestamp
@@ -68,6 +67,7 @@ public class DailyFood {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "food_id")
+    @Comment("음식")
     private Food food;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -75,8 +75,8 @@ public class DailyFood {
     @Comment("스팟")
     private Spot spot;
 
-    public void updateFoodStatus(FoodStatus foodStatus) {
-        this.foodStatus = foodStatus;
+    public void updateFoodStatus(DailyFoodStatus dailyFoodStatus) {
+        this.dailyFoodStatus = dailyFoodStatus;
     }
 
     public Integer subtractCapacity(Integer foodCount) {
@@ -85,7 +85,7 @@ public class DailyFood {
     }
 
     public Integer addCapacity(Integer foodCount) {
-        this.capacity += foodCount;
+        this.capacity = this.capacity + foodCount;
         return this.capacity;
     }
 }

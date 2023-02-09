@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -23,6 +24,7 @@ import java.util.List;
 public class Apartment extends Group{
 
     @Column(name = "family_count")
+    @Comment("세대수")
     private Integer familyCount;
 
 
