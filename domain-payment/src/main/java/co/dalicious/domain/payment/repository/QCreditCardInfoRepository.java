@@ -56,8 +56,11 @@ public class QCreditCardInfoRepository {
                 .execute();
     }
 
+    //delete이지만 사실상 update
     public void deleteCard(BigInteger cardId) {
-        queryFactory.delete(creditCardInfo)
+        queryFactory.update(creditCardInfo)
+                .set(creditCardInfo.status, 0)
+                .set(creditCardInfo.billingKey, "삭제된 카드입니다.")
                 .where(creditCardInfo.id.eq(cardId))
                 .execute();
     }
@@ -140,5 +143,13 @@ public class QCreditCardInfoRepository {
                 .where(creditCardInfo.user.eq(user),
                         creditCardInfo.id.eq(id))
                 .fetchOne();
+    }
+
+    public void updateStatusCard(BigInteger id, String billingKey) {
+        queryFactory.update(creditCardInfo)
+                .set(creditCardInfo.status, 1)
+                .set(creditCardInfo.billingKey, billingKey)
+                .where(creditCardInfo.id.eq(id))
+                .execute();
     }
 }
