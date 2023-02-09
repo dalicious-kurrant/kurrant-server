@@ -1,10 +1,10 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.application_form.repository.CorporationApplicationFormRepository;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.Cart;
@@ -20,7 +20,6 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.system.util.enums.FoodStatus;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -95,7 +94,7 @@ public class CartServiceImpl implements CartService {
             }
 
             // 상품이 품절되었는지 확인하기
-            if (!dailyFood.getFoodStatus().equals(FoodStatus.SALES)) {
+            if (!dailyFood.getDailyFoodStatus().equals(DailyFoodStatus.SALES)) {
                 throw new ApiException(ExceptionEnum.SOLD_OUT);
             }
 

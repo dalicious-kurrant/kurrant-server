@@ -1,13 +1,16 @@
-package co.kurrant.app.public_api.mapper.order;
+package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
+import co.dalicious.system.util.enums.FoodTag;
 import co.dalicious.domain.food.util.FoodUtil;
+import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.enums.DiscountType;
-import co.dalicious.system.util.enums.FoodStatus;
+import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.dto.DailyFoodDto;
+import org.hibernate.Hibernate;
 import org.mapstruct.*;
 
 import java.time.LocalDate;
@@ -19,12 +22,12 @@ public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.diningType.code", target = "diningType")
       @Mapping(source = "dailyFood.food.id", target = "foodId")
       @Mapping(source = "dailyFood.food.name", target = "foodName")
-      @Mapping(source = "dailyFood.foodStatus", target = "status", qualifiedByName = "getStatus")
+      @Mapping(source = "dailyFood.dailyFoodStatus", target = "status", qualifiedByName = "getStatus")
       @Mapping(source = "dailyFood.capacity", target = "capacity")
       @Mapping(source = "dailyFood.spot.id", target = "spotId")
       @Mapping(source = "dailyFood.serviceDate", target = "serviceDate", qualifiedByName = "serviceDateToString")
-      @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
-      @Mapping(source = "dailyFood.food.spicy.spicy", target = "spicy")
+      @Mapping(source = "dailyFood", target = "makersName", qualifiedByName = "getMakersName")
+      @Mapping(source = "dailyFood", target = "spicy", qualifiedByName = "getSpicy")
       @Mapping(source = "dailyFood.food.image.location", target = "image")
       @Mapping(source = "dailyFood.food.description", target = "description")
       @Mapping(source = "dailyFood.food.price", target = "price")
@@ -38,8 +41,8 @@ public interface DailyFoodMapper {
       DailyFoodDto toDto(DailyFood dailyFood, DiscountDto discountDto);
 
       @Named("getStatus")
-      default Integer getStatus(FoodStatus foodStatus) {
-            return foodStatus.getCode();
+      default Integer getStatus(DailyFoodStatus dailyFoodStatus) {
+            return dailyFoodStatus.getCode();
       }
 
       @Named("serviceDateToString")
@@ -53,5 +56,18 @@ public interface DailyFoodMapper {
                     .filter(v -> v.getDiscountType().equals(DiscountType.MEMBERSHIP_DISCOUNT))
                     .findAny();
             return foodDiscountPolicyOptional.map(FoodDiscountPolicy::getDiscountRate).orElse(null);
+      }
+
+      @Named("getSpicy")
+      default String getSpicy(DailyFood dailyFood) {
+            List<FoodTag> foodTags = dailyFood.getFood().getFoodTags();
+            Optional<FoodTag> foodTag = foodTags.stream().filter(v -> v.getCategory().equals("맵기")).findAny();
+            return foodTag.map(FoodTag::getTag).orElse(null);
+      }
+
+      @Named("getMakersName")
+      default String getMakersName(DailyFood dailyFood) {
+            Makers makers = (Makers) Hibernate.unproxy(dailyFood.getFood().getMakers());
+            return makers.getName();
       }
 }

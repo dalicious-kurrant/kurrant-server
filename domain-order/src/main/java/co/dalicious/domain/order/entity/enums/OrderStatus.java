@@ -19,8 +19,7 @@ public enum OrderStatus {
     DELIVERED("배송완료", 10L),
     RECEIPT_COMPLETE("수령완료", 11L),
     MANUAL_REFUNDED("수동 환불", 12L),
-    AUTO_REFUND("자동 환불", 13L),
-    PRICE_DEDUCTION("사용금액 차감", 14L);
+    AUTO_REFUND("자동 환불", 13L);
 
     private final String orderStatus;
     private final Long code;

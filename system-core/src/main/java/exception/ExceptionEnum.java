@@ -58,6 +58,7 @@ public enum ExceptionEnum {
 	NOT_FOUND_DELIVERY_FEE_POLICY(HttpStatus.NOT_FOUND, "E4040018", "배송비 정책을 가져올 수 없습니다."),
 	NOT_FOUND_MEAL_INFO(HttpStatus.NOT_FOUND, "E4040015", "식사 정보를 가져올 수 없습니다."),
 	CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040016", "카드 정보를 가져올 수 없습니다."),
+	ENUM_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040017", "해당 Enum을 가져올 수 없습니다."),
 	ALREADY_READ(HttpStatus.NOT_FOUND,"E4040015", "읽을 알림이 없습니다."),
 
 	/* E409 */

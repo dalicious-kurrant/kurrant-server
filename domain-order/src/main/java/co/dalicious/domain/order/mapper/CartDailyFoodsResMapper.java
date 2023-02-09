@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public interface CartDailyFoodsResMapper {
     @Mapping(source = "cartDailyFood.id", target = "id")
     @Mapping(source = "cartDailyFood.dailyFood.id", target = "dailyFoodId")
-    @Mapping(source = "cartDailyFood.dailyFood.foodStatus.code", target = "status")
+    @Mapping(source = "cartDailyFood.dailyFood.dailyFoodStatus.code", target = "status")
     @Mapping(source = "cartDailyFood.dailyFood.food.name", target = "name")
     @Mapping(source = "cartDailyFood.dailyFood.food.image.location", target = "image")
     @Mapping(source = "cartDailyFood.dailyFood.food.makers.name", target = "makers")

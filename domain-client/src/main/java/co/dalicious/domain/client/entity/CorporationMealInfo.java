@@ -18,7 +18,7 @@ import java.time.LocalTime;
 public class CorporationMealInfo extends MealInfo{
     @NotNull
     @Column(name = "daily_support_price", precision = 15)
-    @Comment("일일 회사 지원금")
+    @Comment("식사 일정별(아침, 점심, 저녁) 회사 지원금")
     private BigDecimal supportPrice;
 
     @Builder

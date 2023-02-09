@@ -1,6 +1,7 @@
-package co.dalicious.system.util.converter;
+package co.dalicious.domain.food.converter;
 
-import co.dalicious.system.util.enums.FoodStatus;
+import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
+import co.dalicious.domain.food.entity.enums.FoodStatus;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
@@ -8,8 +9,8 @@ import javax.persistence.Converter;
 @Converter
 public class FoodStatusConverter implements AttributeConverter<FoodStatus,Integer> {
     @Override
-    public Integer convertToDatabaseColumn(FoodStatus foodStatus) {
-        return foodStatus.getCode();
+    public Integer convertToDatabaseColumn(FoodStatus dailyFoodStatus) {
+        return dailyFoodStatus.getCode();
     }
 
     @Override

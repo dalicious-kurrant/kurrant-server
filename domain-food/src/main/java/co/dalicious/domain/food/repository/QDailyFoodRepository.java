@@ -3,8 +3,8 @@ package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.system.util.enums.FoodStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -26,7 +26,7 @@ public class QDailyFoodRepository {
                 .selectFrom(dailyFood)
                 .where(dailyFood.spot.id.eq(spotId),
                         dailyFood.serviceDate.eq(selectedDate),
-                        dailyFood.foodStatus.in(FoodStatus.SALES, FoodStatus.SOLD_OUT, FoodStatus.PASS_LAST_ORDER_TIME))
+                        dailyFood.dailyFoodStatus.in(DailyFoodStatus.SALES, DailyFoodStatus.SOLD_OUT, DailyFoodStatus.PASS_LAST_ORDER_TIME))
                 .fetch();
     }
 
@@ -43,7 +43,7 @@ public class QDailyFoodRepository {
                 .where(dailyFood.spot.eq(spot),
                         dailyFood.serviceDate.eq(selectedDate),
                         dailyFood.diningType.eq(diningType),
-                        dailyFood.foodStatus.in(FoodStatus.SALES)
+                        dailyFood.dailyFoodStatus.in(DailyFoodStatus.SALES)
                 )
                 .fetch();
     }

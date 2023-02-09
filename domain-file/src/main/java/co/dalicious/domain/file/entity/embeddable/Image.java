@@ -25,7 +25,7 @@ public class Image {
   @Comment("S3 업로드 키")
   private String key;
 
-  @Column(name = "location", length = 2048,
+  @Column(name = "file_location", length = 2048,
       columnDefinition = "VARCHAR(2048)")
   @Comment("S3 접근 위치")
   private String location;

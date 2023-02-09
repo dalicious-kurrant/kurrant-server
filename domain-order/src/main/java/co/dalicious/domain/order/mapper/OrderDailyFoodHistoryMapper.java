@@ -15,7 +15,7 @@ import org.mapstruct.Named;
 import java.math.BigDecimal;
 import java.util.List;
 
-@Mapper(componentModel = "spring", imports = DateUtils.class)
+@Mapper(componentModel = "spring", imports = {DateUtils.class, BigDecimal.class})
 public interface OrderDailyFoodHistoryMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
@@ -24,7 +24,7 @@ public interface OrderDailyFoodHistoryMapper {
     @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate()))")
     @Mapping(source = "orderItemDailyFoodGroup.diningType.code", target = "diningType")
     @Mapping(source = "count", target = "count")
-    @Mapping(target = "price", expression = "java(getPayedPrice(orderItemDailyFood))")
+    @Mapping(target = "price", expression = "java(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())))")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
     OrderHistoryDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
@@ -34,16 +34,4 @@ public interface OrderDailyFoodHistoryMapper {
     @Mapping(target = "orderDate", expression = "java(DateUtils.toISOLocalDate(order.getCreatedDateTime()))")
     @Mapping(source = "orderItems", target = "orderItems")
     OrderHistoryDto orderToDto(Order order, List<OrderHistoryDto.OrderItem> orderItems);
-
-    @Named("getPayedPrice")
-    default BigDecimal getPayedPrice(OrderItemDailyFood orderItemDailyFood) {
-        BigDecimal supportPrice = BigDecimal.ZERO;
-        List<UserSupportPriceHistory> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
-        for (UserSupportPriceHistory userSupportPriceHistory : userSupportPriceHistories) {
-            if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
-                supportPrice = supportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
-            }
-        }
-        return orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())).subtract(supportPrice);
-    }
 }

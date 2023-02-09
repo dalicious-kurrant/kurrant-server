@@ -88,10 +88,11 @@ public class OrderUtil {
     }
 
     public static DiscountDto checkMembershipAndGetDiscountDto(User user, Group group, Food food) {
+        group = (Group) Hibernate.unproxy(group);
         return (isMembership(user, group)) ? DiscountDto.getDiscount(food) : DiscountDto.getDiscountWithNoMembership(food);
     }
 
-    public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup, List<PaymentCancelHistory> paymentCancelHistories) {
+    public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
             if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)) {
@@ -139,7 +140,7 @@ public class OrderUtil {
     public static RefundPriceDto getRefundPrice(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
         OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
-        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup, paymentCancelHistories);
+        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
         if (refundablePrice.compareTo(orderItemDailyFood.getOrder().getTotalPrice()) > 0) {
             refundablePrice = orderItemDailyFood.getOrder().getTotalPrice();
         }
@@ -165,7 +166,8 @@ public class OrderUtil {
 
         // 2. 지원금 업데이트가 필요한 경우
         if (needToUpdateSupportPrice) {
-            renewSupportPrice = itemsPrice.subtract(requestRefundPrice);
+            // 배송비 환불이 필요할 경우에는, 지원금만 계산하기 위해 요청환불 금액에서 배송비는 제외하기
+            renewSupportPrice = itemsPrice.subtract(requestRefundPrice).add(deliveryFee);
             requestRefundPrice = requestRefundPrice.subtract(getDeductedSupportPrice(usedSupportPrice, renewSupportPrice));
             if (requestRefundPrice.compareTo(BigDecimal.ZERO) == 0) {
                 return new RefundPriceDto(BigDecimal.ZERO, renewSupportPrice, BigDecimal.ZERO, deliveryFee, isLastOrderItemOfGroup);
@@ -176,10 +178,18 @@ public class OrderUtil {
         if (refundablePrice.compareTo(requestRefundPrice) >= 0) {
             if (!paymentCancelHistories.isEmpty()) {
                 paymentCancelHistories = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).collect(Collectors.toList());
+                BigDecimal refundPoint = BigDecimal.ZERO;
+                Optional<PaymentCancelHistory> tempPaymentCancelHistory = paymentCancelHistories.stream().filter(v -> v.getRefundPointPrice().compareTo(BigDecimal.ZERO) > 0).findAny();
+                if (tempPaymentCancelHistory.isPresent()) {
+                    refundPoint = refundPoint.add(tempPaymentCancelHistory.get().getRefundPointPrice());
+                }
                 PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.get(0);
                 BigDecimal tossRefundablePrice = paymentCancelHistory.getRefundablePrice();
                 if (tossRefundablePrice.compareTo(requestRefundPrice) < 0) {
-                    throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+                    if(tossRefundablePrice.add(usingPoint.subtract(refundPoint)).compareTo(requestRefundPrice) < 0) {
+                        throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+                    }
+                    return new RefundPriceDto(tossRefundablePrice, renewSupportPrice, requestRefundPrice.subtract(tossRefundablePrice), deliveryFee, isLastOrderItemOfGroup);
                 }
             }
             return new RefundPriceDto(requestRefundPrice, renewSupportPrice, BigDecimal.ZERO, deliveryFee, isLastOrderItemOfGroup);
