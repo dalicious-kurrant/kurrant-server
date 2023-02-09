@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.User;
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 
 
@@ -53,6 +55,22 @@ public class QOrderDailyFoodRepository {
                 .selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.order.user.eq(user),
                         orderItemDailyFood.dailyFood.serviceDate.goe(LocalDate.now()))
+                .fetch();
+    }
+
+    public OrderItemDailyFood findByUserAndDailyFood(User user, DailyFood dailyFood) {
+        return queryFactory
+                .selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.order.user.eq(user),
+                        orderItemDailyFood.dailyFood.eq(dailyFood))
+                .fetchOne();
+    }
+
+    public List<OrderItemDailyFood> findAllByUserAndOrderStatus(User user, OrderStatus orderStatus) {
+        return  queryFactory
+                .selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.order.user.eq(user),
+                        orderItemDailyFood.orderStatus.eq(orderStatus))
                 .fetch();
     }
 }

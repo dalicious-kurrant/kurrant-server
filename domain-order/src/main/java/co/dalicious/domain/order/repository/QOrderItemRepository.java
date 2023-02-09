@@ -28,12 +28,4 @@ public class QOrderItemRepository {
                 .where(orderItem.id.eq(orderItemId))
                 .execute();
     }
-    public OrderItem find(User user, LocalDate serviceDate, DailyFood dailyFood) {
-        return queryFactory
-                .selectFrom(orderItem)
-                .where(orderItem.order.user.eq(user),
-                        orderItemDailyFood.dailyFood.serviceDate.eq(serviceDate),
-                        orderItemDailyFood.dailyFood.eq(dailyFood))
-                .fetchOne();
-    }
 }
