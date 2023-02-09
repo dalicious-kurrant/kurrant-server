@@ -1,14 +1,7 @@
 package co.dalicious.domain.user.entity;
 
-import co.dalicious.domain.user.converter.MembershipStatusConverter;
 import co.dalicious.domain.user.converter.MembershipSubscriptionTypeConverter;
-import co.dalicious.system.util.PeriodDto;
-import co.dalicious.domain.user.entity.enums.MembershipStatus;
-import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -16,31 +9,23 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.List;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Getter
 @Entity
 @Table(name = "user__membership")
 public class Membership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
-    private BigInteger id;
-
-    @NotNull
-    @Column(name = "e_membership_status")
-    @Convert(converter = MembershipStatusConverter.class)
-    @Comment("멤버십 구독 상태")
-    private MembershipStatus membershipStatus;
+    @Column(name = "id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+    private Long id;
 
     @NotNull
     @Column(name = "e_subscription_type")
     @Convert(converter = MembershipSubscriptionTypeConverter.class)
-    @Comment("멤버십 구독 타입(1. 월간 2.연간)")
+    @Comment("멤버십 구독 타입(월간/연간)")
     private MembershipSubscriptionType membershipSubscriptionType;
 
 
@@ -54,7 +39,7 @@ public class Membership {
 
     @Column(name = "auto_payment", columnDefinition = "BIT(1)")
     @Comment("멤버십 자동 결제 여부")
-    private Boolean autoPayment;
+    private Boolean auto_payment;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -68,31 +53,4 @@ public class Membership {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "membership", orphanRemoval = true)
-    @JsonBackReference(value = "membership_fk")
-    private List<MembershipDiscountPolicy> membershipDiscountPolicyList;
-
-    @Builder
-    public Membership(MembershipStatus membershipStatus, MembershipSubscriptionType membershipSubscriptionType, Boolean autoPayment) {
-        this.membershipStatus = membershipStatus;
-        this.membershipSubscriptionType = membershipSubscriptionType;
-        this.autoPayment = autoPayment;
-    }
-
-    public void setDate(PeriodDto periodDto) {
-        this.startDate = periodDto.getStartDate();
-        this.endDate = periodDto.getEndDate();
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public void changeAutoPaymentStatus(Boolean autoPayment) {
-       this.autoPayment = autoPayment;
-    }
-
-    public void changeMembershipStatus(MembershipStatus membershipStatus) {
-        this.membershipStatus = membershipStatus;
-    }
 }

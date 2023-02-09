@@ -1,33 +1,29 @@
 package co.kurrant.app.public_api.dto.user;
 
-import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.user.entity.ProviderEmail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
-@Schema(description = "마이페이지(홈)에서 유저 정보를 가져온다.")
+import java.util.List;
+@Schema(description = "마이페이지에서 내 정보 응답 DTO")
 @Getter
 @NoArgsConstructor
 public class UserInfoDto {
     private String gourmetType;
-    private String avatar;
     private String name;
-    private Boolean isMembership;
-    private Integer membershipPeriod;
-    private BigDecimal point;
-    private Integer dailyMealCount;
+    private String email;
+    private Image avatar;
+    private List<ProviderEmail> providerEmails;
 
     @Builder
-    public UserInfoDto(User user, Integer membershipPeriod, Integer dailyMealCount) {
-        this.gourmetType = user.getGourmetType().getGourmetType();
-        this.avatar = user.getAvatar().getLocation();
-        this.name = user.getName();
-        this.isMembership = user.getIsMembership();
-        this.point = user.getPoint();
-        this.membershipPeriod = membershipPeriod;
-        this.dailyMealCount = dailyMealCount;
+    public UserInfoDto(String gourmetType, String name, String email, Image avatar, List<ProviderEmail> providerEmails) {
+        this.gourmetType = gourmetType;
+        this.name = name;
+        this.email = email;
+        this.avatar = avatar;
+        this.providerEmails = providerEmails;
     }
 }

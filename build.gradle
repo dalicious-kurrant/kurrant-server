@@ -32,25 +32,33 @@ subprojects {
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'io.freefair.lombok'
+    apply plugin: 'com.ewerk.gradle.plugins.querydsl'
     
-    sourceCompatibility = '17'
+    sourceCompatibility = '11'
 
     repositories {
         mavenCentral()
     }
 
     dependencies {
+    	compile group: 'com.querydsl', name: 'querydsl-jpa'
+    	compile group: 'com.querydsl', name: 'querydsl-sql'
+    	annotationProcessor group: 'com.querydsl', name: 'querydsl-apt'
+    	implementation group: 'com.querydsl', name: 'querydsl-sql-spring'
+
+		// for QueryDSL
+	    // implementation "com.querydsl:querydsl-core:${queryDslVersion}"
+	    // implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+	    // annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}:jpa"
 	    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 	    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
 	    
 	    annotationProcessor "org.mapstruct:mapstruct-processor:${mapStructVersion}"
 	    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
 
-//        MySQL
-        runtimeOnly 'mysql:mysql-connector-java'
+        //MySQL
+//        runtimeOnly 'mysql:mysql-connector-java'
+        implementation 'com.h2database:h2:1.4.200'
 	    
 	    /*
 	        this example uses lombok directly over the annotationProcessor,
@@ -61,87 +69,37 @@ subprojects {
         
         testImplementation 'junit:junit:4.12'
     }
-}
-
-subprojects {
-    group = 'co.dalicious.domain'
-    version '0.0.1-SNAPSHOT'
-
-    apply plugin: 'java'
-    apply plugin: 'org.springframework.boot'
-    apply plugin: 'io.spring.dependency-management'
-    apply plugin: 'io.freefair.lombok'
-    apply plugin: 'com.ewerk.gradle.plugins.querydsl'
-
-    sourceCompatibility = '17'
-
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        compile group: 'com.querydsl', name: 'querydsl-jpa'
-        compile group: 'com.querydsl', name: 'querydsl-sql'
-        annotationProcessor group: 'com.querydsl', name: 'querydsl-apt'
-        implementation group: 'com.querydsl', name: 'querydsl-sql-spring'
-
-        // for QueryDSL
-        // implementation "com.querydsl:querydsl-core:${queryDslVersion}"
-        // implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
-        // annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}:jpa"
-        annotationProcessor "jakarta.persistence:jakarta.persistence-api"
-        annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-
-        annotationProcessor "org.mapstruct:mapstruct-processor:${mapStructVersion}"
-        implementation "org.mapstruct:mapstruct:${mapStructVersion}"
-
-//        MySQL
-        runtimeOnly 'mysql:mysql-connector-java'
-//        implementation 'com.h2database:h2:1.4.200'
-
-        /*
-            this example uses lombok directly over the annotationProcessor,
-            the io.freefair.lombok plugin works as well.
-            The freefair-lombok plugin is used in the example mapstruct-on-gradle-testcp-with-lombok
-         */
-        annotationProcessor "org.projectlombok:lombok-mapstruct-binding:${lombokMapstructBindingVersion}"
-
-        testImplementation 'junit:junit:4.12'
-    }
-
+    
     // 모든 추가빌드 코드 설정
     def generatedSrcDir = "$buildDir/generated/sources/annotationProcessor/java/main"
     def queryDslDir = "$buildDir/generated/sources/querydsl"
     sourceSets {
-        main {
-            java {
-                srcDir 'src/main/java'
-                srcDir generatedSrcDir
-                srcDir queryDslDir
-            }
-        }
-    }
-
-    // QueryDSL 설정
-    querydsl {
-        library = "com.querydsl:querydsl-apt"
-        jpa = true
-        querydslSourcesDir = queryDslDir
-    }
-
-    // Gradle 5.0 이후 설정 필수
-    configurations {
-        compileOnly {
-            extendsFrom annotationProcessor
-        }
-        querydsl.extendsFrom compileClasspath
-    }
-    compileQuerydsl {
-        options.annotationProcessorPath = configurations.querydsl
-    }
+    	main {
+    		java {
+    			srcDir 'src/main/java'
+				srcDir generatedSrcDir
+				srcDir queryDslDir
+    		}
+    	}
+	}
+	
+	// QueryDSL 설정
+	querydsl {
+		library = "com.querydsl:querydsl-apt"
+		jpa = true
+		querydslSourcesDir = queryDslDir
+	}
+	
+	// Gradle 5.0 이후 설정 필수
+	configurations {
+		compileOnly {
+			extendsFrom annotationProcessor
+		}
+		querydsl.extendsFrom compileClasspath
+	}
+	compileQuerydsl {
+		options.annotationProcessorPath = configurations.querydsl
+	}
 }
 
 subprojects {
@@ -152,7 +110,7 @@ subprojects {
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'io.freefair.lombok'
-    sourceCompatibility = '17'
+    sourceCompatibility = '11'
 
     repositories {
         mavenCentral()
@@ -172,22 +130,15 @@ task cleanGeneatedDir(type: Delete) {
 project(':app-public-api') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':client-core')
-        implementation project(':client-oauth')
         implementation project(':domain-user')
-        implementation project(':domain-application-form')
-        implementation project(':domain-address')
         implementation project(':domain-food')
-        implementation project(':domain-makers')
         implementation project(':domain-client')
         implementation project(':domain-order')
-        implementation project(':domain-board')
+        implementation project(':client-core')
         implementation project(':domain-file')
-        implementation project(':domain-payment')
         implementation project(':client-external-mail')
         implementation project(':client-external-sms')
         implementation project(':data-redis')
-        implementation project(':client-sse')
     }
 }
 
@@ -195,6 +146,7 @@ project(':app-admin-api') {
     dependencies {
         implementation project(':system-core')
         implementation project(':client-core')
+        implementation project(':client-external-bizppurio')
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
@@ -202,17 +154,26 @@ project(':app-admin-api') {
     }
 }
 
-project(':client-core') {
+project(':app-client-api') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':data-redis')
+        implementation project(':client-core')
+        
+        implementation project(':domain-board')
+        implementation project(':domain-user')
+        implementation project(':domain-order')
     }
 }
 
-project(':client-oauth') {
+project(':client-external-bizppurio') {
+    dependencies {
+    	implementation project(':system-core')
+    }
+}
+
+project(':client-core') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':domain-user')
     }
 }
 project(':domain-address') {
@@ -221,17 +182,16 @@ project(':domain-address') {
     }
 }
 
+project(':domain-board') {
+    dependencies {
+        implementation project(':system-core')
+    }
+}
+
 project(':domain-banner') {
     dependencies {
         implementation project(':system-core')        
         implementation project(':domain-file')
-    }
-}
-
-project(':domain-board') {
-    dependencies {
-        implementation project(':system-core')
-        implementation project(':domain-user')
     }
 }
 
@@ -244,17 +204,6 @@ project(':domain-file') {
 project(':domain-food') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':domain-client')
-        implementation project(':domain-makers')
-        implementation project(':domain-file')
-    }
-}
-
-project(':domain-makers') {
-    dependencies {
-        implementation project(':system-core')
-        implementation project(':domain-address')
-        implementation project(':domain-file')
     }
 }
 
@@ -278,28 +227,6 @@ project(':domain-order') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
-        implementation project(':domain-food')
-        implementation project(':domain-makers')
-        implementation project(':domain-file')
-        implementation project(':domain-address')
-        implementation project(':domain-client')
-        implementation project(':domain-payment')
-    }
-}
-
-project(':domain-payment') {
-    dependencies {
-        implementation project(':system-core')
-        implementation project(':domain-user')
-    }
-}
-
-
-project(':domain-application-form') {
-    dependencies {
-        implementation project(':system-core')
-        implementation project(':domain-user')
-        implementation project(':domain-address')
     }
 }
 
@@ -314,13 +241,5 @@ project(':client-external-sms') {
     dependencies {
         implementation project(':system-core')
         implementation project(':data-redis')
-    }
-}
-
-project(':client-sse') {
-    dependencies {
-        implementation project(':system-core')
-        implementation project(':data-redis')
-        implementation project(':domain-user')
     }
 }

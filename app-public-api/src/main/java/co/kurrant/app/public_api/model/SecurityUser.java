@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.model;
 
-import co.dalicious.domain.user.entity.enums.Role;
+import co.dalicious.domain.user.entity.Role;
+import co.dalicious.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Builder
 @Getter
@@ -25,7 +28,7 @@ public class SecurityUser implements UserDetails {
   private BigInteger id;
   private Role role;
   private String email;
-  private String phone;
+
   private String name;
   private String password;
 

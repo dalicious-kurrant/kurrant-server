@@ -1,19 +1,20 @@
 package co.dalicious.system.util.converter;
 
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.util.DiningType;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class DiningTypeConverter implements AttributeConverter<DiningType, Integer> {
+public class DiningTypeConverter implements AttributeConverter<DiningType, Long> {
+
     @Override
-    public Integer convertToDatabaseColumn(DiningType attribute) {
-        return attribute.getCode();
+    public Long convertToDatabaseColumn(DiningType diningType) {
+        return diningType.getCode();
     }
 
     @Override
-    public DiningType convertToEntityAttribute(Integer dbData) {
+    public DiningType convertToEntityAttribute(Long dbData) {
         return DiningType.ofCode(dbData);
     }
 }

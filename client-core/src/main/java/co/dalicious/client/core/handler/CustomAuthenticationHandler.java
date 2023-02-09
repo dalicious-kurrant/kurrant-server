@@ -8,9 +8,6 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import exception.ApiException;
-import exception.ExceptionEnum;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
@@ -28,7 +25,6 @@ public class CustomAuthenticationHandler implements AuthenticationEntryPoint {
       AuthenticationException ex) throws IOException, ServletException {
     CustomAuthenticationHandler.log.warn("Token errored.");
     String requestId = (String) request.getAttribute("requestId");
-//    throw new ApiException(ExceptionEnum.ACCESS_TOKEN_ERROR);
     this.sendError(requestId, HttpStatus.FORBIDDEN, response, ex);
   }
 

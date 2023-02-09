@@ -1,6 +1,5 @@
 package co.kurrant.app.admin_api.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,10 +15,13 @@ import co.dalicious.client.core.handler.CustomAuthenticationHandler;
 
 @EnableWebSecurity
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
 
   private final JwtTokenProvider jwtTokenProvider;
+
+  public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
+    this.jwtTokenProvider = jwtTokenProvider;
+  }
 
   /**
    * 1. JWT 없이 호출 하는 경우 2. JWT 형식이 이상하거나 만료된 토큰의 경우 3. JWT 토큰으로 호출하였으나 권한이 없는경우
@@ -48,10 +50,9 @@ public class SecurityConfig {
         // "/actuator/health").permitAll() // 등록된 GET요청 리소스는 누구나 접근가능
         .anyRequest().hasRole("USER").and() // 그외 나머지 요청은 모두 인증된 회원만 접근 가능
         .exceptionHandling().accessDeniedHandler(new CustomAccessDeniedHandler()).and()
-        .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationHandler());
-//            .and()
-//        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, ),
-//            UsernamePasswordAuthenticationFilter.class); // jwt
+        .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationHandler()).and()
+        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+            UsernamePasswordAuthenticationFilter.class); // jwt
                                                          // token
                                                          // 필터를
                                                          // id/password

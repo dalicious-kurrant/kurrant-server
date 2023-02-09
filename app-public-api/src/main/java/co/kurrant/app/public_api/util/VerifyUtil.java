@@ -1,9 +1,9 @@
 package co.kurrant.app.public_api.util;
 
-import co.dalicious.data.redis.entity.CertificationHash;
-import co.dalicious.data.redis.repository.CertificationHashRepository;
+import co.dalicious.data.redis.CertificationHash;
+import co.dalicious.data.redis.CertificationHashRepository;
 import co.dalicious.data.redis.RedisUtil;
-import co.dalicious.system.util.enums.RequiredAuth;
+import co.dalicious.system.util.RequiredAuth;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;

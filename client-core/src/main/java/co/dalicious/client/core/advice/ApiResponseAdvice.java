@@ -43,8 +43,10 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
 
     ResponseDto.ResponseDtoBuilder<Object> builder =
         ResponseDto.builder().id((String) httpServletRequest.getAttribute("requestId"));
+    System.out.println(body.getClass());
+    System.out.println(body.getClass().equals(LinkedHashMap.class));
 
-    if (body instanceof List && !((List<?>) body).isEmpty() && ((List<?>) body).get(0) != null && ((List<?>) body).get(0).getClass().equals(ErrorItemResponseDto.class)) {
+    if (body instanceof List && ((List<?>) body).get(0).getClass().equals(ErrorItemResponseDto.class)) {
       builder.error(((List<ErrorItemResponseDto>) body).get(0).getCode());
       builder.message(((List<ErrorItemResponseDto>) body).get(0).getMessage());
       builder.statusCode(Integer.parseInt(((List<ErrorItemResponseDto>) body).get(0).getCode().substring(1, 4)));

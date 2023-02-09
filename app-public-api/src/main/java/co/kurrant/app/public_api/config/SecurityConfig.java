@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.config;
 
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
-import co.dalicious.data.redis.repository.BlackListTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +20,6 @@ import co.dalicious.client.core.handler.CustomAuthenticationHandler;
 public class SecurityConfig {
 
   private final JwtTokenProvider jwtTokenProvider;
-  private final BlackListTokenRepository blackListTokenRepository;
 
   /**
    * 1. JWT 없이 호출 하는 경우 2. JWT 형식이 이상하거나 만료된 토큰의 경우 3. JWT 토큰으로 호출하였으나 권한이 없는경우
@@ -46,7 +44,7 @@ public class SecurityConfig {
         .anyRequest().hasRole("USER").and() // 그외 나머지 요청은 모두 인증된 회원만 접근 가능
         .exceptionHandling().accessDeniedHandler(new CustomAccessDeniedHandler()).and()
         .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationHandler()).and()
-        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, blackListTokenRepository),
+        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
             UsernamePasswordAuthenticationFilter.class); // jwt token 필터를 id/password 인증 필터 전에 넣어라.
 
     return http.build();

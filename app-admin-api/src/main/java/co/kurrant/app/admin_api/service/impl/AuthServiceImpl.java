@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import co.kurrant.app.admin_api.dto.LoginRequestDto;
 import co.kurrant.app.admin_api.dto.LoginResponseDto;
@@ -26,7 +27,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public LoginResponseDto login(LoginRequestDto dto) {
-    User user = userRepository.findOneByEmail(dto.getUsername()).orElseThrow(() -> {
+    User user = userRepository.findByEmail(dto.getUsername()).orElseThrow(() -> {
       return new UsernameNotFoundException("");
     });
 
@@ -36,11 +37,10 @@ public class AuthServiceImpl implements AuthService {
 
     List<String> arr = new ArrayList<String>();
     arr.add(user.getRole().getAuthority());
-//    String accessToken = jwtTokenProvider.createToken(user.getId().toString(), arr);
+    String accessToken = jwtTokenProvider.createToken(user.getId().toString(), arr);
 
 
-//    return LoginResponseDto.builder().accessToken(accessToken).expiresIn(86400).build();
-    return null;
+    return LoginResponseDto.builder().accessToken(accessToken).expiresIn(86400).build();
   }
 
 }

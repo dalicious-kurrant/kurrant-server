@@ -1,16 +1,13 @@
 package co.dalicious.domain.food.repository;
 
 
-import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
-import co.dalicious.system.util.enums.DiningType;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
@@ -21,30 +18,11 @@ public class QDailyFoodRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public List<DailyFood> getSellingAndSoldOutDailyFood(BigInteger spotId, LocalDate selectedDate) {
+    public List<DailyFood> getDailyFood(Integer spotId, LocalDate selectedDate) {
         return queryFactory
                 .selectFrom(dailyFood)
-                .where(dailyFood.spot.id.eq(spotId),
-                        dailyFood.serviceDate.eq(selectedDate),
-                        dailyFood.dailyFoodStatus.in(DailyFoodStatus.SALES, DailyFoodStatus.SOLD_OUT, DailyFoodStatus.PASS_LAST_ORDER_TIME))
-                .fetch();
-    }
-
-    public List<DailyFood> findAllByFoodIds(List<BigInteger> foodIds) {
-        return queryFactory
-                .selectFrom(dailyFood)
-                .where(dailyFood.id.in(foodIds))
-                .fetch();
-    }
-
-    public List<DailyFood> findAllBySpotAndSelectedDateAndDiningType(Spot spot, LocalDate selectedDate, DiningType diningType) {
-        return queryFactory
-                .selectFrom(dailyFood)
-                .where(dailyFood.spot.eq(spot),
-                        dailyFood.serviceDate.eq(selectedDate),
-                        dailyFood.diningType.eq(diningType),
-                        dailyFood.dailyFoodStatus.in(DailyFoodStatus.SALES)
-                )
+                .where(dailyFood.spotId.eq(spotId),
+                        dailyFood.created.between(LocalDate.from(selectedDate.atStartOfDay()), LocalDate.from(selectedDate.plusDays(1).atStartOfDay())))
                 .fetch();
     }
 }

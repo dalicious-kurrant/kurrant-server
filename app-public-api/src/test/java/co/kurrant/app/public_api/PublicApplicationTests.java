@@ -1,20 +1,16 @@
 package co.kurrant.app.public_api;
 
-import co.dalicious.data.redis.entity.CertificationHash;
-import co.dalicious.data.redis.repository.CertificationHashRepository;
+import co.dalicious.data.redis.CertificationHash;
+import co.dalicious.data.redis.CertificationHashRepository;
 import co.dalicious.data.redis.RedisUtil;
-import co.dalicious.domain.user.entity.enums.Role;
+import co.dalicious.domain.user.entity.Role;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
-import co.dalicious.system.util.DateUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.transaction.Transactional;
-import java.time.LocalDate;
 
 
 class PublicApplicationTests {
@@ -26,9 +22,6 @@ class PublicApplicationTests {
 
 	@Autowired
 	private CertificationHashRepository certificationHashRepository;
-
-	@Autowired
-	private PasswordEncoder passwordEncoder;
 
 
 	@Test
@@ -72,20 +65,6 @@ class PublicApplicationTests {
 				.isAuthenticated(false)
 				.build();
 
-	}
-
-	@Test
-	void Test_LocalDate_Formatter() {
-		LocalDate now = LocalDate.now();
-		String formattedDate = DateUtils.format(now, "yyyy-MM-dd");
-		System.out.println(formattedDate);
-	}
-
-	@Test
-	void Test_LocalDate_Until_Function() {
-		LocalDate now = LocalDate.now();
-		LocalDate christMas = LocalDate.of(2022, 12, 25);
-		System.out.println(now.until(christMas).getDays());
 	}
 
 }

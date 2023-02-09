@@ -1,11 +1,9 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.system.util.converter.FoodTagsConverter;
-import co.dalicious.system.util.enums.FoodTag;
-import co.dalicious.system.util.converter.IdListConverter;
-import co.dalicious.system.util.enums.DiningType;
-import lombok.AccessLevel;
+import co.dalicious.system.util.DiningType;
+import co.dalicious.system.util.converter.DiningTypeConverter;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,73 +12,62 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.List;
 
 @DynamicInsert
 @DynamicUpdate
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Getter
 @Table(name = "client__corporation")
-public class Corporation extends Group{
-    @Comment("그룹 코드")
-    private String code;
+public class Corporation {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
+    @Comment("기업 고객사 PK")
+    private BigInteger id;
 
-    @Column(name = "is_membership_support", columnDefinition = "BIT(1)")
-    @Comment("기업 멤버십 지원 여부")
-    private Boolean isMembershipSupport;
+    @Size(max = 64)
+    @NotNull
+    @Column(name = "name", nullable = false, length = 64)
+    private String name;
 
     @Column(name = "employee_count")
-    @Comment("사원수")
     private Integer employeeCount;
 
-    @Column(name = "is_garbage", columnDefinition = "BIT(1)")
-    @Comment("쓰레기 수거 서비스 사용 유무")
-    private Boolean isGarbage;
+    @Column(name = "manager_id")
+    private Long managerId;
 
-    @Column(name = "is_hot_storage", columnDefinition = "BIT(1)")
-    @Comment("온장고 대여 서비스 사용 유무")
-    private Boolean isHotStorage;
+    @NotNull
+    @Convert(converter = DiningTypeConverter.class)
+    @Column(name = "e_dining_type", nullable = false)
+    private DiningType diningType;
 
-    @Column(name = "is_setting", columnDefinition = "BIT(1)")
-    @Comment("식사 세팅 지원 서비스 사용 유무")
-    private Boolean isSetting;
+    @Embedded
+    private Address address;
 
-    @Column(columnDefinition = "BIT(1)")
-    @Comment("샐러드 필수")
-    private Boolean isSaladRequired;
+    @NotNull
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
 
-    @Convert(converter = FoodTagsConverter.class)
-    @Comment("필수 포함 음식 태그")
-    private List<FoodTag> requiredFoodTags;
+    @Size(max = 32)
+    @NotNull
+    @Column(name = "delivery_time", nullable = false, length = 32)
+    private String deliveryTime;
 
-    @Convert(converter = FoodTagsConverter.class)
-    @Comment("필수 제외 음식 태그")
-    private List<FoodTag> excludedFoodTags;
-
-    @Convert(converter = IdListConverter.class)
-    @Comment("특정 메이커스 포함")
-    private List<BigInteger> requiredMakers;
-
-    @Convert(converter = IdListConverter.class)
-    @Comment("특정 메이커스 제외")
-    private List<BigInteger> excludedMakers;
-
-    @Convert(converter = IdListConverter.class)
-    @Comment("특정 상품 포함")
-    private List<FoodTag> requiredFood;
-
-    @Convert(converter = IdListConverter.class)
-    @Comment("특정 상품 제외")
-    private List<FoodTag> excludedFood;
+    @Size(max = 255)
+    @Column(name = "emb_use_days")
+    private String embUseDays;
 
     @Builder
-    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting) {
-        super(address, diningTypes, name, managerId);
+    public Corporation(String name, Integer employeeCount, DiningType diningType, String deliveryTime) {
+        this.name = name;
         this.employeeCount = employeeCount;
-        this.isGarbage = isGarbage;
-        this.isHotStorage = isHotStorage;
-        this.isSetting = isSetting;
+        this.diningType = diningType;
+        this.deliveryTime = deliveryTime;
     }
 }

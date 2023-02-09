@@ -1,19 +1,19 @@
 package co.dalicious.domain.order.converter;
 
-import co.dalicious.domain.order.entity.enums.OrderType;
+import co.dalicious.domain.order.entity.OrderType;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class OrderTypeConverter implements AttributeConverter<OrderType, Integer> {
+public class OrderTypeConverter implements AttributeConverter<OrderType, Long> {
     @Override
-    public Integer convertToDatabaseColumn(OrderType orderType) {
+    public Long convertToDatabaseColumn(OrderType orderType) {
         return orderType.getCode();
     }
 
     @Override
-    public OrderType convertToEntityAttribute(Integer dbData) {
+    public OrderType convertToEntityAttribute(Long dbData) {
         return OrderType.ofCode(dbData);
     }
 }

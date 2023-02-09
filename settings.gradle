@@ -7,31 +7,27 @@
  * in the user manual at https://docs.gradle.org/7.4.2/userguide/multi_project_builds.html
  */
 
-rootProject.name = 'api'
+rootProject.name = 'kurrant-server'
 
 include 'system-core'
 
 include 'client-core'
+include 'client-external-bizppurio'
 include 'client-external-sms'
 include 'client-external-mail'
-include 'client-oauth'
-include 'client-sse'
 
 include 'domain-address'
-include 'domain-banner'
 include 'domain-board'
+include 'domain-banner'
 include 'domain-file'
 include 'domain-user'
 include 'domain-order'
 include 'domain-food'
-include 'domain-makers'
 include 'domain-client'
-include 'domain-payment'
 include 'domain-application-form'
 
 include 'app-public-api'
 include 'app-admin-api'
+include 'app-client-api'
 
 include 'data-redis'
-
-

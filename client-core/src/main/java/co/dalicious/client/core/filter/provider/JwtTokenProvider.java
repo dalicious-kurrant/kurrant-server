@@ -5,11 +5,6 @@ import java.util.Date;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-
-import co.dalicious.client.core.dto.request.LoginTokenDto;
-import co.dalicious.data.redis.entity.RefreshTokenHash;
-import co.dalicious.data.redis.repository.RefreshTokenRepository;
-import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,8 +12,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,103 +30,87 @@ import lombok.extern.slf4j.Slf4j;
 @PropertySource("classpath:application-jwt.properties")
 public class JwtTokenProvider {
 
-    private Key key;
+  private final static long TOKEN_VALID_MILLISECONDS = 1000L * 60 * 60 * 24 * 365; // 1년만 토큰 유효
 
-    @Value("${spring.jwt.secret}")
-    private String secretKey;
+  @Builder
+  @Getter
+  public static class TokenResponseDto {
+    private String accessToken;
+    private String refreshToken;
+    private String idToken;
+    private Long expiresIn;
+  }
 
-    private final UserDetailsService userDetailsService;
-    private final RefreshTokenRepository refreshTokenRepository;
+  private Key key;
 
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 2 * 60 * 60 * 1000L; // 2시간
-    private static final long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
+  @Value("${spring.jwt.secret}")
+  private String secretKey;
 
-    @PostConstruct
-    protected void init() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        key = Keys.hmacShaKeyFor(keyBytes);
+  private final UserDetailsService userDetailsService;
+
+  private long tokenValidMilisecond = 1000L * 60 * 60; // 1시간만 토큰 유효
+
+  @PostConstruct
+  protected void init() {
+    byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+    key = Keys.hmacShaKeyFor(keyBytes);
+  }
+
+  // Jwt 토큰 생성
+  public TokenResponseDto createToken(String userPk, List<String> roles, String displayName,
+      String avatarUrl) {
+    Claims accessTokenClaims = Jwts.claims().setSubject(userPk);
+    accessTokenClaims.put("roles", roles);
+    Date now = new Date();
+
+    String accessToken = Jwts.builder().setClaims(accessTokenClaims) // 데이터
+        .setIssuedAt(now) // 토큰 발행일자
+        .setExpiration(new Date(now.getTime() + TOKEN_VALID_MILLISECONDS)) // set Expire Time
+        .signWith(key, SignatureAlgorithm.HS256) // 암호화 알고리즘, secret값 세팅
+        .compact();
+
+    Claims idTokenClaims = Jwts.claims().setSubject(userPk);
+    idTokenClaims.put("displayName", displayName);
+    idTokenClaims.put("avatarUrl", avatarUrl);
+    String idToken = Jwts.builder().setClaims(idTokenClaims) // 데이터
+        .setIssuedAt(now) // 토큰 발행일자
+        .setExpiration(new Date(now.getTime() + TOKEN_VALID_MILLISECONDS)) // set Expire Time
+        .signWith(key, SignatureAlgorithm.HS256) // 암호화 알고리즘, secret값 세팅
+        .compact();
+
+    return TokenResponseDto.builder().accessToken(accessToken).refreshToken("").idToken(idToken)
+        .expiresIn(TOKEN_VALID_MILLISECONDS).build();
+  }
+
+  // Jwt 토큰에서 회원 구별 정보 추출
+  public String getUserPk(String token) {
+    return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody()
+        .getSubject();
+  }
+
+  // Request의 Header에서 token 파싱 : "Authorization: JWT {{token}}"
+  public String resolveToken(HttpServletRequest req) {
+    String authHdr = req.getHeader("Authorization");
+    if (authHdr == null || !authHdr.substring(0, 7).equals("Bearer ")) {
+      return null;
     }
+    return authHdr.substring(7);
+  }
 
-    // Jwt 토큰 생성
-    public LoginTokenDto createToken(String userPk, List<String> roles) {
-        // Access Token 생성
-        Claims claims = Jwts.claims().setSubject(userPk);
-        claims.put("roles", roles);
-        Date now = new Date();
+  // Jwt 토큰으로 인증 정보를 조회
+  public Authentication getAuthentication(String token) {
+    String userPk = this.getUserPk(token);
+    UserDetails userDetails = userDetailsService.loadUserByUsername(userPk);
+    return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+  }
 
-        Date accessTokenExpiredIn = new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME);
-        Date refreshTokenExpiredIn = new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME);
-        String accessToken = Jwts.builder().setClaims(claims) // 데이터
-                .setIssuedAt(now) // 토큰 발행일자
-                .setExpiration(accessTokenExpiredIn) // set Expire Time
-                .signWith(key, SignatureAlgorithm.HS256) // 암호화 알고리즘, secret값 세팅
-                .compact();
-
-        String refreshToken = Jwts.builder()
-                .setExpiration(refreshTokenExpiredIn)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-
-        // Refresh Token 저장
-        RefreshTokenHash refreshTokenHash = RefreshTokenHash.builder()
-                .userId(userPk)
-                .refreshToken(refreshToken)
-                .build();
-        refreshTokenRepository.save(refreshTokenHash);
-        return LoginTokenDto.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .accessTokenExpiredIn(accessTokenExpiredIn.getTime())
-                .build();
+  // Jwt 토큰의 유효성 + 만료일자 확인
+  public boolean validateToken(String jwtToken) {
+    try {
+      Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken);
+      return !claims.getBody().getExpiration().before(new Date());
+    } catch (Exception e) {
+      return false;
     }
-
-    // Jwt 토큰에서 회원 구별 정보 추출
-    public String getUserPk(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody()
-                .getSubject();
-    }
-
-    // Request의 Header에서 token 파싱 : "Authorization: JWT {{token}}"
-    public String resolveToken(HttpServletRequest req) {
-        String authHdr = req.getHeader("Authorization");
-        if (authHdr == null || !authHdr.substring(0, 7).equals("Bearer ")) {
-            return null;
-        }
-        return authHdr.substring(7);
-    }
-
-    // Jwt 토큰으로 인증 정보를 조회
-    public Authentication getAuthentication(String token) {
-        String userPk = this.getUserPk(token);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(userPk);
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-    }
-
-    // Jwt 토큰의 유효성 + 만료일자 확인
-    public boolean validateToken(String jwtToken) {
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken);
-            return !claims.getBody().getExpiration().before(new Date());
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT Token", e);
-        } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token", e);
-        } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT Token", e);
-        } catch (IllegalArgumentException e) {
-            log.info("JWT claims string is empty.", e);
-        } catch (Exception e) {
-            return false;
-        }
-        return false;
-    }
-
-    // Token의 유효시간 가져오기
-    public Long getExpiredIn(String token) {
-        // accessToken 남은 유효시간
-        Date expiration = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getExpiration();
-        // 현재 시간
-        long now = new Date().getTime();
-        return (expiration.getTime() - now);
-    }
+  }
 }

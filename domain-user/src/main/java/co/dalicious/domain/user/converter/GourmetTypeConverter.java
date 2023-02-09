@@ -1,19 +1,19 @@
 package co.dalicious.domain.user.converter;
 
-import co.dalicious.domain.user.entity.enums.GourmetType;
+import co.dalicious.domain.user.entity.GourmetType;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class GourmetTypeConverter implements AttributeConverter<GourmetType, Integer> {
+public class GourmetTypeConverter implements AttributeConverter<GourmetType, Long> {
     @Override
-    public Integer convertToDatabaseColumn(GourmetType gourmetType) {
+    public Long convertToDatabaseColumn(GourmetType gourmetType) {
         return gourmetType.getCode();
     }
 
     @Override
-    public GourmetType convertToEntityAttribute(Integer dbData) {
+    public GourmetType convertToEntityAttribute(Long dbData) {
         return GourmetType.ofCode(dbData);
     }
 }

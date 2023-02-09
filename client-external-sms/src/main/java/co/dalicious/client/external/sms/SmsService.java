@@ -2,6 +2,7 @@ package co.dalicious.client.external.sms;
 
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
 import co.dalicious.client.external.sms.dto.SmsResponseDto;
+import co.dalicious.system.util.RequiredAuth;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.web.client.RestClientException;
 

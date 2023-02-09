@@ -1,6 +1,8 @@
 package co.dalicious.data.redis;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;

@@ -1,15 +1,15 @@
 package co.dalicious.domain.user.dto;
 
-import co.dalicious.system.util.enums.DiningType;
-import io.swagger.v3.oas.annotations.media.Schema;
+import co.dalicious.system.util.DiningType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 
 @Getter
-@Setter
-@Schema(description = "아파트 생성 요청 DTO")
+@NoArgsConstructor
 public class ApartmentDto {
     String name;
     Integer familyCount;

@@ -12,7 +12,7 @@ import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Embeddable
 public class Image {
   @Column(name = "img_created_datetime",
@@ -25,7 +25,7 @@ public class Image {
   @Comment("S3 업로드 키")
   private String key;
 
-  @Column(name = "file_location", length = 2048,
+  @Column(name = "location", length = 2048,
       columnDefinition = "VARCHAR(2048)")
   @Comment("S3 접근 위치")
   private String location;

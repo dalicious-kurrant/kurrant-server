@@ -1,7 +1,6 @@
 package co.dalicious.domain.client.repository;
 
 import co.dalicious.domain.client.entity.Apartment;
-import co.dalicious.domain.client.entity.Group;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,5 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface ApartmentRepository extends JpaRepository<Apartment, BigInteger> {
-    Optional<Apartment> findOneByName(String name);
+    Optional<Apartment> findByName(String name);
 }

@@ -21,15 +21,6 @@ public class GenerateRandomNumber {
         return key.toString();
     }
 
-    public static String create6DigitKey() {
-        StringBuffer key = new StringBuffer();
-        Random rnd = new Random();
-        for (int i = 0; i < 6; i++) {
-            key.append((rnd.nextInt(10)));
-        }
-        return key.toString();
-    }
-
     public static String idToString(Integer id) {
         String strId = id.toString();
         if(id > 10000) {

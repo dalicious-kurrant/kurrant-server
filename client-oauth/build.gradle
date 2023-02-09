@@ -1,6 +1,0 @@
-bootJar.enabled = false
-jar.enabled = true
-
-dependencies {
-    implementation 'com.nimbusds:nimbus-jose-jwt:9.25.6'
-}

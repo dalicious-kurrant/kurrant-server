@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.util.Optional;
 
+@Repository
 public interface CorporationRepository extends JpaRepository<Corporation, BigInteger> {
-    Optional<Corporation> findOneByName(String name);
+    Optional<Corporation> findByName(String name);
 }
