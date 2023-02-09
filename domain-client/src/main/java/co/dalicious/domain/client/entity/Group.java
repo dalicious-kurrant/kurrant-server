@@ -44,6 +44,7 @@ public class Group {
     @Size(max = 64)
     @NotNull
     @Column(name = "name", nullable = false, length = 64)
+    @Comment("그룹 이름")
     private String name;
 
     @Column(name = "manager_id")

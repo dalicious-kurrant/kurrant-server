@@ -51,7 +51,7 @@ public class UserSupportPriceHistory {
     private LocalDate serviceDate;
 
     @Convert(converter = DiningTypeConverter.class)
-    @Comment("식사 타입")
+    @Comment("식사 타입(1. 아침, 2. 점심, 3. 저녁)")
     private DiningType diningType;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -61,7 +61,7 @@ public class UserSupportPriceHistory {
     private OrderItemDailyFoodGroup orderItemDailyFoodGroup;
 
     @Convert(converter = MonetaryStatusConverter.class)
-    @Comment("지원금 사용 취소 유무")
+    @Comment("지원금 사용 취소 유무 (1. 차감 2. 환불)")
     private MonetaryStatus monetaryStatus;
 
     @CreationTimestamp

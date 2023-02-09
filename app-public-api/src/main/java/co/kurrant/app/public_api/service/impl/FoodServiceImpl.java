@@ -6,6 +6,7 @@ import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderUtil;
@@ -14,10 +15,9 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.food.mapper.FoodMapper;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.system.util.enums.FoodStatus;
+import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
-import co.kurrant.app.public_api.mapper.order.DailyFoodMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -73,7 +73,7 @@ public class FoodServiceImpl implements FoodService {
                         .findAny()
                         .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
                 if(LocalDate.now().equals(dailyFood.getServiceDate()) && LocalTime.now().isAfter(mealInfo.getLastOrderTime())) {
-                    dailyFood.updateFoodStatus(FoodStatus.PASS_LAST_ORDER_TIME);
+                    dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
                 }
 
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), dailyFood.getFood());
@@ -100,7 +100,7 @@ public class FoodServiceImpl implements FoodService {
                         .findAny()
                         .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
                 if(LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate()) && LocalTime.now().isAfter(mealInfo.getLastOrderTime())) {
-                    dailyFood.updateFoodStatus(FoodStatus.PASS_LAST_ORDER_TIME);
+                    dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
                 }
 
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), dailyFood.getFood());

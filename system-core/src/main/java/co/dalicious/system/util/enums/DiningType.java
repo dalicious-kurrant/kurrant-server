@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 @Getter
 public enum DiningType {
-    NULL("선택안함", 0),
     MORNING("아침", 1),
     LUNCH("점심", 2),
     DINNER("저녁", 3);

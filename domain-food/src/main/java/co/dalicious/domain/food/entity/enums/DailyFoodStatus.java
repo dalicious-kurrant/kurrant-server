@@ -1,11 +1,11 @@
-package co.dalicious.system.util.enums;
+package co.dalicious.domain.food.entity.enums;
 
 import lombok.Getter;
 
 import java.util.Arrays;
 
 @Getter
-public enum FoodStatus {
+public enum DailyFoodStatus {
 
     SOLD_OUT("판매종료", 0),
     SALES("판매중", 1),
@@ -17,13 +17,13 @@ public enum FoodStatus {
     private final String status;
     private final Integer code;
 
-    FoodStatus(String status, Integer code) {
+    DailyFoodStatus(String status, Integer code) {
         this.status = status;
         this.code = code;
     }
 
-    public static FoodStatus ofCode(Integer code) {
-        return Arrays.stream(FoodStatus.values())
+    public static DailyFoodStatus ofCode(Integer code) {
+        return Arrays.stream(DailyFoodStatus.values())
                 .filter(v -> v.getCode().equals(code))
                 .findAny()
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 식사 타입입니다."));

@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -28,15 +29,18 @@ public class CorporationApplicationFormSpot {
     @Size(max = 32)
     @NotNull
     @Column(name = "name", nullable = false, length = 32)
+    @Comment("컬럼명")
     private String name;
 
     @NotNull
     @Column(name = "emb_address", nullable = false)
+    @Comment("주소")
     private Address address;
 
     @NotNull
     @Convert(converter = DiningTypesConverter.class)
     @Column(name = "dining_types", nullable = false)
+    @Comment("스팟별 식사 일정(아침, 점심, 저녁)")
     private List<DiningType> diningTypes;
 
     @NotNull

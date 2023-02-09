@@ -48,6 +48,7 @@ public class MealInfo {
 
     @Size(max = 255)
     @Column(name = "emb_use_days")
+    @Comment("서비스 이용 요일")
     private String serviceDays;
 
 
@@ -66,7 +67,7 @@ public class MealInfo {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JsonManagedReference(value = "client__spot_fk")
     @JoinColumn
-    @Comment("그룹")
+    @Comment("스팟")
     private Spot spot;
 
     public MealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Spot spot) {

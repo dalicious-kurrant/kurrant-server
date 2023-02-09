@@ -35,13 +35,13 @@ public class CorporationApplicationMealInfo {
 
     @NotNull
     @Convert(converter = PriceAverageConverter.class)
-    @Column(name = "prica_average", nullable = false)
+    @Column(name = "price_average", nullable = false)
     @Comment("가격 범위")
     private PriceAverage priceAverage;
 
     @NotNull
     @Column(name = "daily_support_price", nullable = false, precision = 15)
-    @Comment("일일 회사 지원금")
+    @Comment("식사 일정별(아침, 점심, 저녁) 회사 지원금")
     private BigDecimal supportPrice;
 
     @NotNull

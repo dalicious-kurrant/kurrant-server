@@ -9,7 +9,7 @@ import java.util.Arrays;
 @Getter
 public enum MonetaryStatus {
     DEDUCTION("차감", 1),
-    REFUND("환불금 지급", 2);
+    REFUND("환불", 2);
 
     private final String monetaryStatus;
     private final Integer code;

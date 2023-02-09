@@ -1,8 +1,11 @@
 package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.system.util.converter.FoodTagsConverter;
+import co.dalicious.domain.food.entity.enums.FoodStatus;
+import co.dalicious.system.util.enums.FoodTag;
 import co.dalicious.domain.makers.entity.Makers;
-import co.dalicious.system.util.enums.Spicy;
+import co.dalicious.domain.food.converter.FoodStatusConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
@@ -25,11 +28,17 @@ import java.util.List;
 @Entity
 @Table(name = "food__food")
 public class Food {
+    // TODO: 추후 Item 상속 추가
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("ID")
     private BigInteger id;
+
+    @Convert(converter = FoodStatusConverter.class)
+    @Column(name = "e_status")
+    @Comment("음식 상태(0. 판매종료 1. 판매중, 2. 판매종료)")
+    private FoodStatus foodStatus;
 
     @Column(name = "name")
     @Comment("식품 이름")
@@ -45,15 +54,12 @@ public class Food {
 
     @OneToMany(mappedBy = "food", orphanRemoval = true)
     @JsonBackReference(value = "food_fk")
+    @Comment("할인 정책")
     private List<FoodDiscountPolicy> foodDiscountPolicyList;
 
-    @OneToMany(mappedBy = "food", orphanRemoval = true)
-    @JsonBackReference(value = "food_fk")
-    private List<Origin> origins;
-
-    @Column(name = "spicy")
-    @Comment("맵기정도")
-    private Spicy spicy;
+    @Convert(converter = FoodTagsConverter.class)
+    @Comment("음식 태그")
+    private List<FoodTag> foodTags;
 
     @ManyToOne(fetch = FetchType.LAZY ,optional = false)
     @JoinColumn(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")

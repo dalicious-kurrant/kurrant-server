@@ -25,7 +25,7 @@ public class QOrderDailyFoodRepository {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.order.user.eq(user),
-                        orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.COMPLETED, OrderStatus.WAIT_DELIVERY, OrderStatus.DELIVERING, OrderStatus.DELIVERED, OrderStatus.RECEIPT_COMPLETE),
                         orderItemDailyFood.orderItemDailyFoodGroup.serviceDate.between(startDate,endDate))
                 .fetch();
     }
