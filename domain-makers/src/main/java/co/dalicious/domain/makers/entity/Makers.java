@@ -62,10 +62,12 @@ public class Makers {
     private Integer dailyCapacity;
 
     @Convert(converter = ServiceTypeConverter.class)
+    @Column(name = "e_service_type")
     @Comment("서비스 업종")
     private ServiceType serviceType;
 
     @Convert(converter = ServiceFormConverter.class)
+    @Column(name = "e_service_form")
     @Comment("서비스 형태")
     private ServiceForm serviceForm;
 

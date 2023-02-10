@@ -12,4 +12,5 @@ public class LoginResponseDto {
   private String refreshToken;
   private Long expiresIn;
   private Integer spotStatus;
+  private Boolean isActive;
 }
