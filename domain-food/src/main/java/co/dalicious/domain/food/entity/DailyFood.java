@@ -1,7 +1,6 @@
 package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.converter.DailyFoodStatusConverter;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.system.util.enums.DiningType;
@@ -73,8 +72,8 @@ public class DailyFood {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
-    @Comment("스팟")
-    private Spot spot;
+    @Comment("그룹")
+    private Group group;
 
     public void updateFoodStatus(DailyFoodStatus dailyFoodStatus) {
         this.dailyFoodStatus = dailyFoodStatus;

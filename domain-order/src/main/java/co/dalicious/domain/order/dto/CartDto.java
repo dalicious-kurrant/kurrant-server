@@ -8,6 +8,7 @@ import java.math.BigInteger;
 @Schema(description = "장바구니 담기 요청 DTO")
 @Getter
 public class CartDto {
+    BigInteger spotId;
     BigInteger dailyFoodId;
     Integer count;
 }

@@ -13,6 +13,7 @@ import co.dalicious.domain.food.dto.DailyFoodDto;
 import org.hibernate.Hibernate;
 import org.mapstruct.*;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.food.name", target = "foodName")
       @Mapping(source = "dailyFood.dailyFoodStatus", target = "status", qualifiedByName = "getStatus")
       @Mapping(source = "dailyFood.capacity", target = "capacity")
-      @Mapping(source = "dailyFood.spot.id", target = "spotId")
+      @Mapping(source = "spotId", target = "spotId")
       @Mapping(source = "dailyFood.serviceDate", target = "serviceDate", qualifiedByName = "serviceDateToString")
       @Mapping(source = "dailyFood", target = "makersName", qualifiedByName = "getMakersName")
       @Mapping(source = "dailyFood", target = "spicy", qualifiedByName = "getSpicy")
@@ -38,7 +39,7 @@ public interface DailyFoodMapper {
       @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
       @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
       @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
-      DailyFoodDto toDto(DailyFood dailyFood, DiscountDto discountDto);
+      DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto);
 
       @Named("getStatus")
       default Integer getStatus(DailyFoodStatus dailyFoodStatus) {

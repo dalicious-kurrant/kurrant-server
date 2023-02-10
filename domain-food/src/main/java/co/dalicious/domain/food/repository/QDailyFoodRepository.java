@@ -1,7 +1,7 @@
 package co.dalicious.domain.food.repository;
 
 
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.system.util.enums.DiningType;
@@ -21,10 +21,10 @@ public class QDailyFoodRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public List<DailyFood> getSellingAndSoldOutDailyFood(BigInteger spotId, LocalDate selectedDate) {
+    public List<DailyFood> getSellingAndSoldOutDailyFood(Group group, LocalDate selectedDate) {
         return queryFactory
                 .selectFrom(dailyFood)
-                .where(dailyFood.spot.id.eq(spotId),
+                .where(dailyFood.group.eq(group),
                         dailyFood.serviceDate.eq(selectedDate),
                         dailyFood.dailyFoodStatus.in(DailyFoodStatus.SALES, DailyFoodStatus.SOLD_OUT, DailyFoodStatus.PASS_LAST_ORDER_TIME))
                 .fetch();
@@ -37,10 +37,10 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
-    public List<DailyFood> findAllBySpotAndSelectedDateAndDiningType(Spot spot, LocalDate selectedDate, DiningType diningType) {
+    public List<DailyFood> findAllByGroupAndSelectedDateAndDiningType(Group group, LocalDate selectedDate, DiningType diningType) {
         return queryFactory
                 .selectFrom(dailyFood)
-                .where(dailyFood.spot.eq(spot),
+                .where(dailyFood.group.eq(group),
                         dailyFood.serviceDate.eq(selectedDate),
                         dailyFood.diningType.eq(diningType),
                         dailyFood.dailyFoodStatus.in(DailyFoodStatus.SALES)
