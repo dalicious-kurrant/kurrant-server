@@ -1,14 +1,11 @@
-package co.kurrant.app.public_api.dto.review;
+package co.dalicious.domain.review.dto;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigInteger;
-
 @Getter
 @Setter
-public class ReviewDto {
+public class ReviewReqDto {
     private Integer satisfaction;
     private String image;
     private String content;

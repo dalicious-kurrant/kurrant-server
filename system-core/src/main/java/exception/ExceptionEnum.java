@@ -65,6 +65,9 @@ public enum ExceptionEnum {
 	CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040016", "카드 정보를 가져올 수 없습니다."),
 	ALREADY_READ(HttpStatus.NOT_FOUND,"E4040015", "읽을 알림이 없습니다."),
 	NOT_FOND_ITEM_FOR_REVIEW(HttpStatus.NOT_FOUND,"E4040020", "리뷰가 가능한 상품이 없습니다."),
+	NOT_FOND_ITEM(HttpStatus.NOT_FOUND,"E4040021", "주문한 상품을 찾을 수 없습니다."),
+	NOT_FOND_REVIEWS(HttpStatus.NOT_FOUND,"E4040022", "작성하신 리뷰가 없습니다."),
+	NOT_FOND_MAKERS(HttpStatus.NOT_FOUND,"E4040023", "찾으시는 메이커스가 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
