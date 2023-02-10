@@ -28,4 +28,11 @@ public class QOrderItemRepository {
                 .where(orderItem.id.eq(orderItemId))
                 .execute();
     }
+
+    public List<OrderItem> findByUserAndOrderStatus(User user, OrderStatus orderStatus) {
+        return queryFactory
+                .selectFrom(orderItem)
+                .where(orderItem.order.user.eq(user), orderItem.orderStatus.eq(orderStatus))
+                .fetch();
+    }
 }
