@@ -11,6 +11,7 @@ public interface CartDailyFoodMapper {
     @Mapping(source = "user", target = "user")
     @Mapping(source = "dailyFood", target = "dailyFood")
     @Mapping(source = "count", target = "count")
+    @Mapping(source = "dailyFood.group", target = "group")
     @Mapping(source = "dailyFood.spot", target = "spot")
     CartDailyFood toEntity(User user, Integer count, DailyFood dailyFood);
 }
