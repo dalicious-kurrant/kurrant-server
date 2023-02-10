@@ -1,0 +1,14 @@
+bootJar.enabled = false
+jar.enabled = true
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'mysql:mysql-connector-java'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.6.11'
+    implementation 'com.querydsl:querydsl-jpa:4.4.0'
+    implementation "com.querydsl:querydsl-core:4.4.0"
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
