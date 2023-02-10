@@ -17,11 +17,6 @@ import org.springframework.data.geo.Point;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Address {
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-  @Column(name = "address_created_datetime",
-      columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) COMMENT '생성일'")
-  private Timestamp createdDateTime;
-
   @Column(name = "zip_code", nullable = false, columnDefinition = "MEDIUMINT COMMENT '우편번호, 다섯자리'")
   private Integer zipCode;
 

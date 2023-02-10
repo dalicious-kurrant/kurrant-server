@@ -45,6 +45,7 @@ public class OrderItemDailyFoodGroup {
     @Comment("식사 타입")
     private DiningType diningType;
 
+    @Column(columnDefinition = "DECIMAL(15, 2)")
     @Comment("배송비")
     private BigDecimal deliveryFee;
 

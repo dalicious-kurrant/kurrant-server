@@ -1,7 +1,9 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.user.converter.UserStatusConverter;
 import co.dalicious.domain.user.entity.enums.GourmetType;
 import co.dalicious.domain.user.entity.enums.Role;
+import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -44,6 +46,12 @@ public class User {
     @Column(name = "e_role")
     @Comment("유저 타입")
     private Role role;
+
+    @Convert(converter = UserStatusConverter.class)
+    @Column(name = "e_user_status")
+    @ColumnDefault("1")
+    @Comment("유저 타입 0. 탈퇴 유저 1. 활성 유저 2. 탈퇴 요청 유저")
+    private UserStatus userStatus;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -91,17 +99,17 @@ public class User {
     private Timestamp marketingAgreedDateTime;
 
     @Column(name = "marketing_agreed",
-            columnDefinition = "BIT(1)")
+            columnDefinition = "BIT(1) DEFAULT 0")
     @Comment("이메일 동의 여부")
     private Boolean marketingAgree;
 
     @Column(name = "marketing_alarm",
-            columnDefinition = "BIT(1)")
+            columnDefinition = "BIT(1) DEFAULT 0")
     @Comment("혜택 및 소식 알림")
     private Boolean marketingAlarm;
 
     @Column(name = "order_alarm",
-            columnDefinition = "BIT(1)")
+            columnDefinition = "BIT(1) DEFAULT 0")
     @Comment("주문 알림")
     private Boolean orderAlarm;
 
@@ -111,7 +119,7 @@ public class User {
     private String email;
 
     @Column(name = "point", precision = 15, nullable = false,
-            columnDefinition = "DECIMAL(15, 0)")
+            columnDefinition = "DECIMAL(15, 2)")
     @ColumnDefault("0.00")
     private BigDecimal point;
 
@@ -124,7 +132,7 @@ public class User {
             columnDefinition = "VARCHAR(16)")
     private String phone;
 
-    @Column(name = "is_membership", columnDefinition = "BIT(1)")
+    @Column(name = "is_membership", columnDefinition = "BIT(1) DEFAULT 0")
     @ColumnDefault("false")
     private Boolean isMembership;
 
@@ -190,5 +198,13 @@ public class User {
 
     public void updateName(String name) {
         this.name = name;
+    }
+
+    public void updateUserStatus(UserStatus userStatus) {
+        this.userStatus = userStatus;
+    }
+
+    public void updateEmail(String email) {
+        this.email = email;
     }
 }

@@ -16,6 +16,7 @@ import co.dalicious.domain.user.dto.ProviderEmailDto;
 import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
+import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
@@ -225,6 +226,7 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(loginResponseDto.getRefreshToken())
                 .expiresIn(loginResponseDto.getAccessTokenExpiredIn())
                 .spotStatus(spotStatus.getCode())
+                .isActive((user.getUserStatus().equals(UserStatus.ACTIVE)))
                 .build();
     }
 
@@ -239,6 +241,7 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
         }
+
         SpotStatus spotStatus = clientUtil.getSpotStatus(user);
         return getLoginAccessToken(user, spotStatus);
     }
