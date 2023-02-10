@@ -33,14 +33,14 @@ public interface ReviewMapper {
     @Mapping(source = "orderItemDailyFood.dailyFood.food.name", target = "foodName")
     ReviewableItemListDto toDailyFoodResDto(OrderItemDailyFood orderItemDailyFood, long reviewDDAy);
 
-    @Mapping(source = "review.image.location", target = "imageLocation")
-    @Mapping(source = "review.content", target = "content")
-    @Mapping(source = "review.satisfaction", target = "satisfaction")
-    @Mapping(source = "review.createdDateTime", target = "createDate")
-    @Mapping(source = "review.updatedDateTime", target = "updateDate")
-    @Mapping(source = "review.forMakers", target = "forMakers")
-    @Mapping(source = "review.orderItem", target = "makersName", qualifiedByName = "getMakersName")
-    @Mapping(source = "review.orderItem", target = "itemName", qualifiedByName = "getItemName")
+    @Mapping(source = "reviews.image.location", target = "imageLocation")
+    @Mapping(source = "reviews.content", target = "content")
+    @Mapping(source = "reviews.satisfaction", target = "satisfaction")
+    @Mapping(source = "reviews.createdDateTime", target = "createDate")
+    @Mapping(source = "reviews.updatedDateTime", target = "updateDate")
+    @Mapping(source = "reviews.forMakers", target = "forMakers")
+    @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
+    @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
     ReviewListDto toReviewListDto(Reviews reviews);
 
     @Named("getMakersName")
@@ -52,5 +52,16 @@ public interface ReviewMapper {
         }
 
         throw new ApiException(ExceptionEnum.NOT_FOND_MAKERS);
+    }
+
+    @Named("getItemName")
+    default String getItemName(OrderItem orderItem) {
+        String itemName = null;
+        if(orderItem instanceof OrderItemDailyFood) {
+            OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) orderItem;
+            return itemName = orderItemDailyFood.getDailyFood().getFood().getName();
+        }
+
+        throw new ApiException(ExceptionEnum.NOT_FOND_ITEM);
     }
 }
