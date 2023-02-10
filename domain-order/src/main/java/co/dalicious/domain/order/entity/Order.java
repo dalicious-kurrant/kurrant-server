@@ -53,15 +53,15 @@ public class Order {
     @Comment("배송지")
     private Address address;
 
-    @Column(name = "default_price", precision = 15)
+    @Column(name = "default_price", columnDefinition = "DECIMAL(15, 2)")
     @Comment("상품 총액(할인되지 않은 가격)")
     private BigDecimal defaultPrice;
 
-    @Column(name = "point", precision = 15)
+    @Column(name = "point", columnDefinition = "DECIMAL(15, 2)")
     @Comment("포인트 사용 금액")
     private BigDecimal point;
 
-    @Column(name = "total_price", precision = 15)
+    @Column(name = "total_price", columnDefinition = "DECIMAL(15, 2)")
     @Comment("결제 총액(모든 할인이 들어간 가격)")
     private BigDecimal totalPrice;
 

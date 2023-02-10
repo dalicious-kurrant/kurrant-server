@@ -24,7 +24,7 @@ import java.math.BigDecimal;
 @Getter
 @Table(name = "order__daily_food")
 public class OrderDailyFood extends Order{
-    @Column(precision = 15)
+    @Column(columnDefinition = "DECIMAL(15, 2)")
     private BigDecimal totalDeliveryFee;
     @Comment("그룹명")
     private String groupName;

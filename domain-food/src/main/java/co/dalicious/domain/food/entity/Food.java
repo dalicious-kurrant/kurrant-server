@@ -44,13 +44,15 @@ public class Food {
     @Comment("식품 이름")
     private String name;
 
-    @Column(name = "price")
+    @Column(name = "price", columnDefinition = "DECIMAL(15, 2)")
     @Comment("가격")
     private BigDecimal price;
 
     @Embedded
     @Comment("이미지 경로")
     private Image image;
+
+    private Integer maxCapacity;
 
     @OneToMany(mappedBy = "food", orphanRemoval = true)
     @JsonBackReference(value = "food_fk")
@@ -59,6 +61,7 @@ public class Food {
 
     @Convert(converter = FoodTagsConverter.class)
     @Comment("음식 태그")
+    @Column(name = "e_food_tags")
     private List<FoodTag> foodTags;
 
     @ManyToOne(fetch = FetchType.LAZY ,optional = false)

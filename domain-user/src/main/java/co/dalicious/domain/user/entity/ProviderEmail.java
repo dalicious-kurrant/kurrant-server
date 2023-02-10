@@ -41,4 +41,8 @@ public class ProviderEmail {
         this.email = email;
         this.user = user;
     }
+
+    public void updateEmail(String email) {
+        this.email = email;
+    }
 }

@@ -192,5 +192,25 @@ public class UserController {
                 .build();
     }
 
+    @Operation(summary = "회원탈퇴 요청", description = "회원 탈퇴를 요청한다.")
+    @PostMapping("/withdrawal")
+    public ResponseMessage userWithdrawal(Authentication authentication){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.withdrawal(securityUser);
+        return ResponseMessage.builder()
+                .message("회원 탈퇴 요청이 되었습니다.")
+                .build();
+    }
+
+    @Operation(summary = "회원탈퇴 요청 취소", description = "회원 탈퇴를 요청을 취소한다.")
+    @PostMapping("/withdrawal/cancel")
+    public ResponseMessage userWithdrawalCancel(Authentication authentication){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.withdrawalCancel(securityUser);
+        return ResponseMessage.builder()
+                .message("회원 탈퇴 요청을 취소하였습니다.")
+                .build();
+    }
+
 
 }

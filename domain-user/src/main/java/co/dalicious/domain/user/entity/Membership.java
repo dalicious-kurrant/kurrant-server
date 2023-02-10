@@ -52,7 +52,7 @@ public class Membership {
     @Comment("멤버십 종료날짜")
     private LocalDate endDate;
 
-    @Column(name = "auto_payment", columnDefinition = "BIT(1)")
+    @Column(name = "auto_payment", columnDefinition = "BIT(1) DEFAULT 0")
     @Comment("멤버십 자동 결제 여부")
     private Boolean autoPayment;
 

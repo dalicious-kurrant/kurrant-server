@@ -56,4 +56,6 @@ public interface UserService {
 
     void deleteCard(DeleteCreditCardDto deleteCreditCardDto);
     void changeName(SecurityUser securityUser, ChangeNameDto changeNameDto);
+    void withdrawal(SecurityUser securityUser);
+    void withdrawalCancel(SecurityUser securityUser);
 }

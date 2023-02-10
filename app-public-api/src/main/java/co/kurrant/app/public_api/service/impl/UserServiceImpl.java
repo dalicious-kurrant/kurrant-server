@@ -26,6 +26,7 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.Provider;
+import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.util.MembershipUtil;
@@ -612,5 +613,19 @@ public class UserServiceImpl implements UserService {
         }
 
         user.updateName(changeNameDto.getName());
+    }
+
+    @Override
+    @Transactional
+    public void withdrawal(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        user.updateUserStatus(UserStatus.REQUEST_WITHDRAWAL);
+    }
+
+    @Override
+    @Transactional
+    public void withdrawalCancel(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        user.updateUserStatus(UserStatus.ACTIVE);
     }
 }
