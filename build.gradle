@@ -151,6 +151,7 @@ project(':app-admin-api') {
         implementation project(':domain-banner')
         implementation project(':domain-user')
         implementation project(':domain-food')
+        implementation project(':app-client-api')
     }
 }
 
