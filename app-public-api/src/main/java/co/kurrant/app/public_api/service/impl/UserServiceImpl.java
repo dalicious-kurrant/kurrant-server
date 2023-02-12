@@ -501,8 +501,12 @@ public class UserServiceImpl implements UserService {
                 defaultType = 0;
             }
              for (CreditCardInfo card : cardInfoList){
-                 if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany())){
+                 if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0){
                      return 2;
+                 }
+                 //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
+                 if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1){
+                     qCreditCardInfoRepository.updateStatusCard(card.getId(), billingKey);
                  }
              }
         }

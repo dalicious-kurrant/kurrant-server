@@ -174,7 +174,7 @@ public class UserController {
     }
 
     @Operation(summary = "결제 카드 삭제", description = "결제 카드를 삭제한다.")
-    @DeleteMapping("/cards")
+    @PatchMapping("/cards")
     public ResponseMessage deleteCard(@RequestBody DeleteCreditCardDto deleteCreditCardDto){
         userService.deleteCard(deleteCreditCardDto);
         return ResponseMessage.builder()

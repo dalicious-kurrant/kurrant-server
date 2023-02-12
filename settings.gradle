@@ -28,6 +28,7 @@ include 'domain-makers'
 include 'domain-client'
 include 'domain-payment'
 include 'domain-application-form'
+include 'domain-review'
 
 include 'app-public-api'
 include 'app-admin-api'

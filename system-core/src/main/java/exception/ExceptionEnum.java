@@ -27,6 +27,11 @@ public enum ExceptionEnum {
 	OVER_ITEM_CAPACITY(HttpStatus.BAD_REQUEST, "E4000014", "상품의 개수가 부족합니다."),
 	ALREADY_EXISTING_MEMBERSHIP(HttpStatus.BAD_REQUEST, "E4000015", "이미 멤버십이 존재합니다."),
 	ALREADY_EXISTING_NAME(HttpStatus.BAD_REQUEST, "E4000015", "이미 유저 이름이 존재합니다."),
+	NOT_MATCHED_MIN_OF_CONTENT(HttpStatus.BAD_REQUEST, "E4000020", "최소 10자 이상 작성해주세요."),
+	OVER_MAX_LIMIT_OF_CONTENT(HttpStatus.BAD_REQUEST, "E4000021", "500자까지 작성 가능합니다."),
+	ALREADY_WRITING_REVIEW(HttpStatus.BAD_REQUEST, "E4000022", "이미 리뷰를 작성한 상품입니다."),
+	WRITING_REVIEW(HttpStatus.BAD_REQUEST, "E4000023", "리뷰 내용을 작성해주세요."),
+	NOT_ENOUGH_SATISFACTION(HttpStatus.BAD_REQUEST, "E4000023", "만족도는 0점을 줄 수 없습니다."),
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
 	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "비밀번호가 일치하지 않습니다."),
@@ -60,6 +65,11 @@ public enum ExceptionEnum {
 	CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040016", "카드 정보를 가져올 수 없습니다."),
 	ENUM_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040017", "해당 Enum을 가져올 수 없습니다."),
 	ALREADY_READ(HttpStatus.NOT_FOUND,"E4040015", "읽을 알림이 없습니다."),
+	NOT_FOND_ITEM_FOR_REVIEW(HttpStatus.NOT_FOUND,"E4040020", "리뷰가 가능한 상품이 없습니다."),
+	NOT_FOND_ITEM(HttpStatus.NOT_FOUND,"E4040021", "주문한 상품을 찾을 수 없습니다."),
+	NOT_FOND_REVIEWS(HttpStatus.NOT_FOUND,"E4040022", "작성하신 리뷰가 없습니다."),
+	NOT_FOND_MAKERS(HttpStatus.NOT_FOUND,"E4040023", "찾으시는 메이커스가 없습니다."),
+	NOT_FOND_ITEMS(HttpStatus.NOT_FOUND,"E4040024", "찾으시는 item이 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),

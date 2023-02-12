@@ -37,6 +37,10 @@ public class CreditCardInfo {
     @Column(name="card_type", columnDefinition = "VARCHAR(16)")
     private String cardType;
 
+    @Comment(value = "카드 상태, 0:삭제된카드, 1:사용중인 카드")
+    @Column(name = "status", columnDefinition = "INT")
+    private Integer status;
+
     @Comment(value = "디폴트 타입, 1:기본 결제카드, 2:멤버십 결제카드, 0:아무것도 아님")
     @Column(name="default_type", columnDefinition = "VARCHAR(16)")
     private Integer defaultType;
