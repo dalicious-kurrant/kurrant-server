@@ -52,7 +52,10 @@ public class Food {
     @Comment("이미지 경로")
     private Image image;
 
-    private Integer maxCapacity;
+    @OneToMany(mappedBy = "food", orphanRemoval = true)
+    @JsonBackReference(value = "food_fk")
+    @Comment("식사 일정별 가능 수량")
+    private List<FoodCapacity> foodCapacities;
 
     @OneToMany(mappedBy = "food", orphanRemoval = true)
     @JsonBackReference(value = "food_fk")
