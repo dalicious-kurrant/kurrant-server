@@ -4,7 +4,6 @@ import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.system.util.converter.FoodTagsConverter;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
 import co.dalicious.system.util.enums.FoodTag;
-import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.domain.food.converter.FoodStatusConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;

@@ -1,7 +1,6 @@
 package co.dalicious.domain.food.entity;
 
 
-import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.enums.DiningType;
 import lombok.AccessLevel;
@@ -16,7 +15,7 @@ import java.time.LocalDate;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class FoodSchedule {
+public class MakersSchedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED")
@@ -37,9 +36,4 @@ public class FoodSchedule {
     @JoinColumn
     @Comment("메이커스")
     private Makers makers;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn
-    @Comment("음식")
-    private Food food;
 }

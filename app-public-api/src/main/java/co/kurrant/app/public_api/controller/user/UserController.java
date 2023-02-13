@@ -193,7 +193,7 @@ public class UserController {
     }
 
     @Operation(summary = "회원탈퇴 요청", description = "회원 탈퇴를 요청한다.")
-    @PostMapping("/withdrawal")
+    @GetMapping("/withdrawal")
     public ResponseMessage userWithdrawal(Authentication authentication){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.withdrawal(securityUser);
@@ -203,7 +203,7 @@ public class UserController {
     }
 
     @Operation(summary = "회원탈퇴 요청 취소", description = "회원 탈퇴를 요청을 취소한다.")
-    @PostMapping("/withdrawal/cancel")
+    @GetMapping("/withdrawal/cancel")
     public ResponseMessage userWithdrawalCancel(Authentication authentication){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.withdrawalCancel(securityUser);

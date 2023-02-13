@@ -1,12 +1,12 @@
-package co.dalicious.domain.makers.entity;
+package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.file.entity.embeddable.Image;
-import co.dalicious.domain.makers.converter.ServiceFormConverter;
-import co.dalicious.domain.makers.converter.ServiceTypeConverter;
-import co.dalicious.domain.makers.entity.enums.Origin;
-import co.dalicious.domain.makers.entity.enums.ServiceForm;
-import co.dalicious.domain.makers.entity.enums.ServiceType;
+import co.dalicious.domain.food.converter.ServiceFormConverter;
+import co.dalicious.domain.food.converter.ServiceTypeConverter;
+import co.dalicious.domain.food.entity.enums.Origin;
+import co.dalicious.domain.food.entity.enums.ServiceForm;
+import co.dalicious.domain.food.entity.enums.ServiceType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
@@ -59,7 +59,7 @@ public class Makers {
 
     @OneToMany(mappedBy = "makers", orphanRemoval = true)
     @JsonBackReference(value = "makers_fk")
-    @Comment("식사 일정별 일일 최대 수량")
+    @Comment("일일 식사 일정별 최대 수량")
     private List<MakersCapacity> makersCapacities;
 
     @Convert(converter = ServiceTypeConverter.class)

@@ -1,11 +1,11 @@
-package co.dalicious.domain.food.mapper;
+package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
 import co.dalicious.system.util.enums.FoodTag;
 import co.dalicious.domain.food.util.FoodUtil;
-import co.dalicious.domain.makers.entity.Makers;
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.enums.DiscountType;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
@@ -24,7 +24,6 @@ public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.food.id", target = "foodId")
       @Mapping(source = "dailyFood.food.name", target = "foodName")
       @Mapping(source = "dailyFood.dailyFoodStatus", target = "status", qualifiedByName = "getStatus")
-      @Mapping(source = "dailyFood.capacity", target = "capacity")
       @Mapping(source = "spotId", target = "spotId")
       @Mapping(source = "dailyFood.serviceDate", target = "serviceDate", qualifiedByName = "serviceDateToString")
       @Mapping(source = "dailyFood", target = "makersName", qualifiedByName = "getMakersName")

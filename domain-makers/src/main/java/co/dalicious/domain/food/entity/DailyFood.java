@@ -36,14 +36,6 @@ public class DailyFood {
     @Comment("식사 일정")
     private DiningType diningType;
 
-    @Column(columnDefinition = "INT DEFAULT 0")
-    @Comment("음식 공급 수량")
-    private Integer maxCapacity;
-
-    @Column(columnDefinition = "INT DEFAULT 0")
-    @Comment("남은 주문 가능 수량")
-    private Integer capacity;
-
     @Convert(converter = DailyFoodStatusConverter.class)
     @Column(name = "e_status")
     @Comment("음식 상태(0. 판매종료 1. 판매중, 2. 주문마감, 3. 일정요청, 4. 일정승인, 5. 등록대기)")
@@ -77,15 +69,5 @@ public class DailyFood {
 
     public void updateFoodStatus(DailyFoodStatus dailyFoodStatus) {
         this.dailyFoodStatus = dailyFoodStatus;
-    }
-
-    public Integer subtractCapacity(Integer foodCount) {
-        this.capacity = this.capacity - foodCount;
-        return this.capacity;
-    }
-
-    public Integer addCapacity(Integer foodCount) {
-        this.capacity = this.capacity + foodCount;
-        return this.capacity;
     }
 }

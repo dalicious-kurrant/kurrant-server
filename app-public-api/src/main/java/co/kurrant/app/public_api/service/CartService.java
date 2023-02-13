@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface CartService {
 
-    Integer saveOrderCart(SecurityUser securityUser, List<CartDto> cartDtoList);
+    CartDto.Response saveOrderCart(SecurityUser securityUser, List<CartDto> cartDtoList);
 
     CartResDto findUserCart(SecurityUser securityUser);
 

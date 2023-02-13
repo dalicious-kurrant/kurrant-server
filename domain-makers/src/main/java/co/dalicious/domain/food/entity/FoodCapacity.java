@@ -1,6 +1,5 @@
 package co.dalicious.domain.food.entity;
 
-import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
