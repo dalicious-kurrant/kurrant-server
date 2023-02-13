@@ -39,7 +39,8 @@ public class FoodServiceImpl implements FoodService {
         List<FoodListDto> dtoList = new ArrayList<>();
 
         for(Food food : allFoodList) {
-            FoodListDto dto = toDto(food);
+            BigDecimal resultPrice = calculate(food);
+            FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, resultPrice);
             dtoList.add(dto);
         }
 
@@ -58,15 +59,17 @@ public class FoodServiceImpl implements FoodService {
         // 상품 dto에 담기
         List<FoodListDto> dtoList = new ArrayList<>();
         for(Food food : foodListByMakers) {
-            FoodListDto dto = toDto(food);
+            BigDecimal resultPrice = calculate(food);
+            FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, resultPrice);
             dtoList.add(dto);
         }
 
         return dtoList;
     }
 
+    // 할인된 금액 계산
     @Transactional
-    FoodListDto toDto(Food food) {
+    BigDecimal calculate(Food food) {
         // 할인률 계산
         BigDecimal defaultPrice = BigDecimal.ZERO;
         BigDecimal makersDiscountPrice = BigDecimal.ZERO;
@@ -86,17 +89,17 @@ public class FoodServiceImpl implements FoodService {
             makersDiscountPrice = makersDiscountPrice.add(defaultPrice).multiply(BigDecimal.valueOf(makersRate * 0.01));
         }
         //eventDiscount
-        FoodDiscountPolicy evnetDiscount = discountPolicyList.stream()
+        FoodDiscountPolicy eventDiscount = discountPolicyList.stream()
                 .filter(policy -> policy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT))
                 .findFirst().orElse(null);
         Integer eventRate = null;
-        if(evnetDiscount != null) {
-            eventRate = evnetDiscount.getDiscountRate();
+        if(eventDiscount != null) {
+            eventRate = eventDiscount.getDiscountRate();
             eventDiscountPrice = eventDiscountPrice.add(defaultPrice).multiply(BigDecimal.valueOf(eventRate * 0.01));
         }
 
         resultPrice = resultPrice.add(defaultPrice).subtract(makersDiscountPrice).subtract(eventDiscountPrice);
 
-        return makersFoodMapper.toAllFoodListDto(food, makersRate, eventRate, resultPrice);
+        return resultPrice;
     }
 }
