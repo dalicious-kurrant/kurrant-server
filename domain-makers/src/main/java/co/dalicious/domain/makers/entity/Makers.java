@@ -7,7 +7,10 @@ import co.dalicious.domain.makers.converter.ServiceTypeConverter;
 import co.dalicious.domain.makers.entity.enums.Origin;
 import co.dalicious.domain.makers.entity.enums.ServiceForm;
 import co.dalicious.domain.makers.entity.enums.ServiceType;
+import co.dalicious.domain.user.converter.RoleConverter;
+import co.dalicious.domain.user.entity.enums.Role;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +21,6 @@ import java.math.BigInteger;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -126,6 +128,18 @@ public class Makers {
     @Column(name = "updated_datetime", nullable = false, insertable = false, updatable = false,
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) ON UPDATE NOW(6) COMMENT '수정일'")
     private Timestamp updatedDateTime;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Column(name = "password",
+            columnDefinition = "VARCHAR(255)")
+    @Comment("비밀번호, BCrpypt")
+    private String password;
+
+    @NotNull
+    @Convert(converter = RoleConverter.class)
+    @Column(name = "e_role")
+    @Comment("유저 타입")
+    private Role role;
 
     @Builder
     Makers(BigInteger id, String name){
