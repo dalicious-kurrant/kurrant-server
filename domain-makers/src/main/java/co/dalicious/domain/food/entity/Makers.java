@@ -1,14 +1,15 @@
-package co.dalicious.domain.makers.entity;
+package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.file.entity.embeddable.Image;
-import co.dalicious.domain.makers.converter.ServiceFormConverter;
-import co.dalicious.domain.makers.converter.ServiceTypeConverter;
-import co.dalicious.domain.makers.entity.enums.Origin;
-import co.dalicious.domain.makers.entity.enums.ServiceForm;
-import co.dalicious.domain.makers.entity.enums.ServiceType;
+import co.dalicious.domain.food.converter.ServiceFormConverter;
+import co.dalicious.domain.food.converter.ServiceTypeConverter;
+import co.dalicious.domain.food.entity.enums.Origin;
+import co.dalicious.domain.food.entity.enums.ServiceForm;
+import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.domain.user.converter.RoleConverter;
 import co.dalicious.domain.user.entity.enums.Role;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -38,9 +39,9 @@ public class Makers {
     @Column(columnDefinition = "BIGINT UNSIGNED")
     @Comment("ID")
     private BigInteger id;
+
     @Comment("그룹 코드")
     private String code;
-
     @Column(name = "name")
     @Comment("메이커스 이름")
     private String name;
@@ -60,8 +61,10 @@ public class Makers {
     @Comment("담당자 전화번호")
     private String managerPhone;
 
-    @Comment("일일 최대 수량")
-    private Integer dailyCapacity;
+    @OneToMany(mappedBy = "makers", orphanRemoval = true)
+    @JsonBackReference(value = "makers_fk")
+    @Comment("일일 식사 일정별 최대 수량")
+    private List<MakersCapacity> makersCapacities;
 
     @Convert(converter = ServiceTypeConverter.class)
     @Column(name = "e_service_type")
@@ -101,6 +104,7 @@ public class Makers {
 
     @Comment("영업 종료 시간")
     private LocalTime closeTime;
+
     @Comment("은행")
     private String bank;
 

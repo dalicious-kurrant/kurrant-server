@@ -7,6 +7,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
@@ -379,7 +380,8 @@ public class UserServiceImpl implements UserService {
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllMealScheduleByUser(user);
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             if(orderItemDailyFood.getDailyFood().getServiceDate().equals(LocalDate.now())) {
-                Optional<MealInfo> mealInfo = orderItemDailyFood.getDailyFood().getSpot().getMealInfos().stream()
+                OrderDailyFood orderDailyFood = (OrderDailyFood) orderItemDailyFood.getOrder();
+                Optional<MealInfo> mealInfo = orderDailyFood.getSpot().getMealInfos().stream()
                         .filter(v -> v.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType())).findAny();
                 if(mealInfo.isEmpty()) {
                     throw new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO);

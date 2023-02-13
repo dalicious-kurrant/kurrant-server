@@ -33,8 +33,6 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "orderDailyFood.point", target = "point")
     @Mapping(source = "orderDailyFood.totalPrice", target = "totalPrice")
     @Mapping(source = "orderDailyFood", target = "discountPrice", qualifiedByName = "getDiscountedPrice")
-    @Mapping(source = "orderDailyFood.creditCardInfo.cardNumber", target = "cardNumber", qualifiedByName = "getCardEndNumber")
-    @Mapping(source = "orderDailyFood.creditCardInfo.cardCompany", target = "cardCompany")
     @Mapping(source = "orderItems", target = "orderItems")
     @Mapping(source = "orderDailyFood.receiptUrl", target = "receiptUrl")
     @Mapping(source = "refundDto", target = "refundDto")
