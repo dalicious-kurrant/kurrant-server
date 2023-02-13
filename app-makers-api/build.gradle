@@ -1,0 +1,29 @@
+jar {
+    enabled = false
+}
+
+bootJar{
+    archivesBaseName = 'app-makers-api'
+    archiveFileName = 'app-makers-api.jar'
+    archiveVersion = "0.0.0"
+}
+
+dependencies {
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.6.11'
+
+    implementation 'com.querydsl:querydsl-jpa:4.4.0'
+    implementation "com.querydsl:querydsl-core:4.4.0"
+
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.25.6'
+
+    implementation 'io.springfox:springfox-boot-starter:3.0.0'
+    implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+
+    implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+}

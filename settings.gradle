@@ -31,6 +31,7 @@ include 'domain-review'
 
 include 'app-public-api'
 include 'app-admin-api'
+include 'app-makers-api'
 
 include 'data-redis'
 
