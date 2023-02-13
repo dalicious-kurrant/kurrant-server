@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.mapper;
 
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.domain.user.entity.User;
@@ -11,7 +12,6 @@ public interface CartDailyFoodMapper {
     @Mapping(source = "user", target = "user")
     @Mapping(source = "dailyFood", target = "dailyFood")
     @Mapping(source = "count", target = "count")
-    @Mapping(source = "dailyFood.group", target = "group")
-    @Mapping(source = "dailyFood.spot", target = "spot")
-    CartDailyFood toEntity(User user, Integer count, DailyFood dailyFood);
+    @Mapping(source = "spot", target = "spot")
+    CartDailyFood toEntity(User user, Integer count, DailyFood dailyFood, Spot spot);
 }

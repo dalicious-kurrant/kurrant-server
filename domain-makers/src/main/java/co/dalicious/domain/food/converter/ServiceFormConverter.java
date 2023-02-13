@@ -1,7 +1,6 @@
-package co.dalicious.domain.makers.converter;
+package co.dalicious.domain.food.converter;
 
-import co.dalicious.domain.makers.entity.enums.ServiceForm;
-import co.dalicious.domain.makers.entity.enums.ServiceType;
+import co.dalicious.domain.food.entity.enums.ServiceForm;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

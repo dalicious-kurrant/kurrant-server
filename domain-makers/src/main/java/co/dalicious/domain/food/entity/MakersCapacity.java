@@ -1,4 +1,4 @@
-package co.dalicious.domain.makers.entity;
+package co.dalicious.domain.food.entity;
 
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.enums.DiningType;

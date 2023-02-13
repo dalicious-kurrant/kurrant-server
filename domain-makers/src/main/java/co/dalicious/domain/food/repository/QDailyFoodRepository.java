@@ -4,6 +4,7 @@ package co.dalicious.domain.food.repository;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.system.util.enums.DiningType;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -47,12 +48,14 @@ public class QDailyFoodRepository {
                 )
                 .fetch();
     }
-}
 
-//    private BooleanExpression eqCreatedAt(String selectedDate){
-//        if(!StringUtils.hasText(selectedDate)) return null;
-//        else{
-//            LocalDate date = LocalDate.parse(selectedDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-//            return dailyFood.created.between(date.atStartOfDay().toLocalDate(), LocalDateTime.of(date, LocalTime.MAX).toLocalDate());
-//        }
+    public List<DailyFood> findAllByMakersAndServiceDateAndDiningType(Makers makers, LocalDate serviceDate, DiningType diningType) {
+        return queryFactory
+                .selectFrom(dailyFood)
+                .where(dailyFood.food.makers.eq(makers),
+                        dailyFood.serviceDate.eq(serviceDate),
+                        dailyFood.diningType.eq(diningType))
+                .fetch();
+    }
+}
 

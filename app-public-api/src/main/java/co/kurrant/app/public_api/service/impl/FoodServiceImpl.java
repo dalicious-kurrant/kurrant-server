@@ -10,13 +10,14 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.food.mapper.FoodMapper;
+import co.dalicious.domain.order.mapper.FoodMapper;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.domain.food.mapper.DailyFoodMapper;
+import co.dalicious.domain.order.mapper.DailyFoodMapper;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -42,6 +43,7 @@ public class FoodServiceImpl implements FoodService {
     private final FoodMapper foodMapper;
     private final SpotRepository spotRepository;
     private final DailyFoodRepository dailyFoodRepository;
+    private final OrderDailyFoodUtil orderDailyFoodUtil;
 
 
     @Override
@@ -81,6 +83,7 @@ public class FoodServiceImpl implements FoodService {
 
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), dailyFood.getFood());
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
+                dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
                 dailyFoodDtos.add(dailyFoodDto);
             }
             return RetrieveDailyFoodDto.builder()
@@ -108,6 +111,7 @@ public class FoodServiceImpl implements FoodService {
 
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), dailyFood.getFood());
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
+                dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
                 dailyFoodDtos.add(dailyFoodDto);
             }
             return RetrieveDailyFoodDto.builder()
@@ -127,7 +131,9 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
         DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getGroup(), dailyFood.getFood());
-        return foodMapper.toDto(dailyFood, discountDto);
+        FoodDetailDto foodDetailDto = foodMapper.toDto(dailyFood, discountDto);
+        foodDetailDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
+        return foodDetailDto;
     }
 
     @Override

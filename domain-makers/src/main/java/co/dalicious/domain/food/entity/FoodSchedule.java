@@ -1,8 +1,9 @@
-package co.dalicious.domain.makers.entity;
+package co.dalicious.domain.food.entity;
 
 
 import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.enums.DiningType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,8 @@ import java.time.LocalDate;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MakersSchedule {
+@Schema(description = "식사 일정별 음식 제조 가능 수량. 음식 개수 제한을 메이커스가 설정한 경우 생성")
+public class FoodSchedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED")
@@ -36,4 +38,9 @@ public class MakersSchedule {
     @JoinColumn
     @Comment("메이커스")
     private Makers makers;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn
+    @Comment("음식")
+    private Food food;
 }

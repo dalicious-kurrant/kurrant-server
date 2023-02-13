@@ -1,6 +1,6 @@
-package co.dalicious.domain.makers.entity.enums;
+package co.dalicious.domain.food.entity.enums;
 
-import co.dalicious.domain.makers.entity.Makers;
+import co.dalicious.domain.food.entity.Makers;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,7 +12,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import javax.validation.constraints.NotNull;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
