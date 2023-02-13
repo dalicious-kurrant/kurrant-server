@@ -1,7 +1,7 @@
 package co.kurrant.app.makers_api.dto;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
-import co.dalicious.domain.makers.entity.Makers;
+import co.dalicious.domain.food.entity.Makers;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;

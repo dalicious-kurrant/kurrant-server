@@ -23,6 +23,7 @@ public class SecurityUser implements UserDetails {
     private BigInteger id;
     private String name;
     private String password;
+    private String code;
     private Role role;
 
 

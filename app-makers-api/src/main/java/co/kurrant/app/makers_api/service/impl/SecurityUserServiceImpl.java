@@ -1,6 +1,8 @@
 package co.kurrant.app.makers_api.service.impl;
 
-import co.dalicious.domain.makers.repository.MakersRepository;
+import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.repository.MakersRepository;
+import co.kurrant.app.makers_api.model.SecurityUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -11,10 +13,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SecurityUserServiceImpl implements UserDetailsService {
 
-    private MakersRepository makersRepository;
+    private final MakersRepository makersRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return null;
+        Makers makers = makersRepository.findByCode(username);
+        if(makers == null){
+            throw new UsernameNotFoundException(username);
+        }
+        return new SecurityUser(makers.getId(), makers.getName(), makers.getPassword(), makers.getCode(), makers.getRole());
     }
 }
