@@ -242,19 +242,11 @@ project(':domain-file') {
     }
 }
 
-project(':domain-food') {
-    dependencies {
-        implementation project(':system-core')
-        implementation project(':domain-client')
-        implementation project(':domain-makers')
-        implementation project(':domain-file')
-    }
-}
-
 project(':domain-makers') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-address')
+        implementation project(':domain-client')
         implementation project(':domain-file')
     }
 }
@@ -279,7 +271,6 @@ project(':domain-order') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
-        implementation project(':domain-food')
         implementation project(':domain-makers')
         implementation project(':domain-file')
         implementation project(':domain-address')
@@ -331,7 +322,6 @@ project(':domain-review') {
         implementation project(':system-core')
         implementation project(':domain-user')
         implementation project(':domain-order')
-        implementation project(':domain-food')
         implementation project(':domain-makers')
         implementation project(':domain-file')
     }

@@ -1,4 +1,4 @@
-package co.dalicious.domain.makers.entity.enums;
+package co.dalicious.domain.food.entity.enums;
 
 import exception.ApiException;
 import exception.ExceptionEnum;

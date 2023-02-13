@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
@@ -9,13 +10,14 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.food.mapper.FoodMapper;
+import co.dalicious.domain.order.mapper.FoodMapper;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.domain.food.mapper.DailyFoodMapper;
+import co.dalicious.domain.order.mapper.DailyFoodMapper;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -41,6 +43,7 @@ public class FoodServiceImpl implements FoodService {
     private final FoodMapper foodMapper;
     private final SpotRepository spotRepository;
     private final DailyFoodRepository dailyFoodRepository;
+    private final OrderDailyFoodUtil orderDailyFoodUtil;
 
 
     @Override
@@ -52,9 +55,11 @@ public class FoodServiceImpl implements FoodService {
         Spot spot = spotRepository.findById(spotId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
         );
+        // 그룹 정보 가져오기
+        Group group = spot.getGroup();
         // 유저가 그 그룹의 스팟에 포함되는지 확인.
         List<UserGroup> userGroups = user.getGroups();
-        userGroups.stream().filter(v -> v.getGroup().equals(spot.getGroup()) && v.getClientStatus().equals(ClientStatus.BELONG))
+        userGroups.stream().filter(v -> v.getGroup().equals(group) && v.getClientStatus().equals(ClientStatus.BELONG))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
         List<DailyFood> dailyFoodList;
@@ -65,7 +70,7 @@ public class FoodServiceImpl implements FoodService {
 
         if(diningTypeCode != null) {
             DiningType diningType = DiningType.ofCode(diningTypeCode);
-            dailyFoodList = qDailyFoodRepository.findAllBySpotAndSelectedDateAndDiningType(spot, selectedDate, diningType);
+            dailyFoodList = qDailyFoodRepository.findAllByGroupAndSelectedDateAndDiningType(group, selectedDate, diningType);
 
             for (DailyFood dailyFood : dailyFoodList) {
                 // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
@@ -77,7 +82,8 @@ public class FoodServiceImpl implements FoodService {
                 }
 
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), dailyFood.getFood());
-                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood, discountDto);
+                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
+                dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
                 dailyFoodDtos.add(dailyFoodDto);
             }
             return RetrieveDailyFoodDto.builder()
@@ -92,7 +98,7 @@ public class FoodServiceImpl implements FoodService {
             }
             // 결과값을 담아줄 LIST 생성
             // 조건에 맞는 DailyFood 조회
-            dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(spotId, selectedDate);
+            dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(group, selectedDate);
             // 값이 있다면 결과값으로 담아준다.
             for (DailyFood dailyFood : dailyFoodList) {
                 // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
@@ -104,7 +110,8 @@ public class FoodServiceImpl implements FoodService {
                 }
 
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), dailyFood.getFood());
-                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(dailyFood, discountDto);
+                DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
+                dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
                 dailyFoodDtos.add(dailyFoodDto);
             }
             return RetrieveDailyFoodDto.builder()
@@ -123,8 +130,10 @@ public class FoodServiceImpl implements FoodService {
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
-        DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getSpot().getGroup(), dailyFood.getFood());
-        return foodMapper.toDto(dailyFood, discountDto);
+        DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getGroup(), dailyFood.getFood());
+        FoodDetailDto foodDetailDto = foodMapper.toDto(dailyFood, discountDto);
+        foodDetailDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
+        return foodDetailDto;
     }
 
     @Override

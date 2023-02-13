@@ -1,9 +1,12 @@
 package co.dalicious.domain.order.entity.enums;
 
+import co.dalicious.domain.order.entity.Order;
 import lombok.Getter;
 import org.hibernate.boot.model.naming.IllegalIdentifierException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Getter
 public enum OrderStatus {
@@ -34,5 +37,15 @@ public enum OrderStatus {
                 .filter(v -> v.getCode().equals(code))
                 .findAny()
                 .orElseThrow( () -> new IllegalIdentifierException("존재하지 않은 주문 상태 타입입니다."));
+    }
+
+    public static List<OrderStatus> completePayment() {
+        List<OrderStatus> orderStatuses = new ArrayList<>();
+        orderStatuses.add(OrderStatus.COMPLETED);
+        orderStatuses.add(OrderStatus.WAIT_DELIVERY);
+        orderStatuses.add(OrderStatus.DELIVERING);
+        orderStatuses.add(OrderStatus.DELIVERED);
+        orderStatuses.add(OrderStatus.RECEIPT_COMPLETE);
+        return orderStatuses;
     }
 }

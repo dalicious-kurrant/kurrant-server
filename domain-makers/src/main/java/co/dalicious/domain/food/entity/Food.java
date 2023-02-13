@@ -4,7 +4,6 @@ import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.system.util.converter.FoodTagsConverter;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
 import co.dalicious.system.util.enums.FoodTag;
-import co.dalicious.domain.makers.entity.Makers;
 import co.dalicious.domain.food.converter.FoodStatusConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -52,7 +51,10 @@ public class Food {
     @Comment("이미지 경로")
     private Image image;
 
-    private Integer maxCapacity;
+    @OneToMany(mappedBy = "food", orphanRemoval = true)
+    @JsonBackReference(value = "food_fk")
+    @Comment("식사 일정별 가능 수량")
+    private List<FoodCapacity> foodCapacities;
 
     @OneToMany(mappedBy = "food", orphanRemoval = true)
     @JsonBackReference(value = "food_fk")

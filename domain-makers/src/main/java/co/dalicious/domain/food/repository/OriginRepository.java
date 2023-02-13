@@ -1,6 +1,6 @@
 package co.dalicious.domain.food.repository;
 
-import co.dalicious.domain.makers.entity.enums.Origin;
+import co.dalicious.domain.food.entity.enums.Origin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

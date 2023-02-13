@@ -9,7 +9,9 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
+import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.*;
@@ -18,6 +20,7 @@ import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.mapper.*;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
+import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.dto.PaymentConfirmDto;
@@ -50,7 +53,6 @@ import org.springframework.util.MultiValueMap;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.TextStyle;
 import java.util.*;
@@ -83,6 +85,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderRepository orderRepository;
     private final SseService sseService;
     private final NotificationHashRepository notificationHashRepository;
+    private final OrderDailyFoodUtil orderDailyFoodUtil;
+    private final QDailyFoodRepository qDailyFoodRepository;
 
     @Override
     @Transactional
@@ -200,13 +204,22 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 orderItemGroupTotalPrice = orderItemGroupTotalPrice.add(dailyFoodPrice);
                 totalDailyFoodPrice = totalDailyFoodPrice.add(dailyFoodPrice);
 
-                // 주문 개수 차감
-                Integer capacity = selectedCartDailyFood.getDailyFood().subtractCapacity(cartDailyFood.getCount());
-                if (capacity < 0) {
+                // 주문 가능 수량이 일치하는지 확인
+                FoodCountDto foodCountDto = orderDailyFoodUtil.getRemainFoodCount(selectedCartDailyFood.getDailyFood());
+                if (foodCountDto.getRemainCount() - cartDailyFood.getCount() < 0) {
                     throw new ApiException(ExceptionEnum.OVER_ITEM_CAPACITY);
                 }
-                if (capacity == 0) {
-                    selectedCartDailyFood.getDailyFood().updateFoodStatus(DailyFoodStatus.SOLD_OUT);
+                if (foodCountDto.getRemainCount() - cartDailyFood.getCount() == 0 ) {
+                    if(foodCountDto.getIsFollowingMakersCapacity()) {
+                        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByMakersAndServiceDateAndDiningType(selectedCartDailyFood.getDailyFood().getFood().getMakers(),
+                                selectedCartDailyFood.getDailyFood().getServiceDate(), selectedCartDailyFood.getDailyFood().getDiningType());
+                        for (DailyFood dailyFood : dailyFoods) {
+                            dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
+                        }
+                    }
+                    else {
+                        selectedCartDailyFood.getDailyFood().updateFoodStatus(DailyFoodStatus.SOLD_OUT);
+                    }
                 }
             }
 
@@ -425,7 +438,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
             }
             orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
-            orderItemDailyFood.getDailyFood().addCapacity(orderItemDailyFood.getCount());
 
             if(refundPriceDto.getIsLastItemOfGroup()) {
                 orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
@@ -483,7 +495,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
         orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
-        orderItemDailyFood.getDailyFood().addCapacity(orderItemDailyFood.getCount());
 
         if(refundPriceDto.getIsLastItemOfGroup()) {
             orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
