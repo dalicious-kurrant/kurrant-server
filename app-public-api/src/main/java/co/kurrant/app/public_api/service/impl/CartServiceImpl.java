@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.repository.MealInfoRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -14,6 +15,7 @@ import co.dalicious.domain.order.mapper.CartDailyFoodMapper;
 import co.dalicious.domain.order.mapper.CartDailyFoodsResMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
+import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
@@ -53,16 +55,17 @@ public class CartServiceImpl implements CartService {
     private final CartDailyFoodsResMapper cartDailyFoodsResMapper;
     private final DeliveryFeePolicy deliveryFeePolicy;
     private final SpotRepository spotRepository;
+    private final OrderDailyFoodUtil orderDailyFoodUtil;
+
     @Override
     @Transactional
-    public Integer saveOrderCart(SecurityUser securityUser, List<CartDto> cartDtoList) {
+    public CartDto.Response saveOrderCart(SecurityUser securityUser, List<CartDto> cartDtoList) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
         List<BigInteger> dailyFoodIds = new ArrayList<>();
         for (CartDto cartDto : cartDtoList) {
             dailyFoodIds.add(cartDto.getDailyFoodId());
         }
-        List<CartDailyFoodDto.DailyFood> dailyFoodDtos = new ArrayList<>();
 
         // DailyFood 가져오기
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByFoodIds(dailyFoodIds);
@@ -72,16 +75,16 @@ public class CartServiceImpl implements CartService {
         }
 
         // TODO: 상품마다 주문시간이 다른 경우가 존재하는지 확인
-        List<MealInfo> mealInfos = dailyFoods.get(0).getSpot().getMealInfos();
-        MealInfo mealInfo = mealInfos.stream().filter(v -> v.getDiningType().equals(dailyFoods.get(0).getDiningType()))
+        Spot spot = spotRepository.findById(cartDtoList.get(0).getSpotId()).orElseThrow(
+                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
+        );
+        MealInfo mealInfo = spot.getMealInfos().stream().filter(v -> v.getDiningType().equals(dailyFoods.get(0).getDiningType()))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        // 장바구니에 이미 같은 상품이 존재한다면 가져오기
-        List<CartDailyFood> cartDailyFoods = qOrderCartItemRepository.findByUserAndDailyFoods(user, dailyFoods);
-        List<CartDailyFood> cartDailyFoodList = cartDailyFoodRepository.findAllByUser(user);
-        Integer cartCount = cartDailyFoodList.size();
-
+        List<CartDailyFood> cartDailyFoods = cartDailyFoodRepository.findAllByUser(user);
+        Integer cartCount = cartDailyFoods.size();
+        List<CartDto.DailyFoodCount> dailyFoodCountList = new ArrayList<>();
         for (CartDto cartDto : cartDtoList) {
             DailyFood dailyFood = dailyFoods.stream().filter(v -> v.getId().equals(cartDto.getDailyFoodId()))
                     .findAny()
@@ -93,15 +96,17 @@ public class CartServiceImpl implements CartService {
                 throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
             }
 
-            // 상품이 품절되었는지 확인하기
+            // TODO: 변경 필요
             if (!dailyFood.getDailyFoodStatus().equals(DailyFoodStatus.SALES)) {
                 throw new ApiException(ExceptionEnum.SOLD_OUT);
             }
 
-            // 장바구니에 담는 상품이 재고보다 많은지 확인하기
-            if(dailyFood.getMaxCapacity() < cartDto.getCount() || dailyFood.getCapacity() < cartDto.getCount()) {
+            FoodCountDto foodCountDto = orderDailyFoodUtil.getRemainFoodCount(dailyFood);
+            if(foodCountDto.getRemainCount() < cartDto.getCount()) {
                 throw new ApiException(ExceptionEnum.OVER_ITEM_CAPACITY);
             }
+
+            dailyFoodCountList.add(new CartDto.DailyFoodCount(dailyFood.getId(), foodCountDto.getRemainCount()));
 
             // DailyFood가 중복될 경우는 추가하지 않고 count 수만큼 수량 증가 처리
             Optional<CartDailyFood> optionalCartDailyFood = cartDailyFoods.stream().filter(v -> v.getDailyFood().equals(dailyFood))
@@ -112,11 +117,11 @@ public class CartServiceImpl implements CartService {
             }
             else {
                 // 중복되는 DailyFood가 장바구니에 존재하지 않는다면 추가하기
-                CartDailyFood cartDailyFood = cartDailyFoodRepository.save(orderCartDailyFoodMapper.toEntity(user, cartDto.getCount(), dailyFood));
+                CartDailyFood cartDailyFood = cartDailyFoodRepository.save(orderCartDailyFoodMapper.toEntity(user, cartDto.getCount(), dailyFood, spot));
                 cartCount += 1;
             }
         }
-        return cartCount;
+        return new CartDto.Response(cartCount, dailyFoodCountList);
     }
 
     @Override
@@ -158,6 +163,7 @@ public class CartServiceImpl implements CartService {
                 // CartDailyFood Dto화
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, cartDailyFood.getDailyFood().getFood());
                 CartDailyFoodDto.DailyFood cartFood = cartDailyFoodsResMapper.toDto(cartDailyFood, discountDto);
+                cartFood.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
                 cartDailyFoodDtoMap.add(diningTypeServiceDateDto, cartFood);
             }
             // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기

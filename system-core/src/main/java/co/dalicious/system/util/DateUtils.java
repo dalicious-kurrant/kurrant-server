@@ -1,10 +1,14 @@
 package co.dalicious.system.util;
 
+import co.dalicious.system.util.enums.Days;
+
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -69,11 +73,20 @@ public class DateUtils {
     }
 
     public static String timeToStringWithAMPM(LocalTime time) {
-        return time.format(DateTimeFormatter.ofPattern("HH:mm a"));
+        return time.format(DateTimeFormatter.ofPattern("hh:mm a"));
     }
 
     public static LocalDate stringToDate(String strLocalDate) {
         String[] stringList = strLocalDate.split("-");
         return LocalDate.of(Integer.parseInt(stringList[0]),Integer.parseInt(stringList[1]), Integer.parseInt(stringList[2]));
+    }
+
+    public static String localDateToString(LocalDate date) { return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); }
+
+    public static long calculatedDDay(String limitDay, String today) throws ParseException {
+        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date limit = new Date(parseFormat.parse(limitDay).getTime());
+        Date present = new Date(parseFormat.parse(today).getTime());
+        return (limit.getTime() - present.getTime()) / (24 * 60 * 60 * 1000);
     }
 }

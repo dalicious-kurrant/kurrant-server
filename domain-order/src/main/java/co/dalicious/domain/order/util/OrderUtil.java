@@ -230,7 +230,7 @@ public class OrderUtil {
             refundSupportPrice = refundSupportPrice.add(getRefundSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories()));
         }
         refundPayPrice = refundItemPrice.subtract(refundSupportPrice);
-        refundTotalPrice = refundCardPrice.add(refundDeliveryFee).add(refundTotalPoint);
+        refundTotalPrice = refundCardPrice.add(refundTotalPoint);
         return new OrderDailyFoodDetailDto.RefundDto(refundPayPrice, refundItemPrice, refundSupportPrice, refundDeliveryFee, refundDeduction, refundTotalPrice, refundCardPrice, refundTotalPoint);
     }
 

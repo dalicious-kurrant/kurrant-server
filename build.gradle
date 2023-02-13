@@ -177,13 +177,13 @@ project(':app-public-api') {
         implementation project(':domain-user')
         implementation project(':domain-application-form')
         implementation project(':domain-address')
-        implementation project(':domain-food')
         implementation project(':domain-makers')
         implementation project(':domain-client')
         implementation project(':domain-order')
         implementation project(':domain-board')
         implementation project(':domain-file')
         implementation project(':domain-payment')
+        implementation project(':domain-review')
         implementation project(':client-external-mail')
         implementation project(':client-external-sms')
         implementation project(':data-redis')
@@ -198,7 +198,7 @@ project(':app-admin-api') {
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
-        implementation project(':domain-food')
+        implementation project(':domain-makers')
     }
 }
 
@@ -241,19 +241,11 @@ project(':domain-file') {
     }
 }
 
-project(':domain-food') {
-    dependencies {
-        implementation project(':system-core')
-        implementation project(':domain-client')
-        implementation project(':domain-makers')
-        implementation project(':domain-file')
-    }
-}
-
 project(':domain-makers') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-address')
+        implementation project(':domain-client')
         implementation project(':domain-file')
     }
 }
@@ -278,7 +270,6 @@ project(':domain-order') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
-        implementation project(':domain-food')
         implementation project(':domain-makers')
         implementation project(':domain-file')
         implementation project(':domain-address')
@@ -322,5 +313,15 @@ project(':client-sse') {
         implementation project(':system-core')
         implementation project(':data-redis')
         implementation project(':domain-user')
+    }
+}
+
+project(':domain-review') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-user')
+        implementation project(':domain-order')
+        implementation project(':domain-makers')
+        implementation project(':domain-file')
     }
 }

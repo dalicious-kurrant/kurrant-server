@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.repository;
 
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.User;
@@ -12,6 +13,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.food.entity.QFood.food;
+import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 
 
@@ -53,5 +57,51 @@ public class QOrderDailyFoodRepository {
                 .where(orderItemDailyFood.order.user.eq(user),
                         orderItemDailyFood.dailyFood.serviceDate.goe(LocalDate.now()))
                 .fetch();
+    }
+
+    public OrderItemDailyFood findByUserAndDailyFood(User user, DailyFood dailyFood) {
+        return queryFactory
+                .selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.order.user.eq(user),
+                        orderItemDailyFood.dailyFood.eq(dailyFood))
+                .fetchOne();
+    }
+
+    public List<OrderItemDailyFood> findAllByUserAndOrderStatus(User user, OrderStatus orderStatus) {
+        return  queryFactory
+                .selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.order.user.eq(user),
+                        orderItemDailyFood.orderStatus.eq(orderStatus))
+                .fetch();
+    }
+
+    public Integer getFoodCount(DailyFood selectedDailyFood) {
+        int count = 0;
+        List<OrderItemDailyFood> orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.dailyFood.food.eq(selectedDailyFood.getFood()),
+                        orderItemDailyFood.dailyFood.serviceDate.eq(selectedDailyFood.getServiceDate()),
+                        orderItemDailyFood.dailyFood.diningType.eq(selectedDailyFood.getDiningType()),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .fetch();
+        for (OrderItemDailyFood itemDailyFood : orderItemDailyFoods) {
+            count += itemDailyFood.getCount();
+        }
+        return count;
+    }
+    public Integer getMakersCount(DailyFood selectedDailyFood) {
+        int count = 0;
+        List<OrderItemDailyFood> orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .innerJoin(dailyFood.food, food)
+                .innerJoin(food.makers, makers)
+                .where(makers.eq(selectedDailyFood.getFood().getMakers()),
+                        dailyFood.serviceDate.eq(selectedDailyFood.getServiceDate()),
+                        dailyFood.diningType.eq(selectedDailyFood.getDiningType()),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .fetch();
+        for (OrderItemDailyFood itemDailyFood : orderItemDailyFoods) {
+            count += itemDailyFood.getCount();
+        }
+        return count;
     }
 }
