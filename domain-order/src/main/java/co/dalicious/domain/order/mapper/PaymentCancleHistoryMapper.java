@@ -23,8 +23,7 @@ public interface PaymentCancleHistoryMapper {
     @Mapping(source = "orderCode", target = "orderCode")
     @Mapping(source = "orderDailyItemFood.order", target = "order")
     @Mapping(source = "orderDailyItemFood", target = "orderItem")
-    @Mapping(source = "creditCardInfo", target = "creditCardInfo")
-    PaymentCancelHistory orderDailyItemFoodToEntity(String cancelReason, RefundPriceDto refundPriceDto, OrderItemDailyFood orderDailyItemFood, String checkOutUrl, String orderCode, BigDecimal refundablePrice, CreditCardInfo creditCardInfo);
+    PaymentCancelHistory orderDailyItemFoodToEntity(String cancelReason, RefundPriceDto refundPriceDto, OrderItemDailyFood orderDailyItemFood, String checkOutUrl, String orderCode, BigDecimal refundablePrice);
 
     @Mapping(target = "cancelDateTime", expression = "java(LocalDateTime.now())")
     @Mapping(source = "cancelReason", target = "cancelReason")
