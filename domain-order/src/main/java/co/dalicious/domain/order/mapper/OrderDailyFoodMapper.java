@@ -22,8 +22,7 @@ public interface OrderDailyFoodMapper {
     @Mapping(source = "spot.name", target = "spotName")
     @Mapping(source = "spot", target = "spot")
     @Mapping(target = "orderType", constant = "DAILYFOOD")
-    @Mapping(source = "creditCardInfo", target = "creditCardInfo")
-    OrderDailyFood toEntity(User user, Spot spot, CreditCardInfo creditCardInfo);
+    OrderDailyFood toEntity(User user, Spot spot);
 
     @Named("getCode")
     default String getCode(BigInteger userId) {

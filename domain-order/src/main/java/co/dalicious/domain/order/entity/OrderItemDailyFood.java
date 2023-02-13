@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 @Table(name = "order__order_item_dailyfood")
 public class OrderItemDailyFood extends OrderItem {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "food_id", nullable = false)
+    @JoinColumn(name = "daily_food_id")
     @Comment("식품 ID")
     private DailyFood dailyFood;
 

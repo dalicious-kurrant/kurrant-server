@@ -27,8 +27,6 @@ public class OrderDailyFoodDetailDto {
     private BigDecimal point;
     private BigDecimal totalPrice;
     private BigDecimal discountPrice;
-    private String cardNumber;
-    private String cardCompany;
     private String receiptUrl;
     private RefundDto refundDto;
     private List<OrderItem> orderItems;
