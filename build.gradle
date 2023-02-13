@@ -177,7 +177,6 @@ project(':app-public-api') {
         implementation project(':domain-user')
         implementation project(':domain-application-form')
         implementation project(':domain-address')
-        implementation project(':domain-food')
         implementation project(':domain-makers')
         implementation project(':domain-client')
         implementation project(':domain-order')
@@ -199,7 +198,7 @@ project(':app-admin-api') {
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
-        implementation project(':domain-food')
+        implementation project(':domain-makers')
     }
 }
 

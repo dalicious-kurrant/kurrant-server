@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
-import co.dalicious.client.oauth.AppleIPhoneLoginDto;
 import co.dalicious.data.redis.entity.BlackListTokenHash;
 import co.dalicious.data.redis.entity.RefreshTokenHash;
 import co.dalicious.data.redis.repository.BlackListTokenRepository;
@@ -26,7 +25,6 @@ import co.kurrant.app.public_api.service.AuthService;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserMapper;
 import co.kurrant.app.public_api.util.VerifyUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
@@ -297,6 +295,9 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.save(userMapper.toEntity(userDto));
 
+        // 등록된 사원인지 검증
+        clientUtil.isRegisteredUser(user);
+
         ProviderEmail newProviderEmail2 = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
         providerEmailRepository.save(newProviderEmail2);
         return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
@@ -338,6 +339,9 @@ public class AuthServiceImpl implements AuthService {
         UserDto userDto = UserDto.builder().role(Role.USER).email(email).name(name).build();
 
         User user = userRepository.save(userMapper.toEntity(userDto));
+
+        // 등록된 사원인지 검증
+        clientUtil.isRegisteredUser(user);
 
         ProviderEmail newProviderEmail2 = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
         providerEmailRepository.save(newProviderEmail2);
