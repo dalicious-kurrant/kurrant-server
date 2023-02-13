@@ -102,24 +102,19 @@ public class Order {
     @JsonBackReference(value = "order_fk")
     List<OrderItem> orderItems;
 
-    @ManyToOne(fetch = FetchType.LAZY,optional = false)
-    @JoinColumn
-    private CreditCardInfo creditCardInfo;
 
-    public Order(String code, PaymentType paymentType, OrderType orderType, CreditCardInfo creditCardInfo) {
+    public Order(String code, PaymentType paymentType, OrderType orderType) {
         this.orderType = orderType;
         this.code = code;
         this.paymentType = paymentType;
-        this.creditCardInfo = creditCardInfo;
     }
 
-    public Order(String code, OrderType orderType, Address address, PaymentType paymentType, User user, String receiptUrl, CreditCardInfo creditCardInfo) {
+    public Order(String code, OrderType orderType, Address address, PaymentType paymentType, User user, String receiptUrl) {
         this.code = code;
         this.orderType = orderType;
         this.address = address;
         this.paymentType = paymentType;
         this.user = user;
-        this.creditCardInfo = creditCardInfo;
         this.receiptUrl = receiptUrl;
     }
 

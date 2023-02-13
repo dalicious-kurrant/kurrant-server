@@ -14,8 +14,6 @@ import java.util.List;
 public class OrderItemDailyFoodReqDto {
     @Schema(description = "spotId")
     BigInteger spotId;
-    @Schema(description = "결제할 CardId")
-    BigInteger cardId;
     @Schema(description = "장바구니 목록")
     List<CartDailyFoodDto> cartDailyFoodDtoList;
     @Schema(description = "총 가격")
@@ -26,5 +24,11 @@ public class OrderItemDailyFoodReqDto {
     BigDecimal deliveryFee;
     @Schema(description = "사용할 포인트")
     BigDecimal userPoint;
+    @Schema(description = "토스 paymentKey")
+    private String paymentKey;
+    @Schema(description = "주문번호")
+    private String orderId;
+    @Schema(description = "결제할 가격")
+    private Integer amount;
 
 }

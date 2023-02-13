@@ -251,7 +251,7 @@ public class MembershipServiceImpl implements MembershipService {
 
     @Override
     @Transactional
-    public void refundMembership(User user, Order order, Membership membership) throws IOException, ParseException {
+    public void refundMembership(User user, Order order, Membership membership, OrderMembership orderMembership) throws IOException, ParseException {
         // TODO: 연간구독 해지시, membership endDate update.
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, membership.getStartDate(), membership.getEndDate());
 
@@ -283,7 +283,7 @@ public class MembershipServiceImpl implements MembershipService {
         }
 
         // 취소 내역 저장
-        PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemMembership(order.getPaymentKey(), order.getCreditCardInfo(), "멤버십 환불", orderItemMembership, refundPrice);
+        PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemMembership(order.getPaymentKey(), orderMembership.getCreditCardInfo(), "멤버십 환불", orderItemMembership, refundPrice);
         paymentCancelHistoryRepository.save(paymentCancelHistory);
     }
 
@@ -306,13 +306,16 @@ public class MembershipServiceImpl implements MembershipService {
         OrderItemMembership orderItemMembership = orderItemMembershipRepository.findOneByMembership(userCurrentMembership).orElseThrow(
                 () -> new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND)
         );
+        OrderMembership orderMembership = orderMembershipRepository.findOneByMembership(userCurrentMembership).orElseThrow(
+                () -> new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND)
+        );
 
         // 사용한 날짜 계산하기
         int membershipUsingDays = userCurrentMembership.getStartDate().until(LocalDate.now()).getDays();
 
         // 7일 이하일 경우 멤버십 환불
         if (membershipUsingDays <= 7) {
-            refundMembership(user, orderItemMembership.getOrder(), userCurrentMembership);
+            refundMembership(user, orderItemMembership.getOrder(), userCurrentMembership, orderMembership);
         }
         userCurrentMembership.changeAutoPaymentStatus(false);
     }
