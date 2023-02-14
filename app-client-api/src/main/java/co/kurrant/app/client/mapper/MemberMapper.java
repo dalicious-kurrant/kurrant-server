@@ -1,8 +1,10 @@
 package co.kurrant.app.client.mapper;
 
+import co.dalicious.domain.client.entity.Employee;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.kurrant.app.client.dto.MemberListResponseDto;
+import co.kurrant.app.client.dto.MemberWaitingListResponseDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -23,9 +25,21 @@ public interface MemberMapper {
     @Mapping(source = "user.isMembership", target = "isMembership")
     MemberListResponseDto toMemberListDto(User user, String groupName);
 
+
+    @Mapping(source = "employee.phone", target = "phone")
+    @Mapping(source = "employee.name", target = "name")
+    @Mapping(source = "employee.email", target = "email")
+    @Mapping(source = "employee.id", target = "id")
+    MemberWaitingListResponseDto toMemberWaitingListDto(Employee employee);
+
     @Named("userType")
     default String userType(Role role){
-        return role.getAuthority();
+        String result = "일반 사용자";
+        if (role.getAuthority().equals("ROLE_ADMIN")){
+            result = "관리자";
+        }
+
+    return result;
     }
 
 }

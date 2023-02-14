@@ -3,8 +3,8 @@ jar {
 }
 
 bootJar{
-	archivesBaseName = 'app-public-api'
-	archiveFileName = 'app-public-api.jar'
+	archivesBaseName = 'app-client-api'
+	archiveFileName = 'app-client-api.jar'
 	archiveVersion = "0.0.0"
 }
 
