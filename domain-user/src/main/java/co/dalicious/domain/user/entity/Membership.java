@@ -28,7 +28,7 @@ import java.util.List;
 public class Membership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
+    @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
     @NotNull
@@ -72,19 +72,13 @@ public class Membership {
     @JsonBackReference(value = "membership_fk")
     private List<MembershipDiscountPolicy> membershipDiscountPolicyList;
 
-    @Builder
-    public Membership(MembershipStatus membershipStatus, MembershipSubscriptionType membershipSubscriptionType, Boolean autoPayment) {
+
+    public Membership(MembershipStatus membershipStatus, MembershipSubscriptionType membershipSubscriptionType, LocalDate startDate, LocalDate endDate, Boolean autoPayment, User user) {
         this.membershipStatus = membershipStatus;
         this.membershipSubscriptionType = membershipSubscriptionType;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.autoPayment = autoPayment;
-    }
-
-    public void setDate(PeriodDto periodDto) {
-        this.startDate = periodDto.getStartDate();
-        this.endDate = periodDto.getEndDate();
-    }
-
-    public void setUser(User user) {
         this.user = user;
     }
 

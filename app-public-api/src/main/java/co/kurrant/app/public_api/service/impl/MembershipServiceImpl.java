@@ -6,6 +6,7 @@ import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
+import co.dalicious.domain.order.mapper.OrderMembershipMapper;
 import co.dalicious.domain.order.mapper.OrderMembershipResMapper;
 import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
 import co.dalicious.domain.order.mapper.PaymentCancleHistoryMapper;
@@ -80,6 +81,7 @@ public class MembershipServiceImpl implements MembershipService {
     private final QMembershipRepository qMembershipRepository;
     private final OrderUtil orderUtil;
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
+    private final OrderMembershipMapper orderMembershipMapper;
 
     @Override
     @Transactional
@@ -133,22 +135,14 @@ public class MembershipServiceImpl implements MembershipService {
 
         assert periodDto != null;
         // 멤버십 등록
-        Membership membership = Membership.builder()
-                .autoPayment(true)
-                .membershipStatus(MembershipStatus.PROCESSING)
-                .membershipSubscriptionType(membershipSubscriptionType)
-                .build();
-        membership.setUser(user);
-        membership.setDate(periodDto);
-        membershipRepository.save(membership);
+        Membership membership = membershipRepository.save(orderMembershipMapper.toMembership(membershipSubscriptionType, user, periodDto));
 
         // 연간 구독 구매자라면, 할인 정책 저장.
-        MembershipDiscountPolicy yearDescriptionDiscountPolicy = MembershipDiscountPolicy.builder()
-                .membership(membership)
-                .discountRate(membershipSubscriptionType.getDiscountRate())
-                .discountType(DiscountType.YEAR_DESCRIPTION_DISCOUNT)
-                .build();
-        membershipDiscountPolicyRepository.save(yearDescriptionDiscountPolicy);
+        if(membershipSubscriptionType.equals(MembershipSubscriptionType.YEAR)) {
+            MembershipDiscountPolicy yearDescriptionDiscountPolicy = orderMembershipMapper.toMembershipDiscountPolicy(membership, DiscountType.YEAR_DESCRIPTION_DISCOUNT);
+            membershipDiscountPolicyRepository.save(yearDescriptionDiscountPolicy);
+        }
+
 
         /* TODO: 할인 혜택을 가지고 있는 유저인지 확인 후 할인 정책 저장.
         MembershipDiscountPolicy periodDiscountPolicy = MembershipDiscountPolicy.builder()
@@ -165,27 +159,11 @@ public class MembershipServiceImpl implements MembershipService {
         CreditCardValidator.isValidCreditCard(creditCardInfo, user);
 
         // 멤버십 결제 요청
-        String code = OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId());
-        OrderMembership order = OrderMembership.builder()
-                .code(code)
-                .orderType(OrderType.MEMBERSHIP)
-                .paymentType(PaymentType.ofCode(orderMembershipReqDto.getPaymentType()))
-                .creditCardInfo(creditCardInfo)
-                .build();
-        // 유저 정보 저장
         OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
-        order.updateOrderUserInfo(orderUserInfoDto);
-        orderMembershipRepository.save(order);
+        OrderMembership order = orderMembershipRepository.save(orderMembershipMapper.toOrderMembership(orderUserInfoDto, creditCardInfo, membershipSubscriptionType, BigDecimal.ZERO, totalPrice, PaymentType.ofCode(orderMembershipReqDto.getPaymentType()), membership));
 
         // 멤버십 결제 내역 등록(진행중 상태)
-        OrderItemMembership orderItemMembership = OrderItemMembership.builder()
-                .order(order)
-                .orderStatus(OrderStatus.PROCESSING)
-                .membership(membership)
-                .membershipSubscriptionType(membership.getMembershipSubscriptionType().getMembershipSubscriptionType())
-                .price(membership.getMembershipSubscriptionType().getPrice())
-                .build();
-        orderItemMembershipRepository.save(orderItemMembership);
+        OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership));
 
         // 결제 진행. 실패시 오류 날림
         BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
@@ -331,7 +309,7 @@ public class MembershipServiceImpl implements MembershipService {
         Membership membership = qMembershipRepository.findUserCurrentMembership(user, now.toLocalDate());
 
         OrderItemMembership orderItemMembership = orderItemMembershipRepository.findOneByMembership(membership).orElseThrow(
-                () -> new ApiException(ExceptionEnum.NOT_FOUND)
+                () -> new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND)
         );
 
         if(membership == null) {

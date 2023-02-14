@@ -51,7 +51,7 @@ public class User {
     @Column(name = "e_user_status")
     @ColumnDefault("1")
     @Comment("유저 타입 0. 탈퇴 유저 1. 활성 유저 2. 탈퇴 요청 유저")
-    private UserStatus userStatus;
+    private UserStatus userStatus = UserStatus.ACTIVE;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")

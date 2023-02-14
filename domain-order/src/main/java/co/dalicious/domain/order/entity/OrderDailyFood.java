@@ -47,7 +47,7 @@ public class OrderDailyFood extends Order{
     }
 
     public OrderDailyFood(String code, OrderType orderType, Address address, PaymentType paymentType, User user, String receiptUrl, BigDecimal totalDeliveryFee, String groupName, String spotName, String ho, Spot spot) {
-        super(code, orderType, address, paymentType, user, receiptUrl);
+        super(orderType, code, address, paymentType, receiptUrl, user);
         this.totalDeliveryFee = totalDeliveryFee;
         this.groupName = groupName;
         this.spotName = spotName;

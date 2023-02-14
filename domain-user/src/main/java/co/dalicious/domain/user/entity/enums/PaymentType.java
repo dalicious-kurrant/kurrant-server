@@ -8,7 +8,8 @@ import java.util.Arrays;
 @Getter
 public enum PaymentType {
     CREDIT_CARD("카드결제", 1),
-    BANK_TRANSFER("계좌이체", 2);
+    SUPPORT_PRICE("지원금 사용", 2),
+    BANK_TRANSFER("계좌이체", 3);
 
     private final String paymentType;
     private final Integer code;

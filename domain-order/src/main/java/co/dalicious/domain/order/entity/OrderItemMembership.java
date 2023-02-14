@@ -2,6 +2,7 @@ package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.Membership;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigDecimal;
+import java.util.List;
 
 @DynamicInsert
 @DynamicUpdate
@@ -38,6 +40,11 @@ public class OrderItemMembership extends OrderItem{
     @Column(name = "period_discounted_rate", columnDefinition="Decimal(15,2) default '0.00'")
     @Comment("기간 할인율")
     private Integer periodDiscountedRate;
+
+    @OneToMany(mappedBy = "orderItemMembership")
+    @JsonBackReference(value = "order_item_membership_fk")
+    @Comment("멤버십 지원금")
+    private List<MembershipSupportPrice> membershipSupportPriceList;
 
     @Builder
     public OrderItemMembership(OrderStatus orderStatus, Order order, Membership membership, String membershipSubscriptionType, BigDecimal price, BigDecimal discountPrice, Integer periodDiscountedRate) {
