@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
+@CrossOrigin(origins="*", allowedHeaders = "*")
 @Tag(name = "3. Order")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/users/me/orders")
