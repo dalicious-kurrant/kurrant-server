@@ -14,6 +14,7 @@ import java.math.BigInteger;
 @RestController
 @RequestMapping(value = "/v1/makers/foods")
 @RequiredArgsConstructor
+@CrossOrigin(origins="*", allowedHeaders = "*")
 public class FoodController {
 
     private final FoodService foodService;
