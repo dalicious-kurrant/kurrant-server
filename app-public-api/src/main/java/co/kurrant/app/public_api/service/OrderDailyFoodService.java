@@ -28,5 +28,5 @@ public interface OrderDailyFoodService {
     // 주문 상품을 환불한다
     void cancelOrderItemDailyFood(SecurityUser securityUser, BigInteger orderItemId) throws IOException, ParseException;
 
-    JSONObject paymentsConfirm(PaymentConfirmDto paymentConfirmDto) throws IOException, ParseException;
+    JSONObject paymentsConfirm(PaymentConfirmDto paymentConfirmDto, SecurityUser securityUser ) throws IOException, ParseException;
 }

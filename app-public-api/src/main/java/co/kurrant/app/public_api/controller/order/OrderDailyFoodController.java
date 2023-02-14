@@ -37,7 +37,7 @@ public class OrderDailyFoodController {
     }
 
     @Operation(summary = "정기 식사 주문하기", description = "정기 식사를 구매한다.")
-    @PostMapping("/{spotId}")
+    @PostMapping("")
     public ResponseMessage userOrderByDate(Authentication authentication, @PathVariable BigInteger spotId, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
