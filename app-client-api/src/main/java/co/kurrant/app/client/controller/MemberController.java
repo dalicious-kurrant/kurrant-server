@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.math.BigInteger;
 import java.util.List;
 
+@CrossOrigin(origins="*", allowedHeaders = "*")
 @Tag(name = "1. Member")
 @Slf4j
 @RequiredArgsConstructor
@@ -36,9 +37,9 @@ public class MemberController {
                     .data(memberService.getUserList(code, pageable))
                     .message("유저 목록 조회")
                     .build();
-
-
   }
+
+
 
 
 
