@@ -1,39 +1,47 @@
 package co.kurrant.app.client.controller;
 
-import java.math.BigInteger;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import org.springframework.data.domain.Sort.Direction;
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.client.dto.MemberListResponseDto;
+import co.kurrant.app.client.service.MemberService;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
-import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.kurrant.app.client.dto.ArticleDetailResponseDto;
-import co.kurrant.app.client.dto.ArticleListRequestDto;
-import co.kurrant.app.client.dto.ArticleListResponseDto;
+import org.springframework.web.bind.annotation.*;
 import co.kurrant.app.client.service.BoardService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Tag(name = "BOARD")
+import java.math.BigInteger;
+import java.util.List;
+
+@Tag(name = "1. Member")
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping(value = "/v1/boards")
+@RequestMapping(value = "/v1/client/members")
 @RestController
-public class BoardController {
+public class MemberController {
 
-  private final BoardService boardService;
+  private final MemberService memberService;
+
+  @Operation(summary = "유저조회", description = "유저 목록을 조회한다.")
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping("")
+  public ResponseMessage getUserList(@RequestParam String code, @PageableDefault(size = 20, sort = "memberId",
+                                                                     direction = Sort.Direction.DESC) OffsetBasedPageRequest pageable) {
+
+            return ResponseMessage.builder()
+                    .data(memberService.getUserList(code, pageable))
+                    .message("유저 목록 조회")
+                    .build();
+
+
+  }
+
+
+
  /*
   @Operation(summary = "목록조회", description = "배너 목록을 조회한다.")
   @ResponseStatus(HttpStatus.OK)
