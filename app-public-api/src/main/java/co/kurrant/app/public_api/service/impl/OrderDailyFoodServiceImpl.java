@@ -105,7 +105,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         User user = userUtil.getUser(securityUser);
 
         // 그룹/스팟 정보 가져오기
-        Spot spot = spotRepository.findById(orderItemDailyFoodReqDto.getSpotId()).orElseThrow(
+        Spot spot = spotRepository.findById(orderItemDailyFoodReqDto.getOrderItems().getSpotId()).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
         );
         Group group = spot.getGroup();
@@ -116,7 +116,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
 
         // 사용 요청 포인트가 유저가 현재 가지고 있는 포인트보다 적은지 검증
-        if (orderItemDailyFoodReqDto.getUserPoint().compareTo(user.getPoint()) > 0) {
+        if (orderItemDailyFoodReqDto.getOrderItems().getUserPoint().compareTo(user.getPoint()) > 0) {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
 
@@ -130,7 +130,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         BigDecimal totalDailyFoodPrice = BigDecimal.ZERO;
 
         // 식사타입(DiningType)과 날짜별(serviceDate) 식사들 가져오기
-        List<CartDailyFoodDto> cartDailyFoodDtoList = orderItemDailyFoodReqDto.getCartDailyFoodDtoList();
+        List<CartDailyFoodDto> cartDailyFoodDtoList = orderItemDailyFoodReqDto.getOrderItems().getCartDailyFoodDtoList();
         // 프론트에서 제공한 정보와 실제 정보가 일치하는지 확인
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 배송비 일치 점증 및 배송비 계산
@@ -238,8 +238,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
-        BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getUserPoint());
-        if (payPrice.compareTo(orderItemDailyFoodReqDto.getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getSupportPrice()) != 0) {
+        BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
+        if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
@@ -283,13 +283,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if (status.equals("DONE")) {
                 // 주문서 내용 업데이트 및 사용 포인트 차감
                 orderDailyFood.updateDefaultPrice(defaultPrice);
-                orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getUserPoint());
+                orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
                 orderDailyFood.updateTotalPrice(payPrice);
                 orderDailyFood.updateTotalDeliveryFee(totalDeliveryFee);
                 for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                     orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                 }
-                user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getUserPoint()));
+                user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
 
                 //Order 테이블에 paymentKey와 receiptUrl 업데이트
                 JSONObject receipt = (JSONObject) jsonObject.get("receipt");
