@@ -76,7 +76,6 @@ jobs:
         cd resources
         touch ./application-redis.properties
         echo "${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}" > ./application-redis.properties
-        cat application-redis.properties
       shell: bash
 
     - name: domain-payment application-payment.properties 생성
