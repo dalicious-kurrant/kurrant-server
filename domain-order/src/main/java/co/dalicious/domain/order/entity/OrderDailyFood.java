@@ -4,7 +4,9 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.enums.OrderType;
+import co.dalicious.domain.payment.converter.PaymentCompanyConverter;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import lombok.AccessLevel;
@@ -26,6 +28,10 @@ import java.math.BigDecimal;
 public class OrderDailyFood extends Order{
     @Column(columnDefinition = "DECIMAL(15, 2)")
     private BigDecimal totalDeliveryFee;
+
+    @Convert(converter = PaymentCompanyConverter.class)
+    @Comment("결제 타입 저장")
+    private PaymentCompany paymentCompany;
     @Comment("그룹명")
     private String groupName;
 
@@ -57,5 +63,9 @@ public class OrderDailyFood extends Order{
 
     public void updateTotalDeliveryFee(BigDecimal totalDeliveryFee) {
         this.totalDeliveryFee = totalDeliveryFee;
+    }
+
+    public void updatePaymentCompany(PaymentCompany paymentCompany) {
+        this.paymentCompany = paymentCompany;
     }
 }

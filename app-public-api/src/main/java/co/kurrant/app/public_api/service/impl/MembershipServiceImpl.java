@@ -15,6 +15,7 @@ import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.util.CreditCardValidator;
 import co.dalicious.domain.payment.util.TossUtil;
@@ -186,7 +187,20 @@ public class MembershipServiceImpl implements MembershipService {
                 String receiptUrl = receipt.get("url").toString();
 
                 String paymentKey = (String) payResult.get("paymentKey");
-                qOrderRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderItemMembership.getOrder().getId());
+
+                JSONObject card = (JSONObject) payResult.get("card");
+                String paymentCompanyCode;
+                if(card == null) {
+                    JSONObject easyPay = (JSONObject) payResult.get("easyPay");
+                    if(easyPay == null) {
+                        throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+                    }
+                    paymentCompanyCode = (String) easyPay.get("provider");
+                } else {
+                    paymentCompanyCode = (String) card.get("issuerCode");
+                }
+                PaymentCompany paymentCompany = PaymentCompany.ofCode(paymentCompanyCode);
+                qOrderDailyFoodRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderItemMembership.getOrder().getId(), paymentCompany);
             }
             // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
             else {
