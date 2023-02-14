@@ -21,4 +21,5 @@ public class OrderItemDailyFoodReqDto {
     @Schema(description = "spotId/cartDailyFoodDtoList/totalPrice/supportPrice/deliveryFee/userPoint")
     private OrderItems orderItems;
 
+
 }

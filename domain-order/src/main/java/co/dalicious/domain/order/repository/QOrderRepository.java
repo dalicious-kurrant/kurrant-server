@@ -2,6 +2,7 @@ package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.enums.OrderType;
+import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -24,19 +25,6 @@ import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 public class QOrderRepository {
 
     private final JPAQueryFactory queryFactory;
-
-
-    public void afterPaymentUpdate(String receiptUrl, String paymentKey, BigInteger orderId) {
-        long update = queryFactory.update(order)
-                .set(order.receiptUrl, receiptUrl)
-                .set(order.paymentKey, paymentKey)
-                .where(order.id.eq(orderId))
-                .execute();
-
-        if (update != 1){
-            throw new ApiException(ExceptionEnum.UPDATE_ORDER_FAILED);
-        }
-    }
 
     public String getPaymentKey(BigInteger orderItemId) {
         return queryFactory.select(order.paymentKey)

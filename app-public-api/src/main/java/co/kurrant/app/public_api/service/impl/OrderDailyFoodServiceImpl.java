@@ -25,6 +25,7 @@ import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.dto.PaymentConfirmDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
@@ -253,7 +254,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             PeriodDto membershipPeriod = new PeriodDto(membershipStartDate, membershipStartDate.plusMonths(1));
 
             // 멤버십 등록
-            Membership membership = orderMembershipMapper.toMembership(MembershipSubscriptionType.MONTH, user, periodDto);
+            Membership membership = orderMembershipMapper.toMembership(MembershipSubscriptionType.MONTH, user, membershipPeriod);
             membershipRepository.save(membership);
 
             // 결제 내역 등록
@@ -296,7 +297,19 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 String receiptUrl = receipt.get("url").toString();
 
                 String paymentKey = (String) jsonObject.get("paymentKey");
-                qOrderRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderDailyFood.getId());
+                JSONObject card = (JSONObject) jsonObject.get("card");
+                String paymentCompanyCode;
+                if(card == null) {
+                    JSONObject easyPay = (JSONObject) jsonObject.get("easyPay");
+                    if(easyPay == null) {
+                        throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+                    }
+                    paymentCompanyCode = (String) easyPay.get("provider");
+                } else {
+                    paymentCompanyCode = (String) card.get("issuerCode");
+                }
+                PaymentCompany paymentCompany = PaymentCompany.ofCode(paymentCompanyCode);
+                qOrderDailyFoodRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderDailyFood.getId(), paymentCompany);
             }
             // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
             else {
