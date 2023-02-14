@@ -1,15 +1,14 @@
 package co.kurrant.app.makers_api.service.impl;
 
 import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.dto.FoodDeleteDto;
+import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.FoodManagingDto;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.entity.FoodDiscountPolicy;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.food.util.FoodUtil;
-import co.dalicious.system.util.enums.DiscountType;
-import co.dalicious.domain.food.dto.FoodListDto;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.FoodService;
 import co.kurrant.app.makers_api.util.UserUtil;
@@ -85,5 +84,16 @@ public class FoodServiceImpl implements FoodService {
         DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
 
         return makersFoodMapper.toFoodManagingDto(food, discountDto);
+    }
+
+    @Override
+    public void deleteFood(FoodDeleteDto foodDeleteDto) {
+        for(BigInteger foodId : foodDeleteDto.getFoodId()){
+            Food food = foodRepository.findById(foodId).orElseThrow(
+                    () -> new ApiException(ExceptionEnum.NOT_FOND_FOOD)
+            );
+
+            foodRepository.delete(food);
+        }
     }
 }
