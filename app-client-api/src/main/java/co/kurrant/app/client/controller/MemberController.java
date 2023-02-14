@@ -30,15 +30,25 @@ public class MemberController {
   @Operation(summary = "유저조회", description = "유저 목록을 조회한다.")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping("")
-  public ResponseMessage getUserList(@RequestParam String code, @PageableDefault(size = 20, sort = "memberId",
+  public ResponseMessage getUserList(@RequestParam String code, @PageableDefault(size = 20, sort = "id",
                                                                      direction = Sort.Direction.DESC) OffsetBasedPageRequest pageable) {
-
-            return ResponseMessage.builder()
-                    .data(memberService.getUserList(code, pageable))
-                    .message("유저 목록 조회")
-                    .build();
+    return ResponseMessage.builder()
+            .data(memberService.getUserList(code, pageable))
+            .message("유저 목록 조회")
+            .build();
   }
 
+
+  @Operation(summary = "가입 대기 유저조회", description = "가입 대기 유저 목록을 조회한다.")
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping("/waiting")
+  public ResponseMessage getWaitingUserList(@RequestParam String code, @PageableDefault(size = 20, sort = "id",
+          direction = Sort.Direction.DESC) OffsetBasedPageRequest pageable){
+    return ResponseMessage.builder()
+            .data(memberService.getWaitingUserList(code, pageable))
+            .message("가입대기 유저 목록 조회")
+            .build();
+  }
 
 
 
