@@ -114,6 +114,9 @@ public class CartServiceImpl implements CartService {
 
             if(optionalCartDailyFood.isPresent()) {
                 optionalCartDailyFood.get().updateCount(optionalCartDailyFood.get().getCount() + cartDto.getCount());
+                if(foodCountDto.getRemainCount() < cartDto.getCount() + optionalCartDailyFood.get().getCount()) {
+                    throw new ApiException(ExceptionEnum.OVER_ITEM_CAPACITY);
+                }
             }
             else {
                 // 중복되는 DailyFood가 장바구니에 존재하지 않는다면 추가하기

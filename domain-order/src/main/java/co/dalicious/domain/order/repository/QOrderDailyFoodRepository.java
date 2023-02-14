@@ -3,11 +3,15 @@ package co.dalicious.domain.order.repository;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,6 +20,7 @@ import java.util.List;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;
+import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 
 
@@ -24,6 +29,19 @@ import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDail
 public class QOrderDailyFoodRepository {
 
     public final JPAQueryFactory queryFactory;
+
+    public void afterPaymentUpdate(String receiptUrl, String paymentKey, BigInteger orderId, PaymentCompany paymentCompany) {
+        long update = queryFactory.update(orderDailyFood)
+                .set(orderDailyFood.receiptUrl, receiptUrl)
+                .set(orderDailyFood.paymentKey, paymentKey)
+                .set(orderDailyFood.paymentCompany, paymentCompany)
+                .where(orderDailyFood.id.eq(orderId))
+                .execute();
+
+        if (update != 1){
+            throw new ApiException(ExceptionEnum.UPDATE_ORDER_FAILED);
+        }
+    }
 
     public List<OrderItemDailyFood> findByUserAndServiceDateBetween(User user, LocalDate startDate, LocalDate endDate) {
         return queryFactory

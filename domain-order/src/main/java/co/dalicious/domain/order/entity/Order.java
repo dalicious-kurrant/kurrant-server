@@ -67,9 +67,8 @@ public class Order {
 
     @Convert(converter = PaymentTypeConverter.class)
     @Column(name = "e_payment_type")
-    @Comment("결제 타입")
+    @Comment("결제 타입 (1. 카드결제 2. 지원금 사용 3. 계좌이체)")
     private PaymentType paymentType;
-
 
     @Column(name = "payment_key", columnDefinition = "VARCHAR(255)")
     @Comment("토스 조회용 페이먼트키")
