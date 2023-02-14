@@ -49,11 +49,6 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())))")
     OrderDailyFoodDetailDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
-    @Named("getPaymentInfo")
-    default String getPaymentInfo() {
-        return "신한(1234)";
-    }
-
     @Named("getSupportPrice")
     default BigDecimal getSupportPrice(OrderDailyFood orderDailyFood) {
         List<OrderItem> orderItems = orderDailyFood.getOrderItems();

@@ -75,6 +75,7 @@ jobs:
         mkdir resources
         cd resources
         touch ./application-redis.properties
+        cat ${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}
         echo "${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}" > ./application-redis.properties
       shell: bash
 

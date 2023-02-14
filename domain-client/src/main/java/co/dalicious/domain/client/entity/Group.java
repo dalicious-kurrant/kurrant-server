@@ -17,6 +17,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -51,6 +52,8 @@ public class Group {
     @Comment("담당자 유저 id")
     private BigInteger managerId;
 
+    @Comment("계약 시작 날짜")
+    private LocalDate contractStartDate;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -70,6 +73,7 @@ public class Group {
     @JsonBackReference(value = "client__apartment_fk")
     @Comment("스팟 리스트")
     List<Spot> spots;
+
     public Group(Address address, List<DiningType> diningTypes, String name, BigInteger managerId) {
         this.address = address;
         this.diningTypes = diningTypes;

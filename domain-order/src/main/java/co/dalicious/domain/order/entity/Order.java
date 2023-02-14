@@ -102,20 +102,26 @@ public class Order {
     @JsonBackReference(value = "order_fk")
     List<OrderItem> orderItems;
 
-
-    public Order(String code, PaymentType paymentType, OrderType orderType) {
+    public Order(OrderType orderType, String code, Address address, BigDecimal defaultPrice, BigDecimal point, BigDecimal totalPrice, PaymentType paymentType, String paymentKey, String receiptUrl, User user) {
         this.orderType = orderType;
         this.code = code;
+        this.address = address;
+        this.defaultPrice = defaultPrice;
+        this.point = point;
+        this.totalPrice = totalPrice;
         this.paymentType = paymentType;
+        this.paymentKey = paymentKey;
+        this.receiptUrl = receiptUrl;
+        this.user = user;
     }
 
-    public Order(String code, OrderType orderType, Address address, PaymentType paymentType, User user, String receiptUrl) {
-        this.code = code;
+    public Order(OrderType orderType, String code, Address address, PaymentType paymentType, String receiptUrl, User user) {
         this.orderType = orderType;
+        this.code = code;
         this.address = address;
         this.paymentType = paymentType;
-        this.user = user;
         this.receiptUrl = receiptUrl;
+        this.user = user;
     }
 
     public void updateOrderUserInfo(OrderUserInfoDto orderUserInfoDto) {
@@ -141,5 +147,9 @@ public class Order {
 
     public void updateTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public BigDecimal getDiscountPrice() {
+        return this.defaultPrice.subtract(this.totalPrice);
     }
 }

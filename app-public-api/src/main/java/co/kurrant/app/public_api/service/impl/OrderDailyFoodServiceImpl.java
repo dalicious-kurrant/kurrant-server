@@ -28,10 +28,15 @@ import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
+import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.entity.enums.MembershipStatus;
+import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
+import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiningType;
@@ -70,7 +75,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderDailyFoodItemMapper orderDailyFoodItemMapper;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
     private final QOrderRepository qOrderRepository;
-    private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
     private final UserSupportPriceHistoryReqMapper userSupportPriceHistoryReqMapper;
     private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
@@ -87,6 +91,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final NotificationHashRepository notificationHashRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QDailyFoodRepository qDailyFoodRepository;
+    private final MembershipRepository membershipRepository;
+    private final OrderMembershipMapper orderMembershipMapper;
+    private final OrderUserInfoMapper orderUserInfoMapper;
+    private final OrderMembershipRepository orderMembershipRepository;
+    private final OrderItemMembershipRepository orderItemMembershipRepository;
+    private final MembershipSupportPriceRepository membershipSupportPriceRepository;
 
     @Override
     @Transactional
@@ -235,6 +245,31 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         //orderName 생성
         String orderName = OrderUtil.makeOrderName(cartDailyFoods);
+
+        // 멤버십을 지원하는 기업의 식사를 주문하면서, 멤버십에 가입되지 않은 회원이라면 멤버십 가입.
+        if(OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+            LocalDate now = LocalDate.now();
+            LocalDate membershipStartDate = LocalDate.of(now.getYear(), now.getMonth(), group.getContractStartDate().getDayOfMonth());
+            PeriodDto membershipPeriod = new PeriodDto(membershipStartDate, membershipStartDate.plusMonths(1));
+
+            // 멤버십 등록
+            Membership membership = orderMembershipMapper.toMembership(MembershipSubscriptionType.MONTH, user, periodDto);
+            membershipRepository.save(membership);
+
+            // 결제 내역 등록
+            OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
+            OrderMembership order = orderMembershipMapper.toOrderMembership(orderUserInfoDto, null, MembershipSubscriptionType.MONTH, BigDecimal.ZERO, BigDecimal.ZERO, PaymentType.SUPPORT_PRICE, membership);
+            orderMembershipRepository.save(order);
+
+            // 멤버십 결제 내역 등록(진행중 상태)
+            OrderItemMembership orderItemMembership = orderMembershipMapper.toOrderItemMembership(order, membership);
+            orderItemMembershipRepository.save(orderItemMembership);
+
+            // 지원금 사용 등록
+            MembershipSupportPrice membershipSupportPrice = orderMembershipMapper.toMembershipSupportPrice(user, group, orderItemMembership);
+            membershipSupportPriceRepository.save(membershipSupportPrice);
+
+        }
 
 
         try {
