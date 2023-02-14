@@ -38,10 +38,10 @@ public class OrderDailyFoodController {
 
     @Operation(summary = "정기 식사 주문하기", description = "정기 식사를 구매한다.")
     @PostMapping("")
-    public ResponseMessage userOrderByDate(Authentication authentication, @PathVariable BigInteger spotId, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
+    public ResponseMessage userOrderByDate(Authentication authentication, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto, spotId))
+                .data(orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto))
                 .message("식사 주문에 성공하였습니다.")
                 .build();
     }

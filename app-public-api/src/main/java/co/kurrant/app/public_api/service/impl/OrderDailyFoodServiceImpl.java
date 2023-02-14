@@ -90,12 +90,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public BigInteger orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto, BigInteger spotId) {
+    public BigInteger orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
         // 그룹/스팟 정보 가져오기
-        Spot spot = spotRepository.findById(spotId).orElseThrow(
+        Spot spot = spotRepository.findById(orderItemDailyFoodReqDto.getSpotId()).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
         );
         Group group = spot.getGroup();
