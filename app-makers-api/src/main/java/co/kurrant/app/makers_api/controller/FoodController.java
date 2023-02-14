@@ -7,9 +7,9 @@ import co.kurrant.app.makers_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigInteger;
 
 @RestController
 @RequestMapping(value = "/v1/makers/foods")
@@ -34,6 +34,16 @@ public class FoodController {
         return ResponseMessage.builder()
                 .message("모든 상품을 조회했습니다.")
                 .data(foodService.getAllFoodListByMakers(securityUser))
+                .build();
+    }
+
+    @Operation(summary = "메이커스 별 상품 조회", description = "메이커스 별 상품을 모두 조회합니다.")
+    @GetMapping("/{foodId}")
+    public ResponseMessage getFoodDetail(Authentication authentication, @PathVariable BigInteger foodId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .message("상품을 조회했습니다.")
+                .data(foodService.getFoodDetail(foodId, securityUser))
                 .build();
     }
 }

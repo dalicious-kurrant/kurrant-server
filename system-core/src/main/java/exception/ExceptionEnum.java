@@ -70,6 +70,7 @@ public enum ExceptionEnum {
 	NOT_FOND_REVIEWS(HttpStatus.NOT_FOUND,"E4040022", "작성하신 리뷰가 없습니다."),
 	NOT_FOND_MAKERS(HttpStatus.NOT_FOUND,"E4040023", "찾으시는 메이커스가 없습니다."),
 	NOT_FOND_ITEMS(HttpStatus.NOT_FOUND,"E4040024", "찾으시는 item이 없습니다."),
+	NOT_FOND_FOOD(HttpStatus.NOT_FOUND,"E4040025", "해당하는 상품이 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),

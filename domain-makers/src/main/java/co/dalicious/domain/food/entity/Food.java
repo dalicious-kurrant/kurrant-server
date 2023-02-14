@@ -87,5 +87,10 @@ public class Food {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
+    @Column(name = "custom_price")
+    @Comment("커스텀 상품 가격")
+    private BigDecimal customPrice;
+
+
 
 }

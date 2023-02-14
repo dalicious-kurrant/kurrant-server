@@ -26,7 +26,11 @@ public class FoodListDto {
     private String description;
     private List<String> foodTags;
 
-    public FoodListDto(BigInteger id, String makersName, String foodName, String foodImage, String foodStatus, BigDecimal defaultPrice, Integer makersDiscount, Integer eventDiscount, BigDecimal resultPrice, String description, List<String> foodTags) {
+    public FoodListDto(
+            BigInteger id, String makersName, String foodName, String foodImage, String foodStatus,
+            BigDecimal defaultPrice, Integer makersDiscount, Integer eventDiscount, BigDecimal resultPrice,
+            String description, List<String> foodTags) {
+
         this.id = id;
         this.makersName = makersName;
         this.foodName = foodName;

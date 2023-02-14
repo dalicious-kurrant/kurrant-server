@@ -1,10 +1,13 @@
 package co.kurrant.app.makers_api.service.impl;
 
+import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.dto.FoodManagingDto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
 import co.dalicious.domain.food.repository.FoodRepository;
+import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.system.util.enums.DiscountType;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.kurrant.app.makers_api.model.SecurityUser;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,8 +43,9 @@ public class FoodServiceImpl implements FoodService {
         List<FoodListDto> dtoList = new ArrayList<>();
 
         for(Food food : allFoodList) {
-            BigDecimal resultPrice = calculate(food);
-            FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, resultPrice);
+            DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
+            BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
+            FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }
 
@@ -58,48 +63,27 @@ public class FoodServiceImpl implements FoodService {
 
         // 상품 dto에 담기
         List<FoodListDto> dtoList = new ArrayList<>();
+
         for(Food food : foodListByMakers) {
-            BigDecimal resultPrice = calculate(food);
-            FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, resultPrice);
+            DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
+            BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
+            FoodListDto dto = makersFoodMapper.toAllFoodListByMakersDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }
 
         return dtoList;
     }
 
-    // 할인된 금액 계산
+    @Override
     @Transactional
-    BigDecimal calculate(Food food) {
-        // 할인률 계산
-        BigDecimal defaultPrice = BigDecimal.ZERO;
-        BigDecimal makersDiscountPrice = BigDecimal.ZERO;
-        BigDecimal eventDiscountPrice = BigDecimal.ZERO;
-        BigDecimal resultPrice = BigDecimal.ZERO;
+    public FoodManagingDto getFoodDetail(BigInteger foodId, SecurityUser securityUser) {
+        Makers makers = userUtil.getMakers(securityUser);
+        Food food = foodRepository.findByIdAndMakers(foodId, makers);
 
-        defaultPrice = defaultPrice.add(food.getPrice());
+        if(food == null) { throw new ApiException(ExceptionEnum.NOT_FOND_FOOD); }
 
-        List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
-        // makersDiscount
-        FoodDiscountPolicy makersDiscount = discountPolicyList.stream()
-                .filter(policy -> policy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT))
-                .findFirst().orElse(null);
-        Integer makersRate = null;
-        if(makersDiscount != null) {
-            makersRate = makersDiscount.getDiscountRate();
-            makersDiscountPrice = makersDiscountPrice.add(defaultPrice).multiply(BigDecimal.valueOf(makersRate * 0.01));
-        }
-        //eventDiscount
-        FoodDiscountPolicy eventDiscount = discountPolicyList.stream()
-                .filter(policy -> policy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT))
-                .findFirst().orElse(null);
-        Integer eventRate = null;
-        if(eventDiscount != null) {
-            eventRate = eventDiscount.getDiscountRate();
-            eventDiscountPrice = eventDiscountPrice.add(defaultPrice).multiply(BigDecimal.valueOf(eventRate * 0.01));
-        }
+        DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
 
-        resultPrice = resultPrice.add(defaultPrice).subtract(makersDiscountPrice).subtract(eventDiscountPrice);
-
-        return resultPrice;
+        return makersFoodMapper.toFoodManagingDto(food, discountDto);
     }
 }
