@@ -1,4 +1,4 @@
-package co.kurrant.app.makers_api.dto;
+package co.kurrant.app.makers_api.dto.user;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
 import co.dalicious.domain.food.entity.Makers;

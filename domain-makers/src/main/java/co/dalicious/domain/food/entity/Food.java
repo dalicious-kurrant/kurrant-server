@@ -2,6 +2,7 @@ package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.FoodListDto;
+import co.dalicious.domain.food.dto.MakersFoodDetailDto;
 import co.dalicious.system.util.converter.FoodTagsConverter;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
 import co.dalicious.system.util.enums.FoodTag;
@@ -104,12 +105,16 @@ public class Food {
         this.customPrice = customPrice;
     }
 
-    public void updateFood(FoodListDto foodListDto, List<FoodTag> foodTags) {
-        this.foodStatus = FoodStatus.valueOf(foodListDto.getFoodStatus());
+    public void updateFoodMass(FoodListDto foodListDto, List<FoodTag> foodTags) {
+        this.foodStatus = FoodStatus.ofString(foodListDto.getFoodStatus());
         this.name = foodListDto.getFoodName();
         this.price = foodListDto.getDefaultPrice();
         this.foodTags = foodTags;
         this.description = foodListDto.getDescription();
+    }
+
+    public void updateFood(List<FoodTag> foodTags) {
+        this.foodTags = foodTags;
     }
 
 

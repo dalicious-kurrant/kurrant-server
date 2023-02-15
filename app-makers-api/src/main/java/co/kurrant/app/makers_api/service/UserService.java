@@ -1,7 +1,7 @@
 package co.kurrant.app.makers_api.service;
 
-import co.kurrant.app.makers_api.dto.LoginRequestDto;
-import co.kurrant.app.makers_api.dto.LoginResponseDto;
+import co.kurrant.app.makers_api.dto.user.LoginRequestDto;
+import co.kurrant.app.makers_api.dto.user.LoginResponseDto;
 
 public interface UserService {
     //로그인

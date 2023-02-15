@@ -1,5 +1,6 @@
 package co.dalicious.domain.food.entity;
 
+import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.system.util.converter.DiscountTypeConverter;
 import co.dalicious.system.util.enums.DiscountType;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -55,6 +56,10 @@ public class FoodDiscountPolicy {
     public FoodDiscountPolicy(Food food, DiscountType discountType, Integer discountRate) {
         this.food = food;
         this.discountType = discountType;
+        this.discountRate = discountRate;
+    }
+
+    public void updateFoodDiscountPolicy(Integer discountRate) {
         this.discountRate = discountRate;
     }
 

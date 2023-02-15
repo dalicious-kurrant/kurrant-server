@@ -76,7 +76,7 @@ public interface FoodMapper {
     default FoodStatus getFoodStatus(String foodStatusStr) {
         FoodStatus foodStatus = null;
         if(foodStatusStr != null) {
-            return foodStatus = FoodStatus.valueOf(foodStatusStr);
+            return foodStatus = FoodStatus.ofString(foodStatusStr);
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD_STATUS);
     }

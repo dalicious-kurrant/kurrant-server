@@ -1,8 +1,7 @@
 package co.kurrant.app.makers_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.kurrant.app.makers_api.dto.LoginRequestDto;
-import co.kurrant.app.makers_api.dto.TokenDto;
+import co.kurrant.app.makers_api.dto.user.LoginRequestDto;
 import co.kurrant.app.makers_api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;

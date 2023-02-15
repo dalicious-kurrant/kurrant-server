@@ -25,4 +25,11 @@ public enum FoodStatus {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 식사 타입입니다."));
     }
 
+    public static FoodStatus ofString(String status) {
+        return Arrays.stream(FoodStatus.values())
+                .filter(v -> v.getStatus().equals(status))
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 식사 타입입니다."));
+    }
+
 }
