@@ -13,4 +13,5 @@ public interface FoodService {
     List<FoodListDto> getAllFoodListByMakers(SecurityUser securityUser);
     FoodManagingDto getFoodDetail(BigInteger foodId, SecurityUser securityUser);
     void deleteFood(FoodDeleteDto foodDeleteDto);
+    List<FoodListDto> updateFood(List<FoodListDto> foodListDto);
 }

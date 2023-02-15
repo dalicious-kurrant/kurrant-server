@@ -2,6 +2,7 @@ package co.kurrant.app.makers_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.food.dto.FoodDeleteDto;
+import co.dalicious.domain.food.dto.FoodListDto;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.FoodService;
 import co.kurrant.app.makers_api.util.UserUtil;
@@ -11,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,6 +58,16 @@ public class FoodController {
         foodService.deleteFood(foodDeleteDto);
         return ResponseMessage.builder()
                 .message("상품을 삭제했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "상품 수정", description = "선택된 상품을 수정합니다.")
+    @PostMapping("")
+    public ResponseMessage updateFood(Authentication authentication, @RequestBody List<FoodListDto> foodListDto) {
+        UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .message("상품을 수정했습니다.")
+                .data(foodService.updateFood(foodListDto))
                 .build();
     }
 }

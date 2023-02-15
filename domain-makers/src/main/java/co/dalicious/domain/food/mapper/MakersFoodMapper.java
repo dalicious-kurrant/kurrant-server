@@ -18,8 +18,9 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface MakersFoodMapper {
 
-    @Mapping(source = "food.id", target = "id")
+    @Mapping(source = "food.id", target = "foodId")
     @Mapping(source = "food.makers.name", target = "makersName")
+    @Mapping(source = "food.makers.id", target = "makersId")
     @Mapping(source = "food.name", target = "foodName")
     @Mapping(target = "foodImage", ignore = true)
     @Mapping(source = "food.foodStatus.status", target = "foodStatus")
@@ -32,8 +33,9 @@ public interface MakersFoodMapper {
     FoodListDto toAllFoodListDto(Food food, DiscountDto discountDto, BigDecimal resultPrice);
 
 
-    @Mapping(source = "food.id", target = "id")
+    @Mapping(source = "food.id", target = "foodId")
     @Mapping(source = "food.makers.name", target = "makersName")
+    @Mapping(target = "makersId", ignore = true)
     @Mapping(source = "food.name", target = "foodName")
     @Mapping(source = "food.image.location", target = "foodImage")
     @Mapping(source = "food.foodStatus.status", target = "foodStatus")

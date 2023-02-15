@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.system.util.converter.FoodTagsConverter;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
 import co.dalicious.system.util.enums.FoodTag;
@@ -8,6 +9,7 @@ import co.dalicious.domain.food.converter.FoodStatusConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
@@ -91,6 +93,24 @@ public class Food {
     @Comment("커스텀 상품 가격")
     private BigDecimal customPrice;
 
+    @Builder
+    public Food (FoodStatus foodStatus, String name, BigDecimal price, List<FoodTag> foodTagList, Makers makers, String description, BigDecimal customPrice) {
+        this.foodStatus = foodStatus;
+        this.name = name;
+        this.price = price;
+        this.foodTags = foodTagList;
+        this.makers = makers;
+        this.description = description;
+        this.customPrice = customPrice;
+    }
+
+    public void updateFood(FoodListDto foodListDto, List<FoodTag> foodTags) {
+        this.foodStatus = FoodStatus.valueOf(foodListDto.getFoodStatus());
+        this.name = foodListDto.getFoodName();
+        this.price = foodListDto.getDefaultPrice();
+        this.foodTags = foodTags;
+        this.description = foodListDto.getDescription();
+    }
 
 
 }

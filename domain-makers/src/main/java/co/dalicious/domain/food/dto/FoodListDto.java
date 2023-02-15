@@ -1,6 +1,5 @@
 package co.dalicious.domain.food.dto;
 
-import co.dalicious.system.util.enums.FoodTag;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,8 +13,9 @@ import java.util.List;
 @Builder
 public class FoodListDto {
 
-    private BigInteger id;
+    private BigInteger foodId;
     private String makersName;
+    private BigInteger makersId;
     private String foodName;
     private String foodImage;
     private String foodStatus;
@@ -27,12 +27,13 @@ public class FoodListDto {
     private List<String> foodTags;
 
     public FoodListDto(
-            BigInteger id, String makersName, String foodName, String foodImage, String foodStatus,
+            BigInteger foodId, String makersName, BigInteger makersId, String foodName, String foodImage, String foodStatus,
             BigDecimal defaultPrice, Integer makersDiscount, Integer eventDiscount, BigDecimal resultPrice,
             String description, List<String> foodTags) {
 
-        this.id = id;
+        this.foodId = foodId;
         this.makersName = makersName;
+        this.makersId = makersId;
         this.foodName = foodName;
         this.foodImage = foodImage;
         this.foodStatus = foodStatus;
