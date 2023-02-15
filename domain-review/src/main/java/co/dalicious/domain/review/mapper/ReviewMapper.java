@@ -51,7 +51,7 @@ public interface ReviewMapper {
             return makersName = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
         }
 
-        throw new ApiException(ExceptionEnum.NOT_FOND_MAKERS);
+        throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
     }
 
     @Named("getItemName")
@@ -62,6 +62,6 @@ public interface ReviewMapper {
             return itemName = orderItemDailyFood.getDailyFood().getFood().getName();
         }
 
-        throw new ApiException(ExceptionEnum.NOT_FOND_ITEM);
+        throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM);
     }
 }
