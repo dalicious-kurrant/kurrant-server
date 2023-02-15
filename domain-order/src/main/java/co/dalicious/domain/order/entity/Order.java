@@ -136,12 +136,16 @@ public class Order {
         this.point = point;
     }
 
-    public void updatePaymentType(PaymentType paymentType) {
-        this.paymentType = paymentType;
+    public void updatePaymentKey(String paymentKey) {
+        this.paymentKey = paymentKey;
     }
 
     public void updateUser(User user) {
         this.user = user;
+    }
+
+    public void updateReceiptUrl(String receiptUrl) {
+        this.receiptUrl = receiptUrl;
     }
 
     public void updateTotalPrice(BigDecimal totalPrice) {
