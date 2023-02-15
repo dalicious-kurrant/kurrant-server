@@ -22,15 +22,19 @@ import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.dto.DailyFoodMembershipDiscountDto;
 import co.dalicious.domain.user.dto.MembershipBenefitDto;
 import co.dalicious.domain.user.dto.MembershipDto;
+import co.dalicious.domain.user.entity.Founders;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.MembershipDiscountPolicy;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.mapper.MembershipBenefitMapper;
+import co.dalicious.domain.user.repository.FoundersRepository;
 import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
+import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiscountType;
@@ -68,7 +72,8 @@ public class MembershipServiceImpl implements MembershipService {
     private final QMembershipRepository QmembershipRepository;
     private final OrderItemMembershipRepository orderItemMembershipRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
-    private final QOrderRepository qOrderRepository;
+    private final FoundersUtil foundersUtil;
+    private final FoundersMapper foundersMapper;
     private final OrderMembershipRepository orderMembershipRepository;
     private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.YEAR.getPrice().multiply(BigDecimal.valueOf((100 - MembershipSubscriptionType.YEAR.getDiscountRate()) * 0.01)).divide(BigDecimal.valueOf(12));
     private final BigDecimal DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.MONTH.getPrice().subtract(REFUND_YEARLY_MEMBERSHIP_PER_MONTH);
@@ -112,7 +117,7 @@ public class MembershipServiceImpl implements MembershipService {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
-        // 이 사람이 기존에 멤버십을 가입했는 지 확인
+        // 5. 이 사람이 기존에 멤버십을 가입했는 지 확인 후 멤버십 기간 저장
         PeriodDto periodDto = null;
         if (user.getIsMembership()) {
             Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
@@ -165,6 +170,12 @@ public class MembershipServiceImpl implements MembershipService {
 
         // 멤버십 결제 내역 등록(진행중 상태)
         OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership));
+
+        // 파운더스 확인
+        if(!foundersUtil.isFounders(user) &&!foundersUtil.isOverFoundersLimit()) {
+            Founders founders =  foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber()+1);
+            foundersUtil.saveFounders(founders);
+        }
 
         // 결제 진행. 실패시 오류 날림
         BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);

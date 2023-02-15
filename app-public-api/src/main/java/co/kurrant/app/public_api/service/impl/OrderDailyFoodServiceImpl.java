@@ -29,15 +29,15 @@ import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
-import co.dalicious.domain.user.entity.Membership;
-import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.UserSpot;
+import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.mapper.FoundersMapper;
+import co.dalicious.domain.user.repository.FoundersRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
+import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.enums.DiningType;
@@ -98,6 +98,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderMembershipRepository orderMembershipRepository;
     private final OrderItemMembershipRepository orderItemMembershipRepository;
     private final MembershipSupportPriceRepository membershipSupportPriceRepository;
+    private final FoundersMapper foundersMapper;
+    private final FoundersUtil foundersUtil;
 
     @Override
     @Transactional
@@ -270,6 +272,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             MembershipSupportPrice membershipSupportPrice = orderMembershipMapper.toMembershipSupportPrice(user, group, orderItemMembership);
             membershipSupportPriceRepository.save(membershipSupportPrice);
 
+            // 파운더스 확인
+            if(!foundersUtil.isFounders(user) &&!foundersUtil.isOverFoundersLimit()) {
+                Founders founders =  foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber()+1);
+                foundersUtil.saveFounders(founders);
+            }
         }
 
 
