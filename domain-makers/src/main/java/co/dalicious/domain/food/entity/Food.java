@@ -94,11 +94,11 @@ public class Food {
     private BigDecimal customPrice;
 
     @Builder
-    public Food (FoodStatus foodStatus, String name, BigDecimal price, List<FoodTag> foodTagList, Makers makers, String description, BigDecimal customPrice) {
+    public Food (FoodStatus foodStatus, String name, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
         this.foodStatus = foodStatus;
         this.name = name;
         this.price = price;
-        this.foodTags = foodTagList;
+        this.foodTags = foodTags;
         this.makers = makers;
         this.description = description;
         this.customPrice = customPrice;

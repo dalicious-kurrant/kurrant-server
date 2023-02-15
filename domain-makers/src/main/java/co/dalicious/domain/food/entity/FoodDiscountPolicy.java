@@ -5,6 +5,7 @@ import co.dalicious.system.util.enums.DiscountType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -49,5 +50,12 @@ public class FoodDiscountPolicy {
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
+
+    @Builder
+    public FoodDiscountPolicy(Food food, DiscountType discountType, Integer discountRate) {
+        this.food = food;
+        this.discountType = discountType;
+        this.discountRate = discountRate;
+    }
 
 }
