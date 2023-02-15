@@ -165,7 +165,6 @@ jobs:
         script: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
           docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
-          
           docker pull ${{ secrets.DOCKER_USERNAME }}/makers_kurrant_v1:${GITHUB_SHA::7}
           docker tag ${{ secrets.DOCKER_USERNAME }}/makers_kurrant_v1:${GITHUB_SHA::7} makers_kurrant_v1
           docker pull ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
