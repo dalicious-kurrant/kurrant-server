@@ -2,6 +2,7 @@ package co.kurrant.app.client.controller;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.client.dto.MemberListResponseDto;
 import co.kurrant.app.client.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +14,9 @@ import co.kurrant.app.client.service.BoardService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -50,7 +53,25 @@ public class MemberController {
             .build();
   }
 
+  @Operation(summary = "엑셀 불러오기", description = "엑셀 파일을 불러온다.")
+  @ResponseStatus(HttpStatus.OK)
+  @PostMapping("/waiting/excel")
+  public ResponseMessage importExcelForWaitingUserList(@RequestParam("file") MultipartFile file) throws IOException {
+    return ResponseMessage.builder()
+            .data(memberService.importExcelForWaitingUserList(file))
+            .message("가입대기 유저 목록 조회")
+            .build();
+  }
 
+  @Operation(summary = "선택 유저 탈퇴처리", description = "선택한 유저를 탈퇴처리한다")
+  @ResponseStatus(HttpStatus.OK)
+  @PatchMapping("")
+  public ResponseMessage deleteMember(@RequestBody DeleteMemberRequestDto deleteMemberRequestDto){
+    memberService.deleteMember(deleteMemberRequestDto);
+    return ResponseMessage.builder()
+            .message("선택한 유저를 탈퇴처리했습니다.")
+            .build();
+  }
 
 
  /*

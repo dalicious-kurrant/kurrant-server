@@ -23,9 +23,14 @@ public class QUserSpotRepository {
     }
 
     public User findOneById(BigInteger userSpotId) {
-        return queryFactory.select(userSpot.user)
+        User user = queryFactory.select(userSpot.user)
                 .from(userSpot)
                 .where(userSpot.id.eq(userSpotId))
                 .fetchOne();
+
+        if (user.getUserStatus().getCode() == 0){
+            return null;
+        }
+        return user;
     }
 }

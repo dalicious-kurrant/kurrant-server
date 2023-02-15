@@ -85,6 +85,8 @@ public enum ExceptionEnum {
 	UPDATE_ORDER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"E5000006", "주문서 수정에 실패했습니다."),
 	DUPLICATE_CANCELLATION_REQUEST(HttpStatus.INTERNAL_SERVER_ERROR,"E5000007", "취소 실패 : 이미 취소된 결제건입니다."),
   	INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000000", "internalServerError"),
+  	USER_PATCH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000009", "유저 탈퇴처리 실패"),
+
 
   	/* E422 */
   	UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY, "E4220000", "이미 존재하는 유저입니다.");
