@@ -198,6 +198,8 @@ public class MembershipServiceImpl implements MembershipService {
                 String receiptUrl = receipt.get("url").toString();
 
                 String paymentKey = (String) payResult.get("paymentKey");
+                order.updatePaymentKey(paymentKey);
+                order.updateReceiptUrl(receiptUrl);
 
                 JSONObject card = (JSONObject) payResult.get("card");
                 String paymentCompanyCode;
