@@ -162,7 +162,10 @@ public class FoodServiceImpl implements FoodService {
                 foodRepository.save(food);
 
                 //food discount policy UPDATE
-
+                List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
+                for(FoodDiscountPolicy discountPolicy : discountPolicyList) {
+                    
+                }
             }
 
         }

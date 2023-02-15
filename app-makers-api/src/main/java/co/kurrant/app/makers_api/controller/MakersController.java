@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+
 
 @RestController
 @RequestMapping(value = "/v1/makers")
@@ -20,6 +22,8 @@ public class MakersController {
     @Operation(summary = "로그인", description = "로그인을 수행한다.")
     @PostMapping("/login")
     public ResponseMessage login(@RequestBody LoginRequestDto loginRequestDto) {
+        Date date = new Date();
+        System.out.println(new Date(date.getTime()).getTime());
         return ResponseMessage.builder()
                 .message("로그인에 성공했습니다.")
                 .data(makersService.login(loginRequestDto))
