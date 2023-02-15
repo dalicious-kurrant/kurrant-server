@@ -42,6 +42,41 @@ jobs:
         echo "${{ secrets.APP_PUBLIC_API_YAML }}" > ./application.yaml
       shell: bash
 
+    - name: app-makers-api application-prod.yaml 생성
+      run: |
+        cd ./app-makers-api/src/main
+        mkdir resources
+        cd resources
+        touch ./application-prod.yaml
+        echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application-prod.yaml
+
+      shell: bash
+
+    - name: app-makers-api application.yaml 생성
+      run: |
+        cd ./app-makers-api/src/main/resources
+        touch ./application.yaml
+        echo "${{ secrets.APP_PUBLIC_API_YAML }}" > ./application.yaml
+      shell: bash
+
+    - name: app-client-api application-prod.yaml 생성
+      run: |
+        cd ./app-client-api/src/main
+        mkdir resources
+        cd resources
+        touch ./application-prod.yaml
+        echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application-prod.yaml
+
+      shell: bash
+
+    - name: app-client-api application.yaml 생성
+      run: |
+        cd ./app-client-api/src/main/resources
+        touch ./application.yaml
+        echo "${{ secrets.APP_PUBLIC_API_YAML }}" > ./application.yaml
+      shell: bash
+
+
     - name: client-core application-jwt.properties 생성
       run: |
         cd ./client-core/src/main
@@ -109,19 +144,16 @@ jobs:
         docker build -t kurrant_v1 .
         docker tag kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
         docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
-
-#    - name: 배포
-#      uses: appleboy/ssh-action@master
-#      with:
-#        host: ${{ secrets.HOST }}
-#        username: ubuntu
-#        key: ${{ secrets.PRIVATE_KEY }}
-#        envs: GITHUB_SHA
-#        script: |
-#          docker rm -f $(docker ps -qa)
-#          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
-#          sudo dockecr-compose up -d
-#          docker image prune -f
+        
+        cd ../app-makers-api
+        docker build -t makers_kurrant_v1 .
+        docker tag makers_kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/makers_kurrant_v1:${GITHUB_SHA::7}
+        docker push ${{ secrets.DOCKER_USERNAME }}/makers_kurrant_v1:${GITHUB_SHA::7}
+        
+        cd ../app-client-api
+        docker build -t client_kurrant_v1 .
+        docker tag client_kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
+        docker push ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
 
 
     - name: 배포
@@ -135,7 +167,11 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
           docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
           docker stop kurrant_v1
+          docker stop makers_kurrant_v1
+          docker stop client_kurrant_v1
           sleep 5
           docker run -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
+          docker run -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8884:8884 makers_kurrant_v1
+          docker run -d --rm --name kurrant_v1 -p 8886:8886 kurrant_v1
           
 
