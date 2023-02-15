@@ -50,4 +50,11 @@ public class FoundersUtil {
     public Founders saveFounders(Founders founders) {
         return foundersRepository.save(founders);
     }
+
+    public void cancelFounders(User user) {
+        if(isFounders(user)) {
+            Optional<Founders> founders = foundersRepository.findOneByUserAndIsActive(user, true);
+            founders.ifPresent(value -> value.updateIsActive(false));
+        }
+    }
 }

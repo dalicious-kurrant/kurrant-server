@@ -320,6 +320,9 @@ public class MembershipServiceImpl implements MembershipService {
         if (membershipUsingDays <= 7) {
             refundMembership(user, orderItemMembership.getOrder(), userCurrentMembership, orderMembership);
         }
+
+        // 파운더스 멤버일 경우 해지
+        foundersUtil.cancelFounders(user);
         userCurrentMembership.changeAutoPaymentStatus(false);
     }
 
