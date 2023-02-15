@@ -36,6 +36,13 @@ public class Founders {
     @Comment("멤버십")
     private Membership membership;
 
+    public Founders(Boolean isActive, Integer foundersNumber, User user, Membership membership) {
+        this.isActive = isActive;
+        this.foundersNumber = foundersNumber;
+        this.user = user;
+        this.membership = membership;
+    }
+
     public void updateIsActive(Boolean active) {
         isActive = active;
     }
