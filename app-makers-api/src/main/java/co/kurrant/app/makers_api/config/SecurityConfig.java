@@ -1,7 +1,5 @@
 package co.kurrant.app.makers_api.config;
 
-import co.dalicious.client.core.filter.JwtAuthenticationFilter;
-import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.client.core.handler.CustomAccessDeniedHandler;
 import co.dalicious.client.core.handler.CustomAuthenticationHandler;
 import co.dalicious.data.redis.repository.BlackListTokenRepository;
@@ -20,7 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final MakersJwtTokenProvider jwtTokenProvider;
     private final BlackListTokenRepository blackListTokenRepository;
 
     /**
@@ -46,7 +44,7 @@ public class SecurityConfig {
                 .anyRequest().hasRole("USER").and() // 그외 나머지 요청은 모두 인증된 회원만 접근 가능
                 .exceptionHandling().accessDeniedHandler(new CustomAccessDeniedHandler()).and()
                 .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationHandler()).and()
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, blackListTokenRepository),
+                .addFilterBefore(new MakersJwtAuthenticationFilter(jwtTokenProvider, blackListTokenRepository),
                         UsernamePasswordAuthenticationFilter.class); // jwt token 필터를 id/password 인증 필터 전에 넣어라.
 
         return http.build();
