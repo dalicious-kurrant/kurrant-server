@@ -48,7 +48,7 @@ jobs:
         mkdir resources
         cd resources
         touch ./application-prod.yaml
-        echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application-prod.yaml
+        echo "${{ secrets.APP_MAKERS_API_PROD_YAML }}" > ./application-prod.yaml
 
       shell: bash
 
@@ -65,7 +65,7 @@ jobs:
         mkdir resources
         cd resources
         touch ./application-prod.yaml
-        echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application-prod.yaml
+        echo "${{ secrets.APP_CLIENT_API_PROD_YAML }}" > ./application-prod.yaml
 
       shell: bash
 

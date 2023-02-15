@@ -37,10 +37,6 @@ public class QOrderDailyFoodRepository {
                 .set(orderDailyFood.paymentCompany, paymentCompany)
                 .where(orderDailyFood.id.eq(orderId))
                 .execute();
-
-        if (update != 1){
-            throw new ApiException(ExceptionEnum.UPDATE_ORDER_FAILED);
-        }
     }
 
     public List<OrderItemDailyFood> findByUserAndServiceDateBetween(User user, LocalDate startDate, LocalDate endDate) {

@@ -30,6 +30,7 @@ import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
+import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
@@ -84,6 +85,7 @@ public class UserServiceImpl implements UserService {
     private final CreditCardInfoSaveMapper creditCardInfoSaveMapper;
     private final CreditCardInfoMapper creditCardInfoMapper;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final FoundersUtil foundersUtil;
 
     @Override
     @Transactional
@@ -91,6 +93,8 @@ public class UserServiceImpl implements UserService {
         User user = userUtil.getUser(securityUser);
         UserHomeResponseDto userHomeResponseDto = userHomeInfoMapper.toDto(user);
         userHomeResponseDto.setMembershipUsingPeriod(membershipUtil.getUserPeriodOfUsingMembership(user));
+        userHomeResponseDto.setFoundersNumber(foundersUtil.getFoundersNumber(user));
+        userHomeResponseDto.setLeftFoundersNumber(foundersUtil.getLeftFoundersNumber());
         return userHomeResponseDto;
     }
 
