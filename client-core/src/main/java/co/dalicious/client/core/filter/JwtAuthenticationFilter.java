@@ -48,7 +48,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
         // 2. 토큰을 가져오면 유효성 검사를 한다, null인 경우는 안들어온 것
-        log.info("TokenValidate: " + jwtTokenProvider.validateToken(jwtToken));
+        if (!request.getRequestURI().contains("/members")) {
+            log.info("TokenValidate: " + jwtTokenProvider.validateToken(jwtToken));
+        }
 
         if (jwtToken != null && jwtTokenProvider.validateToken(jwtToken)) {
             log.info("AccessToken >>>> " + jwtToken);

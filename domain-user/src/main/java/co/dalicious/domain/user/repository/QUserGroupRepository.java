@@ -1,11 +1,13 @@
 package co.dalicious.domain.user.repository;
 
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
-import java.util.Optional;
+import java.util.List;
 
 import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
 
@@ -22,5 +24,13 @@ public class QUserGroupRepository {
                 .where(userGroup.id.eq(corporationId))
                 .fetchOne();
 
+    }
+
+    public List<User> findAllByGroupId(BigInteger corporationId) {
+        return queryFactory.select(userGroup.user)
+                .from(userGroup)
+                .where(userGroup.group.id.eq(corporationId),
+                        userGroup.clientStatus.ne(ClientStatus.WITHDRAWAL))
+                .fetch();
     }
 }
