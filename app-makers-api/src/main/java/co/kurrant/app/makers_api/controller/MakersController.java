@@ -8,9 +8,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+
 @RestController
-@RequestMapping(value = "v1/makers")
+@RequestMapping(value = "/v1/makers")
 @RequiredArgsConstructor
+@CrossOrigin(origins="*", allowedHeaders = "*")
 public class MakersController {
 
     private final UserService makersService;

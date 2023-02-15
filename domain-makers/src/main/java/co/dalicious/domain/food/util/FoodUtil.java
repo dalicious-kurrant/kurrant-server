@@ -27,4 +27,19 @@ public class FoodUtil {
     public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
         return price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100.0));
     }
+
+    public static BigDecimal getFoodTotalDiscountedPriceWithoutMembershipDiscount(Food food, DiscountDto discountDto) {
+        BigDecimal foodPrice = food.getPrice();
+        BigDecimal totalPrice;
+
+        Integer makersDiscountPolicyRate = discountDto.getMakersDiscountRate();
+        Integer periodDiscountPolicyRate = discountDto.getPeriodDiscountRate();
+
+        // 1. 판매자 할인 적용
+        totalPrice = discountedPriceByRate(foodPrice, makersDiscountPolicyRate);
+        // 2. 기간 할인 적용
+        totalPrice = discountedPriceByRate(totalPrice, periodDiscountPolicyRate);
+
+        return totalPrice;
+    }
 }

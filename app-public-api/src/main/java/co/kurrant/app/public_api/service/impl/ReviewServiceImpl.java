@@ -47,7 +47,7 @@ public class ReviewServiceImpl implements ReviewService {
         // 필요한 정보 가져오기 - 유저, 상품
         User user = userUtil.getUser(securityUser);
         OrderItem orderItem = orderItemRepository.findById(itemId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.NOT_FOND_ITEM)
+                () -> new ApiException(ExceptionEnum.NOT_FOUND_ITEM)
         );
 
 
@@ -97,7 +97,7 @@ public class ReviewServiceImpl implements ReviewService {
         //리뷰 가능한 상품이 있는 지 확인
         List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatus(user, OrderStatus.RECEIPT_COMPLETE);
         if(receiptCompleteItem == null || receiptCompleteItem.size() == 0) {
-            throw new ApiException(ExceptionEnum.NOT_FOND_ITEM_FOR_REVIEW);
+            throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
         }
 
         //리뷰가 가능한 상품인지 확인
@@ -135,7 +135,7 @@ public class ReviewServiceImpl implements ReviewService {
         //user가 작성한 리뷰 찾기
         List<Reviews> reviews = reviewRepository.findByUser(user);
         if(reviews.size() == 0 || reviews == null) {
-            throw new ApiException(ExceptionEnum.NOT_FOND_REVIEWS);
+            throw new ApiException(ExceptionEnum.NOT_FOUND_REVIEWS);
         }
 
         List<ReviewListDto> reviewListDtos = new ArrayList<>();

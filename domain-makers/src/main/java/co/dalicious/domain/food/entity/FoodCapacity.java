@@ -4,6 +4,7 @@ import co.dalicious.system.util.converter.DiningTypeConverter;
 import co.dalicious.system.util.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -32,4 +33,11 @@ public class FoodCapacity {
 
     @Comment("식사 일정별 가능 수량")
     private Integer capacity;
+
+    @Builder
+    public FoodCapacity(Food food, DiningType diningType, Integer capacity) {
+        this.food = food;
+        this.diningType = diningType;
+        this.capacity = capacity;
+    }
 }
