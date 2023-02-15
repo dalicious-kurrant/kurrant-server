@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.mapper;
 
+import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
@@ -14,7 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, BigDecimal.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, BigDecimal.class, DailyFoodStatus.class})
 public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "orderDailyFood.code", target = "code")
     @Mapping(target = "orderDate", expression = "java(DateUtils.toISOLocalDate(orderDailyFood.getCreatedDateTime()))")
@@ -35,6 +36,7 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "orderDailyFood", target = "discountPrice", qualifiedByName = "getDiscountedPrice")
     @Mapping(source = "orderItems", target = "orderItems")
     @Mapping(source = "orderDailyFood.receiptUrl", target = "receiptUrl")
+    @Mapping(source = "orderDailyFood.paymentCompany.paymentCompany", target = "paymentCompany")
     @Mapping(source = "refundDto", target = "refundDto")
     OrderDailyFoodDetailDto orderToDto(OrderDailyFood orderDailyFood, List<OrderDailyFoodDetailDto.OrderItem> orderItems, OrderDailyFoodDetailDto.RefundDto refundDto);
 
@@ -47,6 +49,7 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "count", target = "count")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())))")
+    @Mapping(target = "isBeforeLastOrderTime", expression = "java(!orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME))")
     OrderDailyFoodDetailDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
     @Named("getSupportPrice")

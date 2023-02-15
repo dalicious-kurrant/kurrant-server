@@ -50,12 +50,12 @@ public enum PaymentCompany {
     SSG("SSG페이", "SSG", "간편결제"),
     ;
 
-    private final String cardCompany;
+    private final String paymentCompany;
     private final String code;
     private final String paymentType;
 
     PaymentCompany(String cardCompany, String code, String paymentType) {
-        this.cardCompany = cardCompany;
+        this.paymentCompany = cardCompany;
         this.code = code;
         this.paymentType = paymentType;
     }

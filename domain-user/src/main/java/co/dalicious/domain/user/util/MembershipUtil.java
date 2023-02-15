@@ -62,7 +62,7 @@ public class MembershipUtil {
         LocalDate firstPaidDate = recentMembership.getStartDate();
         LocalDate now = LocalDate.now();
         Period period = firstPaidDate.until(now);
-        return period.getMonths() + 1;
+        return period.getDays() + 1;
     }
 
     // 시작날짜와 종료날짜로 멤버십 이용 개월 반환

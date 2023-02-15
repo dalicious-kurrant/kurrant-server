@@ -53,7 +53,7 @@ public class PaymentCancelHistory {
     @Column(name = "order_code", columnDefinition = "VARCHAR(255)")
     private String orderCode;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
     private CreditCardInfo creditCardInfo;
 
