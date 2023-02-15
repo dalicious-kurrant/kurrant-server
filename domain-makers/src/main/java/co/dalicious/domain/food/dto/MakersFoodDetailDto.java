@@ -1,33 +1,17 @@
 package co.dalicious.domain.food.dto;
 
-import co.dalicious.domain.file.entity.embeddable.Image;
-import co.dalicious.domain.food.converter.FoodStatusConverter;
-import co.dalicious.domain.food.entity.FoodCapacity;
-import co.dalicious.domain.food.entity.FoodDiscountPolicy;
-import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.food.entity.enums.FoodStatus;
-import co.dalicious.system.util.converter.FoodTagsConverter;
-import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.system.util.enums.FoodTag;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.util.List;
 
 @Getter
 @Setter
 @Builder
-public class FoodManagingDto {
+public class MakersFoodDetailDto {
 
     private String makersName;
     private BigInteger foodId;
@@ -42,7 +26,7 @@ public class FoodManagingDto {
     private String description;
     private BigDecimal customPrice;
 
-    public FoodManagingDto(
+    public MakersFoodDetailDto(
             String makersName, BigInteger foodId, String foodName, BigDecimal foodPrice, String foodImage,
             BigDecimal makersDiscountPrice, Integer makersDiscountRate, BigDecimal periodDiscountPrice, Integer periodDiscountRate,
             List<Integer> foodTags, String description, BigDecimal customPrice) {

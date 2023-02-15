@@ -1,11 +1,7 @@
 package co.kurrant.app.makers_api.service.impl;
 
-import co.dalicious.domain.food.dto.DiscountDto;
-import co.dalicious.domain.food.dto.FoodDeleteDto;
-import co.dalicious.domain.food.dto.FoodListDto;
-import co.dalicious.domain.food.dto.FoodManagingDto;
+import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.*;
-import co.dalicious.domain.food.entity.enums.FoodStatus;
 import co.dalicious.domain.food.mapper.FoodCapacityMapper;
 import co.dalicious.domain.food.mapper.FoodDiscountPolicyMapper;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
@@ -24,7 +20,6 @@ import co.kurrant.app.makers_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.Mapping;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,7 +86,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public FoodManagingDto getFoodDetail(BigInteger foodId, SecurityUser securityUser) {
+    public MakersFoodDetailDto getFoodDetail(BigInteger foodId, SecurityUser securityUser) {
         Makers makers = userUtil.getMakers(securityUser);
         Food food = foodRepository.findByIdAndMakers(foodId, makers);
 
@@ -114,16 +109,17 @@ public class FoodServiceImpl implements FoodService {
         }
     }
 
+    //대량 수정
     @Override
     @Transactional
-    public List<FoodListDto> updateFood(List<FoodListDto> foodListDtoList) {
+    public void updateFoodMass(List<FoodListDto> foodListDtoList) {
         for(FoodListDto foodListDto : foodListDtoList) {
             Food food = foodRepository.findById(foodListDto.getFoodId()).orElse(null);
 
             List<FoodTag> foodTags = new ArrayList<>();
             List<String> foodTagStrs = foodListDto.getFoodTags();
             if(foodTagStrs == null) foodTags = null;
-            else { for (String tag : foodTagStrs) foodTags.add(FoodTag.valueOf(tag)); }
+            else { for (String tag : foodTagStrs) foodTags.add(FoodTag.ofString(tag)); }
 
             // 기존 푸드가 없으면 생성
             if(food == null) {
@@ -158,17 +154,50 @@ public class FoodServiceImpl implements FoodService {
             // food가 있으면
             else {
                 //food UPDATE
-                food.updateFood(foodListDto, foodTags);
+                food.updateFoodMass(foodListDto, foodTags);
                 foodRepository.save(food);
 
                 //food discount policy UPDATE
                 List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
                 for(FoodDiscountPolicy discountPolicy : discountPolicyList) {
-                    
+                    if(discountPolicy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT)) {
+                        discountPolicy.updateFoodDiscountPolicy(foodListDto.getMakersDiscount());
+                        foodDiscountPolicyRepository.save(discountPolicy);
+                    } else if(discountPolicy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT)) {
+                        discountPolicy.updateFoodDiscountPolicy(foodListDto.getEventDiscount());
+                        foodDiscountPolicyRepository.save(discountPolicy);
+                    }
                 }
             }
-
         }
-        return null;
+    }
+
+    @Override
+    @Transactional
+    public void updateFood(MakersFoodDetailReqDto foodDetailDto) {
+        Food food = foodRepository.findById(foodDetailDto.getFoodId()).orElseThrow(
+                () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
+        );
+
+        List<FoodTag> foodTags = new ArrayList<>();
+        List<Integer> foodTagStrs = foodDetailDto.getFoodTags();
+        if(foodTagStrs == null) foodTags = null;
+        else { for (Integer tag : foodTagStrs) foodTags.add(FoodTag.ofCode(tag)); }
+
+        //food UPDATE
+        food.updateFood(foodTags);
+        foodRepository.save(food);
+
+        //food discount policy UPDATE
+        List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
+        for(FoodDiscountPolicy discountPolicy : discountPolicyList) {
+            if(discountPolicy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT)) {
+                discountPolicy.updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
+                foodDiscountPolicyRepository.save(discountPolicy);
+            } else if(discountPolicy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT)) {
+                discountPolicy.updateFoodDiscountPolicy(foodDetailDto.getPeriodDiscountRate());
+                foodDiscountPolicyRepository.save(discountPolicy);
+            }
+        }
     }
 }

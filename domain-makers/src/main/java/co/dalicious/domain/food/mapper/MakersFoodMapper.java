@@ -2,7 +2,7 @@ package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodListDto;
-import co.dalicious.domain.food.dto.FoodManagingDto;
+import co.dalicious.domain.food.dto.MakersFoodDetailDto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.system.util.enums.FoodTag;
 import exception.ApiException;
@@ -59,7 +59,7 @@ public interface MakersFoodMapper {
     @Mapping(source = "food.foodTags", target = "foodTags", qualifiedByName = "getFoodTagList")
     @Mapping(source = "food.description", target = "description")
     @Mapping(source = "food.customPrice", target = "customPrice", qualifiedByName = "customPrice")
-    FoodManagingDto toFoodManagingDto(Food food, DiscountDto discountDto);
+    MakersFoodDetailDto toFoodManagingDto(Food food, DiscountDto discountDto);
 
     @Named("getAllFoodList")
     default List<String> getAllFoodList(List<FoodTag> foodTags) {

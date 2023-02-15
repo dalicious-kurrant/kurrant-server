@@ -169,4 +169,11 @@ public enum FoodTag {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
     }
+
+    public static FoodTag ofString(String tag) {
+        return Arrays.stream(FoodTag.values())
+                .filter(v -> v.getTag().equals(tag))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+    }
 }

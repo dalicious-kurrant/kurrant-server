@@ -1,4 +1,4 @@
-package co.kurrant.app.makers_api.dto;
+package co.kurrant.app.makers_api.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
