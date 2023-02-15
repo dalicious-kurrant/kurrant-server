@@ -28,6 +28,7 @@ public class OrderDailyFoodDetailDto {
     private BigDecimal totalPrice;
     private BigDecimal discountPrice;
     private String receiptUrl;
+    private String paymentCompany;
     private RefundDto refundDto;
     private List<OrderItem> orderItems;
 
@@ -43,6 +44,7 @@ public class OrderDailyFoodDetailDto {
         private Integer count;
         private BigDecimal price;
         private Integer orderStatus;
+        private Boolean isBeforeLastOrderTime;
 
     }
 

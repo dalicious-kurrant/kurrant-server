@@ -47,6 +47,7 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import net.bytebuddy.asm.Advice;
+import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -382,9 +383,10 @@ public class UserServiceImpl implements UserService {
         // 식사 일정 개수 구하기
         Integer dailyMealCount = 0;
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllMealScheduleByUser(user);
+        List<OrderItemDailyFood> selectedOrderDailyDailyFoods = new ArrayList<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            OrderDailyFood orderDailyFood = (OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder());
             if(orderItemDailyFood.getDailyFood().getServiceDate().equals(LocalDate.now())) {
-                OrderDailyFood orderDailyFood = (OrderDailyFood) orderItemDailyFood.getOrder();
                 Optional<MealInfo> mealInfo = orderDailyFood.getSpot().getMealInfos().stream()
                         .filter(v -> v.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType())).findAny();
                 if(mealInfo.isEmpty()) {
@@ -392,11 +394,12 @@ public class UserServiceImpl implements UserService {
                 }
                 LocalTime deliveryTime = mealInfo.get().getDeliveryTime();
                 if(LocalTime.now().isAfter(deliveryTime)) {
-                    orderItemDailyFoods.remove(orderItemDailyFood);
+                    continue;
                 }
             }
+            selectedOrderDailyDailyFoods.add(orderItemDailyFood);
         }
-        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+        for (OrderItemDailyFood orderItemDailyFood : selectedOrderDailyDailyFoods) {
             dailyMealCount += orderItemDailyFood.getCount();
         }
 
