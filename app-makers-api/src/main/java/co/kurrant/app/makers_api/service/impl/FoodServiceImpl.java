@@ -1,22 +1,35 @@
 package co.kurrant.app.makers_api.service.impl;
 
-import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.entity.FoodDiscountPolicy;
-import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.food.mapper.MakersFoodMapper;
-import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.system.util.enums.DiscountType;
+import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.dto.FoodDeleteDto;
 import co.dalicious.domain.food.dto.FoodListDto;
+import co.dalicious.domain.food.dto.FoodManagingDto;
+import co.dalicious.domain.food.entity.*;
+import co.dalicious.domain.food.entity.enums.FoodStatus;
+import co.dalicious.domain.food.mapper.FoodCapacityMapper;
+import co.dalicious.domain.food.mapper.FoodDiscountPolicyMapper;
+import co.dalicious.domain.food.mapper.MakersFoodMapper;
+import co.dalicious.domain.food.repository.FoodCapacityRepository;
+import co.dalicious.domain.food.repository.FoodDiscountPolicyRepository;
+import co.dalicious.domain.food.repository.FoodRepository;
+import co.dalicious.domain.food.repository.MakersRepository;
+import co.dalicious.domain.food.util.FoodUtil;
+import co.dalicious.domain.order.mapper.FoodMapper;
+import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.util.enums.DiscountType;
+import co.dalicious.system.util.enums.FoodTag;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.FoodService;
 import co.kurrant.app.makers_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.mapstruct.Mapping;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +40,12 @@ public class FoodServiceImpl implements FoodService {
     private final FoodRepository foodRepository;
     private final MakersFoodMapper makersFoodMapper;
     private final UserUtil userUtil;
+    private final FoodMapper foodMapper;
+    private final MakersRepository makersRepository;
+    private final FoodDiscountPolicyMapper foodDiscountPolicyMapper;
+    private final FoodDiscountPolicyRepository foodDiscountPolicyRepository;
+    private final FoodCapacityMapper foodCapacityMapper;
+    private final FoodCapacityRepository foodCapacityRepository;
 
     @Override
     @Transactional
@@ -39,8 +58,9 @@ public class FoodServiceImpl implements FoodService {
         List<FoodListDto> dtoList = new ArrayList<>();
 
         for(Food food : allFoodList) {
-            BigDecimal resultPrice = calculate(food);
-            FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, resultPrice);
+            DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
+            BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
+            FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }
 
@@ -58,48 +78,94 @@ public class FoodServiceImpl implements FoodService {
 
         // 상품 dto에 담기
         List<FoodListDto> dtoList = new ArrayList<>();
+
         for(Food food : foodListByMakers) {
-            BigDecimal resultPrice = calculate(food);
-            FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, resultPrice);
+            DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
+            BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
+            FoodListDto dto = makersFoodMapper.toAllFoodListByMakersDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }
 
         return dtoList;
     }
 
-    // 할인된 금액 계산
+    @Override
     @Transactional
-    BigDecimal calculate(Food food) {
-        // 할인률 계산
-        BigDecimal defaultPrice = BigDecimal.ZERO;
-        BigDecimal makersDiscountPrice = BigDecimal.ZERO;
-        BigDecimal eventDiscountPrice = BigDecimal.ZERO;
-        BigDecimal resultPrice = BigDecimal.ZERO;
+    public FoodManagingDto getFoodDetail(BigInteger foodId, SecurityUser securityUser) {
+        Makers makers = userUtil.getMakers(securityUser);
+        Food food = foodRepository.findByIdAndMakers(foodId, makers);
 
-        defaultPrice = defaultPrice.add(food.getPrice());
+        if(food == null) { throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD); }
 
-        List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
-        // makersDiscount
-        FoodDiscountPolicy makersDiscount = discountPolicyList.stream()
-                .filter(policy -> policy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT))
-                .findFirst().orElse(null);
-        Integer makersRate = null;
-        if(makersDiscount != null) {
-            makersRate = makersDiscount.getDiscountRate();
-            makersDiscountPrice = makersDiscountPrice.add(defaultPrice).multiply(BigDecimal.valueOf(makersRate * 0.01));
+        DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
+
+        return makersFoodMapper.toFoodManagingDto(food, discountDto);
+    }
+
+    @Override
+    @Transactional
+    public void deleteFood(FoodDeleteDto foodDeleteDto) {
+        for(BigInteger foodId : foodDeleteDto.getFoodId()){
+            Food food = foodRepository.findById(foodId).orElseThrow(
+                    () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
+            );
+
+            foodRepository.delete(food);
         }
-        //eventDiscount
-        FoodDiscountPolicy eventDiscount = discountPolicyList.stream()
-                .filter(policy -> policy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT))
-                .findFirst().orElse(null);
-        Integer eventRate = null;
-        if(eventDiscount != null) {
-            eventRate = eventDiscount.getDiscountRate();
-            eventDiscountPrice = eventDiscountPrice.add(defaultPrice).multiply(BigDecimal.valueOf(eventRate * 0.01));
+    }
+
+    @Override
+    @Transactional
+    public List<FoodListDto> updateFood(List<FoodListDto> foodListDtoList) {
+        for(FoodListDto foodListDto : foodListDtoList) {
+            Food food = foodRepository.findById(foodListDto.getFoodId()).orElse(null);
+
+            List<FoodTag> foodTags = new ArrayList<>();
+            List<String> foodTagStrs = foodListDto.getFoodTags();
+            if(foodTagStrs == null) foodTags = null;
+            else { for (String tag : foodTagStrs) foodTags.add(FoodTag.valueOf(tag)); }
+
+            // 기존 푸드가 없으면 생성
+            if(food == null) {
+                Makers makers = makersRepository.findById(foodListDto.getMakersId()).orElseThrow(
+                        () -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)
+                );
+                BigDecimal customPrice = BigDecimal.ZERO;
+
+                // 푸드 생성
+                Food newFood = foodMapper.toNewEntity(foodListDto, makers, customPrice, foodTags);
+                foodRepository.save(newFood);
+
+                // 푸드 할인 정책 생성
+                FoodDiscountPolicy makersDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.MAKERS_DISCOUNT, foodListDto.getMakersDiscount(), newFood);
+                FoodDiscountPolicy periodDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.PERIOD_DISCOUNT, foodListDto.getEventDiscount(), newFood);
+
+                foodDiscountPolicyRepository.save(makersDiscount);
+                foodDiscountPolicyRepository.save(periodDiscount);
+
+                // 푸드 capacity 생성
+                List<MakersCapacity> makersCapacityList = makers.getMakersCapacities();
+                if(makersCapacityList == null){ throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS_CAPACITY); }
+                for (MakersCapacity makersCapacity : makersCapacityList) {
+                    DiningType diningType = makersCapacity.getDiningType();
+                    Integer capacity = makersCapacity.getCapacity();
+
+                    FoodCapacity foodCapacity = foodCapacityMapper.toEntity(diningType, capacity, newFood);
+                    foodCapacityRepository.save(foodCapacity);
+                }
+            }
+
+            // food가 있으면
+            else {
+                //food UPDATE
+                food.updateFood(foodListDto, foodTags);
+                foodRepository.save(food);
+
+                //food discount policy UPDATE
+
+            }
+
         }
-
-        resultPrice = resultPrice.add(defaultPrice).subtract(makersDiscountPrice).subtract(eventDiscountPrice);
-
-        return resultPrice;
+        return null;
     }
 }
