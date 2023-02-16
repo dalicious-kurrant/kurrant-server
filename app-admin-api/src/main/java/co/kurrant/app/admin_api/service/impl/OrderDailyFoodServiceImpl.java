@@ -62,6 +62,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
+    public void getOrderDetail(BigInteger orderItemDailyFoodId) {
+
+    }
+
+    @Override
     public List<GroupDto.Group> getGroup(Integer clientType) {
         List<? extends Group> groups = new ArrayList<>();
         if(clientType == null) {
