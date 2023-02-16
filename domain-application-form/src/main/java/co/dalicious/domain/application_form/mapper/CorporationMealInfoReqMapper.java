@@ -4,7 +4,7 @@ import co.dalicious.domain.application_form.dto.corporation.CorporationMealInfoR
 import co.dalicious.domain.application_form.entity.CorporationApplicationMealInfo;
 import co.dalicious.domain.application_form.entity.enums.PriceAverage;
 import co.dalicious.system.util.DaysUtil;
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.enums.DiningType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;

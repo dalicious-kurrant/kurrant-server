@@ -1,17 +1,14 @@
 package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.order.dto.CartDailyFoodDto;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.enums.DiningType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.math.BigDecimal;
 
 @Mapper(componentModel = "spring", imports = { DiningType.class, DateUtils.class })
 public interface OrderDailyFoodItemMapper {

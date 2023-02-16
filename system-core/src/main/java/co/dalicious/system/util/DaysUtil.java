@@ -1,6 +1,6 @@
 package co.dalicious.system.util;
 
-import co.dalicious.system.util.enums.Days;
+import co.dalicious.system.enums.Days;
 
 import java.util.Collections;
 import java.util.List;

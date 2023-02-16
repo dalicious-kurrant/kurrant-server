@@ -19,6 +19,7 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -32,7 +33,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
-@Table(name = "order__order")
+@Table(name = "order__order", indexes = @Index(name = "i_code", columnList = "code"))
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

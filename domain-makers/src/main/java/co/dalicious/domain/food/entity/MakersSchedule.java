@@ -1,8 +1,8 @@
 package co.dalicious.domain.food.entity;
 
 
-import co.dalicious.system.util.converter.DiningTypeConverter;
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.converter.DiningTypeConverter;
+import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
