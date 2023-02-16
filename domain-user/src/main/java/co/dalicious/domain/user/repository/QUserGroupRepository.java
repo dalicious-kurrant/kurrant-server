@@ -33,4 +33,12 @@ public class QUserGroupRepository {
                         userGroup.clientStatus.ne(ClientStatus.WITHDRAWAL))
                 .fetch();
     }
+
+    public Long deleteMember(BigInteger userId, BigInteger groupId) {
+        return queryFactory.update(userGroup)
+                .set(userGroup.clientStatus, ClientStatus.WITHDRAWAL)
+                .where(userGroup.user.id.eq(userId),
+                        userGroup.group.id.eq(groupId))
+                .execute();
+    }
 }

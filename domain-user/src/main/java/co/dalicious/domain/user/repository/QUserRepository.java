@@ -1,6 +1,7 @@
 package co.dalicious.domain.user.repository;
 
 
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +16,11 @@ import static co.dalicious.domain.user.entity.QUser.user;
 public class QUserRepository {
 
     private final JPAQueryFactory queryFactory;
-    public Long deleteMember(BigInteger userId) {
-        return queryFactory.update(user)
-                .set(user.userStatus, UserStatus.INACTIVE)
+
+
+    public User findByUserId(BigInteger userId) {
+        return queryFactory.selectFrom(user)
                 .where(user.id.eq(userId))
-                .execute();
+                .fetchOne();
     }
 }
