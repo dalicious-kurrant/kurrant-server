@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -185,12 +186,21 @@ public class FoodServiceImpl implements FoodService {
         if(foodTagStrs == null) foodTags = null;
         else { for (Integer tag : foodTagStrs) foodTags.add(FoodTag.ofCode(tag)); }
 
-        // 수정을 위한 이미지 객체 생성
-        Image image = Image.builder().location(foodDetailDto.getImage()).build();
+        System.out.println("foodTagStrs = " + Objects.requireNonNull(foodTagStrs));
 
-        //food UPDATE
-        food.updateFood(foodTags, image);
-        foodRepository.save(food);
+        // 수정을 위한 이미지가 없을 때
+        if(foodDetailDto.getImage() == null) {
+            //food UPDATE
+            food.updateFood(foodTags, food.getImage());
+            foodRepository.save(food);
+        } else {
+            // 수정을 위한 이미지 객체 생성
+            Image image = Image.builder().location(foodDetailDto.getImage()).build();
+
+            //food UPDATE
+            food.updateFood(foodTags, image);
+            foodRepository.save(food);
+        }
 
         //food discount policy UPDATE
         List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();

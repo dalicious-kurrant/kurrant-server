@@ -37,7 +37,7 @@ public class MakersJwtTokenProvider {
     private final UserDetailsService userDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 6 * 60 * 60 * 1000L; // 6시간
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 12 * 60 * 60 * 1000L; // 12시간
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
 
     @PostConstruct
