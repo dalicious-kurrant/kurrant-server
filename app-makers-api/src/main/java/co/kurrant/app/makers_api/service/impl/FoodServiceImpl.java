@@ -1,5 +1,6 @@
 package co.kurrant.app.makers_api.service.impl;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.mapper.FoodCapacityMapper;
@@ -179,13 +180,17 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
         );
 
+        // food tag 변환
         List<FoodTag> foodTags = new ArrayList<>();
         List<Integer> foodTagStrs = foodDetailDto.getFoodTags();
         if(foodTagStrs == null) foodTags = null;
         else { for (Integer tag : foodTagStrs) foodTags.add(FoodTag.ofCode(tag)); }
 
+        // 수정을 위한 이미지 객체 생성
+        Image image = Image.builder().location(foodDetailDto.getImage()).build();
+
         //food UPDATE
-        food.updateFood(foodTags);
+        food.updateFood(foodTags, image);
         foodRepository.save(food);
 
         //food discount policy UPDATE

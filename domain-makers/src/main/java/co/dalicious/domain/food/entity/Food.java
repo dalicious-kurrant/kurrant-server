@@ -113,8 +113,9 @@ public class Food {
         this.description = foodListDto.getDescription();
     }
 
-    public void updateFood(List<FoodTag> foodTags) {
+    public void updateFood(List<FoodTag> foodTags, Image image) {
         this.foodTags = foodTags;
+        this.image = image;
     }
 
 

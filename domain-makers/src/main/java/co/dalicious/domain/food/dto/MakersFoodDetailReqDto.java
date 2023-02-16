@@ -13,4 +13,5 @@ public class MakersFoodDetailReqDto {
     private Integer makersDiscountRate;
     private Integer periodDiscountRate;
     private List<Integer> foodTags;
+    private String image;
 }
