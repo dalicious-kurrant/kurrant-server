@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.dto;
+package co.kurrant.app.admin_api.dto.user;
 
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
