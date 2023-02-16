@@ -85,4 +85,5 @@ public class Corporation extends Group{
         this.isHotStorage = isHotStorage;
         this.isSetting = isSetting;
     }
+
 }

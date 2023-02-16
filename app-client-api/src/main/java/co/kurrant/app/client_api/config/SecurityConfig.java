@@ -42,6 +42,7 @@ public class SecurityConfig {
             // .antMatchers("/v1/boards/**").permitAll() // swagger
             // .antMatchers("/swagger-resources/**").permitAll() // swagger
             .antMatchers("/swagger-ui/**").permitAll() // swagger
+            .antMatchers("/downloadExcelFile").permitAll() // 엑셀 다운로드
             // .antMatchers("/v1/auth/**").permitAll() // 가입 및 인증 주소는 누구나 접근가능
             // .antMatchers(HttpMethod.GET, "/exception/**", "/helloworld/**",
             // "/actuator/health").permitAll() // 등록된 GET요청 리소스는 누구나 접근가능

@@ -80,4 +80,5 @@ public class Group {
         this.name = name;
         this.managerId = managerId;
     }
+
 }
