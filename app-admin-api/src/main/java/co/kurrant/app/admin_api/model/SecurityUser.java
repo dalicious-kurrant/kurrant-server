@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import co.dalicious.domain.user.entity.enums.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,18 +23,17 @@ public class SecurityUser implements  UserDetails {
 
   private static final long serialVersionUID = -4493193809465704737L;
 
-  private Long id;
-
-  private String email;
-
+  private String username;
   private String password;
-
-  @Builder.Default
-  private List<String> roles = new ArrayList<>();
+  private Role role;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return this.roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+    SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(this.role.getAuthority());
+    Collection<GrantedAuthority> collection = new ArrayList<>();
+    collection.add(simpleGrantedAuthority);
+
+    return collection;
   }
 
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -44,7 +45,7 @@ public class SecurityUser implements  UserDetails {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @Override
   public String getUsername() {
-    return this.email;
+    return this.username;
   }
 
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
