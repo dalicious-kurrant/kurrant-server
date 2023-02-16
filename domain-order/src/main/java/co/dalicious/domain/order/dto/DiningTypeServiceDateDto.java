@@ -1,6 +1,6 @@
 package co.dalicious.domain.order.dto;
 
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.enums.DiningType;
 import lombok.Getter;
 import lombok.Setter;
 

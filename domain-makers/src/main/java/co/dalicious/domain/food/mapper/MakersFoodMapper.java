@@ -4,7 +4,7 @@ import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailDto;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.system.util.enums.FoodTag;
+import co.dalicious.system.enums.FoodTag;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.mapstruct.Mapper;

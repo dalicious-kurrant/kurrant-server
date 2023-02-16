@@ -81,7 +81,7 @@ public class UserClientServiceImpl implements UserClientService {
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         groups.stream().filter(v -> v.getGroup().equals(group))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND));
+                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
         List<UserSpot> userSpots = user.getUserSpots();
 
         // 등록하려는 스팟이 아파트일 경우
@@ -184,11 +184,11 @@ public class UserClientServiceImpl implements UserClientService {
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
         Group group = groupRepository.findById(clientId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND)
+                () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)
         );
         UserGroup userGroup = groups.stream().filter(v -> v.getGroup().equals(group))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.CLIENT_NOT_FOUND));
+                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
         // 유저 그룹 상태를 탈퇴로 만든다.
         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
         List<UserSpot> userSpots = user.getUserSpots();

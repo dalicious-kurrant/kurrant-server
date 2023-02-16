@@ -86,7 +86,7 @@ public class OrderDailyFoodController {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         orderDailyFoodService.cancelOrderItemDailyFood(securityUser, idDto.getId());
         return ResponseMessage.builder()
-                .message("정기식사 구매 내역 조회에 성공하였습니다.")
+                .message("정기식사 부분 환불에 성공하였습니다.")
                 .build();
     }
 }

@@ -1,6 +1,6 @@
 package co.dalicious.domain.client.entity;
 
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

@@ -1,8 +1,7 @@
 package co.dalicious.domain.food.entity;
 
-import co.dalicious.domain.food.dto.FoodListDto;
-import co.dalicious.system.util.converter.DiscountTypeConverter;
-import co.dalicious.system.util.enums.DiscountType;
+import co.dalicious.system.converter.DiscountTypeConverter;
+import co.dalicious.system.enums.DiscountType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;

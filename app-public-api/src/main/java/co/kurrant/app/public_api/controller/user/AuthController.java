@@ -1,21 +1,17 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
-import co.dalicious.client.oauth.AppleAndroidLoginDto;
-import co.dalicious.system.util.enums.RequiredAuth;
+import co.dalicious.system.enums.RequiredAuth;
 import co.kurrant.app.public_api.dto.user.*;
-import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.AuthService;
 import co.dalicious.client.external.mail.MailMessageDto;
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;

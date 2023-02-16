@@ -2,7 +2,7 @@ package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
-import co.dalicious.system.util.enums.DiscountType;
+import co.dalicious.system.enums.DiscountType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

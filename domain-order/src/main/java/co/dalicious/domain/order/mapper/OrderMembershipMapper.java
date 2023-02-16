@@ -14,7 +14,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.util.PeriodDto;
-import co.dalicious.system.util.enums.DiscountType;
+import co.dalicious.system.enums.DiscountType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;

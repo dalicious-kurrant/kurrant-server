@@ -1,6 +1,6 @@
-package co.dalicious.system.util.converter;
+package co.dalicious.system.converter;
 
-import co.dalicious.system.util.enums.FoodTag;
+import co.dalicious.system.enums.FoodTag;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
