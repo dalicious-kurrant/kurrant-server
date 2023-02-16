@@ -32,6 +32,9 @@ public enum ExceptionEnum {
 	ALREADY_WRITING_REVIEW(HttpStatus.BAD_REQUEST, "E4000022", "이미 리뷰를 작성한 상품입니다."),
 	WRITING_REVIEW(HttpStatus.BAD_REQUEST, "E4000023", "리뷰 내용을 작성해주세요."),
 	NOT_ENOUGH_SATISFACTION(HttpStatus.BAD_REQUEST, "E4000023", "만족도는 0점을 줄 수 없습니다."),
+	NOT_MATCHED_USERNAME(HttpStatus.BAD_REQUEST, "E4000025", "아이디가 일치하지 않습니다. 확인해주세요."),
+	NOT_INPUT_PASSWORD(HttpStatus.BAD_REQUEST, "E4000026", "비밀번호를 입력하지 않았습니다. 확인해주세요."),
+	NOT_INPUT_USERNAME(HttpStatus.BAD_REQUEST, "E4000027", "아이디를 입력하지 않았습니다. 확인해주세요."),
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
 	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "비밀번호가 일치하지 않습니다."),
@@ -55,7 +58,7 @@ public enum ExceptionEnum {
 	MEMBERSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040007", "멤버십을 찾을 수 없습니다."),
 	APPLICATION_FORM_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040008", "스팟 신청 내역을 찾을 수 없습니다."),
 	SPOT_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040009", "스팟을 찾을 수 없습니다."),
-	CLIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040010", "그룹을 찾을 수 없습니다."),
+	GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040010", "그룹을 찾을 수 없습니다."),
 	NOT_SET_SPOT(HttpStatus.NOT_FOUND, "E4040011", "등록되지 않은 스팟입니다."),
 	ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040012", "주문하려는 상품에 문제가 있습니다"),
 	DAILY_FOOD_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040013", "식단을 찾을 수 없습니다"),

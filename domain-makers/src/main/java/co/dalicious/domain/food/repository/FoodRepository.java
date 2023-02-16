@@ -14,5 +14,4 @@ import java.util.Optional;
 public interface FoodRepository extends JpaRepository<Food, BigInteger> {
     Optional<Food> findOneById(BigInteger foodId);
     List<Food> findByMakersOrderById(Makers makers);
-    Food findByIdAndMakers(BigInteger foodId, Makers makers);
 }

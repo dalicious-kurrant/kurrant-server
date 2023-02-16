@@ -42,10 +42,10 @@ public class ExcelServiceImpl implements ExcelService {
                 data.setMakersName(String.valueOf(row.getCell(1).getStringCellValue()));
                 data.setFoodName(String.valueOf(row.getCell(2).getStringCellValue()));
                 data.setFoodStatus(String.valueOf(row.getCell(3).getStringCellValue()));
-                data.setDefaultPrice(BigDecimal.valueOf(Long.parseLong(row.getCell(4).getStringCellValue())));
+                data.setDefaultPrice(BigDecimal.valueOf(row.getCell(4).getNumericCellValue()));
                 data.setMakersDiscount((int) row.getCell(5).getNumericCellValue());
                 data.setEventDiscount((int) row.getCell(6).getNumericCellValue());
-                data.setResultPrice(BigDecimal.valueOf(Long.parseLong(row.getCell(7).getStringCellValue())));
+                data.setResultPrice(BigDecimal.valueOf(row.getCell(7).getNumericCellValue()));
                 data.setDescription(String.valueOf(row.getCell(8).getStringCellValue()));
 
                 //food tag
@@ -79,10 +79,10 @@ public class ExcelServiceImpl implements ExcelService {
                 data.setFoodImage(String.valueOf(row.getCell(1).getStringCellValue()));
                 data.setFoodName(String.valueOf(row.getCell(2).getStringCellValue()));
                 data.setFoodStatus(String.valueOf(row.getCell(3).getStringCellValue()));
-                data.setDefaultPrice(BigDecimal.valueOf(Long.parseLong(row.getCell(4).getStringCellValue())));
+                data.setDefaultPrice(BigDecimal.valueOf(row.getCell(4).getNumericCellValue()));
                 data.setMakersDiscount((int) row.getCell(5).getNumericCellValue());
                 data.setEventDiscount((int) row.getCell(6).getNumericCellValue());
-                data.setResultPrice(BigDecimal.valueOf(Long.parseLong(row.getCell(7).getStringCellValue())));
+                data.setResultPrice(BigDecimal.valueOf(row.getCell(7).getNumericCellValue()));
                 data.setDescription(String.valueOf(row.getCell(8).getStringCellValue()));
 
                 //food tag

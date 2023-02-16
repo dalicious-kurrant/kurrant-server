@@ -1,19 +1,17 @@
 package co.kurrant.app.makers_api.service.impl;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.mapper.FoodCapacityMapper;
 import co.dalicious.domain.food.mapper.FoodDiscountPolicyMapper;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
-import co.dalicious.domain.food.repository.FoodCapacityRepository;
-import co.dalicious.domain.food.repository.FoodDiscountPolicyRepository;
-import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.domain.food.repository.MakersRepository;
+import co.dalicious.domain.food.repository.*;
 import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.mapper.FoodMapper;
-import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.system.util.enums.DiscountType;
-import co.dalicious.system.util.enums.FoodTag;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.enums.DiscountType;
+import co.dalicious.system.enums.FoodTag;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.FoodService;
 import co.kurrant.app.makers_api.util.UserUtil;
@@ -27,6 +25,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +40,7 @@ public class FoodServiceImpl implements FoodService {
     private final FoodDiscountPolicyRepository foodDiscountPolicyRepository;
     private final FoodCapacityMapper foodCapacityMapper;
     private final FoodCapacityRepository foodCapacityRepository;
+    private final QFoodRepository qFoodRepository;
 
     @Override
     @Transactional
@@ -87,10 +87,11 @@ public class FoodServiceImpl implements FoodService {
     @Override
     @Transactional
     public MakersFoodDetailDto getFoodDetail(BigInteger foodId, SecurityUser securityUser) {
+        // maker와 food를 찾고
         Makers makers = userUtil.getMakers(securityUser);
-        Food food = foodRepository.findByIdAndMakers(foodId, makers);
-
-        if(food == null) { throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD); }
+        Food food = qFoodRepository.findByIdAndMakers(foodId, makers);
+        // 만약 food가 없으면 예외처리
+        if(food == null) throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
 
         DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
 
@@ -179,14 +180,27 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
         );
 
+        // food tag 변환
         List<FoodTag> foodTags = new ArrayList<>();
         List<Integer> foodTagStrs = foodDetailDto.getFoodTags();
         if(foodTagStrs == null) foodTags = null;
         else { for (Integer tag : foodTagStrs) foodTags.add(FoodTag.ofCode(tag)); }
 
-        //food UPDATE
-        food.updateFood(foodTags);
-        foodRepository.save(food);
+        System.out.println("foodTagStrs = " + Objects.requireNonNull(foodTagStrs));
+
+        // 수정을 위한 이미지가 없을 때
+        if(foodDetailDto.getImage() == null) {
+            //food UPDATE
+            food.updateFood(foodTags, food.getImage());
+            foodRepository.save(food);
+        } else {
+            // 수정을 위한 이미지 객체 생성
+            Image image = Image.builder().location(foodDetailDto.getImage()).build();
+
+            //food UPDATE
+            food.updateFood(foodTags, image);
+            foodRepository.save(food);
+        }
 
         //food discount policy UPDATE
         List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();

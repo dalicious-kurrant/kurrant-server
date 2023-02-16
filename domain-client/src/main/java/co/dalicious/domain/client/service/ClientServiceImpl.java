@@ -7,7 +7,7 @@ import co.dalicious.domain.client.dto.CorporationRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.enums.DiningType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

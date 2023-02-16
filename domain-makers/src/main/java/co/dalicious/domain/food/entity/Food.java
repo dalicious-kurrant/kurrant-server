@@ -2,10 +2,9 @@ package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.FoodListDto;
-import co.dalicious.domain.food.dto.MakersFoodDetailDto;
-import co.dalicious.system.util.converter.FoodTagsConverter;
+import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
-import co.dalicious.system.util.enums.FoodTag;
+import co.dalicious.system.enums.FoodTag;
 import co.dalicious.domain.food.converter.FoodStatusConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -22,6 +21,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 
 @DynamicInsert
 @DynamicUpdate
@@ -113,9 +113,8 @@ public class Food {
         this.description = foodListDto.getDescription();
     }
 
-    public void updateFood(List<FoodTag> foodTags) {
+    public void updateFood(List<FoodTag> foodTags, Image image) {
         this.foodTags = foodTags;
+        this.image = image;
     }
-
-
 }

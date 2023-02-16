@@ -1,4 +1,4 @@
-package co.dalicious.system.util.converter;
+package co.dalicious.system.converter;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

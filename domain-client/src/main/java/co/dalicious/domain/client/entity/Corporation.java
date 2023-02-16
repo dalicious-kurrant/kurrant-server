@@ -1,10 +1,10 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.system.util.converter.FoodTagsConverter;
-import co.dalicious.system.util.enums.FoodTag;
-import co.dalicious.system.util.converter.IdListConverter;
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.converter.FoodTagsConverter;
+import co.dalicious.system.enums.FoodTag;
+import co.dalicious.system.converter.IdListConverter;
+import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

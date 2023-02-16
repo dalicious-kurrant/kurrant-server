@@ -1,7 +1,6 @@
-package co.dalicious.system.util.converter;
+package co.dalicious.system.converter;
 
-import co.dalicious.system.util.enums.DiningType;
-import co.dalicious.system.util.enums.DiscountType;
+import co.dalicious.system.enums.DiscountType;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

@@ -2,7 +2,7 @@ package co.dalicious.domain.application_form.mapper;
 
 import co.dalicious.domain.application_form.dto.corporation.CorporationSpotRequestDto;
 import co.dalicious.domain.application_form.entity.CorporationApplicationFormSpot;
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.enums.DiningType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;

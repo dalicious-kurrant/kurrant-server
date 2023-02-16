@@ -199,6 +199,8 @@ project(':app-admin-api') {
         implementation project(':domain-banner')
         implementation project(':domain-user')
         implementation project(':domain-makers')
+        implementation project(':domain-order')
+        implementation project(':domain-client')
     }
 }
 
