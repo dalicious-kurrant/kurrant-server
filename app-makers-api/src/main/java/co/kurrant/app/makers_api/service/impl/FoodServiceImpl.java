@@ -5,10 +5,7 @@ import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.mapper.FoodCapacityMapper;
 import co.dalicious.domain.food.mapper.FoodDiscountPolicyMapper;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
-import co.dalicious.domain.food.repository.FoodCapacityRepository;
-import co.dalicious.domain.food.repository.FoodDiscountPolicyRepository;
-import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.domain.food.repository.MakersRepository;
+import co.dalicious.domain.food.repository.*;
 import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.mapper.FoodMapper;
 import co.dalicious.system.util.enums.DiningType;
@@ -41,6 +38,7 @@ public class FoodServiceImpl implements FoodService {
     private final FoodDiscountPolicyRepository foodDiscountPolicyRepository;
     private final FoodCapacityMapper foodCapacityMapper;
     private final FoodCapacityRepository foodCapacityRepository;
+    private final QFoodRepository qFoodRepository;
 
     @Override
     @Transactional
@@ -87,10 +85,11 @@ public class FoodServiceImpl implements FoodService {
     @Override
     @Transactional
     public MakersFoodDetailDto getFoodDetail(BigInteger foodId, SecurityUser securityUser) {
+        // maker와 food를 찾고
         Makers makers = userUtil.getMakers(securityUser);
-        Food food = foodRepository.findByIdAndMakers(foodId, makers);
-
-        if(food == null) { throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD); }
+        Food food = qFoodRepository.findByIdAndMakers(foodId, makers);
+        // 만약 food가 없으면 예외처리
+        if(food == null) throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
 
         DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
 
