@@ -1,4 +1,4 @@
-package co.dalicious.system.util.enums;
+package co.dalicious.system.enums;
 
 import exception.ApiException;
 import exception.ExceptionEnum;

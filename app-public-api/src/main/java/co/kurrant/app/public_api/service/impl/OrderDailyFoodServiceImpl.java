@@ -24,23 +24,19 @@ import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.dto.PaymentConfirmDto;
-import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
-import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.mapper.FoundersMapper;
-import co.dalicious.domain.user.repository.FoundersRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
@@ -393,13 +389,15 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         List<Order> orders = qOrderRepository.findAllOrderByUserFilterByOrderTypeAndPeriod(user, orderType, startDate, endDate);
         for (Order order : orders) {
-            List<OrderHistoryDto.OrderItem> orderItems = new ArrayList<>();
-            List<OrderItem> orderItemList = order.getOrderItems();
             // TODO: 마켓, 케이터링 구현시 instanceOf로 조건 나누기
-            for (OrderItem orderItem : orderItemList) {
-                orderItems.add(orderDailyFoodHistoryMapper.orderItemDailyFoodToDto((OrderItemDailyFood) orderItem));
+            if(Hibernate.unproxy(order) instanceof OrderDailyFood) {
+                List<OrderHistoryDto.OrderItem> orderItems = new ArrayList<>();
+                List<OrderItem> orderItemList = order.getOrderItems();
+                for (OrderItem orderItem : orderItemList) {
+                    orderItems.add(orderDailyFoodHistoryMapper.orderItemDailyFoodToDto((OrderItemDailyFood) orderItem));
+                }
+                orderHistoryDtos.add(orderDailyFoodHistoryMapper.orderToDto(order, orderItems));
             }
-            orderHistoryDtos.add(orderDailyFoodHistoryMapper.orderToDto(order, orderItems));
         }
         return orderHistoryDtos;
     }

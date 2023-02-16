@@ -2,8 +2,8 @@ package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.order.converter.OrderStatusConverter;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.system.util.converter.DiningTypeConverter;
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.converter.DiningTypeConverter;
+import co.dalicious.system.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
 import lombok.Builder;

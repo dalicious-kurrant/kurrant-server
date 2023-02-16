@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.repository.MealInfoRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -21,7 +20,7 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.model.SecurityUser;

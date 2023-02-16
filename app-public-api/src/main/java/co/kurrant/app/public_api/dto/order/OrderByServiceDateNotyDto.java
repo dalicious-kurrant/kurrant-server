@@ -1,6 +1,6 @@
 package co.kurrant.app.public_api.dto.order;
 
-import co.dalicious.system.util.enums.DiningType;
+import co.dalicious.system.enums.DiningType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

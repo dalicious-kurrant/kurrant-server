@@ -1,7 +1,7 @@
 package co.dalicious.domain.user.entity;
 
-import co.dalicious.system.util.converter.DiscountTypeConverter;
-import co.dalicious.system.util.enums.DiscountType;
+import co.dalicious.system.converter.DiscountTypeConverter;
+import co.dalicious.system.enums.DiscountType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
