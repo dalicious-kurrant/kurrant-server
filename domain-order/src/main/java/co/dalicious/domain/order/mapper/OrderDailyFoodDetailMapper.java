@@ -105,11 +105,6 @@ public interface OrderDailyFoodDetailMapper {
         return getPeriodDiscountPrice;
     }
 
-    @Named("getCardEndNumber")
-    default String getCardEndNumber(String cardNumber) {
-        return cardNumber.substring(cardNumber.length() - 4);
-    }
-
     @Named("getDiscountedPrice")
     default BigDecimal getDiscountedPrice(OrderDailyFood orderDailyFood) {
         BigDecimal totalDiscountedPrice = BigDecimal.ZERO;

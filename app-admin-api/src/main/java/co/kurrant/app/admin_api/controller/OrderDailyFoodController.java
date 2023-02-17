@@ -24,10 +24,10 @@ public class OrderDailyFoodController {
                 .build();
     }
 
-    @GetMapping("/{orderItemDailyFoodId}")
-    public ResponseMessage getOrderDetail(@RequestParam BigInteger orderItemDailyFoodId) {
+    @GetMapping("/{orderCode}")
+    public ResponseMessage getOrderDetail(@PathVariable String orderCode) {
         return ResponseMessage.builder()
-//                .data(orderDailyFoodService.getOrderDetail(orderItemDailyFoodId))
+                .data(orderDailyFoodService.getOrderDetail(orderCode))
                 .message("주문 조회에 성공하였습니다.")
                 .build();
     }
@@ -36,6 +36,14 @@ public class OrderDailyFoodController {
     public ResponseMessage getGroup(@RequestParam(required = false) Integer clientType) {
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getGroup(clientType))
+                .message("고객사 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @GetMapping("/makers")
+    public ResponseMessage getMakers() {
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.getMakers())
                 .message("고객사 조회에 성공하였습니다.")
                 .build();
     }

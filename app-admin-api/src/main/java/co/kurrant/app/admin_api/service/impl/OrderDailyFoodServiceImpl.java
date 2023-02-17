@@ -4,7 +4,12 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.ApartmentRepository;
 import co.dalicious.domain.client.repository.CorporationRepository;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.repository.MakersRepository;
+import co.dalicious.domain.order.entity.Order;
+import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.repository.OrderRepository;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
@@ -14,8 +19,10 @@ import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
+import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.dto.OrderDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
+import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.mapper.OrderMapper;
 import co.kurrant.app.admin_api.service.OrderDailyFoodService;
 import exception.ApiException;
@@ -38,32 +45,38 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final CorporationRepository corporationRepository;
     private final GroupMapper groupMapper;
     private final OrderMapper orderMapper;
+    private final MakersMapper makersMapper;
     private final UserGroupRepository userGroupRepository;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final MakersRepository makersRepository;
+    private final OrderRepository orderRepository;
+
     @Override
     @Transactional
     public List<OrderDto.OrderItemDailyFoodList> retrieveOrder(Map<String, Object> parameters) {
-        LocalDate startDate = parameters.containsKey("startDate") ? DateUtils.stringToDate((String) parameters.get("startDate")) : null;
-        LocalDate endDate = parameters.containsKey("endDate") ? DateUtils.stringToDate((String) parameters.get("endDate")) : null;
-        BigInteger groupId = parameters.containsKey("group") ? BigInteger.valueOf(Integer.parseInt((String) parameters.get("group"))) : null;
-        List<BigInteger> spotIds = parameters.containsKey("spots") ? StringUtils.parseBigIntegerList((String) parameters.get("spots")) : null;
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        BigInteger groupId = !parameters.containsKey("group") || parameters.get("group").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("group")));
+        List<BigInteger> spotIds = !parameters.containsKey("spots") || parameters.get("spots").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("spots"));
         Integer diningTypeCode = (Integer) parameters.getOrDefault("diningType", null);
-        BigInteger userId = parameters.containsKey("userId") ? BigInteger.valueOf(Integer.parseInt((String) parameters.get("group"))) : null;
+        BigInteger userId = !parameters.containsKey("userId") || parameters.get("userId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("userId")));
+        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
 
-        if(groupId == null) throw new ApiException(ExceptionEnum.NOT_FOUND);
+        Group group = (groupId != null) ? groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)) : null;
+        Makers makers = (makersId != null) ? makersRepository.findById(makersId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
 
-        Group group = groupRepository.findById(groupId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)
-        );
-
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, group, spotIds, diningTypeCode, userId);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, group, spotIds, diningTypeCode, userId, makers);
 
         return orderMapper.ToDtoByGroup(orderItemDailyFoods);
     }
 
     @Override
-    public void getOrderDetail(BigInteger orderItemDailyFoodId) {
-
+    @Transactional
+    public OrderDto.OrderDailyFoodDetail getOrderDetail(String orderCode) {
+        Order order = orderRepository.findOneByCode(orderCode).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        return orderMapper.orderToDetailDto((OrderDailyFood) order);
     }
 
     @Override
@@ -92,5 +105,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             users.add(userGroup.getUser());
         }
         return groupMapper.groupToGroupDto(group, users);
+    }
+
+    @Override
+    public List<MakersDto.Makers> getMakers() {
+        return makersMapper.makersToDtos(makersRepository.findAll());
     }
 }
