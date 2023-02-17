@@ -6,6 +6,8 @@ import co.dalicious.system.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -80,5 +82,12 @@ public class Spot {
         this.address = address;
         this.diningTypes = diningTypes;
         this.group = group;
+    }
+
+    public MealInfo getMealInfo(DiningType diningType) {
+        return this.mealInfos.stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
     }
 }

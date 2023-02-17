@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.order.converter.OrderStatusConverter;
+import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
@@ -68,5 +69,27 @@ public class OrderItemDailyFoodGroup {
 
     public void updateOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
+    }
+
+    public BigDecimal getUsingSupportPrice() {
+        BigDecimal usingSupportPrice = BigDecimal.ZERO;
+        for (UserSupportPriceHistory userSupportPriceHistory : this.userSupportPriceHistories) {
+            if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
+                usingSupportPrice = usingSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
+            }
+        }
+        return usingSupportPrice;
+    }
+
+    public BigDecimal getTotalPriceByGroup() {
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        if(this.orderStatus.equals(OrderStatus.CANCELED)) return totalPrice;
+
+        for (OrderItemDailyFood orderDailyFood : this.orderDailyFoods) {
+            totalPrice = totalPrice.add((OrderStatus.completePayment().contains(orderDailyFood.getOrderStatus())) ? orderDailyFood.getDiscountedPrice() : BigDecimal.ZERO);
+        }
+        totalPrice = totalPrice.add(this.deliveryFee);
+        totalPrice = totalPrice.subtract(getUsingSupportPrice());
+        return totalPrice;
     }
 }
