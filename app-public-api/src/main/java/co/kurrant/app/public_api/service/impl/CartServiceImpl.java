@@ -113,7 +113,7 @@ public class CartServiceImpl implements CartService {
 
             if(optionalCartDailyFood.isPresent()) {
                 optionalCartDailyFood.get().updateCount(optionalCartDailyFood.get().getCount() + cartDto.getCount());
-                if(foodCountDto.getRemainCount() < cartDto.getCount() + optionalCartDailyFood.get().getCount()) {
+                if(foodCountDto.getRemainCount() < optionalCartDailyFood.get().getCount()) {
                     throw new ApiException(ExceptionEnum.OVER_ITEM_CAPACITY);
                 }
             }
