@@ -67,7 +67,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
-    @PostMapping("/orderItem/cancel")
+    @PostMapping("/orderItems/cancel")
     public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
         orderDailyFoodService.cancelOrderItems(idList.getIdList());
         return ResponseMessage.builder()
