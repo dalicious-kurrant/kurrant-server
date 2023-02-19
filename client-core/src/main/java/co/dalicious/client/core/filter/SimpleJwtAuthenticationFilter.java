@@ -1,5 +1,6 @@
-package co.kurrant.app.admin_api.config;
+package co.dalicious.client.core.filter;
 
+import co.dalicious.client.core.filter.provider.SimpleJwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -16,9 +17,9 @@ import java.io.IOException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
+public class SimpleJwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final AdminJwtTokenProvider jwtTokenProvider;
+    private final SimpleJwtTokenProvider jwtTokenProvider;
 
     // Request로 들어오는 Jwt Token의 유효성을 검증(jwtTokenProvider.validateToken)하는 filter를 filterChain에 등록합니다.
     @Override

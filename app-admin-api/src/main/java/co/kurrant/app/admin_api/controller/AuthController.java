@@ -1,15 +1,10 @@
 package co.kurrant.app.admin_api.controller;
 
-import javax.validation.Valid;
-
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.admin_api.dto.user.LoginRequestDto;
-import co.kurrant.app.admin_api.dto.user.LoginResponseDto;
 import co.kurrant.app.admin_api.service.AuthService;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
