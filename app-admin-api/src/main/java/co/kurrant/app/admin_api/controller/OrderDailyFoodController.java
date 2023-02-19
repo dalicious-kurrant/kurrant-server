@@ -1,11 +1,14 @@
 package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.admin_api.dto.OrderDto;
 import co.kurrant.app.admin_api.service.OrderDailyFoodService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.parser.ParseException;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
 
@@ -52,6 +55,22 @@ public class OrderDailyFoodController {
     public ResponseMessage getGroupInfo(@PathVariable BigInteger groupId) {
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getGroupInfo(groupId))
+                .message("고객사 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @PostMapping("/cancel")
+    public ResponseMessage cancelOrder(@RequestBody OrderDto.Id id) throws IOException, ParseException {
+        orderDailyFoodService.cancelOrder(id.getId());
+        return ResponseMessage.builder()
+                .message("고객사 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @PostMapping("/orderItem/cancel")
+    public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
+        orderDailyFoodService.cancelOrderItems(idList.getIdList());
+        return ResponseMessage.builder()
                 .message("고객사 조회에 성공하였습니다.")
                 .build();
     }

@@ -8,9 +8,12 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderDailyFood;
+import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.order.repository.OrderRepository;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
@@ -28,9 +31,11 @@ import co.kurrant.app.admin_api.service.OrderDailyFoodService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -50,6 +55,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final MakersRepository makersRepository;
     private final OrderRepository orderRepository;
+    private final OrderService orderService;
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     @Transactional
@@ -110,5 +117,30 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Override
     public List<MakersDto.Makers> getMakers() {
         return makersMapper.makersToDtos(makersRepository.findAll());
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrder(BigInteger orderId) throws IOException, ParseException {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
+        User user = order.getUser();
+
+        if(order instanceof OrderDailyFood orderDailyFood) {
+            orderService.cancelOrderDailyFood(orderDailyFood, user);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrderItems(List<BigInteger> orderItemList) throws IOException, ParseException {
+        List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
+
+        for (OrderItem orderItem : orderItems) {
+            User user = orderItem.getOrder().getUser();
+
+            if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+                orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
+            }
+        }
     }
 }

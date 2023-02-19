@@ -11,7 +11,6 @@ import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.PeriodDto;
 import co.kurrant.app.admin_api.dto.OrderDto;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
@@ -29,6 +28,7 @@ public interface OrderMapper {
     @Mapping(source = "id", target = "orderItemDailyFoodId")
     @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getDailyFood().getServiceDate()))")
     @Mapping(source = "dailyFood.food.makers.name", target = "makers")
+    @Mapping(source = "orderStatus.orderStatus", target = "orderStatus")
     @Mapping(source = "dailyFood.food.name", target = "foodName")
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getOrderItemTotalPrice())")
     @Mapping(source = "count", target = "count")
