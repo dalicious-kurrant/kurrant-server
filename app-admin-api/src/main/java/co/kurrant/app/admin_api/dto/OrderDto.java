@@ -46,6 +46,7 @@ public class OrderDto {
         private Integer count;
         private BigDecimal price;
         private String orderCode;
+        private String orderStatus;
     }
 
     @Getter
@@ -85,5 +86,17 @@ public class OrderDto {
         private BigDecimal discountedPrice;
         private Integer count;
         private String orderStatus;
+    }
+
+    @Getter
+    @Setter
+    public static class IdList {
+        private List<BigInteger> idList;
+    }
+
+    @Getter
+    @Setter
+    public static class Id {
+        private BigInteger id;
     }
 }
