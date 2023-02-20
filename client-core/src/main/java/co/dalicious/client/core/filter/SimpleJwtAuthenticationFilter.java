@@ -25,6 +25,10 @@ public class SimpleJwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        if (request.getMethod().equals("OPTIONS")) {
+            logger.debug("if request options method is options, return true");
+            return;
+        }
         // 1. Request Header에서 JWT 토큰 추출
         String jwtToken = null;
         try {

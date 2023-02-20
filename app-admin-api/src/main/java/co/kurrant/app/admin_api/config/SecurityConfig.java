@@ -7,12 +7,14 @@ import co.dalicious.client.core.handler.CustomAuthenticationHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsUtils;
 
 @EnableWebSecurity
 @Configuration
@@ -34,8 +36,10 @@ public class SecurityConfig {
             // jwt token으로 인증할것이므로 세션필요없으므로 생성안함.
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .authorizeRequests() // 다음 리퀘스트에 대한 사용권한 체크
-            .antMatchers("/v1/auth/login").permitAll() // 테스트용
-            .antMatchers("/v1/clients/all").permitAll()
+            .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .antMatchers("/v1/**").permitAll() // 테스트용
+//            .antMatchers("/v1/auth/login").permitAll() // 테스트용
             // .antMatchers("/v1/boards/**").permitAll() // swagger
             // .antMatchers("/swagger-resources/**").permitAll() // swagger
             .antMatchers("/swagger-ui/**").permitAll() // swagger

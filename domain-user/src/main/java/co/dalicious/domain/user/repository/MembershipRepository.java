@@ -13,5 +13,6 @@ import java.util.List;
 
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
     List<Membership> findAllByUserOrderByCreatedDateTimeDesc(@NotNull User user);
+    List<Membership> findAllByUser(User user);
     List<Membership> findAll(Specification<Membership> specification, Sort sort);
 }
