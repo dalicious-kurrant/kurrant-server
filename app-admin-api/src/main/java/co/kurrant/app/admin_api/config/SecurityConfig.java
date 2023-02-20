@@ -1,9 +1,9 @@
 package co.kurrant.app.admin_api.config;
 
+import co.dalicious.client.core.filter.SimpleJwtAuthenticationFilter;
+import co.dalicious.client.core.filter.provider.SimpleJwtTokenProvider;
 import co.dalicious.client.core.handler.CustomAccessDeniedHandler;
 import co.dalicious.client.core.handler.CustomAuthenticationHandler;
-import co.kurrant.app.admin_api.config.AdminJwtAuthenticationFilter;
-import co.kurrant.app.admin_api.config.AdminJwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  private final AdminJwtTokenProvider jwtTokenProvider;
+  private final SimpleJwtTokenProvider jwtTokenProvider;
 
   /**
    * 1. JWT 없이 호출 하는 경우 2. JWT 형식이 이상하거나 만료된 토큰의 경우 3. JWT 토큰으로 호출하였으나 권한이 없는경우
@@ -34,17 +34,17 @@ public class SecurityConfig {
             // jwt token으로 인증할것이므로 세션필요없으므로 생성안함.
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .authorizeRequests() // 다음 리퀘스트에 대한 사용권한 체크
-            .antMatchers("/v1/**").permitAll() // 테스트용
+            .antMatchers("/v1/auth/login").permitAll() // 테스트용
             // .antMatchers("/v1/boards/**").permitAll() // swagger
             // .antMatchers("/swagger-resources/**").permitAll() // swagger
             .antMatchers("/swagger-ui/**").permitAll() // swagger
             // .antMatchers("/v1/auth/**").permitAll() // 가입 및 인증 주소는 누구나 접근가능
             // .antMatchers(HttpMethod.GET, "/exception/**", "/helloworld/**",
             // "/actuator/health").permitAll() // 등록된 GET요청 리소스는 누구나 접근가능
-            .anyRequest().hasRole("USER").and() // 그외 나머지 요청은 모두 인증된 회원만 접근 가능
+            .anyRequest().hasRole("ADMIN").and() // 그외 나머지 요청은 모두 인증된 회원만 접근 가능
             .exceptionHandling().accessDeniedHandler(new CustomAccessDeniedHandler()).and()
             .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationHandler()).and()
-            .addFilterBefore(new AdminJwtAuthenticationFilter(jwtTokenProvider),
+            .addFilterBefore(new SimpleJwtAuthenticationFilter(jwtTokenProvider),
                     UsernamePasswordAuthenticationFilter.class); // jwt token 필터를 id/password 인증 필터 전에 넣어라.
 
     return http.build();

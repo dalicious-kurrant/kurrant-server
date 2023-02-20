@@ -10,18 +10,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import co.dalicious.client.core.filter.JwtAuthenticationFilter;
 import co.dalicious.client.core.handler.CustomAccessDeniedHandler;
 import co.dalicious.client.core.handler.CustomAuthenticationHandler;
 
 @EnableWebSecurity
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
-
-  private final JwtTokenProvider jwtTokenProvider;
-  private final BlackListTokenRepository blackListTokenRepository;
 
   /**
    * 1. JWT 없이 호출 하는 경우 2. JWT 형식이 이상하거나 만료된 토큰의 경우 3. JWT 토큰으로 호출하였으나 권한이 없는경우

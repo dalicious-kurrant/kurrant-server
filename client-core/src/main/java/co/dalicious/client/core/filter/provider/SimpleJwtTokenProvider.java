@@ -1,6 +1,8 @@
-package co.kurrant.app.admin_api.config;
+package co.dalicious.client.core.filter.provider;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
+import co.dalicious.data.redis.entity.RefreshTokenHash;
+import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -25,7 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Component
 @PropertySource("classpath:application-jwt.properties")
-public class AdminJwtTokenProvider {
+public class SimpleJwtTokenProvider {
 
     private Key key;
 
@@ -34,7 +36,7 @@ public class AdminJwtTokenProvider {
 
     private final UserDetailsService userDetailsService;
 
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 12 * 60 * 60 * 1000L; // 12시간
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 8 * 60 * 60 * 1000L; // 8시간
 
     @PostConstruct
     protected void init() {
