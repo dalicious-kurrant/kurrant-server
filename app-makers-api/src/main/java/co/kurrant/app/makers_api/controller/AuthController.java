@@ -14,8 +14,7 @@ import java.util.Date;
 @RestController
 @RequestMapping(value = "/v1/makers")
 @RequiredArgsConstructor
-@CrossOrigin(origins="*", allowedHeaders = "*")
-public class MakersController {
+public class AuthController {
 
     private final UserService makersService;
 
