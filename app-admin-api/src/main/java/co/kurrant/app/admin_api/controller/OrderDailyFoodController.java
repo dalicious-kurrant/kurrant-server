@@ -16,11 +16,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
 
-@CrossOrigin(origins="*", allowedHeaders = "*")
 @Tag(name = "2. Order")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/orders")
 @RestController
+@CrossOrigin(origins="*", allowedHeaders = "*")
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
     @GetMapping("")
@@ -79,3 +79,5 @@ public class OrderDailyFoodController {
                 .build();
     }
 }
+
+

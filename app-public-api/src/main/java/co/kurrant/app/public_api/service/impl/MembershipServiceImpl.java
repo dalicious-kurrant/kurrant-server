@@ -11,6 +11,7 @@ import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.service.DiscountPolicy;
+import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
@@ -63,19 +64,13 @@ import java.util.*;
 @RequiredArgsConstructor
 public class MembershipServiceImpl implements MembershipService {
     private final UserUtil userUtil;
-    private final TossUtil tossUtil;
     private final MembershipRepository membershipRepository;
     private final QMembershipRepository QmembershipRepository;
     private final OrderItemMembershipRepository orderItemMembershipRepository;
-    private final CreditCardInfoRepository creditCardInfoRepository;
     private final FoundersUtil foundersUtil;
-    private final FoundersMapper foundersMapper;
     private final OrderMembershipRepository orderMembershipRepository;
     private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.YEAR.getPrice().multiply(BigDecimal.valueOf((100 - MembershipSubscriptionType.YEAR.getDiscountRate()) * 0.01)).divide(BigDecimal.valueOf(12));
     private final BigDecimal DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.MONTH.getPrice().subtract(REFUND_YEARLY_MEMBERSHIP_PER_MONTH);
-    private final MembershipDiscountPolicyRepository membershipDiscountPolicyRepository;
-    private final DiscountPolicy discountPolicy;
-    private final OrderUserInfoMapper orderUserInfoMapper;
     private final OrderMembershipResMapper orderMembershipResMapper;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final DeliveryFeePolicy deliveryFeePolicy;
@@ -83,7 +78,7 @@ public class MembershipServiceImpl implements MembershipService {
     private final QMembershipRepository qMembershipRepository;
     private final OrderUtil orderUtil;
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
-    private final OrderMembershipMapper orderMembershipMapper;
+    private final OrderService orderService;
 
     @Override
     @Transactional
@@ -137,92 +132,7 @@ public class MembershipServiceImpl implements MembershipService {
 
         assert periodDto != null;
         // 멤버십 등록
-        Membership membership = membershipRepository.save(orderMembershipMapper.toMembership(membershipSubscriptionType, user, periodDto));
-
-        // 연간 구독 구매자라면, 할인 정책 저장.
-        if(membershipSubscriptionType.equals(MembershipSubscriptionType.YEAR)) {
-            MembershipDiscountPolicy yearDescriptionDiscountPolicy = orderMembershipMapper.toMembershipDiscountPolicy(membership, DiscountType.YEAR_DESCRIPTION_DISCOUNT);
-            membershipDiscountPolicyRepository.save(yearDescriptionDiscountPolicy);
-        }
-
-
-        /* TODO: 할인 혜택을 가지고 있는 유저인지 확인 후 할인 정책 저장.
-        MembershipDiscountPolicy periodDiscountPolicy = MembershipDiscountPolicy.builder()
-                .membership(membership)
-                .discountRate(membershipSubscriptionType.getDiscountRate())
-                .discountType(DiscountType.PERIOD_DISCOUNT)
-                .build();
-        membershipDiscountPolicyRepository.save(periodDiscountPolicy);
-         */
-
-        //카드정보 가져오기
-        CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(orderMembershipReqDto.getCardId()).
-                orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
-        CreditCardValidator.isValidCreditCard(creditCardInfo, user);
-
-        // 멤버십 결제 요청
-        OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
-        OrderMembership order = orderMembershipRepository.save(orderMembershipMapper.toOrderMembership(orderUserInfoDto, creditCardInfo, membershipSubscriptionType, BigDecimal.ZERO, totalPrice, PaymentType.ofCode(orderMembershipReqDto.getPaymentType()), membership));
-
-        // 멤버십 결제 내역 등록(진행중 상태)
-        OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership));
-
-        // 파운더스 확인
-        if(!foundersUtil.isFounders(user) &&!foundersUtil.isOverFoundersLimit()) {
-            Founders founders =  foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber()+1);
-            foundersUtil.saveFounders(founders);
-        }
-
-        // 결제 진행. 실패시 오류 날림
-        BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
-
-        String customerKey = creditCardInfo.getCustomerKey();
-        String billingKey = creditCardInfo.getBillingKey();
-
-        try {
-            JSONObject payResult = tossUtil.payToCard(customerKey, price.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType(), billingKey);
-
-            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-            if (payResult.get("status").equals("DONE")) {
-                order.updateDefaultPrice(defaultPrice);
-                order.updateTotalPrice(price);
-                orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(price));
-                orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
-
-                //Order 테이블에 paymentKey와 receiptUrl 업데이트
-                JSONObject receipt = (JSONObject) payResult.get("receipt");
-                String receiptUrl = receipt.get("url").toString();
-
-                String paymentKey = (String) payResult.get("paymentKey");
-                order.updatePaymentKey(paymentKey);
-                order.updateReceiptUrl(receiptUrl);
-
-                JSONObject card = (JSONObject) payResult.get("card");
-                String paymentCompanyCode;
-                if(card == null) {
-                    JSONObject easyPay = (JSONObject) payResult.get("easyPay");
-                    if(easyPay == null) {
-                        throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-                    }
-                    paymentCompanyCode = (String) easyPay.get("provider");
-                } else {
-                    paymentCompanyCode = (String) card.get("issuerCode");
-                }
-                PaymentCompany paymentCompany = PaymentCompany.ofCode(paymentCompanyCode);
-                qOrderDailyFoodRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderItemMembership.getOrder().getId(), paymentCompany);
-            }
-            // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
-            else {
-                orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
-                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-            }
-        } catch (ApiException e) {
-            orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
-            throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-        } catch (IOException | InterruptedException | ParseException e) {
-            throw new RuntimeException(e);
-        }
-        user.changeMembershipStatus(true);
+        orderService.payMembership(user, membershipSubscriptionType, periodDto, PaymentType.ofCode(orderMembershipReqDto.getPaymentType()));
     }
 
     @Override
