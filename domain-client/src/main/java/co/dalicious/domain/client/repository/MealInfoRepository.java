@@ -8,4 +8,6 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface MealInfoRepository extends JpaRepository<MealInfo, BigInteger> {
+
+    List<MealInfo> findAllBySpotId(BigInteger spotId);
 }
