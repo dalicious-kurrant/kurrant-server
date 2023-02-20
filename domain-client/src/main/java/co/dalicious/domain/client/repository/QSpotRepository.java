@@ -1,5 +1,8 @@
 package co.dalicious.domain.client.repository;
 
+import com.querydsl.core.types.ConstantImpl;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -22,5 +25,21 @@ public class QSpotRepository {
                 .from(spot)
                 .where(spot.group.id.eq(corporationId))
                 .fetch();
+    }
+
+    public void testSJ() {
+        //DateFormat 테스트 OK
+         StringTemplate formattedDate = Expressions.stringTemplate(
+                "DATE_FORMAT({0},{1})"
+                ,spot.createdDateTime
+                , ConstantImpl.create("%Y-%m-%d"));
+
+
+         queryFactory
+                .select(formattedDate)
+                .from(spot)
+                .groupBy(formattedDate)
+                .orderBy(spot.createdDateTime.desc())
+                .limit(2);
     }
 }
