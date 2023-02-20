@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/foods")
-@CrossOrigin(origins="*", allowedHeaders = "*")
 public class FoodController {
 
     private final FoodService foodService;
