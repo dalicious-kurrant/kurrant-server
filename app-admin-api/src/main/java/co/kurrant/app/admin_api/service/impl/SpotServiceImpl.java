@@ -39,15 +39,15 @@ public class SpotServiceImpl implements SpotService {
             //dto에 스팟정보 넣기
             dto.setSpotId(spot.getId());
             dto.setGroupId(spot.getGroup().getId());
-//            dto.setGroupName(spot.getGroup().getName());
-            /*spot.getAddress().getAddress1();
-            dto.setAddress1(spot.getAddress().getAddress1());
-            dto.setAddress2(spot.getAddress().getAddress2());
-            dto.setLocation(spot.getAddress().getLocation());
-            dto.setZipCode(spot.getAddress().getZipCode());
-            */
+            dto.setAddress1(spot.getAddress1());
+            dto.setAddress2(spot.getAddress2());
+            dto.setZipCode(spot.getZipcode().toString());
+            dto.setLocation(spot.getLocation().toString());
+
             String createdDate = DateUtils.format(spot.getCreatedDateTime(), "yyyy-MM-dd");
-            dto.setCreatedDateTime(DateUtils.stringToDate(createdDate));
+            String updatedDate = DateUtils.format(spot.getUpdatedDateTime(), "yyyy-MM-dd");
+            dto.setCreatedDateTime(createdDate);
+            dto.setUpdatedDateTime(updatedDate);
             BigInteger spotId = spot.getId();
             //spotId로 mealInfo 찾기
             List<MealInfo> mealInfoList = mealInfoRepository.findAllBySpotId(spotId);

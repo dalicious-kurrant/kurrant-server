@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
+import org.springframework.data.geo.Point;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -89,5 +90,19 @@ public class Spot {
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
+    }
+
+    public String getAddress1(){
+        return this.address.getAddress1();
+    }
+    public String getAddress2(){
+        return this.address.getAddress2();
+    }
+    public Integer getZipcode(){
+        return this.address.getZipCode();
+    }
+
+    public Point getLocation(){
+        return this.address.getLocation();
     }
 }
