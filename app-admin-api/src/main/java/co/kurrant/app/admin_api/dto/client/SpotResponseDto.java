@@ -3,9 +3,11 @@ package co.kurrant.app.admin_api.dto.client;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -50,9 +52,9 @@ public class SpotResponseDto {
     @Schema(description = "저녁 지원금")
     private BigDecimal dinnerSupportPrice;
     @Schema(description = "생성일")
-    private LocalDateTime createdDateTime;
+    private LocalDate createdDateTime;
     @Schema(description = "수정일")
-    private LocalDateTime updatedDateTime;
+    private LocalDate updatedDateTime;
 
 
 
