@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.client.SpotResponseDto;
 import co.kurrant.app.admin_api.service.SpotService;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,6 +46,8 @@ public class SpotServiceImpl implements SpotService {
             dto.setLocation(spot.getAddress().getLocation());
             dto.setZipCode(spot.getAddress().getZipCode());
             */
+            String createdDate = DateUtils.format(spot.getCreatedDateTime(), "yyyy-MM-dd");
+            dto.setCreatedDateTime(DateUtils.stringToDate(createdDate));
             BigInteger spotId = spot.getId();
             //spotId로 mealInfo 찾기
             List<MealInfo> mealInfoList = mealInfoRepository.findAllBySpotId(spotId);

@@ -39,7 +39,8 @@ public class SecurityConfig {
             .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
             .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .antMatchers("/v1/**").permitAll() // 테스트용
-//            .antMatchers("/v1/auth/login").permitAll() // 테스트용
+            .antMatchers("/v1/clients/all").permitAll()
+            .antMatchers("/v1/auth/login").permitAll() // 테스트용
             // .antMatchers("/v1/boards/**").permitAll() // swagger
             // .antMatchers("/swagger-resources/**").permitAll() // swagger
             .antMatchers("/swagger-ui/**").permitAll() // swagger
