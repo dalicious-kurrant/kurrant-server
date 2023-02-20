@@ -7,7 +7,7 @@ import co.kurrant.app.makers_api.model.SecurityUser;
 import java.util.List;
 
 public interface ScheduleService {
-    List<PresetScheduleResponseDto> getMostRecentPresets(Integer page);
+    List<PresetScheduleResponseDto> getMostRecentPresets(Integer page, SecurityUser securityUser);
     void updateScheduleStatus(SecurityUser securityUser, PresetScheduleRequestDto requestDto);
 
 }

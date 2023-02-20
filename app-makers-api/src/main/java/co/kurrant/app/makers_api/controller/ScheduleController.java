@@ -21,10 +21,10 @@ public class ScheduleController {
     @Operation
     @GetMapping("")
     public ResponseMessage getMostRecentPresets(Authentication authentication, @RequestParam Integer page) {
-        UserUtil.securityUser(authentication);
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .message("일정관리를 조회했습니다.")
-                .data(scheduleService.getMostRecentPresets(page))
+                .data(scheduleService.getMostRecentPresets(page, securityUser))
                 .build();
     }
 

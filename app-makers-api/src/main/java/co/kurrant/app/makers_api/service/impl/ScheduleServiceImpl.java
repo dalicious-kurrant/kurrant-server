@@ -34,9 +34,10 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PresetScheduleResponseDto> getMostRecentPresets(Integer page) {
+    public List<PresetScheduleResponseDto> getMostRecentPresets(Integer page, SecurityUser securityUser) {
+        Makers makers = userUtil.getMakers(securityUser);
         // 페이지에 해당하는 리스트만 불러옴
-        List<PresetMakersDailyFood> presetMakersDailyFoods = qPresetGroupDailyFoodRepository.getMostRecentPresets(page);
+        List<PresetMakersDailyFood> presetMakersDailyFoods = qPresetGroupDailyFoodRepository.getMostRecentPresets(page, makers);
 
         //PresetScheduleResponseDto 만들기
         List<PresetScheduleResponseDto> responseDtos = new ArrayList<>();

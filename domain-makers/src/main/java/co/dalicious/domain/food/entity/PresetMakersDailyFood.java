@@ -1,12 +1,12 @@
 package co.dalicious.domain.food.entity;
 
-import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.converter.ScheduleStatusConverter;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.system.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -54,7 +54,6 @@ public class PresetMakersDailyFood {
     @Comment("식단 상태(0. 승인대기 1. 승인, 2. 거절)")
     private ScheduleStatus scheduleStatus;
 
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(name = "deadline_datetime")
     @Comment("식단 승인 마감시간")
     private LocalDateTime deadline;
@@ -74,6 +73,16 @@ public class PresetMakersDailyFood {
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) ON UPDATE NOW(6) COMMENT '수정일'")
     private Timestamp updatedDateTime;
 
+    @Builder
+    public PresetMakersDailyFood(LocalDate serviceDate, DiningType diningType, Integer capacity, Makers makers, ScheduleStatus scheduleStatus, LocalDateTime deadline) {
+        this.serviceDate = serviceDate;
+        this.diningType = diningType;
+        this.capacity = capacity;
+        this.makers = makers;
+        this.scheduleStatus = scheduleStatus;
+        this.deadline = deadline;
+
+    }
 
     public void updateStatus(ScheduleStatus scheduleStatus) {
         this.scheduleStatus = scheduleStatus;
