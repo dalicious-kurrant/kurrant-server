@@ -17,7 +17,6 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/makers/files")
 @RestController
-@CrossOrigin(origins="*", allowedHeaders = "*")
 public class FileController {
   private final ExcelService excelService;
 
