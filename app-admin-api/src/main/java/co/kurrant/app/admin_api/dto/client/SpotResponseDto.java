@@ -52,9 +52,9 @@ public class SpotResponseDto {
     @Schema(description = "저녁 지원금")
     private BigDecimal dinnerSupportPrice;
     @Schema(description = "생성일")
-    private LocalDate createdDateTime;
+    private String createdDateTime;
     @Schema(description = "수정일")
-    private LocalDate updatedDateTime;
+    private String updatedDateTime;
 
 
 

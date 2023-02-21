@@ -1,17 +1,14 @@
 package co.dalicious.domain.address.entity.embeddable;
 
-import java.sql.Timestamp;
-import javax.persistence.*;
-
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.geo.Point;
+
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
 
 @Getter
 @Embeddable
