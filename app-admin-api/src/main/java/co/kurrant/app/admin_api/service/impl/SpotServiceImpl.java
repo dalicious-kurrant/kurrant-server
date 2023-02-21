@@ -1,20 +1,26 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.CorporationMealInfo;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.client.SpotResponseDto;
+import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.SpotService;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,8 +31,10 @@ public class SpotServiceImpl implements SpotService {
     private final SpotRepository spotRepository;
     private final MealInfoRepository mealInfoRepository;
     private final CorporationMealInfoRepository corporationMealInfoRepository;
+    private final GroupRepository groupRepository;
     private final QCorporationMealInfoRepository qCorporationMealInfoRepository;
     private final QMealInfoRepository qMealInfoRepository;
+    private final SpotMapper spotMapper;
 
     @Override
     public List<SpotResponseDto> getAllSpotList() {
@@ -34,61 +42,64 @@ public class SpotServiceImpl implements SpotService {
         List<Spot> spotList = spotRepository.findAll();
 
         List<SpotResponseDto> resultList = new ArrayList<>();
-        SpotResponseDto dto = new SpotResponseDto();
         for (Spot spot : spotList){
-            //dto에 스팟정보 넣기
-            dto.setSpotId(spot.getId());
-            dto.setGroupId(spot.getGroup().getId());
-            dto.setAddress1(spot.getAddress1());
-            dto.setAddress2(spot.getAddress2());
-            dto.setZipCode(spot.getZipcode().toString());
-            dto.setLocation(spot.getLocation().toString());
-
-            String createdDate = DateUtils.format(spot.getCreatedDateTime(), "yyyy-MM-dd");
-            String updatedDate = DateUtils.format(spot.getUpdatedDateTime(), "yyyy-MM-dd");
-            dto.setCreatedDateTime(createdDate);
-            dto.setUpdatedDateTime(updatedDate);
             BigInteger spotId = spot.getId();
             //spotId로 mealInfo 찾기
             List<MealInfo> mealInfoList = mealInfoRepository.findAllBySpotId(spotId);
 
-            //SpotId로 CorporaionMealInfo 찾기
+            String diningTypeTemp = null;
+            String morningUseDays = null;
+            String lunchUseDays = null;
+            String dinnerUseDays = null;
+            String morningDeliveryTime = null;
+            String lunchDeliveryTime = null;
+            String dinnerDeliveryTime = null;
+            BigDecimal morningSupportPrice = null;
+            BigDecimal lunchSupportPrice = null;
+            BigDecimal dinnerSupportPrice = null;
+
+
             for (int i = 0; i < mealInfoList.size(); i++) {
                 DiningType diningType = mealInfoList.get(i).getDiningType();
-                if (diningType.getCode() == 0){
-                    dto.setDiningType("아침");
-                    dto.setMorningUseDays(mealInfoList.get(i).getServiceDays());
-                    dto.setMorningDeliveryTime(mealInfoList.get(i).getDeliveryTime().toString());
+                if (diningType.getCode() == 1){
+                    diningTypeTemp = "아침";
+                    morningUseDays = mealInfoList.get(i).getServiceDays();
+                    morningDeliveryTime = mealInfoList.get(i).getDeliveryTime().toString();
                     MealInfo mealInfo = qMealInfoRepository.findBySpotId(spotId, diningType.getCode());
                         CorporationMealInfo corporationMealInfo = qCorporationMealInfoRepository.findOneById(mealInfo.getId());
                         if (corporationMealInfo != null) {
-                            dto.setLunchSupportPrice(corporationMealInfo.getSupportPrice());
+                            morningSupportPrice = corporationMealInfo.getSupportPrice();
                         }
-
-                } else if (diningType.getCode() == 1) {
-                    dto.setDiningType("점심");
-                    dto.setLunchUseDays(mealInfoList.get(i).getServiceDays());
-                    dto.setLunchDeliveryTime(mealInfoList.get(i).getDeliveryTime().toString());
+                } else if (diningType.getCode() == 2) {
+                    diningTypeTemp = "점심";
+                    lunchUseDays = mealInfoList.get(i).getServiceDays();
+                    lunchDeliveryTime = mealInfoList.get(i).getDeliveryTime().toString();
                     MealInfo mealInfo = qMealInfoRepository.findBySpotId(spotId, diningType.getCode());
 
                     CorporationMealInfo corporationMealInfo = qCorporationMealInfoRepository.findOneById(mealInfo.getId());
                     if (corporationMealInfo != null) {
-                        dto.setLunchSupportPrice(corporationMealInfo.getSupportPrice());
+                        lunchSupportPrice = corporationMealInfo.getSupportPrice();
                     }
                 } else {
-                    dto.setDiningType("저녁");
-                    dto.setDinnerUseDays(mealInfoList.get(i).getServiceDays());
-                    dto.setDinnerDeliveryTime(mealInfoList.get(i).getDeliveryTime().toString());
+                    diningTypeTemp = "저녁";
+                    dinnerUseDays = mealInfoList.get(i).getServiceDays();
+                    dinnerDeliveryTime = mealInfoList.get(i).getDeliveryTime().toString();
                     MealInfo mealInfo = qMealInfoRepository.findBySpotId(spotId, diningType.getCode());
 
                     CorporationMealInfo corporationMealInfo = qCorporationMealInfoRepository.findOneById(mealInfo.getId());
                     if (corporationMealInfo != null){
-                    dto.setLunchSupportPrice(corporationMealInfo.getSupportPrice());
+                        dinnerSupportPrice = corporationMealInfo.getSupportPrice();
                     }
                 }
             }
-            resultList.add(dto);
+
+            SpotResponseDto spotResponseDto = spotMapper.toDto(spot, diningTypeTemp,
+                    morningUseDays, morningDeliveryTime, morningSupportPrice,
+                    lunchUseDays, lunchDeliveryTime, lunchSupportPrice,
+                    dinnerUseDays, dinnerDeliveryTime, dinnerSupportPrice);
+            resultList.add(spotResponseDto);
         }
+
 
         return resultList;
     }

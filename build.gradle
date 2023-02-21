@@ -195,6 +195,7 @@ project(':app-admin-api') {
     dependencies {
         implementation project(':system-core')
         implementation project(':client-core')
+        implementation project(':domain-address')
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
