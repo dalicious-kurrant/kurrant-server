@@ -23,4 +23,10 @@ public class QFoodRepository {
                 .fetchOne();
     }
 
+    public Food findByNameAndMakers(String name, Makers makers) {
+        return queryFactory
+                .selectFrom(food)
+                .where(food.name.eq(name), food.makers.eq(makers))
+                .fetchOne();
+    }
 }

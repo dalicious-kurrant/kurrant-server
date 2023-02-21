@@ -81,11 +81,15 @@ public class PresetMakersDailyFood {
         this.makers = makers;
         this.scheduleStatus = scheduleStatus;
         this.deadline = deadline;
-
     }
 
     public void updateStatus(ScheduleStatus scheduleStatus) {
         this.scheduleStatus = scheduleStatus;
+    }
+
+    public void updatePresetMakersDailyFood(ScheduleStatus scheduleStatus, LocalDateTime deadline) {
+        this.scheduleStatus = scheduleStatus;
+        this.deadline = deadline;
     }
 
 }

@@ -3,6 +3,7 @@ package co.dalicious.domain.food.entity;
 import co.dalicious.domain.client.entity.Group;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -47,5 +48,13 @@ public class PresetGroupDailyFood {
     @JsonManagedReference(value = "preset_makers_daily_food_fk")
     @Comment("고객사별 예비 식단 ID")
     private PresetMakersDailyFood presetMakersDailyFood;
+
+    @Builder
+    public PresetGroupDailyFood(Group group, Integer capacity, LocalTime pickupTime, PresetMakersDailyFood presetMakersDailyFood) {
+        this.group = group;
+        this.capacity = capacity;
+        this.pickupTime = pickupTime;
+        this.presetMakersDailyFood = presetMakersDailyFood;
+    }
 
 }
