@@ -11,6 +11,7 @@ import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserHistoryRepository;
 import co.dalicious.domain.user.repository.UserRepository;
+import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
 import co.kurrant.app.admin_api.dto.user.UserInfoResponseDto;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
@@ -74,6 +75,13 @@ public class UserServiceImpl implements UserService {
             Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
             if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
         }
+
+    }
+
+    @Override
+    public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
+
+        //TODO 내일하자..
 
     }
 }
