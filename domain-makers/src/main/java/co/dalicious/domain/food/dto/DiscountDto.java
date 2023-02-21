@@ -153,13 +153,13 @@ public class DiscountDto {
 
     public BigDecimal getDiscountedPrice() {
         BigDecimal totalPrice = this.price;
-        if(this.membershipDiscountPrice != null && this.membershipDiscountPrice.compareTo(BigDecimal.ZERO) <= 0) {
+        if(this.membershipDiscountPrice != null && this.membershipDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
             totalPrice = totalPrice.subtract(this.membershipDiscountPrice);
         }
-        if(this.makersDiscountPrice != null && this.makersDiscountPrice.compareTo(BigDecimal.ZERO) <= 0) {
+        if(this.makersDiscountPrice != null && this.makersDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
             totalPrice = totalPrice.subtract(this.makersDiscountPrice);
         }
-        if(this.periodDiscountPrice != null && this.periodDiscountPrice.compareTo(BigDecimal.ZERO) <= 0) {
+        if(this.periodDiscountPrice != null && this.periodDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
             totalPrice = totalPrice.subtract(this.periodDiscountPrice);
         }
         return totalPrice;
