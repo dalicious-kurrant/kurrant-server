@@ -123,8 +123,9 @@ public class MemberServiceImpl implements MemberService {
         //userId 리스트 가져오기
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
 
-        //code로 CorporationId 찾기 (=GroupId)
-        BigInteger groupId = qCorporationRepository.findOneByCode(deleteMemberRequestDto.getCode());
+        //code로 CorporationId 찾기 (=GroupId) TODO: 상진님 확인
+        BigInteger groupId = deleteMemberRequestDto.getGroupId();
+//                qCorporationRepository.findOneByCode(deleteMemberRequestDto.getCode());
 
         if (userIdList.size() == 0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
