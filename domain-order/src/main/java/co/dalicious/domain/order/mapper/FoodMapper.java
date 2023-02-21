@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Mapper(componentModel = "spring", imports = FoodUtil.class)
+@Mapper(componentModel = "spring")
 public interface FoodMapper {
     @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
     @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountedPrice")
@@ -32,7 +32,7 @@ public interface FoodMapper {
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountedPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountedRate")
     @Mapping(source = "discountDto.price", target = "price")
-    @Mapping(target = "discountedPrice", expression = "java(FoodUtil.getFoodTotalDiscountedPrice(dailyFood.getFood(), discountDto))")
+    @Mapping(target = "discountedPrice", expression = "java(discountDto.getDiscountedPrice())")
     @Mapping(source = "dailyFood.food.image.location", target = "image")
     @Mapping(source = "dailyFood", target = "spicy", qualifiedByName = "getSpicy")
     @Mapping(source = "dailyFood.food.name", target = "name")

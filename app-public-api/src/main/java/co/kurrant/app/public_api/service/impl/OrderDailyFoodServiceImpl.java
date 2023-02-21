@@ -186,7 +186,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 // 멤버십에 가입하지 않은 경우 멤버십 할인이 적용되지 않은 가격으로 보임
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, selectedCartDailyFood.getDailyFood().getFood());
                 // 금액 일치 확인
-                if (cartDailyFood.getDiscountedPrice().compareTo(FoodUtil.getFoodTotalDiscountedPrice(selectedCartDailyFood.getDailyFood().getFood(), discountDto)) != 0) {
+                if (cartDailyFood.getDiscountedPrice().compareTo(discountDto.getDiscountedPrice()) != 0) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }
                 if (cartDailyFood.getPrice().compareTo(selectedCartDailyFood.getDailyFood().getFood().getPrice()) != 0 ||
