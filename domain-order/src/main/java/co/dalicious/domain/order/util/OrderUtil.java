@@ -16,6 +16,7 @@ import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.GenerateRandomNumber;
+import co.dalicious.system.util.PriceUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -70,11 +71,11 @@ public class OrderUtil {
     }
 
     public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
-        return price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100));
+        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100)));
     }
 
     public static BigDecimal discountPriceByRate(BigDecimal price, Integer discountRate) {
-        return price.multiply(BigDecimal.valueOf(discountRate / 100.0));
+        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf(discountRate / 100.0)));
     }
 
     public static Boolean isMembership(User user, Group group) {
@@ -89,7 +90,7 @@ public class OrderUtil {
 
     public static DiscountDto checkMembershipAndGetDiscountDto(User user, Group group, Food food) {
         group = (Group) Hibernate.unproxy(group);
-        return (isMembership(user, group)) ? DiscountDto.getDiscount(food) : DiscountDto.getDiscountWithNoMembership(food);
+        return (isMembership(user, group)) ? DiscountDto.getDiscount(food) : DiscountDto.getDiscountWithoutMembership(food);
     }
 
     public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {

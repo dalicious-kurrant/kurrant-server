@@ -10,18 +10,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import co.dalicious.client.core.filter.JwtAuthenticationFilter;
 import co.dalicious.client.core.handler.CustomAccessDeniedHandler;
 import co.dalicious.client.core.handler.CustomAuthenticationHandler;
 
 @EnableWebSecurity
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
-
-  private final JwtTokenProvider jwtTokenProvider;
-  private final BlackListTokenRepository blackListTokenRepository;
 
   /**
    * 1. JWT 없이 호출 하는 경우 2. JWT 형식이 이상하거나 만료된 토큰의 경우 3. JWT 토큰으로 호출하였으나 권한이 없는경우
@@ -42,6 +36,7 @@ public class SecurityConfig {
             // .antMatchers("/v1/boards/**").permitAll() // swagger
             // .antMatchers("/swagger-resources/**").permitAll() // swagger
             .antMatchers("/swagger-ui/**").permitAll() // swagger
+            .antMatchers("/downloadExcelFile").permitAll() // 엑셀 다운로드
             // .antMatchers("/v1/auth/**").permitAll() // 가입 및 인증 주소는 누구나 접근가능
             // .antMatchers(HttpMethod.GET, "/exception/**", "/helloworld/**",
             // "/actuator/health").permitAll() // 등록된 GET요청 리소스는 누구나 접근가능

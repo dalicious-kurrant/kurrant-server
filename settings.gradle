@@ -35,5 +35,5 @@ include 'app-makers-api'
 include 'app-client-api'
 
 include 'data-redis'
-
+include 'batch'
 

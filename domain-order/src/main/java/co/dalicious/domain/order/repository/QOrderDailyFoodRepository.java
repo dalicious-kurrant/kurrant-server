@@ -3,6 +3,7 @@ package co.dalicious.domain.order.repository;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -11,7 +12,10 @@ import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -22,6 +26,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
@@ -76,31 +81,78 @@ public class QOrderDailyFoodRepository {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.order.user.eq(user),
-                        orderItemDailyFood.dailyFood.serviceDate.goe(LocalDate.now()))
+                        orderItemDailyFood.dailyFood.serviceDate.goe(LocalDate.now()),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
                 .fetch();
     }
 
-    public List<OrderItemDailyFood> findAllByGroupFilter(LocalDate startDate, LocalDate endDate, Group group, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId) {
-        BooleanExpression whereClause = orderItemDailyFood.dailyFood.group.eq(group);
+    public List<OrderItemDailyFood> findAllByGroupFilter(LocalDate startDate, LocalDate endDate, Group group, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
         if (startDate != null) {
-            whereClause = whereClause.and(orderItemDailyFood.dailyFood.serviceDate.goe(startDate));
+            whereClause.and(orderItemDailyFood.dailyFood.serviceDate.goe(startDate));
         }
+
         if (endDate != null) {
-            whereClause = whereClause.and(orderItemDailyFood.dailyFood.serviceDate.loe(endDate));
+            whereClause.and(orderItemDailyFood.dailyFood.serviceDate.loe(endDate));
         }
+
         if (diningTypeCode != null) {
-            whereClause = whereClause.and(orderItemDailyFood.dailyFood.diningType.eq(DiningType.ofCode(diningTypeCode)));
+            whereClause.and(orderItemDailyFood.dailyFood.diningType.eq(DiningType.ofCode(diningTypeCode)));
         }
+
         if (userId != null) {
-            whereClause = whereClause.and(orderItemDailyFood.order.user.id.eq(userId));
+            whereClause.and(orderItemDailyFood.order.user.id.eq(userId));
         }
+
         if (spotIds != null && !spotIds.isEmpty()) {
-            whereClause = whereClause.and(orderDailyFood.spot.id.in(spotIds));
+            whereClause.and(orderDailyFood.spot.id.in(spotIds));
         }
+
+        if (selectedMakers != null) {
+            whereClause.and(makers.eq(selectedMakers));
+        }
+
+        if (group != null) {
+            whereClause.and(orderItemDailyFood.dailyFood.group.eq(group));
+        }
+
         return queryFactory.selectFrom(orderItemDailyFood)
                 .innerJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .innerJoin(dailyFood.food, food)
+                .innerJoin(food.makers, makers)
                 .where(whereClause)
                 .orderBy(orderItemDailyFood.dailyFood.serviceDate.desc())
+                .fetch();
+    }
+
+    public List<OrderItemDailyFood> findAllByMakersFilter(LocalDate startDate, LocalDate endDate, Makers selectedMakers, List<Integer> diningTypeCodes) {
+        BooleanExpression whereClause = makers.eq(selectedMakers);
+
+        if (startDate != null) {
+            whereClause = whereClause.and(dailyFood.serviceDate.goe(startDate));
+        }
+
+        if (endDate != null) {
+            whereClause = whereClause.and(dailyFood.serviceDate.loe(endDate));
+        }
+
+        if (diningTypeCodes != null && !diningTypeCodes.isEmpty()) {
+            List<DiningType> diningTypes = new ArrayList<>();
+            for (Integer diningType : diningTypeCodes) {
+                diningTypes.add(DiningType.ofCode(diningType));
+            }
+            whereClause = whereClause.and(dailyFood.diningType.in(diningTypes));
+        }
+
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .innerJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .innerJoin(dailyFood.food, food)
+                .innerJoin(food.makers, makers)
+                .where(whereClause)
+                .orderBy(orderItemDailyFood.dailyFood.serviceDate.asc())
                 .fetch();
     }
 

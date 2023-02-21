@@ -2,6 +2,7 @@ package co.dalicious.domain.client.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -14,11 +15,10 @@ import java.math.BigInteger;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "client__admin_employee")
-public class Employee {
+public class Employee{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("고객사 페이지에서 등록하는 유저")
-    @NotNull
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
@@ -28,7 +28,7 @@ public class Employee {
     @Comment("기업")
     private Corporation corporation;
 
-    @NotNull
+
     @Comment("사원 이름")
     private String name;
 
@@ -37,4 +37,13 @@ public class Employee {
 
     @Comment("사원 전화번호")
     private String phone;
+
+    @Builder
+    public Employee(String name,String email,String phone, Corporation corporation){
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.corporation = corporation;
+
+    }
 }

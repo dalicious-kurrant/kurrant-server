@@ -1,6 +1,7 @@
 package co.dalicious.client.core.filter;
 
 import java.io.IOException;
+import java.net.URI;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @Component
@@ -28,6 +30,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        if (request.getMethod().equals("OPTIONS")) {
+            logger.debug("if request options method is options, return true");
+            return;
+        }
+
+        // TODO: 도메인 적용시 변경
+        URI uri = UriComponentsBuilder.fromHttpUrl(String.valueOf(request.getRequestURL())).build().toUri();
+        if (uri.getPort() == 8888) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // 1. Request Header에서 JWT 토큰 추출
         String jwtToken = null;
         try {

@@ -1,5 +1,7 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.CorporationMealInfo;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -21,4 +23,11 @@ public class QCorporationRepository {
                 .where(corporation.code.eq(code))
                 .fetchOne();
     }
+
+    public Corporation findEntityByCode(String code) {
+        return queryFactory.selectFrom(corporation)
+                .where(corporation.code.eq(code))
+                .fetchOne();
+    }
+
 }

@@ -204,7 +204,7 @@ public class User {
         this.userStatus = userStatus;
     }
 
-    public void updateEmail(String email) {
-        this.email = email;
+    public void updateIsMembership(Boolean isMembership) {
+        this.isMembership = isMembership;
     }
 }

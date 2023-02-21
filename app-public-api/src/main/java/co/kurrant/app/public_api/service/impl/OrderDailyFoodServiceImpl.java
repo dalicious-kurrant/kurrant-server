@@ -12,21 +12,19 @@ import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
-import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.*;
-import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.mapper.*;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
+import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.dto.PaymentConfirmDto;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.util.TossUtil;
-import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
@@ -96,6 +94,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final MembershipSupportPriceRepository membershipSupportPriceRepository;
     private final FoundersMapper foundersMapper;
     private final FoundersUtil foundersUtil;
+    private final OrderService orderService;
 
     @Override
     @Transactional
@@ -184,7 +183,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 // 멤버십에 가입하지 않은 경우 멤버십 할인이 적용되지 않은 가격으로 보임
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, selectedCartDailyFood.getDailyFood().getFood());
                 // 금액 일치 확인
-                if (cartDailyFood.getDiscountedPrice().compareTo(FoodUtil.getFoodTotalDiscountedPrice(selectedCartDailyFood.getDailyFood().getFood(), discountDto)) != 0) {
+                if (cartDailyFood.getDiscountedPrice().compareTo(discountDto.getDiscountedPrice()) != 0) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }
                 if (cartDailyFood.getPrice().compareTo(selectedCartDailyFood.getDailyFood().getFood().getPrice()) != 0 ||
@@ -444,51 +443,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
 
-        BigDecimal price = BigDecimal.ZERO;
-        BigDecimal deliveryFee = BigDecimal.ZERO;
-        BigDecimal point = BigDecimal.ZERO;
-
-        // 이전에 환불을 진행한 경우
-        List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
-
-        for(OrderItem orderItem : order.getOrderItems()) {
-            OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) orderItem;
-            // 상태값이 이미 7L(취소)인지 확인
-            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
-                throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
-            }
-
-            BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories());
-
-            RefundPriceDto refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
-            price = price.add(refundPriceDto.getPrice());
-            deliveryFee = deliveryFee.add(refundPriceDto.getDeliveryFee());
-            point = point.add(refundPriceDto.getPoint());
-
-            if(!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
-                List<UserSupportPriceHistory> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
-                for (UserSupportPriceHistory userSupportPriceHistory : userSupportPriceHistories) {
-                    userSupportPriceHistory.updateMonetaryStatus(MonetaryStatus.REFUND);
-                }
-                UserSupportPriceHistory userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
-                if(userSupportPriceHistory.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                    userSupportPriceHistoryRepository.save(userSupportPriceHistory);
-                }
-            }
-
-            // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
-            if(refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0 || refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
-                PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
-                paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
-            }
-            orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
-
-            if(refundPriceDto.getIsLastItemOfGroup()) {
-                orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
-            }
-        }
-        user.updatePoint(user.getPoint().add(point));
-        tossUtil.cardCancelOne(order.getPaymentKey(), "전체 주문 취소", price.intValue());
+        orderService.cancelOrderDailyFood((OrderDailyFood) order, user);
     }
 
     @Override
@@ -500,48 +455,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 () -> new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND)
         );
 
-        Order order = orderItemDailyFood.getOrder();
-
-        if(!order.getUser().equals(user)) {
-            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
-        }
-
-        // 상태값이 이미 7L(취소)인지 확인
-        if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)){
-            throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
-        }
-
-        // 이전에 환불을 진행한 경우
-        List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
-
-        BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories());
-
-        RefundPriceDto refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
-
-
-        if(!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
-            List<UserSupportPriceHistory> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
-            for (UserSupportPriceHistory userSupportPriceHistory : userSupportPriceHistories) {
-                userSupportPriceHistory.updateMonetaryStatus(MonetaryStatus.REFUND);
-            }
-            UserSupportPriceHistory userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
-            if(userSupportPriceHistory.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                userSupportPriceHistoryRepository.save(userSupportPriceHistory);
-            }
-        }
-
-        // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
-        if(refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
-            PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
-            paymentCancelHistoryRepository.save(paymentCancelHistory);
-        }
-
-        user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
-        orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
-
-        if(refundPriceDto.getIsLastItemOfGroup()) {
-            orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
-        }
+        orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
     }
 
     private void findOrderByServiceDateNotification(SecurityUser securityUser) {

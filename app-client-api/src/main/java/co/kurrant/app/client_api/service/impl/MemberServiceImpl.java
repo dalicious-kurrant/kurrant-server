@@ -1,11 +1,15 @@
 package co.kurrant.app.client_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Employee;
-import co.dalicious.domain.client.repository.QCorporationRepository;
-import co.dalicious.domain.client.repository.QEmployeeRepository;
-import co.dalicious.domain.client.repository.QSpotRepository;
+import co.dalicious.domain.client.entity.EmployeeHistory;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.mapper.EmployeeHistoryMapper;
+import co.dalicious.domain.client.mapper.EmployeeMapper;
+import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
@@ -18,20 +22,25 @@ import co.kurrant.app.client_api.service.MemberService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tika.Tika;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -43,8 +52,13 @@ public class MemberServiceImpl implements MemberService {
     private final QSpotRepository qSpotRepository;
     private final QUserGroupRepository qUserGroupRepository;
     private final MemberMapper memberMapper;
+    private final EmployeeRepository employeeRepository;
     private final QEmployeeRepository qEmployeeRepository;
     private final QUserRepository qUserRepository;
+    private final GroupRepository groupRepository;
+    private final EmployeeMapper employeeMapper;
+    private final EmployeeHistoryMapper employeeHistoryMapper;
+    private final EmployeeHistoryRepository employeeHistoryRepository;
 
     @Override
     public List<MemberListResponseDto> getUserList(String code, OffsetBasedPageRequest pageable) {
@@ -85,14 +99,36 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public void insertMemberList(ClientUserWaitingListSaveRequestDto clientUserWaitingListSaveRequestDto) {
+
+        //code로 CorporationId 찾기 (=GroupId)
+        Corporation corporation = qCorporationRepository.findEntityByCode(clientUserWaitingListSaveRequestDto.getCode());
+
+        Long result = null;
+        for (int i = 0; i < clientUserWaitingListSaveRequestDto.getId().size(); i++) {
+            Employee employee = employeeMapper.toEntity(clientUserWaitingListSaveRequestDto.getEmail().get(i),
+                                                        clientUserWaitingListSaveRequestDto.getName().get(i),
+                                                        clientUserWaitingListSaveRequestDto.getPhone().get(i),
+                                                        corporation);
+            employeeRepository.save(employee);
+        }
+    }
+
+    @Override
     public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
         //userId 리스트 가져오기
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
 
-        if (userIdList.size() ==0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        //code로 CorporationId 찾기 (=GroupId)
+        BigInteger groupId = qCorporationRepository.findOneByCode(deleteMemberRequestDto.getCode());
+
+        if (userIdList.size() == 0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
         for (BigInteger userId : userIdList){
-            Long deleteResult = qUserRepository.deleteMember(userId);
+            User deleteUser = qUserRepository.findByUserId(userId);
+            EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, deleteUser.getName(), deleteUser.getEmail(), deleteUser.getPhone());
+            employeeHistoryRepository.save(employeeHistory);
+            Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
             if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
         }
     }
@@ -128,7 +164,83 @@ public class MemberServiceImpl implements MemberService {
     private boolean isAllowedMIMEType(String mimeType) {
         return mimeType.equals("application/x-tika-ooxml");
     }
-        /*
+
+    @Override
+    public ResponseEntity<InputStreamResource> exportExcelForWaitingUserList(HttpServletResponse response, ClientUserWaitingListSaveRequestDto exportExcelWaitngUserListRequestDto) throws IOException {
+        SXSSFWorkbook workbook = new SXSSFWorkbook();
+        //시트 생성(+시트제목설정)
+        SXSSFSheet sheet = workbook.createSheet("기업 가입 리스트");
+
+        CellStyle headStyle = workbook.createCellStyle();
+        headStyle.setFillForegroundColor(HSSFColor.HSSFColorPredefined.LIGHT_BLUE.getIndex());
+        headStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        Font font = workbook.createFont();
+        font.setColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
+        font.setFontHeightInPoints((short) 13);
+        headStyle.setFont(font);
+
+        //시트 열 너비 설정
+        sheet.setColumnWidth(0, 1500);
+        sheet.setColumnWidth(1, 3000);
+        sheet.setColumnWidth(2, 3000);
+        sheet.setColumnWidth(3, 3000);
+
+        // 헤더 행 생성
+        Row headerRow = sheet.createRow(0);
+        //해당 행의 첫번째 열 셀 생성
+        Cell headerCell = headerRow.createCell(0);
+        headerCell.setCellValue("번호");
+        //해당 행의 두번째 열 셀 생성
+        headerCell = headerRow.createCell(1);
+        headerCell.setCellValue("이메일");
+        //해당 행의 세번째 열 셀 생성
+        headerCell = headerRow.createCell(2);
+        headerCell.setCellValue("이름");
+        //해당 행의 번째 열 셀 생성
+        headerCell = headerRow.createCell(3);
+        headerCell.setCellValue("휴대폰 번호");
+
+        //데이터 행 및 셀 생성후 데이터 넣어주기
+        Row bodyRow = null;
+        Cell bodyCell = null;
+        for (int i = 0; i < exportExcelWaitngUserListRequestDto.getId().size(); i++) {
+            //행 생성
+            bodyRow = sheet.createRow(i+1);
+            //데이터 넣기(번호)
+            bodyCell = bodyRow.createCell(0);
+            bodyCell.setCellValue(exportExcelWaitngUserListRequestDto.getId().get(i).intValue());
+            //이메일
+            bodyCell = bodyRow.createCell(1);
+            bodyCell.setCellValue(exportExcelWaitngUserListRequestDto.getEmail().get(i));
+            //이름
+            bodyCell = bodyRow.createCell(2);
+            bodyCell.setCellValue(exportExcelWaitngUserListRequestDto.getName().get(i));
+            //휴대폰 번호
+            bodyCell = bodyRow.createCell(3);
+            bodyCell.setCellValue(exportExcelWaitngUserListRequestDto.getPhone().get(i));
+        }
+
+        File tmpFile = File.createTempFile("TMP~", ".xlsx");
+        try (OutputStream fos = new FileOutputStream(tmpFile);) {
+            workbook.write(fos);
+        }
+        InputStream res = new FileInputStream(tmpFile) {
+            @Override
+            public void close() throws IOException {
+                super.close();
+                if (tmpFile.delete()) {
+                    System.out.println("임시파일 삭제 완료");
+                }
+            }
+        };
+        return ResponseEntity.ok() //
+                .contentLength(tmpFile.length()) //
+                .contentType(MediaType.APPLICATION_OCTET_STREAM) //
+                .header("Content-Disposition", "attachment;filename=boardlist.xlsx") //
+                .body(new InputStreamResource(res));
+    }
+
+    /*
         List<ExcelExample> dataList = new ArrayList<>();
 
         try(InputStream is = file.getInputStream();){

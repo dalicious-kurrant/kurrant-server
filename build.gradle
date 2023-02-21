@@ -12,8 +12,8 @@ buildscript {
     repositories {
         mavenCentral()
         maven {
-        	url "https://plugins.gradle.org/m2/"
-	    }
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
@@ -32,7 +32,7 @@ subprojects {
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'io.freefair.lombok'
-    
+
     sourceCompatibility = '17'
 
     repositories {
@@ -40,25 +40,25 @@ subprojects {
     }
 
     dependencies {
-	    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
-	    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+        annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+        annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
-	    
-	    annotationProcessor "org.mapstruct:mapstruct-processor:${mapStructVersion}"
-	    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
+
+        annotationProcessor "org.mapstruct:mapstruct-processor:${mapStructVersion}"
+        implementation "org.mapstruct:mapstruct:${mapStructVersion}"
 
 //        MySQL
         runtimeOnly 'mysql:mysql-connector-java'
-	    
-	    /*
-	        this example uses lombok directly over the annotationProcessor,
-	        the io.freefair.lombok plugin works as well.
-	        The freefair-lombok plugin is used in the example mapstruct-on-gradle-testcp-with-lombok
-	 	*/
-		annotationProcessor "org.projectlombok:lombok-mapstruct-binding:${lombokMapstructBindingVersion}"
-        
+
+        /*
+            this example uses lombok directly over the annotationProcessor,
+            the io.freefair.lombok plugin works as well.
+            The freefair-lombok plugin is used in the example mapstruct-on-gradle-testcp-with-lombok
+         */
+        annotationProcessor "org.projectlombok:lombok-mapstruct-binding:${lombokMapstructBindingVersion}"
+
         testImplementation 'junit:junit:4.12'
     }
 }
@@ -195,6 +195,7 @@ project(':app-admin-api') {
     dependencies {
         implementation project(':system-core')
         implementation project(':client-core')
+        implementation project(':domain-address')
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
@@ -231,13 +232,13 @@ project(':client-oauth') {
 }
 project(':domain-address') {
     dependencies {
-    	implementation project(':system-core')
+        implementation project(':system-core')
     }
 }
 
 project(':domain-banner') {
     dependencies {
-        implementation project(':system-core')        
+        implementation project(':system-core')
         implementation project(':domain-file')
     }
 }
@@ -251,7 +252,7 @@ project(':domain-board') {
 
 project(':domain-file') {
     dependencies {
-    	implementation project(':system-core')    
+        implementation project(':system-core')
     }
 }
 
@@ -266,8 +267,8 @@ project(':domain-makers') {
 
 project(':domain-user') {
     dependencies {
-    	implementation project(':system-core')
-    	implementation project(':domain-file')
+        implementation project(':system-core')
+        implementation project(':domain-file')
         implementation project(':domain-address')
         implementation project(':domain-client')
     }
@@ -356,5 +357,14 @@ project(':app-makers-api') {
         implementation project(':domain-review')
         implementation project(':data-redis')
         implementation project(':client-sse')
+    }
+}
+
+project(':batch') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':client-core')
+        implementation project(':domain-user')
+        implementation project(':domain-order')
     }
 }

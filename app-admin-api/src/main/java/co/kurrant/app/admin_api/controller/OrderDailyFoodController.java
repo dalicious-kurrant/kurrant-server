@@ -1,15 +1,21 @@
 package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.admin_api.dto.OrderDto;
+import co.kurrant.app.admin_api.model.Admin;
+import co.kurrant.app.admin_api.model.SecurityUser;
 import co.kurrant.app.admin_api.service.OrderDailyFoodService;
+import co.kurrant.app.admin_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.parser.ParseException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
 
-@CrossOrigin(origins="*", allowedHeaders = "*")
 @Tag(name = "2. Order")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/orders")
@@ -17,17 +23,25 @@ import java.util.Map;
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
     @GetMapping("")
-    public ResponseMessage retrieveOrder(@RequestParam Map<String, Object> parameter) {
+    public ResponseMessage retrieveOrder(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.retrieveOrder(parameter))
+                .data(orderDailyFoodService.retrieveOrder(parameters))
                 .message("주문 조회에 성공하였습니다.")
                 .build();
     }
 
-    @GetMapping("/{orderItemDailyFoodId}")
-    public ResponseMessage getOrderDetail(@RequestParam BigInteger orderItemDailyFoodId) {
+    @GetMapping("/by/makers")
+    public ResponseMessage retrieveOrderCountByMakers(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
-//                .data(orderDailyFoodService.getOrderDetail(orderItemDailyFoodId))
+                .data(orderDailyFoodService.retrieveOrderByMakers(parameters))
+                .message("메이커스별 식수 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @GetMapping("/{orderCode}")
+    public ResponseMessage getOrderDetail(@PathVariable String orderCode) {
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.getOrderDetail(orderCode))
                 .message("주문 조회에 성공하였습니다.")
                 .build();
     }
@@ -40,11 +54,37 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @GetMapping("/makers")
+    public ResponseMessage getMakers() {
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.getMakers())
+                .message("메이커스 조회에 성공하였습니다.")
+                .build();
+    }
+
     @GetMapping("/group/{groupId}")
     public ResponseMessage getGroupInfo(@PathVariable BigInteger groupId) {
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getGroupInfo(groupId))
-                .message("고객사 조회에 성공하였습니다.")
+                .message("고객사 정보 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @PostMapping("/cancel")
+    public ResponseMessage cancelOrder(@RequestBody OrderDto.Id id) throws IOException, ParseException {
+        orderDailyFoodService.cancelOrder(id.getId());
+        return ResponseMessage.builder()
+                .message("부분 주문 취소를 성공했습니다.")
+                .build();
+    }
+
+    @PostMapping("/orderItems/cancel")
+    public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
+        orderDailyFoodService.cancelOrderItems(idList.getIdList());
+        return ResponseMessage.builder()
+                .message("주문 전체 취소를 성공했습니다.")
                 .build();
     }
 }
+
+

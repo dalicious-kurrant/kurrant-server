@@ -5,7 +5,6 @@ import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.payment.converter.PaymentCompanyConverter;
-import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PaymentType;
