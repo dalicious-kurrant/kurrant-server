@@ -2,6 +2,7 @@ package co.dalicious.domain.food.dto;
 
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
+import co.dalicious.system.util.PriceUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,17 +46,19 @@ public class DiscountDto {
         // 1. 멤버십 할인
         if(membershipDiscountedRate != 0) {
             membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((membershipDiscountedRate / 100.0)));;
+            membershipDiscountedPrice = PriceUtils.roundToOneDigit(membershipDiscountedPrice);
             price = price.subtract(membershipDiscountedPrice);
         }
         // 2. 메이커스 할인
         if(makersDiscountedRate != 0) {
             makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
+            makersDiscountedPrice = PriceUtils.roundToOneDigit(makersDiscountedPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 3. 기간 할인
         if(periodDiscountedRate != 0) {
             periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            price = price.subtract(periodDiscountedPrice);
+            periodDiscountedPrice = PriceUtils.roundToOneDigit(periodDiscountedPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
@@ -67,7 +70,7 @@ public class DiscountDto {
         return discountDto;
     }
 
-    public static DiscountDto getDiscountWithNoMembership(Food food) {
+    public static DiscountDto getDiscountWithoutMembership(Food food) {
         DiscountDto discountDto = new DiscountDto();
         // 기본 가격
         BigDecimal price = food.getPrice();
@@ -91,12 +94,13 @@ public class DiscountDto {
         // 1. 메이커스 할인
         if(makersDiscountedRate != 0) {
             makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
+            makersDiscountedPrice = PriceUtils.roundToOneDigit(makersDiscountedPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 2. 기간 할인
         if(periodDiscountedRate != 0) {
             periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            price = price.subtract(periodDiscountedPrice);
+            periodDiscountedPrice = PriceUtils.roundToOneDigit(periodDiscountedPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
@@ -106,13 +110,6 @@ public class DiscountDto {
         discountDto.setPeriodDiscountPrice(periodDiscountedPrice);
 
         return discountDto;
-    }
-
-    public void isMembership(Boolean isMembership) {
-        if(!isMembership) {
-            this.membershipDiscountPrice = BigDecimal.ZERO;
-            this.membershipDiscountRate = 0;
-        }
     }
 
     public static DiscountDto getDiscountDtoWithoutMembershipDiscount(Food food) {
@@ -137,12 +134,13 @@ public class DiscountDto {
         // 1. 메이커스 할인
         if(makersDiscountedRate != 0) {
             makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
+            makersDiscountedPrice = PriceUtils.roundToOneDigit(makersDiscountedPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 2. 기간 할인
         if(periodDiscountedRate != 0) {
             periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            price = price.subtract(periodDiscountedPrice);
+            periodDiscountedPrice = PriceUtils.roundToOneDigit(periodDiscountedPrice);
         }
 
         discountDto.setMakersDiscountRate(makersDiscountedRate);

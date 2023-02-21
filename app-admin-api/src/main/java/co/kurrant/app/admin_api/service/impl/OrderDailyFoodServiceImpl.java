@@ -68,7 +68,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
         BigInteger groupId = !parameters.containsKey("group") || parameters.get("group").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("group")));
         List<BigInteger> spotIds = !parameters.containsKey("spots") || parameters.get("spots").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("spots"));
-        Integer diningTypeCode = Integer.parseInt((String) parameters.getOrDefault("diningType", null));
+        Integer diningTypeCode = !parameters.containsKey("diningType") || parameters.get("spots").equals("diningType") ? null : Integer.parseInt((String) parameters.get("diningType"));
         BigInteger userId = !parameters.containsKey("userId") || parameters.get("userId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("userId")));
         BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
 

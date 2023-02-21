@@ -2,6 +2,7 @@ package co.dalicious.domain.food.util;
 
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.system.util.PriceUtils;
 
 import java.math.BigDecimal;
 
@@ -25,7 +26,7 @@ public class FoodUtil {
     }
 
     public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
-        return price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100.0));
+        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100.0)));
     }
 
     public static BigDecimal getFoodTotalDiscountedPriceWithoutMembershipDiscount(Food food, DiscountDto discountDto) {
