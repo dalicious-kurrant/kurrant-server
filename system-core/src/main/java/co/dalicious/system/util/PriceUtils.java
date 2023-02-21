@@ -6,7 +6,7 @@ import java.math.RoundingMode;
 
 public class PriceUtils {
     public static BigDecimal roundToOneDigit(BigDecimal bigDecimal) {
-       return bigDecimal.divide(BigDecimal.TEN, 0, RoundingMode.HALF_UP)
-               .multiply(BigDecimal.TEN);
+        BigDecimal roundedValue = bigDecimal.setScale(1, RoundingMode.HALF_UP);
+        return roundedValue.stripTrailingZeros();
     }
 }
