@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
@@ -123,6 +124,35 @@ public class QOrderDailyFoodRepository {
                 .innerJoin(food.makers, makers)
                 .where(whereClause)
                 .orderBy(orderItemDailyFood.dailyFood.serviceDate.desc())
+                .fetch();
+    }
+
+    public List<OrderItemDailyFood> findAllByMakersFilter(LocalDate startDate, LocalDate endDate, Makers selectedMakers, List<Integer> diningTypeCodes) {
+        BooleanExpression whereClause = makers.eq(selectedMakers);
+
+        if (startDate != null) {
+            whereClause = whereClause.and(dailyFood.serviceDate.goe(startDate));
+        }
+
+        if (endDate != null) {
+            whereClause = whereClause.and(dailyFood.serviceDate.loe(endDate));
+        }
+
+        if (diningTypeCodes != null && !diningTypeCodes.isEmpty()) {
+            List<DiningType> diningTypes = new ArrayList<>();
+            for (Integer diningType : diningTypeCodes) {
+                diningTypes.add(DiningType.ofCode(diningType));
+            }
+            whereClause = whereClause.and(dailyFood.diningType.in(diningTypes));
+        }
+
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .innerJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .innerJoin(dailyFood.food, food)
+                .innerJoin(food.makers, makers)
+                .where(whereClause)
+                .orderBy(orderItemDailyFood.dailyFood.serviceDate.asc())
                 .fetch();
     }
 

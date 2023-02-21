@@ -4,6 +4,7 @@ import co.dalicious.domain.food.converter.ScheduleStatusConverter;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -19,7 +20,7 @@ public class PresetDailyFood {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED")
-    @Comment("ID")
+    @Comment("Id")
     private BigInteger id;
 
     @Column(name = "capacity")
@@ -42,6 +43,13 @@ public class PresetDailyFood {
     @Comment("고객사별 예비 식단 ID")
     private PresetGroupDailyFood presetGroupDailyFood;
 
+    @Builder
+    public PresetDailyFood(Integer capacity,Food food,ScheduleStatus scheduleStatus,PresetGroupDailyFood presetGroupDailyFood) {
+        this.capacity = capacity;
+        this.food = food;
+        this.scheduleStatus = scheduleStatus;
+        this.presetGroupDailyFood = presetGroupDailyFood;
+    }
     public void updateStatus(ScheduleStatus scheduleStatus) {
         this.scheduleStatus = scheduleStatus;
     }

@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.food.entity.PresetDailyFood;
+import co.dalicious.domain.food.entity.PresetMakersDailyFood;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
