@@ -1,12 +1,12 @@
 package co.kurrant.app.client_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Employee;
 import co.dalicious.domain.client.entity.EmployeeHistory;
-import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.mapper.EmployeeHistoryMapper;
 import co.dalicious.domain.client.mapper.EmployeeMapper;
 import co.dalicious.domain.client.repository.*;
@@ -29,6 +29,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tika.Tika;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -61,7 +62,7 @@ public class MemberServiceImpl implements MemberService {
     private final EmployeeHistoryRepository employeeHistoryRepository;
 
     @Override
-    public List<MemberListResponseDto> getUserList(String code, OffsetBasedPageRequest pageable) {
+    public ListItemResponseDto<MemberListResponseDto> getUserList(String code, OffsetBasedPageRequest pageable) {
 
         //code로 CorporationId 찾기 (=GroupId)
         BigInteger corporationId = qCorporationRepository.findOneByCode(code);
@@ -69,33 +70,36 @@ public class MemberServiceImpl implements MemberService {
         //corporationId로 GroupName 가져오기
         String userGroupName = qUserGroupRepository.findNameById(corporationId);
             //groupID로 user목록 조회
-        List<User> groupUserList = qUserGroupRepository.findAllByGroupId(corporationId);
+        Page<User> groupUserList = qUserGroupRepository.findAllByGroupId(corporationId, pageable);
+
 
         groupUserList.stream().filter(u -> u.getUserStatus().getCode() != 0)
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-        List<MemberListResponseDto> memberListResponseList = new ArrayList<>();
-        for (User user : groupUserList){
-            memberListResponseList.add(memberMapper.toMemberListDto(user, userGroupName));
-        }
 
-        return memberListResponseList;
+        List<MemberListResponseDto> memberListResponseList = groupUserList.get()
+                .map((user) -> memberMapper.toMemberListDto(user, userGroupName)).collect(Collectors.toList());
+
+
+        return ListItemResponseDto.<MemberListResponseDto>builder().items(memberListResponseList)
+                .total(groupUserList.getTotalElements()).count(groupUserList.getNumberOfElements())
+                .limit(pageable.getPageSize()).offset(pageable.getOffset()).build();
     }
 
     @Override
-    public List<MemberWaitingListResponseDto> getWaitingUserList(String code, OffsetBasedPageRequest pageable) {
+    public ListItemResponseDto<MemberWaitingListResponseDto> getWaitingUserList(String code, OffsetBasedPageRequest pageable) {
 
         //code로 CorporationId 찾기 (=GroupId)
         BigInteger corporationId = qCorporationRepository.findOneByCode(code);
         //corpId로 employee 대기유저 목록 조회
-        List<Employee> employeeList = qEmployeeRepository.findAllByCorporationId(corporationId);
+        Page<Employee> employeeList = qEmployeeRepository.findAllByCorporationId(corporationId,pageable);
 
-        List<MemberWaitingListResponseDto> waitingListResponseDtoList = new ArrayList<>();
-        for (Employee employee : employeeList){
-            waitingListResponseDtoList.add(memberMapper.toMemberWaitingListDto(employee));
-        }
+        List<MemberWaitingListResponseDto> waitingListResponseDtoList = employeeList.get()
+                .map(memberMapper::toMemberWaitingListDto).toList();
 
-        return waitingListResponseDtoList;
+        return ListItemResponseDto.<MemberWaitingListResponseDto>builder().items(waitingListResponseDtoList)
+                .total(employeeList.getTotalElements()).count(employeeList.getNumberOfElements())
+                .limit(pageable.getPageSize()).offset(pageable.getOffset()).build();
     }
 
     @Override

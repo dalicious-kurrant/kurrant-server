@@ -18,7 +18,7 @@ public class ClientController {
     private final SpotService spotService;
 
     @Operation(summary = "스팟정보 전체 조회", description = "존재하는 스팟을 모두 조회합니다.")
-    @GetMapping("/all")
+    @GetMapping("/spot/all")
     public ResponseMessage getAllSpotList() {
         return ResponseMessage.builder()
                 .message("모든 스팟을 조회했습니다.")

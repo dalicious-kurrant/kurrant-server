@@ -16,13 +16,13 @@ import java.sql.Timestamp;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class})
 public interface SpotMapper {
-    @Mapping(source = "morningSupportPrice", target = "morningSupportPrice")
+    @Mapping(source = "breakfastSupportPrice", target = "breakfastSupportPrice")
     @Mapping(source = "lunchSupportPrice", target = "lunchSupportPrice")
     @Mapping(source = "dinnerSupportPrice", target = "dinnerSupportPrice")
-    @Mapping(source = "morningDeliveryTime", target = "morningDeliveryTime")
+    @Mapping(source = "breakfastDeliveryTime", target = "breakfastDeliveryTime")
     @Mapping(source = "lunchDeliveryTime", target = "lunchDeliveryTime")
     @Mapping(source = "dinnerDeliveryTime", target = "dinnerDeliveryTime")
-    @Mapping(source = "morningUseDays", target = "morningUseDays")
+    @Mapping(source = "breakfastUseDays", target = "breakfastUseDays")
     @Mapping(source = "lunchUseDays", target = "lunchUseDays")
     @Mapping(source = "dinnerUseDays", target = "dinnerUseDays")
     @Mapping(source = "diningTypeTemp", target="diningType")
@@ -37,7 +37,7 @@ public interface SpotMapper {
     @Mapping(source = "spot.name", target = "spotName")
     @Mapping(source = "spot.id", target="spotId")
     SpotResponseDto toDto(Spot spot, String diningTypeTemp,
-                          String morningUseDays, String morningDeliveryTime, BigDecimal morningSupportPrice,
+                          String breakfastUseDays, String breakfastDeliveryTime, BigDecimal breakfastSupportPrice,
                           String lunchUseDays, String lunchDeliveryTime, BigDecimal lunchSupportPrice,
                           String dinnerUseDays, String dinnerDeliveryTime,BigDecimal dinnerSupportPrice);
 
