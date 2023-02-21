@@ -48,13 +48,13 @@ public class SpotServiceImpl implements SpotService {
             List<MealInfo> mealInfoList = mealInfoRepository.findAllBySpotId(spotId);
 
             String diningTypeTemp = null;
-            String morningUseDays = null;
+            String breakfastUseDays = null;
             String lunchUseDays = null;
             String dinnerUseDays = null;
-            String morningDeliveryTime = null;
+            String breakfastDeliveryTime = null;
             String lunchDeliveryTime = null;
             String dinnerDeliveryTime = null;
-            BigDecimal morningSupportPrice = null;
+            BigDecimal breakfastSupportPrice = null;
             BigDecimal lunchSupportPrice = null;
             BigDecimal dinnerSupportPrice = null;
 
@@ -63,12 +63,12 @@ public class SpotServiceImpl implements SpotService {
                 DiningType diningType = mealInfoList.get(i).getDiningType();
                 if (diningType.getCode() == 1){
                     diningTypeTemp = "아침";
-                    morningUseDays = mealInfoList.get(i).getServiceDays();
-                    morningDeliveryTime = mealInfoList.get(i).getDeliveryTime().toString();
+                    breakfastUseDays = mealInfoList.get(i).getServiceDays();
+                    breakfastDeliveryTime = mealInfoList.get(i).getDeliveryTime().toString();
                     MealInfo mealInfo = qMealInfoRepository.findBySpotId(spotId, diningType.getCode());
                         CorporationMealInfo corporationMealInfo = qCorporationMealInfoRepository.findOneById(mealInfo.getId());
                         if (corporationMealInfo != null) {
-                            morningSupportPrice = corporationMealInfo.getSupportPrice();
+                            breakfastSupportPrice = corporationMealInfo.getSupportPrice();
                         }
                 } else if (diningType.getCode() == 2) {
                     diningTypeTemp = "점심";
@@ -94,7 +94,7 @@ public class SpotServiceImpl implements SpotService {
             }
 
             SpotResponseDto spotResponseDto = spotMapper.toDto(spot, diningTypeTemp,
-                    morningUseDays, morningDeliveryTime, morningSupportPrice,
+                    breakfastUseDays, breakfastDeliveryTime, breakfastSupportPrice,
                     lunchUseDays, lunchDeliveryTime, lunchSupportPrice,
                     dinnerUseDays, dinnerDeliveryTime, dinnerSupportPrice);
             resultList.add(spotResponseDto);
