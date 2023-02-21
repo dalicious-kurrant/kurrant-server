@@ -10,5 +10,4 @@ public interface ExcelService {
 
     List<FoodListDto> allFoodExcel(MultipartFile file) throws IOException;
     List<FoodListDto> makersFoodExcel(MultipartFile file) throws IOException;
-    void createMakersScheduleByExcel(MultipartFile file) throws IOException;
 }

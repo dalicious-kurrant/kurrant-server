@@ -101,33 +101,6 @@ public class ExcelServiceImpl implements ExcelService {
         return dataList;
     }
 
-    @Override
-    public void createMakersScheduleByExcel(MultipartFile file) throws IOException {
-        List<PresetScheduleDto> dataList = new ArrayList<>();
-
-        InputStream is = file.getInputStream();
-        Tika tika = new Tika();
-        String mimeType = tika.detect(is);
-        if (isAllowedMIMEType(mimeType)) {
-            Workbook workbook = new XSSFWorkbook(file.getInputStream());
-
-            Sheet worksheet = workbook.getSheetAt(0);
-
-            for (int i = 1; i < worksheet.getPhysicalNumberOfRows(); i++) { // 1번째 행부터 끝까지
-                Row row = worksheet.getRow(i);
-
-                PresetScheduleDto data = new PresetScheduleDto();
-                data.setServiceDate(String.valueOf(row.getCell(0).getStringCellValue()));
-                data.setDiningType(String.valueOf(row.getCell(1).getStringCellValue()));
-                data.setMakersName(String.valueOf(row.getCell(2).getStringCellValue()));
-                data.setClientName(String.valueOf(row.getCell(3).getStringCellValue()));
-
-                dataList.add(data);
-            }
-        }
-        scheduleService.makePresetSchedules(dataList);
-    }
-
     private boolean isAllowedMIMEType(String mimeType) {
         return mimeType.equals("application/x-tika-ooxml");
     }

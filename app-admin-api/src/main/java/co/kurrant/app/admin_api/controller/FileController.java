@@ -43,16 +43,5 @@ public class FileController {
 
   }
 
-  @Operation(summary = "일정 생성", description = "엑셀 파일의 데이터로 예비 식단을 생성합니다..")
-  @PostMapping("/schedules")
-  public ResponseMessage makersScheduleExcel(Authentication authentication, @RequestParam("file") MultipartFile file) throws IOException {
-    UserUtil.securityUser(authentication);
-    excelService.createMakersScheduleByExcel(file);
-    return ResponseMessage.builder()
-            .message("예비 식단 생성을 완료했습닌다.")
-            .build();
-
-  }
-
 }
 
