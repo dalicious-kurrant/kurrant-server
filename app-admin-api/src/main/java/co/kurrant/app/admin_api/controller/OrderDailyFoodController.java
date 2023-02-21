@@ -20,13 +20,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/orders")
 @RestController
-@CrossOrigin(origins="*", allowedHeaders = "*")
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
     @GetMapping("")
-    public ResponseMessage retrieveOrder(@RequestParam Map<String, Object> parameter) {
+    public ResponseMessage retrieveOrder(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.retrieveOrder(parameter))
+                .data(orderDailyFoodService.retrieveOrder(parameters))
                 .message("주문 조회에 성공하였습니다.")
                 .build();
     }
