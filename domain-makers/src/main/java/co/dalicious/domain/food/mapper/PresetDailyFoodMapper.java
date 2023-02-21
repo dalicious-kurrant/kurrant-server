@@ -34,7 +34,7 @@ public interface PresetDailyFoodMapper {
     @Mapping(source = "presetMakersDailyFood.id", target = "presetMakersId")
     @Mapping(source = "presetMakersDailyFood.scheduleStatus.code", target = "scheduleStatus")
     @Mapping(source = "presetMakersDailyFood.serviceDate", target = "serviceDate")
-    @Mapping(source = "presetMakersDailyFood.diningType", target = "diningType")
+    @Mapping(source = "presetMakersDailyFood.diningType.diningType", target = "diningType")
     @Mapping(source = "presetMakersDailyFood.capacity", target = "makersCapacity")
     @Mapping(target = "deadline", expression = "java(DateUtils.localDateTimeToString(presetMakersDailyFood.getDeadline()))")
     @Mapping(source = "clientSchedule", target = "clientSchedule")

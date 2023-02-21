@@ -34,11 +34,11 @@ public class SpotResponseDto {
     @Schema(description = "식사 타입(아침,점심,저녁)")
     private String diningType;
     @Schema(description = "아침 배송시간")
-    private String morningDeliveryTime;
+    private String breakfastDeliveryTime;
     @Schema(description = "주문요일 아침")
-    private String morningUseDays;
+    private String breakfastUseDays;
     @Schema(description = "아침 지원금")
-    private BigDecimal morningSupportPrice;
+    private BigDecimal breakfastSupportPrice;
     @Schema(description = "점심 배송시간")
     private String lunchDeliveryTime;
     @Schema(description = "점심 주문요일")
