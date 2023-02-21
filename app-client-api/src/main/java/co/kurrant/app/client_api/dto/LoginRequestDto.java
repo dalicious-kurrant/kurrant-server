@@ -12,9 +12,9 @@ import lombok.ToString;
 @ToString
 public class LoginRequestDto {
 
-  @Schema(description = "사용자 아이디")
+  @Schema(description = "사용자 아이디(고객사 코드)")
   @NotBlank
-  private String username;
+  private String code;
 
   @Schema(description = "사용자 비밀번호")
   @NotBlank
