@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.service;
 
+import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.dto.OrderDto;
@@ -12,6 +13,7 @@ import java.util.Map;
 
 public interface OrderDailyFoodService {
     List<OrderDto.OrderItemDailyFoodList> retrieveOrder(Map<String, Object> parameters);
+    OrderDailyFoodByMakersDto.ByPeriod retrieveOrderByMakers(Map<String, Object> parameters);
     OrderDto.OrderDailyFoodDetail getOrderDetail(String orderCode);
     List<GroupDto.Group> getGroup(Integer clientType);
     GroupDto getGroupInfo(BigInteger groupId);

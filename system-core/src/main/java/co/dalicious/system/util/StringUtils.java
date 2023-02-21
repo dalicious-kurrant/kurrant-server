@@ -24,4 +24,14 @@ public class StringUtils {
         }
         return result;
     }
+
+    public static List<Integer> parseIntegerList(String str) {
+        str = str.replaceAll("[\\[\\]]", ""); // remove opening and closing brackets
+        String[] parts = str.split(","); // split comma-separated values
+        List<Integer> result = new ArrayList<>();
+        for (String part : parts) {
+            result.add(Integer.parseInt(part.trim())); // trim and convert to BigInteger
+        }
+        return result;
+    }
 }
