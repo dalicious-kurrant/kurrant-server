@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.time.LocalTime;
 import java.util.List;
 
 @DynamicInsert
@@ -91,9 +92,14 @@ public class Spot {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
     }
+    public LocalTime getDeliveryTime(DiningType diningType) {
+        return this.mealInfos.stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO)).getDeliveryTime();
+    }
 
     public Point getLocation(){
         return this.address.getLocation();
     }
-
 }
