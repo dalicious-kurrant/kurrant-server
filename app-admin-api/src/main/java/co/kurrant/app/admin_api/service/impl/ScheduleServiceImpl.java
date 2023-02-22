@@ -177,8 +177,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Transactional(readOnly = true)
-    public ListItemResponseDto<PresetScheduleResponseDto> getAllPresetScheduleList(OffsetBasedPageRequest pageable, Integer size) {
-        Page<PresetDailyFood> allPresetScheduleList =  qPresetDailyFoodRepository.findAllByCreatedDate(pageable, size);
+    public ListItemResponseDto<PresetScheduleResponseDto> getAllPresetScheduleList(OffsetBasedPageRequest pageable, Integer size, Integer page) {
+        Page<PresetDailyFood> allPresetScheduleList =  qPresetDailyFoodRepository.findAllByCreatedDate(pageable, size, page);
         if(allPresetScheduleList != null) {
 //             food dto 만들기
             List<PresetScheduleResponseDto.foodSchedule> foodScheduleList =
