@@ -13,12 +13,11 @@ import java.math.BigInteger;
 public class SaveUserListRequestDto {
 
     private BigInteger userId;
+    private String password;
     private String name;
     private String email;
     private String phone;
-    private String role;
-    private BigDecimal point;
-    private Boolean isMembership;
+    private String role;;
 
 
 }
