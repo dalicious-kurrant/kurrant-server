@@ -46,7 +46,8 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
 
     @Override
     public BigDecimal getCorporationDeliveryFee(User user, Corporation corporation) {
-        if (corporation.getIsMembershipSupport()) {
+        // TODO: 정산시 사용, 앱에서는 0원으로 지정
+        if (corporation.getIsMembershipSupport() || !corporation.getIsMembershipSupport()) {
             return getMembershipCorporationDeliveryFee();
         } else if (corporation.getEmployeeCount() >= 50) {
             return getNoMembershipCorporationDeliveryFeeUpper50(corporation.getAddress());

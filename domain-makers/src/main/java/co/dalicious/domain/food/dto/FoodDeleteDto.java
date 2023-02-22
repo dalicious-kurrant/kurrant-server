@@ -9,5 +9,6 @@ import java.util.List;
 @Getter
 @Setter
 public class FoodDeleteDto {
+    private Integer foodStatus;
     private List<BigInteger> foodId;
 }

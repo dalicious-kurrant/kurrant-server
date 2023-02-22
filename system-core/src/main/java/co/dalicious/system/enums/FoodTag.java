@@ -4,7 +4,9 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Getter
 public enum FoodTag {
@@ -167,13 +169,27 @@ public enum FoodTag {
         return Arrays.stream(FoodTag.values())
                 .filter(v -> v.getCode().equals(dbData))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
     }
 
     public static FoodTag ofString(String tag) {
         return Arrays.stream(FoodTag.values())
                 .filter(v -> v.getTag().equals(tag))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+    }
+
+    public static List<FoodTag> ofCodes(List<Integer> dbData) {
+        List<FoodTag> foodTags = new ArrayList<>();
+        for (Integer code : dbData) {
+            FoodTag foodTag = FoodTag.ofCode(code);
+            if (foodTag != null) {
+                foodTags.add(foodTag);
+            }
+        }
+        if (foodTags.isEmpty()) {
+            throw new ApiException(ExceptionEnum.ENUM_NOT_FOUND);
+        }
+        return foodTags;
     }
 }
