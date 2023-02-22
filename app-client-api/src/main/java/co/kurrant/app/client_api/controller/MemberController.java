@@ -3,6 +3,7 @@ package co.kurrant.app.client_api.controller;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.dto.ClientExcelSaveDto;
+import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.client_api.service.MemberService;
@@ -73,8 +74,8 @@ public class MemberController {
   @Operation(summary = "엑셀 저장하기", description = "엑셀로 받아온 수정사항을 저장한다.")
   @ResponseStatus(HttpStatus.OK)
   @PostMapping("/excel")
-  public ResponseMessage insertMemberListByExcel(@RequestBody ClientExcelSaveDto clientExcelSaveDto){
-    memberService.insertMemberListByExcel(clientExcelSaveDto);
+  public ResponseMessage insertMemberListByExcel(@RequestBody ClientExcelSaveDtoList clientExcelSaveDtoList){
+    memberService.insertMemberListByExcel(clientExcelSaveDtoList);
     return ResponseMessage.builder()
             .message("저장에 성공하였습니다.")
             .build();

@@ -13,13 +13,13 @@ import java.util.List;
 public class ClientExcelSaveDto {
 
     @Schema(description = "유저 번호")
-    private List<BigInteger> id;
+    private BigInteger id;
     @Schema(description = "이메일")
-    private List<String> email;
+    private String email;
     @Schema(description = "유저 이름")
-    private List<String> name;
+    private String name;
     @Schema(description = "휴대폰 번호")
-    private List<String> phone;
+    private String phone;
     @Schema(description = "그룹 아이디")
     private BigInteger groupId;
     @Schema(description = "그룹 이름")
