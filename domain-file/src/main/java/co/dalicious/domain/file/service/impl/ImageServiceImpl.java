@@ -2,8 +2,11 @@ package co.dalicious.domain.file.service.impl;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringJoiner;
 
+import co.dalicious.domain.file.dto.ImageResponseDto;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import exception.ApiException;
@@ -26,67 +29,70 @@ import javax.annotation.PostConstruct;
 @RequiredArgsConstructor
 public class ImageServiceImpl implements ImageService {
 
-  @Value("${cloud.aws.s3.bucket}")
-  private String bucketName;
-  @Value("${cloud.aws.credentials.accessKey}")
-  private String accessKey;
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucketName;
+    @Value("${cloud.aws.credentials.accessKey}")
+    private String accessKey;
 
-  @Value("${cloud.aws.credentials.secretKey}")
-  private String secretKey;
+    @Value("${cloud.aws.credentials.secretKey}")
+    private String secretKey;
 
-  @Value("${cloud.aws.region.static}")
-  private String region;
+    @Value("${cloud.aws.region.static}")
+    private String region;
 
-  @PostConstruct
-  public AmazonS3 amazonS3Client() {
-    BasicAWSCredentials awsCreds = new BasicAWSCredentials(accessKey, secretKey);
-    return AmazonS3ClientBuilder.standard()
-            .withRegion(region)
-            .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
-            .build();
-  }
-
-  // 버킷에 파일을 올린 후, 지정해줄 이름(고유값)
-  private String createKey(String filename) {
-    StringJoiner sj = new StringJoiner("/");
-
-    long ms = System.currentTimeMillis();
-    sj.add(StringUtils.leftPad(String.valueOf(ms), 16, '0'));
-    sj.add(filename);
-
-    return sj.toString();
-  }
-
-  // Key가 URL encoded된 값. 프론트엔드에서 바로 참조하는 값.
-  private String extractLocation(String location) {
-    return location.replace(bucketName, "")
-        .replaceAll("\\?.*", "");
-  }
-
-  @Override
-  public Image upload(MultipartFile multipartFile, String dirName) throws IOException {
-    AmazonS3 amazonS3 = amazonS3Client();
-    if(multipartFile.isEmpty()) {
-      throw new ApiException(ExceptionEnum.FILE_NOT_FOUND);
+    @PostConstruct
+    public AmazonS3 amazonS3Client() {
+        BasicAWSCredentials awsCreds = new BasicAWSCredentials(accessKey, secretKey);
+        return AmazonS3ClientBuilder.standard()
+                .withRegion(region)
+                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+                .build();
     }
-    String fileName = multipartFile.getOriginalFilename();
-    String key = dirName + "/" + createKey(fileName);
-    amazonS3.putObject(new PutObjectRequest(bucketName, key, multipartFile.getInputStream(), null));
-    String location = String.valueOf(amazonS3.getUrl(bucketName, key));
-    return Image.builder()
-            .key(key)
-            .location(location)
-            .filename(fileName)
-            .build();
-  }
 
-  @Override
-  public void delete(String key) {
-    AmazonS3 amazonS3 = amazonS3Client();
-    amazonS3.deleteObject(new DeleteObjectRequest(bucketName, key));
-  }
+    // 버킷에 파일을 올린 후, 지정해줄 이름(고유값)
+    private String createKey(String filename) {
+        StringJoiner sj = new StringJoiner("/");
 
-  //  @Override
+        long ms = System.currentTimeMillis();
+        sj.add(StringUtils.leftPad(String.valueOf(ms), 16, '0'));
+        sj.add(filename);
+
+        return sj.toString();
+    }
+
+    // Key가 URL encoded된 값. 프론트엔드에서 바로 참조하는 값.
+    private String extractLocation(String location) {
+        return location.replace(bucketName, "")
+                .replaceAll("\\?.*", "");
+    }
+
+    @Override
+    public List<ImageResponseDto> upload(List<MultipartFile> multipartFiles, String dirName) throws IOException {
+        List<ImageResponseDto> imageResponseDtos = new ArrayList<>();
+
+        AmazonS3 amazonS3 = amazonS3Client();
+        if (multipartFiles.isEmpty()) {
+            throw new ApiException(ExceptionEnum.FILE_NOT_FOUND);
+        }
+
+        for (MultipartFile multipartFile : multipartFiles) {
+            String fileName = multipartFile.getOriginalFilename();
+            String key = dirName + "/" + createKey(fileName);
+            amazonS3.putObject(new PutObjectRequest(bucketName, key, multipartFile.getInputStream(), null));
+            String location = String.valueOf(amazonS3.getUrl(bucketName, key));
+            ImageResponseDto imageResponseDto = new ImageResponseDto(location, key, fileName);
+            imageResponseDtos.add(imageResponseDto);
+        }
+        return imageResponseDtos;
+    }
+
+    @Override
+    public void delete(String key) {
+        AmazonS3 amazonS3 = amazonS3Client();
+        amazonS3.deleteObject(new DeleteObjectRequest(bucketName, key));
+    }
+
+    //  @Override
 //  @Transactional
 //  public Image createImage(ImageCreateRequestDto dto) {
 //

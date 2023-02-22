@@ -69,6 +69,11 @@ public interface OrderDailyFoodByMakersMapper {
 
             foodByDateDiningTypes.add(foodByDateDiningType);
         }
+        foodByDateDiningTypes = foodByDateDiningTypes.stream()
+                .sorted(Comparator.comparing((OrderDailyFoodByMakersDto.FoodByDateDiningType v) -> DateUtils.stringToDate(v.getServiceDate()))
+                        .thenComparing(v -> DiningType.ofString(v.getDiningType()))
+                )
+                .collect(Collectors.toList());
         return foodByDateDiningTypes;
     }
 
