@@ -22,5 +22,7 @@ public class ClientExcelSaveDto {
     private List<String> phone;
     @Schema(description = "그룹 아이디")
     private BigInteger groupId;
+    @Schema(description = "그룹 이름")
+    private BigInteger groupName;
 
 }
