@@ -36,7 +36,7 @@ public class QPresetDailyFoodRepository{
                 .fetchOne();
     }
 
-    public Page<PresetDailyFood> findAllByCreatedDate(Pageable pageable, Integer size) {
+    public Page<PresetDailyFood> findAllByCreatedDate(Pageable pageable, Integer size, Integer page) {
         StringTemplate formattedDate = QuerydslDateFormatUtils.getStringTemplateByTimestamp(presetDailyFood.createdDateTime);
 
         String dates = queryFactory.select(formattedDate).from(presetDailyFood)
@@ -48,11 +48,13 @@ public class QPresetDailyFoodRepository{
             LocalDate date = DateUtils.stringToDate(dates);
             LocalDateTime startDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 0, 0, 0);
             LocalDateTime endDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 23, 59, 59);
+            int itemLimit = size * page;
+            int itemOffset = size * (page - 1);
 
             QueryResults<PresetDailyFood> results = queryFactory.selectFrom(presetDailyFood)
                     .where(presetDailyFood.createdDateTime.between(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)))
-                    .limit(size)
-                    .offset(pageable.getOffset())
+                    .limit(itemLimit)
+                    .offset(itemOffset)
                     .fetchResults();
 
             return new PageImpl<>(results.getResults(), pageable, results.getTotal());

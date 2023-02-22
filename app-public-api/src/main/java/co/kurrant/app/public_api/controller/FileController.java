@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.controller;
 
+import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @Tag(name = "File")
 @RequiredArgsConstructor
@@ -33,9 +35,11 @@ public class FileController {
   @Operation(summary = "이미지 업로드 경로 요청", description = "이미지 업로드 경로 요청한다.")
   @ResponseStatus(HttpStatus.OK)
   @PostMapping("/upload")
-  public Image uploadImage(MultipartFile multipartFile) throws IOException {
-
-    return imageService.upload(multipartFile, "test");
+  public ResponseMessage uploadImage(List<MultipartFile> multipartFiles) throws IOException {
+    return ResponseMessage.builder()
+            .data(imageService.upload(multipartFiles, "food"))
+            .message("S3 이미지 업로드에 성공하였습니다.")
+            .build();
   }
 
   @Operation(summary = "이미지 삭제 요청", description = "이미지 업로드 경로 요청한다.")

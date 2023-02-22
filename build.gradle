@@ -368,3 +368,11 @@ project(':batch') {
         implementation project(':domain-order')
     }
 }
+
+project(':domain-recommend') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':client-core')
+        implementation project(':domain-makers')
+    }
+}

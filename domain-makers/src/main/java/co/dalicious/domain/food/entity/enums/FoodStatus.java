@@ -6,9 +6,9 @@ import java.util.Arrays;
 
 @Getter
 public enum FoodStatus {
-    SOLD_OUT("판매대기", 0),
+    WAIT_SALES("판매대기", 0),
     SALES("판매중", 1),
-    PASS_LAST_ORDER_TIME("판매종료", 2);
+    NOT_ON_SALES("판매중지", 2);
 
     private final String status;
     private final Integer code;
