@@ -60,4 +60,11 @@ public class QUserRepository {
 
 
     }
+
+    public void resetPassword(BigInteger userId, String password) {
+        queryFactory.update(user)
+                .set(user.password, password)
+                .where(user.id.eq(userId))
+                .execute();
+    }
 }

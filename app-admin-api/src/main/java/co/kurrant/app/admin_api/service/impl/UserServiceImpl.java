@@ -114,4 +114,15 @@ public class UserServiceImpl implements UserService {
         }
 
     }
+
+    @Override
+    public void resetPassword(BigInteger userId) {
+        //리셋할 비밀번호 설정
+        String reset = "1234";
+        String password = passwordEncoder.encode(reset);
+
+        //수정
+        qUserRepository.resetPassword(userId, password);
+
+    }
 }
