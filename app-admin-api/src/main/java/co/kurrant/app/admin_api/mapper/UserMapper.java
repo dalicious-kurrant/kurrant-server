@@ -55,8 +55,6 @@ public interface UserMapper {
         return DateUtils.format(time, "yyyy-MM-dd, HH:mm:ss");
     }
 
-
-
     @Mapping(source = "password", target = "password")
     @Mapping(source = "role", target = "role")
     @Mapping(source = "saveUser.phone", target = "phone")

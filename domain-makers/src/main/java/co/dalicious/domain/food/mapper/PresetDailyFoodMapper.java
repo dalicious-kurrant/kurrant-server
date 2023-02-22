@@ -38,23 +38,24 @@ public interface PresetDailyFoodMapper {
     @Mapping(source = "presetMakersDailyFood.capacity", target = "makersCapacity")
     @Mapping(target = "deadline", expression = "java(DateUtils.localDateTimeToString(presetMakersDailyFood.getDeadline()))")
     @Mapping(source = "clientSchedule", target = "clientSchedule")
+    @Mapping(source = "presetMakersDailyFood.makers.name", target = "makersName")
     PresetScheduleResponseDto toDto(PresetMakersDailyFood presetMakersDailyFood, List<PresetScheduleResponseDto.clientSchedule> clientSchedule);
 
-    @Mapping(target = "serviceDate", expression = "java(DateUtils.stringToDate(data.getServiceDate()))")
-    @Mapping(target = "diningType", expression = "java(DiningType.ofString(data.getDiningType()))")
-    @Mapping(target = "capacity", expression = "java(getMakersCapacity(makers.getMakersCapacities(), data))")
-    @Mapping(source = "makers", target = "makers")
-    @Mapping(target = "scheduleStatus", expression = "java(ScheduleStatus.WAITING)")
-    @Mapping(target = "deadline", expression = "java(getDeadLine())")
-    PresetMakersDailyFood toMakersDailyFoodEntity(PresetScheduleDto data, Makers makers);
-
-    default Integer getMakersCapacity(List<MakersCapacity> makersCapacityList, PresetScheduleDto data) {
-        MakersCapacity makersCapacity = makersCapacityList.stream()
-                .filter(capa -> capa.getDiningType().getDiningType().equals(data.getDiningType()))
-                .findFirst().orElseThrow( () -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS_CAPACITY));
-        return makersCapacity.getCapacity();
-    }
-
-    default LocalDateTime getDeadLine() { return LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusDays(3); }
+//    @Mapping(target = "serviceDate", expression = "java(DateUtils.stringToDate(data.getServiceDate()))")
+//    @Mapping(target = "diningType", expression = "java(DiningType.ofString(data.getDiningType()))")
+//    @Mapping(target = "capacity", expression = "java(getMakersCapacity(makers.getMakersCapacities(), data))")
+//    @Mapping(source = "makers", target = "makers")
+//    @Mapping(target = "scheduleStatus", expression = "java(ScheduleStatus.WAITING)")
+//    @Mapping(target = "deadline", expression = "java(getDeadLine())")
+//    PresetMakersDailyFood toMakersDailyFoodEntity(PresetScheduleDto data, Makers makers);
+//
+//    default Integer getMakersCapacity(List<MakersCapacity> makersCapacityList, PresetScheduleDto data) {
+//        MakersCapacity makersCapacity = makersCapacityList.stream()
+//                .filter(capa -> capa.getDiningType().getDiningType().equals(data.getDiningType()))
+//                .findFirst().orElseThrow( () -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS_CAPACITY));
+//        return makersCapacity.getCapacity();
+//    }
+//
+//    default LocalDateTime getDeadLine() { return LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusDays(3); }
 }
 

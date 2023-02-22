@@ -2,10 +2,10 @@ package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.PresetMakersDailyFood;
+import co.dalicious.domain.food.util.QuerydslDateFormatUtils;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import com.querydsl.core.types.ConstantImpl;
-import com.querydsl.core.types.dsl.DateTemplate;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -22,7 +22,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 import static co.dalicious.domain.food.entity.QPresetMakersDailyFood.presetMakersDailyFood;
-import static java.time.ZoneId.of;
+
 
 @Repository
 @RequiredArgsConstructor
@@ -55,7 +55,7 @@ public class QPresetMakersDailyFoodRepository {
                 .fetch();
 
         if(dates != null && page <= dates.size()){
-            LocalDate date = DateUtils.stringToDate(dates.get(page));
+            LocalDate date = DateUtils.stringToDate(dates.get(page-1));
             LocalDateTime startDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 0, 0, 0);
             LocalDateTime endDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 23, 59, 59);
             return queryFactory.selectFrom(presetMakersDailyFood)
@@ -92,7 +92,7 @@ public class QPresetMakersDailyFoodRepository {
         return null;
     }
 
-    private StringTemplate getStringTemplate() {
+    public static StringTemplate getStringTemplate() {
         StringTemplate formattedDate = Expressions.stringTemplate(
                 "DATE_FORMAT({0}, {1})"
                 , presetMakersDailyFood.createdDateTime
