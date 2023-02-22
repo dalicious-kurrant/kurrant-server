@@ -1,0 +1,22 @@
+spring:
+  h2:
+    console:
+      enabled: true
+
+  datasource:
+    hikari:
+      driver-class-name: org.h2.Driver
+      jdbc-url: jdbc:h2:./kurrant;MODE=MySQL;AUTO_SERVER=TRUE;
+      username: root
+      password:
+
+
+  jpa:
+    properties:
+        # "[physical_naming_strategy]": "shop.allof.api.hibernate.CamelToSnakePhysicalNamingStrategy"
+        format_sql: true # 정렬된 SQL 출력
+    show-sql: true # 사용되는 SQL 콘솔창에 출력
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create # 객체에 매핑되는 기존 테이블 자동 드랍 및 새로운 테이블 생성, create, none
+    database-platform: org.hibernate.dialect.H2Dialect

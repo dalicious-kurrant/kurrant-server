@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/auth")
 @RestController
-@CrossOrigin(origins="*", allowedHeaders = "*")
 public class AuthController {
 
   private final AuthService authService;

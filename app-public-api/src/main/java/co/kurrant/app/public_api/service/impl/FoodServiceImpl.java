@@ -74,9 +74,7 @@ public class FoodServiceImpl implements FoodService {
 
             for (DailyFood dailyFood : dailyFoodList) {
                 // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
-                MealInfo mealInfo = mealInfoList.stream().filter(v -> v.getDiningType().equals(dailyFood.getDiningType()))
-                        .findAny()
-                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
+                MealInfo mealInfo = spot.getMealInfo(dailyFood.getDiningType());
                 if(LocalDate.now().equals(dailyFood.getServiceDate()) && LocalTime.now().isAfter(mealInfo.getLastOrderTime())) {
                     dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
                 }
@@ -102,9 +100,7 @@ public class FoodServiceImpl implements FoodService {
             // 값이 있다면 결과값으로 담아준다.
             for (DailyFood dailyFood : dailyFoodList) {
                 // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
-                MealInfo mealInfo = mealInfoList.stream().filter(v -> v.getDiningType().equals(dailyFood.getDiningType()))
-                        .findAny()
-                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
+                MealInfo mealInfo = spot.getMealInfo(dailyFood.getDiningType());
                 if(LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate()) && LocalTime.now().isAfter(mealInfo.getLastOrderTime())) {
                     dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
                 }

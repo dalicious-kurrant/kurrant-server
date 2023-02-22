@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
 
-@CrossOrigin(origins="*", allowedHeaders = "*")
 @Tag(name = "2. Order")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/orders")
@@ -24,10 +23,18 @@ import java.util.Map;
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
     @GetMapping("")
-    public ResponseMessage retrieveOrder(@RequestParam Map<String, Object> parameter) {
+    public ResponseMessage retrieveOrder(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.retrieveOrder(parameter))
+                .data(orderDailyFoodService.retrieveOrder(parameters))
                 .message("주문 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @GetMapping("/by/makers")
+    public ResponseMessage retrieveOrderCountByMakers(@RequestParam Map<String, Object> parameters) {
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.retrieveOrderByMakers(parameters))
+                .message("메이커스별 식수 조회에 성공하였습니다.")
                 .build();
     }
 
@@ -51,7 +58,7 @@ public class OrderDailyFoodController {
     public ResponseMessage getMakers() {
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getMakers())
-                .message("고객사 조회에 성공하였습니다.")
+                .message("메이커스 조회에 성공하였습니다.")
                 .build();
     }
 
@@ -59,7 +66,7 @@ public class OrderDailyFoodController {
     public ResponseMessage getGroupInfo(@PathVariable BigInteger groupId) {
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getGroupInfo(groupId))
-                .message("고객사 조회에 성공하였습니다.")
+                .message("고객사 정보 조회에 성공하였습니다.")
                 .build();
     }
 
@@ -67,7 +74,7 @@ public class OrderDailyFoodController {
     public ResponseMessage cancelOrder(@RequestBody OrderDto.Id id) throws IOException, ParseException {
         orderDailyFoodService.cancelOrder(id.getId());
         return ResponseMessage.builder()
-                .message("고객사 조회에 성공하였습니다.")
+                .message("부분 주문 취소를 성공했습니다.")
                 .build();
     }
 
@@ -75,7 +82,9 @@ public class OrderDailyFoodController {
     public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
         orderDailyFoodService.cancelOrderItems(idList.getIdList());
         return ResponseMessage.builder()
-                .message("고객사 조회에 성공하였습니다.")
+                .message("주문 전체 취소를 성공했습니다.")
                 .build();
     }
 }
+
+

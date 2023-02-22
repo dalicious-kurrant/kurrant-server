@@ -3,9 +3,11 @@ package co.kurrant.app.admin_api.dto.client;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -32,11 +34,11 @@ public class SpotResponseDto {
     @Schema(description = "식사 타입(아침,점심,저녁)")
     private String diningType;
     @Schema(description = "아침 배송시간")
-    private String morningDeliveryTime;
+    private String breakfastDeliveryTime;
     @Schema(description = "주문요일 아침")
-    private String morningUseDays;
+    private String breakfastUseDays;
     @Schema(description = "아침 지원금")
-    private BigDecimal morningSupportPrice;
+    private BigDecimal breakfastSupportPrice;
     @Schema(description = "점심 배송시간")
     private String lunchDeliveryTime;
     @Schema(description = "점심 주문요일")
@@ -50,9 +52,9 @@ public class SpotResponseDto {
     @Schema(description = "저녁 지원금")
     private BigDecimal dinnerSupportPrice;
     @Schema(description = "생성일")
-    private LocalDateTime createdDateTime;
+    private String createdDateTime;
     @Schema(description = "수정일")
-    private LocalDateTime updatedDateTime;
+    private String updatedDateTime;
 
 
 

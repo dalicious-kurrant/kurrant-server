@@ -17,20 +17,15 @@ import co.dalicious.client.core.resolver.CorrettoSortHandlerMethodArgumentResolv
 public class WebMvcConfig implements WebMvcConfigurer {
   @Bean
   BCryptPasswordEncoder passwordEncoder() {
-    // NIST 기준 125000, 512 bits다
-//    Pbkdf2PasswordEncoder encoder = new Pbkdf2PasswordEncoder("powerpower", 300000, 512);
-//    encoder.setAlgorithm(SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA512);
-//    return encoder;
-    // return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     return new BCryptPasswordEncoder();
   }
 
-  @Override
-  public void addCorsMappings(CorsRegistry registry) {
-    registry.addMapping("/v1")
-            .allowedMethods("GET", "POST", "PATCH", "DELETE")
-            .allowCredentials(true);
-  }
+//  @Override
+//  public void addCorsMappings(CorsRegistry registry) {
+//    registry.addMapping("/v1/**")
+//            .allowedMethods("GET", "POST", "PATCH", "DELETE")
+//            .allowedOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "http://kurrant.co");
+//  }
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
