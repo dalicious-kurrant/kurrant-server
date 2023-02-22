@@ -2,7 +2,7 @@ package co.kurrant.app.client_api.service;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.client.dto.ClientExcelSaveDto;
+import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
@@ -31,5 +31,5 @@ public interface MemberService {
 
     void insertMemberList(ClientUserWaitingListSaveRequestDto clientUserWaitingListSaveRequestDto);
 
-    void insertMemberListByExcel(ClientExcelSaveDto clientExcelSaveDto);
+    void insertMemberListByExcel(ClientExcelSaveDtoList clientExcelSaveDtoList);
 }

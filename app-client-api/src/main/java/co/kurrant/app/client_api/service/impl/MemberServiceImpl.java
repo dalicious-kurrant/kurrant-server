@@ -3,6 +3,7 @@ package co.kurrant.app.client_api.service.impl;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.ClientExcelSaveDto;
+import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
 import co.dalicious.domain.client.entity.Corporation;
@@ -248,17 +249,21 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void insertMemberListByExcel(ClientExcelSaveDto clientExcelSaveDto) {
+    public void insertMemberListByExcel(ClientExcelSaveDtoList clientExcelSaveDtolist) {
         //code로 CorporationId 찾기 (=GroupId)
-        Corporation corporation = corporationRepository.findById(clientExcelSaveDto.getGroupId())
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        for (ClientExcelSaveDto excel : clientExcelSaveDtolist.getSaveList()){
+            Corporation corporation = corporationRepository.findById(excel.getGroupId())
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        for (int i = 0; i < clientExcelSaveDto.getId().size(); i++) {
-            Employee employee = employeeMapper.toEntity(clientExcelSaveDto.getEmail().get(i),
-                                                         clientExcelSaveDto.getName().get(i),
-                                                        clientExcelSaveDto.getPhone().get(i),
+
+            Employee employee = employeeMapper.toEntity(excel.getEmail(),
+                                                        excel.getName(),
+                                                        excel.getPhone(),
                                                         corporation);
             employeeRepository.save(employee);
+
+
+
         }
     }
     /*
