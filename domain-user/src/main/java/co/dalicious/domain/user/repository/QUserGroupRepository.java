@@ -2,8 +2,12 @@ package co.dalicious.domain.user.repository;
 
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
@@ -26,12 +30,16 @@ public class QUserGroupRepository {
 
     }
 
-    public List<User> findAllByGroupId(BigInteger corporationId) {
-        return queryFactory.select(userGroup.user)
+    public PageImpl<User> findAllByGroupId(BigInteger corporationId, Pageable pageable) {
+        QueryResults<User> results = queryFactory.select(userGroup.user)
                 .from(userGroup)
                 .where(userGroup.group.id.eq(corporationId),
                         userGroup.clientStatus.ne(ClientStatus.WITHDRAWAL))
-                .fetch();
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
     public Long deleteMember(BigInteger userId, BigInteger groupId) {

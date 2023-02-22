@@ -101,6 +101,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
+    // TODO:
     public void deleteFood(FoodDeleteDto foodDeleteDto) {
         for(BigInteger foodId : foodDeleteDto.getFoodId()){
             Food food = foodRepository.findById(foodId).orElseThrow(
@@ -176,6 +177,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
+    //TODO: 매장가 커스텀가 수정
     public void updateFood(MakersFoodDetailReqDto foodDetailDto) {
         Food food = foodRepository.findById(foodDetailDto.getFoodId()).orElseThrow(
                 () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
@@ -205,14 +207,24 @@ public class FoodServiceImpl implements FoodService {
 
         //food discount policy UPDATE
         List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
-        for(FoodDiscountPolicy discountPolicy : discountPolicyList) {
-            if(discountPolicy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT)) {
+        for (FoodDiscountPolicy discountPolicy : discountPolicyList) {
+            if (discountPolicy.getDiscountType() == DiscountType.MAKERS_DISCOUNT) {
                 discountPolicy.updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
                 foodDiscountPolicyRepository.save(discountPolicy);
-            } else if(discountPolicy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT)) {
+            } else if (discountPolicy.getDiscountType() == DiscountType.PERIOD_DISCOUNT) {
                 discountPolicy.updateFoodDiscountPolicy(foodDetailDto.getPeriodDiscountRate());
                 foodDiscountPolicyRepository.save(discountPolicy);
             }
         }
+
+        if (discountPolicyList.stream().noneMatch(discountPolicy -> discountPolicy.getDiscountType() == DiscountType.MAKERS_DISCOUNT)) {
+            FoodDiscountPolicy foodDiscountPolicy = foodDiscountPolicyMapper.toEntity(DiscountType.MAKERS_DISCOUNT, foodDetailDto.getMakersDiscountRate(), food);
+            foodDiscountPolicyRepository.save(foodDiscountPolicy);
+        }
+        if (discountPolicyList.stream().noneMatch(discountPolicy -> discountPolicy.getDiscountType() == DiscountType.PERIOD_DISCOUNT)) {
+            FoodDiscountPolicy foodDiscountPolicy = foodDiscountPolicyMapper.toEntity(DiscountType.PERIOD_DISCOUNT, foodDetailDto.getPeriodDiscountRate(), food);
+            foodDiscountPolicyRepository.save(foodDiscountPolicy);
+        }
+
     }
 }
