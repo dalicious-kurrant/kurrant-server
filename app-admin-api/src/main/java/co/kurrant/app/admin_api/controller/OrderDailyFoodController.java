@@ -42,7 +42,7 @@ public class OrderDailyFoodController {
     public ResponseMessage getOrderDetail(@PathVariable String orderCode) {
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getOrderDetail(orderCode))
-                .message("주문 조회에 성공하였습니다.")
+                .message("주문 상세 조회에 성공하였습니다.")
                 .build();
     }
 
