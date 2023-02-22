@@ -14,6 +14,7 @@ import co.kurrant.app.admin_api.service.ScheduleService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -174,12 +175,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     @Transactional(readOnly = true)
     public void getAllPresetScheduleList(OffsetBasedPageRequest pageable) {
-//        List<PresetDailyFood> allPresetScheduleList =  qPresetDailyFoodRepository.findAllByCreatedDate(pageable);
-//        if(allPresetScheduleList != null) {
-            // food
-
-            // group
-            // makers
-//        }
+        Page<PresetDailyFood> allPresetScheduleList =  qPresetDailyFoodRepository.findAllByCreatedDate(pageable);
+        if(allPresetScheduleList != null) {
+//             food
+            
+//             group
+//             makers
+        }
     }
 }
