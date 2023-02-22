@@ -9,10 +9,10 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
 public class PresetScheduleResponseDto {
 
     private BigInteger presetMakersId;
+    private String makersName;
     private Integer scheduleStatus;
     private String serviceDate;
     private String diningType;
@@ -23,7 +23,6 @@ public class PresetScheduleResponseDto {
 
     @Getter
     @Setter
-    @Builder
     public static class clientSchedule {
 
         private String pickupTime;
@@ -31,17 +30,20 @@ public class PresetScheduleResponseDto {
         private Integer clientCapacity;
         private List<foodSchedule> foodSchedule;
 
+        @Builder
         public clientSchedule(String pickupTime, String clientName, Integer clientCapacity, List<foodSchedule> foodSchedule) {
             this.pickupTime = pickupTime;
             this.clientName = clientName;
             this.clientCapacity = clientCapacity;
             this.foodSchedule = foodSchedule;
         }
+
+
+
     }
 
     @Getter
     @Setter
-    @Builder
     public static class foodSchedule {
         private BigInteger presetFoodId;
         private String foodName;
@@ -49,7 +51,7 @@ public class PresetScheduleResponseDto {
         private Integer foodCapacity;
         private Integer scheduleStatus;
 
-
+        @Builder
         public foodSchedule(BigInteger presetFoodId, String foodName, String foodStatus, Integer foodCapacity, Integer scheduleStatus) {
             this.presetFoodId = presetFoodId;
             this.foodName = foodName;
@@ -59,10 +61,12 @@ public class PresetScheduleResponseDto {
         }
     }
 
-    public PresetScheduleResponseDto(BigInteger presetMakersId, Integer scheduleStatus, String serviceDate,
+    @Builder
+    public PresetScheduleResponseDto(BigInteger presetMakersId, Integer scheduleStatus, String serviceDate, String makersName,
                                      String diningType, Integer makersCapacity, String deadline, List<clientSchedule> clientSchedule) {
 
         this.presetMakersId = presetMakersId;
+        this.makersName = makersName;
         this.scheduleStatus = scheduleStatus;
         this.serviceDate = serviceDate;
         this.diningType = diningType;
@@ -71,4 +75,5 @@ public class PresetScheduleResponseDto {
         this.clientSchedule = clientSchedule;
     }
 }
+
 

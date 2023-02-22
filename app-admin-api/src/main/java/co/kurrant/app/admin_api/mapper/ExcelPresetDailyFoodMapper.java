@@ -5,8 +5,8 @@ import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.admin_api.dto.ExcelPresetDailyFoodDto;
-import co.kurrant.app.admin_api.dto.ExcelPresetDto;
+import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDailyFoodDto;
+import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

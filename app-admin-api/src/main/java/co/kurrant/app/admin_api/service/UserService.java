@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.admin_api.dto.user.SaveAndUpdateUserList;
 
+
 public interface UserService {
 
     Object getUserList(OffsetBasedPageRequest pageable);
@@ -11,4 +12,5 @@ public interface UserService {
     void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto);
 
     void saveUserList(SaveAndUpdateUserList saveAndUpdateUserList);
+
 }
