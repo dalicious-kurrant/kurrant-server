@@ -13,7 +13,7 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "Recommends__Recommends")
+@Table(name = "Recommend__Recommends")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Recommends {
 
@@ -36,8 +36,8 @@ public class Recommends {
     private LocalDate serviceDate;
 
     @Column(name = "is_reject")
-    @Comment("메이커스의 거절 여부")
-    private Boolean isReject;
+    @Comment("메이커스의 거절 여부 : 0. 승인 / 1. 거절")
+    private Integer isReject;
 
     @Convert(converter = DiningTypeConverter.class)
     @Column(name = "dining_type")

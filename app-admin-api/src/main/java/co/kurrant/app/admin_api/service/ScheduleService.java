@@ -8,4 +8,5 @@ import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDailyFoodDto;
 public interface ScheduleService {
     void makePresetSchedulesByExcel(ExcelPresetDailyFoodDto dtoList);
     ListItemResponseDto<PresetScheduleResponseDto> getAllPresetScheduleList(OffsetBasedPageRequest pageable, Integer size, Integer page);
+    ListItemResponseDto<PresetScheduleResponseDto> getRecommendPresetSchedule(String startDate, OffsetBasedPageRequest pageable, Integer size, Integer page);
 }

@@ -14,12 +14,10 @@ import org.hibernate.annotations.Comment;
 public class ListItemResponseDto<T> {
   @Min(0)
   @NotNull
-  @Comment("현재 페이지의 아이템 수")
   private Integer limit;
 
   @Min(0)
   @NotNull
-  @Comment("현재 페이지의 아이템 수")
   private Long offset;
 
   @Min(0)
