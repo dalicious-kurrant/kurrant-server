@@ -55,7 +55,7 @@ public class QPresetMakersDailyFoodRepository {
                 .fetch();
 
         if(dates != null && page <= dates.size()){
-            LocalDate date = DateUtils.stringToDate(dates.get(page));
+            LocalDate date = DateUtils.stringToDate(dates.get(page-1));
             LocalDateTime startDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 0, 0, 0);
             LocalDateTime endDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 23, 59, 59);
             return queryFactory.selectFrom(presetMakersDailyFood)

@@ -7,8 +7,6 @@ import co.kurrant.app.admin_api.service.ScheduleService;
 import co.kurrant.app.admin_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,10 +20,10 @@ public class ScheduleController {
 
     @Operation(summary = "식단 전체 조회", description = "존재하는 식단을 모두 조회합니다.")
     @GetMapping("/all")
-    public ResponseMessage getAllPresetScheduleList( @PageableDefault(size = 20) OffsetBasedPageRequest pageable) {
-        scheduleService.getAllPresetScheduleList(pageable);
+    public ResponseMessage getAllPresetScheduleList(@RequestParam Integer size, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("모든 상품을 조회했습니다.")
+                .data(scheduleService.getAllPresetScheduleList(pageable, size))
                 .build();
     }
 

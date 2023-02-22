@@ -36,13 +36,12 @@ public class QPresetDailyFoodRepository{
                 .fetchOne();
     }
 
-    public Page<PresetDailyFood> findAllByCreatedDate(Pageable pageable) {
+    public Page<PresetDailyFood> findAllByCreatedDate(Pageable pageable, Integer size) {
         StringTemplate formattedDate = QuerydslDateFormatUtils.getStringTemplateByTimestamp(presetDailyFood.createdDateTime);
 
-        String dates = queryFactory.select(formattedDate).from(presetMakersDailyFood)
+        String dates = queryFactory.select(formattedDate).from(presetDailyFood)
                 .groupBy(formattedDate)
                 .orderBy(formattedDate.desc())
-                .limit(1)
                 .fetchOne();
 
         if (dates != null) {
@@ -52,7 +51,7 @@ public class QPresetDailyFoodRepository{
 
             QueryResults<PresetDailyFood> results = queryFactory.selectFrom(presetDailyFood)
                     .where(presetDailyFood.createdDateTime.between(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)))
-                    .limit(pageable.getPageSize())
+                    .limit(size)
                     .offset(pageable.getOffset())
                     .fetchResults();
 
@@ -62,11 +61,11 @@ public class QPresetDailyFoodRepository{
         return null;
     }
 
-    public static StringTemplate getStringTemplate() {
-        StringTemplate formattedDate = Expressions.stringTemplate(
-                "DATE_FORMAT({0}, {1})"
-                , presetDailyFood.createdDateTime
-                , ConstantImpl.create("%Y-%m-%d"));
-        return formattedDate;
-    }
+//    public static StringTemplate getStringTemplate() {
+//        StringTemplate formattedDate = Expressions.stringTemplate(
+//                "DATE_FORMAT({0}, {1})"
+//                , presetDailyFood.createdDateTime
+//                , ConstantImpl.create("%Y-%m-%d"));
+//        return formattedDate;
+//    }
 }

@@ -38,6 +38,7 @@ public interface PresetDailyFoodMapper {
     @Mapping(source = "presetMakersDailyFood.capacity", target = "makersCapacity")
     @Mapping(target = "deadline", expression = "java(DateUtils.localDateTimeToString(presetMakersDailyFood.getDeadline()))")
     @Mapping(source = "clientSchedule", target = "clientSchedule")
+    @Mapping(source = "presetMakersDailyFood.makers.name", target = "makersName")
     PresetScheduleResponseDto toDto(PresetMakersDailyFood presetMakersDailyFood, List<PresetScheduleResponseDto.clientSchedule> clientSchedule);
 
 //    @Mapping(target = "serviceDate", expression = "java(DateUtils.stringToDate(data.getServiceDate()))")
