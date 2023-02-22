@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.controller.user;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
+import co.kurrant.app.admin_api.dto.user.SaveAndUpdateUserList;
 import co.kurrant.app.admin_api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,5 +42,15 @@ public class UserController {
                 .build();
     }
 
+
+    @Operation(summary = "저장하기", description = "수정사항을 저장한다.")
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("")
+    public ResponseMessage saveUserList(@RequestBody SaveAndUpdateUserList saveAndUpdateUserList ){
+        userService.saveUserList(saveAndUpdateUserList);
+        return ResponseMessage.builder()
+                .message("저장에 성공하였습니다.")
+                .build();
+    }
 
 }
