@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.admin_api.dto.user.SaveAndUpdateUserList;
+import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
 import co.kurrant.app.admin_api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -57,8 +58,8 @@ public class UserController {
     @Operation(summary = "비밀번호 리셋하기", description = "비밀번호를 리셋한다")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/reset/password")
-    public ResponseMessage resetPassword(@RequestBody BigInteger userId){
-        userService.resetPassword(userId);
+    public ResponseMessage resetPassword(@RequestBody UserResetPasswordRequestDto passwordResetDto){
+        userService.resetPassword(passwordResetDto);
         return ResponseMessage.builder()
                 .message("비밀번호가 리셋되었습니다.")
                 .build();
