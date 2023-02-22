@@ -49,4 +49,10 @@ public class QUserGroupRepository {
                         userGroup.group.id.eq(groupId))
                 .execute();
     }
+
+    public Integer userCountInGroup(BigInteger groupId) {
+        return queryFactory.selectFrom(userGroup)
+                .where(userGroup.group.id.eq(groupId))
+                .fetch().size();
+    }
 }

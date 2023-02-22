@@ -7,9 +7,13 @@ import java.util.Arrays;
 @Getter
 public enum ScheduleStatus {
 
-    WAITING("등록대기", 0),
+    REQUEST("요청", 0),
     APPROVAL("승인", 1),
-    REJECTED("거절", 2);
+    REJECTED("거절", 2),
+    WAITING("대기", 3),
+    COMPLETE("완료", 4);
+
+
 
     private final String status;
     private final Integer code;

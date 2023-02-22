@@ -3,15 +3,22 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.dto.PresetScheduleResponseDto;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.domain.food.mapper.PresetDailyFoodMapper;
 import co.dalicious.domain.food.repository.*;
+import co.dalicious.domain.recommend.entity.Recommends;
+import co.dalicious.domain.recommend.repository.QRecommendRepository;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDailyFoodDto;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
+import co.dalicious.domain.recommend.dto.RecommendScheduleDto;
 import co.kurrant.app.admin_api.mapper.ExcelPresetDailyFoodMapper;
 import co.kurrant.app.admin_api.service.ScheduleService;
 import exception.ApiException;
@@ -23,10 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.math.BigInteger;
+import java.time.LocalTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +47,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final QFoodRepository qFoodRepository;
     private final QPresetDailyFoodRepository qPresetDailyFoodRepository;
     private final PresetDailyFoodMapper presetDailyFoodMapper;
+    private final QRecommendRepository qRecommendRepository;
+    private final QUserGroupRepository qUserGroupRepository;
 
     @Override
     @Transactional
@@ -226,5 +234,73 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ListItemResponseDto<PresetScheduleResponseDto> getRecommendPresetSchedule(String startDate, OffsetBasedPageRequest pageable, Integer size, Integer page) {
+        // start date 기준으로 2주 추천 테이블에서 데이터 가져오기
+        Page<Recommends> recommendsList = qRecommendRepository.getRecommendPresetSchedule(pageable, size, page, startDate);
+
+        MultiValueMap<RecommendScheduleDto, BigInteger> groupingByMakers = new LinkedMultiValueMap<>();
+        if(recommendsList != null) {
+            // 서비스 날, 다이닝 타입, 메이커스로 묶기
+            for(Recommends recommends : recommendsList) {
+                RecommendScheduleDto dto = RecommendScheduleDto.createDto(recommends);
+                groupingByMakers.add(dto, recommends.getGroupId());
+            }
+        } else throw new ApiException(ExceptionEnum.NOT_FOUND);
+
+        // preset schedule response dto 만들기
+        List<PresetScheduleResponseDto> scheduleResponseDtos = new ArrayList<>();
+        for(RecommendScheduleDto recommendScheduleDto : groupingByMakers.keySet()) {
+            // 메이커스 찾기
+            Makers makers = makersRepository.findById(recommendScheduleDto.getMakersId()).orElseThrow(
+                    () -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+            // 메이커스 푸드 가져오기
+            List<Food> foodList = qFoodRepository.findByMakers(makers);
+            // 그룹 찾기
+            List<BigInteger> groupIdList = groupingByMakers.get(recommendScheduleDto);
+            // preset group schedule dto 과 preset food schedule dto 만들기
+            List<PresetScheduleResponseDto.clientSchedule> clientSchedules = new ArrayList<>();
+            if(groupIdList != null) {
+                for(BigInteger groupId : groupIdList) {
+
+                    //preset food schedule dto 만들기
+                    List<PresetScheduleResponseDto.foodSchedule> foodScheduleList = new ArrayList<>();
+                    for(Food food : foodList) {
+                        PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.recommendToFoodScheduleDto(food,recommendScheduleDto);
+                        foodScheduleList.add(foodSchedule);
+                    }
+
+                    // group id로 group 찾길
+                    Group group = groupRepository.findById(groupId).orElseThrow(
+                            () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+
+                    // 그룹에 속한 유저의 수 구하기
+                    Integer groupCapacity = qUserGroupRepository.userCountInGroup(groupId);
+                    // 스팟 중 가장 픽업 시간이 가장 빠른 시간 구해서 40분을 빼기 - 픽업 시간
+                    List<Spot> spotList = group.getSpots();
+                    LinkedList<LocalTime> deliveryTimes = new LinkedList<>();
+                    for(Spot spot : spotList) {
+                        deliveryTimes.add(spot.getDeliveryTime(recommendScheduleDto.getDiningType()));
+                    }
+                    LocalTime pickupTime = deliveryTimes.stream().min(LocalTime::compareTo).orElseThrow(
+                            () -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO)).minusMinutes(40);
+
+                    // preset group schedule dto 만들기
+                    PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.recommendToClientScheduleDto(group, groupCapacity, pickupTime,foodScheduleList);
+                    clientSchedules.add(clientSchedule);
+                }
+            }
+
+            // preset makers schedule
+            PresetScheduleResponseDto responseDto = presetDailyFoodMapper.recommendToDto(makers, recommendScheduleDto, clientSchedules);
+            scheduleResponseDtos.add(responseDto);
+        }
+
+        return ListItemResponseDto.<PresetScheduleResponseDto>builder().items(scheduleResponseDtos)
+                .total((long) recommendsList.getTotalPages()).count(recommendsList.getNumberOfElements())
+                .limit((int) recommendsList.getTotalElements()).offset(pageable.getOffset()).build();
     }
 }
