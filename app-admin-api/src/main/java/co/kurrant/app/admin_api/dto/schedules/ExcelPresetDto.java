@@ -1,10 +1,8 @@
-package co.kurrant.app.admin_api.dto;
+package co.kurrant.app.admin_api.dto.schedules;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.PresetGroupDailyFood;
 import co.dalicious.domain.food.entity.PresetMakersDailyFood;
-import co.dalicious.domain.food.entity.enums.ScheduleStatus;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.dto;
+package co.kurrant.app.admin_api.dto.schedules;
 
 import lombok.Getter;
 import lombok.Setter;

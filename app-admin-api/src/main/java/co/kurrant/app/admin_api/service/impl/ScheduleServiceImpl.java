@@ -1,13 +1,14 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.domain.food.repository.*;
 import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.admin_api.dto.ExcelPresetDailyFoodDto;
-import co.kurrant.app.admin_api.dto.ExcelPresetDto;
+import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDailyFoodDto;
+import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
 import co.kurrant.app.admin_api.mapper.ExcelPresetDailyFoodMapper;
 import co.kurrant.app.admin_api.service.ScheduleService;
 import exception.ApiException;
@@ -124,6 +125,9 @@ public class ScheduleServiceImpl implements ScheduleService {
                 List<ExcelPresetDailyFoodDto.ExcelData> excelDataList = makersGroupingList.get(presetDto);
                 if(excelDataList != null) {
                     Makers makers = makersRepository.findByName(presetDto.getMakersName());
+                    // makers 가 없으면
+                    if(makers == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
+
                     ExcelPresetDailyFoodDto.ExcelData excelData = excelDataList.get(0);
                     PresetMakersDailyFood presetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, excelData.getMakersScheduleStatus(), makers, dtoList.getDeadline());
                     presetMakersDailyFoodRepository.save(presetMakersDailyFood);
@@ -135,6 +139,8 @@ public class ScheduleServiceImpl implements ScheduleService {
             for(ExcelPresetDto.ExcelGroupDataDto groupDataDto : groupGroupingList.keySet()) {
                 List<ExcelPresetDailyFoodDto.ExcelData> excelDataList = groupGroupingList.get(groupDataDto);
                 Group group = groupRepository.findByName(groupDataDto.getGroupName());
+                // group 이 없으면
+                if(group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
 
                 // 앞에서 생성한 preset makers 의 서비스날, 메이커스, 식사 타입과 키가 가지고 있는 그룹의 내용이 동일한 preset makers 를 찾는다.
                 PresetMakersDailyFood presetMakersDailyFood = null;
@@ -154,11 +160,26 @@ public class ScheduleServiceImpl implements ScheduleService {
                     // preset food daily
                     for(ExcelPresetDailyFoodDto.ExcelData data : excelDataList) {
                         Food food = qFoodRepository.findByNameAndMakers(data.getFoodName(), presetMakersDailyFood.getMakers());
+                        // food 가 없으면
+                        if(food == null) throw new ApiException(ExceptionEnum.NOT_FOUND);
+
                         PresetDailyFood presetDailyFood = excelPresetDailyFoodMapper.toPresetDailyFoodEntity(data, food, presetGroupDailyFood);
                         presetDailyFoodRepository.save(presetDailyFood);
                     }
                 }
             }
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void getAllPresetScheduleList(OffsetBasedPageRequest pageable) {
+//        List<PresetDailyFood> allPresetScheduleList =  qPresetDailyFoodRepository.findAllByCreatedDate(pageable);
+//        if(allPresetScheduleList != null) {
+            // food
+
+            // group
+            // makers
+//        }
     }
 }
