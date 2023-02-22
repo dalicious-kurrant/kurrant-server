@@ -12,10 +12,8 @@ import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
-import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.*;
-import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.mapper.*;
 import co.dalicious.domain.order.repository.*;
@@ -27,7 +25,6 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.dto.PaymentConfirmDto;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.util.TossUtil;
-import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
@@ -185,17 +182,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
                 // 멤버십에 가입하지 않은 경우 멤버십 할인이 적용되지 않은 가격으로 보임
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, selectedCartDailyFood.getDailyFood().getFood());
-                // 금액 일치 확인
-                if (cartDailyFood.getDiscountedPrice().compareTo(FoodUtil.getFoodTotalDiscountedPrice(selectedCartDailyFood.getDailyFood().getFood(), discountDto)) != 0) {
+                // 금액 일치 확인 TODO: 금액 일치 오류 확인(NOT_MATCHED_PRICE) -> 반올림 문제
+                if (cartDailyFood.getDiscountedPrice().intValue() != discountDto.getDiscountedPrice().intValue()) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }
-                if (cartDailyFood.getPrice().compareTo(selectedCartDailyFood.getDailyFood().getFood().getPrice()) != 0 ||
-                        cartDailyFood.getMakersDiscountRate().compareTo(discountDto.getMakersDiscountRate()) != 0 ||
-                        cartDailyFood.getMakersDiscountPrice().compareTo(discountDto.getMakersDiscountPrice()) != 0 ||
-                        cartDailyFood.getMembershipDiscountRate().compareTo(discountDto.getMembershipDiscountRate()) != 0 ||
-                        cartDailyFood.getMembershipDiscountPrice().compareTo(discountDto.getMembershipDiscountPrice()) != 0 ||
-                        cartDailyFood.getPeriodDiscountRate().compareTo(discountDto.getPeriodDiscountRate()) != 0 ||
-                        cartDailyFood.getPeriodDiscountPrice().compareTo(discountDto.getPeriodDiscountPrice()) != 0
+                if (cartDailyFood.getPrice().intValue() != selectedCartDailyFood.getDailyFood().getFood().getPrice().intValue() ||
+                        !cartDailyFood.getMakersDiscountRate().equals(discountDto.getMakersDiscountRate()) ||
+                        !cartDailyFood.getMembershipDiscountRate().equals(discountDto.getMembershipDiscountRate()) ||
+                        !cartDailyFood.getPeriodDiscountRate().equals(discountDto.getPeriodDiscountRate()) ||
+                        cartDailyFood.getMakersDiscountPrice().intValue() != discountDto.getMakersDiscountPrice().intValue() ||
+                        cartDailyFood.getMembershipDiscountPrice().intValue() != discountDto.getMembershipDiscountPrice().intValue() ||
+                        cartDailyFood.getPeriodDiscountPrice().intValue() != discountDto.getPeriodDiscountPrice().intValue()
                 ) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }

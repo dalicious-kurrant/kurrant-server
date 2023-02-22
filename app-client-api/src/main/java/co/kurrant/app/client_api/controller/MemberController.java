@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@CrossOrigin(origins="*", allowedHeaders = "*")
+
 @Tag(name = "1. Member")
 @Slf4j
 @RequestMapping(value = "/v1/client/members")
@@ -28,7 +28,7 @@ public class MemberController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping("")
   public ResponseMessage getUserList(@RequestParam String code, @PageableDefault(size = 20, sort = "id",
-                                                                     direction = Sort.Direction.DESC) OffsetBasedPageRequest pageable) {
+                                                                     direction = Sort.Direction.ASC) OffsetBasedPageRequest pageable) {
     return ResponseMessage.builder()
             .data(memberService.getUserList(code, pageable))
             .message("유저 목록 조회")
@@ -40,7 +40,7 @@ public class MemberController {
   @ResponseStatus(HttpStatus.OK)
   @GetMapping("/waiting")
   public ResponseMessage getWaitingUserList(@RequestParam String code, @PageableDefault(size = 20, sort = "id",
-          direction = Sort.Direction.DESC) OffsetBasedPageRequest pageable){
+          direction = Sort.Direction.ASC) OffsetBasedPageRequest pageable){
     return ResponseMessage.builder()
             .data(memberService.getWaitingUserList(code, pageable))
             .message("가입대기 유저 목록 조회")

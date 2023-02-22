@@ -101,6 +101,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
+    // TODO:
     public void deleteFood(FoodDeleteDto foodDeleteDto) {
         for(BigInteger foodId : foodDeleteDto.getFoodId()){
             Food food = foodRepository.findById(foodId).orElseThrow(
@@ -176,6 +177,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
+    //TODO: 매장가 커스텀가 수정
     public void updateFood(MakersFoodDetailReqDto foodDetailDto) {
         Food food = foodRepository.findById(foodDetailDto.getFoodId()).orElseThrow(
                 () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
