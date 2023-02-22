@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
-import java.util.List;
 
 @Getter
 @Setter
@@ -23,6 +22,6 @@ public class ClientExcelSaveDto {
     @Schema(description = "그룹 아이디")
     private BigInteger groupId;
     @Schema(description = "그룹 이름")
-    private BigInteger groupName;
+    private String groupName;
 
 }
