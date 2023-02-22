@@ -181,38 +181,28 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
         );
 
-        // food tag 변환
-        List<FoodTag> foodTags = new ArrayList<>();
-        List<Integer> foodTagStrs = foodDetailDto.getFoodTags();
-        if(foodTagStrs == null) foodTags = null;
-        else { for (Integer tag : foodTagStrs) foodTags.add(FoodTag.ofCode(tag)); }
+        // 음식 업데이트
+        food.updateFood(foodDetailDto);
 
-        System.out.println("foodTagStrs = " + Objects.requireNonNull(foodTagStrs));
-
-        // 수정을 위한 이미지가 없을 때
-        if(foodDetailDto.getImage() == null) {
-            //food UPDATE
-            food.updateFood(foodTags, food.getImage());
-            foodRepository.save(food);
-        } else {
-            // 수정을 위한 이미지 객체 생성
-            Image image = Image.builder().location(foodDetailDto.getImage()).build();
-
-            //food UPDATE
-            food.updateFood(foodTags, image);
-            foodRepository.save(food);
+        //음식 할인 정책 저장
+        if (food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT) == null) {
+            foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.MAKERS_DISCOUNT, foodDetailDto.getMakersDiscountRate()));
+        }
+        else if (foodDetailDto.getMakersDiscountRate() == 0) {
+            foodDiscountPolicyRepository.delete(food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT));
+        }
+        else {
+            food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT).updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
         }
 
-        //food discount policy UPDATE
-        List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
-        for(FoodDiscountPolicy discountPolicy : discountPolicyList) {
-            if(discountPolicy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT)) {
-                discountPolicy.updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
-                foodDiscountPolicyRepository.save(discountPolicy);
-            } else if(discountPolicy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT)) {
-                discountPolicy.updateFoodDiscountPolicy(foodDetailDto.getPeriodDiscountRate());
-                foodDiscountPolicyRepository.save(discountPolicy);
-            }
+        if (food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT) == null) {
+            foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.PERIOD_DISCOUNT, foodDetailDto.getMakersDiscountRate()));
+        }
+        else if (foodDetailDto.getMakersDiscountRate() == 0) {
+            foodDiscountPolicyRepository.delete(food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT));
+        }
+        else {
+            food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT).updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
         }
     }
 }
