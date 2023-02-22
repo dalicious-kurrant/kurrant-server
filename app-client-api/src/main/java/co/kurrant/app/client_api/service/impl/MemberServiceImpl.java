@@ -255,9 +255,9 @@ public class MemberServiceImpl implements MemberService {
 
         for (int i = 0; i < clientExcelSaveDto.getId().size(); i++) {
             Employee employee = employeeMapper.toEntity(clientExcelSaveDto.getEmail().get(i),
-                    clientExcelSaveDto.getName().get(i),
-                    clientExcelSaveDto.getPhone().get(i),
-                    corporation);
+                                                         clientExcelSaveDto.getName().get(i),
+                                                        clientExcelSaveDto.getPhone().get(i),
+                                                        corporation);
             employeeRepository.save(employee);
         }
     }
