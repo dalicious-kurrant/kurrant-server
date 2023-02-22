@@ -32,6 +32,7 @@ public class OrderDailyFoodByMakersDto {
     public static class Food {
         private BigInteger foodId;
         private Integer foodCount;
+        private String foodName;
     }
 
     @Getter
