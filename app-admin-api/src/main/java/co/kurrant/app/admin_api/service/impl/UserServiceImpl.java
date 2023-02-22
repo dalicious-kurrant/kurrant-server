@@ -14,6 +14,7 @@ import co.dalicious.domain.user.repository.UserRepository;
 import co.kurrant.app.admin_api.dto.user.SaveAndUpdateUserList;
 import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
 import co.kurrant.app.admin_api.dto.user.UserInfoResponseDto;
+import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
 import exception.ApiException;
@@ -36,10 +37,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UserHistoryMapper userHistoryMapper;
+
     private final PasswordEncoder passwordEncoder;
+
     private final UserHistoryRepository userHistoryRepository;
     private final QUserRepository qUserRepository;
     private final QUserGroupRepository qUserGroupRepository;
+
 
     @Override
     public ListItemResponseDto<UserInfoResponseDto> getUserList(OffsetBasedPageRequest pageable) {
@@ -112,4 +116,14 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
+    public void resetPassword(UserResetPasswordRequestDto passwordResetDto) {
+        //리셋할 비밀번호 설정
+        String reset = "1234";
+        String password = passwordEncoder.encode(reset);
+
+        //수정
+        qUserRepository.resetPassword(passwordResetDto.getUserId(), password);
+
+    }
 }
