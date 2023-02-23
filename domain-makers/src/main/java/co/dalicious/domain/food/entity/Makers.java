@@ -9,6 +9,7 @@ import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.domain.user.converter.RoleConverter;
 import co.dalicious.domain.user.entity.enums.Role;
+import co.dalicious.system.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -149,5 +150,12 @@ public class Makers {
     Makers(BigInteger id, String name){
         this.id = id;
         this.name = name;
+    }
+
+    public MakersCapacity getMakersCapacity(DiningType diningType) {
+        return getMakersCapacities().stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .orElse(null);
     }
 }

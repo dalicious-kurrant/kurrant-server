@@ -6,6 +6,7 @@ import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
 import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.domain.food.converter.FoodStatusConverter;
@@ -137,6 +138,13 @@ public class Food {
     public FoodDiscountPolicy getFoodDiscountPolicy(DiscountType discountType) {
         return this.foodDiscountPolicyList.stream()
                 .filter(v -> v.getDiscountType().equals(discountType))
+                .findAny()
+                .orElse(null);
+    }
+
+    public FoodCapacity getFoodCapacity(DiningType diningType) {
+        return getFoodCapacities().stream()
+                .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElse(null);
     }

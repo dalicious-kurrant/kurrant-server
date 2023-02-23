@@ -20,6 +20,13 @@ import java.util.Optional;
 
 @Mapper(componentModel = "spring", imports = FoodUtil.class)
 public interface DailyFoodMapper {
+      @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.diningType", target = "diningType")
+      @Mapping(target = "dailyFoodStatus", constant = "SALES")
+      @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.serviceDate", target = "serviceDate")
+      @Mapping(source = "food", target = "food")
+      @Mapping(source = "presetGroupDailyFood.group", target = "group")
+      DailyFood toDailyFood(PresetDailyFood presetDailyFood);
+
       @Mapping(source = "dailyFood.diningType.code", target = "diningType")
       @Mapping(source = "dailyFood.food.id", target = "foodId")
       @Mapping(source = "dailyFood.food.name", target = "foodName")
@@ -71,3 +78,4 @@ public interface DailyFoodMapper {
             return makers.getName();
       }
 }
+>>>>>>> Stashed changes:domain-makers/src/main/java/co/dalicious/domain/food/mapper/DailyFoodMapper.java

@@ -4,6 +4,7 @@ import co.dalicious.domain.client.entity.Employee;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.PresetDailyFood;
+import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.domain.food.util.QuerydslDateFormatUtils;
 import co.dalicious.system.util.DateUtils;
 import com.querydsl.core.QueryResults;
@@ -74,4 +75,11 @@ public class QPresetDailyFoodRepository{
 //                , ConstantImpl.create("%Y-%m-%d"));
 //        return formattedDate;
 //    }
+    public List<PresetDailyFood> getApprovedPresetDailyFoodBetweenServiceDate(LocalDate startDate, LocalDate endDate) {
+        return queryFactory.selectFrom(presetDailyFood)
+                .where(presetDailyFood.scheduleStatus.eq(ScheduleStatus.APPROVAL),
+                        presetDailyFood.presetGroupDailyFood.presetMakersDailyFood.serviceDate.goe(startDate),
+                        presetDailyFood.presetGroupDailyFood.presetMakersDailyFood.serviceDate.loe(endDate))
+                .fetch();
+    }
 }
