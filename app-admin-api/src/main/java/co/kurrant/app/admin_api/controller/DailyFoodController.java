@@ -24,7 +24,7 @@ public class DailyFoodController {
                 .build();
     }
 
-    @Operation(summary = "식단 조회", description = "식사 예정 날짜를 기준으로 식단은 승인한다.")
+    @Operation(summary = "식단 조회", description = "")
     @GetMapping("/dailyFoods")
     public ResponseMessage getDailyFoods(Map<String, Objects> parameters) {
         return ResponseMessage.builder()

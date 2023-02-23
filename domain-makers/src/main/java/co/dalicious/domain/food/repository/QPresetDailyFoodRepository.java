@@ -1,15 +1,10 @@
 package co.dalicious.domain.food.repository;
 
-import co.dalicious.domain.client.entity.Employee;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.PresetDailyFood;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.domain.food.util.QuerydslDateFormatUtils;
 import co.dalicious.system.util.DateUtils;
 import com.querydsl.core.QueryResults;
-import com.querydsl.core.types.ConstantImpl;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static co.dalicious.domain.client.entity.QEmployee.employee;
 import static co.dalicious.domain.food.entity.QPresetDailyFood.presetDailyFood;
-import static co.dalicious.domain.food.entity.QPresetMakersDailyFood.presetMakersDailyFood;
 
 @Repository
 @RequiredArgsConstructor

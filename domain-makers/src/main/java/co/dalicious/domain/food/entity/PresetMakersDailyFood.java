@@ -100,4 +100,7 @@ public class PresetMakersDailyFood {
         this.confirmStatus = confirmStatus;
     }
 
+    public void updateConfirmStatus(ConfirmStatus confirmStatus) {
+        this.confirmStatus = confirmStatus;
+    }
 }
