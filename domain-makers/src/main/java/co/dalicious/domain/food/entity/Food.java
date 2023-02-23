@@ -55,9 +55,9 @@ public class Food {
     @Comment("가격")
     private BigDecimal price;
 
-    @Embedded
+    @ElementCollection
     @Comment("이미지 경로")
-    private Image image;
+    private List<Image> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "food", orphanRemoval = true)
     @JsonBackReference(value = "food_fk")
@@ -118,11 +118,6 @@ public class Food {
         this.description = foodListDto.getDescription();
     }
 
-    public void updateFood(List<FoodTag> foodTags, Image image) {
-        this.foodTags = foodTags;
-        this.image = image;
-    }
-
     public void updateFoodStatus(FoodStatus foodStatus) {
         this.foodStatus = foodStatus;
     }
@@ -134,12 +129,10 @@ public class Food {
         this.price = makersFoodDetailReqDto.getDefaultPrice();
         this.foodTags = FoodTag.ofCodes(makersFoodDetailReqDto.getFoodTags());
         this.customPrice = makersFoodDetailReqDto.getCustomPrice();
+    }
 
-        // TODO: 변경 필요
-        if(!makersFoodDetailReqDto.getImages().isEmpty()) {
-            List<Image> images = Image.toImages(makersFoodDetailReqDto.getImages());
-            this.image = images.get(0);
-        }
+    public void updateImages(List<Image> images) {
+        this.images = images;
     }
     public FoodDiscountPolicy getFoodDiscountPolicy(DiscountType discountType) {
         return this.foodDiscountPolicyList.stream()

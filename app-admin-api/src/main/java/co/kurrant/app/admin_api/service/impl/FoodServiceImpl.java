@@ -1,8 +1,11 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.*;
+import co.dalicious.domain.food.entity.enums.FoodStatus;
 import co.dalicious.domain.food.mapper.FoodCapacityMapper;
 import co.dalicious.domain.food.mapper.FoodDiscountPolicyMapper;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
@@ -18,12 +21,13 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +42,7 @@ public class FoodServiceImpl implements FoodService {
     private final FoodCapacityMapper foodCapacityMapper;
     private final FoodCapacityRepository foodCapacityRepository;
     private final QFoodRepository qFoodRepository;
+    private final ImageService imageService;
 
     @Override
     @Transactional
@@ -101,14 +106,18 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    // TODO:
-    public void deleteFood(FoodDeleteDto foodDeleteDto) {
-        for(BigInteger foodId : foodDeleteDto.getFoodId()){
-            Food food = foodRepository.findById(foodId).orElseThrow(
-                    () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
-            );
-
-            foodRepository.delete(food);
+    public void updateFoodStatus(List<FoodStatusUpdateDto> foodStatusUpdateDto) {
+        List<BigInteger> ids = new ArrayList<>();
+        for (FoodStatusUpdateDto statusUpdateDto : foodStatusUpdateDto) {
+            ids.add(statusUpdateDto.getFoodId());
+        }
+        List<Food> foods = foodRepository.findAllById(ids);
+        for (Food food : foods) {
+            FoodStatusUpdateDto selectedDto = foodStatusUpdateDto.stream()
+                    .filter(v -> v.getFoodId().equals(food.getId()))
+                    .findAny()
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+            food.updateFoodStatus(FoodStatus.ofCode(selectedDto.getFoodStatus()));
         }
     }
 
@@ -177,13 +186,37 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    //TODO: 매장가 커스텀가 수정
-    public void updateFood(MakersFoodDetailReqDto foodDetailDto) {
+    public void updateFood(List<MultipartFile> files, MakersFoodDetailReqDto foodDetailDto) throws IOException {
         Food food = foodRepository.findById(foodDetailDto.getFoodId()).orElseThrow(
                 () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
         );
 
-        // 음식 업데이트
+        // 이미지가 삭제되었다면 S3에서도 삭제
+        List<Image> images = new ArrayList<>();
+        List<String> requestImage = foodDetailDto.getImages();
+        if(requestImage.size() != food.getImages().size()) {
+            List<Image> deleteImages = food.getImages();
+            List<Image> selectedImages = food.getImages().stream()
+                    .filter(v -> requestImage.contains(v.getLocation()))
+                    .toList();
+            deleteImages.removeAll(selectedImages);
+            if(!deleteImages.isEmpty()) {
+                for (Image image : deleteImages) {
+                    imageService.delete(image.getPrefix());
+                }
+            }
+            images.addAll(selectedImages);
+        } else {
+            images.addAll(food.getImages());
+        }
+
+        if(files != null && !files.isEmpty()) {
+            List<ImageResponseDto> imageResponseDtos = imageService.upload(files, "food");
+            images.addAll(Image.toImages(imageResponseDtos));
+        }
+
+        // 이미지 및 음식 업데이트
+        food.updateImages(images);
         food.updateFood(foodDetailDto);
 
         //음식 할인 정책 저장

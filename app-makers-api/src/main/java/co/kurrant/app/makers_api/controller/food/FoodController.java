@@ -1,7 +1,7 @@
 package co.kurrant.app.makers_api.controller.food;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.food.dto.FoodDeleteDto;
+import co.dalicious.domain.food.dto.FoodStatusUpdateDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
 import co.kurrant.app.makers_api.model.SecurityUser;
@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -54,10 +53,10 @@ public class FoodController {
     }
 
     @Operation(summary = "상품 상태 수정", description = "선택된 상품의 상태를 변경합니다.")
-    @DeleteMapping("")
-    public ResponseMessage deleteFood(Authentication authentication, @RequestBody FoodDeleteDto foodDeleteDto) {
+    @PostMapping("")
+    public ResponseMessage updateFood(Authentication authentication, @RequestBody FoodStatusUpdateDto foodStatusUpdateDto) {
         UserUtil.securityUser(authentication);
-        foodService.updateFoodStatus(foodDeleteDto);
+        foodService.updateFoodStatus(foodStatusUpdateDto);
         return ResponseMessage.builder()
                 .message("상품을 삭제했습니다.")
                 .build();
