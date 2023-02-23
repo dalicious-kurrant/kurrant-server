@@ -1,7 +1,7 @@
 package co.kurrant.app.admin_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.kurrant.app.admin_api.dto.user.SaveAndUpdateUserList;
+import co.kurrant.app.admin_api.dto.client.SaveSpotList;
 import co.kurrant.app.admin_api.service.SpotService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,17 +26,18 @@ public class ClientController {
                 .build();
     }
 
-    /*
+
     @Operation(summary = "저장하기", description = "수정사항을 저장한다.")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("")
-    public ResponseMessage saveUserList(@RequestBody SaveAndUpdateUserList saveAndUpdateUserList ){
-        spot.saveUserList(saveAndUpdateUserList);
+    public ResponseMessage saveUserList(@RequestBody SaveSpotList saveSpotList){
+        spotService.saveUserList(saveSpotList);
         return ResponseMessage.builder()
                 .message("저장에 성공하였습니다.")
                 .build();
     }
-    */
+
+
 
 
 }

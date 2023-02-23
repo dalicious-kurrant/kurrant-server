@@ -1,6 +1,5 @@
 package co.kurrant.app.public_api.service;
 
-import co.dalicious.client.oauth.AppleAndroidLoginDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
