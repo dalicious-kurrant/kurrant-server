@@ -94,10 +94,10 @@ public class PresetMakersDailyFood {
         this.scheduleStatus = scheduleStatus;
     }
 
-    public void updatePresetMakersDailyFood(ScheduleStatus scheduleStatus, LocalDateTime deadline) {
+    public void updatePresetMakersDailyFood(ScheduleStatus scheduleStatus, LocalDateTime deadline, ConfirmStatus confirmStatus) {
         this.scheduleStatus = scheduleStatus;
         this.deadline = deadline;
-        this.confirmStatus = ConfirmStatus.PAUSE;
+        this.confirmStatus = confirmStatus;
     }
 
 }
