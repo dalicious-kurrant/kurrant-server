@@ -13,9 +13,9 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "Recommend__Recommends")
+@Table(name = "Recommend__group_recommends")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Recommends {
+public class GroupRecommends {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
