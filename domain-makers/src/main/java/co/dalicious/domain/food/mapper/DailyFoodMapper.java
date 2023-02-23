@@ -1,8 +1,9 @@
-package co.dalicious.domain.order.mapper;
+package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
+import co.dalicious.domain.food.entity.PresetDailyFood;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.food.entity.Makers;
@@ -78,4 +79,3 @@ public interface DailyFoodMapper {
             return makers.getName();
       }
 }
->>>>>>> Stashed changes:domain-makers/src/main/java/co/dalicious/domain/food/mapper/DailyFoodMapper.java
