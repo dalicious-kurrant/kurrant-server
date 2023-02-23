@@ -20,12 +20,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
     return new BCryptPasswordEncoder();
   }
 
-  @Override
-  public void addCorsMappings(CorsRegistry registry) {
-    registry.addMapping("/v1/**")
-            .allowedMethods("GET", "POST", "PATCH", "DELETE")
-            .allowedOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "http://kurrant.co");
-  }
+//  @Override
+//  public void addCorsMappings(CorsRegistry registry) {
+//    registry.addMapping("/v1/**")
+//            .allowedMethods("GET", "POST", "PATCH", "DELETE")
+//            .allowedOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "http://kurrant.co");
+//  }
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {

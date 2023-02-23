@@ -48,7 +48,6 @@ public class FoodController {
                 .build();
     }
 
-
     @Operation(summary = "상품 상태 수정", description = "선택된 상품의 상태를 변경합니다.")
     @PostMapping("/status")
     public ResponseMessage updateFood(@RequestBody List<FoodStatusUpdateDto> foodStatusUpdateDtos) {

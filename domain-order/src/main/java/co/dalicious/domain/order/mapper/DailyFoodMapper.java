@@ -31,7 +31,7 @@ public interface DailyFoodMapper {
       @Mapping(target = "image", expression = "java(dailyFood.getFood().getImages() == null ? null : dailyFood.getFood().getImages().get(0).getLocation())")
       @Mapping(source = "dailyFood.food.description", target = "description")
       @Mapping(source = "dailyFood.food.price", target = "price")
-      @Mapping(target = "discountedPrice", expression = "java(FoodUtil.getFoodTotalDiscountedPrice(dailyFood.getFood(), discountDto))")
+      @Mapping(target = "discountedPrice", expression = "java(discountDto.getDiscountedPrice())")
       @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountPrice")
       @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")
       @Mapping(source = "discountDto.makersDiscountPrice", target = "makersDiscountPrice")

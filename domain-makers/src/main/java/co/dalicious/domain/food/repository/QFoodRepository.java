@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import static co.dalicious.domain.food.entity.QFood.food;
 
@@ -23,4 +24,17 @@ public class QFoodRepository {
                 .fetchOne();
     }
 
+    public Food findByNameAndMakers(String name, Makers makers) {
+        return queryFactory
+                .selectFrom(food)
+                .where(food.name.eq(name), food.makers.eq(makers))
+                .fetchOne();
+    }
+
+    public List<Food> findByMakers( Makers makers) {
+        return queryFactory
+                .selectFrom(food)
+                .where(food.makers.eq(makers))
+                .fetch();
+    }
 }

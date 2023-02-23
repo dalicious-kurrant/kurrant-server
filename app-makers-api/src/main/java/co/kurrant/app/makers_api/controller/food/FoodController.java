@@ -23,14 +23,14 @@ public class FoodController {
 
     private final FoodService foodService;
 
-    @Operation(summary = "상품 전체 조회", description = "존재하는 상품을 모두 조회합니다.")
-    @GetMapping("/all")
-    public ResponseMessage getAllFoodList() {
-        return ResponseMessage.builder()
-                .message("모든 상품을 조회했습니다.")
-                .data(foodService.getAllFoodList())
-                .build();
-    }
+//    @Operation(summary = "상품 전체 조회", description = "존재하는 상품을 모두 조회합니다.")
+//    @GetMapping("/all")
+//    public ResponseMessage getAllFoodList() {
+//        return ResponseMessage.builder()
+//                .message("모든 상품을 조회했습니다.")
+//                .data(foodService.getAllFoodList())
+//                .build();
+//    }
 
     @Operation(summary = "메이커스 별 상품 조회", description = "메이커스 별 상품을 모두 조회합니다.")
     @GetMapping("")

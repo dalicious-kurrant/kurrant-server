@@ -7,4 +7,5 @@ import java.math.BigInteger;
 
 public interface MakersRepository extends JpaRepository<Makers, BigInteger> {
     Makers findByCode(String code);
+    Makers findByName(String name);
 }

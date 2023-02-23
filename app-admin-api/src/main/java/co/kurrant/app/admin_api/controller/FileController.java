@@ -1,27 +1,25 @@
 package co.kurrant.app.admin_api.controller;
 
-import javax.validation.Valid;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.file.service.ImageService;
 import co.kurrant.app.admin_api.dto.ExcelExample;
 import co.kurrant.app.admin_api.service.ExcelService;
+import co.kurrant.app.admin_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tika.Tika;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import co.dalicious.domain.file.dto.RequestImageUploadUrlRequestDto;
-import co.dalicious.domain.file.dto.RequestImageUploadUrlResponseDto;
-import co.dalicious.domain.file.service.ImageService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -31,11 +29,13 @@ import java.util.List;
 
 @Tag(name = "File")
 @RequiredArgsConstructor
-@RequestMapping(value = "/v1/files")
+@RequestMapping(value = "/v1/admins/files")
 @RestController
+@CrossOrigin(origins="*", allowedHeaders = "*")
 public class FileController {
     private final ExcelService excelService;
     private final ImageService imageService;
+
 
     @Operation(summary = "이미지 업로드 경로 요청", description = "이미지 업로드 경로 요청한다.")
     @ResponseStatus(HttpStatus.OK)
@@ -88,5 +88,27 @@ public class FileController {
     private boolean isAllowedMIMEType(String mimeType) {
         return mimeType.equals("application/x-tika-ooxml");
     }
+  @Operation(summary = "전체 조회 엑셀 파일 불러오기", description = "전체 조회 엑셀 파일의 데이터를 불러옵니다.")
+  @PostMapping("/food/all")
+  public ResponseMessage allFoodExcel(Authentication authentication, @RequestParam("file") MultipartFile file) throws IOException {
+    UserUtil.securityUser(authentication);
+    return ResponseMessage.builder()
+            .message("엑셀 불러오기를 완료했습닌다.")
+            .data(excelService.allFoodExcel(file))
+            .build();
+
+  }
+
+  @Operation(summary = "엑셀 파일 불러오기", description = "엑셀 파일의 데이터를 불러옵니다.")
+  @PostMapping("/food/makers")
+  public ResponseMessage makersFoodExcel(Authentication authentication, @RequestParam("file") MultipartFile file) throws IOException {
+    UserUtil.securityUser(authentication);
+    return ResponseMessage.builder()
+            .message("엑셀 불러오기를 완료했습닌다.")
+            .data(excelService.makersFoodExcel(file))
+            .build();
+
+  }
 
 }
+

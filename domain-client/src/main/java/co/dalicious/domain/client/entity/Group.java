@@ -44,7 +44,7 @@ public class Group {
 
     @Size(max = 64)
     @NotNull
-    @Column(name = "name", nullable = false, length = 64)
+    @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(64)")
     @Comment("그룹 이름")
     private String name;
 
@@ -80,5 +80,4 @@ public class Group {
         this.name = name;
         this.managerId = managerId;
     }
-
 }

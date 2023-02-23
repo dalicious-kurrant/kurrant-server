@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Mapper(componentModel = "spring", imports = FoodUtil.class)
+@Mapper(componentModel = "spring")
 public interface FoodMapper {
     @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
     @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountedPrice")

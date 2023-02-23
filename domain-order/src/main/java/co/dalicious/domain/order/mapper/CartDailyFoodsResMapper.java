@@ -12,7 +12,7 @@ import org.mapstruct.Named;
 
 import java.time.LocalDate;
 
-@Mapper(componentModel = "spring", imports = FoodUtil.class)
+@Mapper(componentModel = "spring")
 public interface CartDailyFoodsResMapper {
     @Mapping(source = "cartDailyFood.id", target = "id")
     @Mapping(source = "cartDailyFood.dailyFood.id", target = "dailyFoodId")
@@ -22,7 +22,7 @@ public interface CartDailyFoodsResMapper {
     @Mapping(source = "cartDailyFood.dailyFood.food.makers.name", target = "makers")
     @Mapping(source = "cartDailyFood.count", target = "count")
     @Mapping(source = "cartDailyFood.dailyFood.food.price", target = "price")
-    @Mapping(target = "discountedPrice", expression = "java(FoodUtil.getFoodTotalDiscountedPrice(cartDailyFood.getDailyFood().getFood(), discountDto))")
+    @Mapping(target = "discountedPrice", expression = "java(discountDto.getDiscountedPrice())")
     @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountPrice")
     @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")
     @Mapping(source = "discountDto.makersDiscountPrice", target = "makersDiscountPrice")
