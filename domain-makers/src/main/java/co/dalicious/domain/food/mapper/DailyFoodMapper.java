@@ -20,6 +20,13 @@ import java.util.Optional;
 
 @Mapper(componentModel = "spring", imports = FoodUtil.class)
 public interface DailyFoodMapper {
+      @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.diningType", target = "diningType")
+      @Mapping(target = "dailyFoodStatus", constant = "SALES")
+      @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.serviceDate", target = "serviceDate")
+      @Mapping(source = "food", target = "food")
+      @Mapping(source = "presetGroupDailyFood.group", target = "group")
+      DailyFood toDailyFood(PresetDailyFood presetDailyFood);
+
       @Mapping(source = "dailyFood.diningType.code", target = "diningType")
       @Mapping(source = "dailyFood.food.id", target = "foodId")
       @Mapping(source = "dailyFood.food.name", target = "foodName")
@@ -31,7 +38,7 @@ public interface DailyFoodMapper {
       @Mapping(target = "image", expression = "java(dailyFood.getFood().getImages() == null ? null : dailyFood.getFood().getImages().get(0).getLocation())")
       @Mapping(source = "dailyFood.food.description", target = "description")
       @Mapping(source = "dailyFood.food.price", target = "price")
-      @Mapping(target = "discountedPrice", expression = "java(FoodUtil.getFoodTotalDiscountedPrice(dailyFood.getFood(), discountDto))")
+      @Mapping(target = "discountedPrice", expression = "java(discountDto.getDiscountedPrice())")
       @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountPrice")
       @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")
       @Mapping(source = "discountDto.makersDiscountPrice", target = "makersDiscountPrice")
@@ -71,3 +78,4 @@ public interface DailyFoodMapper {
             return makers.getName();
       }
 }
+>>>>>>> Stashed changes:domain-makers/src/main/java/co/dalicious/domain/food/mapper/DailyFoodMapper.java

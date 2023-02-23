@@ -70,4 +70,14 @@ public class DailyFood {
     public void updateFoodStatus(DailyFoodStatus dailyFoodStatus) {
         this.dailyFoodStatus = dailyFoodStatus;
     }
+
+    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, Timestamp createdDateTime, Timestamp updatedDateTime, Food food, Group group) {
+        this.diningType = diningType;
+        this.dailyFoodStatus = dailyFoodStatus;
+        this.serviceDate = serviceDate;
+        this.createdDateTime = createdDateTime;
+        this.updatedDateTime = updatedDateTime;
+        this.food = food;
+        this.group = group;
+    }
 }

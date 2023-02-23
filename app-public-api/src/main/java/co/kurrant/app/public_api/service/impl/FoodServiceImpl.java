@@ -17,7 +17,7 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.order.mapper.FoodMapper;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.enums.DiningType;
-import co.dalicious.domain.order.mapper.DailyFoodMapper;
+import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
