@@ -4,7 +4,6 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.food.dto.FoodDeleteDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
-import co.kurrant.app.admin_api.model.SecurityUser;
 import co.kurrant.app.admin_api.service.FoodService;
 import co.kurrant.app.admin_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,8 +50,7 @@ public class FoodController {
 
     @Operation(summary = "상품 삭제", description = "선택된 상품을 삭제합니다.")
     @DeleteMapping("")
-    public ResponseMessage deleteFood(Authentication authentication, @RequestBody FoodDeleteDto foodDeleteDto) {
-        UserUtil.securityUser(authentication);
+    public ResponseMessage deleteFood(@RequestBody FoodDeleteDto foodDeleteDto) {
         foodService.deleteFood(foodDeleteDto);
         return ResponseMessage.builder()
                 .message("상품을 삭제했습니다.")
@@ -61,8 +59,7 @@ public class FoodController {
 
     @Operation(summary = "대량 상품 수정", description = "엑셀로 상품을 대량 수정합니다.")
     @PostMapping("/mass")
-    public ResponseMessage updateFoodMass(Authentication authentication, @RequestBody List<FoodListDto> foodListDto) {
-        UserUtil.securityUser(authentication);
+    public ResponseMessage updateFoodMass(@RequestBody List<FoodListDto> foodListDto) {
         foodService.updateFoodMass(foodListDto);
         return ResponseMessage.builder()
                 .message("상품을 수정했습니다.")
@@ -71,8 +68,7 @@ public class FoodController {
 
     @Operation(summary = "상품 수정", description = "상품을 수정합니다.")
     @PutMapping("")
-    public ResponseMessage updateFood(Authentication authentication, @RequestBody MakersFoodDetailReqDto foodDetailDto) {
-        UserUtil.securityUser(authentication);
+    public ResponseMessage updateFood(@RequestBody MakersFoodDetailReqDto foodDetailDto) {
         foodService.updateFood(foodDetailDto);
         return ResponseMessage.builder()
                 .message("상품을 수정했습니다.")
