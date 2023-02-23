@@ -51,7 +51,7 @@ public class PresetMakersDailyFood {
     private Makers makers;
 
     @Convert(converter = ScheduleStatusConverter.class)
-    @Column(name = "e_status")
+    @Column(name = "e_schedule_status")
     @Comment("식단 상태 (0. 승인대기 1. 승인, 2. 거절)")
     private ScheduleStatus scheduleStatus;
 
@@ -60,8 +60,8 @@ public class PresetMakersDailyFood {
     private LocalDateTime deadline;
 
     @Convert(converter = ConfirmStatusConverter.class)
-    @Column(name = "comfirm_status")
-    @Comment("임시저장 상태 (0. 완료, 1. 임시저장, 2. 요창)")
+    @Column(name = "e_comfirm_status")
+    @Comment("임시저장 상태 (0. 임시저장, 1. 요청, 2. 완료)")
     private ConfirmStatus confirmStatus;
 
     @OneToMany(mappedBy = "presetMakersDailyFood")
@@ -97,8 +97,7 @@ public class PresetMakersDailyFood {
     public void updatePresetMakersDailyFood(ScheduleStatus scheduleStatus, LocalDateTime deadline) {
         this.scheduleStatus = scheduleStatus;
         this.deadline = deadline;
+        this.confirmStatus = ConfirmStatus.PAUSE;
     }
-
-    public void updateConfirmStatus(ConfirmStatus confirmStatus) { this.confirmStatus = confirmStatus; }
 
 }

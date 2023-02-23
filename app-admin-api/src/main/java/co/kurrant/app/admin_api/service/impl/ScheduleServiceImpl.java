@@ -344,7 +344,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         //데이터가 이미 있는 데이터인지 한 번 보고 있으면 수정
         // 1. 오늘 이후에 있는 confirm status 가 요청 상태가 아닌 데이터를 찾기
         List<PresetMakersDailyFood> existPresetMakersDailyFoodList = qPresetMakersDailyFoodRepository.findByServiceDateAndConfirmStatus();
-        System.out.println("existPresetMakersDailyFoodList.size() = " + existPresetMakersDailyFoodList.size());
         List<ExcelPresetDailyFoodDto.ExcelData> index = new ArrayList<>();
         // 2. 데이터가 있으면
         if(existPresetMakersDailyFoodList != null) {
@@ -358,7 +357,6 @@ public class ScheduleServiceImpl implements ScheduleService {
                         // 동일한 정보를 가진 데이터를 하나 꺼내서 업데이트
                         ExcelPresetDailyFoodDto.ExcelData firstMakersPreset =  Objects.requireNonNull(makersGrouping.get(presetDto)).get(0);
                         makersDailyFood.updatePresetMakersDailyFood(ScheduleStatus.ofCode(firstMakersPreset.getFoodScheduleStatus()), DateUtils.stringToLocalDateTime(dtoList.getDeadline()));
-                        makersDailyFood.updateConfirmStatus(ConfirmStatus.PAUSE);
                         presetMakersDailyFoodRepository.save(makersDailyFood);
                         break;
                     }
