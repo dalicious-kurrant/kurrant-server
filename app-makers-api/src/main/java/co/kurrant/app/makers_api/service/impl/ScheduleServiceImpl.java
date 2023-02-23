@@ -77,7 +77,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             if(makersSchedule.getScheduleStatus() != 0){
                         //presetMakersDailyFood status 변경
                         PresetMakersDailyFood makersDailyFood = qPresetGroupDailyFoodRepository.findByIdAndMakers(makersSchedule.getPresetMakersId(), makers);
-                        makersDailyFood.updateStatus(ScheduleStatus.ofCode(makersSchedule.getScheduleStatus()));
+                        makersDailyFood.updateScheduleStatus(ScheduleStatus.ofCode(makersSchedule.getScheduleStatus()));
                         presetMakersDailyFoodRepository.save(makersDailyFood);
                     }
                 }

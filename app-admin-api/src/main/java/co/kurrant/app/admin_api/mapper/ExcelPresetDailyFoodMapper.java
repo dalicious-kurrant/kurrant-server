@@ -7,8 +7,12 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDailyFoodDto;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, DiningType.class, ScheduleStatus.class})
 public interface ExcelPresetDailyFoodMapper {
@@ -27,10 +31,22 @@ public interface ExcelPresetDailyFoodMapper {
     @Mapping(source = "presetMakersDailyFood", target = "presetMakersDailyFood")
     PresetGroupDailyFood toGroupDailyFoodEntity(ExcelPresetDailyFoodDto.ExcelData data, Group group, PresetMakersDailyFood presetMakersDailyFood);
 
-    @Mapping(source = "data.foodCapacity", target = "capacity")
+    @Mapping(target = "capacity", expression = "java(checkFoodCapacity(food.getFoodCapacities, data))")
     @Mapping(source = "food", target = "food")
     @Mapping(target = "scheduleStatus", expression = "java(ScheduleStatus.ofCode(data.getFoodScheduleStatus()))")
     @Mapping(target = "presetGroupDailyFood", source = "groupDailyFood")
     PresetDailyFood toPresetDailyFoodEntity(ExcelPresetDailyFoodDto.ExcelData data, Food food, PresetGroupDailyFood groupDailyFood);
+
+    default Integer checkFoodCapacity(List<FoodCapacity> foodCapacities, ExcelPresetDailyFoodDto.ExcelData data) {
+        for(FoodCapacity foodCapacity : foodCapacities) {
+            if(foodCapacity.getDiningType().getDiningType().equals(data.getDiningType()) &&
+            foodCapacity.getCapacity().equals(data.getFoodCapacity())) {
+                return foodCapacity.getCapacity();
+            }
+        }
+        throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD_CAPACITY);
+    }
+
+
 
 }

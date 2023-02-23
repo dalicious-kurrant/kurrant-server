@@ -2,6 +2,8 @@ package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.PresetMakersDailyFood;
+import co.dalicious.domain.food.entity.enums.ConfirmStatus;
+import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.domain.food.util.QuerydslDateFormatUtils;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -28,6 +30,15 @@ import static co.dalicious.domain.food.entity.QPresetMakersDailyFood.presetMaker
 @RequiredArgsConstructor
 public class QPresetMakersDailyFoodRepository {
     private final JPAQueryFactory queryFactory;
+
+    public List<PresetMakersDailyFood> findByServiceDateAndConfirmStatus() {
+        LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
+
+        return queryFactory.selectFrom(presetMakersDailyFood)
+                .where(presetMakersDailyFood.serviceDate.after(now),
+                        presetMakersDailyFood.confirmStatus.eq(ConfirmStatus.REQUEST))
+                .fetch();
+    }
 
     public PresetMakersDailyFood findByMakersAndServiceDateAndDiningType(Makers makers, LocalDate serviceDate, DiningType diningType) {
         return queryFactory.selectFrom(presetMakersDailyFood)
@@ -60,7 +71,8 @@ public class QPresetMakersDailyFoodRepository {
             LocalDateTime endDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 23, 59, 59);
             return queryFactory.selectFrom(presetMakersDailyFood)
                     .where(presetMakersDailyFood.makers.eq(makers),
-                            presetMakersDailyFood.createdDateTime.between(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)))
+                            presetMakersDailyFood.createdDateTime.between(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)),
+                            presetMakersDailyFood.scheduleStatus.ne(ScheduleStatus.REJECTED))
                     .fetch();
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);
@@ -80,6 +92,7 @@ public class QPresetMakersDailyFoodRepository {
                 .orderBy(formattedDate.desc())
                 .limit(1)
                 .fetchOne();
+
         if(dates != null) {
             LocalDate date = DateUtils.stringToDate(dates);
             LocalDateTime startDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 0, 0, 0);
@@ -91,6 +104,23 @@ public class QPresetMakersDailyFoodRepository {
         }
         return null;
     }
+
+//    public List<PresetMakersDailyFood> getMostRecentPresetsInDeadline() {
+//        // 오늘을 구하고
+//        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+//
+//        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+//
+//        LocalDate date = DateUtils.stringToDate(dates);
+//        LocalDateTime startDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 0, 0, 0);
+//        LocalDateTime endDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 23, 59, 59);
+//
+//        return queryFactory.selectFrom(presetMakersDailyFood)
+//                .where(presetMakersDailyFood.createdDateTime.between(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)), presetMakersDailyFood.deadline.after(now))
+//                .fetch();
+//
+//        return null;
+//    }
 
     public static StringTemplate getStringTemplate() {
         StringTemplate formattedDate = Expressions.stringTemplate(

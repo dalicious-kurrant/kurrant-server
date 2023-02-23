@@ -1,6 +1,6 @@
 package co.dalicious.domain.recommend.dto;
 
-import co.dalicious.domain.recommend.entity.Recommends;
+import co.dalicious.domain.recommend.entity.GroupRecommends;
 import co.dalicious.system.enums.DiningType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +18,7 @@ public class RecommendScheduleDto {
     private BigInteger makersId;
     private DiningType diningType;
 
-    public static RecommendScheduleDto createDto(Recommends data) {
+    public static RecommendScheduleDto createDto(GroupRecommends data) {
         return RecommendScheduleDto.builder()
                 .serviceDate(data.getServiceDate())
                 .diningType(data.getDiningType())
