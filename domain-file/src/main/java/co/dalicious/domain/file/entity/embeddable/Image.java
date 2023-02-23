@@ -8,6 +8,7 @@ import javax.persistence.Embeddable;
 
 import co.dalicious.domain.file.dto.ImageCreateRequestDto;
 import co.dalicious.domain.file.dto.ImageResponseDto;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,8 +21,9 @@ import org.hibernate.annotations.CreationTimestamp;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
 public class Image {
-    @Column(name = "img_created_datetime",
-            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(name = "img_created_datetime", nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("생성일")
     private Timestamp createdDateTime;
 

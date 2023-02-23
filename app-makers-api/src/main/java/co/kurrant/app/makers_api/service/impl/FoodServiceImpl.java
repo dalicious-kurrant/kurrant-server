@@ -104,13 +104,6 @@ public class FoodServiceImpl implements FoodService {
     @Override
     @Transactional
     public void updateFoodStatus(FoodStatusUpdateDto foodStatusUpdateDto) {
-        FoodStatus foodStatus = FoodStatus.ofCode(foodStatusUpdateDto.getFoodStatus());
-        for (BigInteger foodId : foodStatusUpdateDto.getFoodId()) {
-            Food food = foodRepository.findById(foodId).orElseThrow(
-                    () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
-            );
-            food.updateFoodStatus(foodStatus);
-        }
     }
 
     //대량 수정
