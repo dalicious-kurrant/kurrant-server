@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
 import co.dalicious.domain.file.dto.ImageCreateRequestDto;
+import co.dalicious.domain.file.dto.ImageResponseDto;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,12 +53,30 @@ public class Image {
         this.filename = imageCreateRequestDto.getFilename();
     }
 
-    public static List<Image> toImages(List<ImageCreateRequestDto> imageCreateRequestDtos) {
+    public Image(ImageResponseDto imageResponseDto) {
+        this.key = imageResponseDto.getKey();
+        this.location = imageResponseDto.getLocation();
+        this.filename = imageResponseDto.getFilename();
+    }
+
+    public static List<Image> toImages(List<ImageResponseDto> imageResponseDtos) {
         List<Image> images = new ArrayList<>();
-        for (ImageCreateRequestDto imageCreateRequestDto : imageCreateRequestDtos) {
-            images.add(new Image(imageCreateRequestDto));
+        for (ImageResponseDto imageResponseDto : imageResponseDtos) {
+            images.add(new Image(imageResponseDto));
         }
         return images;
     }
 
+    public String getPrefix() {
+        String[] str = this.location.split("/");
+        return str[0] + "/" + str[1] + "/";
+    }
+
+    public static List<String> getImagesLocation(List<Image> images) {
+        List<String> locations = new ArrayList<>();
+        for (Image image : images) {
+            locations.add(image.getLocation());
+        }
+        return locations;
+    }
 }

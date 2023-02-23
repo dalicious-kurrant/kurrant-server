@@ -1,7 +1,5 @@
 package co.kurrant.app.makers_api.service.impl;
 
-import co.dalicious.domain.file.dto.ImageCreateRequestDto;
-import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
@@ -105,9 +103,9 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public void updateFoodStatus(FoodDeleteDto foodDeleteDto) {
-        FoodStatus foodStatus = FoodStatus.ofCode(foodDeleteDto.getFoodStatus());
-        for (BigInteger foodId : foodDeleteDto.getFoodId()) {
+    public void updateFoodStatus(FoodStatusUpdateDto foodStatusUpdateDto) {
+        FoodStatus foodStatus = FoodStatus.ofCode(foodStatusUpdateDto.getFoodStatus());
+        for (BigInteger foodId : foodStatusUpdateDto.getFoodId()) {
             Food food = foodRepository.findById(foodId).orElseThrow(
                     () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
             );

@@ -1,11 +1,10 @@
 package co.kurrant.app.makers_api.service;
 
-import co.dalicious.domain.food.dto.FoodDeleteDto;
+import co.dalicious.domain.food.dto.FoodStatusUpdateDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
 import co.kurrant.app.makers_api.model.SecurityUser;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -14,7 +13,7 @@ public interface FoodService {
     List<FoodListDto> getAllFoodList();
     List<FoodListDto> getAllFoodListByMakers(SecurityUser securityUser);
     MakersFoodDetailDto getFoodDetail(BigInteger foodId, SecurityUser securityUser);
-    void updateFoodStatus(FoodDeleteDto foodDeleteDto);
+    void updateFoodStatus(FoodStatusUpdateDto foodStatusUpdateDto);
     void updateFoodMass(List<FoodListDto> foodListDto);
     void updateFood(MakersFoodDetailReqDto foodDetailDto);
 }

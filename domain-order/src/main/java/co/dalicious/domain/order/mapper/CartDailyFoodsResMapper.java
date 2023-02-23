@@ -18,7 +18,7 @@ public interface CartDailyFoodsResMapper {
     @Mapping(source = "cartDailyFood.dailyFood.id", target = "dailyFoodId")
     @Mapping(source = "cartDailyFood.dailyFood.dailyFoodStatus.code", target = "status")
     @Mapping(source = "cartDailyFood.dailyFood.food.name", target = "name")
-    @Mapping(source = "cartDailyFood.dailyFood.food.image.location", target = "image")
+    @Mapping(target = "image", expression = "java(cartDailyFood.getDailyFood().getFood().getImages() == null ? null : cartDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")
     @Mapping(source = "cartDailyFood.dailyFood.food.makers.name", target = "makers")
     @Mapping(source = "cartDailyFood.count", target = "count")
     @Mapping(source = "cartDailyFood.dailyFood.food.price", target = "price")

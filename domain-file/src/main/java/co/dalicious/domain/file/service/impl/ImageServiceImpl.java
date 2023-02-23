@@ -8,7 +8,9 @@ import java.util.StringJoiner;
 
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.apache.commons.lang3.StringUtils;
@@ -86,10 +88,19 @@ public class ImageServiceImpl implements ImageService {
         return imageResponseDtos;
     }
 
-    @Override
-    public void delete(String key) {
+//    @Override
+//    public void delete(String key) {
+//        AmazonS3 amazonS3 = amazonS3Client();
+//        amazonS3.deleteObject(new DeleteObjectRequest(bucketName, key));
+//    }
+
+    public void delete(String prefix) {
         AmazonS3 amazonS3 = amazonS3Client();
-        amazonS3.deleteObject(new DeleteObjectRequest(bucketName, key));
+        ObjectListing objectListing = amazonS3.listObjects(bucketName, prefix);
+        List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
+        for (S3ObjectSummary objectSummary : objectSummaries) {
+            amazonS3.deleteObject(bucketName, objectSummary.getKey());
+        }
     }
 
     //  @Override

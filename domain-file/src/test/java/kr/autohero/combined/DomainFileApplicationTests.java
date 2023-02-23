@@ -3,6 +3,9 @@ package kr.autohero.combined;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.List;
+
 class DomainFileApplicationTests {
 
   @Test
@@ -12,6 +15,16 @@ class DomainFileApplicationTests {
     String regex = "https://corretto-dev.s3.ap-northeast-2.amazonaws.com/";
     String result = location.replace(regex, "").replaceAll("\\?.*", "");
     assertEquals(result, "0001664610488058/power.pdf");
+  }
 
+  @Test
+  void test1() {
+    String originalString = "food/0001677115323891/마늘밥.jpg";
+    String prefix = "food/0001677115323891/";
+
+    String[] str = originalString.split("\\/");
+    String prefixFromOrigin = str[0] + "/" + str[1] + "/";
+    assertEquals(prefix, prefixFromOrigin);
+    System.out.println("str = " + Arrays.toString(str));
   }
 }

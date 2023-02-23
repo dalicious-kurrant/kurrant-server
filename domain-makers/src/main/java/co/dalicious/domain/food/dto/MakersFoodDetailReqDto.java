@@ -18,5 +18,5 @@ public class MakersFoodDetailReqDto {
     private List<Integer> foodTags;
     private BigDecimal customPrice;
     private Integer capacity;
-    private List<ImageCreateRequestDto> images;
+    private List<String> images;
 }
