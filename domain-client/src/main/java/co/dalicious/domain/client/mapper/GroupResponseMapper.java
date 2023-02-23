@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.mapper;
 
+
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;

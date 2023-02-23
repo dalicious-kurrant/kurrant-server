@@ -1,14 +1,11 @@
-package co.kurrant.app.admin_api.dto.client;
+package co.dalicious.domain.client.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -33,6 +30,8 @@ public class SpotResponseDto {
     private String location;
     @Schema(description = "식사 타입(아침,점심,저녁)")
     private String diningType;
+    @Schema(description = "주문 마감시간")
+    private String lastOrderTime;
     @Schema(description = "아침 배송시간")
     private String breakfastDeliveryTime;
     @Schema(description = "주문요일 아침")
