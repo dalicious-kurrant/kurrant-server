@@ -21,9 +21,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
 public class Image {
-    @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "img_created_datetime", nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Column(name = "img_created_datetime", columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("생성일")
     private Timestamp createdDateTime;
 
