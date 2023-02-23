@@ -7,9 +7,9 @@ import java.util.Arrays;
 @Getter
 public enum ConfirmStatus {
 
-    COMPLETE("완료", 0),
-    PAUSE("임시저장",1),
-    REQUEST("요청",2);
+    PAUSE("임시저장",0),
+    REQUEST("요청",1),
+    COMPLETE("완료", 2);
 
     private final String confirmStatus;
     private final Integer code;

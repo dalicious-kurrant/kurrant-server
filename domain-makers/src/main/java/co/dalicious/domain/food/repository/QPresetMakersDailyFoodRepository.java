@@ -45,7 +45,7 @@ public class QPresetMakersDailyFoodRepository {
         if(lastServiceDate != null) {
             return queryFactory.selectFrom(presetMakersDailyFood)
                     .where(presetMakersDailyFood.serviceDate.between(now, lastServiceDate),
-                            presetMakersDailyFood.confirmStatus.eq(ConfirmStatus.REQUEST))
+                            presetMakersDailyFood.confirmStatus.ne(ConfirmStatus.COMPLETE))
                     .fetch();
 
         }
