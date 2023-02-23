@@ -52,7 +52,7 @@ public interface PresetDailyFoodMapper {
     @Mapping(source = "group.name", target = "clientName")
     @Mapping(source = "groupCapacity", target = "clientCapacity")
     @Mapping(source = "foodSchedules", target = "foodSchedule")
-    PresetScheduleResponseDto.clientSchedule recommendToClientScheduleDto(Group group, Integer groupCapacity, LocalTime pickupTime, List<PresetScheduleResponseDto.foodSchedule> foodSchedules);
+    PresetScheduleResponseDto.clientSchedule recommendToClientScheduleDto(Group group, Integer groupCapacity, String pickupTime, List<PresetScheduleResponseDto.foodSchedule> foodSchedules);
 
     @Mapping(target = "scheduleStatus", expression = "java(ScheduleStatus.WAITING.getCode())")
     @Mapping(source = "recommendScheduleDto.serviceDate", target = "serviceDate")
