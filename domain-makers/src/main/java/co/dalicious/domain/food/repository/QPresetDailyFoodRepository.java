@@ -1,6 +1,8 @@
 package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.client.entity.Employee;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.PresetDailyFood;
 import co.dalicious.domain.food.util.QuerydslDateFormatUtils;
 import co.dalicious.system.util.DateUtils;

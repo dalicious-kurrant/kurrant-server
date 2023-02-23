@@ -6,7 +6,6 @@ import co.dalicious.domain.food.dto.PresetScheduleResponseDto;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.domain.recommend.dto.RecommendScheduleDto;
-import co.dalicious.domain.recommend.entity.Recommends;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
@@ -14,10 +13,7 @@ import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, DiningType.class, ScheduleStatus.class})

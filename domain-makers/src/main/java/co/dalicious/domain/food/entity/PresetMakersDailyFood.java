@@ -1,9 +1,10 @@
 package co.dalicious.domain.food.entity;
 
+import co.dalicious.domain.food.converter.ConfirmStatusConverter;
 import co.dalicious.domain.food.converter.ScheduleStatusConverter;
+import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.system.enums.DiningType;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -51,12 +52,17 @@ public class PresetMakersDailyFood {
 
     @Convert(converter = ScheduleStatusConverter.class)
     @Column(name = "e_status")
-    @Comment("식단 상태(0. 승인대기 1. 승인, 2. 거절)")
+    @Comment("식단 상태 (0. 승인대기 1. 승인, 2. 거절)")
     private ScheduleStatus scheduleStatus;
 
     @Column(name = "deadline_datetime")
     @Comment("식단 승인 마감시간")
     private LocalDateTime deadline;
+
+    @Convert(converter = ConfirmStatusConverter.class)
+    @Column(name = "is_pause")
+    @Comment("임시저장 상태")
+    private ConfirmStatus confirmStatus;
 
     @OneToMany(mappedBy = "presetMakersDailyFood")
     @JsonManagedReference(value = "preset_makers_daily_food_fk")
@@ -74,16 +80,17 @@ public class PresetMakersDailyFood {
     private Timestamp updatedDateTime;
 
     @Builder
-    public PresetMakersDailyFood(LocalDate serviceDate, DiningType diningType, Integer capacity, Makers makers, ScheduleStatus scheduleStatus, LocalDateTime deadline) {
+    public PresetMakersDailyFood(LocalDate serviceDate, DiningType diningType, Integer capacity, Makers makers, ScheduleStatus scheduleStatus, LocalDateTime deadline, ConfirmStatus confirmStatus) {
         this.serviceDate = serviceDate;
         this.diningType = diningType;
         this.capacity = capacity;
         this.makers = makers;
         this.scheduleStatus = scheduleStatus;
         this.deadline = deadline;
+        this.confirmStatus = confirmStatus;
     }
 
-    public void updateStatus(ScheduleStatus scheduleStatus) {
+    public void updateScheduleStatus(ScheduleStatus scheduleStatus) {
         this.scheduleStatus = scheduleStatus;
     }
 
@@ -91,5 +98,7 @@ public class PresetMakersDailyFood {
         this.scheduleStatus = scheduleStatus;
         this.deadline = deadline;
     }
+
+    public void updateConfirmStatus(ConfirmStatus confirmStatus) { this.confirmStatus = confirmStatus; }
 
 }

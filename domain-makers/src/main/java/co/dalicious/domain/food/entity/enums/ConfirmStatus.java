@@ -5,23 +5,23 @@ import lombok.Getter;
 import java.util.Arrays;
 
 @Getter
-public enum ScheduleStatus {
+public enum ConfirmStatus {
 
-    WAITING("대기", 0),
-    APPROVAL("승인", 1),
-    REJECTED("거절", 2);
+    COMPLETE("완료", 0),
+    PAUSE("임시저장",1),
+    REQUEST("요청",2);
 
-
-    private final String status;
+    private final String confirmStatus;
     private final Integer code;
 
-    ScheduleStatus(String status, Integer code) {
-        this.status = status;
+
+    ConfirmStatus(String status, Integer code) {
+        this.confirmStatus = status;
         this.code = code;
     }
 
-    public static ScheduleStatus ofCode(Integer code) {
-        return Arrays.stream(ScheduleStatus.values())
+    public static ConfirmStatus ofCode(Integer code) {
+        return Arrays.stream(ConfirmStatus.values())
                 .filter(v -> v.getCode().equals(code))
                 .findAny()
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상태입니다."));
