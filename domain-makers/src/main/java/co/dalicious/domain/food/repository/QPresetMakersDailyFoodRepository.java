@@ -4,7 +4,6 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.PresetMakersDailyFood;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
-import co.dalicious.domain.food.util.QuerydslDateFormatUtils;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import com.querydsl.core.types.ConstantImpl;
@@ -34,10 +33,24 @@ public class QPresetMakersDailyFoodRepository {
     public List<PresetMakersDailyFood> findByServiceDateAndConfirmStatus() {
         LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
-        return queryFactory.selectFrom(presetMakersDailyFood)
-                .where(presetMakersDailyFood.serviceDate.after(now),
-                        presetMakersDailyFood.confirmStatus.eq(ConfirmStatus.REQUEST))
-                .fetch();
+        // 가장 마지막 서비스 데이터를 가져오기
+        LocalDate lastServiceDate = queryFactory
+                .select(presetMakersDailyFood.serviceDate).from(presetMakersDailyFood)
+                .groupBy(presetMakersDailyFood.serviceDate)
+                .orderBy(presetMakersDailyFood.serviceDate.desc())
+                .limit(1).fetchOne();
+
+        System.out.println("lastServiceDate = " + lastServiceDate);
+
+        if(lastServiceDate != null) {
+            return queryFactory.selectFrom(presetMakersDailyFood)
+                    .where(presetMakersDailyFood.serviceDate.between(now, lastServiceDate),
+                            presetMakersDailyFood.confirmStatus.eq(ConfirmStatus.REQUEST))
+                    .fetch();
+
+        }
+
+        throw new ApiException(ExceptionEnum.NOT_FOUND);
     }
 
     public PresetMakersDailyFood findByMakersAndServiceDateAndDiningType(Makers makers, LocalDate serviceDate, DiningType diningType) {

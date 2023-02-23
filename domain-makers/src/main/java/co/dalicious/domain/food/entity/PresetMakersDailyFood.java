@@ -60,8 +60,8 @@ public class PresetMakersDailyFood {
     private LocalDateTime deadline;
 
     @Convert(converter = ConfirmStatusConverter.class)
-    @Column(name = "is_pause")
-    @Comment("임시저장 상태")
+    @Column(name = "comfirm_status")
+    @Comment("임시저장 상태 (0. 완료, 1. 임시저장, 2. 요창)")
     private ConfirmStatus confirmStatus;
 
     @OneToMany(mappedBy = "presetMakersDailyFood")
