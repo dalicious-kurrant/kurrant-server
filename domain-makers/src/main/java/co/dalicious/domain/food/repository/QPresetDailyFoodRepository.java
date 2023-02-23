@@ -42,7 +42,9 @@ public class QPresetDailyFoodRepository{
         String dates = queryFactory.select(formattedDate).from(presetDailyFood)
                 .groupBy(formattedDate)
                 .orderBy(formattedDate.desc())
+                .limit(1)
                 .fetchOne();
+        System.out.println("dates = " + dates);
 
         if (dates != null) {
             LocalDate date = DateUtils.stringToDate(dates);
