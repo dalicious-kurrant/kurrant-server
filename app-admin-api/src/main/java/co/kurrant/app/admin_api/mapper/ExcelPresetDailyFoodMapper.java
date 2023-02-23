@@ -31,7 +31,7 @@ public interface ExcelPresetDailyFoodMapper {
     @Mapping(source = "presetMakersDailyFood", target = "presetMakersDailyFood")
     PresetGroupDailyFood toGroupDailyFoodEntity(ExcelPresetDailyFoodDto.ExcelData data, Group group, PresetMakersDailyFood presetMakersDailyFood);
 
-    @Mapping(target = "capacity", expression = "java(checkFoodCapacity(food.getFoodCapacities, data))")
+    @Mapping(target = "capacity", expression = "java(checkFoodCapacity(food.getFoodCapacities(), data))")
     @Mapping(source = "food", target = "food")
     @Mapping(target = "scheduleStatus", expression = "java(ScheduleStatus.ofCode(data.getFoodScheduleStatus()))")
     @Mapping(target = "presetGroupDailyFood", source = "groupDailyFood")
