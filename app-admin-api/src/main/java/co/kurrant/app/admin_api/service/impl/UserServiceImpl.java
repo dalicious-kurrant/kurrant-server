@@ -46,20 +46,18 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public ListItemResponseDto<UserInfoResponseDto> getUserList(OffsetBasedPageRequest pageable) {
+    public List<UserInfoResponseDto> getUserList() {
 
-        Page<User> users = userRepository.findAll(pageable);
+        List<User> users = userRepository.findAll();
 
         users.stream().filter(user -> user.getUserStatus().getCode() != 0)
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        List<UserInfoResponseDto> userInfoResponseDtoList = users.get()
+        List<UserInfoResponseDto> userInfoResponseDtoList =  users.stream()
                 .map(userMapper::toDto).toList();
 
-        return ListItemResponseDto.<UserInfoResponseDto>builder().items(userInfoResponseDtoList)
-                .total(users.getTotalElements()).count(users.getNumberOfElements())
-                .limit(pageable.getPageSize()).offset(pageable.getOffset()).build();
+        return userInfoResponseDtoList;
     }
 
     @Override
