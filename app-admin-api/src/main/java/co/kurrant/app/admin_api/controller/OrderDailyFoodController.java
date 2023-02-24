@@ -58,8 +58,8 @@ public class OrderDailyFoodController {
                 .build();
     }
 
-    @GetMapping("/group/{groupId}")
-    public ResponseMessage getGroupInfo(@PathVariable BigInteger groupId) {
+    @GetMapping("/groupInfo")
+    public ResponseMessage getGroupInfo(@RequestParam (required = false) BigInteger groupId) {
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getGroupInfo(groupId))
                 .message("고객사 정보 조회에 성공하였습니다.")

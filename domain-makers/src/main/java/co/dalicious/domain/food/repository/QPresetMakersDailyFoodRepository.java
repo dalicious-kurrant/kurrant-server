@@ -1,11 +1,15 @@
 package co.dalicious.domain.food.repository;
 
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.PresetDailyFood;
 import co.dalicious.domain.food.entity.PresetMakersDailyFood;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
@@ -13,6 +17,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import net.bytebuddy.asm.Advice;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
@@ -22,6 +31,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
+import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.food.entity.QFood.food;
+import static co.dalicious.domain.food.entity.QMakers.makers;
+import static co.dalicious.domain.food.entity.QPresetDailyFood.presetDailyFood;
 import static co.dalicious.domain.food.entity.QPresetMakersDailyFood.presetMakersDailyFood;
 
 
@@ -33,24 +46,36 @@ public class QPresetMakersDailyFoodRepository {
     public List<PresetMakersDailyFood> findByServiceDateAndConfirmStatus() {
         LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
-        // 가장 마지막 서비스 데이터를 가져오기
-        LocalDate lastServiceDate = queryFactory
-                .select(presetMakersDailyFood.serviceDate).from(presetMakersDailyFood)
-                .groupBy(presetMakersDailyFood.serviceDate)
-                .orderBy(presetMakersDailyFood.serviceDate.desc())
-                .limit(1).fetchOne();
+        return queryFactory.selectFrom(presetMakersDailyFood)
+                .where(presetMakersDailyFood.serviceDate.after(now),
+                        presetMakersDailyFood.confirmStatus.ne(ConfirmStatus.COMPLETE))
+                .fetch();
+    }
 
-        System.out.println("lastServiceDate = " + lastServiceDate);
+    public Page<PresetMakersDailyFood> findAllServiceDateAndConfirmStatusAndFilter(Makers makers, ScheduleStatus scheduleStatus, Pageable pageable, Integer size, Integer page) {
+        BooleanBuilder whereClause = new BooleanBuilder();
 
-        if(lastServiceDate != null) {
-            return queryFactory.selectFrom(presetMakersDailyFood)
-                    .where(presetMakersDailyFood.serviceDate.between(now, lastServiceDate),
-                            presetMakersDailyFood.confirmStatus.ne(ConfirmStatus.COMPLETE))
-                    .fetch();
-
+        if(makers != null) {
+            whereClause.and(presetMakersDailyFood.makers.eq(makers));
+        }
+        if(scheduleStatus != null) {
+            whereClause.and(presetMakersDailyFood.scheduleStatus.eq(scheduleStatus));
         }
 
-        throw new ApiException(ExceptionEnum.NOT_FOUND);
+        LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        int itemLimit = size * page;
+        int itemOffset = size * (page - 1);
+
+        QueryResults<PresetMakersDailyFood> results =
+                queryFactory.selectFrom(presetMakersDailyFood)
+                        .where(presetMakersDailyFood.serviceDate.after(now), presetMakersDailyFood.confirmStatus.ne(ConfirmStatus.COMPLETE), whereClause)
+                        .orderBy(presetMakersDailyFood.serviceDate.asc())
+                        .limit(itemLimit)
+                        .offset(itemOffset)
+                        .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+
     }
 
     public PresetMakersDailyFood findByMakersAndServiceDateAndDiningType(Makers makers, LocalDate serviceDate, DiningType diningType) {
@@ -90,50 +115,6 @@ public class QPresetMakersDailyFoodRepository {
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);
     }
-
-
-
-    public List<PresetMakersDailyFood> getMostRecentPresetsInDeadline() {
-        StringTemplate formattedDate = getStringTemplate();
-
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-
-        String dates = queryFactory
-                .select(formattedDate)
-                .from(presetMakersDailyFood)
-                .groupBy(formattedDate)
-                .orderBy(formattedDate.desc())
-                .limit(1)
-                .fetchOne();
-
-        if(dates != null) {
-            LocalDate date = DateUtils.stringToDate(dates);
-            LocalDateTime startDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 0, 0, 0);
-            LocalDateTime endDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 23, 59, 59);
-
-            return queryFactory.selectFrom(presetMakersDailyFood)
-                    .where(presetMakersDailyFood.createdDateTime.between(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)), presetMakersDailyFood.deadline.after(now))
-                    .fetch();
-        }
-        return null;
-    }
-
-//    public List<PresetMakersDailyFood> getMostRecentPresetsInDeadline() {
-//        // 오늘을 구하고
-//        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-//
-//        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-//
-//        LocalDate date = DateUtils.stringToDate(dates);
-//        LocalDateTime startDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 0, 0, 0);
-//        LocalDateTime endDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 23, 59, 59);
-//
-//        return queryFactory.selectFrom(presetMakersDailyFood)
-//                .where(presetMakersDailyFood.createdDateTime.between(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)), presetMakersDailyFood.deadline.after(now))
-//                .fetch();
-//
-//        return null;
-//    }
 
     public static StringTemplate getStringTemplate() {
         StringTemplate formattedDate = Expressions.stringTemplate(

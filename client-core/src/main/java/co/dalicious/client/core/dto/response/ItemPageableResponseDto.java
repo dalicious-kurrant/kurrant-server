@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.dto.schedules;
+package co.dalicious.client.core.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,11 +14,7 @@ import javax.validation.constraints.NotNull;
 public class ItemPageableResponseDto<T> {
     @Min(0)
     @NotNull
-    private Integer limit;
-
-    @Min(0)
-    @NotNull
-    private Long offset;
+    private Integer totalPage;
 
     @Min(0)
     @NotNull

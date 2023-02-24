@@ -1,8 +1,9 @@
-package co.dalicious.domain.order.mapper;
+package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
+import co.dalicious.domain.food.entity.PresetDailyFood;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.food.entity.Makers;
@@ -20,6 +21,13 @@ import java.util.Optional;
 
 @Mapper(componentModel = "spring", imports = FoodUtil.class)
 public interface DailyFoodMapper {
+      @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.diningType", target = "diningType")
+      @Mapping(target = "dailyFoodStatus", constant = "SALES")
+      @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.serviceDate", target = "serviceDate")
+      @Mapping(source = "food", target = "food")
+      @Mapping(source = "presetGroupDailyFood.group", target = "group")
+      DailyFood toDailyFood(PresetDailyFood presetDailyFood);
+
       @Mapping(source = "dailyFood.diningType.code", target = "diningType")
       @Mapping(source = "dailyFood.food.id", target = "foodId")
       @Mapping(source = "dailyFood.food.name", target = "foodName")

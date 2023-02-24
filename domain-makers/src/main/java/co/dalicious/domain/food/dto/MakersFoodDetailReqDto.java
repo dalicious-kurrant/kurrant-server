@@ -17,6 +17,8 @@ public class MakersFoodDetailReqDto {
     private Integer periodDiscountRate;
     private List<Integer> foodTags;
     private BigDecimal customPrice;
-    private Integer capacity;
+    private Integer morningCapacity;
+    private Integer lunchCapacity;
+    private Integer dinnerCapacity;
     private List<String> images;
 }

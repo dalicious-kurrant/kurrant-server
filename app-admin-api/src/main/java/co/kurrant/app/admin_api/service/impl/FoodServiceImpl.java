@@ -6,7 +6,7 @@ import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
-import co.dalicious.domain.food.mapper.FoodCapacityMapper;
+import co.dalicious.domain.food.mapper.CapacityMapper;
 import co.dalicious.domain.food.mapper.FoodDiscountPolicyMapper;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
 import co.dalicious.domain.food.repository.*;
@@ -39,7 +39,7 @@ public class FoodServiceImpl implements FoodService {
     private final MakersRepository makersRepository;
     private final FoodDiscountPolicyMapper foodDiscountPolicyMapper;
     private final FoodDiscountPolicyRepository foodDiscountPolicyRepository;
-    private final FoodCapacityMapper foodCapacityMapper;
+    private final CapacityMapper capacityMapper;
     private final FoodCapacityRepository foodCapacityRepository;
     private final QFoodRepository qFoodRepository;
     private final ImageService imageService;
@@ -158,7 +158,7 @@ public class FoodServiceImpl implements FoodService {
                     DiningType diningType = makersCapacity.getDiningType();
                     Integer capacity = makersCapacity.getCapacity();
 
-                    FoodCapacity foodCapacity = foodCapacityMapper.toEntity(diningType, capacity, newFood);
+                    FoodCapacity foodCapacity = capacityMapper.toEntity(diningType, capacity, newFood);
                     foodCapacityRepository.save(foodCapacity);
                 }
             }
@@ -218,6 +218,16 @@ public class FoodServiceImpl implements FoodService {
         // 이미지 및 음식 업데이트
         food.updateImages(images);
         food.updateFood(foodDetailDto);
+
+        if(food.updateFoodCapacity(DiningType.MORNING, foodDetailDto.getMorningCapacity()) != null) {
+            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.MORNING, foodDetailDto.getMorningCapacity()));
+        }
+        if(food.updateFoodCapacity(DiningType.LUNCH, foodDetailDto.getLunchCapacity()) != null) {
+            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.LUNCH, foodDetailDto.getLunchCapacity()));
+        }
+        if(food.updateFoodCapacity(DiningType.DINNER, foodDetailDto.getDinnerCapacity()) != null) {
+            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.DINNER, foodDetailDto.getDinnerCapacity()));
+        }
 
         //음식 할인 정책 저장
         if (food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT) == null) {
