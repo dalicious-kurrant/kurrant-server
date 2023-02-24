@@ -18,7 +18,9 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.ClientType;
+import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
@@ -59,6 +61,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderItemRepository orderItemRepository;
     private final OrderDailyFoodByMakersMapper orderDailyFoodByMakersMapper;
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -122,6 +125,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Override
     @Transactional
     public GroupDto getGroupInfo(BigInteger groupId) {
+        if(groupId == null) {
+            List<User> users = userRepository.findAllByUserStatus(UserStatus.ACTIVE);
+            return groupMapper.groupToGroupDto(null, users);
+        }
+
         List<User> users = new ArrayList<>();
         Group group = groupRepository.findById(groupId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)

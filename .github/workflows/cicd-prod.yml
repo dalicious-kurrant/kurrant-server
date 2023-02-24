@@ -76,6 +76,23 @@ jobs:
         echo "${{ secrets.APP_PUBLIC_API_YAML }}" > ./application.yaml
       shell: bash
 
+    - name: app-admin-api application-prod.yaml 생성
+      run: |
+        cd ./app-admin-api/src/main
+        mkdir resources
+        cd resources
+        touch ./application-prod.yaml
+        echo "${{ secrets.APP_ADMIN_API_PROD_YAML }}" > ./application-prod.yaml
+
+      shell: bash
+
+    - name: app-admin-api application.yaml 생성
+      run: |
+        cd ./app-admin-api/src/main/resources
+        touch ./application.yaml
+        echo "${{ secrets.APP_PUBLIC_API_YAML }}" > ./application.yaml
+      shell: bash
+
 
     - name: client-core application-jwt.properties 생성
       run: |
@@ -154,6 +171,11 @@ jobs:
         docker build -t client_kurrant_v1 .
         docker tag client_kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
         docker push ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
+        
+        cd ../app-admin-api
+        docker build -t admin_kurrant_v1 .
+        docker tag admin_kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7}
+        docker push ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7}
 
 
     - name: 배포
@@ -170,6 +192,8 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/makers_kurrant_v1:${GITHUB_SHA::7} makers_kurrant_v1
           docker pull ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
           docker tag ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7} client_kurrant_v1
+          docker pull ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7} admin_kurrant_v1
           docker stop kurrant_v1
           docker stop makers_kurrant_v1
           docker stop client_kurrant_v1
@@ -177,5 +201,6 @@ jobs:
           docker run -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
           docker run -d --rm --net redis_redis_cluster --name makers_kurrant_v1 -p 8884:8884 makers_kurrant_v1
           docker run -d --rm --name client_kurrant_v1 -p 8886:8886 client_kurrant_v1
+          docker run -d --rm --net redis_redis_cluster --name admin_kurrant_v1 -p 8888:8888 admin_kurrant_v1
           
 
