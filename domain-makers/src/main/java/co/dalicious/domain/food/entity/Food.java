@@ -75,7 +75,7 @@ public class Food {
     @Column(name = "e_food_tags")
     private List<FoodTag> foodTags;
 
-    @ManyToOne(fetch = FetchType.LAZY ,optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("메이커스 ID")
     private Makers makers;
@@ -101,7 +101,7 @@ public class Food {
     private BigDecimal customPrice;
 
     @Builder
-    public Food (FoodStatus foodStatus, String name, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
+    public Food(FoodStatus foodStatus, String name, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
         this.foodStatus = foodStatus;
         this.name = name;
         this.price = price;
@@ -124,7 +124,7 @@ public class Food {
     }
 
     public void updateFood(MakersFoodDetailReqDto makersFoodDetailReqDto) {
-        if(!this.getId().equals(makersFoodDetailReqDto.getFoodId()))  {
+        if (!this.getId().equals(makersFoodDetailReqDto.getFoodId())) {
             throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
         }
         this.price = makersFoodDetailReqDto.getDefaultPrice();
@@ -135,6 +135,7 @@ public class Food {
     public void updateImages(List<Image> images) {
         this.images = images;
     }
+
     public FoodDiscountPolicy getFoodDiscountPolicy(DiscountType discountType) {
         return this.foodDiscountPolicyList.stream()
                 .filter(v -> v.getDiscountType().equals(discountType))
@@ -147,5 +148,26 @@ public class Food {
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElse(null);
+    }
+
+    public FoodCapacity updateFoodCapacity(DiningType diningType, Integer capacity) {
+        FoodCapacity foodCapacity = getFoodCapacity(diningType);
+        if (foodCapacity == null) {
+            if (this.makers.getMakersCapacity(diningType).getCapacity().equals(capacity)) {
+                return null;
+            } else FoodCapacity.builder()
+                    .capacity(capacity)
+                    .food(this)
+                    .diningType(diningType)
+                    .build();
+        } else {
+            if (foodCapacity.getCapacity().equals(capacity)) {
+                return null;
+            } else {
+                foodCapacity.updateCapacity(capacity);
+            }
+
+        }
+        return null;
     }
 }

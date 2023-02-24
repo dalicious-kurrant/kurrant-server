@@ -219,6 +219,16 @@ public class FoodServiceImpl implements FoodService {
         food.updateImages(images);
         food.updateFood(foodDetailDto);
 
+        if(food.updateFoodCapacity(DiningType.MORNING, foodDetailDto.getMorningCapacity()) != null) {
+            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.MORNING, foodDetailDto.getMorningCapacity()));
+        }
+        if(food.updateFoodCapacity(DiningType.LUNCH, foodDetailDto.getLunchCapacity()) != null) {
+            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.LUNCH, foodDetailDto.getLunchCapacity()));
+        }
+        if(food.updateFoodCapacity(DiningType.DINNER, foodDetailDto.getDinnerCapacity()) != null) {
+            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.DINNER, foodDetailDto.getDinnerCapacity()));
+        }
+
         //음식 할인 정책 저장
         if (food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT) == null) {
             foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.MAKERS_DISCOUNT, foodDetailDto.getMakersDiscountRate()));
