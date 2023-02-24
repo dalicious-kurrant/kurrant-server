@@ -1,4 +1,4 @@
-package co.kurrant.app.makers_api.dto.makers;
+package co.kurrant.app.admin_api.dto.makers;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -10,6 +10,7 @@ import java.math.BigInteger;
 @Setter
 @Schema(description = "메이커스 정보 조회 응답 DTO")
 public class MakersInfoResponseDto {
+
     private BigInteger id;
     private String code;
     private String name;
@@ -31,5 +32,12 @@ public class MakersInfoResponseDto {
     private String contractStartDate;
     private String contractEndDate;
     private Boolean isNutritionInformation;
+    private String openTime;
+    private String closeTime;
+    private String bank;
+    private String depositHolder;
+    private String accountNumber;
+    private String createdDateTime;
+    private String updatedDateTime;
 
 }
