@@ -38,35 +38,6 @@ public class QPresetDailyFoodRepository{
                 .fetchOne();
     }
 
-    public Page<PresetDailyFood> findAllByCreatedDate(Pageable pageable, Integer size, Integer page) {
-        StringTemplate formattedDate = QuerydslDateFormatUtils.getStringTemplateByTimestamp(presetDailyFood.createdDateTime);
-
-        String dates = queryFactory.select(formattedDate).from(presetDailyFood)
-                .groupBy(formattedDate)
-                .orderBy(formattedDate.desc())
-                .limit(1)
-                .fetchOne();
-        System.out.println("dates = " + dates);
-
-        if (dates != null) {
-            LocalDate date = DateUtils.stringToDate(dates);
-            LocalDateTime startDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 0, 0, 0);
-            LocalDateTime endDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 23, 59, 59);
-            int itemLimit = size * page;
-            int itemOffset = size * (page - 1);
-
-            QueryResults<PresetDailyFood> results = queryFactory.selectFrom(presetDailyFood)
-                    .where(presetDailyFood.createdDateTime.between(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)))
-                    .limit(itemLimit)
-                    .offset(itemOffset)
-                    .fetchResults();
-
-            return new PageImpl<>(results.getResults(), pageable, results.getTotal());
-        }
-
-        return null;
-    }
-
 //    public static StringTemplate getStringTemplate() {
 //        StringTemplate formattedDate = Expressions.stringTemplate(
 //                "DATE_FORMAT({0}, {1})"

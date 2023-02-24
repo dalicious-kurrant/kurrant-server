@@ -17,7 +17,7 @@ import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDailyFoodDto;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
-import co.kurrant.app.admin_api.dto.schedules.ItemPageableResponseDto;
+import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.kurrant.app.admin_api.dto.schedules.ScheduleResponseDto;
 import co.kurrant.app.admin_api.mapper.ExcelPresetDailyFoodMapper;
 import co.kurrant.app.admin_api.service.ScheduleService;
@@ -33,10 +33,7 @@ import org.springframework.util.MultiValueMap;
 import java.math.BigInteger;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +46,6 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final PresetDailyFoodRepository presetDailyFoodRepository;
     private final GroupRepository groupRepository;
     private final QFoodRepository qFoodRepository;
-    private final QPresetDailyFoodRepository qPresetDailyFoodRepository;
     private final PresetDailyFoodMapper presetDailyFoodMapper;
     private final QGroupRecommendRepository qGroupRecommendRepository;
     private final QUserGroupRepository qUserGroupRepository;
@@ -189,63 +185,52 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Transactional(readOnly = true)
-    public ItemPageableResponseDto<ScheduleResponseDto> getAllPresetScheduleList(OffsetBasedPageRequest pageable, Integer size, Integer page) {
+    public ItemPageableResponseDto<ScheduleResponseDto> getAllPresetScheduleList(Map<String, Object> parameters, OffsetBasedPageRequest pageable, Integer size, Integer page) {
         // 필터링에서 검증 한 번 해주고
-//        BigInteger groupId = !parameters.containsKey("group") || parameters.get("group").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("group")));
-//        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
-//
-//        Group group = (groupId != null) ? groupRepository.findById(groupId)
-//                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)) : null;
-//        Makers makers = (makersId != null) ? makersRepository.findById(makersId)
-//                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
+        BigInteger groupId = !parameters.containsKey("groupId") || parameters.get("groupId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("groupId")));
+        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
+        ScheduleStatus scheduleStatus = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : ScheduleStatus.ofCode((Integer) parameters.get("status"));
+        System.out.println("scheduleStatus = " + scheduleStatus);
 
-        Page<PresetDailyFood> allPresetScheduleList =  qPresetDailyFoodRepository.findAllByCreatedDate(pageable, size, page);
-        if(allPresetScheduleList != null) {
-//             food dto 만들기
-            List<PresetScheduleResponseDto.foodSchedule> foodScheduleList =
-                    allPresetScheduleList.get().map(presetDailyFoodMapper::toFoodScheduleDto).toList();
+        Group group = (groupId != null) ? groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)) : null;
+        Makers makers = (makersId != null) ? makersRepository.findById(makersId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
 
-//             group dto 만들기
+        Page<PresetMakersDailyFood> allMakersDailyFood = qPresetMakersDailyFoodRepository.findAllServiceDateAndConfirmStatusAndFilter(makers, scheduleStatus, pageable, size, page);
+        List<PresetScheduleResponseDto> presetScheduleResponseDtoList = new ArrayList<>();
+        if(allMakersDailyFood != null) {
 
-            // 1. preset group daily food 가져오기
-            MultiValueMap<PresetGroupDailyFood, PresetScheduleResponseDto.foodSchedule> groupDailyFoodGroupingList = new LinkedMultiValueMap<>();
-            for(PresetDailyFood presetDailyFood : allPresetScheduleList) {
-                PresetGroupDailyFood groupDailyFood  = presetDailyFood.getPresetGroupDailyFood();
-
-                // 2. 동일한 id 를 가지고 있는 food schedule dto를 찾아서 묶기
-                PresetScheduleResponseDto.foodSchedule foodScheduleDto = null;
-                for(PresetScheduleResponseDto.foodSchedule foodSchedule : foodScheduleList) {
-                    if(foodSchedule.getPresetFoodId().equals(presetDailyFood.getId())) {
-                        foodScheduleDto = foodSchedule;
+            for(PresetMakersDailyFood makersDailyFood : allMakersDailyFood) {
+                List<PresetGroupDailyFood> groupDailyFoodList = makersDailyFood.getPresetGroupDailyFoods();
+                List<PresetScheduleResponseDto.clientSchedule> clientScheduleList = new ArrayList<>();
+                for(PresetGroupDailyFood groupDailyFood : groupDailyFoodList) {
+                    List<PresetDailyFood> presetDailyFoodList = groupDailyFood.getPresetDailyFoods();
+                    List<PresetScheduleResponseDto.foodSchedule> foodScheduleList = new ArrayList<>();
+                    if(group == null ) {
+                        for(PresetDailyFood dailyFood : presetDailyFoodList) {
+                            PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
+                            foodScheduleList.add(foodSchedule);
+                        }
+                        PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList);
+                        clientScheduleList.add(clientSchedule);
+                    } else if (group.equals(groupDailyFood.getGroup())) {
+                        for(PresetDailyFood dailyFood : presetDailyFoodList) {
+                            PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
+                            foodScheduleList.add(foodSchedule);
+                        }
+                        PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList);
+                        clientScheduleList.add(clientSchedule);
                     }
                 }
-                groupDailyFoodGroupingList.add(groupDailyFood, foodScheduleDto);
-            }
-
-            // 3. 묶은 데이터로 group dto 만들기
-            MultiValueMap<PresetMakersDailyFood, PresetScheduleResponseDto.clientSchedule> makersDailyFoodGroupingList = new LinkedMultiValueMap<>();
-            for(PresetGroupDailyFood groupDailyFood: groupDailyFoodGroupingList.keySet()) {
-                PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, groupDailyFoodGroupingList.get(groupDailyFood));
-
-//             makers dto 만들기
-
-                // 1. makers daily food 별로 client schedule 묶기
-                PresetMakersDailyFood makersDailyFood = groupDailyFood.getPresetMakersDailyFood();
-                makersDailyFoodGroupingList.add(makersDailyFood, clientSchedule);
-            }
-
-            // 2. 묶은 데이터로 makers dto 만들기
-            List<PresetScheduleResponseDto> presetScheduleResponseDtoList = new ArrayList<>();
-            for(PresetMakersDailyFood makersDailyFood : makersDailyFoodGroupingList.keySet()) {
-                PresetScheduleResponseDto responseDto = presetDailyFoodMapper.toDto(makersDailyFood, makersDailyFoodGroupingList.get(makersDailyFood));
+                PresetScheduleResponseDto responseDto = presetDailyFoodMapper.toDto(makersDailyFood, clientScheduleList);
                 presetScheduleResponseDtoList.add(responseDto);
             }
-
             ScheduleResponseDto responseDtoList = getScheduleResponseDto(presetScheduleResponseDtoList);
 
             return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList)
-                    .total(allPresetScheduleList.getTotalElements()).count(allPresetScheduleList.getNumberOfElements())
-                    .limit(pageable.getPageSize()).offset(pageable.getOffset()).build();
+                    .total(allMakersDailyFood.getTotalElements()).count(allMakersDailyFood.getNumberOfElements())
+                    .totalPage(allMakersDailyFood.getTotalPages()).build();
 
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);
@@ -319,7 +304,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList)
                 .total((long) recommendsList.getTotalPages()).count(recommendsList.getNumberOfElements())
-                .limit((int) recommendsList.getTotalElements()).offset(pageable.getOffset()).build();
+                .totalPage(recommendsList.getTotalPages()).build();
     }
 
     @Override

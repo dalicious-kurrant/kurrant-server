@@ -20,11 +20,11 @@ public class ScheduleController {
 
     @Operation(summary = "식단 전체 조회", description = "존재하는 식단을 모두 조회합니다.")
     @GetMapping("/all")
-    public ResponseMessage getAllPresetScheduleList(@RequestParam Integer size, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+    public ResponseMessage getAllPresetScheduleList(@RequestParam Map<String, Object> parameter, @RequestParam Integer size, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("모든 상품을 조회했습니다.")
-                .data(scheduleService.getAllPresetScheduleList(pageable, size, page))
-//                .data(scheduleService.getAllPresetScheduleList(paramiters,pageable, size, page))
+//                .data(scheduleService.getAllPresetScheduleList(pageable, size, page))
+                .data(scheduleService.getAllPresetScheduleList(parameter,pageable, size, page))
                 .build();
     }
 

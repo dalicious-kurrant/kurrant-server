@@ -1,11 +1,15 @@
 package co.dalicious.domain.food.repository;
 
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.PresetDailyFood;
 import co.dalicious.domain.food.entity.PresetMakersDailyFood;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
@@ -13,6 +17,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import net.bytebuddy.asm.Advice;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
@@ -22,6 +31,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
+import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.food.entity.QFood.food;
+import static co.dalicious.domain.food.entity.QMakers.makers;
+import static co.dalicious.domain.food.entity.QPresetDailyFood.presetDailyFood;
 import static co.dalicious.domain.food.entity.QPresetMakersDailyFood.presetMakersDailyFood;
 
 
@@ -37,6 +50,32 @@ public class QPresetMakersDailyFoodRepository {
                 .where(presetMakersDailyFood.serviceDate.after(now),
                         presetMakersDailyFood.confirmStatus.ne(ConfirmStatus.COMPLETE))
                 .fetch();
+    }
+
+    public Page<PresetMakersDailyFood> findAllServiceDateAndConfirmStatusAndFilter(Makers makers, ScheduleStatus scheduleStatus, Pageable pageable, Integer size, Integer page) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if(makers != null) {
+            whereClause.and(presetMakersDailyFood.makers.eq(makers));
+        }
+        if(scheduleStatus != null) {
+            whereClause.and(presetMakersDailyFood.scheduleStatus.eq(scheduleStatus));
+        }
+
+        LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        int itemLimit = size * page;
+        int itemOffset = size * (page - 1);
+
+        QueryResults<PresetMakersDailyFood> results =
+                queryFactory.selectFrom(presetMakersDailyFood)
+                        .where(presetMakersDailyFood.serviceDate.after(now), presetMakersDailyFood.confirmStatus.ne(ConfirmStatus.COMPLETE), whereClause)
+                        .orderBy(presetMakersDailyFood.serviceDate.asc())
+                        .limit(itemLimit)
+                        .offset(itemOffset)
+                        .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+
     }
 
     public PresetMakersDailyFood findByMakersAndServiceDateAndDiningType(Makers makers, LocalDate serviceDate, DiningType diningType) {

@@ -22,13 +22,10 @@ public class ExcelPresetDailyFoodDto {
         private String pickupTime;
         private String groupName;
         private Integer groupCapacity;
-        private Integer leftMakersCapacity;
         private Integer foodScheduleStatus;
         private String foodName;
         private String foodStatus;
         private Integer foodCapacity;
-        private Integer leftFoodCapacity;
-
     }
 
 }
