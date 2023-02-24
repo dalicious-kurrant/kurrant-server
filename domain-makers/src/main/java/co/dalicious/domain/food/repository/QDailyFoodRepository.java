@@ -6,6 +6,7 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.system.enums.DiningType;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -55,6 +56,30 @@ public class QDailyFoodRepository {
                 .where(dailyFood.food.makers.eq(makers),
                         dailyFood.serviceDate.eq(serviceDate),
                         dailyFood.diningType.eq(diningType))
+                .fetch();
+    }
+
+    public List<DailyFood> findAllByGroupAndMakersBetweenServiceDate(LocalDate startDate, LocalDate endDate, Group group, Makers makers) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(startDate != null) {
+            whereClause.and(dailyFood.serviceDate.goe(startDate));
+        }
+
+        if(endDate != null) {
+            whereClause.and(dailyFood.serviceDate.loe(endDate));
+        }
+
+        if(group != null) {
+            whereClause.and(dailyFood.group.eq(group));
+        }
+
+        if(makers != null) {
+            whereClause.and(dailyFood.food.makers.eq(makers));
+        }
+
+        return queryFactory.selectFrom(dailyFood)
+                .where(whereClause)
+                .orderBy(dailyFood.serviceDate.asc())
                 .fetch();
     }
 }

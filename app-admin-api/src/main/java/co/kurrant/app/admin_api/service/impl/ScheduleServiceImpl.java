@@ -200,7 +200,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         Page<PresetMakersDailyFood> allMakersDailyFood = qPresetMakersDailyFoodRepository.findAllServiceDateAndConfirmStatusAndFilter(makers, scheduleStatus, pageable, size, page);
         List<PresetScheduleResponseDto> presetScheduleResponseDtoList = new ArrayList<>();
         if(allMakersDailyFood != null) {
-
             for(PresetMakersDailyFood makersDailyFood : allMakersDailyFood) {
                 List<PresetGroupDailyFood> groupDailyFoodList = makersDailyFood.getPresetGroupDailyFoods();
                 List<PresetScheduleResponseDto.clientSchedule> clientScheduleList = new ArrayList<>();

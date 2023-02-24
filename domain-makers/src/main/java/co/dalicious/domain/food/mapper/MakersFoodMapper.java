@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {Image.class, DiningType.class})
 public interface MakersFoodMapper {
@@ -68,14 +69,17 @@ public interface MakersFoodMapper {
     MakersFoodDetailDto toFoodManagingDto(Food food, DiscountDto discountDto);
     @Named("getAllFoodList")
     default List<String> getAllFoodList(List<FoodTag> foodTags) {
-        List<String> foodTagSrt = new ArrayList<>();
-        if(foodTags != null) {
-            for(FoodTag tag : foodTags) {
-                foodTagSrt.add(tag.getTag());
-            }
-            return foodTagSrt;
+        if (foodTags == null) {
+            throw new ApiException(ExceptionEnum.NOT_FOUND);
         }
-        throw  new ApiException(ExceptionEnum.NOT_FOUND);
+        List<Integer> foodTagCodes = foodTags.stream()
+                .map(FoodTag::getCode)
+                .sorted()
+                .toList();
+        return foodTagCodes.stream()
+                .map(FoodTag::ofCode)
+                .map(FoodTag::getTag)
+                .collect(Collectors.toList());
     }
 
     @Named("getFoodTagList")
