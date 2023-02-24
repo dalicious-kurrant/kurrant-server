@@ -189,8 +189,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 필터링에서 검증 한 번 해주고
         BigInteger groupId = !parameters.containsKey("groupId") || parameters.get("groupId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("groupId")));
         BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
-        ScheduleStatus scheduleStatus = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : ScheduleStatus.ofCode((Integer) parameters.get("status"));
-        System.out.println("scheduleStatus = " + scheduleStatus);
+        ScheduleStatus scheduleStatus = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : ScheduleStatus.ofCode(Integer.parseInt((String) parameters.get("status")));
 
         Group group = (groupId != null) ? groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)) : null;
@@ -229,8 +228,8 @@ public class ScheduleServiceImpl implements ScheduleService {
             ScheduleResponseDto responseDtoList = getScheduleResponseDto(presetScheduleResponseDtoList);
 
             return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList)
-                    .total(allMakersDailyFood.getTotalElements()).count(allMakersDailyFood.getNumberOfElements())
-                    .totalPage(allMakersDailyFood.getTotalPages()).build();
+                    .total(allMakersDailyFood.getTotalPages()).count(allMakersDailyFood.getNumberOfElements())
+                    .limit(pageable.getPageSize()).build();
 
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);
@@ -238,9 +237,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Transactional(readOnly = true)
-    public ItemPageableResponseDto<ScheduleResponseDto> getRecommendPresetSchedule(String startDate, OffsetBasedPageRequest pageable, Integer size, Integer page) {
+    public ItemPageableResponseDto<ScheduleResponseDto> getRecommendPresetSchedule(String startDate, String endDate, OffsetBasedPageRequest pageable, Integer size, Integer page) {
         // start date 기준으로 2주 추천 테이블에서 데이터 가져오기
-        Page<GroupRecommends> recommendsList = qGroupRecommendRepository.getRecommendPresetSchedule(pageable, size, page, startDate);
+        Page<GroupRecommends> recommendsList = qGroupRecommendRepository.getRecommendPresetSchedule(pageable, size, page, startDate, endDate);
 
         MultiValueMap<RecommendScheduleDto, BigInteger> groupingByMakers = new LinkedMultiValueMap<>();
         if(recommendsList != null) {
@@ -303,8 +302,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         ScheduleResponseDto responseDtoList = getScheduleResponseDto(scheduleResponseDtos);
 
         return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList)
-                .total((long) recommendsList.getTotalPages()).count(recommendsList.getNumberOfElements())
-                .totalPage(recommendsList.getTotalPages()).build();
+                .total(recommendsList.getTotalPages()).count(recommendsList.getNumberOfElements())
+                .limit(recommendsList.getTotalPages()).build();
     }
 
     @Override
@@ -469,7 +468,6 @@ public class ScheduleServiceImpl implements ScheduleService {
 //            groupGrouping.add(groupDataDto, data);
 //        }
 //
-//        // 수정해야할 데이터인지 확인
 //        // 1. 서비스 날이 오늘 이후 이고 완료되지 않은 식단 찾기
 //        List<PresetMakersDailyFood> existMakersDailyFoodList = qPresetMakersDailyFoodRepository.findByServiceDateAndConfirmStatus();
 //        List<PresetMakersDailyFood> presetMakersDailyFoods = new ArrayList<>();

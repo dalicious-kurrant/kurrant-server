@@ -41,8 +41,7 @@ public interface ExcelPresetDailyFoodMapper {
 
     default Integer checkFoodCapacity(List<FoodCapacity> foodCapacities, ExcelPresetDailyFoodDto.ExcelData data) {
         for(FoodCapacity foodCapacity : foodCapacities) {
-            if(foodCapacity.getDiningType().getDiningType().equals(data.getDiningType()) &&
-            foodCapacity.getCapacity().equals(data.getFoodCapacity())) {
+            if(foodCapacity.getDiningType().getDiningType().equals(data.getDiningType())) {
                 return foodCapacity.getCapacity();
             }
         }
@@ -51,8 +50,7 @@ public interface ExcelPresetDailyFoodMapper {
 
     default Integer checkMakersCapacity(List<MakersCapacity> makersCapacities, ExcelPresetDto data) {
         for(MakersCapacity makersCapacity : makersCapacities) {
-            if(makersCapacity.getDiningType().equals(data.getDiningType()) &&
-                    makersCapacity.getCapacity().equals(data.getMakersCapacity())) {
+            if(makersCapacity.getDiningType().equals(data.getDiningType())) {
                 return makersCapacity.getCapacity();
             }
         }

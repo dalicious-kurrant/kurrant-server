@@ -1,4 +1,4 @@
-package co.dalicious.client.core.dto.response;
+package co.kurrant.app.admin_api.dto.schedules;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,8 +18,12 @@ public class ItemPageableResponseDto<T> {
 
     @Min(0)
     @NotNull
-    @Comment("토탈 페이지")
-    private Integer total;
+    private Integer offset;
+
+    @Min(0)
+    @NotNull
+    @Comment("현재 페이지에 담을 수 있는 최대 아이템 수")
+    private Long total;
 
     @Min(0)
     @NotNull
