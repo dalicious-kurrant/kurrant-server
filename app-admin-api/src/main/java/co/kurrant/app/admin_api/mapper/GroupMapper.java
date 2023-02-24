@@ -55,9 +55,11 @@ public interface GroupMapper {
 
     default GroupDto groupToGroupDto(Group group, List<User> users) {
         GroupDto groupDto = new GroupDto();
-        groupDto.setGroup(groupToDto(group));
-        groupDto.setSpots(spotsToDtos(group.getSpots()));
-        groupDto.setDiningTypes(diningTypesToDtos(group.getDiningTypes()));
+        if(group != null) {
+            groupDto.setGroup(groupToDto(group));
+            groupDto.setSpots(spotsToDtos(group.getSpots()));
+            groupDto.setDiningTypes(diningTypesToDtos(group.getDiningTypes()));
+        }
         groupDto.setUsers(usersToDtos(users));
         return groupDto;
     }
