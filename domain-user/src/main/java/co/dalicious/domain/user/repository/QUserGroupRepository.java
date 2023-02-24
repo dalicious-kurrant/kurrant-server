@@ -30,16 +30,12 @@ public class QUserGroupRepository {
 
     }
 
-    public PageImpl<User> findAllByGroupId(BigInteger corporationId, Pageable pageable) {
-        QueryResults<User> results = queryFactory.select(userGroup.user)
+    public List<User> findAllByGroupId(BigInteger corporationId) {
+        return queryFactory.select(userGroup.user)
                 .from(userGroup)
                 .where(userGroup.group.id.eq(corporationId),
                         userGroup.clientStatus.ne(ClientStatus.WITHDRAWAL))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetchResults();
-
-        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+                .fetch();
     }
 
     public Long deleteMember(BigInteger userId, BigInteger groupId) {

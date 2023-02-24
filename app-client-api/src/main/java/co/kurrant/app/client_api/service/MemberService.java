@@ -19,9 +19,9 @@ import java.util.List;
 public interface MemberService {
 
 
-    ListItemResponseDto<MemberListResponseDto> getUserList(String code, OffsetBasedPageRequest pageable);
+    List<MemberListResponseDto> getUserList(String code);
 
-    ListItemResponseDto<MemberWaitingListResponseDto> getWaitingUserList(String code, OffsetBasedPageRequest pageable);
+    List<MemberWaitingListResponseDto> getWaitingUserList(String code);
 
     void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto);
 

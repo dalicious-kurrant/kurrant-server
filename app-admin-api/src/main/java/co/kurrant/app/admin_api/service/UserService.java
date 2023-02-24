@@ -9,7 +9,7 @@ import java.math.BigInteger;
 
 public interface UserService {
 
-    Object getUserList(OffsetBasedPageRequest pageable);
+    Object getUserList();
 
     void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto);
 
