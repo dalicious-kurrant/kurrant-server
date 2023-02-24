@@ -195,6 +195,7 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7}
           docker tag ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7} admin_kurrant_v1
           docker stop kurrant_v1
+          docker stop admin_kurrant_v1
           docker stop makers_kurrant_v1
           docker stop client_kurrant_v1
           sleep 5
