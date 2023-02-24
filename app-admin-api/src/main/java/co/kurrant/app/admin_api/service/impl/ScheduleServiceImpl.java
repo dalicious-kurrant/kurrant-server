@@ -189,8 +189,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 필터링에서 검증 한 번 해주고
         BigInteger groupId = !parameters.containsKey("groupId") || parameters.get("groupId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("groupId")));
         BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
-        ScheduleStatus scheduleStatus = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : ScheduleStatus.ofCode((Integer) parameters.get("status"));
-        System.out.println("scheduleStatus = " + scheduleStatus);
+        ScheduleStatus scheduleStatus = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : ScheduleStatus.ofCode(Integer.parseInt((String) parameters.get("status")));
 
         Group group = (groupId != null) ? groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)) : null;
@@ -209,15 +208,19 @@ public class ScheduleServiceImpl implements ScheduleService {
                     List<PresetScheduleResponseDto.foodSchedule> foodScheduleList = new ArrayList<>();
                     if(group == null ) {
                         for(PresetDailyFood dailyFood : presetDailyFoodList) {
-                            PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
-                            foodScheduleList.add(foodSchedule);
+                            if(dailyFood.getScheduleStatus().equals(scheduleStatus)){
+                                PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
+                                foodScheduleList.add(foodSchedule);
+                            }
                         }
                         PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList);
                         clientScheduleList.add(clientSchedule);
                     } else if (group.equals(groupDailyFood.getGroup())) {
                         for(PresetDailyFood dailyFood : presetDailyFoodList) {
-                            PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
-                            foodScheduleList.add(foodSchedule);
+                            if(dailyFood.getScheduleStatus().equals(scheduleStatus)){
+                                PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
+                                foodScheduleList.add(foodSchedule);
+                            }
                         }
                         PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList);
                         clientScheduleList.add(clientSchedule);
@@ -229,8 +232,8 @@ public class ScheduleServiceImpl implements ScheduleService {
             ScheduleResponseDto responseDtoList = getScheduleResponseDto(presetScheduleResponseDtoList);
 
             return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList)
-                    .total(allMakersDailyFood.getTotalElements()).count(allMakersDailyFood.getNumberOfElements())
-                    .totalPage(allMakersDailyFood.getTotalPages()).build();
+                    .total(allMakersDailyFood.getTotalPages()).count(allMakersDailyFood.getNumberOfElements())
+                    .limit(pageable.getPageSize()).build();
 
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);
@@ -303,8 +306,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         ScheduleResponseDto responseDtoList = getScheduleResponseDto(scheduleResponseDtos);
 
         return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList)
-                .total((long) recommendsList.getTotalPages()).count(recommendsList.getNumberOfElements())
-                .totalPage(recommendsList.getTotalPages()).build();
+                .total(recommendsList.getTotalPages()).count(recommendsList.getNumberOfElements())
+                .limit(recommendsList.getTotalPages()).build();
     }
 
     @Override
@@ -469,7 +472,6 @@ public class ScheduleServiceImpl implements ScheduleService {
 //            groupGrouping.add(groupDataDto, data);
 //        }
 //
-//        // 수정해야할 데이터인지 확인
 //        // 1. 서비스 날이 오늘 이후 이고 완료되지 않은 식단 찾기
 //        List<PresetMakersDailyFood> existMakersDailyFoodList = qPresetMakersDailyFoodRepository.findByServiceDateAndConfirmStatus();
 //        List<PresetMakersDailyFood> presetMakersDailyFoods = new ArrayList<>();

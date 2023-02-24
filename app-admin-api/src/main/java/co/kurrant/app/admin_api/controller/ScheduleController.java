@@ -20,11 +20,11 @@ public class ScheduleController {
 
     @Operation(summary = "식단 전체 조회", description = "존재하는 식단을 모두 조회합니다.")
     @GetMapping("/all")
-    public ResponseMessage getAllPresetScheduleList(@RequestParam Map<String, Object> parameter, @RequestParam Integer size, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+    public ResponseMessage getAllPresetScheduleList(@RequestParam Map<String, Object> parameter, @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("모든 상품을 조회했습니다.")
 //                .data(scheduleService.getAllPresetScheduleList(pageable, size, page))
-                .data(scheduleService.getAllPresetScheduleList(parameter,pageable, size, page))
+                .data(scheduleService.getAllPresetScheduleList(parameter,pageable, limit, page))
                 .build();
     }
 
@@ -39,10 +39,10 @@ public class ScheduleController {
 
     @Operation(summary = "추천 식단 생성", description = "추천 데이터를 기반으로 식단을 생성합니다.")
     @GetMapping("/recommends")
-    public ResponseMessage getRecommendPresetSchedule(@RequestParam String startDate, @RequestParam Integer size, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+    public ResponseMessage getRecommendPresetSchedule(@RequestParam String startDate, @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("모든 식단을 요청했습니다.")
-                .data(scheduleService.getRecommendPresetSchedule(startDate, pageable, size, page))
+                .data(scheduleService.getRecommendPresetSchedule(startDate, pageable, limit, page))
                 .build();
     }
 
