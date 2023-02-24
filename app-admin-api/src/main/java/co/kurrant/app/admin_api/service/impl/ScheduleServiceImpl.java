@@ -208,19 +208,15 @@ public class ScheduleServiceImpl implements ScheduleService {
                     List<PresetScheduleResponseDto.foodSchedule> foodScheduleList = new ArrayList<>();
                     if(group == null ) {
                         for(PresetDailyFood dailyFood : presetDailyFoodList) {
-                            if(dailyFood.getScheduleStatus().equals(scheduleStatus)){
-                                PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
-                                foodScheduleList.add(foodSchedule);
-                            }
+                            PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
+                            foodScheduleList.add(foodSchedule);
                         }
                         PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList);
                         clientScheduleList.add(clientSchedule);
                     } else if (group.equals(groupDailyFood.getGroup())) {
                         for(PresetDailyFood dailyFood : presetDailyFoodList) {
-                            if(dailyFood.getScheduleStatus().equals(scheduleStatus)){
-                                PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
-                                foodScheduleList.add(foodSchedule);
-                            }
+                            PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
+                            foodScheduleList.add(foodSchedule);
                         }
                         PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList);
                         clientScheduleList.add(clientSchedule);
@@ -241,9 +237,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Transactional(readOnly = true)
-    public ItemPageableResponseDto<ScheduleResponseDto> getRecommendPresetSchedule(String startDate, OffsetBasedPageRequest pageable, Integer size, Integer page) {
+    public ItemPageableResponseDto<ScheduleResponseDto> getRecommendPresetSchedule(String startDate, String endDate, OffsetBasedPageRequest pageable, Integer size, Integer page) {
         // start date 기준으로 2주 추천 테이블에서 데이터 가져오기
-        Page<GroupRecommends> recommendsList = qGroupRecommendRepository.getRecommendPresetSchedule(pageable, size, page, startDate);
+        Page<GroupRecommends> recommendsList = qGroupRecommendRepository.getRecommendPresetSchedule(pageable, size, page, startDate, endDate);
 
         MultiValueMap<RecommendScheduleDto, BigInteger> groupingByMakers = new LinkedMultiValueMap<>();
         if(recommendsList != null) {
