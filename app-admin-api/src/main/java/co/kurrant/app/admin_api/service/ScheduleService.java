@@ -9,8 +9,7 @@ import java.util.Map;
 
 public interface ScheduleService {
     void makePresetSchedulesByExcel(ExcelPresetDailyFoodDto dtoList);
-//    ItemPageableResponseDto<ScheduleResponseDto> getAllPresetScheduleList(OffsetBasedPageRequest pageable, Integer size, Integer page);
     ItemPageableResponseDto<ScheduleResponseDto> getAllPresetScheduleList(Map<String, Object> parameters, OffsetBasedPageRequest pageable, Integer size, Integer page);
-    ItemPageableResponseDto<ScheduleResponseDto> getRecommendPresetSchedule(String startDate, OffsetBasedPageRequest pageable, Integer size, Integer page);
+    ItemPageableResponseDto<ScheduleResponseDto> getRecommendPresetSchedule(String startDate, String endDate, OffsetBasedPageRequest pageable, Integer size, Integer page);
     void updateDataInTemporary(ExcelPresetDailyFoodDto dtoList);
 }
