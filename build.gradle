@@ -202,6 +202,7 @@ project(':app-admin-api') {
         implementation project(':domain-makers')
         implementation project(':domain-order')
         implementation project(':domain-client')
+        implementation project(':domain-recommend')
     }
 }
 
@@ -262,6 +263,7 @@ project(':domain-makers') {
         implementation project(':domain-address')
         implementation project(':domain-client')
         implementation project(':domain-file')
+        implementation project(':domain-recommend')
     }
 }
 
@@ -366,5 +368,12 @@ project(':batch') {
         implementation project(':client-core')
         implementation project(':domain-user')
         implementation project(':domain-order')
+    }
+}
+
+project(':domain-recommend') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':client-core')
     }
 }

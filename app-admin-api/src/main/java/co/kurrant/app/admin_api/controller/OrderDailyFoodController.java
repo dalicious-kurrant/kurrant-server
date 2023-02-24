@@ -2,14 +2,10 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.admin_api.dto.OrderDto;
-import co.kurrant.app.admin_api.model.Admin;
-import co.kurrant.app.admin_api.model.SecurityUser;
 import co.kurrant.app.admin_api.service.OrderDailyFoodService;
-import co.kurrant.app.admin_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.ParseException;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -42,7 +38,7 @@ public class OrderDailyFoodController {
     public ResponseMessage getOrderDetail(@PathVariable String orderCode) {
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getOrderDetail(orderCode))
-                .message("주문 조회에 성공하였습니다.")
+                .message("주문 상세 조회에 성공하였습니다.")
                 .build();
     }
 

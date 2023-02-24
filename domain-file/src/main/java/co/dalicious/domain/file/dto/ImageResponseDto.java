@@ -17,4 +17,9 @@ public class ImageResponseDto {
   @Schema(description = "파일명", required = true)
   private String filename;
 
+  public ImageResponseDto(String location, String key, String filename) {
+    this.location = location;
+    this.key = key;
+    this.filename = filename;
+  }
 }

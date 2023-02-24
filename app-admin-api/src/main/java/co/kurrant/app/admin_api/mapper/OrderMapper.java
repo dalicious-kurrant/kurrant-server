@@ -2,10 +2,7 @@ package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.order.entity.OrderDailyFood;
-import co.dalicious.domain.order.entity.OrderItem;
-import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
+import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
@@ -19,6 +16,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -107,9 +105,17 @@ public interface OrderMapper {
                 .collect(Collectors.toList());
     }
 
-    default OrderDto.OrderDailyFoodDetail orderToDetailDto(OrderDailyFood orderDailyFood) {
+    default OrderDto.OrderDailyFoodDetail orderToDetailDto(OrderDailyFood orderDailyFood, List<PaymentCancelHistory> paymentCancelHistories) {
         OrderDto.OrderDailyFoodDetail orderDailyFoodDetail = new OrderDto.OrderDailyFoodDetail();
         List<OrderDto.OrderItemDailyFoodGroup> orderItemDailyFoodGroups = toOrderItemDailyFoodGroupDto(orderDailyFood.getOrderItems());
+        BigDecimal cancelPoint = BigDecimal.ZERO;
+        BigDecimal cancelPrice = BigDecimal.ZERO;
+        BigDecimal cancelDeliveryFee = BigDecimal.ZERO;
+        for (PaymentCancelHistory paymentCancelHistory : paymentCancelHistories) {
+            cancelPoint = cancelPoint.add(paymentCancelHistory.getRefundPointPrice());
+            cancelPrice = cancelPrice.add(paymentCancelHistory.getCancelPrice());
+            cancelDeliveryFee = cancelDeliveryFee.add(paymentCancelHistory.getRefundDeliveryFee());
+        }
 
         LocalDate startDate = orderItemDailyFoodGroups.stream()
                 .map(orderItemDailyFoodGroup -> DateUtils.stringToDate(orderItemDailyFoodGroup.getServiceDate()))
@@ -131,10 +137,10 @@ public interface OrderMapper {
         orderDailyFoodDetail.setUserName(orderDailyFood.getUser().getName());
         orderDailyFoodDetail.setServicePeriod(DateUtils.format(startDate) + " ~ " + DateUtils.format(endDate));
         orderDailyFoodDetail.setSpotName(orderDailyFood.getSpotName());
-        orderDailyFoodDetail.setTotalPrice(orderDailyFood.getTotalPrice());
+        orderDailyFoodDetail.setTotalPrice(orderDailyFood.getTotalPrice().subtract(cancelPrice));
         orderDailyFoodDetail.setUsingSupportPrice(totalSupportPrice);
-        orderDailyFoodDetail.setDeliveryFee(orderDailyFood.getTotalDeliveryFee());
-        orderDailyFoodDetail.setPoint(orderDailyFood.getPoint());
+        orderDailyFoodDetail.setDeliveryFee(orderDailyFood.getTotalDeliveryFee().subtract(cancelDeliveryFee));
+        orderDailyFoodDetail.setPoint(orderDailyFood.getPoint().subtract(cancelPoint));
         orderDailyFoodDetail.setOrderItemDailyFoodGroups(orderItemDailyFoodGroups);
 
         return orderDailyFoodDetail;

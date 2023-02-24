@@ -1,18 +1,24 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.admin_api.dto.client.SpotResponseDto;
 
+import co.kurrant.app.admin_api.dto.GroupDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.data.geo.Point;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.time.LocalTime;
+import java.util.List;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class})
 public interface SpotMapper {
@@ -39,7 +45,7 @@ public interface SpotMapper {
     SpotResponseDto toDto(Spot spot, String diningTypeTemp,
                           String breakfastUseDays, String breakfastDeliveryTime, BigDecimal breakfastSupportPrice,
                           String lunchUseDays, String lunchDeliveryTime, BigDecimal lunchSupportPrice,
-                          String dinnerUseDays, String dinnerDeliveryTime,BigDecimal dinnerSupportPrice);
+                          String dinnerUseDays, String dinnerDeliveryTime, BigDecimal dinnerSupportPrice, String lastOrderTime);
 
     @Named("createdTimeFormat")
     default String createdTimeFormat(Timestamp time){
@@ -59,6 +65,18 @@ public interface SpotMapper {
         return location.toString();
     }
 
+
+
+    @Mapping(source = "address", target = "address")
+    @Mapping(source = "spotInfo.groupId", target = "group", qualifiedByName = "generatedGroup")
+    @Mapping(source = "spotInfo.spotName", target = "name")
+    @Mapping(source = "diningTypes", target = "diningTypes")
+    Spot toEntity(SpotResponseDto spotInfo, Address address, List<DiningType> diningTypes);
+
+    @Named("generatedGroup")
+    default Group generatedGroup(BigInteger groupId){
+        return new Group(groupId);
+    }
 
 
 }

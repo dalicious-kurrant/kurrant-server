@@ -9,7 +9,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@Schema(description = "엑셀 파일 내보내기 요청 DTO")
+@Schema(description = "기업 가입 가능 리스트 저장 요청 DTO")
 public class ClientUserWaitingListSaveRequestDto {
     @Schema(description = "유저 번호")
     private List<BigInteger> id;

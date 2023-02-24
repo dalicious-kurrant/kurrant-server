@@ -2,6 +2,8 @@ package co.kurrant.app.client_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.client.dto.ClientExcelSaveDto;
+import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
 import co.dalicious.domain.client.entity.Corporation;
@@ -49,6 +51,7 @@ import java.util.stream.Collectors;
 public class MemberServiceImpl implements MemberService {
 
     private final QUserSpotRepository qUserSpotRepository;
+    private final CorporationRepository corporationRepository;
     private final QCorporationRepository qCorporationRepository;
     private final QSpotRepository qSpotRepository;
     private final QUserGroupRepository qUserGroupRepository;
@@ -123,7 +126,7 @@ public class MemberServiceImpl implements MemberService {
         //userId 리스트 가져오기
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
 
-        //code로 CorporationId 찾기 (=GroupId) TODO: 상진님 확인
+        //code로 CorporationId 찾기 (=GroupId)
         BigInteger groupId = deleteMemberRequestDto.getGroupId();
 //                qCorporationRepository.findOneByCode(deleteMemberRequestDto.getCode());
 
@@ -245,6 +248,24 @@ public class MemberServiceImpl implements MemberService {
                 .body(new InputStreamResource(res));
     }
 
+    @Override
+    public void insertMemberListByExcel(ClientExcelSaveDtoList clientExcelSaveDtolist) {
+        //code로 CorporationId 찾기 (=GroupId)
+        for (ClientExcelSaveDto excel : clientExcelSaveDtolist.getSaveList()){
+            Corporation corporation = corporationRepository.findById(excel.getGroupId())
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+
+
+            Employee employee = employeeMapper.toEntity(excel.getEmail(),
+                                                        excel.getName(),
+                                                        excel.getPhone(),
+                                                        corporation);
+            employeeRepository.save(employee);
+
+
+
+        }
+    }
     /*
         List<ExcelExample> dataList = new ArrayList<>();
 

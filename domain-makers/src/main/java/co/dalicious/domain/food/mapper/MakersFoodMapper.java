@@ -1,5 +1,6 @@
 package co.dalicious.domain.food.mapper;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailDto;
@@ -15,7 +16,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = Image.class)
 public interface MakersFoodMapper {
 
     @Mapping(source = "food.id", target = "foodId")
@@ -37,7 +38,7 @@ public interface MakersFoodMapper {
     @Mapping(source = "food.makers.name", target = "makersName")
     @Mapping(target = "makersId", ignore = true)
     @Mapping(source = "food.name", target = "foodName")
-    @Mapping(source = "food.image.location", target = "foodImage")
+    @Mapping(target = "foodImage", expression = "java(food.getImages().isEmpty() ? null : food.getImages().get(0).getLocation())")
     @Mapping(source = "food.foodStatus.status", target = "foodStatus")
     @Mapping(source = "food.price", target = "defaultPrice")
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscount")
@@ -51,7 +52,7 @@ public interface MakersFoodMapper {
     @Mapping(source = "food.id", target = "foodId")
     @Mapping(source = "food.name", target = "foodName")
     @Mapping(source = "food.price", target = "foodPrice")
-    @Mapping(source = "food.image.location", target = "foodImage")
+    @Mapping(target = "foodImages", expression = "java(Image.getImagesLocation(food.getImages()))")
     @Mapping(source = "discountDto.makersDiscountPrice", target = "makersDiscountPrice")
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")

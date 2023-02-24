@@ -8,9 +8,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 
 @Getter
 @Entity
@@ -42,6 +45,16 @@ public class PresetDailyFood {
     @JsonManagedReference(value = "preset_group_daily_food_fk")
     @Comment("고객사별 예비 식단 ID")
     private PresetGroupDailyFood presetGroupDailyFood;
+
+    @CreationTimestamp
+    @Column(name = "created_datetime", nullable = false, insertable = false, updatable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) COMMENT '생성일'")
+    private Timestamp createdDateTime;
+
+    @UpdateTimestamp
+    @Column(name = "updated_datetime", nullable = false, insertable = false, updatable = false,
+            columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) ON UPDATE NOW(6) COMMENT '수정일'")
+    private Timestamp updatedDateTime;
 
     @Builder
     public PresetDailyFood(Integer capacity,Food food,ScheduleStatus scheduleStatus,PresetGroupDailyFood presetGroupDailyFood) {

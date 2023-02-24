@@ -1,9 +1,12 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.*;
-import co.dalicious.domain.food.mapper.FoodCapacityMapper;
+import co.dalicious.domain.food.entity.enums.FoodStatus;
+import co.dalicious.domain.food.mapper.CapacityMapper;
 import co.dalicious.domain.food.mapper.FoodDiscountPolicyMapper;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
 import co.dalicious.domain.food.repository.*;
@@ -18,12 +21,13 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -35,9 +39,10 @@ public class FoodServiceImpl implements FoodService {
     private final MakersRepository makersRepository;
     private final FoodDiscountPolicyMapper foodDiscountPolicyMapper;
     private final FoodDiscountPolicyRepository foodDiscountPolicyRepository;
-    private final FoodCapacityMapper foodCapacityMapper;
+    private final CapacityMapper capacityMapper;
     private final FoodCapacityRepository foodCapacityRepository;
     private final QFoodRepository qFoodRepository;
+    private final ImageService imageService;
 
     @Override
     @Transactional
@@ -101,14 +106,18 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    // TODO:
-    public void deleteFood(FoodDeleteDto foodDeleteDto) {
-        for(BigInteger foodId : foodDeleteDto.getFoodId()){
-            Food food = foodRepository.findById(foodId).orElseThrow(
-                    () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
-            );
-
-            foodRepository.delete(food);
+    public void updateFoodStatus(List<FoodStatusUpdateDto> foodStatusUpdateDto) {
+        List<BigInteger> ids = new ArrayList<>();
+        for (FoodStatusUpdateDto statusUpdateDto : foodStatusUpdateDto) {
+            ids.add(statusUpdateDto.getFoodId());
+        }
+        List<Food> foods = foodRepository.findAllById(ids);
+        for (Food food : foods) {
+            FoodStatusUpdateDto selectedDto = foodStatusUpdateDto.stream()
+                    .filter(v -> v.getFoodId().equals(food.getId()))
+                    .findAny()
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+            food.updateFoodStatus(FoodStatus.ofCode(selectedDto.getFoodStatus()));
         }
     }
 
@@ -149,7 +158,7 @@ public class FoodServiceImpl implements FoodService {
                     DiningType diningType = makersCapacity.getDiningType();
                     Integer capacity = makersCapacity.getCapacity();
 
-                    FoodCapacity foodCapacity = foodCapacityMapper.toEntity(diningType, capacity, newFood);
+                    FoodCapacity foodCapacity = capacityMapper.toEntity(diningType, capacity, newFood);
                     foodCapacityRepository.save(foodCapacity);
                 }
             }
@@ -177,54 +186,58 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    //TODO: 매장가 커스텀가 수정
-    public void updateFood(MakersFoodDetailReqDto foodDetailDto) {
+    public void updateFood(List<MultipartFile> files, MakersFoodDetailReqDto foodDetailDto) throws IOException {
         Food food = foodRepository.findById(foodDetailDto.getFoodId()).orElseThrow(
                 () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
         );
 
-        // food tag 변환
-        List<FoodTag> foodTags = new ArrayList<>();
-        List<Integer> foodTagStrs = foodDetailDto.getFoodTags();
-        if(foodTagStrs == null) foodTags = null;
-        else { for (Integer tag : foodTagStrs) foodTags.add(FoodTag.ofCode(tag)); }
-
-        System.out.println("foodTagStrs = " + Objects.requireNonNull(foodTagStrs));
-
-        // 수정을 위한 이미지가 없을 때
-        if(foodDetailDto.getImage() == null) {
-            //food UPDATE
-            food.updateFood(foodTags, food.getImage());
-            foodRepository.save(food);
-        } else {
-            // 수정을 위한 이미지 객체 생성
-            Image image = Image.builder().location(foodDetailDto.getImage()).build();
-
-            //food UPDATE
-            food.updateFood(foodTags, image);
-            foodRepository.save(food);
-        }
-
-        //food discount policy UPDATE
-        List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
-        for (FoodDiscountPolicy discountPolicy : discountPolicyList) {
-            if (discountPolicy.getDiscountType() == DiscountType.MAKERS_DISCOUNT) {
-                discountPolicy.updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
-                foodDiscountPolicyRepository.save(discountPolicy);
-            } else if (discountPolicy.getDiscountType() == DiscountType.PERIOD_DISCOUNT) {
-                discountPolicy.updateFoodDiscountPolicy(foodDetailDto.getPeriodDiscountRate());
-                foodDiscountPolicyRepository.save(discountPolicy);
+        // 이미지가 삭제되었다면 S3에서도 삭제
+        List<Image> images = new ArrayList<>();
+        List<String> requestImage = foodDetailDto.getImages();
+        if(requestImage.size() != food.getImages().size()) {
+            List<Image> deleteImages = food.getImages();
+            List<Image> selectedImages = food.getImages().stream()
+                    .filter(v -> requestImage.contains(v.getLocation()))
+                    .toList();
+            deleteImages.removeAll(selectedImages);
+            if(!deleteImages.isEmpty()) {
+                for (Image image : deleteImages) {
+                    imageService.delete(image.getPrefix());
+                }
             }
+            images.addAll(selectedImages);
+        } else {
+            images.addAll(food.getImages());
         }
 
-        if (discountPolicyList.stream().noneMatch(discountPolicy -> discountPolicy.getDiscountType() == DiscountType.MAKERS_DISCOUNT)) {
-            FoodDiscountPolicy foodDiscountPolicy = foodDiscountPolicyMapper.toEntity(DiscountType.MAKERS_DISCOUNT, foodDetailDto.getMakersDiscountRate(), food);
-            foodDiscountPolicyRepository.save(foodDiscountPolicy);
-        }
-        if (discountPolicyList.stream().noneMatch(discountPolicy -> discountPolicy.getDiscountType() == DiscountType.PERIOD_DISCOUNT)) {
-            FoodDiscountPolicy foodDiscountPolicy = foodDiscountPolicyMapper.toEntity(DiscountType.PERIOD_DISCOUNT, foodDetailDto.getPeriodDiscountRate(), food);
-            foodDiscountPolicyRepository.save(foodDiscountPolicy);
+        if(files != null && !files.isEmpty()) {
+            List<ImageResponseDto> imageResponseDtos = imageService.upload(files, "food");
+            images.addAll(Image.toImages(imageResponseDtos));
         }
 
+        // 이미지 및 음식 업데이트
+        food.updateImages(images);
+        food.updateFood(foodDetailDto);
+
+        //음식 할인 정책 저장
+        if (food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT) == null) {
+            foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.MAKERS_DISCOUNT, foodDetailDto.getMakersDiscountRate()));
+        }
+        else if (foodDetailDto.getMakersDiscountRate() == 0) {
+            foodDiscountPolicyRepository.delete(food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT));
+        }
+        else {
+            food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT).updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
+        }
+
+        if (food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT) == null) {
+            foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.PERIOD_DISCOUNT, foodDetailDto.getMakersDiscountRate()));
+        }
+        else if (foodDetailDto.getMakersDiscountRate() == 0) {
+            foodDiscountPolicyRepository.delete(food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT));
+        }
+        else {
+            food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT).updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
+        }
     }
 }

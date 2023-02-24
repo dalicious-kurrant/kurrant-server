@@ -20,7 +20,7 @@ public interface OrderDailyFoodHistoryMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
     @Mapping(source = "dailyFood.food.name", target = "name")
-    @Mapping(source = "dailyFood.food.image.location", target = "image")
+    @Mapping(target = "image", expression = "java(orderItemDailyFood.getDailyFood().getFood().getImages() == null ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")
     @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate()))")
     @Mapping(source = "orderItemDailyFoodGroup.diningType.code", target = "diningType")
     @Mapping(source = "count", target = "count")

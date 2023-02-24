@@ -1,13 +1,19 @@
 package co.dalicious.domain.food.entity;
 
+import co.dalicious.domain.file.dto.ImageCreateRequestDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.FoodListDto;
+import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
 import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.domain.food.converter.FoodStatusConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,8 +26,8 @@ import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @DynamicInsert
 @DynamicUpdate
@@ -50,9 +56,9 @@ public class Food {
     @Comment("가격")
     private BigDecimal price;
 
-    @Embedded
+    @ElementCollection
     @Comment("이미지 경로")
-    private Image image;
+    private List<Image> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "food", orphanRemoval = true)
     @JsonBackReference(value = "food_fk")
@@ -113,8 +119,33 @@ public class Food {
         this.description = foodListDto.getDescription();
     }
 
-    public void updateFood(List<FoodTag> foodTags, Image image) {
-        this.foodTags = foodTags;
-        this.image = image;
+    public void updateFoodStatus(FoodStatus foodStatus) {
+        this.foodStatus = foodStatus;
+    }
+
+    public void updateFood(MakersFoodDetailReqDto makersFoodDetailReqDto) {
+        if(!this.getId().equals(makersFoodDetailReqDto.getFoodId()))  {
+            throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
+        }
+        this.price = makersFoodDetailReqDto.getDefaultPrice();
+        this.foodTags = FoodTag.ofCodes(makersFoodDetailReqDto.getFoodTags());
+        this.customPrice = makersFoodDetailReqDto.getCustomPrice();
+    }
+
+    public void updateImages(List<Image> images) {
+        this.images = images;
+    }
+    public FoodDiscountPolicy getFoodDiscountPolicy(DiscountType discountType) {
+        return this.foodDiscountPolicyList.stream()
+                .filter(v -> v.getDiscountType().equals(discountType))
+                .findAny()
+                .orElse(null);
+    }
+
+    public FoodCapacity getFoodCapacity(DiningType diningType) {
+        return getFoodCapacities().stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .orElse(null);
     }
 }

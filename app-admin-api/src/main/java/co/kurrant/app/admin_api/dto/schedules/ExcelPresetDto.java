@@ -1,10 +1,8 @@
-package co.kurrant.app.admin_api.dto;
+package co.kurrant.app.admin_api.dto.schedules;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.PresetGroupDailyFood;
 import co.dalicious.domain.food.entity.PresetMakersDailyFood;
-import co.dalicious.domain.food.entity.enums.ScheduleStatus;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import lombok.AllArgsConstructor;
@@ -97,73 +95,4 @@ public class ExcelPresetDto {
     }
 
 }
-//package co.kurrant.app.admin_api.dto;
-//
-//import co.dalicious.domain.client.entity.Group;
-//import co.dalicious.domain.food.entity.PresetGroupDailyFood;
-//import co.dalicious.domain.food.entity.PresetMakersDailyFood;
-//import co.dalicious.system.enums.DiningType;
-//import co.dalicious.system.util.DateUtils;
-//import lombok.AllArgsConstructor;
-//import lombok.Builder;
-//import lombok.Getter;
-//
-//import java.time.LocalDate;
-//import java.util.List;
-//
-//@Getter
-//@Builder
-//@AllArgsConstructor
-//public class ExcelPresetDto {
-//    private String makersName;
-//    private LocalDate serviceDate;
-//    private DiningType diningType;
-//    private Integer makersCapacity;
-//    private List<ExcelPresetDailyFoodDto.ExcelData> excelDataList;
-//
-//    @Getter
-//    @Builder
-//    @AllArgsConstructor
-//    public static class ExcelGroupDataDto {
-//
-//        private String groupName;
-//        private String makersName;
-//        private LocalDate serviceDate;
-//        private DiningType diningType;
-//
-//        public static ExcelGroupDataDto createExcelGroupDto(ExcelPresetDailyFoodDto.ExcelData data) {
-//            return ExcelGroupDataDto.builder()
-//                    .groupName(data.getGroupName())
-//                    .serviceDate(DateUtils.stringToDate(data.getServiceDate()))
-//                    .diningType(DiningType.ofString(data.getDiningType()))
-//                    .makersName(data.getMakersName()).build();
-//        }
-//
-//        public static ExcelGroupDataDto createExcelGroupDto(PresetMakersDailyFood makersDailyFood, PresetGroupDailyFood groupDailyFood) {
-//            return ExcelGroupDataDto.builder()
-//                    .groupName(groupDailyFood.getGroup().getName())
-//                    .serviceDate(makersDailyFood.getServiceDate())
-//                    .diningType(makersDailyFood.getDiningType())
-//                    .makersName(makersDailyFood.getMakers().getName()).build();
-//        }
-//
-//        public static ExcelGroupDataDto createExcelGroupDto(PresetMakersDailyFood makersDailyFood, Group group) {
-//            return ExcelGroupDataDto.builder()
-//                    .groupName(group.getName())
-//                    .serviceDate(makersDailyFood.getServiceDate())
-//                    .diningType(makersDailyFood.getDiningType())
-//                    .makersName(makersDailyFood.getMakers().getName()).build();
-//        }
-//
-//    }
-//
-//    public static ExcelPresetDto groupingServiceDate(String date, List<ExcelPresetDailyFoodDto.ExcelData> data) {
-//        return ExcelPresetDto.builder()
-//                .serviceDate(DateUtils.stringToDate(date))
-////                .diningType(DiningType.ofString(type))
-////                .makersName(name)
-//                .excelDataList(data).build();
-//    }
-//
-//
-//}
+

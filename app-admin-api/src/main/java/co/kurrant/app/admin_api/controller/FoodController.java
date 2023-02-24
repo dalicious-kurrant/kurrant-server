@@ -1,17 +1,16 @@
 package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.food.dto.FoodDeleteDto;
+import co.dalicious.domain.food.dto.FoodStatusUpdateDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
-import co.kurrant.app.admin_api.model.SecurityUser;
 import co.kurrant.app.admin_api.service.FoodService;
-import co.kurrant.app.admin_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -49,20 +48,18 @@ public class FoodController {
                 .build();
     }
 
-    @Operation(summary = "상품 삭제", description = "선택된 상품을 삭제합니다.")
-    @DeleteMapping("")
-    public ResponseMessage deleteFood(Authentication authentication, @RequestBody FoodDeleteDto foodDeleteDto) {
-        UserUtil.securityUser(authentication);
-        foodService.deleteFood(foodDeleteDto);
+    @Operation(summary = "상품 상태 수정", description = "선택된 상품의 상태를 변경합니다.")
+    @PostMapping("/status")
+    public ResponseMessage updateFood(@RequestBody List<FoodStatusUpdateDto> foodStatusUpdateDtos) {
+        foodService.updateFoodStatus(foodStatusUpdateDtos);
         return ResponseMessage.builder()
-                .message("상품을 삭제했습니다.")
+                .message("상품을 상태 수정에 성공하였습니다.")
                 .build();
     }
 
     @Operation(summary = "대량 상품 수정", description = "엑셀로 상품을 대량 수정합니다.")
     @PostMapping("/mass")
-    public ResponseMessage updateFoodMass(Authentication authentication, @RequestBody List<FoodListDto> foodListDto) {
-        UserUtil.securityUser(authentication);
+    public ResponseMessage updateFoodMass(@RequestBody List<FoodListDto> foodListDto) {
         foodService.updateFoodMass(foodListDto);
         return ResponseMessage.builder()
                 .message("상품을 수정했습니다.")
@@ -71,9 +68,8 @@ public class FoodController {
 
     @Operation(summary = "상품 수정", description = "상품을 수정합니다.")
     @PutMapping("")
-    public ResponseMessage updateFood(Authentication authentication, @RequestBody MakersFoodDetailReqDto foodDetailDto) {
-        UserUtil.securityUser(authentication);
-        foodService.updateFood(foodDetailDto);
+    public ResponseMessage updateFood(@RequestPart(required = false) List<MultipartFile> files, @RequestPart MakersFoodDetailReqDto contents) throws IOException {
+        foodService.updateFood(files, contents);
         return ResponseMessage.builder()
                 .message("상품을 수정했습니다.")
                 .build();

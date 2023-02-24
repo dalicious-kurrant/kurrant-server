@@ -7,13 +7,11 @@ import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
-import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.order.entity.OrderDailyFood;
-import co.dalicious.domain.order.entity.OrderItem;
-import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
 import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.order.repository.OrderRepository;
+import co.dalicious.domain.order.repository.PaymentCancelHistoryRepository;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.user.entity.User;
@@ -60,6 +58,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderService orderService;
     private final OrderItemRepository orderItemRepository;
     private final OrderDailyFoodByMakersMapper orderDailyFoodByMakersMapper;
+    private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
 
     @Override
     @Transactional
@@ -68,7 +67,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
         BigInteger groupId = !parameters.containsKey("group") || parameters.get("group").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("group")));
         List<BigInteger> spotIds = !parameters.containsKey("spots") || parameters.get("spots").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("spots"));
-        Integer diningTypeCode = !parameters.containsKey("diningType") || parameters.get("spots").equals("diningType") ? null : Integer.parseInt((String) parameters.get("diningType"));
+        Integer diningTypeCode = !parameters.containsKey("diningType") || parameters.get("diningType").equals("") ? null : Integer.parseInt((String) parameters.get("diningType"));
         BigInteger userId = !parameters.containsKey("userId") || parameters.get("userId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("userId")));
         BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
 
@@ -102,7 +101,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Transactional
     public OrderDto.OrderDailyFoodDetail getOrderDetail(String orderCode) {
         Order order = orderRepository.findOneByCode(orderCode).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-        return orderMapper.orderToDetailDto((OrderDailyFood) order);
+        List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
+        return orderMapper.orderToDetailDto((OrderDailyFood) order, paymentCancelHistories);
     }
 
     @Override

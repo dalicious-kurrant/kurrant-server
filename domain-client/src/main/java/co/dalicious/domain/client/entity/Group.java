@@ -6,6 +6,7 @@ import co.dalicious.system.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -80,4 +81,9 @@ public class Group {
         this.name = name;
         this.managerId = managerId;
     }
+
+    public Group(BigInteger id){
+        this.id = id;
+    }
+
 }

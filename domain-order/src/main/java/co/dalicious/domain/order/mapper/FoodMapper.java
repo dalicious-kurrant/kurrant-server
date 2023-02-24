@@ -1,20 +1,20 @@
 package co.dalicious.domain.order.mapper;
 
-import co.dalicious.domain.food.dto.DiscountDto;
-import co.dalicious.domain.food.dto.FoodDetailDto;
-import co.dalicious.domain.food.dto.FoodListDto;
+import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.FoodDiscountPolicy;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
+import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.domain.food.entity.enums.Origin;
-import co.dalicious.domain.food.dto.OriginDto;
 import co.dalicious.domain.food.util.FoodUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 
 import java.math.BigDecimal;
@@ -33,7 +33,7 @@ public interface FoodMapper {
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountedRate")
     @Mapping(source = "discountDto.price", target = "price")
     @Mapping(target = "discountedPrice", expression = "java(discountDto.getDiscountedPrice())")
-    @Mapping(source = "dailyFood.food.image.location", target = "image")
+    @Mapping(target = "image", expression = "java(dailyFood.getFood().getImages() == null ? null : dailyFood.getFood().getImages().get(0).getLocation())")
     @Mapping(source = "dailyFood", target = "spicy", qualifiedByName = "getSpicy")
     @Mapping(source = "dailyFood.food.name", target = "name")
     @Mapping(source = "dailyFood.food.description", target = "description")
@@ -48,6 +48,15 @@ public interface FoodMapper {
     @Mapping(source = "foodTags", target = "foodTags")
     @Mapping(source = "customPrice", target = "customPrice")
     Food toNewEntity(FoodListDto foodListDto, Makers makers, BigDecimal customPrice, List<FoodTag> foodTags);
+
+
+    default FoodDiscountPolicy toFoodDiscountPolicy(Food food, DiscountType discountType, Integer discountRate) {
+        return FoodDiscountPolicy.builder()
+                .discountType(discountType)
+                .discountRate(discountRate)
+                .food(food)
+                .build();
+    };
 
     @Named("originsToDto")
     default List<OriginDto> originsToDto(List<Origin> origins) {
