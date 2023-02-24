@@ -25,72 +25,52 @@ jobs:
         java-version: '17'
         distribution: 'adopt'
 
-    - name: app-public-api application-prod.yaml 생성
+    # app-public-api의 설정파일(.yaml) 생성
+    - name: app-public-api application.yaml(prod) 생성
       run: |
         cd ./app-public-api/src/main
         mkdir resources
         cd resources
-        touch ./application-prod.yaml
-        echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application-prod.yaml
-
-      shell: bash
-
-    - name: app-public-api application.yaml 생성
-      run: | 
-        cd ./app-public-api/src/main/resources
         touch ./application.yaml
-        echo "${{ secrets.APP_PUBLIC_API_YAML }}" > ./application.yaml
+        echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application.yaml
+        touch ./application-prod.yaml
+        echo "${{ secrets.APP_PUBLIC_API_PROD_PROD_YAML }}" > ./application-prod.yaml
       shell: bash
 
-    - name: app-makers-api application-prod.yaml 생성
+    # app-makers-api의 설정파일(.yaml) 생성
+    - name: app-makers-api application.yaml(prod) 생성
       run: |
         cd ./app-makers-api/src/main
         mkdir resources
         cd resources
-        touch ./application-prod.yaml
-        echo "${{ secrets.APP_MAKERS_API_PROD_YAML }}" > ./application-prod.yaml
-
-      shell: bash
-
-    - name: app-makers-api application.yaml 생성
-      run: |
-        cd ./app-makers-api/src/main/resources
         touch ./application.yaml
-        echo "${{ secrets.APP_PUBLIC_API_YAML }}" > ./application.yaml
+        echo "${{ secrets.APP_MAKERS_API_PROD_YAML }}" > ./application.yaml
+        touch ./application-prod.yaml
+        echo "${{ secrets.APP_MAKERS_API_PROD_PROD_YAML }}" > ./application-prod.yaml
       shell: bash
 
-    - name: app-client-api application-prod.yaml 생성
+    # app-client-api의 설정파일(.yaml) 생성
+    - name: app-client-api application.yaml(prod) 생성
       run: |
         cd ./app-client-api/src/main
         mkdir resources
         cd resources
-        touch ./application-prod.yaml
-        echo "${{ secrets.APP_CLIENT_API_PROD_YAML }}" > ./application-prod.yaml
-
-      shell: bash
-
-    - name: app-client-api application.yaml 생성
-      run: |
-        cd ./app-client-api/src/main/resources
         touch ./application.yaml
-        echo "${{ secrets.APP_PUBLIC_API_YAML }}" > ./application.yaml
+        echo "${{ secrets.APP_CLIENT_API_PROD_YAML }}" > ./application.yaml
+        touch ./application-prod.yaml
+        echo "${{ secrets.APP_CLIENT_API_PROD_PROD_YAML }}" > ./application-prod.yaml
       shell: bash
 
-    - name: app-admin-api application-prod.yaml 생성
+    # app-admin-api의 설정파일(.yaml) 생성
+    - name: app-admin-api application.yaml 생성
       run: |
         cd ./app-admin-api/src/main
         mkdir resources
         cd resources
-        touch ./application-prod.yaml
-        echo "${{ secrets.APP_ADMIN_API_PROD_YAML }}" > ./application-prod.yaml
-
-      shell: bash
-
-    - name: app-admin-api application.yaml 생성
-      run: |
-        cd ./app-admin-api/src/main/resources
         touch ./application.yaml
-        echo "${{ secrets.APP_PUBLIC_API_YAML }}" > ./application.yaml
+        echo "${{ secrets.APP_ADMIN_API_PROD_YAML }}" > ./application.yaml
+        touch ./application-prod.yaml
+        echo "${{ secrets.APP_ADMIN_API_PROD_PROD_YAML }}" > ./application-prod.yaml
       shell: bash
 
 
