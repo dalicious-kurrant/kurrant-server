@@ -4,6 +4,7 @@ import co.dalicious.domain.food.converter.ConfirmStatusConverter;
 import co.dalicious.domain.food.converter.ScheduleStatusConverter;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
+import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -37,6 +38,7 @@ public class PresetMakersDailyFood {
     @Comment("메이커스 서비스일")
     private LocalDate serviceDate;
 
+    @Convert(converter = DiningTypeConverter.class)
     @Column(name = "dining_type")
     @Comment("식단 타입")
     private DiningType diningType;

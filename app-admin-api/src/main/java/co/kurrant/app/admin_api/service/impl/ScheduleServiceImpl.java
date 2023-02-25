@@ -15,6 +15,7 @@ import co.dalicious.domain.recommend.entity.GroupRecommends;
 import co.dalicious.domain.recommend.repository.QGroupRecommendRepository;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDailyFoodDto;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
@@ -34,6 +35,7 @@ import java.math.BigInteger;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -187,52 +189,42 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Transactional(readOnly = true)
     public ItemPageableResponseDto<ScheduleResponseDto> getAllPresetScheduleList(Map<String, Object> parameters, OffsetBasedPageRequest pageable, Integer size, Integer page) {
         // 필터링에서 검증 한 번 해주고
-        BigInteger groupId = !parameters.containsKey("groupId") || parameters.get("groupId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("groupId")));
-        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
+        List<BigInteger> groupIdList = !parameters.containsKey("groupId") || parameters.get("groupId").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("groupId"));
+        List<BigInteger> makerIdList = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersId"));
         ScheduleStatus scheduleStatus = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : ScheduleStatus.ofCode(Integer.parseInt((String) parameters.get("status")));
 
-        Group group = (groupId != null) ? groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)) : null;
-        Makers makers = (makersId != null) ? makersRepository.findById(makersId)
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
+        // PresetMakersDailyFood 페이징 조회
+        Page<PresetMakersDailyFood> allPresetSchedulesPage = qPresetMakersDailyFoodRepository.findAllServiceDateAndConfirmStatusAndFilter(makerIdList, scheduleStatus, pageable, size, page);
 
-        Page<PresetMakersDailyFood> allMakersDailyFood = qPresetMakersDailyFoodRepository.findAllServiceDateAndConfirmStatusAndFilter(makers, scheduleStatus, pageable, size, page);
-        List<PresetScheduleResponseDto> presetScheduleResponseDtoList = new ArrayList<>();
-        if(allMakersDailyFood != null) {
+        // PresetMakersDailyFood가 없는 경우 예외 처리
+        List<PresetScheduleResponseDto> presetScheduleResponseDtoList = Optional.ofNullable(allPresetSchedulesPage)
+                .map(preset -> preset.stream()
+                        .map(makersPreset -> {
+                            List<PresetGroupDailyFood> groupDailyFoods = makersPreset.getPresetGroupDailyFoods();
+                            List<PresetScheduleResponseDto.clientSchedule> clientSchedules = new ArrayList<>();
 
-            for(PresetMakersDailyFood makersDailyFood : allMakersDailyFood) {
-                List<PresetGroupDailyFood> groupDailyFoodList = makersDailyFood.getPresetGroupDailyFoods();
-                List<PresetScheduleResponseDto.clientSchedule> clientScheduleList = new ArrayList<>();
-                for(PresetGroupDailyFood groupDailyFood : groupDailyFoodList) {
-                    List<PresetDailyFood> presetDailyFoodList = groupDailyFood.getPresetDailyFoods();
-                    List<PresetScheduleResponseDto.foodSchedule> foodScheduleList = new ArrayList<>();
-                    if(group == null ) {
-                        for(PresetDailyFood dailyFood : presetDailyFoodList) {
-                            PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
-                            foodScheduleList.add(foodSchedule);
-                        }
-                        PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList);
-                        clientScheduleList.add(clientSchedule);
-                    } else if (group.equals(groupDailyFood.getGroup())) {
-                        for(PresetDailyFood dailyFood : presetDailyFoodList) {
-                            PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
-                            foodScheduleList.add(foodSchedule);
-                        }
-                        PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList);
-                        clientScheduleList.add(clientSchedule);
-                    }
-                }
-                PresetScheduleResponseDto responseDto = presetDailyFoodMapper.toDto(makersDailyFood, clientScheduleList);
-                presetScheduleResponseDtoList.add(responseDto);
-            }
-            ScheduleResponseDto responseDtoList = getScheduleResponseDto(presetScheduleResponseDtoList);
+                            groupDailyFoods.forEach(groupPreset -> {
+                                // groupIds 파라미터가 있을 경우 해당 그룹의 PresetDailyFood만 가져옴
+                                if (groupIdList == null || groupIdList.contains(groupPreset.getGroup().getId())) {
+                                    List<PresetDailyFood> presetDailyFoods = groupPreset.getPresetDailyFoods();
+                                    List<PresetScheduleResponseDto.foodSchedule> foodSchedules = presetDailyFoods.stream()
+                                            .map(presetDailyFoodMapper::toFoodScheduleDto)
+                                            .collect(Collectors.toList());
+                                    PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupPreset, foodSchedules);
+                                    clientSchedules.add(clientSchedule);
+                                }
+                            });
 
-            return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList)
-                    .total(allMakersDailyFood.getTotalPages()).count(allMakersDailyFood.getNumberOfElements())
-                    .limit(pageable.getPageSize()).build();
+                            PresetScheduleResponseDto responseDto = presetDailyFoodMapper.toDto(makersPreset, clientSchedules);
+                            return responseDto;
+                        })
+                        .collect(Collectors.toList()))
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        }
-        throw new ApiException(ExceptionEnum.NOT_FOUND);
+        ScheduleResponseDto responseDtoList = getScheduleResponseDto(presetScheduleResponseDtoList);
+
+        return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList).total(allPresetSchedulesPage.getTotalPages())
+                .count(allPresetSchedulesPage.getNumberOfElements()).limit(pageable.getPageSize()).build();
     }
 
     @Override
