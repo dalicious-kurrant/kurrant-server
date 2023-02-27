@@ -20,10 +20,10 @@ public class SaveUserListRequestDto {
     private String email;
     private String phone;
     private String role;
-    private String status;
+    private Integer status;
     private String groupName;
     private Integer point;
-    private String gourmetType;
+    private Integer gourmetType;
     private Boolean isMembership;
     private Boolean marketingAgree;
     private String marketingAgreedDateTime;
@@ -32,8 +32,6 @@ public class SaveUserListRequestDto {
     private String recentLoginDateTime;
     private String userCreatedDateTime;
 //    private List<ProviderEmail> ProviderEmails;
-
-
 
 
 }

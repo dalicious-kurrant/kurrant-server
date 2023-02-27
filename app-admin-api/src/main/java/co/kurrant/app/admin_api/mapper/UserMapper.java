@@ -87,8 +87,8 @@ public interface UserMapper {
 
 
     @Named("getStatus")
-    default UserStatus getStatus(String status){
-        return UserStatus.valueOf(status);
+    default UserStatus getStatus(Integer status){
+        return UserStatus.ofCode(status);
     }
 
     @Named("generatedDateTime")
@@ -97,8 +97,8 @@ public interface UserMapper {
     }
 
     @Named("generatedGourmetType")
-    default GourmetType generatedGourmetType(String gourmetType){
-        return GourmetType.valueOf(gourmetType);
+    default GourmetType generatedGourmetType(Integer gourmetType){
+        return GourmetType.ofCode(gourmetType);
     }
 
 
