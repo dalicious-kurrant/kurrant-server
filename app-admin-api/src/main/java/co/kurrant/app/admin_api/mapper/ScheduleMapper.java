@@ -66,6 +66,7 @@ public interface ScheduleMapper {
                 groupSchedule.setServiceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate()));
                 groupSchedule.setDiningType(diningTypeServiceDateDto.getDiningType().getCode());
                 groupSchedule.setGroupId(group.getId());
+                groupSchedule.setGroupName(group.getName());
                 groupSchedule.setGroupCapacity(userGroupCount.get(group));
                 groupSchedule.setDeliveryTime(getEarliestDeliveryTime(group, diningTypeServiceDateDto.getDiningType()));
                 groupSchedule.setMakersSchedules(makersSchedules);
@@ -80,7 +81,7 @@ public interface ScheduleMapper {
         Optional<CapacityDto.MakersCapacity> makersCapacityOptional = makersCapacityList.stream()
                 .filter(v -> v.getMakers().equals(makers))
                 .findAny();
-        if(makersCapacityOptional.isEmpty()) return null;
+        if (makersCapacityOptional.isEmpty()) return null;
         return makersCapacityOptional.get().getCapacity();
     }
 
@@ -101,6 +102,10 @@ public interface ScheduleMapper {
     default ScheduleDto.FoodSchedule toFoodSchedule(DailyFood dailyFood, Integer count) {
         ScheduleDto.FoodSchedule foodSchedule = new ScheduleDto.FoodSchedule();
         foodSchedule.setFoodId(dailyFood.getFood().getId());
+        foodSchedule.setFoodCapacity(dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()) == null ?
+                dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getCapacity() :
+                dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getCapacity()
+        );
         foodSchedule.setFoodName(dailyFood.getFood().getName());
         foodSchedule.setFoodStatus(dailyFood.getFood().getFoodStatus().getCode());
         foodSchedule.setFoodCount(count);

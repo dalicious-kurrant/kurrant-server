@@ -59,22 +59,22 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
-    public List<DailyFood> findAllByGroupAndMakersBetweenServiceDate(LocalDate startDate, LocalDate endDate, Group group, Makers makers) {
+    public List<DailyFood> findAllByGroupAndMakersBetweenServiceDate(LocalDate startDate, LocalDate endDate, List<BigInteger> groupIds, List<BigInteger> makersIds) {
         BooleanBuilder whereClause = new BooleanBuilder();
-        if(startDate != null) {
+        if (startDate != null) {
             whereClause.and(dailyFood.serviceDate.goe(startDate));
         }
 
-        if(endDate != null) {
+        if (endDate != null) {
             whereClause.and(dailyFood.serviceDate.loe(endDate));
         }
 
-        if(group != null) {
-            whereClause.and(dailyFood.group.eq(group));
+        if (groupIds != null && !groupIds.isEmpty()) {
+            whereClause.and(dailyFood.group.id.in(groupIds));
         }
 
-        if(makers != null) {
-            whereClause.and(dailyFood.food.makers.eq(makers));
+        if (makersIds != null && !makersIds.isEmpty()) {
+            whereClause.and(dailyFood.food.makers.id.in(makersIds));
         }
 
         return queryFactory.selectFrom(dailyFood)
