@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class CorporationListDto {
+public class GroupListDto {
     private BigInteger id;
     private String code;
     private String name;
