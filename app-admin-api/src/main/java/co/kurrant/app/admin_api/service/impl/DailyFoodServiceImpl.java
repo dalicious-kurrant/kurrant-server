@@ -15,6 +15,7 @@ import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.ScheduleDto;
+import co.kurrant.app.admin_api.mapper.ScheduleMapper;
 import co.kurrant.app.admin_api.service.DailyFoodService;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -32,6 +33,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final QPresetDailyFoodRepository qPresetDailyFoodRepository;
     private final CapacityMapper capacityMapper;
     private final DailyFoodMapper dailyFoodMapper;
+    private final ScheduleMapper scheduleMapper;
     private final MakersScheduleRepository makersScheduleRepository;
     private final FoodScheduleRepository foodScheduleRepository;
     private final DailyFoodRepository dailyFoodRepository;
@@ -96,6 +98,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
         List<CapacityDto.MakersCapacity> makersCapacities = qOrderDailyFoodRepository.getMakersCounts(dailyFoods);
         Map<Group, Integer> userGroupCount = qUserGroupRepository.userCountsInGroup(groups);
+
+        scheduleMapper.toGroupSchedule(dailyFoods, remainFoodCount, makersCapacities, userGroupCount);
 
         return null;
     }

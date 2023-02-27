@@ -1,8 +1,10 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.dto.CapacityDto;
 import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -11,13 +13,16 @@ import org.mapstruct.Mapper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
 public interface ScheduleMapper {
-    default List<ScheduleDto.GroupSchedule> toGroupSchedule(List<DailyFood> dailyFoods, Map<DailyFood, Integer> dailyFoodMap) {
+    default List<ScheduleDto.GroupSchedule> toGroupSchedule(List<DailyFood> dailyFoods, Map<DailyFood, Integer> dailyFoodMap,
+                                                            List<CapacityDto.MakersCapacity> makersCapacities, Map<Group, Integer> userGroupCount) {
         MultiValueMap<DiningTypeServiceDateDto, DailyFood> dailyFoodByServiceMap = new LinkedMultiValueMap<>();
         // 식사 날짜/식사 일정 별로 식단 묶기
         for (DailyFood dailyFood : dailyFoods) {
@@ -47,27 +52,51 @@ public interface ScheduleMapper {
                 for (Makers makers : makersDailyFoodMap.keySet()) {
                     List<ScheduleDto.FoodSchedule> foodSchedules = new ArrayList<>();
                     List<DailyFood> makersDailyFoods = makersDailyFoodMap.get(makers);
+                    Integer makersCount = getMakersCount(makers, makersCapacities);
                     for (DailyFood makersDailyFood : makersDailyFoods) {
                         Integer count = dailyFoodMap.get(makersDailyFood);
                         ScheduleDto.FoodSchedule foodSchedule = toFoodSchedule(makersDailyFood, count);
                         foodSchedules.add(foodSchedule);
                     }
-                    ScheduleDto.MakersSchedule makersSchedule = toMakersSchedule(makers, diningTypeServiceDateDto.getDiningType(), foodSchedules);
+                    ScheduleDto.MakersSchedule makersSchedule = toMakersSchedule(makers, diningTypeServiceDateDto.getDiningType(), makersCount, foodSchedules);
                     makersSchedules.add(makersSchedule);
                 }
+
                 ScheduleDto.GroupSchedule groupSchedule = new ScheduleDto.GroupSchedule();
                 groupSchedule.setServiceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate()));
                 groupSchedule.setDiningType(diningTypeServiceDateDto.getDiningType().getCode());
                 groupSchedule.setGroupId(group.getId());
-                groupSchedule.setGroupCapacity(100); //TODO: 설정 필요
-                groupSchedule.setDeliveryTime("9:00"); //TODO: 스팟 배송이 가장 빠른 배송시간
+                groupSchedule.setGroupCapacity(userGroupCount.get(group));
+                groupSchedule.setDeliveryTime(getEarliestDeliveryTime(group, diningTypeServiceDateDto.getDiningType()));
                 groupSchedule.setMakersSchedules(makersSchedules);
 
                 groupSchedules.add(groupSchedule);
             }
         }
         return groupSchedules;
-    };
+    }
+
+    default Integer getMakersCount(Makers makers, List<CapacityDto.MakersCapacity> makersCapacityList) {
+        Optional<CapacityDto.MakersCapacity> makersCapacityOptional = makersCapacityList.stream()
+                .filter(v -> v.getMakers().equals(makers))
+                .findAny();
+        if(makersCapacityOptional.isEmpty()) return null;
+        return makersCapacityOptional.get().getCapacity();
+    }
+
+    default String getEarliestDeliveryTime(Group group, DiningType diningType) {
+        List<Spot> spots = group.getSpots();
+        LocalTime earliestDeliveryTime = LocalTime.MAX; // initialize to a value later than any possible delivery time
+
+        for (Spot spot : spots) {
+            LocalTime deliveryTime = spot.getDeliveryTime(diningType);
+            if (deliveryTime.isBefore(earliestDeliveryTime)) {
+                earliestDeliveryTime = deliveryTime;
+            }
+        }
+
+        return DateUtils.timeToString(earliestDeliveryTime);
+    }
 
     default ScheduleDto.FoodSchedule toFoodSchedule(DailyFood dailyFood, Integer count) {
         ScheduleDto.FoodSchedule foodSchedule = new ScheduleDto.FoodSchedule();
@@ -78,13 +107,13 @@ public interface ScheduleMapper {
         return foodSchedule;
     }
 
-    default ScheduleDto.MakersSchedule toMakersSchedule(Makers makers, DiningType diningType, List<ScheduleDto.FoodSchedule> foodSchedules) {
+    default ScheduleDto.MakersSchedule toMakersSchedule(Makers makers, DiningType diningType, Integer makersCount, List<ScheduleDto.FoodSchedule> foodSchedules) {
         ScheduleDto.MakersSchedule makersSchedule = new ScheduleDto.MakersSchedule();
         makersSchedule.setMakersId(makers.getId());
         makersSchedule.setMakersName(makers.getName());
         makersSchedule.setMakersCapacity(makers.getMakersCapacity(diningType).getCapacity()); //TODO: 설정 필요
-        makersSchedule.setMakersCount(makers.getMakersCapacity(diningType).getCapacity()); //TODO: 설정 필요
-        makersSchedule.setMakersPickupTime("08:00"); //TODO: 설정 필요
+        makersSchedule.setMakersCount(makersCount);
+        makersSchedule.setMakersPickupTime(makers.getPickupTimeString(diningType));
         makersSchedule.setFoodSchedules(foodSchedules);
         return makersSchedule;
     }
