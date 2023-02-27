@@ -99,8 +99,6 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<CapacityDto.MakersCapacity> makersCapacities = qOrderDailyFoodRepository.getMakersCounts(dailyFoods);
         Map<Group, Integer> userGroupCount = qUserGroupRepository.userCountsInGroup(groups);
 
-        scheduleMapper.toGroupSchedule(dailyFoods, remainFoodCount, makersCapacities, userGroupCount);
-
-        return null;
+        return scheduleMapper.toGroupSchedule(dailyFoods, remainFoodCount, makersCapacities, userGroupCount);
     }
 }
