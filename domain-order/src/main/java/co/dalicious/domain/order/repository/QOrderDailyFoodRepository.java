@@ -37,6 +37,7 @@ import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
+import static com.querydsl.core.group.GroupBy.sum;
 
 
 @Repository
@@ -205,7 +206,7 @@ public class QOrderDailyFoodRepository {
         List<Tuple> result = queryFactory.select(orderItemDailyFood.dailyFood.serviceDate,
                         orderItemDailyFood.dailyFood.diningType,
                         food.makers,
-                        orderItemDailyFood.count.sum())
+                        sum(orderItemDailyFood.count))
                 .from(orderItemDailyFood)
                 .join(orderItemDailyFood.dailyFood, dailyFood)
                 .join(dailyFood.food, food)
@@ -222,7 +223,7 @@ public class QOrderDailyFoodRepository {
             LocalDate serviceDate = tuple.get(orderItemDailyFood.dailyFood.serviceDate);
             DiningType diningType = tuple.get(orderItemDailyFood.dailyFood.diningType);
             Makers makers = tuple.get(food.makers);
-            Integer capacity = tuple.get(orderItemDailyFood.count.sum());
+            Integer capacity = tuple.get(sum(orderItemDailyFood.count));
             makersCapacities.add(new CapacityDto.MakersCapacity(serviceDate, diningType, makers, capacity));
         }
 

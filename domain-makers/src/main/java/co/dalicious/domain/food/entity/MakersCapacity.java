@@ -14,6 +14,7 @@ import java.math.BigInteger;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "makers__makers_capacity")
 public class MakersCapacity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
