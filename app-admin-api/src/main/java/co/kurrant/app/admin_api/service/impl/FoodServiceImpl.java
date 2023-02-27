@@ -123,12 +123,10 @@ public class FoodServiceImpl implements FoodService {
             List<String> foodTagStrs = foodListDto.getFoodTags();
             if(foodTagStrs == null) foodTags = null;
             else { for (String tag : foodTagStrs) foodTags.add(FoodTag.ofString(tag)); }
+            Makers makers = makersRepository.findById(foodListDto.getMakersId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
 
             // 기존 푸드가 없으면 생성
             if(food == null) {
-                Makers makers = makersRepository.findById(foodListDto.getMakersId()).orElseThrow(
-                        () -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)
-                );
                 BigDecimal customPrice = BigDecimal.ZERO;
 
                 // 푸드 생성
@@ -157,7 +155,7 @@ public class FoodServiceImpl implements FoodService {
             // food가 있으면
             else {
                 //food UPDATE
-                food.updateFoodMass(foodListDto, foodTags);
+                food.updateFoodMass(foodListDto, foodTags, makers);
                 foodRepository.save(food);
 
                 //food discount policy UPDATE
