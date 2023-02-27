@@ -1,6 +1,5 @@
 package co.dalicious.domain.food.dto;
 
-import co.dalicious.domain.file.dto.ImageCreateRequestDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +14,7 @@ public class MakersFoodDetailReqDto {
     private BigDecimal defaultPrice;
     private Integer makersDiscountRate;
     private Integer periodDiscountRate;
+    private String description;
     private List<Integer> foodTags;
     private BigDecimal customPrice;
     private Integer morningCapacity;

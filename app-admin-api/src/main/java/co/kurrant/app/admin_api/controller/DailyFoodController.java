@@ -25,9 +25,10 @@ public class DailyFoodController {
     }
 
     @Operation(summary = "식단 조회", description = "")
-    @GetMapping("/dailyFoods")
-    public ResponseMessage getDailyFoods(Map<String, Objects> parameters) {
+    @GetMapping("")
+    public ResponseMessage getDailyFoods(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
+                .data(dailyFoodService.getDailyFoods(parameters))
                 .message("식단 조회에 성공하였습니다.")
                 .build();
     }

@@ -130,6 +130,7 @@ public class Food {
         this.price = makersFoodDetailReqDto.getDefaultPrice();
         this.foodTags = FoodTag.ofCodes(makersFoodDetailReqDto.getFoodTags());
         this.customPrice = makersFoodDetailReqDto.getCustomPrice();
+        this.description = makersFoodDetailReqDto.getDescription();
     }
 
     public void updateImages(List<Image> images) {
