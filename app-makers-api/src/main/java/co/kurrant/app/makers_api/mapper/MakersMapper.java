@@ -3,15 +3,26 @@ package co.kurrant.app.makers_api.mapper;
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.enums.ServiceType;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.springframework.data.geo.Point;
+
+import java.sql.Timestamp;
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface MakersMapper {
 
-    @Mapping(source = "makers.updatedDateTime", target = "updatedDateTime")
-    @Mapping(source = "makers.createdDateTime", target = "createdDateTime")
+    @Mapping(source = "diningTypes", target = "diningTypes")
+    @Mapping(source = "makers.address.location", target = "location", qualifiedByName = "getLocation")
+    @Mapping(source = "makers.address.address2", target = "address2")
+    @Mapping(source = "makers.address.address1", target = "address1")
+    @Mapping(source = "makers.address.zipCode", target = "zipCode")
+    @Mapping(source = "makers.updatedDateTime", target = "updatedDateTime", qualifiedByName = "TimeFormat")
+    @Mapping(source = "makers.createdDateTime", target = "createdDateTime", qualifiedByName = "TimeFormat")
     @Mapping(source = "makers.accountNumber", target = "accountNumber")
     @Mapping(source = "makers.depositHolder", target = "depositHolder")
     @Mapping(source = "makers.bank", target = "bank")
@@ -34,19 +45,24 @@ public interface MakersMapper {
     @Mapping(source = "makers.name", target = "name")
     @Mapping(source = "makers.code", target = "code")
     @Mapping(source = "makers.id", target = "id")
-    MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity);
+    MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<DiningType> diningTypes);
 
     @Named("generatedServiceType")
     default Integer generatedServiceType(ServiceType serviceType){
         return serviceType.getCode();
     }
 
+    @Named("TimeFormat")
+    default String TimeFormat(Timestamp time){
+        return DateUtils.format(time, "yyyy-MM-dd, HH:mm:ss");
+    }
+
+    @Named("getLocation")
+    default String getLocation(Point location){
+        if (location == null){
+            return "null";
+        }
+        return location.toString();
+    }
+
 }
-
-
-/*
-@Mapping(source = "makers.location", target = "location")
-@Mapping(source = "makers.address2", target = "address2")
-@Mapping(source = "makers.address1", target = "address1")
-@Mapping(source = "makers.zipCode", target = "zipCode")
-*/

@@ -19,6 +19,8 @@ public class UserInfoResponseDto {
     private String userName;
     @Schema(description = "유저타입")
     private String role;
+    @Schema(description = "탈퇴 상태")
+    private Integer status;
     @Schema(description = "휴대폰 번호")
     private String phone;
     @Schema(description = "이메일")

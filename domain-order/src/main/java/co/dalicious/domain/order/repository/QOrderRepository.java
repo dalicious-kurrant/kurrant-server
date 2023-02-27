@@ -55,7 +55,7 @@ public class QOrderRepository {
 
     public long orderCheck(User deleteUser) {
         return queryFactory.delete(order)
-                .where(order.id.eq(deleteUser.getId()))
+                .where(order.user.id.eq(deleteUser.getId()))
                 .execute();
     }
 }
