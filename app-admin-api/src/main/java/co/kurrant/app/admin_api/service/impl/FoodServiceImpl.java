@@ -126,7 +126,10 @@ public class FoodServiceImpl implements FoodService {
     @Transactional
     public void updateFoodMass(List<FoodListDto> foodListDtoList) {
         for(FoodListDto foodListDto : foodListDtoList) {
-            Food food = foodRepository.findById(foodListDto.getFoodId()).orElse(null);
+            Food food = null;
+            if(foodListDto.getFoodId() != null) {
+                food = foodRepository.findById(foodListDto.getFoodId()).orElse(null);
+            }
 
             List<FoodTag> foodTags = new ArrayList<>();
             List<String> foodTagStrs = foodListDto.getFoodTags();

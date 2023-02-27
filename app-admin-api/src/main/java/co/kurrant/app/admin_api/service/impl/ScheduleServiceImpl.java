@@ -93,15 +93,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
                     // 수정할 데이터이면 푸드 스테이터스 변경
                     if(existGroupPresetDataList.containsKey(groupPresetDto)) {
-                        List<PresetDailyFood> existPresetDailyFood = existGroupPresetDataList.get(groupPresetDto).getPresetDailyFoods();
-                        for(PresetDailyFood presetDailyFood : existPresetDailyFood) {
-                            for(ExcelPresetDailyFoodDto.ExcelData updateData : Objects.requireNonNull(updatePresetDataList)) {
-                                if(updateData.getFoodName().equals(presetDailyFood.getFood().getName())) {
-                                    presetDailyFood.updateStatus(ScheduleStatus.ofCode(updateData.getFoodScheduleStatus()));
-                                    presetDailyFoodRepository.save(presetDailyFood);
-                                }
-                            }
-                        }
+                        updatePresetGroupDailyFood(existGroupPresetDataList, groupPresetDto, updatePresetDataList);
                     }
                     // 생성해야 할 데이터면 생성
                     else {
@@ -285,15 +277,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
                     // 수정할 데이터이면 푸드 스테이터스 변경
                     if(existGroupPresetDataList.containsKey(groupPresetDto)) {
-                        List<PresetDailyFood> existPresetDailyFood = existGroupPresetDataList.get(groupPresetDto).getPresetDailyFoods();
-                        for(PresetDailyFood presetDailyFood : existPresetDailyFood) {
-                            for(ExcelPresetDailyFoodDto.ExcelData updateData : Objects.requireNonNull(updatePresetDataList)) {
-                                if(updateData.getFoodName().equals(presetDailyFood.getFood().getName())) {
-                                    presetDailyFood.updateStatus(ScheduleStatus.ofCode(updateData.getFoodScheduleStatus()));
-                                    presetDailyFoodRepository.save(presetDailyFood);
-                                }
-                            }
-                        }
+                        updatePresetGroupDailyFood(existGroupPresetDataList, groupPresetDto, updatePresetDataList);
                     }
                     // 생성해야 할 데이터면 생성
                     else {
@@ -367,6 +351,18 @@ public class ScheduleServiceImpl implements ScheduleService {
         for(ExcelPresetDailyFoodDto.ExcelData data : dataList) {
             ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(data);
             makersGrouping.add(excelPresetDto, data);
+        }
+    }
+
+    private void updatePresetGroupDailyFood(Map<ExcelPresetDto.ExcelGroupDataDto, PresetGroupDailyFood> existGroupPresetDataList, ExcelPresetDto.ExcelGroupDataDto groupPresetDto, List<ExcelPresetDailyFoodDto.ExcelData> updatePresetDataList) {
+        List<PresetDailyFood> existPresetDailyFood = existGroupPresetDataList.get(groupPresetDto).getPresetDailyFoods();
+        for(PresetDailyFood presetDailyFood : existPresetDailyFood) {
+            for(ExcelPresetDailyFoodDto.ExcelData updateData : Objects.requireNonNull(updatePresetDataList)) {
+                if(updateData.getFoodName().equals(presetDailyFood.getFood().getName())) {
+                    presetDailyFood.updateStatus(ScheduleStatus.ofCode(updateData.getFoodScheduleStatus()));
+                    presetDailyFoodRepository.save(presetDailyFood);
+                }
+            }
         }
     }
 }
