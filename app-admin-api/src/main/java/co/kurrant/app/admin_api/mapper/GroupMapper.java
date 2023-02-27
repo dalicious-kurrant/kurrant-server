@@ -1,14 +1,11 @@
 package co.kurrant.app.admin_api.mapper;
 
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MealInfo;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
-import co.kurrant.app.admin_api.dto.client.CorporationListDto;
+import co.kurrant.app.admin_api.dto.client.GroupListDto;
 import org.mapstruct.*;
 
 import java.util.HashSet;
@@ -86,7 +83,22 @@ public interface GroupMapper {
     @Mapping(source = "corporation.isHotStorage", target = "isHotStorage")
     @Mapping(target = "createdDateTime", expression = "java(DateUtils.toISO(corporation.getCreatedDateTime()))")
     @Mapping(target = "updatedDateTime", expression = "java(DateUtils.toISO(corporation.getUpdatedDateTime()))")
-    CorporationListDto toCorporationListDto(Corporation corporation, User managerUser);
+    GroupListDto toCorporationListDto(Corporation corporation, User managerUser);
+
+    @Mapping(source = "apartment.id", target = "id")
+    @Mapping(source = "apartment.name", target = "name")
+    @Mapping(source = "apartment.address.zipCode", target = "zipCode")
+    @Mapping(source = "apartment.address.address1", target = "address1")
+    @Mapping(source = "apartment.address.address2", target = "address2")
+    @Mapping( target = "location", expression = "java(String.valueOf(apartment.getAddress().getLocation()))")
+    @Mapping(source = "apartment.diningTypes", target = "diningTypes", qualifiedByName = "getDiningCodeList")
+    @Mapping(source = "apartment.spots", target = "serviceDays", qualifiedByName = "serviceDayToString")
+    @Mapping(source = "managerUser.name", target = "managerName")
+    @Mapping(source = "managerUser.phone", target = "managerPhone")
+    @Mapping(source = "apartment.familyCount", target = "employeeCount")
+    @Mapping(target = "createdDateTime", expression = "java(DateUtils.toISO(apartment.getCreatedDateTime()))")
+    @Mapping(target = "updatedDateTime", expression = "java(DateUtils.toISO(apartment.getUpdatedDateTime()))")
+    GroupListDto toApartmentListDto(Apartment apartment, User managerUser);
 
     @Named("getDiningCodeList")
     default List<Integer> getDiningCodeList(List<DiningType> diningTypeList) {
