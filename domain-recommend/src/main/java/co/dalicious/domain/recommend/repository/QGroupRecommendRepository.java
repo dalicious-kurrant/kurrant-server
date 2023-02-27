@@ -46,7 +46,5 @@ public class QGroupRecommendRepository {
                         groupRecommends.serviceDate.eq(serviceDate))
                         .set(groupRecommends.isReject, 1)
                         .execute();
-
-
     }
 }
