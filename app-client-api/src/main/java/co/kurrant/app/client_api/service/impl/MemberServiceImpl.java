@@ -65,7 +65,7 @@ public class MemberServiceImpl implements MemberService {
     private final EmployeeHistoryRepository employeeHistoryRepository;
 
     @Override
-    public ListItemResponseDto<MemberListResponseDto> getUserList(String code, OffsetBasedPageRequest pageable) {
+    public List<MemberListResponseDto> getUserList(String code) {
 
         //code로 CorporationId 찾기 (=GroupId)
         BigInteger corporationId = qCorporationRepository.findOneByCode(code);
@@ -73,36 +73,32 @@ public class MemberServiceImpl implements MemberService {
         //corporationId로 GroupName 가져오기
         String userGroupName = qUserGroupRepository.findNameById(corporationId);
             //groupID로 user목록 조회
-        Page<User> groupUserList = qUserGroupRepository.findAllByGroupId(corporationId, pageable);
+        List<User> groupUserList = qUserGroupRepository.findAllByGroupId(corporationId);
 
 
         groupUserList.stream().filter(u -> u.getUserStatus().getCode() != 0)
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        List<MemberListResponseDto> memberListResponseList = groupUserList.get()
+        List<MemberListResponseDto> memberListResponseList = groupUserList.stream()
                 .map((user) -> memberMapper.toMemberListDto(user, userGroupName)).collect(Collectors.toList());
 
 
-        return ListItemResponseDto.<MemberListResponseDto>builder().items(memberListResponseList)
-                .total(groupUserList.getTotalElements()).count(groupUserList.getNumberOfElements())
-                .limit(pageable.getPageSize()).offset(pageable.getOffset()).build();
+        return memberListResponseList;
     }
 
     @Override
-    public ListItemResponseDto<MemberWaitingListResponseDto> getWaitingUserList(String code, OffsetBasedPageRequest pageable) {
+    public List<MemberWaitingListResponseDto> getWaitingUserList(String code) {
 
         //code로 CorporationId 찾기 (=GroupId)
         BigInteger corporationId = qCorporationRepository.findOneByCode(code);
         //corpId로 employee 대기유저 목록 조회
-        Page<Employee> employeeList = qEmployeeRepository.findAllByCorporationId(corporationId,pageable);
+        List<Employee> employeeList = qEmployeeRepository.findAllByCorporationId(corporationId);
 
-        List<MemberWaitingListResponseDto> waitingListResponseDtoList = employeeList.get()
+        List<MemberWaitingListResponseDto> waitingListResponseDtoList = employeeList.stream()
                 .map(memberMapper::toMemberWaitingListDto).toList();
 
-        return ListItemResponseDto.<MemberWaitingListResponseDto>builder().items(waitingListResponseDtoList)
-                .total(employeeList.getTotalElements()).count(employeeList.getNumberOfElements())
-                .limit(pageable.getPageSize()).offset(pageable.getOffset()).build();
+        return waitingListResponseDtoList;
     }
 
     @Override

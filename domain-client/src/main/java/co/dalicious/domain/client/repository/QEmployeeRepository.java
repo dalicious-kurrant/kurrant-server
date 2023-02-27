@@ -22,13 +22,9 @@ public class QEmployeeRepository {
     private final JPAQueryFactory queryFactory;
 
 
-    public Page<Employee> findAllByCorporationId(BigInteger corporationId, Pageable pageable) {
-        QueryResults<Employee> results = queryFactory.selectFrom(employee)
+    public List<Employee> findAllByCorporationId(BigInteger corporationId) {
+        return queryFactory.selectFrom(employee)
                 .where(employee.corporation.id.eq(corporationId))
-                .limit(pageable.getPageSize())
-                .offset(pageable.getOffset())
-                .fetchResults();
-
-        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+                .fetch();
     }
 }

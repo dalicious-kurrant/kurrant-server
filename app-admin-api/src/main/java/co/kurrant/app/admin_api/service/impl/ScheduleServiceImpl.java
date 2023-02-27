@@ -15,6 +15,7 @@ import co.dalicious.domain.recommend.entity.GroupRecommends;
 import co.dalicious.domain.recommend.repository.QGroupRecommendRepository;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDailyFoodDto;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
@@ -34,6 +35,7 @@ import java.math.BigInteger;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -57,126 +59,64 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         // 서비스날, 식사 타입, 메이커스로 몪고. - makers
         MultiValueMap<ExcelPresetDto, ExcelPresetDailyFoodDto.ExcelData> makersGrouping = new LinkedMultiValueMap<>();
-        for(ExcelPresetDailyFoodDto.ExcelData data : dataList) {
-            ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(data);
-            makersGrouping.add(excelPresetDto, data);
-        }
+        goupingByMakersAndServiceDateAndDiningType(dataList, makersGrouping);
         // 서비스날, 식사 타입, 메이커스, 그룹으로 묶고. - group
         MultiValueMap<ExcelPresetDto.ExcelGroupDataDto, ExcelPresetDailyFoodDto.ExcelData> groupGrouping = new LinkedMultiValueMap<>();
-        for(ExcelPresetDailyFoodDto.ExcelData data : dataList) {
-            ExcelPresetDto.ExcelGroupDataDto groupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(data);
-            groupGrouping.add(groupDataDto, data);
-        }
-
-        // 수정해야할 데이터인지 확인
-        // 1. 마감시간이 지나지 않은 최근 생성되 데이터를 찾기
+        groupingByGroupAndMakersAndServiceDateAndDiningType(dataList, groupGrouping);
+        // 현재 있는 데이터를 찾아오기
         List<PresetMakersDailyFood> existMakersDailyFoodList = qPresetMakersDailyFoodRepository.findByServiceDateAndConfirmStatus();
-        List<ExcelPresetDailyFoodDto.ExcelData> index = new ArrayList<>();
-        // 2. 데이터가 있으면
-        if(existMakersDailyFoodList != null) {
-            // 3. 그룹핑한 데이터를 기준으로 메이커스를 만들거나 수정
-            for(PresetMakersDailyFood makersDailyFood : existMakersDailyFoodList) {
-                // 기존 내용을 가진 key가 있으면 해당 내용 수정
-                ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(makersDailyFood); // 기존 것을 가지고 만든 키
-                for(ExcelPresetDto presetDto : makersGrouping.keySet()) {
-                    if(excelPresetDto.equals(presetDto)) { // 같은게 존재하면
-                        // 값 중 처음 것을 가져와서 상태를 변경하고 for-loop 나가기
-                        ExcelPresetDailyFoodDto.ExcelData firstMakersPreset =  Objects.requireNonNull(makersGrouping.get(presetDto)).stream().findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-                        makersDailyFood.updatePresetMakersDailyFood(ScheduleStatus.ofCode(firstMakersPreset.getMakersScheduleStatus()), DateUtils.stringToLocalDateTime(dtoList.getDeadline()), ConfirmStatus.REQUEST);
-                        presetMakersDailyFoodRepository.save(makersDailyFood);
-                        break;
-                    }
+        Map<ExcelPresetDto, PresetMakersDailyFood> existPresetDataList = groupingExistPresetMakersDailyFoodData(existMakersDailyFoodList);
+
+        for(ExcelPresetDto presetDto : makersGrouping.keySet()) {
+            // 동일한 메이커스, 서비스 날, 식사타입을 가진 실제 데이터가 있다면 수정
+            List<ExcelPresetDailyFoodDto.ExcelData> updateMakersDataList = makersGrouping.get(presetDto);
+            ExcelPresetDailyFoodDto.ExcelData makersUpdateData = Objects.requireNonNull(updateMakersDataList).get(0);
+
+            Makers makers = makersRepository.findByName(presetDto.getMakersName());
+            if(makers == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
+
+            if(existPresetDataList.containsKey(presetDto)) {
+                PresetMakersDailyFood existMakersPreset = existPresetDataList.get(presetDto);
+                existMakersPreset.updatePresetMakersDailyFood(ScheduleStatus.ofCode(makersUpdateData.getMakersScheduleStatus()), DateUtils.stringToLocalDateTime(dtoList.getDeadline()), ConfirmStatus.REQUEST);
+                presetMakersDailyFoodRepository.save(existMakersPreset);
+
+                // group preset daily food
+                List<PresetGroupDailyFood> existGroupPreset = existMakersPreset.getPresetGroupDailyFoods();
+                Map<ExcelPresetDto.ExcelGroupDataDto, PresetGroupDailyFood> existGroupPresetDataList = new HashMap<>();
+                for(PresetGroupDailyFood presetGroupDailyFood : existGroupPreset) {
+                    existGroupPresetDataList.put(ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(existMakersPreset, presetGroupDailyFood), presetGroupDailyFood);
                 }
-                // 4.preset daily food 상태 바꾸기
-                List<PresetGroupDailyFood> groupDailyFoodList = makersDailyFood.getPresetGroupDailyFoods();
-                for(PresetGroupDailyFood groupDailyFood : groupDailyFoodList) {
-                    ExcelPresetDto.ExcelGroupDataDto excelGroupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(makersDailyFood, groupDailyFood); // 기존 그룹이 가지고 있던 키
-                    List<PresetDailyFood> dailyFoods = groupDailyFood.getPresetDailyFoods();
-                    for(ExcelPresetDto.ExcelGroupDataDto groupDataDto : groupGrouping.keySet()) {
-                        // 서비스 날, 식사 타입, 메이커스, 그룹이 동일한 키를 가지고 있으면
-                        if(excelGroupDataDto.equals(groupDataDto)) {
-                            //값을 가져와서
-                            List<ExcelPresetDailyFoodDto.ExcelData> groupGroupingValueList = groupGrouping.get(groupDataDto);
-                            if(groupGroupingValueList != null) {
-                                for(PresetDailyFood dailyFood : dailyFoods) {
-                                    //푸드의 schedule status 를 변경
-                                    for(ExcelPresetDailyFoodDto.ExcelData value : groupGroupingValueList) {
-                                        if(dailyFood.getFood().getName().equals(value.getFoodName())) {
-                                            dailyFood.updateStatus(ScheduleStatus.ofCode(value.getFoodScheduleStatus()));
-                                            presetDailyFoodRepository.save(dailyFood);
-                                            index.add(value);
-                                        }
-                                    }
-                                }
-                            }
+
+                // 수정할 데이터인지 확인
+                for(ExcelPresetDto.ExcelGroupDataDto groupPresetDto : groupGrouping.keySet()) {
+                    List<ExcelPresetDailyFoodDto.ExcelData> updatePresetDataList = groupGrouping.get(groupPresetDto);
+
+                    // 수정할 데이터이면 푸드 스테이터스 변경
+                    if(existGroupPresetDataList.containsKey(groupPresetDto)) {
+                        updatePresetGroupDailyFood(existGroupPresetDataList, groupPresetDto, updatePresetDataList);
+                    }
+                    // 생성해야 할 데이터면 생성
+                    else {
+                        if(groupPresetDto.getServiceDate().equals(presetDto.getServiceDate()) &&
+                                groupPresetDto.getDiningType().equals(presetDto.getDiningType()) &&
+                                groupPresetDto.getMakersName().equals(presetDto.getMakersName())) {
+                            createPresetGroupDailyFood(makers, existMakersPreset, groupPresetDto, updatePresetDataList);
                         }
                     }
-
                 }
             }
-        }
+            // 동일한 메이커스, 서비스 날, 식사 타입을 가진 실제 데이터가 없다면 생성
+            else {
+                PresetMakersDailyFood newPresetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, makersUpdateData.getMakersScheduleStatus(), makers, dtoList.getDeadline(), ConfirmStatus.REQUEST);
+                presetMakersDailyFoodRepository.save(newPresetMakersDailyFood);
 
-        //생성 - 이미 수정 혹은 생성되어서 index 에 들어간 excel data 를 제외하고 생성
-        dataList.removeAll(index);
-        if(dataList.size() != 0) {
-            MultiValueMap<ExcelPresetDto, ExcelPresetDailyFoodDto.ExcelData> makersGroupingList = new LinkedMultiValueMap<>();
-            for(ExcelPresetDailyFoodDto.ExcelData data : dataList) {
-                ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(data);
-                makersGroupingList.add(excelPresetDto, data);
-            }
-            // 서비스날, 식사 타입, 메이커스, 그룹으로 묶고. - group
-            MultiValueMap<ExcelPresetDto.ExcelGroupDataDto, ExcelPresetDailyFoodDto.ExcelData> groupGroupingList = new LinkedMultiValueMap<>();
-            for(ExcelPresetDailyFoodDto.ExcelData data : dataList) {
-                ExcelPresetDto.ExcelGroupDataDto groupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(data);
-                groupGroupingList.add(groupDataDto, data);
-            }
-
-            // preset makers food daily
-            List<PresetMakersDailyFood> presetMakersDailyFoods = new ArrayList<>();
-            for(ExcelPresetDto presetDto : makersGroupingList.keySet()) {
-                List<ExcelPresetDailyFoodDto.ExcelData> excelDataList = makersGroupingList.get(presetDto);
-                if(excelDataList != null) {
-                    Makers makers = makersRepository.findByName(presetDto.getMakersName());
-                    // makers 가 없으면
-                    if(makers == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
-
-                    ExcelPresetDailyFoodDto.ExcelData excelData = excelDataList.get(0);
-                    PresetMakersDailyFood presetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, excelData.getMakersScheduleStatus(), makers, dtoList.getDeadline(), ConfirmStatus.REQUEST);
-                    presetMakersDailyFoodRepository.save(presetMakersDailyFood);
-                    presetMakersDailyFoods.add(presetMakersDailyFood);
-                }
-            }
-
-            // preset group food daily
-            for(ExcelPresetDto.ExcelGroupDataDto groupDataDto : groupGroupingList.keySet()) {
-                List<ExcelPresetDailyFoodDto.ExcelData> excelDataList = groupGroupingList.get(groupDataDto);
-                Group group = groupRepository.findByName(groupDataDto.getGroupName());
-                // group 이 없으면
-                if(group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
-
-                // 앞에서 생성한 preset makers 의 서비스날, 메이커스, 식사 타입과 키가 가지고 있는 그룹의 내용이 동일한 preset makers 를 찾는다.
-                PresetMakersDailyFood presetMakersDailyFood = null;
-                for(PresetMakersDailyFood makersDailyFood : presetMakersDailyFoods) {
-                    ExcelPresetDto.ExcelGroupDataDto excelGroupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(makersDailyFood, group);
-                    if(groupDataDto.equals(excelGroupDataDto)) {
-                        presetMakersDailyFood = makersDailyFood;
-                        break;
-                    }
-                }
-                // excel data 중 가장 처음 걸로 preset group food daily 만들고
-                if(excelDataList != null && presetMakersDailyFood != null) {
-                    ExcelPresetDailyFoodDto.ExcelData excelData = excelDataList.get(0);
-                    PresetGroupDailyFood presetGroupDailyFood = excelPresetDailyFoodMapper.toGroupDailyFoodEntity(excelData, group, presetMakersDailyFood);
-                    presetGroupDailyFoodRepository.save(presetGroupDailyFood);
-
-                    // preset food daily
-                    for(ExcelPresetDailyFoodDto.ExcelData data : excelDataList) {
-                        Food food = qFoodRepository.findByNameAndMakers(data.getFoodName(), presetMakersDailyFood.getMakers());
-                        // food 가 없으면
-                        if(food == null) throw new ApiException(ExceptionEnum.NOT_FOUND);
-
-                        PresetDailyFood presetDailyFood = excelPresetDailyFoodMapper.toPresetDailyFoodEntity(data, food, presetGroupDailyFood);
-                        presetDailyFoodRepository.save(presetDailyFood);
+                // preset group daily food 와 preset daily food 만들기
+                for(ExcelPresetDto.ExcelGroupDataDto groupPresetDto : groupGrouping.keySet()) {
+                    List<ExcelPresetDailyFoodDto.ExcelData> createPresetDataList = groupGrouping.get(groupPresetDto);
+                    if(groupPresetDto.getServiceDate().equals(presetDto.getServiceDate()) &&
+                            groupPresetDto.getDiningType().equals(presetDto.getDiningType()) &&
+                    groupPresetDto.getMakersName().equals(presetDto.getMakersName())) {
+                        createPresetGroupDailyFood(makers, newPresetMakersDailyFood, groupPresetDto, createPresetDataList);
                     }
                 }
             }
@@ -187,59 +127,48 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Transactional(readOnly = true)
     public ItemPageableResponseDto<ScheduleResponseDto> getAllPresetScheduleList(Map<String, Object> parameters, OffsetBasedPageRequest pageable, Integer size, Integer page) {
         // 필터링에서 검증 한 번 해주고
-        BigInteger groupId = !parameters.containsKey("groupId") || parameters.get("groupId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("groupId")));
-        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
-        ScheduleStatus scheduleStatus = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : ScheduleStatus.ofCode((Integer) parameters.get("status"));
-        System.out.println("scheduleStatus = " + scheduleStatus);
+        List<BigInteger> groupIdList = !parameters.containsKey("groupId") || parameters.get("groupId").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("groupId"));
+        List<BigInteger> makerIdList = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersId"));
+        ScheduleStatus scheduleStatus = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : ScheduleStatus.ofCode(Integer.parseInt((String) parameters.get("status")));
 
-        Group group = (groupId != null) ? groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)) : null;
-        Makers makers = (makersId != null) ? makersRepository.findById(makersId)
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
+        // PresetMakersDailyFood 페이징 조회
+        Page<PresetMakersDailyFood> allPresetSchedulesPage = qPresetMakersDailyFoodRepository.findAllServiceDateAndConfirmStatusAndFilter(makerIdList, scheduleStatus, pageable, size, page);
 
-        Page<PresetMakersDailyFood> allMakersDailyFood = qPresetMakersDailyFoodRepository.findAllServiceDateAndConfirmStatusAndFilter(makers, scheduleStatus, pageable, size, page);
-        List<PresetScheduleResponseDto> presetScheduleResponseDtoList = new ArrayList<>();
-        if(allMakersDailyFood != null) {
-            for(PresetMakersDailyFood makersDailyFood : allMakersDailyFood) {
-                List<PresetGroupDailyFood> groupDailyFoodList = makersDailyFood.getPresetGroupDailyFoods();
-                List<PresetScheduleResponseDto.clientSchedule> clientScheduleList = new ArrayList<>();
-                for(PresetGroupDailyFood groupDailyFood : groupDailyFoodList) {
-                    List<PresetDailyFood> presetDailyFoodList = groupDailyFood.getPresetDailyFoods();
-                    List<PresetScheduleResponseDto.foodSchedule> foodScheduleList = new ArrayList<>();
-                    if(group == null ) {
-                        for(PresetDailyFood dailyFood : presetDailyFoodList) {
-                            PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
-                            foodScheduleList.add(foodSchedule);
-                        }
-                        PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList);
-                        clientScheduleList.add(clientSchedule);
-                    } else if (group.equals(groupDailyFood.getGroup())) {
-                        for(PresetDailyFood dailyFood : presetDailyFoodList) {
-                            PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyFood);
-                            foodScheduleList.add(foodSchedule);
-                        }
-                        PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList);
-                        clientScheduleList.add(clientSchedule);
-                    }
-                }
-                PresetScheduleResponseDto responseDto = presetDailyFoodMapper.toDto(makersDailyFood, clientScheduleList);
-                presetScheduleResponseDtoList.add(responseDto);
-            }
-            ScheduleResponseDto responseDtoList = getScheduleResponseDto(presetScheduleResponseDtoList);
+        // PresetMakersDailyFood가 없는 경우 예외 처리
+        List<PresetScheduleResponseDto> presetScheduleResponseDtoList = Optional.ofNullable(allPresetSchedulesPage)
+                .map(preset -> preset.stream()
+                        .map(makersPreset -> {
+                            List<PresetGroupDailyFood> groupDailyFoods = makersPreset.getPresetGroupDailyFoods();
+                            List<PresetScheduleResponseDto.clientSchedule> clientSchedules = new ArrayList<>();
 
-            return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList)
-                    .total(allMakersDailyFood.getTotalElements()).count(allMakersDailyFood.getNumberOfElements())
-                    .totalPage(allMakersDailyFood.getTotalPages()).build();
+                            groupDailyFoods.forEach(groupPreset -> {
+                                // groupIds 파라미터가 있을 경우 해당 그룹의 PresetDailyFood만 가져옴
+                                if (groupIdList == null || groupIdList.contains(groupPreset.getGroup().getId())) {
+                                    List<PresetDailyFood> presetDailyFoods = groupPreset.getPresetDailyFoods();
+                                    List<PresetScheduleResponseDto.foodSchedule> foodSchedules = presetDailyFoods.stream()
+                                            .map(presetDailyFoodMapper::toFoodScheduleDto)
+                                            .collect(Collectors.toList());
+                                    PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupPreset, foodSchedules);
+                                    clientSchedules.add(clientSchedule);
+                                }
+                            });
+                            PresetScheduleResponseDto responseDto = presetDailyFoodMapper.toDto(makersPreset, clientSchedules);
+                            return responseDto;
+                        })
+                        .collect(Collectors.toList()))
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        }
-        throw new ApiException(ExceptionEnum.NOT_FOUND);
+        ScheduleResponseDto responseDtoList = getScheduleResponseDto(presetScheduleResponseDtoList);
+
+        return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList).total(allPresetSchedulesPage.getTotalPages())
+                .count(allPresetSchedulesPage.getNumberOfElements()).limit(pageable.getPageSize()).build();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ItemPageableResponseDto<ScheduleResponseDto> getRecommendPresetSchedule(String startDate, OffsetBasedPageRequest pageable, Integer size, Integer page) {
+    public ItemPageableResponseDto<ScheduleResponseDto> getRecommendPresetSchedule(String startDate, String endDate, OffsetBasedPageRequest pageable, Integer size, Integer page) {
         // start date 기준으로 2주 추천 테이블에서 데이터 가져오기
-        Page<GroupRecommends> recommendsList = qGroupRecommendRepository.getRecommendPresetSchedule(pageable, size, page, startDate);
+        Page<GroupRecommends> recommendsList = qGroupRecommendRepository.getRecommendPresetSchedule(pageable, size, page, startDate, endDate);
 
         MultiValueMap<RecommendScheduleDto, BigInteger> groupingByMakers = new LinkedMultiValueMap<>();
         if(recommendsList != null) {
@@ -302,142 +231,79 @@ public class ScheduleServiceImpl implements ScheduleService {
         ScheduleResponseDto responseDtoList = getScheduleResponseDto(scheduleResponseDtos);
 
         return ItemPageableResponseDto.<ScheduleResponseDto>builder().items(responseDtoList)
-                .total((long) recommendsList.getTotalPages()).count(recommendsList.getNumberOfElements())
-                .totalPage(recommendsList.getTotalPages()).build();
+                .total(recommendsList.getTotalPages()).count(recommendsList.getNumberOfElements())
+                .limit(recommendsList.getTotalPages()).build();
     }
 
     @Override
     @Transactional
     public void updateDataInTemporary(ExcelPresetDailyFoodDto dtoList) {
-        //받아온 데이터에서 데이터만 추출
-        List<ExcelPresetDailyFoodDto.ExcelData> excelDataList = dtoList.getExcelDataList();
+        LinkedList<ExcelPresetDailyFoodDto.ExcelData> dataList = new LinkedList<>(dtoList.getExcelDataList());
 
         // 서비스날, 식사 타입, 메이커스로 몪고. - makers
         MultiValueMap<ExcelPresetDto, ExcelPresetDailyFoodDto.ExcelData> makersGrouping = new LinkedMultiValueMap<>();
-        for(ExcelPresetDailyFoodDto.ExcelData data : excelDataList) {
-            ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(data);
-            makersGrouping.add(excelPresetDto, data);
-        }
+        goupingByMakersAndServiceDateAndDiningType(dataList, makersGrouping);
         // 서비스날, 식사 타입, 메이커스, 그룹으로 묶고. - group
         MultiValueMap<ExcelPresetDto.ExcelGroupDataDto, ExcelPresetDailyFoodDto.ExcelData> groupGrouping = new LinkedMultiValueMap<>();
-        for(ExcelPresetDailyFoodDto.ExcelData data : excelDataList) {
-            ExcelPresetDto.ExcelGroupDataDto groupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(data);
-            groupGrouping.add(groupDataDto, data);
-        }
+        groupingByGroupAndMakersAndServiceDateAndDiningType(dataList, groupGrouping);
+        // 현재 있는 데이터를 찾아오기
+        List<PresetMakersDailyFood> existMakersDailyFoodList = qPresetMakersDailyFoodRepository.findByServiceDateAndConfirmStatus();
+        Map<ExcelPresetDto, PresetMakersDailyFood> existPresetDataList = groupingExistPresetMakersDailyFoodData(existMakersDailyFoodList);
 
-        //데이터가 이미 있는 데이터인지 한 번 보고 있으면 수정
-        // 1. 오늘 이후에 있는 confirm status 가 요청 상태가 아닌 데이터를 찾기
-        List<PresetMakersDailyFood> existPresetMakersDailyFoodList = qPresetMakersDailyFoodRepository.findByServiceDateAndConfirmStatus();
-        List<ExcelPresetDailyFoodDto.ExcelData> index = new ArrayList<>();
-        // 2. 데이터가 있으면
-        if(existPresetMakersDailyFoodList != null) {
-            // 3. 그룹핑한 데이터를 기준으로 메이커스를 만들거나 수정
-            for(PresetMakersDailyFood makersDailyFood : existPresetMakersDailyFoodList) {
-                // 기존 내용을 가진 key가 있으면 해당 내용 수정
-                ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(makersDailyFood); // 기존 것을 가지고 만든 키
-                for(ExcelPresetDto presetDto : makersGrouping.keySet()) {
-                    if(excelPresetDto.equals(presetDto)) { // 같은게 존재하면
-                        // 동일한 정보를 가진 데이터를 하나 꺼내서 업데이트
-                        ExcelPresetDailyFoodDto.ExcelData firstMakersPreset =  Objects.requireNonNull(makersGrouping.get(presetDto)).get(0);
-                        makersDailyFood.updatePresetMakersDailyFood(ScheduleStatus.ofCode(firstMakersPreset.getFoodScheduleStatus()), DateUtils.stringToLocalDateTime(dtoList.getDeadline()), ConfirmStatus.PAUSE);
-                        presetMakersDailyFoodRepository.save(makersDailyFood);
-                        break;
-                    }
+        for(ExcelPresetDto presetDto : makersGrouping.keySet()) {
+            // 동일한 메이커스, 서비스 날, 식사타입을 가진 실제 데이터가 있다면 수정
+            List<ExcelPresetDailyFoodDto.ExcelData> updateMakersDataList = makersGrouping.get(presetDto);
+            ExcelPresetDailyFoodDto.ExcelData makersUpdateData = Objects.requireNonNull(updateMakersDataList).get(0);
+
+            Makers makers = makersRepository.findByName(presetDto.getMakersName());
+            if(makers == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
+
+            if(existPresetDataList.containsKey(presetDto)) {
+                PresetMakersDailyFood existMakersPreset = existPresetDataList.get(presetDto);
+                existMakersPreset.updatePresetMakersDailyFood(ScheduleStatus.ofCode(makersUpdateData.getMakersScheduleStatus()), DateUtils.stringToLocalDateTime(dtoList.getDeadline()), ConfirmStatus.PAUSE);
+                presetMakersDailyFoodRepository.save(existMakersPreset);
+
+                // group preset daily food
+                List<PresetGroupDailyFood> existGroupPreset = existMakersPreset.getPresetGroupDailyFoods();
+                Map<ExcelPresetDto.ExcelGroupDataDto, PresetGroupDailyFood> existGroupPresetDataList = new HashMap<>();
+                for(PresetGroupDailyFood presetGroupDailyFood : existGroupPreset) {
+                    existGroupPresetDataList.put(ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(existMakersPreset, presetGroupDailyFood), presetGroupDailyFood);
                 }
-                // 4.preset daily food 상태 바꾸기
-                List<PresetGroupDailyFood> groupDailyFoodList = makersDailyFood.getPresetGroupDailyFoods();
-                for(PresetGroupDailyFood groupDailyFood : groupDailyFoodList) {
-                    ExcelPresetDto.ExcelGroupDataDto excelGroupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(makersDailyFood, groupDailyFood); // 기존 그룹이 가지고 있던 키
-                    List<PresetDailyFood> dailyFoods = groupDailyFood.getPresetDailyFoods();
-                    for(ExcelPresetDto.ExcelGroupDataDto groupDataDto : groupGrouping.keySet()) {
-                        // 서비스 날, 식사 타입, 메이커스, 그룹이 동일한 키를 가지고 있으면
-                        if(excelGroupDataDto.equals(groupDataDto)) {
-                            //값을 가져와서
-                            List<ExcelPresetDailyFoodDto.ExcelData> groupGroupingValueList = groupGrouping.get(groupDataDto);
-                            if(groupGroupingValueList != null) {
-                                for(PresetDailyFood dailyFood : dailyFoods) {
-                                    //푸드의 schedule status 를 변경
-                                    for(ExcelPresetDailyFoodDto.ExcelData value : groupGroupingValueList) {
-                                        if(dailyFood.getFood().getName().equals(value.getFoodName())) {
-                                            dailyFood.updateStatus(ScheduleStatus.ofCode(value.getFoodScheduleStatus()));
-                                            presetDailyFoodRepository.save(dailyFood);
-                                            index.add(value);
-                                        }
-                                    }
-                                }
-                            }
+
+                // 수정할 데이터인지 확인
+                for(ExcelPresetDto.ExcelGroupDataDto groupPresetDto : groupGrouping.keySet()) {
+                    List<ExcelPresetDailyFoodDto.ExcelData> updatePresetDataList = groupGrouping.get(groupPresetDto);
+
+                    // 수정할 데이터이면 푸드 스테이터스 변경
+                    if(existGroupPresetDataList.containsKey(groupPresetDto)) {
+                        updatePresetGroupDailyFood(existGroupPresetDataList, groupPresetDto, updatePresetDataList);
+                    }
+                    // 생성해야 할 데이터면 생성
+                    else {
+                        if(groupPresetDto.getServiceDate().equals(presetDto.getServiceDate()) &&
+                                groupPresetDto.getDiningType().equals(presetDto.getDiningType()) &&
+                                groupPresetDto.getMakersName().equals(presetDto.getMakersName())) {
+                            createPresetGroupDailyFood(makers, existMakersPreset, groupPresetDto, updatePresetDataList);
                         }
                     }
-
                 }
             }
-        }
-        //생성 - 이미 수정 혹은 생성되어서 index 에 들어간 excel data 를 제외하고 생성
-        excelDataList.removeAll(index);
-        if(excelDataList.size() != 0) {
-            MultiValueMap<ExcelPresetDto, ExcelPresetDailyFoodDto.ExcelData> makersGroupingList = new LinkedMultiValueMap<>();
-            for(ExcelPresetDailyFoodDto.ExcelData data : excelDataList) {
-                ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(data);
-                makersGroupingList.add(excelPresetDto, data);
-            }
-            // 서비스날, 식사 타입, 메이커스, 그룹으로 묶고. - group
-            MultiValueMap<ExcelPresetDto.ExcelGroupDataDto, ExcelPresetDailyFoodDto.ExcelData> groupGroupingList = new LinkedMultiValueMap<>();
-            for(ExcelPresetDailyFoodDto.ExcelData data : excelDataList) {
-                ExcelPresetDto.ExcelGroupDataDto groupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(data);
-                groupGroupingList.add(groupDataDto, data);
-            }
+            // 동일한 메이커스, 서비스 날, 식사 타입을 가진 실제 데이터가 없다면 생성
+            else {
+                PresetMakersDailyFood newPresetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, makersUpdateData.getMakersScheduleStatus(), makers, dtoList.getDeadline(), ConfirmStatus.PAUSE);
+                presetMakersDailyFoodRepository.save(newPresetMakersDailyFood);
 
-            // preset makers food daily
-            List<PresetMakersDailyFood> presetMakersDailyFoods = new ArrayList<>();
-            for(ExcelPresetDto presetDto : makersGroupingList.keySet()) {
-                List<ExcelPresetDailyFoodDto.ExcelData> dataList = makersGroupingList.get(presetDto);
-                if(dataList != null) {
-                    Makers makers = makersRepository.findByName(presetDto.getMakersName());
-                    // makers 가 없으면
-                    if(makers == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
-
-                    ExcelPresetDailyFoodDto.ExcelData data = dataList.get(0);
-                    PresetMakersDailyFood presetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, data.getMakersScheduleStatus(), makers, dtoList.getDeadline(), ConfirmStatus.PAUSE);
-                    presetMakersDailyFoodRepository.save(presetMakersDailyFood);
-                    presetMakersDailyFoods.add(presetMakersDailyFood);
-                }
-            }
-
-            // preset group food daily
-            for(ExcelPresetDto.ExcelGroupDataDto groupDataDto : groupGroupingList.keySet()) {
-                List<ExcelPresetDailyFoodDto.ExcelData> dataList = groupGroupingList.get(groupDataDto);
-                Group group = groupRepository.findByName(groupDataDto.getGroupName());
-                // group 이 없으면
-                if(group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
-
-                // 앞에서 생성한 preset makers 의 서비스날, 메이커스, 식사 타입과 키가 가지고 있는 그룹의 내용이 동일한 preset makers 를 찾는다.
-                PresetMakersDailyFood presetMakersDailyFood = null;
-                for(PresetMakersDailyFood makersDailyFood : presetMakersDailyFoods) {
-                    ExcelPresetDto.ExcelGroupDataDto excelGroupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(makersDailyFood, group);
-                    if(groupDataDto.equals(excelGroupDataDto)) {
-                        presetMakersDailyFood = makersDailyFood;
-                        break;
-                    }
-                }
-                // excel data 중 가장 처음 걸로 preset group food daily 만들고
-                if(dataList != null && presetMakersDailyFood != null) {
-                    ExcelPresetDailyFoodDto.ExcelData excelData = dataList.get(0);
-                    PresetGroupDailyFood presetGroupDailyFood = excelPresetDailyFoodMapper.toGroupDailyFoodEntity(excelData, group, presetMakersDailyFood);
-                    presetGroupDailyFoodRepository.save(presetGroupDailyFood);
-
-                    // preset food daily
-                    for(ExcelPresetDailyFoodDto.ExcelData data : dataList) {
-                        Food food = qFoodRepository.findByNameAndMakers(data.getFoodName(), presetMakersDailyFood.getMakers());
-                        // food 가 없으면
-                        if(food == null) throw new ApiException(ExceptionEnum.NOT_FOUND);
-
-                        PresetDailyFood presetDailyFood = excelPresetDailyFoodMapper.toPresetDailyFoodEntity(data, food, presetGroupDailyFood);
-                        presetDailyFoodRepository.save(presetDailyFood);
+                // preset group daily food 와 preset daily food 만들기
+                for(ExcelPresetDto.ExcelGroupDataDto groupPresetDto : groupGrouping.keySet()) {
+                    List<ExcelPresetDailyFoodDto.ExcelData> createPresetDataList = groupGrouping.get(groupPresetDto);
+                    if(groupPresetDto.getServiceDate().equals(presetDto.getServiceDate()) &&
+                            groupPresetDto.getDiningType().equals(presetDto.getDiningType()) &&
+                            groupPresetDto.getMakersName().equals(presetDto.getMakersName())) {
+                        createPresetGroupDailyFood(makers, newPresetMakersDailyFood, groupPresetDto, createPresetDataList);
                     }
                 }
             }
         }
-
     }
 
     private ScheduleResponseDto getScheduleResponseDto(List<PresetScheduleResponseDto> presetScheduleResponseDtoList) {
@@ -445,118 +311,57 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<Group> group = groupRepository.findAll();
         List<Makers> makers = makersRepository.findAll();
         // 묶어서 schedule responseDto 만들기
-        ScheduleResponseDto responseDtoList = ScheduleResponseDto.createdResponseDto(group, makers, presetScheduleResponseDtoList);
-        return responseDtoList;
+        return ScheduleResponseDto.createdResponseDto(group, makers, presetScheduleResponseDtoList);
     }
 
+    private void createPresetGroupDailyFood(Makers makers, PresetMakersDailyFood presetMakersDailyFood, ExcelPresetDto.ExcelGroupDataDto groupPresetDto, List<ExcelPresetDailyFoodDto.ExcelData> presetDataList) {
+        // preset group daily food 만들기
+        ExcelPresetDailyFoodDto.ExcelData createGroupPresetData = Objects.requireNonNull(presetDataList).get(0);
+        Group group = groupRepository.findByName(groupPresetDto.getGroupName());
+        if(group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
+        PresetGroupDailyFood newPresetGroupDailyFood = excelPresetDailyFoodMapper.toGroupDailyFoodEntity(createGroupPresetData, group, presetMakersDailyFood);
+        presetGroupDailyFoodRepository.save(newPresetGroupDailyFood);
 
-//    @Override
-//    @Transactional
-//    public void makePresetSchedulesByExcel(ExcelPresetDailyFoodDto dtoList) {
-//        LinkedList<ExcelPresetDailyFoodDto.ExcelData> dataList = new LinkedList<>(dtoList.getExcelDataList());
-//
-//        // 서비스날, 식사 타입, 메이커스로 몪고. - makers
-//        MultiValueMap<ExcelPresetDto, ExcelPresetDailyFoodDto.ExcelData> makersGrouping = new LinkedMultiValueMap<>();
-//        for (ExcelPresetDailyFoodDto.ExcelData data : dataList) {
-//            ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(data);
-//            makersGrouping.add(excelPresetDto, data);
-//        }
-//        // 서비스날, 식사 타입, 메이커스, 그룹으로 묶고. - group
-//        MultiValueMap<ExcelPresetDto.ExcelGroupDataDto, ExcelPresetDailyFoodDto.ExcelData> groupGrouping = new LinkedMultiValueMap<>();
-//        for (ExcelPresetDailyFoodDto.ExcelData data : dataList) {
-//            ExcelPresetDto.ExcelGroupDataDto groupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(data);
-//            groupGrouping.add(groupDataDto, data);
-//        }
-//
-//        // 수정해야할 데이터인지 확인
-//        // 1. 서비스 날이 오늘 이후 이고 완료되지 않은 식단 찾기
-//        List<PresetMakersDailyFood> existMakersDailyFoodList = qPresetMakersDailyFoodRepository.findByServiceDateAndConfirmStatus();
-//        List<PresetMakersDailyFood> presetMakersDailyFoods = new ArrayList<>();
-//
-//        // 2. 데이터가 있으면 그룹핑한 데이터를 기준으로 메이커스를 만들거나 수정
-//        for (PresetMakersDailyFood makersDailyFood : existMakersDailyFoodList) {
-//
-//            // 기존 내용을 가진 key가 있으면 해당 내용 수정
-//            ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(makersDailyFood); // 기존 것을 가지고 만든 키
-//            for (ExcelPresetDto presetDto : makersGrouping.keySet()) {
-//                List<ExcelPresetDailyFoodDto.ExcelData> excelData = makersGrouping.get(presetDto);
-//                if (excelData == null) throw new ApiException(ExceptionEnum.BAD_REQUEST);
-//                ExcelPresetDailyFoodDto.ExcelData data = excelData.get(0);
-//                if (excelPresetDto.equals(presetDto)) { // 같은게 존재하면
-//                    // 값 중 처음 것을 가져와서 상태를 변경하고 for-loop 나가기
-//                    makersDailyFood.updatePresetMakersDailyFood(ScheduleStatus.ofCode(data.getMakersScheduleStatus()), DateUtils.stringToLocalDateTime(dtoList.getDeadline()), ConfirmStatus.REQUEST);
-//                    presetMakersDailyFoodRepository.save(makersDailyFood);
-//                    break;
-//                } else {
-//                    Makers makers = makersRepository.findByName(presetDto.getMakersName());
-//                    if (makers == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
-//
-//                    PresetMakersDailyFood presetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, data.getMakersScheduleStatus(), makers, dtoList.getDeadline(), ConfirmStatus.REQUEST);
-//                    presetMakersDailyFoodRepository.save(presetMakersDailyFood);
-//                    presetMakersDailyFoods.add(presetMakersDailyFood);
-//                    break;
-//                }
-//            }
-//            // 3. preset group daily food 가져오기
-//            List<PresetGroupDailyFood> groupDailyFoodList = makersDailyFood.getPresetGroupDailyFoods();
-//            for (PresetGroupDailyFood groupDailyFood : groupDailyFoodList) {
-//                ExcelPresetDto.ExcelGroupDataDto excelGroupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(makersDailyFood, groupDailyFood); // 기존 그룹이 가지고 있던 키
-//
-//                // 4. preset daily food 가져오기
-//                List<PresetDailyFood> dailyFoods = groupDailyFood.getPresetDailyFoods();
-//
-//                for (ExcelPresetDto.ExcelGroupDataDto groupDataDto : groupGrouping.keySet()) {
-//                    List<ExcelPresetDailyFoodDto.ExcelData> excelDataList = groupGrouping.get(groupDataDto);
-//                    if (excelDataList == null) throw new ApiException(ExceptionEnum.BAD_REQUEST);
-//                    // 서비스 날, 식사 타입, 메이커스, 그룹이 동일한 키를 가지고 있으면
-//                    if (excelGroupDataDto.equals(groupDataDto)) {
-//                        //값을 가져와서
-//                        List<ExcelPresetDailyFoodDto.ExcelData> groupGroupingValueList = groupGrouping.get(groupDataDto);
-//                        if (groupGroupingValueList == null) throw new ApiException(ExceptionEnum.BAD_REQUEST);
-//                        for (PresetDailyFood dailyFood : dailyFoods) {
-//                            // 푸드의 schedule status 를 변경
-//                            for (ExcelPresetDailyFoodDto.ExcelData value : groupGroupingValueList) {
-//                                if (dailyFood.getFood().getName().equals(value.getFoodName())) {
-//                                    dailyFood.updateStatus(ScheduleStatus.ofCode(value.getFoodScheduleStatus()));
-//                                    presetDailyFoodRepository.save(dailyFood);
-//                                }
-//                            }
-//                        }
-//                    }
-//                    // 동일 한 키를 가지고 있지 않으먄
-//                    else {
-//                        Group group = groupRepository.findByName(groupDataDto.getGroupName());
-//                        // group 이 없으면
-//                        if (group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
-//
-//                        // 앞에서 생성한 preset makers 의 서비스날, 메이커스, 식사 타입과 키가 가지고 있는 그룹의 내용이 동일한 preset makers 를 찾는다.
-//                        PresetMakersDailyFood presetMakersDailyFood = null;
-//                        for (PresetMakersDailyFood makersPreset : presetMakersDailyFoods) {
-//                            ExcelPresetDto.ExcelGroupDataDto excelGroupDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(makersPreset, group);
-//                            if (groupDataDto.equals(excelGroupDto)) {
-//                                presetMakersDailyFood = makersPreset;
-//                                break;
-//                            }
-//                        }
-//                        // excel data 중 가장 처음 걸로 preset group food daily 만들고
-//                        ExcelPresetDailyFoodDto.ExcelData excelData = excelDataList.get(0);
-//                        PresetGroupDailyFood presetGroupDailyFood = excelPresetDailyFoodMapper.toGroupDailyFoodEntity(excelData, group, presetMakersDailyFood);
-//                        presetGroupDailyFoodRepository.save(presetGroupDailyFood);
-//
-//                        // preset food daily
-//                        for (ExcelPresetDailyFoodDto.ExcelData data : excelDataList) {
-//                            Food food = qFoodRepository.findByNameAndMakers(data.getFoodName(), presetMakersDailyFood.getMakers());
-//                            // food 가 없으면
-//                            if (food == null) throw new ApiException(ExceptionEnum.NOT_FOUND);
-//
-//                            PresetDailyFood presetDailyFood = excelPresetDailyFoodMapper.toPresetDailyFoodEntity(data, food, presetGroupDailyFood);
-//                            presetDailyFoodRepository.save(presetDailyFood);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+        // preset daily food 만들기
+        for(ExcelPresetDailyFoodDto.ExcelData createData : presetDataList) {
+            Food food = qFoodRepository.findByNameAndMakers(createData.getFoodName(), makers);
+            if(food == null) throw new ApiException(ExceptionEnum.NOT_FOUND);
+            PresetDailyFood newPresetDailyFood = excelPresetDailyFoodMapper.toPresetDailyFoodEntity(createData, food, newPresetGroupDailyFood);
+            presetDailyFoodRepository.save(newPresetDailyFood);
+        }
+    }
 
+    private Map<ExcelPresetDto, PresetMakersDailyFood> groupingExistPresetMakersDailyFoodData(List<PresetMakersDailyFood> existMakersDailyFoodList) {
+        Map<ExcelPresetDto, PresetMakersDailyFood> existPresetDataList = new HashMap<>();
+        for(PresetMakersDailyFood presetMakersDailyFood : existMakersDailyFoodList) {
+            existPresetDataList.put(ExcelPresetDto.createExcelPresetDto(presetMakersDailyFood), presetMakersDailyFood);
+        }
+        return existPresetDataList;
+    }
 
+    private void groupingByGroupAndMakersAndServiceDateAndDiningType(LinkedList<ExcelPresetDailyFoodDto.ExcelData> dataList, MultiValueMap<ExcelPresetDto.ExcelGroupDataDto, ExcelPresetDailyFoodDto.ExcelData> groupGrouping) {
+        for(ExcelPresetDailyFoodDto.ExcelData data : dataList) {
+            ExcelPresetDto.ExcelGroupDataDto groupDataDto = ExcelPresetDto.ExcelGroupDataDto.createExcelGroupDto(data);
+            groupGrouping.add(groupDataDto, data);
+        }
+    }
+
+    private void goupingByMakersAndServiceDateAndDiningType(LinkedList<ExcelPresetDailyFoodDto.ExcelData> dataList, MultiValueMap<ExcelPresetDto, ExcelPresetDailyFoodDto.ExcelData> makersGrouping) {
+        for(ExcelPresetDailyFoodDto.ExcelData data : dataList) {
+            ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(data);
+            makersGrouping.add(excelPresetDto, data);
+        }
+    }
+
+    private void updatePresetGroupDailyFood(Map<ExcelPresetDto.ExcelGroupDataDto, PresetGroupDailyFood> existGroupPresetDataList, ExcelPresetDto.ExcelGroupDataDto groupPresetDto, List<ExcelPresetDailyFoodDto.ExcelData> updatePresetDataList) {
+        List<PresetDailyFood> existPresetDailyFood = existGroupPresetDataList.get(groupPresetDto).getPresetDailyFoods();
+        for(PresetDailyFood presetDailyFood : existPresetDailyFood) {
+            for(ExcelPresetDailyFoodDto.ExcelData updateData : Objects.requireNonNull(updatePresetDataList)) {
+                if(updateData.getFoodName().equals(presetDailyFood.getFood().getName())) {
+                    presetDailyFood.updateStatus(ScheduleStatus.ofCode(updateData.getFoodScheduleStatus()));
+                    presetDailyFoodRepository.save(presetDailyFood);
+                }
+            }
+        }
+    }
 }

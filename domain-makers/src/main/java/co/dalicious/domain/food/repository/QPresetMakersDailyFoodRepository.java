@@ -3,6 +3,7 @@ package co.dalicious.domain.food.repository;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.PresetDailyFood;
+import co.dalicious.domain.food.entity.PresetGroupDailyFood;
 import co.dalicious.domain.food.entity.PresetMakersDailyFood;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
@@ -11,6 +12,7 @@ import co.dalicious.system.util.DateUtils;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.ConstantImpl;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -35,6 +37,7 @@ import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.food.entity.QPresetDailyFood.presetDailyFood;
+import static co.dalicious.domain.food.entity.QPresetGroupDailyFood.presetGroupDailyFood;
 import static co.dalicious.domain.food.entity.QPresetMakersDailyFood.presetMakersDailyFood;
 
 
@@ -52,11 +55,11 @@ public class QPresetMakersDailyFoodRepository {
                 .fetch();
     }
 
-    public Page<PresetMakersDailyFood> findAllServiceDateAndConfirmStatusAndFilter(Makers makers, ScheduleStatus scheduleStatus, Pageable pageable, Integer size, Integer page) {
+    public Page<PresetMakersDailyFood> findAllServiceDateAndConfirmStatusAndFilter(List<BigInteger> makersIds, ScheduleStatus scheduleStatus, Pageable pageable, Integer size, Integer page) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
-        if(makers != null) {
-            whereClause.and(presetMakersDailyFood.makers.eq(makers));
+        if(makersIds != null && !makersIds.isEmpty()) {
+            whereClause.and(presetMakersDailyFood.makers.id.in(makersIds));
         }
         if(scheduleStatus != null) {
             whereClause.and(presetMakersDailyFood.scheduleStatus.eq(scheduleStatus));
@@ -68,7 +71,7 @@ public class QPresetMakersDailyFoodRepository {
 
         QueryResults<PresetMakersDailyFood> results =
                 queryFactory.selectFrom(presetMakersDailyFood)
-                        .where(presetMakersDailyFood.serviceDate.after(now), presetMakersDailyFood.confirmStatus.ne(ConfirmStatus.COMPLETE), whereClause)
+                        .where(whereClause, presetMakersDailyFood.serviceDate.after(now), presetMakersDailyFood.confirmStatus.ne(ConfirmStatus.COMPLETE))
                         .orderBy(presetMakersDailyFood.serviceDate.asc())
                         .limit(itemLimit)
                         .offset(itemOffset)
@@ -110,7 +113,8 @@ public class QPresetMakersDailyFoodRepository {
             return queryFactory.selectFrom(presetMakersDailyFood)
                     .where(presetMakersDailyFood.makers.eq(makers),
                             presetMakersDailyFood.createdDateTime.between(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)),
-                            presetMakersDailyFood.scheduleStatus.ne(ScheduleStatus.REJECTED))
+                            presetMakersDailyFood.scheduleStatus.ne(ScheduleStatus.REJECTED),
+                            presetMakersDailyFood.confirmStatus.eq(ConfirmStatus.REQUEST))
                     .fetch();
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);
