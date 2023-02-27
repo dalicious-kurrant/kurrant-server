@@ -1,16 +1,21 @@
 package co.kurrant.app.admin_api.mapper;
 
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
+import co.kurrant.app.admin_api.dto.client.CorporationListDto;
 import org.mapstruct.*;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = GroupDto.class)
+@Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class})
 public interface GroupMapper {
     @Mapping(source = "id", target = "groupId")
     @Mapping(source = "name", target = "groupName")
@@ -61,4 +66,45 @@ public interface GroupMapper {
         groupDto.setUsers(usersToDtos(users));
         return groupDto;
     }
+    @Mapping(source = "corporation.id", target = "id")
+    @Mapping(source = "corporation.code", target = "code")
+    @Mapping(source = "corporation.name", target = "name")
+    @Mapping(source = "corporation.address.zipCode", target = "zipCode")
+    @Mapping(source = "corporation.address.address1", target = "address1")
+    @Mapping(source = "corporation.address.address2", target = "address2")
+    @Mapping( target = "location", expression = "java(String.valueOf(corporation.getAddress().getLocation()))")
+    @Mapping(source = "corporation.diningTypes", target = "diningTypes", qualifiedByName = "getDiningCodeList")
+    @Mapping(source = "corporation.spots", target = "serviceDays", qualifiedByName = "serviceDayToString")
+    @Mapping(source = "managerUser.name", target = "managerName")
+    @Mapping(source = "managerUser.phone", target = "managerPhone")
+    @Mapping(source = "corporation.isMembershipSupport", target = "isMembershipSupport")
+    @Mapping(source = "corporation.employeeCount", target = "employeeCount")
+    @Mapping(source = "corporation.isSetting", target = "isSetting")
+    @Mapping(source = "corporation.isGarbage", target = "isGarbage")
+    @Mapping(source = "corporation.isHotStorage", target = "isHotStorage")
+    @Mapping(target = "createdDateTime", expression = "java(DateUtils.toISO(corporation.getCreatedDateTime()))")
+    @Mapping(target = "updatedDateTime", expression = "java(DateUtils.toISO(corporation.getUpdatedDateTime()))")
+    CorporationListDto toCorporationListDto(Corporation corporation, User managerUser);
+
+    @Named("getDiningCodeList")
+    default List<Integer> getDiningCodeList(List<DiningType> diningTypeList) {
+        return diningTypeList.stream().map(DiningType::getCode).toList();
+    }
+
+    @Named("serviceDayToString")
+    default String serviceDayToString(List<Spot> spotList) {
+        StringBuilder mealInfoBuilder = new StringBuilder();
+        HashSet<String> serviceDayList = new HashSet<>();
+        for(Spot spot : spotList) {
+            List<MealInfo> mealInfoList = spot.getMealInfos();
+            for(MealInfo mealInfo : mealInfoList) {
+                List<String> useDays = List.of(mealInfo.getServiceDays().split(", "));
+                serviceDayList.addAll(useDays);
+            }
+        }
+        serviceDayList.forEach(mealInfoBuilder::append);
+        return String.valueOf(mealInfoBuilder);
+    }
+
 }
+

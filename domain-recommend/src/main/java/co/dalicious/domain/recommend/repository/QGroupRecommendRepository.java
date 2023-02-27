@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 import static co.dalicious.domain.recommend.entity.QGroupRecommends.groupRecommends;
@@ -37,5 +38,15 @@ public class QGroupRecommendRepository {
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public void updateIsReject(BigInteger makersId, LocalDate serviceDate) {
+        queryFactory.update(groupRecommends)
+                        .where(groupRecommends.makersId.eq(makersId),
+                        groupRecommends.serviceDate.eq(serviceDate))
+                        .set(groupRecommends.isReject, 1)
+                        .execute();
+
+
     }
 }
