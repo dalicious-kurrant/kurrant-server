@@ -58,14 +58,13 @@ public class QPresetMakersDailyFoodRepository {
         }
 
         LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        int itemLimit = size * page;
         int itemOffset = size * (page - 1);
 
         QueryResults<PresetMakersDailyFood> results =
                 queryFactory.selectFrom(presetMakersDailyFood)
                         .where(whereClause, presetMakersDailyFood.serviceDate.after(now), presetMakersDailyFood.confirmStatus.ne(ConfirmStatus.COMPLETE))
                         .orderBy(presetMakersDailyFood.serviceDate.asc())
-                        .limit(itemLimit)
+                        .limit(size)
                         .offset(itemOffset)
                         .fetchResults();
 

@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class CorporationListDto {
+public class GroupListDto {
     private BigInteger id;
     private String code;
     private String name;
@@ -19,7 +19,7 @@ public class CorporationListDto {
     private String address2;
     private String location;
     private List<Integer> diningTypes;
-    private List<String> serviceDays;
+    private String serviceDays;
     private String managerName;
     private String managerPhone;
     private Boolean isMembershipSupport;
