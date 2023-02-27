@@ -23,9 +23,10 @@ public class MakersInfoController {
     private final MakersInfoService makersInfoService;
 
     @GetMapping("")
-    public ResponseMessage getMakersInfo(String code) {
+    public ResponseMessage getMakersInfo(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(makersInfoService.getMakersInfo(code))
+                .data(makersInfoService.getMakersInfo(securityUser))
                 .message("메이커스 정보 조회에 성공하였습니다.")
                 .build();
     }
