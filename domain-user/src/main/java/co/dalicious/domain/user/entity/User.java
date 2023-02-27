@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 import javax.persistence.*;
@@ -153,6 +154,31 @@ public class User {
         this.role = role;
         this.email = email;
         this.phone = phone;
+    }
+
+    @Builder
+    public User(BigInteger id, String password, String name, Role role,
+                UserStatus status, String phone, String email,
+                BigDecimal point, GourmetType gourmetType, Boolean isMembership, Boolean marketingAgree,
+                Timestamp marketingAgreedDateTime, Boolean marketingAlarm, Boolean orderAlarm, Timestamp recentLoginDateTime,
+                Timestamp createdDateTime, Timestamp updatedDateTime){
+        this.id = id;
+        this.password = password;
+        this.name = name;
+        this.role = role;
+        this.userStatus = status;
+        this.phone = phone;
+        this.email = email;
+        this.point = point;
+        this.gourmetType = gourmetType;
+        this.isMembership = isMembership;
+        this.marketingAgree = marketingAgree;
+        this.marketingAgreedDateTime = marketingAgreedDateTime;
+        this.marketingAlarm = marketingAlarm;
+        this.orderAlarm = orderAlarm;
+        this.recentLoginDateTime = recentLoginDateTime;
+        this.createdDateTime = createdDateTime;
+        this.updatedDateTime = updatedDateTime;
     }
 
 

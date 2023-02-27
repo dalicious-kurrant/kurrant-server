@@ -67,16 +67,16 @@ public interface UserMapper {
     }
 
 
-    @Mapping(source = "provideEmails", target = "providerEmails")
-    @Mapping(source = "saverUser.recentLoginDateTime", target = "recentLoginDateTime")
+//    @Mapping(source = "provideEmails", target = "providerEmails")
+    @Mapping(source = "saveUser.recentLoginDateTime", target = "recentLoginDateTime", qualifiedByName = "generatedDateTime")
     @Mapping(source = "saveUser.userOrderAlarm", target = "orderAlarm")
     @Mapping(source = "saveUser.marketingAlarm", target = "marketingAlarm")
-    @Mapping(source = "saveUser.userEmailAgreedDateTime", target = "marketingAgreedDateTime")
-    @Mapping(source = "saveUser.userEmailAgreed", target = "marketingAgree")
+    @Mapping(source = "saveUser.marketingAgreedDateTime", target = "marketingAgreedDateTime", qualifiedByName = "generatedDateTime")
+    @Mapping(source = "saveUser.marketingAgree", target = "marketingAgree")
     @Mapping(source = "saveUser.isMembership", target = "isMembership")
     @Mapping(source = "saveUser.gourmetType", target = "gourmetType", qualifiedByName = "generatedGourmetType")
     @Mapping(source = "saveUser.point", target = "point")
-    @Mapping(source = "saveUser.status", target = "userStatus")
+    @Mapping(source = "saveUser.status", target = "status", qualifiedByName = "getStatus")
     @Mapping(source = "password", target = "password")
     @Mapping(source = "role", target = "role")
     @Mapping(source = "saveUser.phone", target = "phone")
@@ -85,6 +85,16 @@ public interface UserMapper {
     @Mapping(source = "saveUser.userId", target = "id")
     User toEntity(SaveUserListRequestDto saveUser, String password, Role role);
 
+
+    @Named("getStatus")
+    default UserStatus getStatus(String status){
+        return UserStatus.valueOf(status);
+    }
+
+    @Named("generatedDateTime")
+    default Timestamp generatedDateTime(String dateTime){
+        return Timestamp.valueOf(dateTime);
+    }
 
     @Named("generatedGourmetType")
     default GourmetType generatedGourmetType(String gourmetType){
