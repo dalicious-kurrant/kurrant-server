@@ -19,5 +19,6 @@ public interface OrderDailyFoodService {
     GroupDto getGroupInfo(BigInteger groupId);
     List<MakersDto.Makers> getMakers();
     void cancelOrder(BigInteger orderId) throws IOException, ParseException;
+    void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList);
     void cancelOrderItems(List<BigInteger> orderItemIdList) throws IOException, ParseException;
 }

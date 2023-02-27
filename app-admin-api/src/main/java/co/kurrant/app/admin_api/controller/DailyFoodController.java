@@ -23,6 +23,15 @@ public class DailyFoodController {
                 .build();
     }
 
+    @Operation(summary = "그룹과 메이커스 조회", description = "그룹과 메이커스 리스트를 조회한다.")
+    @GetMapping("/groupsAndMakers")
+    public ResponseMessage getGroupAndMakers() {
+        return ResponseMessage.builder()
+                .data(dailyFoodService.getGroupAndMakers())
+                .message("식단 조회에 성공하였습니다.")
+                .build();
+    }
+
     @Operation(summary = "식단 조회", description = "")
     @GetMapping("")
     public ResponseMessage getDailyFoods(@RequestParam Map<String, Object> parameters) {

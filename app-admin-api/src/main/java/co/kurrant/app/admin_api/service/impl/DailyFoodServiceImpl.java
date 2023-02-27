@@ -14,7 +14,11 @@ import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.StringUtils;
+import co.kurrant.app.admin_api.dto.GroupDto;
+import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.dto.ScheduleDto;
+import co.kurrant.app.admin_api.mapper.GroupMapper;
+import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.mapper.ScheduleMapper;
 import co.kurrant.app.admin_api.service.DailyFoodService;
 import exception.ApiException;
@@ -43,6 +47,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final GroupRepository groupRepository;
     private final MakersRepository makersRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
+    private final GroupMapper groupMapper;
+    private final MakersMapper makersMapper;
 
     @Override
     @Transactional
@@ -91,5 +97,20 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         Map<Group, Integer> userGroupCount = qUserGroupRepository.userCountsInGroup(groups);
 
         return scheduleMapper.toGroupSchedule(dailyFoods, remainFoodCount, makersCapacities, userGroupCount);
+    }
+
+    @Override
+    public GroupDto.GroupAndMakers getGroupAndMakers() {
+        List<Group> groups = groupRepository.findAll();
+        List<Makers> makers = makersRepository.findAll();
+
+        List<GroupDto.Group> groupDtos = groupMapper.groupsToDtos(groups);
+        List<MakersDto.Makers> makersDtos = makersMapper.makersToDtos(makers);
+
+        GroupDto.GroupAndMakers groupAndMakers = new GroupDto.GroupAndMakers();
+        groupAndMakers.setGroups(groupDtos);
+        groupAndMakers.setMakers(makersDtos);
+
+        return groupAndMakers;
     }
 }

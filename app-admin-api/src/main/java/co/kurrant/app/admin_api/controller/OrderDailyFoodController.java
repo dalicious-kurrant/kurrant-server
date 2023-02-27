@@ -70,7 +70,15 @@ public class OrderDailyFoodController {
     public ResponseMessage cancelOrder(@RequestBody OrderDto.Id id) throws IOException, ParseException {
         orderDailyFoodService.cancelOrder(id.getId());
         return ResponseMessage.builder()
-                .message("부분 주문 취소를 성공했습니다.")
+                .message("주문 전체 취소를 성공했습니다.")
+                .build();
+    }
+
+    @PostMapping("/orderItems/status")
+    public ResponseMessage changeStatus(@RequestBody OrderDto.StatusAndIdList statusAndIdList) {
+        orderDailyFoodService.changeOrderStatus(statusAndIdList);
+        return ResponseMessage.builder()
+                .message("주문 상태 변경을 성공했습니다.")
                 .build();
     }
 
@@ -78,7 +86,7 @@ public class OrderDailyFoodController {
     public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
         orderDailyFoodService.cancelOrderItems(idList.getIdList());
         return ResponseMessage.builder()
-                .message("주문 전체 취소를 성공했습니다.")
+                .message("부분 주문 취소를 성공했습니다.")
                 .build();
     }
 }

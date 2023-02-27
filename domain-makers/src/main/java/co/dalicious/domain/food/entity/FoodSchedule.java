@@ -17,6 +17,7 @@ import java.time.LocalDate;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "food__food_schedule")
 @Schema(description = "식사 일정별 음식 제조 가능 수량. 음식 개수 제한을 메이커스가 설정한 경우 생성")
 public class FoodSchedule {
     @Id
