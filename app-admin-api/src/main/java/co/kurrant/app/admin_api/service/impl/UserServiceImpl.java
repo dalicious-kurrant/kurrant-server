@@ -78,17 +78,17 @@ public class UserServiceImpl implements UserService {
             long isOrder = qOrderRepository.orderCheck(deleteUser);
             //주문내역이 없다면 해당유저 찐 삭제
             if (isOrder == 0){
-                qUserRepository.deleteReal(deleteUser);
-                return 1;
+                long deleteReal = qUserRepository.deleteReal(deleteUser);
+                if (deleteReal != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
             }
 
             UserHistory userHistory = userHistoryMapper.toEntity(deleteUser, groupId);
 
              userHistoryRepository.save(userHistory);
-
-            Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
-            if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
-
+            if (isOrder != 0) {
+                Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
+                if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
+            }
         }
         return 1;
     }
