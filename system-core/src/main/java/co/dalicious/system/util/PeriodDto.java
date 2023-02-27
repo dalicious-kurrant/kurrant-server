@@ -2,6 +2,7 @@ package co.dalicious.system.util;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -19,9 +20,10 @@ public class PeriodDto {
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class PeriodStringDto {
-        private final String startDate;
-        private final String endDate;
+        private String startDate;
+        private String endDate;
 
         public PeriodStringDto(String startDate, String endDate) {
             this.startDate = startDate;

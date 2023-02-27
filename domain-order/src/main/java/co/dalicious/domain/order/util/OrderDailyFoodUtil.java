@@ -71,6 +71,28 @@ public class OrderDailyFoodUtil {
         return dailyFoodIntegerMap;
     }
 
+    public void getRemainMakersCount(List<DailyFood> dailyFoods) {
+        // 메이커스에서 값을 설정했는지 가져온다.
+        List<MakersSchedule> makersSchedules = qMakersScheduleRepository.findAllByDailyFoods(dailyFoods);
+        // 3. 총 주문 수량을 가져온다.
+        for (DailyFood dailyFood : dailyFoods) {
+            Integer makersCount = 0;
+
+            Optional<MakersSchedule> makersScheduleOptional = makersSchedules.stream()
+                    .filter(v -> v.getServiceDate().equals(dailyFood.getServiceDate())
+                            && v.getDiningType().equals(dailyFood.getDiningType()))
+                    .findAny();
+
+            if (makersScheduleOptional.isPresent()) {
+                makersCount = makersScheduleOptional.get().getCapacity();
+            } else {
+                makersCount = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getCapacity();
+            }
+            Integer makersBuyCount = qOrderDailyFoodRepository.getMakersCount(dailyFood);
+            Integer sellableCount = makersCount - makersBuyCount;
+        }
+    }
+
     public FoodCountDto getRemainFoodCount(DailyFood dailyFood) {
         // 1. 한정 판매 수량인지 확인한다.
         FoodSchedule foodSchedule = qFoodScheduleRepository.findOneByDailyFood(dailyFood);

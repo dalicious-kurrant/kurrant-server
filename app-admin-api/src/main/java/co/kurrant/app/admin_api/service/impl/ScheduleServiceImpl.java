@@ -152,7 +152,6 @@ public class ScheduleServiceImpl implements ScheduleService {
                                     clientSchedules.add(clientSchedule);
                                 }
                             });
-
                             PresetScheduleResponseDto responseDto = presetDailyFoodMapper.toDto(makersPreset, clientSchedules);
                             return responseDto;
                         })
