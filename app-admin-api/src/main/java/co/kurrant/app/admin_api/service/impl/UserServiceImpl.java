@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserHistory;
@@ -43,6 +44,7 @@ public class UserServiceImpl implements UserService {
     private final UserHistoryRepository userHistoryRepository;
     private final QUserRepository qUserRepository;
     private final QUserGroupRepository qUserGroupRepository;
+    private final QOrderRepository qOrderRepository;
 
 
     @Override
@@ -61,7 +63,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
+    public long deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
 
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
 
@@ -71,7 +73,14 @@ public class UserServiceImpl implements UserService {
         if (userIdList.size() == 0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
         for (BigInteger userId : userIdList) {
-            User deleteUser = qUserRepository.findByUserId(userId);
+            User deleteUser = userRepository.findById(userId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+            //주문 체크
+            long isOrder = qOrderRepository.orderCheck(deleteUser);
+            //주문내역이 없다면 해당유저 찐 삭제
+            if (isOrder == 0){
+                qUserRepository.deleteReal(deleteUser);
+                return 1;
+            }
 
             UserHistory userHistory = userHistoryMapper.toEntity(deleteUser, groupId);
 
@@ -79,8 +88,9 @@ public class UserServiceImpl implements UserService {
 
             Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
             if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
-        }
 
+        }
+        return 1;
     }
 
     @Override

@@ -18,6 +18,7 @@ import java.util.List;
 @Mapper(componentModel = "spring", imports = {DateUtils.class, UserValidator.class})
 public interface UserMapper {
 
+    @Mapping(source = "user.marketingAlarm", target = "marketingAlarm")
     @Mapping(source = "user.updatedDateTime", target = "userUpdatedDateTime", qualifiedByName = "TimeFormat")
     @Mapping(source = "user.createdDateTime", target = "userCreatedDateTime", qualifiedByName = "TimeFormat")
     @Mapping(source = "user.recentLoginDateTime", target = "recentLoginDateTime", qualifiedByName = "TimeFormat")

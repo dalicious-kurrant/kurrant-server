@@ -11,7 +11,7 @@ public interface UserService {
 
     Object getUserList();
 
-    void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto);
+    long deleteMember(DeleteMemberRequestDto deleteMemberRequestDto);
 
     void saveUserList(SaveAndUpdateUserList saveAndUpdateUserList);
 
