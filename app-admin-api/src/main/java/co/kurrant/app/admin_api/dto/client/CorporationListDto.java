@@ -19,7 +19,7 @@ public class CorporationListDto {
     private String address2;
     private String location;
     private List<Integer> diningTypes;
-    private String serviceDays;
+    private List<String> serviceDays;
     private String managerName;
     private String managerPhone;
     private Boolean isMembershipSupport;

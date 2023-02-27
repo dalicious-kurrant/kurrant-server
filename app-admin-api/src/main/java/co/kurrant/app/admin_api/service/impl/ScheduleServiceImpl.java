@@ -129,10 +129,10 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 필터링에서 검증 한 번 해주고
         List<BigInteger> groupIdList = !parameters.containsKey("groupId") || parameters.get("groupId").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("groupId"));
         List<BigInteger> makerIdList = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersId"));
-        ScheduleStatus scheduleStatus = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : ScheduleStatus.ofCode(Integer.parseInt((String) parameters.get("status")));
+        List<Integer> scheduleStatusList = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : StringUtils.parseIntegerList((String) parameters.get("status"));
 
         // PresetMakersDailyFood 페이징 조회
-        Page<PresetMakersDailyFood> allPresetSchedulesPage = qPresetMakersDailyFoodRepository.findAllServiceDateAndConfirmStatusAndFilter(makerIdList, scheduleStatus, pageable, size, page);
+        Page<PresetMakersDailyFood> allPresetSchedulesPage = qPresetMakersDailyFoodRepository.findAllServiceDateAndConfirmStatusAndFilter(makerIdList, scheduleStatusList, pageable, size, page);
 
         // PresetMakersDailyFood가 없는 경우 예외 처리
         List<PresetScheduleResponseDto> presetScheduleResponseDtoList = Optional.ofNullable(allPresetSchedulesPage)

@@ -1,9 +1,6 @@
 package co.dalicious.domain.food.repository;
 
-import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.food.entity.PresetDailyFood;
-import co.dalicious.domain.food.entity.PresetGroupDailyFood;
 import co.dalicious.domain.food.entity.PresetMakersDailyFood;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
@@ -12,15 +9,12 @@ import co.dalicious.system.util.DateUtils;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.ConstantImpl;
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
-import net.bytebuddy.asm.Advice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -31,13 +25,9 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 
-import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
-import static co.dalicious.domain.food.entity.QFood.food;
-import static co.dalicious.domain.food.entity.QMakers.makers;
-import static co.dalicious.domain.food.entity.QPresetDailyFood.presetDailyFood;
-import static co.dalicious.domain.food.entity.QPresetGroupDailyFood.presetGroupDailyFood;
 import static co.dalicious.domain.food.entity.QPresetMakersDailyFood.presetMakersDailyFood;
 
 
@@ -55,14 +45,16 @@ public class QPresetMakersDailyFoodRepository {
                 .fetch();
     }
 
-    public Page<PresetMakersDailyFood> findAllServiceDateAndConfirmStatusAndFilter(List<BigInteger> makersIds, ScheduleStatus scheduleStatus, Pageable pageable, Integer size, Integer page) {
+    public Page<PresetMakersDailyFood> findAllServiceDateAndConfirmStatusAndFilter(List<BigInteger> makersIds, List<Integer> scheduleStatusList, Pageable pageable, Integer size, Integer page) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if(makersIds != null && !makersIds.isEmpty()) {
             whereClause.and(presetMakersDailyFood.makers.id.in(makersIds));
         }
-        if(scheduleStatus != null) {
-            whereClause.and(presetMakersDailyFood.scheduleStatus.eq(scheduleStatus));
+        if(scheduleStatusList != null && !scheduleStatusList.isEmpty()) {
+            List<ScheduleStatus> scheduleStatus = new ArrayList<>();
+            scheduleStatusList.forEach(status -> scheduleStatus.add(ScheduleStatus.ofCode(status)));
+            whereClause.and(presetMakersDailyFood.scheduleStatus.in(scheduleStatus));
         }
 
         LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
