@@ -52,4 +52,10 @@ public class QOrderRepository {
                 .orderBy(order.createdDateTime.desc())
                 .fetch();
     }
+
+    public long orderCheck(User deleteUser) {
+        return queryFactory.delete(order)
+                .where(order.user.id.eq(deleteUser.getId()))
+                .execute();
+    }
 }

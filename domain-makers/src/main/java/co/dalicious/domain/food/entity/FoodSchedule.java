@@ -5,6 +5,7 @@ import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -43,4 +44,13 @@ public class FoodSchedule {
     @JoinColumn
     @Comment("음식")
     private Food food;
+
+    @Builder
+    public FoodSchedule(LocalDate serviceDate, DiningType diningType, Integer capacity, Makers makers, Food food) {
+        this.serviceDate = serviceDate;
+        this.diningType = diningType;
+        this.capacity = capacity;
+        this.makers = makers;
+        this.food = food;
+    }
 }

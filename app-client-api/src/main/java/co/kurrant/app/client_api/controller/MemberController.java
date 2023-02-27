@@ -2,6 +2,8 @@ package co.kurrant.app.client_api.controller;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.client.dto.ClientExcelSaveDto;
+import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.client_api.service.MemberService;
@@ -27,10 +29,9 @@ public class MemberController {
   @Operation(summary = "유저조회", description = "유저 목록을 조회한다.")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping("")
-  public ResponseMessage getUserList(@RequestParam String code, @PageableDefault(size = 20, sort = "id",
-                                                                     direction = Sort.Direction.ASC) OffsetBasedPageRequest pageable) {
+  public ResponseMessage getUserList(@RequestParam String code) {
     return ResponseMessage.builder()
-            .data(memberService.getUserList(code, pageable))
+            .data(memberService.getUserList(code))
             .message("유저 목록 조회")
             .build();
   }
@@ -39,10 +40,9 @@ public class MemberController {
   @Operation(summary = "가입 대기 유저조회", description = "가입 대기 유저 목록을 조회한다.")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping("/waiting")
-  public ResponseMessage getWaitingUserList(@RequestParam String code, @PageableDefault(size = 20, sort = "id",
-          direction = Sort.Direction.ASC) OffsetBasedPageRequest pageable){
+  public ResponseMessage getWaitingUserList(@RequestParam String code){
     return ResponseMessage.builder()
-            .data(memberService.getWaitingUserList(code, pageable))
+            .data(memberService.getWaitingUserList(code))
             .message("가입대기 유저 목록 조회")
             .build();
   }
@@ -63,6 +63,17 @@ public class MemberController {
   @PostMapping("")
   public ResponseMessage insertMemberList(@RequestBody ClientUserWaitingListSaveRequestDto clientUserWaitingListSaveRequestDto){
     memberService.insertMemberList(clientUserWaitingListSaveRequestDto);
+    return ResponseMessage.builder()
+            .message("저장에 성공하였습니다.")
+            .build();
+  }
+
+
+  @Operation(summary = "엑셀 저장하기", description = "엑셀로 받아온 수정사항을 저장한다.")
+  @ResponseStatus(HttpStatus.OK)
+  @PostMapping("/excel")
+  public ResponseMessage insertMemberListByExcel(@RequestBody ClientExcelSaveDtoList clientExcelSaveDtoList){
+    memberService.insertMemberListByExcel(clientExcelSaveDtoList);
     return ResponseMessage.builder()
             .message("저장에 성공하였습니다.")
             .build();

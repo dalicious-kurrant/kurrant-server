@@ -40,4 +40,8 @@ public class FoodCapacity {
         this.diningType = diningType;
         this.capacity = capacity;
     }
+
+    public void updateCapacity(Integer capacity) {
+        this.capacity = capacity;
+    }
 }

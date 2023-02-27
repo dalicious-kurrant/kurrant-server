@@ -1,11 +1,13 @@
 package co.kurrant.app.admin_api.dto.user;
 
+import co.dalicious.domain.user.entity.ProviderEmail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,7 +19,21 @@ public class SaveUserListRequestDto {
     private String name;
     private String email;
     private String phone;
-    private String role;;
+    private String role;
+    private String status;
+    private String groupName;
+    private Integer point;
+    private String gourmetType;
+    private Boolean isMembership;
+    private Boolean marketingAgree;
+    private String marketingAgreedDateTime;
+    private Boolean marketingAlarm;
+    private Boolean userOrderAlarm;
+    private String recentLoginDateTime;
+    private String userCreatedDateTime;
+//    private List<ProviderEmail> ProviderEmails;
+
+
 
 
 }

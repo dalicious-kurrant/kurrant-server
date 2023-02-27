@@ -14,7 +14,6 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 public class FoodListDto {
-
     private BigInteger foodId;
     private String makersName;
     private BigInteger makersId;

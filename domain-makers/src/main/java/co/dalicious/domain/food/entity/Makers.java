@@ -9,6 +9,8 @@ import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.domain.user.converter.RoleConverter;
 import co.dalicious.domain.user.entity.enums.Role;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,6 +27,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.List;
 
 @DynamicInsert
@@ -123,6 +126,10 @@ public class Makers {
     @Comment("원산지")
     private List<Origin> origins;
 
+    @ElementCollection
+    @Comment("식사 일정별 메이커스 픽업 시간")
+    private List<PickupTime> pickupTimes;
+
     @CreationTimestamp
     @Column(name = "created_datetime", nullable = false, insertable = false, updatable = false,
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) COMMENT '생성일'")
@@ -149,5 +156,25 @@ public class Makers {
     Makers(BigInteger id, String name){
         this.id = id;
         this.name = name;
+    }
+
+    public MakersCapacity getMakersCapacity(DiningType diningType) {
+        return getMakersCapacities().stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .orElse(null);
+    }
+
+    public PickupTime getPickupTime(DiningType diningType) {
+        return this.getPickupTimes().stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .orElse(null);
+    }
+
+    public String getPickupTimeString(DiningType diningType) {
+        PickupTime pickupTime = getPickupTime(diningType);
+        if(pickupTime == null) return null;
+        return DateUtils.timeToString(pickupTime.getPickupTime());
     }
 }

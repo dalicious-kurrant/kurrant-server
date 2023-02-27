@@ -16,8 +16,11 @@ public class MakersFoodDetailDto {
     private String makersName;
     private BigInteger foodId;
     private String foodName;
+    private Integer morningCapacity;
+    private Integer lunchCapacity;
+    private Integer dinnerCapacity;
     private BigDecimal foodPrice;
-    private String foodImage;
+    private List<String> foodImages;
     private BigDecimal makersDiscountPrice;
     private Integer makersDiscountRate;
     private BigDecimal periodDiscountPrice;
@@ -26,16 +29,15 @@ public class MakersFoodDetailDto {
     private String description;
     private BigDecimal customPrice;
 
-    public MakersFoodDetailDto(
-            String makersName, BigInteger foodId, String foodName, BigDecimal foodPrice, String foodImage,
-            BigDecimal makersDiscountPrice, Integer makersDiscountRate, BigDecimal periodDiscountPrice, Integer periodDiscountRate,
-            List<Integer> foodTags, String description, BigDecimal customPrice) {
-
+    public MakersFoodDetailDto(String makersName, BigInteger foodId, String foodName, Integer morningCapacity, Integer lunchCapacity, Integer dinnerCapacity, BigDecimal foodPrice, List<String> foodImages, BigDecimal makersDiscountPrice, Integer makersDiscountRate, BigDecimal periodDiscountPrice, Integer periodDiscountRate, List<Integer> foodTags, String description, BigDecimal customPrice) {
         this.makersName = makersName;
         this.foodId = foodId;
         this.foodName = foodName;
+        this.morningCapacity = morningCapacity;
+        this.lunchCapacity = lunchCapacity;
+        this.dinnerCapacity = dinnerCapacity;
         this.foodPrice = foodPrice;
-        this.foodImage = foodImage;
+        this.foodImages = foodImages;
         this.makersDiscountPrice = makersDiscountPrice;
         this.makersDiscountRate = makersDiscountRate;
         this.periodDiscountPrice = periodDiscountPrice;

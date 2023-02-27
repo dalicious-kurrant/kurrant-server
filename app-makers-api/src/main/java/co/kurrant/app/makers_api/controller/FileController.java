@@ -2,16 +2,19 @@ package co.kurrant.app.makers_api.controller;
 
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.file.service.ImageService;
 import co.kurrant.app.makers_api.service.ExcelService;
 import co.kurrant.app.makers_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @Tag(name = "File")
 @RequiredArgsConstructor
@@ -19,6 +22,17 @@ import java.io.IOException;
 @RestController
 public class FileController {
   private final ExcelService excelService;
+  private final ImageService imageService;
+
+  @Operation(summary = "이미지 업로드 경로 요청", description = "이미지 업로드 경로 요청한다.")
+  @ResponseStatus(HttpStatus.OK)
+  @PostMapping("/images")
+  public ResponseMessage uploadImage(List<MultipartFile> multipartFiles) throws IOException {
+    return ResponseMessage.builder()
+            .data(imageService.upload(multipartFiles, "food"))
+            .message("S3 이미지 업로드에 성공하였습니다.")
+            .build();
+  }
 
   @Operation(summary = "전체 조회 엑셀 파일 불러오기", description = "전체 조회 엑셀 파일의 데이터를 불러옵니다.")
   @PostMapping("/excel/all")

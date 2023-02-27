@@ -4,10 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
-import java.util.List;
 
 @Getter
 @Setter
-public class FoodDeleteDto {
-    private List<BigInteger> foodId;
+public class FoodStatusUpdateDto {
+    private BigInteger foodId;
+    private Integer foodStatus;
 }

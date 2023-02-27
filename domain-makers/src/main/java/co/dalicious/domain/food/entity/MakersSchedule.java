@@ -36,4 +36,11 @@ public class MakersSchedule {
     @JoinColumn
     @Comment("메이커스")
     private Makers makers;
+
+    public MakersSchedule(LocalDate serviceDate, DiningType diningType, Integer capacity, Makers makers) {
+        this.serviceDate = serviceDate;
+        this.diningType = diningType;
+        this.capacity = capacity;
+        this.makers = makers;
+    }
 }

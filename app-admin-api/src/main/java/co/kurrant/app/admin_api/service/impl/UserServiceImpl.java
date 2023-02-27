@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserHistory;
@@ -14,6 +15,7 @@ import co.dalicious.domain.user.repository.UserRepository;
 import co.kurrant.app.admin_api.dto.user.SaveAndUpdateUserList;
 import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
 import co.kurrant.app.admin_api.dto.user.UserInfoResponseDto;
+import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
 import exception.ApiException;
@@ -36,30 +38,32 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UserHistoryMapper userHistoryMapper;
+
     private final PasswordEncoder passwordEncoder;
+
     private final UserHistoryRepository userHistoryRepository;
     private final QUserRepository qUserRepository;
     private final QUserGroupRepository qUserGroupRepository;
+    private final QOrderRepository qOrderRepository;
+
 
     @Override
-    public ListItemResponseDto<UserInfoResponseDto> getUserList(OffsetBasedPageRequest pageable) {
+    public List<UserInfoResponseDto> getUserList() {
 
-        Page<User> users = userRepository.findAll(pageable);
+        List<User> users = userRepository.findAll();
 
         users.stream().filter(user -> user.getUserStatus().getCode() != 0)
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        List<UserInfoResponseDto> userInfoResponseDtoList = users.get()
+        List<UserInfoResponseDto> userInfoResponseDtoList =  users.stream()
                 .map(userMapper::toDto).toList();
 
-        return ListItemResponseDto.<UserInfoResponseDto>builder().items(userInfoResponseDtoList)
-                .total(users.getTotalElements()).count(users.getNumberOfElements())
-                .limit(pageable.getPageSize()).offset(pageable.getOffset()).build();
+        return userInfoResponseDtoList;
     }
 
     @Override
-    public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
+    public long deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
 
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
 
@@ -69,16 +73,24 @@ public class UserServiceImpl implements UserService {
         if (userIdList.size() == 0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
         for (BigInteger userId : userIdList) {
-            User deleteUser = qUserRepository.findByUserId(userId);
+            User deleteUser = userRepository.findById(userId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+            //주문 체크
+            long isOrder = qOrderRepository.orderCheck(deleteUser);
+            //주문내역이 없다면 해당유저 찐 삭제
+            if (isOrder == 0){
+                long deleteReal = qUserRepository.deleteReal(deleteUser);
+                if (deleteReal != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
+            }
 
             UserHistory userHistory = userHistoryMapper.toEntity(deleteUser, groupId);
 
              userHistoryRepository.save(userHistory);
-
-            Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
-            if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
+            if (isOrder != 0) {
+                Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
+                if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
+            }
         }
-
+        return 1;
     }
 
     @Override
@@ -112,4 +124,14 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
+    public void resetPassword(UserResetPasswordRequestDto passwordResetDto) {
+        //리셋할 비밀번호 설정
+        String reset = "1234";
+        String password = passwordEncoder.encode(reset);
+
+        //수정
+        qUserRepository.resetPassword(passwordResetDto.getUserId(), password);
+
+    }
 }

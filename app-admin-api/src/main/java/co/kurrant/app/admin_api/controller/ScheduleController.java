@@ -13,7 +13,6 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/schedules")
-@CrossOrigin(origins="*", allowedHeaders = "*")
 public class ScheduleController {
 
     private final ScheduleService scheduleService;

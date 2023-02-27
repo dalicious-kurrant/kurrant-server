@@ -1,7 +1,7 @@
 package co.kurrant.app.makers_api.controller.food;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.food.dto.FoodDeleteDto;
+import co.dalicious.domain.food.dto.FoodStatusUpdateDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
 import co.kurrant.app.makers_api.model.SecurityUser;
@@ -52,33 +52,34 @@ public class FoodController {
                 .build();
     }
 
-//    @Operation(summary = "상품 삭제", description = "선택된 상품을 삭제합니다.")
-//    @DeleteMapping("")
-//    public ResponseMessage deleteFood(Authentication authentication, @RequestBody FoodDeleteDto foodDeleteDto) {
-//        UserUtil.securityUser(authentication);
-//        foodService.deleteFood(foodDeleteDto);
-//        return ResponseMessage.builder()
-//                .message("상품을 삭제했습니다.")
-//                .build();
-//    }
-//
-//    @Operation(summary = "대량 상품 수정", description = "엑셀로 상품을 대량 수정합니다.")
-//    @PostMapping("/mass")
-//    public ResponseMessage updateFoodMass(Authentication authentication, @RequestBody List<FoodListDto> foodListDto) {
-//        UserUtil.securityUser(authentication);
-//        foodService.updateFoodMass(foodListDto);
-//        return ResponseMessage.builder()
-//                .message("상품을 수정했습니다.")
-//                .build();
-//    }
-//
-//    @Operation(summary = "상품 수정", description = "상품을 수정합니다.")
-//    @PutMapping("")
-//    public ResponseMessage updateFood(Authentication authentication, @RequestBody MakersFoodDetailReqDto foodDetailDto) {
-//        UserUtil.securityUser(authentication);
-//        foodService.updateFood(foodDetailDto);
-//        return ResponseMessage.builder()
-//                .message("상품을 수정했습니다.")
-//                .build();
-//    }
+    @Operation(summary = "상품 상태 수정", description = "선택된 상품의 상태를 변경합니다.")
+    @PostMapping("")
+    public ResponseMessage updateFood(Authentication authentication, @RequestBody FoodStatusUpdateDto foodStatusUpdateDto) {
+        UserUtil.securityUser(authentication);
+        foodService.updateFoodStatus(foodStatusUpdateDto);
+        return ResponseMessage.builder()
+                .message("상품을 삭제했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "대량 상품 수정", description = "엑셀로 상품을 대량 수정합니다.")
+    @PostMapping("/mass")
+    public ResponseMessage updateFoodMass(Authentication authentication, @RequestBody List<FoodListDto> foodListDto) {
+        UserUtil.securityUser(authentication);
+        foodService.updateFoodMass(foodListDto);
+        return ResponseMessage.builder()
+                .message("상품을 수정했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "상품 수정", description = "상품을 수정합니다.")
+    @PutMapping("")
+    public ResponseMessage updateFood(Authentication authentication,
+                                      @RequestBody MakersFoodDetailReqDto foodDetailDto) {
+        UserUtil.securityUser(authentication);
+        foodService.updateFood(foodDetailDto);
+        return ResponseMessage.builder()
+                .message("상품을 수정했습니다.")
+                .build();
+    }
 }

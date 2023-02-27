@@ -1,9 +1,8 @@
 package co.kurrant.app.makers_api.service.impl;
 
-import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.*;
-import co.dalicious.domain.food.mapper.FoodCapacityMapper;
+import co.dalicious.domain.food.mapper.CapacityMapper;
 import co.dalicious.domain.food.mapper.FoodDiscountPolicyMapper;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
 import co.dalicious.domain.food.repository.*;
@@ -25,7 +24,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +36,7 @@ public class FoodServiceImpl implements FoodService {
     private final MakersRepository makersRepository;
     private final FoodDiscountPolicyMapper foodDiscountPolicyMapper;
     private final FoodDiscountPolicyRepository foodDiscountPolicyRepository;
-    private final FoodCapacityMapper foodCapacityMapper;
+    private final CapacityMapper capacityMapper;
     private final FoodCapacityRepository foodCapacityRepository;
     private final QFoodRepository qFoodRepository;
 
@@ -47,12 +45,14 @@ public class FoodServiceImpl implements FoodService {
     public List<FoodListDto> getAllFoodList() {
         // 모든 상품 불러오기
         List<Food> allFoodList = foodRepository.findAll();
-        if(allFoodList.size() == 0) { throw new ApiException(ExceptionEnum.NOT_FOUND); }
+        if (allFoodList.size() == 0) {
+            throw new ApiException(ExceptionEnum.NOT_FOUND);
+        }
 
         // 상품 dto에 담기
         List<FoodListDto> dtoList = new ArrayList<>();
 
-        for(Food food : allFoodList) {
+        for (Food food : allFoodList) {
             DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
             BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
             FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
@@ -69,12 +69,14 @@ public class FoodServiceImpl implements FoodService {
 
         // makersId로 상품 조회
         List<Food> foodListByMakers = foodRepository.findByMakersOrderById(makers);
-        if(foodListByMakers == null) { throw new ApiException(ExceptionEnum.NOT_FOUND); }
+        if (foodListByMakers == null) {
+            throw new ApiException(ExceptionEnum.NOT_FOUND);
+        }
 
         // 상품 dto에 담기
         List<FoodListDto> dtoList = new ArrayList<>();
 
-        for(Food food : foodListByMakers) {
+        for (Food food : foodListByMakers) {
             DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
             BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
             FoodListDto dto = makersFoodMapper.toAllFoodListByMakersDto(food, discountDto, resultPrice);
@@ -91,7 +93,7 @@ public class FoodServiceImpl implements FoodService {
         Makers makers = userUtil.getMakers(securityUser);
         Food food = qFoodRepository.findByIdAndMakers(foodId, makers);
         // 만약 food가 없으면 예외처리
-        if(food == null) throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
+        if (food == null) throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
 
         DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
 
@@ -100,21 +102,14 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public void deleteFood(FoodDeleteDto foodDeleteDto) {
-        for(BigInteger foodId : foodDeleteDto.getFoodId()){
-            Food food = foodRepository.findById(foodId).orElseThrow(
-                    () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
-            );
-
-            foodRepository.delete(food);
-        }
+    public void updateFoodStatus(FoodStatusUpdateDto foodStatusUpdateDto) {
     }
 
     //대량 수정
     @Override
     @Transactional
     public void updateFoodMass(List<FoodListDto> foodListDtoList) {
-        for(FoodListDto foodListDto : foodListDtoList) {
+        for (FoodListDto foodListDto : foodListDtoList) {
             Food food = foodRepository.findById(foodListDto.getFoodId()).orElse(null);
 
             List<FoodTag> foodTags = new ArrayList<>();
@@ -142,12 +137,14 @@ public class FoodServiceImpl implements FoodService {
 
                 // 푸드 capacity 생성
                 List<MakersCapacity> makersCapacityList = makers.getMakersCapacities();
-                if(makersCapacityList == null){ throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS_CAPACITY); }
+                if (makersCapacityList == null) {
+                    throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS_CAPACITY);
+                }
                 for (MakersCapacity makersCapacity : makersCapacityList) {
                     DiningType diningType = makersCapacity.getDiningType();
                     Integer capacity = makersCapacity.getCapacity();
 
-                    FoodCapacity foodCapacity = foodCapacityMapper.toEntity(diningType, capacity, newFood);
+                    FoodCapacity foodCapacity = capacityMapper.toEntity(diningType, capacity, newFood);
                     foodCapacityRepository.save(foodCapacity);
                 }
             }
@@ -160,11 +157,11 @@ public class FoodServiceImpl implements FoodService {
 
                 //food discount policy UPDATE
                 List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
-                for(FoodDiscountPolicy discountPolicy : discountPolicyList) {
-                    if(discountPolicy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT)) {
+                for (FoodDiscountPolicy discountPolicy : discountPolicyList) {
+                    if (discountPolicy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT)) {
                         discountPolicy.updateFoodDiscountPolicy(foodListDto.getMakersDiscount());
                         foodDiscountPolicyRepository.save(discountPolicy);
-                    } else if(discountPolicy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT)) {
+                    } else if (discountPolicy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT)) {
                         discountPolicy.updateFoodDiscountPolicy(foodListDto.getEventDiscount());
                         foodDiscountPolicyRepository.save(discountPolicy);
                     }
@@ -180,38 +177,29 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
         );
 
-        // food tag 변환
-        List<FoodTag> foodTags = new ArrayList<>();
-        List<Integer> foodTagStrs = foodDetailDto.getFoodTags();
-        if(foodTagStrs == null) foodTags = null;
-        else { for (Integer tag : foodTagStrs) foodTags.add(FoodTag.ofCode(tag)); }
+        // 음식 업데이트
+        food.updateFood(foodDetailDto);
 
-        System.out.println("foodTagStrs = " + Objects.requireNonNull(foodTagStrs));
-
-        // 수정을 위한 이미지가 없을 때
-        if(foodDetailDto.getImage() == null) {
-            //food UPDATE
-            food.updateFood(foodTags, food.getImage());
-            foodRepository.save(food);
-        } else {
-            // 수정을 위한 이미지 객체 생성
-            Image image = Image.builder().location(foodDetailDto.getImage()).build();
-
-            //food UPDATE
-            food.updateFood(foodTags, image);
-            foodRepository.save(food);
+        //음식 할인 정책 저장
+        if (food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT) == null) {
+            foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.MAKERS_DISCOUNT, foodDetailDto.getMakersDiscountRate()));
+        }
+        else if (foodDetailDto.getMakersDiscountRate() == 0) {
+            foodDiscountPolicyRepository.delete(food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT));
+        }
+        else {
+            food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT).updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
         }
 
-        //food discount policy UPDATE
-        List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
-        for(FoodDiscountPolicy discountPolicy : discountPolicyList) {
-            if(discountPolicy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT)) {
-                discountPolicy.updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
-                foodDiscountPolicyRepository.save(discountPolicy);
-            } else if(discountPolicy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT)) {
-                discountPolicy.updateFoodDiscountPolicy(foodDetailDto.getPeriodDiscountRate());
-                foodDiscountPolicyRepository.save(discountPolicy);
-            }
+        if (food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT) == null) {
+            foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.PERIOD_DISCOUNT, foodDetailDto.getMakersDiscountRate()));
         }
+        else if (foodDetailDto.getMakersDiscountRate() == 0) {
+            foodDiscountPolicyRepository.delete(food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT));
+        }
+        else {
+            food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT).updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
+        }
+
     }
 }

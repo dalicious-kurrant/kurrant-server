@@ -60,4 +60,17 @@ public class QUserRepository {
 
 
     }
+
+    public void resetPassword(BigInteger userId, String password) {
+        queryFactory.update(user)
+                .set(user.password, password)
+                .where(user.id.eq(userId))
+                .execute();
+    }
+
+    public long deleteReal(User deleteUser) {
+       return queryFactory.delete(user)
+                .where(user.id.eq(deleteUser.getId()))
+                .execute();
+    }
 }
