@@ -2,7 +2,7 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.kurrant.app.admin_api.dto.client.GroupListDto;
+import co.dalicious.domain.client.dto.GroupListDto;
 import co.kurrant.app.admin_api.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @Tag(name = "3. Group")
 @RestController
@@ -30,8 +31,8 @@ public class GroupController {
 
     @Operation(summary = "기업 정보 저장", description = "기업 정보를 저장했습니다.")
     @PostMapping("")
-    public ResponseMessage saveCorporationList(@RequestBody GroupListDto corporationListDto) {
-
+    public ResponseMessage saveCorporationList(@RequestBody List<GroupListDto> corporationListDto) {
+        groupService.saveCorporationList(corporationListDto);
         return ResponseMessage.builder()
                 .message("기업 정보를 저장했습니다.")
                 .build();
