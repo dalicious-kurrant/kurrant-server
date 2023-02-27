@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -31,7 +32,7 @@ public class MakersInfoResponseDto {
     private String companyRegistrationNumber;
     private String contractStartDate;
     private String contractEndDate;
-    private Boolean isNutritionInformation;
+    private LocalDate isNutritionInformation;
     private String openTime;
     private String closeTime;
     private String bank;

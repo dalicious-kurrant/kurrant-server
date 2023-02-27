@@ -2,8 +2,10 @@ package co.kurrant.app.makers_api.mapper;
 
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.enums.ServiceType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface MakersMapper {
@@ -19,15 +21,11 @@ public interface MakersMapper {
     @Mapping(source = "makers.contractEndDate", target = "contractEndDate")
     @Mapping(source = "makers.contractStartDate", target = "contractStartDate")
     @Mapping(source = "makers.companyRegistrationNumber", target = "companyRegistrationNumber")
-    @Mapping(source = "makers.location", target = "location")
-    @Mapping(source = "makers.address2", target = "address2")
-    @Mapping(source = "makers.address1", target = "address1")
-    @Mapping(source = "makers.zipCode", target = "zipCode")
     @Mapping(source = "makers.parentCompanyId", target = "parentCompanyId")
     @Mapping(source = "makers.isParentCompany", target = "isParentCompany")
     @Mapping(source = "makers.serviceForm", target = "serviceForm")
-    @Mapping(source = "makers.serviceType", target = "serviceType")
-    @Mapping(source = "makers.makersCapacities", target = "dailyCapacity")
+    @Mapping(source = "makers.serviceType", target = "serviceType", qualifiedByName = "generatedServiceType")
+    @Mapping(source = "dailyCapacity", target = "dailyCapacity")
     @Mapping(source = "makers.managerPhone", target = "managerPhone")
     @Mapping(source = "makers.managerName", target = "managerName")
     @Mapping(source = "makers.CEOPhone", target = "ceoPhone")
@@ -36,5 +34,19 @@ public interface MakersMapper {
     @Mapping(source = "makers.name", target = "name")
     @Mapping(source = "makers.code", target = "code")
     @Mapping(source = "makers.id", target = "id")
-    MakersInfoResponseDto toDto(Makers makers);
+    MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity);
+
+    @Named("generatedServiceType")
+    default Integer generatedServiceType(ServiceType serviceType){
+        return serviceType.getCode();
+    }
+
 }
+
+
+/*
+@Mapping(source = "makers.location", target = "location")
+@Mapping(source = "makers.address2", target = "address2")
+@Mapping(source = "makers.address1", target = "address1")
+@Mapping(source = "makers.zipCode", target = "zipCode")
+*/
