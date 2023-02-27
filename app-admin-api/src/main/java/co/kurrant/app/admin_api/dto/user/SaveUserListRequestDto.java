@@ -25,13 +25,13 @@ public class SaveUserListRequestDto {
     private Integer point;
     private String gourmetType;
     private Boolean isMembership;
-    private String userEmailAgreed;
-    private String userEmailAgreedDateTime;
+    private Boolean marketingAgree;
+    private String marketingAgreedDateTime;
     private Boolean marketingAlarm;
-    private String userOrderAlarm;
+    private Boolean userOrderAlarm;
     private String recentLoginDateTime;
     private String userCreatedDateTime;
-    private List<ProviderEmail> ProviderEmails;
+//    private List<ProviderEmail> ProviderEmails;
 
 
 
