@@ -1,9 +1,7 @@
 package co.dalicious.domain.client.mapper;
 
-
 import co.dalicious.domain.client.dto.SpotListResponseDto;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
