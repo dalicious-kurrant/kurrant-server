@@ -8,11 +8,12 @@ import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.kurrant.app.client_api.mapper.GroupInfoMapper;
+import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.GroupService;
+import co.kurrant.app.client_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,12 +29,14 @@ public class GroupServiceImpl implements GroupService {
     public final GroupInfoMapper groupMapper;
     public final QGroupRepository qGroupRepository;
     public final GroupRepository groupRepository;
+    public final UserUtil userUtil;
 
 
     @Override
     @Transactional(readOnly = true)
-    public GroupListDto.GroupInfoList getGroupInfo(BigInteger groupId) {
-        Group group = groupRepository.findById(groupId).orElseThrow( () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+    public GroupListDto.GroupInfoList getGroupInfo(SecurityUser securityUser) {
+        BigInteger groupId = userUtil.getGroupId(securityUser);
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
 
         // 기업 정보 dto 맵핑하기
         User managerUser = null;
