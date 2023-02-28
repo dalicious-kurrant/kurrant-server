@@ -1,5 +1,7 @@
 package co.kurrant.app.admin_api.mapper;
 
+import co.dalicious.domain.address.dto.CreateAddressRequestDto;
+import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.user.entity.User;
@@ -8,6 +10,8 @@ import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import org.mapstruct.*;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -143,6 +147,39 @@ public interface GroupMapper {
         else return null;
     }
 
-//    Group groupInfoListToEntity(GroupListDto.GroupInfoList groupInfoList);
+    @Mapping(source = "groupInfoList", target = "address", qualifiedByName = "createAddress")
+    @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
+    @Mapping(source = "groupInfoList.name", target = "name")
+    @Mapping(source = "managerId", target = "managerId")
+    @Mapping(source = "groupInfoList.code", target = "code")
+    @Mapping(source = "groupInfoList.isMembershipSupport", target = "isMembershipSupport")
+    @Mapping(source = "groupInfoList.employeeCount", target = "employeeCount")
+    @Mapping(source = "groupInfoList.isGarbage", target = "isGarbage")
+    @Mapping(source = "groupInfoList.isHotStorage", target = "isHotStorage")
+    @Mapping(source = "groupInfoList.isSetting", target = "isSetting")
+    Corporation groupInfoListToCorporationEntity(GroupListDto.GroupInfoList groupInfoList, BigInteger managerId);
+
+    @Named("createAddress")
+    default Address createAddress(GroupListDto.GroupInfoList groupInfoList) {
+        CreateAddressRequestDto createAddressRequestDto = new CreateAddressRequestDto();
+        createAddressRequestDto.setZipCode(String.valueOf(groupInfoList.getZipCode()));
+        createAddressRequestDto.setAddress1(groupInfoList.getAddress1());
+        createAddressRequestDto.setAddress2(groupInfoList.getAddress2());
+        createAddressRequestDto.setLatitude(groupInfoList.getLocation());
+        createAddressRequestDto.setLongitude(groupInfoList.getLocation());
+
+        return Address.builder().createAddressRequestDto(createAddressRequestDto).build();
+    }
+    @Named("getDiningType")
+    default List<DiningType> getDiningType(List<Integer> diningTypeInteger) {
+        List<DiningType> diningTypeList = new ArrayList<>();
+        if(diningTypeInteger != null && !diningTypeInteger.isEmpty()) {
+            for(Integer diningTypeCode : diningTypeInteger) {
+                diningTypeList.add(DiningType.ofCode(diningTypeCode));
+            }
+            return diningTypeList;
+        }
+        return null;
+    }
 }
 

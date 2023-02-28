@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface GroupService {
     ItemPageableResponseDto<GroupListDto> getGroupList(BigInteger groupId, Integer limit, Integer page, OffsetBasedPageRequest pageable);
-    void saveCorporationList(List<GroupListDto> groupListDto);
+    void saveCorporationList(List<GroupListDto.GroupInfoList> groupListDto);
 }

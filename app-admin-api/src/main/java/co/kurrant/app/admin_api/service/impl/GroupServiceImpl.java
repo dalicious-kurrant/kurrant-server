@@ -2,14 +2,19 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
+import co.dalicious.domain.address.dto.CreateAddressRequestDto;
+import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QCorporationRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.service.GroupService;
 import exception.ApiException;
@@ -61,17 +66,29 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public void saveCorporationList(List<GroupListDto> groupListDtoList) {
+    public void saveCorporationList(List<GroupListDto.GroupInfoList> groupListDtoList) {
         // 그룹이 있는지 찾아보기
-//        for(GroupListDto groupListDto : groupListDtoList) {
-//            Group group = groupRepository.findById(groupListDto.getId()).orElse(null);
-//
-//            if(group == null) {
-//                if(groupListDto.getCode() != null && !groupListDto.getCode().isEmpty() && !groupListDto.getCode().isBlank()) {
-//                    Corporation newCorporation = groupMapper.
-//                }
-//            }
-//        }
+        for(GroupListDto.GroupInfoList groupInfoList : groupListDtoList) {
+            Group group = groupRepository.findById(groupInfoList.getId()).orElse(null);
+
+            if(group == null) {
+                BigInteger managerId = null;
+                if(groupInfoList.getManagerName() != null || !groupInfoList.getManagerName().isEmpty() || !groupInfoList.getManagerName().isBlank()) {
+                    User manager = userRepository.findByName(groupInfoList.getManagerName());
+                    managerId = manager.getId();
+                }
+
+                // 기업인지 - code 가 있으면 기업
+                if(groupInfoList.getCode() != null || !groupInfoList.getCode().isEmpty() || !groupInfoList.getCode().isBlank()) {
+                    Corporation corporation = groupMapper.groupInfoListToCorporationEntity(groupInfoList, managerId);
+                    Spot spot =
+                }
+                // 아파트 인지 확인 - code 가 없으면 기업
+                else{
+                    Apartment apartment =
+                }
+            }
+        }
 
     }
 }

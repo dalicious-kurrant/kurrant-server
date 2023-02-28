@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -78,6 +79,7 @@ public interface SpotMapper {
         return new Group(groupId);
     }
 
-
+    @Mapping(source = "", ta)
+    Spot toEntity(GroupListDto.GroupInfoList groupInfoList);
 }
 
