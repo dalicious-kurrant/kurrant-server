@@ -101,6 +101,7 @@ public interface ScheduleMapper {
 
     default ScheduleDto.FoodSchedule toFoodSchedule(DailyFood dailyFood, Integer count) {
         ScheduleDto.FoodSchedule foodSchedule = new ScheduleDto.FoodSchedule();
+        foodSchedule.setDailyFoodId(dailyFood.getId());
         foodSchedule.setFoodId(dailyFood.getFood().getId());
         foodSchedule.setFoodCapacity(dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()) == null ?
                 dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getCapacity() :

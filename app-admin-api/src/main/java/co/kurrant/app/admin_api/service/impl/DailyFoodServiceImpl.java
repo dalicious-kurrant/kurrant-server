@@ -14,6 +14,7 @@ import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.StringUtils;
+import co.kurrant.app.admin_api.dto.FoodDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.dto.ScheduleDto;
@@ -112,5 +113,10 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         groupAndMakers.setMakers(makersDtos);
 
         return groupAndMakers;
+    }
+
+    @Override
+    public void excelDailyFoods(List<FoodDto.DailyFood> dailyFoodList) {
+
     }
 }

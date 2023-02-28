@@ -36,6 +36,7 @@ public class ScheduleDto {
     @Getter
     @Setter
     public static class FoodSchedule {
+        private BigInteger dailyFoodId;
         private BigInteger foodId;
         private String foodName;
         private Integer foodStatus;
