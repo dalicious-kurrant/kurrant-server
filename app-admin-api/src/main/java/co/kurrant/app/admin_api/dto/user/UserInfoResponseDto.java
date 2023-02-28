@@ -34,9 +34,9 @@ public class UserInfoResponseDto {
     @Schema(description = "멤버십 여부")
     private Boolean isMembership;
     @Schema(description = "이메일동의 여부")
-    private String userEmailAgreed;
+    private String marketingAgreed;
     @Schema(description = "이메일 동의 날짜")
-    private String userEmailAgreedDateTime;
+    private String marketingAgreedDateTime;
     @Schema(description = "혜택 및 소식 알림")
     private Boolean marketingAlarm;
     @Schema(description = "주문 알림 여부")

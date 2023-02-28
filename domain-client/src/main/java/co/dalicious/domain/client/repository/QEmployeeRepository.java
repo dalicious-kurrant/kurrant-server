@@ -27,4 +27,10 @@ public class QEmployeeRepository {
                 .where(employee.corporation.id.eq(corporationId))
                 .fetch();
     }
+
+    public long deleteWaitingMember(BigInteger userId) {
+        return queryFactory.delete(employee)
+                .where(employee.id.eq(userId))
+                .execute();
+    }
 }

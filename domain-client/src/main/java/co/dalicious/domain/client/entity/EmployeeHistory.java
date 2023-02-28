@@ -1,9 +1,11 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.client.entity.enums.EmployeeHistoryType;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
@@ -20,9 +22,6 @@ public class EmployeeHistory {
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
-    @Comment(value = "삭제한 유저 아이디")
-    private BigInteger userId;
-
     @Comment(value = "이름")
     private String name;
 
@@ -32,12 +31,19 @@ public class EmployeeHistory {
     @Comment(value = "휴대폰번호")
     private String phone;
 
+    @ColumnDefault("0")
+    private EmployeeHistoryType type;
+
+    @Comment("삭제된 유저의 아이디")
+    private BigInteger userId;
+
     @Builder
-    public EmployeeHistory(BigInteger userId, String name, String email, String phone){
-        this.userId = userId;
+    public EmployeeHistory(String name, String email, String phone, EmployeeHistoryType type, BigInteger userId){
         this.name = name;
         this.email = email;
         this.phone = phone;
+        this.type = type;
+        this.userId = userId;
     }
 
 }
