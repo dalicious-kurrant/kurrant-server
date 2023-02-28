@@ -1,6 +1,8 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -32,5 +34,10 @@ public class Apartment extends Group{
     public Apartment(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer familyCount) {
         super(address, diningTypes, name, managerId);
         this.familyCount = familyCount;
+    }
+
+    public void updateApartment(GroupExcelRequestDto groupInfoList, Address address, BigInteger managerId, List<DiningType> diningTypeList) {
+        updateGroup(address, diningTypeList, groupInfoList.getName(), managerId);
+        this.familyCount = groupInfoList.getEmployeeCount();
     }
 }

@@ -1,10 +1,14 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.converter.IdListConverter;
 import co.dalicious.system.enums.DiningType;
+import com.querydsl.core.group.GroupExpression;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +19,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 @DynamicInsert
@@ -78,12 +83,23 @@ public class Corporation extends Group{
     private List<BigInteger> excludedFood;
 
     @Builder
-    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting) {
+    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String code, Boolean isMembershipSupport) {
         super(address, diningTypes, name, managerId);
+        this.code = code;
         this.employeeCount = employeeCount;
+        this.isMembershipSupport = isMembershipSupport;
         this.isGarbage = isGarbage;
         this.isHotStorage = isHotStorage;
         this.isSetting = isSetting;
     }
 
+    public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, BigInteger managerId, List<DiningType> diningTypeList, Boolean isMembershipSupport, Boolean isSetting, Boolean isGarbage, Boolean isHotStorage) {
+        updateGroup(address, diningTypeList, groupInfoList.getName(), managerId);
+        this.code = groupInfoList.getCode();
+        this.employeeCount = groupInfoList.getEmployeeCount();
+        this.isMembershipSupport = isMembershipSupport;
+        this.isGarbage = isGarbage;
+        this.isHotStorage = isHotStorage;
+        this.isSetting = isSetting;
+    }
 }

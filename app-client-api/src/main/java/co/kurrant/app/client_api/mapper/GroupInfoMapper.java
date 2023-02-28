@@ -52,7 +52,7 @@ public interface GroupInfoMapper {
                 serviceDayList.addAll(useDays);
             }
         }
-        serviceDayList.forEach(mealInfoBuilder::append);
+        serviceDayList.forEach(day -> mealInfoBuilder.append(day).append(", "));
         return String.valueOf(mealInfoBuilder);
     }
 

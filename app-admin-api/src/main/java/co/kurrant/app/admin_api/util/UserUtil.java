@@ -1,7 +1,5 @@
 package co.kurrant.app.admin_api.util;
 
-import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.food.repository.MakersRepository;
 import co.kurrant.app.admin_api.model.Admin;
 import co.kurrant.app.admin_api.model.SecurityUser;
 import exception.ApiException;
@@ -9,8 +7,6 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-
-import java.math.BigInteger;
 
 @Component
 @RequiredArgsConstructor

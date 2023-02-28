@@ -77,4 +77,8 @@ public class MealInfo {
         this.serviceDays = serviceDays;
         this.spot = spot;
     }
+
+    public void updateServiceDays(String serviceDays) {
+        this.serviceDays = serviceDays;
+    }
 }
