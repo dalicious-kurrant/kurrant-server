@@ -23,7 +23,7 @@ public class MakersInfoResponseDto {
     private String managerName;
     private String managerPhone;
     private Integer dailyCapacity;
-    private Integer serviceType;
+    private String serviceType;
     private String serviceForm;
     private Boolean isParentCompany;
     private BigInteger parentCompanyId;
