@@ -1,7 +1,7 @@
 package co.kurrant.app.admin_api.service;
 
 import co.dalicious.system.util.PeriodDto;
-import co.kurrant.app.admin_api.dto.FoodDto;
+import co.dalicious.domain.food.dto.FoodDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.ScheduleDto;
 

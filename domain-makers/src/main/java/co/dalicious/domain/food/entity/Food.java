@@ -34,7 +34,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "food__food")
+@Table(name = "food__food", uniqueConstraints={@UniqueConstraint(columnNames={"name", "makers_id"})})
 public class Food {
     // TODO: 추후 Item 상속 추가
     @Id
@@ -173,5 +173,12 @@ public class Food {
 
         }
         return null;
+    }
+
+    public static Food getFood(List<Food> foods, String makersName, String foodName) {
+        return foods.stream()
+                .filter(v -> v.getMakers().getName().equals(makersName) || v.getName().equals(foodName))
+                .findAny()
+                .orElse(null);
     }
 }

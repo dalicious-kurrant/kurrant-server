@@ -31,10 +31,17 @@ public class QFoodRepository {
                 .fetchOne();
     }
 
-    public List<Food> findByMakers( Makers makers) {
+    public List<Food> findByMakers(Makers makers) {
         return queryFactory
                 .selectFrom(food)
                 .where(food.makers.eq(makers))
+                .fetch();
+    }
+
+    public List<Food> findByMakers(List<Makers> makers) {
+        return queryFactory
+                .selectFrom(food)
+                .where(food.makers.in(makers))
                 .fetch();
     }
 }
