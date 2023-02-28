@@ -26,7 +26,7 @@ public class Address {
   @Column(name = "address_depth_2", nullable = true, columnDefinition = "VARCHAR(255) COMMENT '상세주소'")
   private String address2;
 
-  @Column(name = "address_location", nullable = true)
+  @Column(name = "address_location", nullable = true, columnDefinition = "GEOMETRY")
   @Comment("위치")
   private Point location;
 

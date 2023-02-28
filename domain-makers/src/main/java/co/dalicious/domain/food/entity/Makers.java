@@ -152,9 +152,38 @@ public class Makers {
     private Role role;
 
     @Builder
-    Makers(BigInteger id, String name){
-        this.id = id;
+    Makers(String code, String name, String companyName, String CEO, String CEOPhone,
+           String managerName, String managerPhone, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany,
+           BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate,
+           Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String bank, String depositHolder,
+           String accountNumber, Timestamp createdDateTime, Timestamp updatedDateTime, String password, Role role
+           ){
+        this.code = code;
         this.name = name;
+        this.companyName = companyName;
+        this.CEO = CEO;
+        this.CEOPhone = CEOPhone;
+        this.managerName = managerName;
+        this.managerPhone = managerPhone;
+        this.serviceType = serviceType;
+        this.serviceForm = serviceForm;
+        this.isParentCompany = isParentCompany;
+        this.parentCompanyId = parentCompanyId;
+        this.address = address;
+        this.companyRegistrationNumber = companyRegistrationNumber;
+        this.contractStartDate = contractStartDate;
+        this.contractEndDate = contractEndDate;
+        this.isNutritionInformation = isNutritionInformation;
+        this.openTime = openTime;
+        this.closeTime = closeTime;
+        this.bank = bank;
+        this.depositHolder = depositHolder;
+        this.accountNumber = accountNumber;
+        this.createdDateTime = createdDateTime;
+        this.updatedDateTime = updatedDateTime;
+        this.password = password;
+        this.role = role;
+
     }
 
     public MakersCapacity getMakersCapacity(DiningType diningType) {

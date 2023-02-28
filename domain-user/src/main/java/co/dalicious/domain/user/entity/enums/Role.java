@@ -31,4 +31,12 @@ public enum Role {
                 .findAny()
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 타입입니다."));
     }
+
+    public static Role ofString(String dbData) {
+        return Arrays.stream(Role.values())
+                .filter(v -> v.getAuthority().equals(dbData))
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 타입입니다."));
+    }
+
 }
