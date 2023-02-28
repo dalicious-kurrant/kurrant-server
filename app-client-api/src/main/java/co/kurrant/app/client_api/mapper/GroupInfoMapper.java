@@ -31,8 +31,6 @@ public interface GroupInfoMapper {
     @Mapping(source = "group", target = "isSetting", qualifiedByName = "getIsSetting")
     @Mapping(source = "group", target = "isGarbage", qualifiedByName = "getIsGarbage")
     @Mapping(source = "group", target = "isHotStorage", qualifiedByName = "getIsHotStorage")
-    @Mapping(target = "createdDateTime", expression = "java(DateUtils.toISO(group.getCreatedDateTime()))")
-    @Mapping(target = "updatedDateTime", expression = "java(DateUtils.toISO(group.getUpdatedDateTime()))")
     GroupListDto.GroupInfoList toCorporationListDto(Group group, User managerUser);
 
     @Named("getDiningCodeList")
@@ -52,7 +50,7 @@ public interface GroupInfoMapper {
                 serviceDayList.addAll(useDays);
             }
         }
-        serviceDayList.forEach(mealInfoBuilder::append);
+        serviceDayList.forEach(day -> mealInfoBuilder.append(day).append(", "));
         return String.valueOf(mealInfoBuilder);
     }
 

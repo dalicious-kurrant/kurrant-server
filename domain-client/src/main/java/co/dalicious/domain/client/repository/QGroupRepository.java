@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 
@@ -37,6 +39,12 @@ public class QGroupRepository {
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public List<Group> findAllByNames(Set<String> groupNames) {
+        return queryFactory.selectFrom(group)
+                .where(group.name.in(groupNames))
+                .fetch();
     }
 
 }

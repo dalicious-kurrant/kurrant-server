@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.dto;
+package co.dalicious.domain.food.dto;
 
 import lombok.Getter;
 import lombok.Setter;

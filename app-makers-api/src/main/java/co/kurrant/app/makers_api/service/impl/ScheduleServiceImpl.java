@@ -80,7 +80,6 @@ public class ScheduleServiceImpl implements ScheduleService {
                     PresetMakersDailyFood makersDailyFood = qPresetGroupDailyFoodRepository.findByIdAndMakers(makersSchedule.getPresetMakersId(), makers);
                     makersDailyFood.updateScheduleStatus(ScheduleStatus.ofCode(makersSchedule.getScheduleStatus()));
                     presetMakersDailyFoodRepository.save(makersDailyFood);
-                    qGroupRecommendRepository.updateIsReject(makersDailyFood.getMakers().getId(), makersDailyFood.getServiceDate());
                 });
 
         // 메이커스의 식품별 예비 스케쥴 중 거절이 있으면 update

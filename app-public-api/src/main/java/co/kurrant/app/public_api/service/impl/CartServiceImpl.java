@@ -67,7 +67,7 @@ public class CartServiceImpl implements CartService {
         }
 
         // DailyFood 가져오기
-        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByFoodIds(dailyFoodIds);
+        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByDailyFoodIds(dailyFoodIds);
 
         if (dailyFoods.isEmpty()) {
             throw new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND);

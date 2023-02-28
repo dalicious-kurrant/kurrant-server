@@ -2,7 +2,7 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.system.util.PeriodDto;
-import co.kurrant.app.admin_api.dto.FoodDto;
+import co.dalicious.domain.food.dto.FoodDto;
 import co.kurrant.app.admin_api.service.DailyFoodService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
