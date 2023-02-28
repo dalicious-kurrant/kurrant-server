@@ -41,7 +41,6 @@ public class GroupServiceImpl implements GroupService {
         // 기업 정보 dto 맵핑하기
         User managerUser = null;
         if(group.getManagerId() != null) { managerUser = userRepository.findById(group.getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));}
-
         return groupMapper.toCorporationListDto(group, managerUser);
     }
 
