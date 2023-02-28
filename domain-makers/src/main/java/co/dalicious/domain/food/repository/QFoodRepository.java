@@ -36,20 +36,27 @@ public class QFoodRepository {
                 .fetchOne();
     }
 
-    public List<Food> findByMakers( Makers makers) {
+    public List<Food> findByMakers(Makers makers) {
         return queryFactory
                 .selectFrom(food)
                 .where(food.makers.eq(makers))
                 .fetch();
     }
-
+    
     public Page<Food> findAllPage(Integer limit, Integer page, Pageable pageable) {
-        int offset = limit * (page - 1);
-        QueryResults<Food> results = queryFactory.selectFrom(food)
-                .limit(limit)
-                .offset(offset)
-                .fetchResults();
+      int offset = limit * (page - 1);
+      QueryResults<Food> results = queryFactory.selectFrom(food)
+              .limit(limit)
+              .offset(offset)
+              .fetchResults();
 
-        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+      return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+    
+    public List<Food> findByMakers(List<Makers> makers) {
+      return queryFactory
+              .selectFrom(food)
+              .where(food.makers.in(makers))
+              .fetch();
     }
 }

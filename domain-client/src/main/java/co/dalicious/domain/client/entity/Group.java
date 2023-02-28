@@ -45,7 +45,7 @@ public class Group {
 
     @Size(max = 64)
     @NotNull
-    @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(64)")
+    @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(64)", unique = true)
     @Comment("그룹 이름")
     private String name;
 
@@ -84,6 +84,13 @@ public class Group {
 
     public Group(BigInteger id){
         this.id = id;
+    }
+
+    public static Group getGroup(List<Group> groups, String name) {
+        return groups.stream()
+                .filter(v -> v.getName().equals(name))
+                .findAny()
+                .orElse(null);
     }
 
     public void updateGroup(Address address, List<DiningType> diningTypeList, String name, BigInteger managerId) {

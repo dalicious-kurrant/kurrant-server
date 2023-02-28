@@ -32,10 +32,10 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
-    public List<DailyFood> findAllByFoodIds(List<BigInteger> foodIds) {
+    public List<DailyFood> findAllByDailyFoodIds(List<BigInteger> dailyFoodIds) {
         return queryFactory
                 .selectFrom(dailyFood)
-                .where(dailyFood.id.in(foodIds))
+                .where(dailyFood.id.in(dailyFoodIds))
                 .fetch();
     }
 

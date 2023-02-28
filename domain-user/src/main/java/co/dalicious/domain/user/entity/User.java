@@ -158,7 +158,7 @@ public class User {
 
     @Builder
     public User(BigInteger id, String password, String name, Role role,
-                UserStatus status, String phone, String email,
+                UserStatus userStatus, String phone, String email,
                 BigDecimal point, GourmetType gourmetType, Boolean isMembership, Boolean marketingAgree,
                 Timestamp marketingAgreedDateTime, Boolean marketingAlarm, Boolean orderAlarm, Timestamp recentLoginDateTime,
                 Timestamp createdDateTime, Timestamp updatedDateTime){
@@ -166,7 +166,7 @@ public class User {
         this.password = password;
         this.name = name;
         this.role = role;
-        this.userStatus = status;
+        this.userStatus = userStatus;
         this.phone = phone;
         this.email = email;
         this.point = point;

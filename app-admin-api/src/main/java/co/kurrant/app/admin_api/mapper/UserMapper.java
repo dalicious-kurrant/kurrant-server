@@ -76,7 +76,7 @@ public interface UserMapper {
     @Mapping(source = "saveUser.isMembership", target = "isMembership")
     @Mapping(source = "saveUser.gourmetType", target = "gourmetType", qualifiedByName = "generatedGourmetType")
     @Mapping(source = "saveUser.point", target = "point")
-    @Mapping(source = "saveUser.status", target = "status", qualifiedByName = "getStatus")
+    @Mapping(source = "saveUser.status", target = "userStatus", qualifiedByName = "getStatus")
     @Mapping(source = "password", target = "password")
     @Mapping(source = "role", target = "role")
     @Mapping(source = "saveUser.phone", target = "phone")
