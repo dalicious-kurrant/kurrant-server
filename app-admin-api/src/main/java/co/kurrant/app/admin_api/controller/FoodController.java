@@ -68,7 +68,7 @@ public class FoodController {
     }
 
     @Operation(summary = "상품 수정", description = "상품을 수정합니다.")
-    @PutMapping("")
+    @PatchMapping("")
     public ResponseMessage updateFood(@RequestPart(required = false) List<MultipartFile> files, @RequestPart MakersFoodDetailReqDto contents) throws IOException {
         foodService.updateFood(files, contents);
         return ResponseMessage.builder()
