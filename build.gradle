@@ -359,6 +359,7 @@ project(':app-makers-api') {
         implementation project(':domain-review')
         implementation project(':data-redis')
         implementation project(':client-sse')
+        implementation project(':domain-recommend')
     }
 }
 

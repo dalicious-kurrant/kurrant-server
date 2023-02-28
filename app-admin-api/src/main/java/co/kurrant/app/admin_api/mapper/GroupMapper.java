@@ -97,6 +97,7 @@ public interface GroupMapper {
         for(Spot spot : spotList) {
             List<MealInfo> mealInfoList = spot.getMealInfos();
             for(MealInfo mealInfo : mealInfoList) {
+                if(mealInfo.getServiceDays() == null && mealInfo.getServiceDays().isEmpty() && mealInfo.getServiceDays().isBlank()) continue;
                 List<String> useDays = List.of(mealInfo.getServiceDays().split(", "));
                 serviceDayList.addAll(useDays);
             }
