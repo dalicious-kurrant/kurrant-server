@@ -79,7 +79,10 @@ public interface SpotMapper {
         return new Group(groupId);
     }
 
-    @Mapping(source = "", ta)
-    Spot toEntity(GroupListDto.GroupInfoList groupInfoList);
+    @Mapping(source = "group.name", target = "name")
+    @Mapping(source = "group.address", target = "address")
+    @Mapping(source = "group.diningTypes", target = "diningTypes")
+    @Mapping(source = "group", target = "group")
+    Spot toEntity(Group group);
 }
 

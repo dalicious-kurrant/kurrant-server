@@ -86,4 +86,10 @@ public class Group {
         this.id = id;
     }
 
+    public void updateGroup(Address address, List<DiningType> diningTypeList, String name, BigInteger managerId) {
+        this.address = address;
+        this.diningTypes = diningTypeList;
+        this.name = name;
+        this.managerId = managerId;
+    }
 }

@@ -50,8 +50,6 @@ public class GroupListDto {
         private Boolean isSetting;
         private Boolean isGarbage;
         private Boolean isHotStorage;
-        private String createdDateTime;
-        private String updatedDateTime;
     }
 
     public static GroupListDto createGroupListDto(List<Group> groupList, List<GroupInfoList> groupInfoList) {
