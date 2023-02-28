@@ -1,5 +1,7 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.service.ImageService;
@@ -19,6 +21,7 @@ import co.kurrant.app.admin_api.service.FoodService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,22 +49,24 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public List<FoodListDto> getAllFoodList() {
+    public ListItemResponseDto<FoodListDto> getAllFoodList(Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         // 모든 상품 불러오기
-        List<Food> allFoodList = foodRepository.findAll();
-        if(allFoodList.size() == 0) { throw new ApiException(ExceptionEnum.NOT_FOUND); }
+        Page<Food> allFoodPage = qFoodRepository.findAllPage(limit, page, pageable);
+        if(allFoodPage.isEmpty()) { throw new ApiException(ExceptionEnum.NOT_FOUND); }
 
         // 상품 dto에 담기
         List<FoodListDto> dtoList = new ArrayList<>();
 
-        for(Food food : allFoodList) {
+        for(Food food : allFoodPage) {
             DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
             BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
             FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }
 
-        return dtoList;
+        return ListItemResponseDto.<FoodListDto>builder().items(dtoList)
+                .limit(pageable.getPageSize()).total((long) allFoodPage.getTotalPages())
+                .count(allFoodPage.getNumberOfElements()).offset(pageable.getOffset()).build();
     }
 
     @Override
@@ -211,6 +216,11 @@ public class FoodServiceImpl implements FoodService {
         if(files != null && !files.isEmpty()) {
             List<ImageResponseDto> imageResponseDtos = imageService.upload(files, "food");
             images.addAll(Image.toImages(imageResponseDtos));
+        }
+
+        // 기존 설명 보존
+        if(foodDetailDto.getDescription() == null || foodDetailDto.getDescription().isEmpty() || foodDetailDto.getDescription().isBlank()) {
+            foodDetailDto.setDescription(food.getDescription());
         }
 
         // 이미지 및 음식 업데이트

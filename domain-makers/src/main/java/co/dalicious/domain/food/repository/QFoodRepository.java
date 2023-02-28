@@ -2,8 +2,13 @@ package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
@@ -36,5 +41,15 @@ public class QFoodRepository {
                 .selectFrom(food)
                 .where(food.makers.eq(makers))
                 .fetch();
+    }
+
+    public Page<Food> findAllPage(Integer limit, Integer page, Pageable pageable) {
+        int offset = limit * (page - 1);
+        QueryResults<Food> results = queryFactory.selectFrom(food)
+                .limit(limit)
+                .offset(offset)
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 }
