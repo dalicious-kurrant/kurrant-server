@@ -13,7 +13,7 @@ public interface OrderItemDailyFoodListMapper {
     @Mapping(source = "dailyFood.food.name", target = "name")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
     @Mapping(source = "dailyFood.food.makers.name", target = "makers")
-    @Mapping(target = "image", expression = "java(orderItemDailyFood.getDailyFood().getFood().getImages() == null ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")
+    @Mapping(target = "image", expression = "java(orderItemDailyFood.getDailyFood().getFood().getImages() == null || orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty() ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")
     @Mapping(source = "count", target = "count")
     OrderItemDto toDto(OrderItemDailyFood orderItemDailyFood);
 

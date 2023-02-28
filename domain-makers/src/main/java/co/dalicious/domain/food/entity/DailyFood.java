@@ -24,7 +24,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "food__daily_food")
+@Table(name = "food__daily_food", uniqueConstraints={@UniqueConstraint(columnNames={"e_dining_type", "service_date", "food_id", "group_id"})})
 public class DailyFood {
 
     @Id
@@ -33,6 +33,7 @@ public class DailyFood {
     private BigInteger id;
 
     @Convert(converter = DiningTypeConverter.class)
+    @Column(name = "e_dining_type")
     @Comment("식사 일정")
     private DiningType diningType;
 

@@ -28,7 +28,7 @@ public interface ReviewMapper {
     @Mapping(source = "orderItemDailyFood.dailyFood.id", target = "itemId")
     @Mapping(source = "orderItemDailyFood.dailyFood.diningType.diningType", target = "diningType")
     @Mapping(source = "orderItemDailyFood.dailyFood.serviceDate", target = "serviceDate")
-    @Mapping(target = "imageLocation", expression = "java(orderItemDailyFood.getDailyFood().getFood().getImages() == null ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")
+    @Mapping(target = "imageLocation", expression = "java(orderItemDailyFood.getDailyFood().getFood().getImages() == null || orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty() ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.makers.name", target = "makersName")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.name", target = "foodName")
     ReviewableItemListDto toDailyFoodResDto(OrderItemDailyFood orderItemDailyFood, long reviewDDAy);
