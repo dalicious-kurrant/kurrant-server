@@ -86,29 +86,16 @@ public class QPresetMakersDailyFoodRepository {
                 .fetchOne();
     }
 
-    public List<PresetMakersDailyFood> getMostRecentPresets(Integer page, Makers makers) {
-        StringTemplate formattedDate = getStringTemplate();
+    public Page<PresetMakersDailyFood> getMostRecentPresets(Integer limit, Integer page, Makers makers, Pageable pageable) {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        int offset = limit * (page - 1);
+        QueryResults<PresetMakersDailyFood> results = queryFactory.selectFrom(presetMakersDailyFood)
+                .where(presetMakersDailyFood.makers.eq(makers), presetMakersDailyFood.deadline.after(now), presetMakersDailyFood.confirmStatus.eq(ConfirmStatus.REQUEST))
+                .limit(limit)
+                .offset(offset)
+                .fetchResults();
 
-        List<String> dates = queryFactory
-                .select(formattedDate)
-                .from(presetMakersDailyFood)
-                .groupBy(formattedDate)
-                .orderBy(formattedDate.desc())
-                .limit(2)
-                .fetch();
-
-        if(dates != null && page <= dates.size()){
-            LocalDate date = DateUtils.stringToDate(dates.get(page-1));
-            LocalDateTime startDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 0, 0, 0);
-            LocalDateTime endDate = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 23, 59, 59);
-            return queryFactory.selectFrom(presetMakersDailyFood)
-                    .where(presetMakersDailyFood.makers.eq(makers),
-                            presetMakersDailyFood.createdDateTime.between(Timestamp.valueOf(startDate), Timestamp.valueOf(endDate)),
-                            presetMakersDailyFood.scheduleStatus.ne(ScheduleStatus.REJECTED),
-                            presetMakersDailyFood.confirmStatus.eq(ConfirmStatus.REQUEST))
-                    .fetch();
-        }
-        throw new ApiException(ExceptionEnum.NOT_FOUND);
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
     public static StringTemplate getStringTemplate() {

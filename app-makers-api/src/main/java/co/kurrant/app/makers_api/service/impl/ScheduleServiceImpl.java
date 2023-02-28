@@ -1,5 +1,7 @@
 package co.kurrant.app.makers_api.service.impl;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.food.dto.PresetScheduleRequestDto;
 import co.dalicious.domain.food.dto.PresetScheduleResponseDto;
 import co.dalicious.domain.food.entity.Makers;
@@ -17,6 +19,7 @@ import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.ScheduleService;
 import co.kurrant.app.makers_api.util.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +39,10 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PresetScheduleResponseDto> getMostRecentPresets(Integer page, SecurityUser securityUser) {
+    public ListItemResponseDto<PresetScheduleResponseDto> getMostRecentPresets(Integer limit, Integer page, OffsetBasedPageRequest pageable, SecurityUser securityUser) {
         Makers makers = userUtil.getMakers(securityUser);
         // 페이지에 해당하는 리스트만 불러옴
-        List<PresetMakersDailyFood> presetMakersDailyFoods = qPresetGroupDailyFoodRepository.getMostRecentPresets(page, makers);
+        Page<PresetMakersDailyFood> presetMakersDailyFoods = qPresetGroupDailyFoodRepository.getMostRecentPresets(limit, page, makers, pageable);
 
         //PresetScheduleResponseDto 만들기
         List<PresetScheduleResponseDto> responseDtos = new ArrayList<>();
@@ -65,7 +68,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             responseDtos.add(responseDto);
         });
 
-        return responseDtos;
+        return ListItemResponseDto.<PresetScheduleResponseDto>builder().items(responseDtos)
+                .limit(pageable.getPageSize()).total((long) presetMakersDailyFoods.getTotalPages())
+                .count(presetMakersDailyFoods.getNumberOfElements()).offset(pageable.getOffset()).build();
     }
 
     @Override
