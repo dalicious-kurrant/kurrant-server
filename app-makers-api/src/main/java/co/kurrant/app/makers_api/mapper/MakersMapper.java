@@ -46,7 +46,7 @@ public interface MakersMapper {
     @Mapping(source = "makers.name", target = "name")
     @Mapping(source = "makers.code", target = "code")
     @Mapping(source = "makers.id", target = "id")
-    MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<DiningType> diningTypes);
+    MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<String> diningTypes);
 
     @Named("generatedServiceForm")
     default String generatedServiceForm(ServiceForm serviceForm){
