@@ -150,7 +150,7 @@ public interface OrderMapper {
         Set<OrderItemDailyFoodGroup> orderItemDailyFoodGroupSet = new HashSet<>();
         List<OrderDto.OrderItemDailyFoodGroup> orderItemDailyFoodGroups = new ArrayList<>();
         for (OrderItem orderItem : orderItems) {
-            if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+            if ((OrderItem) Hibernate.unproxy(orderItem) instanceof OrderItemDailyFood orderItemDailyFood) {
                 orderItemDailyFoodGroupSet.add(orderItemDailyFood.getOrderItemDailyFoodGroup());
             }
         }

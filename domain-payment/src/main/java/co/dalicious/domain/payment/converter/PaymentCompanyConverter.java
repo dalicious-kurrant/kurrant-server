@@ -10,11 +10,11 @@ public class PaymentCompanyConverter implements AttributeConverter<PaymentCompan
 
     @Override
     public String convertToDatabaseColumn(PaymentCompany attribute) {
-        return attribute.getCode();
+        return (attribute == null) ? null : attribute.getCode();
     }
 
     @Override
     public PaymentCompany convertToEntityAttribute(String dbData) {
-        return PaymentCompany.ofCode(dbData);
+        return (dbData == null) ? null : PaymentCompany.ofCode(dbData);
     }
 }

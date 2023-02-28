@@ -111,7 +111,11 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         user.updatePoint(user.getPoint().add(point));
-        tossUtil.cardCancelOne(order.getPaymentKey(), "전체 주문 취소", price.intValue());
+
+        // 결제 환불 금액이 0일 경우 토스페이를 거치지 않고 환불
+        if(price.compareTo(BigDecimal.ZERO) != 0) {
+            tossUtil.cardCancelOne(order.getPaymentKey(), "전체 주문 취소", price.intValue());
+        }
     }
 
     @Override

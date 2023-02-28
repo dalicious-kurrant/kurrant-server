@@ -58,6 +58,8 @@ public class Food {
 
     @ElementCollection
     @Comment("이미지 경로")
+    @CollectionTable(
+            name = "food__images")
     private List<Image> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "food", orphanRemoval = true)

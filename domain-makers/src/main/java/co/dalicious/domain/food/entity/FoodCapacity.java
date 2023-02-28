@@ -15,6 +15,7 @@ import java.math.BigInteger;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Table(name = "food__food_capacity")
 public class FoodCapacity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

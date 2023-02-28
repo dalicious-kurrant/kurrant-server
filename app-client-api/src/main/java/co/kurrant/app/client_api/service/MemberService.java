@@ -6,6 +6,7 @@ import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
+import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.dto.MemberListResponseDto;
 import co.kurrant.app.client_api.dto.MemberWaitingListResponseDto;
 import org.springframework.core.io.InputStreamResource;
@@ -32,4 +33,6 @@ public interface MemberService {
     void insertMemberList(ClientUserWaitingListSaveRequestDto clientUserWaitingListSaveRequestDto);
 
     void insertMemberListByExcel(ClientExcelSaveDtoList clientExcelSaveDtoList);
+
+    void deleteWaitingMember(DeleteWaitingMemberRequestDto deleteWaitingMemberRequestDto);
 }

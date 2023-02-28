@@ -13,7 +13,7 @@ import javax.persistence.*;
 import java.math.BigInteger;
 
 @Entity
-@Table(uniqueConstraints={@UniqueConstraint(columnNames={"membership_id", "discount_type"})})
+@Table(name = "membership__discount_policy", uniqueConstraints={@UniqueConstraint(columnNames={"membership_id", "discount_type"})})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class MembershipDiscountPolicy {

@@ -27,8 +27,8 @@ public interface UserMapper {
     @Mapping(source = "user.createdDateTime", target = "userCreatedDateTime", qualifiedByName = "TimeFormat")
     @Mapping(source = "user.recentLoginDateTime", target = "recentLoginDateTime", qualifiedByName = "TimeFormat")
     @Mapping(source = "user.orderAlarm", target = "userOrderAlarm")
-    @Mapping(source = "user.marketingAgreedDateTime", target = "userEmailAgreedDateTime")
-    @Mapping(source = "user.marketingAgree", target = "userEmailAgreed")
+    @Mapping(source = "user.marketingAgreedDateTime", target = "marketingAgreedDateTime")
+    @Mapping(source = "user.marketingAgree", target = "marketingAgreed")
     @Mapping(source = "user.isMembership", target = "isMembership")
     @Mapping(source = "user.gourmetType",target = "gourmetType")
     @Mapping(source = "user.point",target = "point")
@@ -87,8 +87,8 @@ public interface UserMapper {
 
 
     @Named("getStatus")
-    default UserStatus getStatus(String status){
-        return UserStatus.valueOf(status);
+    default UserStatus getStatus(Integer status){
+        return UserStatus.ofCode(status);
     }
 
     @Named("generatedDateTime")
@@ -97,8 +97,8 @@ public interface UserMapper {
     }
 
     @Named("generatedGourmetType")
-    default GourmetType generatedGourmetType(String gourmetType){
-        return GourmetType.valueOf(gourmetType);
+    default GourmetType generatedGourmetType(Integer gourmetType){
+        return GourmetType.ofCode(gourmetType);
     }
 
 

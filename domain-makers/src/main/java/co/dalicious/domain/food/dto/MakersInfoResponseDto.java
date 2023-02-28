@@ -23,7 +23,7 @@ public class MakersInfoResponseDto {
     private String managerName;
     private String managerPhone;
     private Integer dailyCapacity;
-    private Integer serviceType;
+    private String serviceType;
     private String serviceForm;
     private Boolean isParentCompany;
     private BigInteger parentCompanyId;
@@ -34,7 +34,7 @@ public class MakersInfoResponseDto {
     private String companyRegistrationNumber;
     private String contractStartDate;
     private String contractEndDate;
-    private LocalDate isNutritionInformation;
+    private Boolean isNutritionInformation;
     private String openTime;
     private String closeTime;
     private String bank;
@@ -42,6 +42,6 @@ public class MakersInfoResponseDto {
     private String accountNumber;
     private String createdDateTime;
     private String updatedDateTime;
-    private List<DiningType> diningTypes;
+    private List<String> diningTypes;
 
 }

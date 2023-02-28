@@ -36,7 +36,7 @@ public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.serviceDate", target = "serviceDate", qualifiedByName = "serviceDateToString")
       @Mapping(source = "dailyFood", target = "makersName", qualifiedByName = "getMakersName")
       @Mapping(source = "dailyFood", target = "spicy", qualifiedByName = "getSpicy")
-      @Mapping(target = "image", expression = "java(dailyFood.getFood().getImages() == null ? null : dailyFood.getFood().getImages().get(0).getLocation())")
+      @Mapping(target = "image", expression = "java(dailyFood.getFood().getImages() == null || dailyFood.getFood().getImages().isEmpty() ? null : dailyFood.getFood().getImages().get(0).getLocation())")
       @Mapping(source = "dailyFood.food.description", target = "description")
       @Mapping(source = "dailyFood.food.price", target = "price")
       @Mapping(target = "discountedPrice", expression = "java(discountDto.getDiscountedPrice())")

@@ -16,6 +16,13 @@ public class GroupDto {
     private List<DiningType> diningTypes;
     private List<User> users;
 
+    @Getter
+    @Setter
+    public static class GroupAndMakers {
+        private List<MakersDto.Makers> makers;
+        private List<Group> groups;
+    }
+
     @Setter
     @Getter
     public static class Group {

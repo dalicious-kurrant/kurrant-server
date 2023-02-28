@@ -17,7 +17,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 
 @Entity
-@Table(uniqueConstraints={@UniqueConstraint(columnNames={"food_id", "discount_type"})})
+@Table(name = "food__food_discount_policy", uniqueConstraints={@UniqueConstraint(columnNames={"food_id", "discount_type"})})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class FoodDiscountPolicy {

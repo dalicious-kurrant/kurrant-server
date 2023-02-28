@@ -27,7 +27,6 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Arrays;
 import java.util.List;
 
 @DynamicInsert
@@ -100,7 +99,7 @@ public class Makers {
     private LocalDate contractEndDate;
 
     @Comment("외식 영양정보 표시대상 여부")
-    private LocalDate isNutritionInformation;
+    private Boolean isNutritionInformation;
 
     @Comment("영업 시작 시간")
     private LocalTime openTime;

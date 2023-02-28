@@ -8,6 +8,7 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.*;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
 import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.order.repository.OrderRepository;
@@ -154,6 +155,21 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         if(order instanceof OrderDailyFood orderDailyFood) {
             orderService.cancelOrderDailyFood(orderDailyFood, user);
+        }
+    }
+
+    @Override
+    public void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) {
+        OrderStatus orderStatus = OrderStatus.ofCode(statusAndIdList.getStatus());
+        if(!OrderStatus.completePayment().contains(orderStatus)) {
+            throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
+        }
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            if (!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
+                throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
+            }
+            orderItemDailyFood.updateOrderStatus(orderStatus);
         }
     }
 

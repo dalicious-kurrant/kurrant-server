@@ -37,6 +37,7 @@ import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
+import static com.querydsl.core.group.GroupBy.sum;
 
 
 @Repository
@@ -59,7 +60,7 @@ public class QOrderDailyFoodRepository {
                 .selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.order.user.eq(user),
                         orderItemDailyFood.orderStatus.in(OrderStatus.COMPLETED, OrderStatus.WAIT_DELIVERY, OrderStatus.DELIVERING, OrderStatus.DELIVERED, OrderStatus.RECEIPT_COMPLETE),
-                        orderItemDailyFood.orderItemDailyFoodGroup.serviceDate.between(startDate,endDate))
+                        orderItemDailyFood.orderItemDailyFoodGroup.serviceDate.between(startDate, endDate))
                 .fetch();
     }
 
@@ -74,7 +75,7 @@ public class QOrderDailyFoodRepository {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.order.user.eq(user),
-                        orderItemDailyFood.createdDateTime.between(Timestamp.valueOf(threeMonthAgo),Timestamp.valueOf(now)),
+                        orderItemDailyFood.createdDateTime.between(Timestamp.valueOf(threeMonthAgo), Timestamp.valueOf(now)),
                         orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED),
                         orderItemDailyFood.membershipDiscountRate.gt(0))
                 .fetch();
@@ -172,6 +173,7 @@ public class QOrderDailyFoodRepository {
         }
         return count;
     }
+
     public Integer getMakersCount(DailyFood selectedDailyFood) {
         int count = 0;
         List<OrderItemDailyFood> orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
@@ -201,7 +203,10 @@ public class QOrderDailyFoodRepository {
             selectedDiningTypes.add(selectedDailyFood.getDiningType());
         }
 
-        List<Tuple> result = queryFactory.select(orderItemDailyFood.dailyFood.serviceDate, orderItemDailyFood.dailyFood.diningType, food.makers, orderItemDailyFood.count.sum())
+        List<Tuple> result = queryFactory.select(orderItemDailyFood.dailyFood.serviceDate,
+                        orderItemDailyFood.dailyFood.diningType,
+                        food.makers,
+                        sum(orderItemDailyFood.count))
                 .from(orderItemDailyFood)
                 .join(orderItemDailyFood.dailyFood, dailyFood)
                 .join(dailyFood.food, food)
@@ -209,17 +214,26 @@ public class QOrderDailyFoodRepository {
                         dailyFood.serviceDate.in(selectedServiceDate),
                         dailyFood.diningType.in(selectedDiningTypes),
                         orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
-                .groupBy(orderItemDailyFood.dailyFood.serviceDate, orderItemDailyFood.dailyFood.diningType, food.makers)
+                .groupBy(orderItemDailyFood.dailyFood.serviceDate,
+                        orderItemDailyFood.dailyFood.diningType,
+                        food.makers)
                 .fetch();
 
         for (Tuple tuple : result) {
             LocalDate serviceDate = tuple.get(orderItemDailyFood.dailyFood.serviceDate);
             DiningType diningType = tuple.get(orderItemDailyFood.dailyFood.diningType);
             Makers makers = tuple.get(food.makers);
-            Integer capacity = tuple.get(orderItemDailyFood.count.sum());
+            Integer capacity = tuple.get(sum(orderItemDailyFood.count));
             makersCapacities.add(new CapacityDto.MakersCapacity(serviceDate, diningType, makers, capacity));
         }
 
         return makersCapacities;
+    }
+
+
+    public List<OrderItemDailyFood> findAllByIds(List<BigInteger> ids) {
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.id.in(ids))
+                .fetch();
     }
 }

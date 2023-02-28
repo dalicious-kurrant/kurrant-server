@@ -2,13 +2,14 @@ package co.kurrant.app.makers_api.mapper;
 
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import org.locationtech.jts.geom.Point;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.springframework.data.geo.Point;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -34,7 +35,7 @@ public interface MakersMapper {
     @Mapping(source = "makers.companyRegistrationNumber", target = "companyRegistrationNumber")
     @Mapping(source = "makers.parentCompanyId", target = "parentCompanyId")
     @Mapping(source = "makers.isParentCompany", target = "isParentCompany")
-    @Mapping(source = "makers.serviceForm", target = "serviceForm")
+    @Mapping(source = "makers.serviceForm", target = "serviceForm", qualifiedByName = "generatedServiceForm")
     @Mapping(source = "makers.serviceType", target = "serviceType", qualifiedByName = "generatedServiceType")
     @Mapping(source = "dailyCapacity", target = "dailyCapacity")
     @Mapping(source = "makers.managerPhone", target = "managerPhone")
@@ -45,11 +46,16 @@ public interface MakersMapper {
     @Mapping(source = "makers.name", target = "name")
     @Mapping(source = "makers.code", target = "code")
     @Mapping(source = "makers.id", target = "id")
-    MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<DiningType> diningTypes);
+    MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<String> diningTypes);
+
+    @Named("generatedServiceForm")
+    default String generatedServiceForm(ServiceForm serviceForm){
+        return serviceForm.getServiceForm();
+    }
 
     @Named("generatedServiceType")
-    default Integer generatedServiceType(ServiceType serviceType){
-        return serviceType.getCode();
+    default String generatedServiceType(ServiceType serviceType){
+        return serviceType.getServiceType();
     }
 
     @Named("TimeFormat")
@@ -60,7 +66,7 @@ public interface MakersMapper {
     @Named("getLocation")
     default String getLocation(Point location){
         if (location == null){
-            return "null";
+            return null;
         }
         return location.toString();
     }

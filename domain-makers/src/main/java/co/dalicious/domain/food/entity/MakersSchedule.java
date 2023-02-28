@@ -15,6 +15,7 @@ import java.time.LocalDate;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "makers__makers_schedule")
 public class MakersSchedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

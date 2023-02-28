@@ -65,7 +65,6 @@ public interface ScheduleMapper {
                 ScheduleDto.GroupSchedule groupSchedule = new ScheduleDto.GroupSchedule();
                 groupSchedule.setServiceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate()));
                 groupSchedule.setDiningType(diningTypeServiceDateDto.getDiningType().getCode());
-                groupSchedule.setGroupId(group.getId());
                 groupSchedule.setGroupName(group.getName());
                 groupSchedule.setGroupCapacity(userGroupCount.get(group));
                 groupSchedule.setDeliveryTime(getEarliestDeliveryTime(group, diningTypeServiceDateDto.getDiningType()));
@@ -101,20 +100,19 @@ public interface ScheduleMapper {
 
     default ScheduleDto.FoodSchedule toFoodSchedule(DailyFood dailyFood, Integer count) {
         ScheduleDto.FoodSchedule foodSchedule = new ScheduleDto.FoodSchedule();
-        foodSchedule.setFoodId(dailyFood.getFood().getId());
+        foodSchedule.setDailyFoodId(dailyFood.getId());
         foodSchedule.setFoodCapacity(dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()) == null ?
                 dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getCapacity() :
                 dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getCapacity()
         );
         foodSchedule.setFoodName(dailyFood.getFood().getName());
-        foodSchedule.setFoodStatus(dailyFood.getFood().getFoodStatus().getCode());
+        foodSchedule.setDailyFoodStatus(dailyFood.getDailyFoodStatus().getCode());
         foodSchedule.setFoodCount(count);
         return foodSchedule;
     }
 
     default ScheduleDto.MakersSchedule toMakersSchedule(Makers makers, DiningType diningType, Integer makersCount, List<ScheduleDto.FoodSchedule> foodSchedules) {
         ScheduleDto.MakersSchedule makersSchedule = new ScheduleDto.MakersSchedule();
-        makersSchedule.setMakersId(makers.getId());
         makersSchedule.setMakersName(makers.getName());
         makersSchedule.setMakersCapacity(makers.getMakersCapacity(diningType).getCapacity()); //TODO: 설정 필요
         makersSchedule.setMakersCount(makersCount);
