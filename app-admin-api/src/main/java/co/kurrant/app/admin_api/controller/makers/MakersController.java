@@ -1,15 +1,11 @@
 package co.kurrant.app.admin_api.controller.makers;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.kurrant.app.admin_api.model.SecurityUser;
+import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
 import co.kurrant.app.admin_api.service.MakersService;
-import co.kurrant.app.admin_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "3. Makers")
 @RequiredArgsConstructor
@@ -27,7 +23,13 @@ public class MakersController {
                 .build();
     }
 
-
+    @PostMapping("")
+    public ResponseMessage saveMakers(@RequestBody SaveMakersRequestDto saveMakersRequestDto){
+        makersService.saveMakers(saveMakersRequestDto);
+        return ResponseMessage.builder()
+                .message("메이커스 저장에 성공하였습니다.")
+                .build();
+    }
 
 
 
