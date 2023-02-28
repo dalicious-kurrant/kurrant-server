@@ -34,13 +34,12 @@ public class QUserRepository {
                     .execute();
         }
         //이메일 변경
-        /*
         if (!userEntity.getEmail().isEmpty()){
             queryFactory.update(user)
                     .set(user.email, userEntity.getEmail())
                     .where(user.id.eq(userEntity.getId()))
                     .execute();
-        }*/
+        }
 
         //비밀번호 변경
         if (!password.isEmpty()){
