@@ -143,6 +143,6 @@ public interface GroupMapper {
         else return null;
     }
 
-    Group groupInfoListToEntity(GroupListDto.GroupInfoList groupInfoList);
+//    Group groupInfoListToEntity(GroupListDto.GroupInfoList groupInfoList);
 }
 
