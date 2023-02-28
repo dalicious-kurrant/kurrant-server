@@ -5,10 +5,10 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import org.locationtech.jts.geom.Point;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.springframework.data.geo.Point;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -60,7 +60,7 @@ public interface MakersMapper {
     @Named("getLocation")
     default String getLocation(Point location){
         if (location == null){
-            return "null";
+            return null;
         }
         return location.toString();
     }

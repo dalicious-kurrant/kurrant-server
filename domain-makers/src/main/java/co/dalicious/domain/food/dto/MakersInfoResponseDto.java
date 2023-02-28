@@ -34,7 +34,7 @@ public class MakersInfoResponseDto {
     private String companyRegistrationNumber;
     private String contractStartDate;
     private String contractEndDate;
-    private LocalDate isNutritionInformation;
+    private Boolean isNutritionInformation;
     private String openTime;
     private String closeTime;
     private String bank;
