@@ -218,11 +218,6 @@ public class FoodServiceImpl implements FoodService {
             images.addAll(Image.toImages(imageResponseDtos));
         }
 
-        // 기존 설명 보존
-        if(foodDetailDto.getDescription() == null || foodDetailDto.getDescription().isEmpty() || foodDetailDto.getDescription().isBlank()) {
-            foodDetailDto.setDescription(food.getDescription());
-        }
-
         // 이미지 및 음식 업데이트
         food.updateImages(images);
         food.updateFood(foodDetailDto);

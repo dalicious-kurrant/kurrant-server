@@ -14,6 +14,7 @@ import co.dalicious.domain.food.repository.PresetDailyFoodRepository;
 import co.dalicious.domain.food.repository.PresetMakersDailyFoodRepository;
 import co.dalicious.domain.food.repository.QPresetDailyFoodRepository;
 import co.dalicious.domain.food.repository.QPresetMakersDailyFoodRepository;
+import co.dalicious.domain.recommend.entity.GroupRecommends;
 import co.dalicious.domain.recommend.repository.QGroupRecommendRepository;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.ScheduleService;
@@ -85,6 +86,9 @@ public class ScheduleServiceImpl implements ScheduleService {
                     PresetMakersDailyFood makersDailyFood = qPresetGroupDailyFoodRepository.findByIdAndMakers(makersSchedule.getPresetMakersId(), makers);
                     makersDailyFood.updateScheduleStatus(ScheduleStatus.ofCode(makersSchedule.getScheduleStatus()));
                     presetMakersDailyFoodRepository.save(makersDailyFood);
+                    if(makersDailyFood.getScheduleStatus().equals(ScheduleStatus.REJECTED)) {
+                        qGroupRecommendRepository.setIsRejected(makersDailyFood.getMakers().getId(), makersDailyFood.getServiceDate());
+                    }
                 });
 
         // 메이커스의 식품별 예비 스케쥴 중 거절이 있으면 update
