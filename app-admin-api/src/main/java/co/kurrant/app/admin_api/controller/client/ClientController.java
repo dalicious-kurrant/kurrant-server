@@ -41,11 +41,12 @@ public class ClientController {
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("")
     public ResponseMessage deleteSpot(@RequestBody  ){
-        spotService.deleteSpot();
+//        spotService.deleteSpot();
         return ResponseMessage.builder()
                 .message("선택한 유저를 탈퇴처리했습니다.")
                 .build();
-    }*/
+    }
+ */
 
 
 

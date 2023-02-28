@@ -42,6 +42,6 @@ public class MakersInfoResponseDto {
     private String accountNumber;
     private String createdDateTime;
     private String updatedDateTime;
-    private List<DiningType> diningTypes;
+    private List<String> diningTypes;
 
 }

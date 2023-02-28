@@ -35,10 +35,10 @@ public class MakersInfoServiceImpl implements MakersInfoService {
         //dailyCapacity 구하기
         List<MakersCapacity> makersCapacity = qMakersCapacityRepository.findByMakersId(makers.getId());
         Integer dailyCapacity = 0;
-        List<DiningType> diningTypes = new ArrayList<>();
+        List<String> diningTypes = new ArrayList<>();
         for (MakersCapacity capacity : makersCapacity){
             dailyCapacity += capacity.getCapacity();
-            diningTypes.add(capacity.getDiningType());
+            diningTypes.add(capacity.getDiningType().getDiningType());
         }
 
         MakersInfoResponseDto makersInfo = makersMapper.toDto(makers, dailyCapacity, diningTypes);
