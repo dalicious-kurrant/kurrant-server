@@ -5,7 +5,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-import org.springframework.data.geo.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -33,10 +36,15 @@ public class Address {
     this.address1 = createAddressRequestDto.getAddress1();
     this.address2 = createAddressRequestDto.getAddress2();
     this.location = (createAddressRequestDto.getLatitude() == null || createAddressRequestDto.getLongitude() == null) ?
-            null : new Point(Double.parseDouble(createAddressRequestDto.getLatitude()), Double.parseDouble(createAddressRequestDto.getLongitude()));
+            null : createPoint(Double.parseDouble(createAddressRequestDto.getLatitude()), Double.parseDouble(createAddressRequestDto.getLongitude()));
   }
 
   public String addressToString() {
     return this.address1 + " " + this.address2;
+  }
+
+  public static Point createPoint(double x, double y) {
+    GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+    return geometryFactory.createPoint(new Coordinate(x, y));
   }
 }

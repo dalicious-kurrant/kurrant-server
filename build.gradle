@@ -215,6 +215,7 @@ project(':app-client-api') {
         implementation project(':domain-user')
         implementation project(':domain-client')
         implementation project(':data-redis')
+        implementation project(':domain-address')
     }
 }
 
@@ -359,6 +360,7 @@ project(':app-makers-api') {
         implementation project(':domain-review')
         implementation project(':data-redis')
         implementation project(':client-sse')
+        implementation project(':domain-recommend')
     }
 }
 

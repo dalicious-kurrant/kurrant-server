@@ -12,6 +12,7 @@ import co.dalicious.domain.food.repository.PresetDailyFoodRepository;
 import co.dalicious.domain.food.repository.PresetMakersDailyFoodRepository;
 import co.dalicious.domain.food.repository.QPresetDailyFoodRepository;
 import co.dalicious.domain.food.repository.QPresetMakersDailyFoodRepository;
+import co.dalicious.domain.recommend.repository.QGroupRecommendRepository;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.ScheduleService;
 import co.kurrant.app.makers_api.util.UserUtil;
@@ -31,6 +32,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final PresetMakersDailyFoodRepository presetMakersDailyFoodRepository;
     private final QPresetDailyFoodRepository qPresetDailyFoodRepository;
     private final PresetDailyFoodRepository presetDailyFoodRepository;
+    private final QGroupRecommendRepository qGroupRecommendRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -74,23 +76,18 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 메이커스의 식단 타입과 서비스 일 별 예비 스케쥴 중 거절이 있으면 update
         List<PresetScheduleRequestDto.MakersScheduleDto> makersScheduleDtos = requestDto.getMakersScheduleDtos();
         makersScheduleDtos.forEach(makersSchedule -> {
-            if(makersSchedule.getScheduleStatus() != 0){
-                        //presetMakersDailyFood status 변경
-                        PresetMakersDailyFood makersDailyFood = qPresetGroupDailyFoodRepository.findByIdAndMakers(makersSchedule.getPresetMakersId(), makers);
-                        makersDailyFood.updateScheduleStatus(ScheduleStatus.ofCode(makersSchedule.getScheduleStatus()));
-                        presetMakersDailyFoodRepository.save(makersDailyFood);
-                    }
-                }
-        );
+                    //presetMakersDailyFood status 변경
+                    PresetMakersDailyFood makersDailyFood = qPresetGroupDailyFoodRepository.findByIdAndMakers(makersSchedule.getPresetMakersId(), makers);
+                    makersDailyFood.updateScheduleStatus(ScheduleStatus.ofCode(makersSchedule.getScheduleStatus()));
+                    presetMakersDailyFoodRepository.save(makersDailyFood);
+                });
 
         // 메이커스의 식품별 예비 스케쥴 중 거절이 있으면 update
         List<PresetScheduleRequestDto.FoodScheduleDto> foodScheduleDtos = requestDto.getFoodScheduleDtos();
         foodScheduleDtos.forEach(foodSchedule ->{
-            if(foodSchedule.getScheduleStatus() != 0) {
-                PresetDailyFood presetDailyFood = qPresetDailyFoodRepository.findById(foodSchedule.getPresetFoodId());
-                presetDailyFood.updateStatus(ScheduleStatus.ofCode(foodSchedule.getScheduleStatus()));
-                presetDailyFoodRepository.save(presetDailyFood);
-            }
+            PresetDailyFood presetDailyFood = qPresetDailyFoodRepository.findById(foodSchedule.getPresetFoodId());
+            presetDailyFood.updateStatus(ScheduleStatus.ofCode(foodSchedule.getScheduleStatus()));
+            presetDailyFoodRepository.save(presetDailyFood);
         });
 
     }

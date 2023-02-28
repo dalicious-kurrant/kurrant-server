@@ -116,7 +116,7 @@ jobs:
         mkdir resources
         cd resources
         touch ./application-payment.properties
-        echo "${{ secrets.DOMAIN_PAYMENT_PROPERTIES }}" > ./application-payment.properties
+        echo "${{ secrets.DOMAIN_PAYMENT_PROD_PROPERTIES }}" > ./application-payment.properties
       shell: bash
 
     - name: domain-file application-s3.properties 생성

@@ -7,6 +7,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
@@ -24,7 +25,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "food__daily_food")
+@Table(name = "food__daily_food", uniqueConstraints={@UniqueConstraint(columnNames={"e_dining_type", "service_date", "food_id", "group_id"})})
 public class DailyFood {
 
     @Id
@@ -33,6 +34,7 @@ public class DailyFood {
     private BigInteger id;
 
     @Convert(converter = DiningTypeConverter.class)
+    @Column(name = "e_dining_type")
     @Comment("식사 일정")
     private DiningType diningType;
 
@@ -78,6 +80,36 @@ public class DailyFood {
         this.createdDateTime = createdDateTime;
         this.updatedDateTime = updatedDateTime;
         this.food = food;
+        this.group = group;
+    }
+
+    @Builder
+    public DailyFood(BigInteger id, DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, Food food, Group group) {
+        this.id = id;
+        this.diningType = diningType;
+        this.dailyFoodStatus = dailyFoodStatus;
+        this.serviceDate = serviceDate;
+        this.food = food;
+        this.group = group;
+    }
+
+    public void updateDiningType(DiningType diningType) {
+        this.diningType = diningType;
+    }
+
+    public void updateDailyFoodStatus(DailyFoodStatus dailyFoodStatus) {
+        this.dailyFoodStatus = dailyFoodStatus;
+    }
+
+    public void updateServiceDate(LocalDate serviceDate) {
+        this.serviceDate = serviceDate;
+    }
+
+    public void updateFood(Food food) {
+        this.food = food;
+    }
+
+    public void updateGroup(Group group) {
         this.group = group;
     }
 }

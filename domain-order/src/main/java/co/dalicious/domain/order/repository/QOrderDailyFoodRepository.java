@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.dto.CapacityDto;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -14,6 +15,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -35,6 +37,7 @@ import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
+import static com.querydsl.core.group.GroupBy.sum;
 
 
 @Repository
@@ -57,7 +60,7 @@ public class QOrderDailyFoodRepository {
                 .selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.order.user.eq(user),
                         orderItemDailyFood.orderStatus.in(OrderStatus.COMPLETED, OrderStatus.WAIT_DELIVERY, OrderStatus.DELIVERING, OrderStatus.DELIVERED, OrderStatus.RECEIPT_COMPLETE),
-                        orderItemDailyFood.orderItemDailyFoodGroup.serviceDate.between(startDate,endDate))
+                        orderItemDailyFood.orderItemDailyFoodGroup.serviceDate.between(startDate, endDate))
                 .fetch();
     }
 
@@ -72,7 +75,7 @@ public class QOrderDailyFoodRepository {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.order.user.eq(user),
-                        orderItemDailyFood.createdDateTime.between(Timestamp.valueOf(threeMonthAgo),Timestamp.valueOf(now)),
+                        orderItemDailyFood.createdDateTime.between(Timestamp.valueOf(threeMonthAgo), Timestamp.valueOf(now)),
                         orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED),
                         orderItemDailyFood.membershipDiscountRate.gt(0))
                 .fetch();
@@ -170,6 +173,7 @@ public class QOrderDailyFoodRepository {
         }
         return count;
     }
+
     public Integer getMakersCount(DailyFood selectedDailyFood) {
         int count = 0;
         List<OrderItemDailyFood> orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
@@ -185,5 +189,51 @@ public class QOrderDailyFoodRepository {
             count += itemDailyFood.getCount();
         }
         return count;
+    }
+
+    public List<CapacityDto.MakersCapacity> getMakersCounts(List<DailyFood> selectedDailyFoods) {
+        List<CapacityDto.MakersCapacity> makersCapacities = new ArrayList<>();
+        List<Makers> selectedMakers = new ArrayList<>();
+        List<LocalDate> selectedServiceDate = new ArrayList<>();
+        List<DiningType> selectedDiningTypes = new ArrayList<>();
+
+        for (DailyFood selectedDailyFood : selectedDailyFoods) {
+            selectedMakers.add(selectedDailyFood.getFood().getMakers());
+            selectedServiceDate.add(selectedDailyFood.getServiceDate());
+            selectedDiningTypes.add(selectedDailyFood.getDiningType());
+        }
+
+        List<Tuple> result = queryFactory.select(orderItemDailyFood.dailyFood.serviceDate,
+                        orderItemDailyFood.dailyFood.diningType,
+                        food.makers,
+                        sum(orderItemDailyFood.count))
+                .from(orderItemDailyFood)
+                .join(orderItemDailyFood.dailyFood, dailyFood)
+                .join(dailyFood.food, food)
+                .where(food.makers.in(selectedMakers),
+                        dailyFood.serviceDate.in(selectedServiceDate),
+                        dailyFood.diningType.in(selectedDiningTypes),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .groupBy(orderItemDailyFood.dailyFood.serviceDate,
+                        orderItemDailyFood.dailyFood.diningType,
+                        food.makers)
+                .fetch();
+
+        for (Tuple tuple : result) {
+            LocalDate serviceDate = tuple.get(orderItemDailyFood.dailyFood.serviceDate);
+            DiningType diningType = tuple.get(orderItemDailyFood.dailyFood.diningType);
+            Makers makers = tuple.get(food.makers);
+            Integer capacity = tuple.get(sum(orderItemDailyFood.count));
+            makersCapacities.add(new CapacityDto.MakersCapacity(serviceDate, diningType, makers, capacity));
+        }
+
+        return makersCapacities;
+    }
+
+
+    public List<OrderItemDailyFood> findAllByIds(List<BigInteger> ids) {
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.id.in(ids))
+                .fetch();
     }
 }

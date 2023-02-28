@@ -27,10 +27,9 @@ public class UserController {
     @Operation(summary = "유저조회", description = "유저 목록을 조회한다.")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/all")
-    public ResponseMessage getUserList(@PageableDefault(size = 20, sort = "id",
-            direction = Sort.Direction.ASC) OffsetBasedPageRequest pageable) {
+    public ResponseMessage getUserList() {
         return ResponseMessage.builder()
-                .data(userService.getUserList(pageable))
+                .data(userService.getUserList())
                 .message("유저 목록 조회")
                 .build();
     }

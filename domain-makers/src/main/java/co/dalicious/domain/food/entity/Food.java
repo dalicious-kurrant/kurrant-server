@@ -34,7 +34,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "food__food")
+@Table(name = "food__food", uniqueConstraints={@UniqueConstraint(columnNames={"name", "makers_id"})})
 public class Food {
     // TODO: 추후 Item 상속 추가
     @Id
@@ -58,6 +58,8 @@ public class Food {
 
     @ElementCollection
     @Comment("이미지 경로")
+    @CollectionTable(
+            name = "food__images")
     private List<Image> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "food", orphanRemoval = true)
@@ -75,7 +77,7 @@ public class Food {
     @Column(name = "e_food_tags")
     private List<FoodTag> foodTags;
 
-    @ManyToOne(fetch = FetchType.LAZY ,optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("메이커스 ID")
     private Makers makers;
@@ -101,7 +103,7 @@ public class Food {
     private BigDecimal customPrice;
 
     @Builder
-    public Food (FoodStatus foodStatus, String name, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
+    public Food(FoodStatus foodStatus, String name, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
         this.foodStatus = foodStatus;
         this.name = name;
         this.price = price;
@@ -111,12 +113,13 @@ public class Food {
         this.customPrice = customPrice;
     }
 
-    public void updateFoodMass(FoodListDto foodListDto, List<FoodTag> foodTags) {
+    public void updateFoodMass(FoodListDto foodListDto, List<FoodTag> foodTags, Makers makers) {
         this.foodStatus = FoodStatus.ofString(foodListDto.getFoodStatus());
         this.name = foodListDto.getFoodName();
         this.price = foodListDto.getDefaultPrice();
         this.foodTags = foodTags;
         this.description = foodListDto.getDescription();
+        this.makers = makers;
     }
 
     public void updateFoodStatus(FoodStatus foodStatus) {
@@ -124,17 +127,19 @@ public class Food {
     }
 
     public void updateFood(MakersFoodDetailReqDto makersFoodDetailReqDto) {
-        if(!this.getId().equals(makersFoodDetailReqDto.getFoodId()))  {
+        if (!this.getId().equals(makersFoodDetailReqDto.getFoodId())) {
             throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
         }
         this.price = makersFoodDetailReqDto.getDefaultPrice();
         this.foodTags = FoodTag.ofCodes(makersFoodDetailReqDto.getFoodTags());
         this.customPrice = makersFoodDetailReqDto.getCustomPrice();
+        this.description = makersFoodDetailReqDto.getDescription();
     }
 
     public void updateImages(List<Image> images) {
         this.images = images;
     }
+
     public FoodDiscountPolicy getFoodDiscountPolicy(DiscountType discountType) {
         return this.foodDiscountPolicyList.stream()
                 .filter(v -> v.getDiscountType().equals(discountType))
@@ -145,6 +150,34 @@ public class Food {
     public FoodCapacity getFoodCapacity(DiningType diningType) {
         return getFoodCapacities().stream()
                 .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .orElse(null);
+    }
+
+    public FoodCapacity updateFoodCapacity(DiningType diningType, Integer capacity) {
+        FoodCapacity foodCapacity = getFoodCapacity(diningType);
+        if (foodCapacity == null) {
+            if (this.makers.getMakersCapacity(diningType).getCapacity().equals(capacity)) {
+                return null;
+            } else FoodCapacity.builder()
+                    .capacity(capacity)
+                    .food(this)
+                    .diningType(diningType)
+                    .build();
+        } else {
+            if (foodCapacity.getCapacity().equals(capacity)) {
+                return null;
+            } else {
+                foodCapacity.updateCapacity(capacity);
+            }
+
+        }
+        return null;
+    }
+
+    public static Food getFood(List<Food> foods, String makersName, String foodName) {
+        return foods.stream()
+                .filter(v -> v.getMakers().getName().equals(makersName) || v.getName().equals(foodName))
                 .findAny()
                 .orElse(null);
     }

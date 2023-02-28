@@ -63,15 +63,6 @@ public interface PresetDailyFoodMapper {
     @Mapping(source = "clientSchedule", target = "clientSchedule")
     PresetScheduleResponseDto recommendToDto(Makers makers, RecommendScheduleDto recommendScheduleDto, List<PresetScheduleResponseDto.clientSchedule> clientSchedule);
 
-//    @Mapping(target = "serviceDate", expression = "java(DateUtils.stringToDate(data.getServiceDate()))")
-//    @Mapping(target = "diningType", expression = "java(DiningType.ofString(data.getDiningType()))")
-//    @Mapping(target = "capacity", expression = "java(getMakersCapacity(makers.getMakersCapacities(), data))")
-//    @Mapping(source = "makers", target = "makers")
-//    @Mapping(target = "scheduleStatus", expression = "java(ScheduleStatus.REQUEST)")
-//    @Mapping(target = "deadline", expression = "java(getDeadLine())")
-//    PresetMakersDailyFood toMakersDailyFoodEntity(PresetScheduleDto data, Makers makers);
-
-//
     default Integer getMakersCapacity(List<MakersCapacity> makersCapacityList, PresetScheduleDto data) {
         MakersCapacity makersCapacity = makersCapacityList.stream()
                 .filter(capa -> capa.getDiningType().getDiningType().equals(data.getDiningType()))

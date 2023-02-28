@@ -241,9 +241,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
-        //orderName 생성
-        String orderName = OrderUtil.makeOrderName(cartDailyFoods);
-
         // 멤버십을 지원하는 기업의 식사를 주문하면서, 멤버십에 가입되지 않은 회원이라면 멤버십 가입.
         if(OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
             LocalDate now = LocalDate.now();
@@ -274,64 +271,77 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
         }
 
+        // 결제 금액이 0이 아닐 경우, 토스페이를 통해 결제
+        if(orderItemDailyFoodReqDto.getPaymentKey() != null && orderItemDailyFoodReqDto.getAmount() != 0) {
+            try {
+                JSONObject jsonObject = tossUtil.paymentConfirm(orderItemDailyFoodReqDto.getPaymentKey(), orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId());
+                System.out.println(jsonObject + "결제 Response값");
 
-        try {
-            JSONObject jsonObject = tossUtil.paymentConfirm(orderItemDailyFoodReqDto.getPaymentKey(), orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId());
-            System.out.println(jsonObject + "결제 Response값");
+                String status = (String) jsonObject.get("status");
+                System.out.println(status);
 
-            String status = (String) jsonObject.get("status");
-            System.out.println(status);
-
-            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-            if (status.equals("DONE")) {
-                // 주문서 내용 업데이트 및 사용 포인트 차감
-                orderDailyFood.updateDefaultPrice(defaultPrice);
-                orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
-                orderDailyFood.updateTotalPrice(payPrice);
-                orderDailyFood.updateTotalDeliveryFee(totalDeliveryFee);
-                for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-                    orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
-                }
-                user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
-
-                //Order 테이블에 paymentKey와 receiptUrl 업데이트
-                JSONObject receipt = (JSONObject) jsonObject.get("receipt");
-                String receiptUrl = receipt.get("url").toString();
-
-                String paymentKey = (String) jsonObject.get("paymentKey");
-                JSONObject card = (JSONObject) jsonObject.get("card");
-                String paymentCompanyCode;
-                if(card == null) {
-                    JSONObject easyPay = (JSONObject) jsonObject.get("easyPay");
-                    if(easyPay == null) {
-                        throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+                // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
+                if (status.equals("DONE")) {
+                    // 주문서 내용 업데이트 및 사용 포인트 차감
+                    orderDailyFood.updateDefaultPrice(defaultPrice);
+                    orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
+                    orderDailyFood.updateTotalPrice(payPrice);
+                    orderDailyFood.updateTotalDeliveryFee(totalDeliveryFee);
+                    for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                        orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                     }
-                    paymentCompanyCode = (String) easyPay.get("provider");
-                } else {
-                    paymentCompanyCode = (String) card.get("issuerCode");
+                    user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
+
+                    //Order 테이블에 paymentKey와 receiptUrl 업데이트
+                    JSONObject receipt = (JSONObject) jsonObject.get("receipt");
+                    String receiptUrl = receipt.get("url").toString();
+
+                    String paymentKey = (String) jsonObject.get("paymentKey");
+                    JSONObject card = (JSONObject) jsonObject.get("card");
+                    String paymentCompanyCode;
+                    if(card == null) {
+                        JSONObject easyPay = (JSONObject) jsonObject.get("easyPay");
+                        if(easyPay == null) {
+                            throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+                        }
+                        paymentCompanyCode = (String) easyPay.get("provider");
+                    } else {
+                        paymentCompanyCode = (String) card.get("issuerCode");
+                    }
+                    PaymentCompany paymentCompany = PaymentCompany.ofCode(paymentCompanyCode);
+                    qOrderDailyFoodRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderDailyFood.getId(), paymentCompany);
                 }
-                PaymentCompany paymentCompany = PaymentCompany.ofCode(paymentCompanyCode);
-                qOrderDailyFoodRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderDailyFood.getId(), paymentCompany);
-            }
-            // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
-            else {
+                // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
+                else {
+                    for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                        orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
+                    }
+                    throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+                }
+            } catch (ApiException e) {
                 for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                     orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
+                    if(payPrice.compareTo(BigDecimal.ZERO) > 0) {
+                        throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
+                    }
                 }
                 throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+            } catch (IOException e) {
+                throw new ApiException(ExceptionEnum.BAD_REQUEST);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
             }
-        } catch (ApiException e) {
+        }
+        else {
+            // 주문서 내용 업데이트 및 사용 포인트 차감
+            orderDailyFood.updateDefaultPrice(defaultPrice);
+            orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
+            orderDailyFood.updateTotalPrice(payPrice);
+            orderDailyFood.updateTotalDeliveryFee(totalDeliveryFee);
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-                orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
-                if(payPrice.compareTo(BigDecimal.ZERO) > 0) {
-                    throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
-                }
+                orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
             }
-            throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-        } catch (IOException e) {
-            throw new ApiException(ExceptionEnum.BAD_REQUEST);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
+            user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
         }
 
         qCartDailyFoodRepository.deleteByCartDailyFoodList(cartDailyFoods);

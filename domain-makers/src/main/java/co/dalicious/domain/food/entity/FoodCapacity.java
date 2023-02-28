@@ -15,6 +15,7 @@ import java.math.BigInteger;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Table(name = "food__food_capacity")
 public class FoodCapacity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,6 +39,10 @@ public class FoodCapacity {
     public FoodCapacity(Food food, DiningType diningType, Integer capacity) {
         this.food = food;
         this.diningType = diningType;
+        this.capacity = capacity;
+    }
+
+    public void updateCapacity(Integer capacity) {
         this.capacity = capacity;
     }
 }

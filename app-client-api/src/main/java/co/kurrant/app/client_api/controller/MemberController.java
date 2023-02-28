@@ -6,6 +6,7 @@ import co.dalicious.domain.client.dto.ClientExcelSaveDto;
 import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
+import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.Sort;
@@ -29,10 +30,9 @@ public class MemberController {
   @Operation(summary = "유저조회", description = "유저 목록을 조회한다.")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping("")
-  public ResponseMessage getUserList(@RequestParam String code, @PageableDefault(size = 20, sort = "id",
-                                                                     direction = Sort.Direction.ASC) OffsetBasedPageRequest pageable) {
+  public ResponseMessage getUserList(@RequestParam String code) {
     return ResponseMessage.builder()
-            .data(memberService.getUserList(code, pageable))
+            .data(memberService.getUserList(code))
             .message("유저 목록 조회")
             .build();
   }
@@ -41,14 +41,23 @@ public class MemberController {
   @Operation(summary = "가입 대기 유저조회", description = "가입 대기 유저 목록을 조회한다.")
   @ResponseStatus(HttpStatus.OK)
   @GetMapping("/waiting")
-  public ResponseMessage getWaitingUserList(@RequestParam String code, @PageableDefault(size = 20, sort = "id",
-          direction = Sort.Direction.ASC) OffsetBasedPageRequest pageable){
+  public ResponseMessage getWaitingUserList(@RequestParam String code){
     return ResponseMessage.builder()
-            .data(memberService.getWaitingUserList(code, pageable))
+            .data(memberService.getWaitingUserList(code))
             .message("가입대기 유저 목록 조회")
             .build();
   }
 
+
+  @Operation(summary = "선택 가입 대기 유저 탈퇴처리", description = "선택한 유저를 가입 대기 유저를 탈퇴처리한다")
+  @ResponseStatus(HttpStatus.OK)
+  @DeleteMapping("/waiting")
+  public ResponseMessage deleteWaitingMember(@RequestBody DeleteWaitingMemberRequestDto deleteWaitingMemberRequestDto){
+    memberService.deleteWaitingMember(deleteWaitingMemberRequestDto);
+    return ResponseMessage.builder()
+            .message("선택한 유저를 탈퇴처리했습니다.")
+            .build();
+  }
 
   @Operation(summary = "선택 유저 탈퇴처리", description = "선택한 유저를 탈퇴처리한다")
   @ResponseStatus(HttpStatus.OK)

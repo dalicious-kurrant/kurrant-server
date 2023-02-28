@@ -18,7 +18,7 @@ public class ItemPageableResponseDto<T> {
 
     @Min(0)
     @NotNull
-    private Long offset;
+    private Integer offset;
 
     @Min(0)
     @NotNull

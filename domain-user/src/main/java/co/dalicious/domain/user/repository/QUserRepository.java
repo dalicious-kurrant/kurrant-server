@@ -67,4 +67,10 @@ public class QUserRepository {
                 .where(user.id.eq(userId))
                 .execute();
     }
+
+    public long deleteReal(User deleteUser) {
+       return queryFactory.delete(user)
+                .where(user.id.eq(deleteUser.getId()))
+                .execute();
+    }
 }

@@ -5,6 +5,7 @@ import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailDto;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.FoodTag;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -14,9 +15,11 @@ import org.mapstruct.Named;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = Image.class)
+@Mapper(componentModel = "spring", imports = {Image.class, DiningType.class})
 public interface MakersFoodMapper {
 
     @Mapping(source = "food.id", target = "foodId")
@@ -60,18 +63,23 @@ public interface MakersFoodMapper {
     @Mapping(source = "food.foodTags", target = "foodTags", qualifiedByName = "getFoodTagList")
     @Mapping(source = "food.description", target = "description")
     @Mapping(source = "food.customPrice", target = "customPrice", qualifiedByName = "customPrice")
+    @Mapping(target = "morningCapacity", expression = "java(food.getFoodCapacity(DiningType.MORNING) == null ? 0 : food.getFoodCapacity(DiningType.MORNING).getCapacity())")
+    @Mapping(target = "lunchCapacity", expression = "java(food.getFoodCapacity(DiningType.LUNCH) == null ? 0 : food.getFoodCapacity(DiningType.LUNCH).getCapacity())")
+    @Mapping(target = "dinnerCapacity", expression = "java(food.getFoodCapacity(DiningType.DINNER) == null ? 0 : food.getFoodCapacity(DiningType.DINNER).getCapacity())")
     MakersFoodDetailDto toFoodManagingDto(Food food, DiscountDto discountDto);
-
     @Named("getAllFoodList")
     default List<String> getAllFoodList(List<FoodTag> foodTags) {
-        List<String> foodTagSrt = new ArrayList<>();
-        if(foodTags != null) {
-            for(FoodTag tag : foodTags) {
-                foodTagSrt.add(tag.getTag());
-            }
-            return foodTagSrt;
+        if (foodTags == null) {
+            throw new ApiException(ExceptionEnum.NOT_FOUND);
         }
-        throw  new ApiException(ExceptionEnum.NOT_FOUND);
+        List<Integer> foodTagCodes = foodTags.stream()
+                .map(FoodTag::getCode)
+                .sorted()
+                .toList();
+        return foodTagCodes.stream()
+                .map(FoodTag::ofCode)
+                .map(FoodTag::getTag)
+                .collect(Collectors.toList());
     }
 
     @Named("getFoodTagList")
@@ -81,6 +89,7 @@ public interface MakersFoodMapper {
             for(FoodTag tag : foodTags) {
                 foodTagList.add(tag.getCode());
             }
+            Collections.sort(foodTagList);
             return foodTagList;
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);

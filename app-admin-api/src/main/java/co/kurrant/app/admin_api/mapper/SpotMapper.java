@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -8,11 +9,10 @@ import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 
-import co.kurrant.app.admin_api.dto.GroupDto;
+import org.locationtech.jts.geom.Point;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.springframework.data.geo.Point;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -60,7 +60,7 @@ public interface SpotMapper {
     @Named("getLocation")
     default String getLocation(Point location){
         if (location == null){
-            return "null";
+            return null;
         }
         return location.toString();
     }
@@ -78,6 +78,10 @@ public interface SpotMapper {
         return new Group(groupId);
     }
 
-
+    @Mapping(source = "group.name", target = "name")
+    @Mapping(source = "group.address", target = "address")
+    @Mapping(source = "group.diningTypes", target = "diningTypes")
+    @Mapping(source = "group", target = "group")
+    Spot toEntity(Group group);
 }
 

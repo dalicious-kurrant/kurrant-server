@@ -1,6 +1,8 @@
 package co.kurrant.app.client_api.config;
 
+import co.dalicious.client.core.filter.SimpleJwtAuthenticationFilter;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
+import co.dalicious.client.core.filter.provider.SimpleJwtTokenProvider;
 import co.dalicious.data.redis.repository.BlackListTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -12,10 +14,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import co.dalicious.client.core.handler.CustomAccessDeniedHandler;
 import co.dalicious.client.core.handler.CustomAuthenticationHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
+  private final SimpleJwtTokenProvider jwtTokenProvider;
 
   /**
    * 1. JWT 없이 호출 하는 경우 2. JWT 형식이 이상하거나 만료된 토큰의 경우 3. JWT 토큰으로 호출하였으나 권한이 없는경우
@@ -42,8 +47,10 @@ public class SecurityConfig {
             // "/actuator/health").permitAll() // 등록된 GET요청 리소스는 누구나 접근가능
             .anyRequest().authenticated().and() // 그외 나머지 요청은 모두 인증된 회원만 접근 가능
             .exceptionHandling().accessDeniedHandler(new CustomAccessDeniedHandler()).and()
-            .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationHandler());
-             // jwt token 필터를 id/password 인증 필터 전에 넣어라.
+            .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationHandler())
+            .and()
+            .addFilterBefore(new SimpleJwtAuthenticationFilter(jwtTokenProvider),
+                    UsernamePasswordAuthenticationFilter.class);// jwt token 필터를 id/password 인증 필터 전에 넣어라.
 
     return http.build();
   }

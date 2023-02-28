@@ -10,6 +10,7 @@ import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.domain.user.converter.RoleConverter;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -98,7 +99,7 @@ public class Makers {
     private LocalDate contractEndDate;
 
     @Comment("외식 영양정보 표시대상 여부")
-    private LocalDate isNutritionInformation;
+    private Boolean isNutritionInformation;
 
     @Comment("영업 시작 시간")
     private LocalTime openTime;
@@ -123,6 +124,10 @@ public class Makers {
     @JsonManagedReference(value = "makers_fk")
     @Comment("원산지")
     private List<Origin> origins;
+
+    @ElementCollection
+    @Comment("식사 일정별 메이커스 픽업 시간")
+    private List<PickupTime> pickupTimes;
 
     @CreationTimestamp
     @Column(name = "created_datetime", nullable = false, insertable = false, updatable = false,
@@ -157,5 +162,18 @@ public class Makers {
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElse(null);
+    }
+
+    public PickupTime getPickupTime(DiningType diningType) {
+        return this.getPickupTimes().stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .orElse(null);
+    }
+
+    public String getPickupTimeString(DiningType diningType) {
+        PickupTime pickupTime = getPickupTime(diningType);
+        if(pickupTime == null) return null;
+        return DateUtils.timeToString(pickupTime.getPickupTime());
     }
 }

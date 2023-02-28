@@ -19,6 +19,8 @@ public class UserInfoResponseDto {
     private String userName;
     @Schema(description = "유저타입")
     private String role;
+    @Schema(description = "탈퇴 상태")
+    private Integer status;
     @Schema(description = "휴대폰 번호")
     private String phone;
     @Schema(description = "이메일")
@@ -32,9 +34,11 @@ public class UserInfoResponseDto {
     @Schema(description = "멤버십 여부")
     private Boolean isMembership;
     @Schema(description = "이메일동의 여부")
-    private String userEmailAgreed;
+    private String marketingAgreed;
     @Schema(description = "이메일 동의 날짜")
-    private String userEmailAgreedDateTime;
+    private String marketingAgreedDateTime;
+    @Schema(description = "혜택 및 소식 알림")
+    private Boolean marketingAlarm;
     @Schema(description = "주문 알림 여부")
     private String userOrderAlarm;
     @Schema(description = "최근 로그인 날짜")

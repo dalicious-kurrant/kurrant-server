@@ -9,4 +9,5 @@ import java.util.Optional;
 
 public interface CorporationRepository extends JpaRepository<Corporation, BigInteger> {
     Optional<Corporation> findOneByName(String name);
+    Corporation findByCode(String code);
 }

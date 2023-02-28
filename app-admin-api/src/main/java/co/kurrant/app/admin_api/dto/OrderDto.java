@@ -96,6 +96,13 @@ public class OrderDto {
 
     @Getter
     @Setter
+    public static class StatusAndIdList {
+        private Long status;
+        private List<BigInteger> idList;
+    }
+
+    @Getter
+    @Setter
     public static class Id {
         private BigInteger id;
     }

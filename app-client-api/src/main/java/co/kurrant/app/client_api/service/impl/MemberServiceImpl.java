@@ -1,7 +1,5 @@
 package co.kurrant.app.client_api.service.impl;
 
-import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
-import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.ClientExcelSaveDto;
 import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
@@ -9,6 +7,7 @@ import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Employee;
 import co.dalicious.domain.client.entity.EmployeeHistory;
+import co.dalicious.domain.client.entity.enums.EmployeeHistoryType;
 import co.dalicious.domain.client.mapper.EmployeeHistoryMapper;
 import co.dalicious.domain.client.mapper.EmployeeMapper;
 import co.dalicious.domain.client.repository.*;
@@ -17,6 +16,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.QUserSpotRepository;
+import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.dto.MemberListResponseDto;
 import co.kurrant.app.client_api.dto.MemberWaitingListResponseDto;
 import co.kurrant.app.client_api.mapper.MemberMapper;
@@ -31,7 +31,6 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tika.Tika;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -65,7 +64,7 @@ public class MemberServiceImpl implements MemberService {
     private final EmployeeHistoryRepository employeeHistoryRepository;
 
     @Override
-    public ListItemResponseDto<MemberListResponseDto> getUserList(String code, OffsetBasedPageRequest pageable) {
+    public List<MemberListResponseDto> getUserList(String code) {
 
         //code로 CorporationId 찾기 (=GroupId)
         BigInteger corporationId = qCorporationRepository.findOneByCode(code);
@@ -73,36 +72,32 @@ public class MemberServiceImpl implements MemberService {
         //corporationId로 GroupName 가져오기
         String userGroupName = qUserGroupRepository.findNameById(corporationId);
             //groupID로 user목록 조회
-        Page<User> groupUserList = qUserGroupRepository.findAllByGroupId(corporationId, pageable);
+        List<User> groupUserList = qUserGroupRepository.findAllByGroupId(corporationId);
 
 
         groupUserList.stream().filter(u -> u.getUserStatus().getCode() != 0)
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        List<MemberListResponseDto> memberListResponseList = groupUserList.get()
+        List<MemberListResponseDto> memberListResponseList = groupUserList.stream()
                 .map((user) -> memberMapper.toMemberListDto(user, userGroupName)).collect(Collectors.toList());
 
 
-        return ListItemResponseDto.<MemberListResponseDto>builder().items(memberListResponseList)
-                .total(groupUserList.getTotalElements()).count(groupUserList.getNumberOfElements())
-                .limit(pageable.getPageSize()).offset(pageable.getOffset()).build();
+        return memberListResponseList;
     }
 
     @Override
-    public ListItemResponseDto<MemberWaitingListResponseDto> getWaitingUserList(String code, OffsetBasedPageRequest pageable) {
+    public List<MemberWaitingListResponseDto> getWaitingUserList(String code) {
 
         //code로 CorporationId 찾기 (=GroupId)
         BigInteger corporationId = qCorporationRepository.findOneByCode(code);
         //corpId로 employee 대기유저 목록 조회
-        Page<Employee> employeeList = qEmployeeRepository.findAllByCorporationId(corporationId,pageable);
+        List<Employee> employeeList = qEmployeeRepository.findAllByCorporationId(corporationId);
 
-        List<MemberWaitingListResponseDto> waitingListResponseDtoList = employeeList.get()
+        List<MemberWaitingListResponseDto> waitingListResponseDtoList = employeeList.stream()
                 .map(memberMapper::toMemberWaitingListDto).toList();
 
-        return ListItemResponseDto.<MemberWaitingListResponseDto>builder().items(waitingListResponseDtoList)
-                .total(employeeList.getTotalElements()).count(employeeList.getNumberOfElements())
-                .limit(pageable.getPageSize()).offset(pageable.getOffset()).build();
+        return waitingListResponseDtoList;
     }
 
     @Override
@@ -120,7 +115,6 @@ public class MemberServiceImpl implements MemberService {
             employeeRepository.save(employee);
         }
     }
-
     @Override
     public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
         //userId 리스트 가져오기
@@ -134,11 +128,31 @@ public class MemberServiceImpl implements MemberService {
 
         for (BigInteger userId : userIdList){
             User deleteUser = qUserRepository.findByUserId(userId);
-            EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, deleteUser.getName(), deleteUser.getEmail(), deleteUser.getPhone());
+            EmployeeHistoryType type = EmployeeHistoryType.USER;
+            EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, deleteUser.getName(), deleteUser.getEmail(), deleteUser.getPhone(), type);
             employeeHistoryRepository.save(employeeHistory);
             Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
             if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
         }
+    }
+
+    @Override
+    public void deleteWaitingMember(DeleteWaitingMemberRequestDto deleteWaitingMemberRequestDto) {
+        //받아온 Employee ID를 삭제한다
+        for(BigInteger userId : deleteWaitingMemberRequestDto.getWaitMemberIdList()){
+            //삭제 전에 기록 남기기
+            Employee employee = employeeRepository.findById(userId)
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+            EmployeeHistoryType type = EmployeeHistoryType.WAIT_USER;
+            EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, employee.getName(), employee.getEmail(), employee.getPhone(), type);
+            employeeHistoryRepository.save(employeeHistory);
+
+            long result = qEmployeeRepository.deleteWaitingMember(userId);
+            if (result != 1){
+                throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
+            }
+        }
+
     }
 
     @Override
