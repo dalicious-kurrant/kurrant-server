@@ -44,7 +44,7 @@ public class DailyFoodController {
     }
 
     @Operation(summary = "식단 엑셀 저장 및 수정", description = "식단을 엑셀 파일을 통해 수정하거나 저장한다.")
-    @GetMapping("")
+    @PostMapping("/excel")
     public ResponseMessage excelDailyFood(@RequestBody List<FoodDto.DailyFood> dailyFoodList) {
         dailyFoodService.excelDailyFoods(dailyFoodList);
         return ResponseMessage.builder()
