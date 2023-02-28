@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.controller;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.food.dto.FoodStatusUpdateDto;
 import co.dalicious.domain.food.dto.FoodListDto;
@@ -23,10 +24,10 @@ public class FoodController {
 
     @Operation(summary = "상품 전체 조회", description = "존재하는 상품을 모두 조회합니다.")
     @GetMapping("/all")
-    public ResponseMessage getAllFoodList() {
+    public ResponseMessage getAllFoodList(@RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("모든 상품을 조회했습니다.")
-                .data(foodService.getAllFoodList())
+                .data(foodService.getAllFoodList(limit, page, pageable))
                 .build();
     }
 
@@ -67,7 +68,7 @@ public class FoodController {
     }
 
     @Operation(summary = "상품 수정", description = "상품을 수정합니다.")
-    @PutMapping("")
+    @PatchMapping("")
     public ResponseMessage updateFood(@RequestPart(required = false) List<MultipartFile> files, @RequestPart MakersFoodDetailReqDto contents) throws IOException {
         foodService.updateFood(files, contents);
         return ResponseMessage.builder()
