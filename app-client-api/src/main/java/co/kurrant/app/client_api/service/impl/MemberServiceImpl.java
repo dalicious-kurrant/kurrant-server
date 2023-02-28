@@ -1,7 +1,5 @@
 package co.kurrant.app.client_api.service.impl;
 
-import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
-import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.ClientExcelSaveDto;
 import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
@@ -9,6 +7,7 @@ import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Employee;
 import co.dalicious.domain.client.entity.EmployeeHistory;
+import co.dalicious.domain.client.entity.enums.EmployeeHistoryType;
 import co.dalicious.domain.client.mapper.EmployeeHistoryMapper;
 import co.dalicious.domain.client.mapper.EmployeeMapper;
 import co.dalicious.domain.client.repository.*;
@@ -17,6 +16,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.QUserSpotRepository;
+import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.dto.MemberListResponseDto;
 import co.kurrant.app.client_api.dto.MemberWaitingListResponseDto;
 import co.kurrant.app.client_api.mapper.MemberMapper;
@@ -31,7 +31,6 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tika.Tika;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -116,7 +115,6 @@ public class MemberServiceImpl implements MemberService {
             employeeRepository.save(employee);
         }
     }
-
     @Override
     public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
         //userId 리스트 가져오기
@@ -130,11 +128,31 @@ public class MemberServiceImpl implements MemberService {
 
         for (BigInteger userId : userIdList){
             User deleteUser = qUserRepository.findByUserId(userId);
-            EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, deleteUser.getName(), deleteUser.getEmail(), deleteUser.getPhone());
+            EmployeeHistoryType type = EmployeeHistoryType.USER;
+            EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, deleteUser.getName(), deleteUser.getEmail(), deleteUser.getPhone(), type);
             employeeHistoryRepository.save(employeeHistory);
             Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
             if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
         }
+    }
+
+    @Override
+    public void deleteWaitingMember(DeleteWaitingMemberRequestDto deleteWaitingMemberRequestDto) {
+        //받아온 Employee ID를 삭제한다
+        for(BigInteger userId : deleteWaitingMemberRequestDto.getWaitMemberIdList()){
+            //삭제 전에 기록 남기기
+            Employee employee = employeeRepository.findById(userId)
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+            EmployeeHistoryType type = EmployeeHistoryType.WAIT_USER;
+            EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, employee.getName(), employee.getEmail(), employee.getPhone(), type);
+            employeeHistoryRepository.save(employeeHistory);
+
+            long result = qEmployeeRepository.deleteWaitingMember(userId);
+            if (result != 1){
+                throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
+            }
+        }
+
     }
 
     @Override

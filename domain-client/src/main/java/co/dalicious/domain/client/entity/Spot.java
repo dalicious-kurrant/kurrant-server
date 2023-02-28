@@ -1,6 +1,9 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -79,6 +82,10 @@ public class Spot {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
+    @ColumnDefault("1")
+    @Comment("스팟 상태 ( 0: 비활성, 1: 활성 )")
+    private SpotStatus status;
+
     public Spot(String name, Address address, List<DiningType> diningTypes, Group group) {
         this.name = name;
         this.address = address;
@@ -102,6 +109,12 @@ public class Spot {
     
     public Point getLocation(){
         return this.address.getLocation();
+    }
+
+    public void updateSpot(GroupExcelRequestDto groupInfoList, Address address, Group group) {
+        this.name = groupInfoList.getName();
+        this.address = address;
+        this.diningTypes = group.getDiningTypes();
     }
 
 }

@@ -39,12 +39,4 @@ public class QGroupRecommendRepository {
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
-
-    public void updateIsReject(BigInteger makersId, LocalDate serviceDate) {
-        queryFactory.update(groupRecommends)
-                        .where(groupRecommends.makersId.eq(makersId),
-                        groupRecommends.serviceDate.eq(serviceDate))
-                        .set(groupRecommends.isReject, 1)
-                        .execute();
-    }
 }

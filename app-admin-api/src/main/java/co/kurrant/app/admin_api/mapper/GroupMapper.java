@@ -1,15 +1,18 @@
 package co.kurrant.app.admin_api.mapper;
 
+import co.dalicious.domain.address.dto.CreateAddressRequestDto;
+import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
+import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import org.mapstruct.*;
 
-import java.util.HashSet;
-import java.util.List;
+import java.math.BigInteger;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class})
@@ -81,8 +84,6 @@ public interface GroupMapper {
     @Mapping(source = "group", target = "isSetting", qualifiedByName = "getIsSetting")
     @Mapping(source = "group", target = "isGarbage", qualifiedByName = "getIsGarbage")
     @Mapping(source = "group", target = "isHotStorage", qualifiedByName = "getIsHotStorage")
-    @Mapping(target = "createdDateTime", expression = "java(DateUtils.toISO(group.getCreatedDateTime()))")
-    @Mapping(target = "updatedDateTime", expression = "java(DateUtils.toISO(group.getUpdatedDateTime()))")
     GroupListDto.GroupInfoList toCorporationListDto(Group group, User managerUser);
 
     @Named("getDiningCodeList")
@@ -93,7 +94,7 @@ public interface GroupMapper {
     @Named("serviceDayToString")
     default String serviceDayToString(List<Spot> spotList) {
         StringBuilder mealInfoBuilder = new StringBuilder();
-        HashSet<String> serviceDayList = new HashSet<>();
+        TreeSet<String> serviceDayList = new TreeSet<>();
         for(Spot spot : spotList) {
             List<MealInfo> mealInfoList = spot.getMealInfos();
             for(MealInfo mealInfo : mealInfoList) {
@@ -102,8 +103,8 @@ public interface GroupMapper {
                 serviceDayList.addAll(useDays);
             }
         }
-        serviceDayList.forEach(mealInfoBuilder::append);
-        return String.valueOf(mealInfoBuilder);
+        serviceDayList.forEach(day -> mealInfoBuilder.append(day).append(", "));
+        return String.valueOf(mealInfoBuilder).substring(0, mealInfoBuilder.length() - 2);
     }
 
     @Named("getGroupCode")
@@ -143,6 +144,78 @@ public interface GroupMapper {
         else return null;
     }
 
-//    Group groupInfoListToEntity(GroupListDto.GroupInfoList groupInfoList);
+    @Mapping(source = "address", target = "address")
+    @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
+    @Mapping(source = "groupInfoList.name", target = "name")
+    @Mapping(source = "managerId", target = "managerId")
+    @Mapping(source = "groupInfoList.code", target = "code")
+    @Mapping(source = "groupInfoList", target = "isMembershipSupport", qualifiedByName = "isMembershipSupport")
+    @Mapping(source = "groupInfoList.employeeCount", target = "employeeCount")
+    @Mapping(source = "groupInfoList", target = "isGarbage", qualifiedByName = "isGarbage")
+    @Mapping(source = "groupInfoList", target = "isHotStorage", qualifiedByName = "isHotStorage")
+    @Mapping(source = "groupInfoList", target = "isSetting", qualifiedByName = "isSetting")
+    Corporation groupInfoListToCorporationEntity(GroupExcelRequestDto groupInfoList, BigInteger managerId, Address address);
+
+    @Named("isMembershipSupport")
+    default Boolean isMembershipSupport(GroupExcelRequestDto groupInfoList) {
+        Boolean result = null;
+        if (Objects.equals(groupInfoList.getIsMembershipSupport(), "미지원")) result = false;
+        else if (Objects.equals(groupInfoList.getIsMembershipSupport(), "지원")) result = true;
+        return result;
+    }
+    @Named("isGarbage")
+    default Boolean isGarbage(GroupExcelRequestDto groupInfoList) {
+        Boolean result = null;
+        if (Objects.equals(groupInfoList.getIsGarbage(), "미사용")) result = false;
+        else if (Objects.equals(groupInfoList.getIsGarbage(), "사용")) result = true;
+        return result;
+    }
+    @Named("isHotStorage")
+    default Boolean isHotStorage(GroupExcelRequestDto groupInfoList) {
+        Boolean result = null;
+        if (Objects.equals(groupInfoList.getIsHotStorage(), "미사용")) result = false;
+        else if (Objects.equals(groupInfoList.getIsHotStorage(), "사용")) result = true;
+        return result;
+    }
+    @Named("isSetting")
+    default Boolean isSetting(GroupExcelRequestDto groupInfoList) {
+        Boolean result = null;
+        if (Objects.equals(groupInfoList.getIsSetting(), "미사용")) result = false;
+        else if (Objects.equals(groupInfoList.getIsSetting(), "사용")) result = true;
+        return result;
+    }
+
+    @Mapping(source = "address", target = "address")
+    @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
+    @Mapping(source = "groupInfoList.name", target = "name")
+    @Mapping(source = "managerId", target = "managerId")
+    @Mapping(source = "groupInfoList.employeeCount", target = "familyCount")
+    Apartment groupInfoListToApartmentEntity(GroupExcelRequestDto groupInfoList, BigInteger managerId, Address address);
+
+    @Mapping(target = "zipCode", expression = "java(String.valueOf(groupInfoList.getZipCode()))")
+    @Mapping(source ="groupInfoList.address1", target = "address1")
+    @Mapping(source ="groupInfoList.address2", target = "address2")
+    @Mapping(source ="groupInfoList", target = "latitude", qualifiedByName = "checkNull")
+    @Mapping(source ="groupInfoList", target = "longitude", qualifiedByName = "checkNull")
+    CreateAddressRequestDto createAddressDto(GroupExcelRequestDto groupInfoList);
+
+    @Named("checkNull")
+    default String checkNull(GroupExcelRequestDto groupInfoList) {
+        if(groupInfoList.getLocation() == null || groupInfoList.getLocation().isEmpty() || groupInfoList.getLocation().isBlank() || groupInfoList.getLocation().equals("null")) {
+            return null;
+        } else return groupInfoList.getLocation();
+    }
+
+    @Named("getDiningType")
+    default List<DiningType> getDiningType(List<String> diningTypeInteger) {
+        List<DiningType> diningTypeList = new ArrayList<>();
+        if(diningTypeInteger != null && !diningTypeInteger.isEmpty()) {
+            for(String diningTypeCode : diningTypeInteger) {
+                diningTypeList.add(DiningType.ofString(diningTypeCode));
+            }
+            return diningTypeList;
+        }
+        return null;
+    }
 }
 

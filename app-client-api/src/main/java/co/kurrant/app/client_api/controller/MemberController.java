@@ -6,6 +6,7 @@ import co.dalicious.domain.client.dto.ClientExcelSaveDto;
 import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
+import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.Sort;
@@ -47,6 +48,16 @@ public class MemberController {
             .build();
   }
 
+
+  @Operation(summary = "선택 가입 대기 유저 탈퇴처리", description = "선택한 유저를 가입 대기 유저를 탈퇴처리한다")
+  @ResponseStatus(HttpStatus.OK)
+  @DeleteMapping("/waiting")
+  public ResponseMessage deleteWaitingMember(@RequestBody DeleteWaitingMemberRequestDto deleteWaitingMemberRequestDto){
+    memberService.deleteWaitingMember(deleteWaitingMemberRequestDto);
+    return ResponseMessage.builder()
+            .message("선택한 유저를 탈퇴처리했습니다.")
+            .build();
+  }
 
   @Operation(summary = "선택 유저 탈퇴처리", description = "선택한 유저를 탈퇴처리한다")
   @ResponseStatus(HttpStatus.OK)

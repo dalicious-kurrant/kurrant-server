@@ -7,14 +7,15 @@ import co.dalicious.domain.client.entity.CorporationMealInfo;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.mapper.MealInfoMapper;
-import co.kurrant.app.admin_api.mapper.CorporationMealInfoMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.system.enums.DiningType;
+import co.kurrant.app.admin_api.dto.client.DeleteSpotRequestDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.SpotService;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +23,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -32,12 +32,10 @@ public class SpotServiceImpl implements SpotService {
 
     private final SpotRepository spotRepository;
     private final MealInfoRepository mealInfoRepository;
-    private final CorporationMealInfoRepository corporationMealInfoRepository;
     private final QCorporationMealInfoRepository qCorporationMealInfoRepository;
+    private final QSpotRepository qSpotRepository;
     private final QMealInfoRepository qMealInfoRepository;
     private final SpotMapper spotMapper;
-    private final CorporationMealInfoMapper corporationMealInfoMapper;
-
     private final MealInfoMapper mealInfoMapper;
 
     @Override
@@ -113,7 +111,7 @@ public class SpotServiceImpl implements SpotService {
     }
 
     @Override
-    public void saveUserList(SaveSpotList saveSpotList) {
+    public void saveSpotList(SaveSpotList saveSpotList) {
 
         for (SpotResponseDto spotInfo : saveSpotList.getSaveSpotList()){
 
@@ -121,13 +119,6 @@ public class SpotServiceImpl implements SpotService {
             BigDecimal supportPrice = getSupportPrice(spotInfo);
 
             //deliveryTime, diningType, lastOrderTime
-
-
-            /*
-            * DiningType diningType, LocalTime deliveryTime,
-            * LocalTime lastOrderTime, String serviceDays, Spot spot,
-            * BigDecimal supportPrice
-            * */
             LocalTime lastOrderTime = LocalTime.parse(spotInfo.getLastOrderTime());
             String serviceDays = getServieDays(spotInfo);
 
@@ -159,6 +150,17 @@ public class SpotServiceImpl implements SpotService {
             }
         }
 
+    }
+
+    @Override
+    public void deleteSpot(DeleteSpotRequestDto deleteSpotRequestDto) {
+        //요청받은 spot을 비활성한다.
+        for (BigInteger spotId : deleteSpotRequestDto.getSpotIdList()){
+            long result = qSpotRepository.deleteSpot(spotId);
+            if (result != 1){
+                throw new ApiException(ExceptionEnum.SPOT_PATCH_ERROR);
+            }
+        }
     }
 
     private CreateAddressRequestDto makeCreateAddressRequestDto(String zipCode, String address1, String address2) {
