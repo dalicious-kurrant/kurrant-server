@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.admin_api.dto.client.DeleteSpotRequestDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
 import co.kurrant.app.admin_api.service.SpotService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,23 +31,23 @@ public class ClientController {
     @Operation(summary = "저장하기", description = "수정사항을 저장한다.")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("")
-    public ResponseMessage saveUserList(@RequestBody SaveSpotList saveSpotList){
-        spotService.saveUserList(saveSpotList);
+    public ResponseMessage saveSpotList(@RequestBody SaveSpotList saveSpotList){
+        spotService.saveSpotList(saveSpotList);
         return ResponseMessage.builder()
                 .message("저장에 성공하였습니다.")
                 .build();
     }
-/*
+
     @Operation(summary = "스팟 삭제하기", description = "선택한 스팟을 삭제한다.")
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("")
-    public ResponseMessage deleteSpot(@RequestBody  ){
-//        spotService.deleteSpot();
+    public ResponseMessage deleteSpot(@RequestBody DeleteSpotRequestDto deleteSpotRequestDto){
+        spotService.deleteSpot(deleteSpotRequestDto);
         return ResponseMessage.builder()
-                .message("선택한 유저를 탈퇴처리했습니다.")
+                .message("선택한 스팟를 비활성 처리했습니다.")
                 .build();
     }
- */
+
 
 
 

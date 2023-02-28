@@ -94,6 +94,7 @@ public enum ExceptionEnum {
 	DUPLICATE_CANCELLATION_REQUEST(HttpStatus.INTERNAL_SERVER_ERROR,"E5000007", "취소 실패 : 이미 취소된 결제건입니다."),
   	INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000000", "internalServerError"),
   	USER_PATCH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000009", "유저 탈퇴처리 실패"),
+  	SPOT_PATCH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000010", "스팟 비활성 처리 실패"),
 
 
   	/* E422 */

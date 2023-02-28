@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.mapper;
 
 import co.dalicious.domain.client.entity.EmployeeHistory;
+import co.dalicious.domain.client.entity.enums.EmployeeHistoryType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -13,5 +14,6 @@ public interface EmployeeHistoryMapper {
     @Mapping(source = "name", target = "name")
     @Mapping(source = "email", target = "email")
     @Mapping(source = "userId", target = "userId")
-    EmployeeHistory toEntity(BigInteger userId, String name, String email, String phone);
+    @Mapping(source = "type", target = "type")
+    EmployeeHistory toEntity(BigInteger userId, String name, String email, String phone, EmployeeHistoryType type);
 }

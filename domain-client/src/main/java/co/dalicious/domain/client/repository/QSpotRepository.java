@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.client.entity.enums.SpotStatus;
 import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
@@ -42,4 +43,12 @@ public class QSpotRepository {
                 .orderBy(spot.createdDateTime.desc())
                 .limit(2);
     }
+
+    public long deleteSpot(BigInteger spotId) {
+        return queryFactory.update(spot)
+                .set(spot.status , SpotStatus.INACTIVE)
+                .where(spot.id.eq(spotId))
+                .execute();
+    }
+
 }
