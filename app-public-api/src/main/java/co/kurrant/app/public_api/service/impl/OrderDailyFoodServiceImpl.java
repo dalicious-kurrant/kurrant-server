@@ -271,6 +271,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
         }
 
+        // 결제 금액이 0이 아닐 경우, 토스페이를 통해 결제
         if(orderItemDailyFoodReqDto.getPaymentKey() != null && orderItemDailyFoodReqDto.getAmount() != 0) {
             try {
                 JSONObject jsonObject = tossUtil.paymentConfirm(orderItemDailyFoodReqDto.getPaymentKey(), orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId());
@@ -330,6 +331,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
+        }
+        else {
+            // 주문서 내용 업데이트 및 사용 포인트 차감
+            orderDailyFood.updateDefaultPrice(defaultPrice);
+            orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
+            orderDailyFood.updateTotalPrice(payPrice);
+            orderDailyFood.updateTotalDeliveryFee(totalDeliveryFee);
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
+            }
+            user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
         }
 
         qCartDailyFoodRepository.deleteByCartDailyFoodList(cartDailyFoods);

@@ -14,7 +14,6 @@ public class ScheduleDto {
     public static class GroupSchedule {
         private String serviceDate;
         private Integer diningType;
-        private BigInteger groupId;
         private String groupName;
         private Integer groupCapacity;
         private String deliveryTime;
@@ -25,7 +24,6 @@ public class ScheduleDto {
     @Getter
     @Setter
     public static class MakersSchedule {
-        private BigInteger makersId;
         private String makersName;
         private Integer makersCapacity;
         private Integer makersCount;
@@ -37,9 +35,8 @@ public class ScheduleDto {
     @Setter
     public static class FoodSchedule {
         private BigInteger dailyFoodId;
-        private BigInteger foodId;
         private String foodName;
-        private Integer foodStatus;
+        private Integer dailyFoodStatus;
         private Integer foodCapacity;
         private Integer foodCount;
     }
