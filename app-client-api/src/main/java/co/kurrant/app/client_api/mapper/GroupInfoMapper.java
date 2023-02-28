@@ -8,6 +8,7 @@ import co.dalicious.system.util.DateUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.springframework.data.geo.Point;
 
 import java.util.HashSet;
 import java.util.List;
@@ -17,10 +18,10 @@ public interface GroupInfoMapper {
     @Mapping(source = "group.id", target = "id")
     @Mapping(source = "group", target = "code", qualifiedByName = "getGroupCode")
     @Mapping(source = "group.name", target = "name")
-//    @Mapping(source = "group.address.zipCode", target = "zipCode")
-//    @Mapping(source = "group.address.address1", target = "address1")
-//    @Mapping(source = "group.address.address2", target = "address2")
-//    @Mapping(target = "location", expression = "java(String.valueOf(group.getAddress().getLocation()))")
+    @Mapping(source = "group.address.zipCode", target = "zipCode")
+    @Mapping(source = "group.address.address1", target = "address1")
+    @Mapping(source = "group.address.address2", target = "address2")
+    @Mapping(target = "location", expression = "java(String.valueOf(group.getAddress().getLocation()))")
     @Mapping(source = "group.diningTypes", target = "diningTypes", qualifiedByName = "getDiningCodeList")
     @Mapping(source = "group.spots", target = "serviceDays", qualifiedByName = "serviceDayToString")
     @Mapping(source = "managerUser.name", target = "managerName")
