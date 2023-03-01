@@ -37,7 +37,7 @@ public class GroupListDto {
         private BigInteger id;
         private String code;
         private String name;
-        private Integer zipCode;
+        private String zipCode;
         private String address1;
         private String address2;
         private String location;

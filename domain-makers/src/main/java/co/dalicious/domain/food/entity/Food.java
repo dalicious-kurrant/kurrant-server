@@ -177,7 +177,7 @@ public class Food {
 
     public static Food getFood(List<Food> foods, String makersName, String foodName) {
         return foods.stream()
-                .filter(v -> v.getMakers().getName().equals(makersName) || v.getName().equals(foodName))
+                .filter(v -> v.getMakers().getName().equals(makersName) && v.getName().equals(foodName))
                 .findAny()
                 .orElse(null);
     }

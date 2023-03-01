@@ -30,4 +30,12 @@ public enum ServiceType {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
     }
+
+    public static ServiceType ofString(String dbData){
+        return Arrays.stream(ServiceType.values())
+                .filter(v -> v.getServiceType().equals(dbData))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+    }
+
 }

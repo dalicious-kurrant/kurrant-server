@@ -1,0 +1,92 @@
+package co.kurrant.app.admin_api.service.impl;
+
+import co.dalicious.domain.address.dto.CreateAddressRequestDto;
+import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.food.dto.MakersInfoResponseDto;
+import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.MakersCapacity;
+import co.dalicious.domain.food.mapper.MakersCapacityMapper;
+import co.dalicious.domain.food.repository.MakersCapacityRepository;
+import co.dalicious.domain.food.repository.MakersRepository;
+import co.dalicious.domain.food.repository.QMakersCapacityRepository;
+
+import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
+import co.kurrant.app.admin_api.mapper.MakersMapper;
+import co.kurrant.app.admin_api.service.MakersService;
+import exception.ApiException;
+import exception.ExceptionEnum;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class MakersServiceImpl implements MakersService {
+
+    private final MakersRepository makersRepository;
+    private final QMakersCapacityRepository qMakersCapacityRepository;
+    private final MakersCapacityRepository makersCapacityRepository;
+    private final MakersMapper makersMapper;
+    private final MakersCapacityMapper makersCapacityMapper;
+
+    @Override
+    public Object findAllMakersInfo() {
+
+        List<Makers> makersList = makersRepository.findAll();
+
+        List<MakersInfoResponseDto> makersInfoResponseDtoList = new ArrayList<>();
+
+        for (Makers makers : makersList) {
+            //dailyCapacity 구하기
+            List<MakersCapacity> makersCapacity = qMakersCapacityRepository.findByMakersId(makers.getId());
+            Integer dailyCapacity = 0;
+            List<String> diningTypes = new ArrayList<>();
+            for (MakersCapacity capacity : makersCapacity) {
+                dailyCapacity += capacity.getCapacity();
+                diningTypes.add(capacity.getDiningType().getDiningType());
+            }
+
+            MakersInfoResponseDto makersInfo = makersMapper.toDto(makers, dailyCapacity, diningTypes);
+
+            makersInfoResponseDtoList.add(makersInfo);
+
+        }
+        return makersInfoResponseDtoList;
+    }
+
+    @Override
+    public void saveMakers(SaveMakersRequestDto saveMakersRequestDto) {
+
+        //Address 생성
+        Address address = makeAddress(saveMakersRequestDto);
+
+        Makers makers = makersMapper.toEntity(saveMakersRequestDto, address);
+
+        Makers save = makersRepository.save(makers);
+
+        //capacity 생성 및 저장
+        for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
+            MakersCapacity makersCapacity = makersCapacityMapper.toEntity(makers, saveMakersRequestDto.getDiningTypes().get(i));
+            makersCapacityRepository.save(makersCapacity);
+        }
+
+        if (save == null){
+            throw new ApiException(ExceptionEnum.MAKERS_SAVE_FAILED);
+        }
+    }
+
+    private Address makeAddress(SaveMakersRequestDto saveMakersRequestDto) {
+        CreateAddressRequestDto createAddressRequestDto = new CreateAddressRequestDto();
+        createAddressRequestDto.setAddress1(saveMakersRequestDto.getAddress1());
+        createAddressRequestDto.setAddress2(saveMakersRequestDto.getAddress2());
+        createAddressRequestDto.setZipCode(saveMakersRequestDto.getZipCode());
+        createAddressRequestDto.setLongitude(saveMakersRequestDto.getLongitude());
+        createAddressRequestDto.setLatitude(saveMakersRequestDto.getLatitude());
+
+        return Address.builder()
+                .createAddressRequestDto(createAddressRequestDto)
+                .build();
+    }
+}

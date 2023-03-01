@@ -1,5 +1,6 @@
 package co.kurrant.app.makers_api.controller;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.food.dto.PresetScheduleRequestDto;
 import co.kurrant.app.makers_api.model.SecurityUser;
@@ -20,11 +21,11 @@ public class ScheduleController {
 
     @Operation
     @GetMapping("")
-    public ResponseMessage getMostRecentPresets(Authentication authentication, @RequestParam Integer page) {
+    public ResponseMessage getMostRecentPresets(Authentication authentication, @RequestParam Integer page, @RequestParam Integer limit, OffsetBasedPageRequest pageable) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .message("일정관리를 조회했습니다.")
-                .data(scheduleService.getMostRecentPresets(page, securityUser))
+                .data(scheduleService.getMostRecentPresets(limit, page, pageable, securityUser))
                 .build();
     }
 
