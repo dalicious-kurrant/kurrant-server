@@ -15,7 +15,6 @@ import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
-import co.kurrant.app.admin_api.dto.user.SaveAndUpdateUserList;
 import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
 import co.kurrant.app.admin_api.dto.user.UserInfoResponseDto;
 import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
@@ -24,7 +23,6 @@ import co.kurrant.app.admin_api.service.UserService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +32,7 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -109,7 +108,10 @@ public class UserServiceImpl implements UserService {
                 .toList();
 
         Set<String> groupNames = saveUserListRequestDtoList.stream()
-                .flatMap(v -> Arrays.stream(v.getGroupName().split(",")))
+                .flatMap(v -> {
+                    if (v.getGroupName() != null) return Arrays.stream(v.getGroupName().split(","));
+                    else return Stream.empty();
+                })
                 .map(String::trim)
                 .collect(Collectors.toSet());
         List<Group> groups = qGroupRepository.findAllByNames(groupNames);
@@ -119,7 +121,7 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
         }
 
-        // 수정 요청
+        // FIXME 수정 요청
         List<ProviderEmail> providerEmails = qProviderEmailRepository.getProviderEmails(emails);
 
         Set<String> updateUserEmails = providerEmails.stream()
@@ -142,8 +144,10 @@ public class UserServiceImpl implements UserService {
             }
             // 그룹 변경
             List<String> groupsName = Optional.ofNullable(saveUserListRequestDto.getGroupName())
-                    .map(name -> Arrays.stream(name.split(",")).map(String::trim).toList())
-                    .orElse(List.of());
+                    .map(name -> Arrays.stream(name.split(","))
+                            .map(String::trim)
+                            .toList())
+                    .orElse(Collections.emptyList());
 
             if (groupsName.isEmpty()) {
                 // Case 1: 요청의 groupName 값이 null일 경우 기존의 UserGroup 철회
@@ -191,15 +195,15 @@ public class UserServiceImpl implements UserService {
             user.changePhoneNumber(saveUserListRequestDto.getPhone());
             user.updateRole(Role.ofRoleName(saveUserListRequestDto.getRole()));
             user.updateUserStatus(UserStatus.ofCode(saveUserListRequestDto.getStatus()));
-            user.updatePoint(BigDecimal.valueOf(saveUserListRequestDto.getPoint()));
+            user.updatePoint(BigDecimal.valueOf(saveUserListRequestDto.getPoint() == null ? 0 : saveUserListRequestDto.getPoint()));
             user.changeMarketingAgreement(saveUserListRequestDto.getMarketingAgree(), saveUserListRequestDto.getMarketingAlarm(), saveUserListRequestDto.getOrderAlarm());
         }
 
-        // 신규 생성 요청
+        // FIXME 신규 생성 요청
         List<SaveUserListRequestDto> createUserDtos = saveUserListRequestDtoList.stream()
                 .filter(v -> !updateUserEmails.contains(v.getEmail()))
                 .toList();
-        for (SaveUserListRequestDto createUserDto : createUserDtos){
+        for (SaveUserListRequestDto createUserDto : createUserDtos) {
             UserDto userDto = UserDto.builder()
                     .email(createUserDto.getEmail())
                     .password(passwordEncoder.encode(createUserDto.getPassword()))
@@ -207,7 +211,7 @@ public class UserServiceImpl implements UserService {
                     .name(createUserDto.getName())
                     .role(createUserDto.getRole() == null ? Role.USER : Role.ofRoleName(createUserDto.getRole())).build();
             User user = userRepository.save(userMapper.toEntity(userDto));
-            user.updatePoint(BigDecimal.valueOf(createUserDto.getPoint()));
+            user.updatePoint(BigDecimal.valueOf(createUserDto.getPoint() == null ? 0 : createUserDto.getPoint()));
             user.changeMarketingAgreement(createUserDto.getMarketingAgree(), createUserDto.getMarketingAlarm(), createUserDto.getOrderAlarm());
 
             ProviderEmail providerEmail = ProviderEmail.builder().email(createUserDto.getEmail()).provider(Provider.GENERAL).user(user).build();

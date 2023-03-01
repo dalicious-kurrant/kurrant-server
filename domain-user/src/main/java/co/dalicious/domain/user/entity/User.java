@@ -219,19 +219,19 @@ public class User {
             }
             // 주문 알림이 활성화 되어 있지 않을 경우
             else {
-                this.marketingAgree = !this.marketingAgree;
+                this.marketingAgree = false;
                 this.marketingAlarm = marketingAlarm;
             }
         }
         // 주문 알림 동의/철회
         if (orderAlarm != null) {
             // 혜택 및 소식 알림이 활성화 되어 있을 경우
-            if (this.marketingAgree) {
+            if (this.marketingAlarm) {
                 this.orderAlarm = orderAlarm;
             }
             // 혜택 및 소식 알림이 활성화 되어 있지 않을 경우
             else {
-                this.marketingAgree = !this.marketingAgree;
+                this.marketingAgree = false;
                 this.orderAlarm = orderAlarm;
             }
         }
