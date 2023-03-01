@@ -9,9 +9,10 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -202,10 +203,47 @@ public class User {
         this.orderAlarm = orderAlarm;
     }
 
+    public void changeMarketingAgreement(Boolean marketingAgree, Boolean marketingAlarm, Boolean orderAlarm) {
+
+        // 마케팅 정보 수신 동의/철회
+        if (marketingAgree != null) {
+            this.marketingAgree = marketingAgree;
+            this.marketingAlarm = marketingAgree;
+            this.orderAlarm = marketingAgree;
+        }
+        // 혜택 및 소식 알림 동의/철회
+        if (marketingAlarm != null) {
+            // 주문 알림이 활성화 되어 있을 경우
+            if (this.orderAlarm) {
+                this.marketingAlarm = marketingAlarm;
+            }
+            // 주문 알림이 활성화 되어 있지 않을 경우
+            else {
+                this.marketingAgree = !this.marketingAgree;
+                this.marketingAlarm = marketingAlarm;
+            }
+        }
+        // 주문 알림 동의/철회
+        if (orderAlarm != null) {
+            // 혜택 및 소식 알림이 활성화 되어 있을 경우
+            if (this.marketingAgree) {
+                this.orderAlarm = orderAlarm;
+            }
+            // 혜택 및 소식 알림이 활성화 되어 있지 않을 경우
+            else {
+                this.marketingAgree = !this.marketingAgree;
+                this.orderAlarm = orderAlarm;
+            }
+        }
+        this.marketingAgreedDateTime = Timestamp.valueOf(LocalDateTime.now());
+    }
+
     public void setMarketingAlarm(Boolean marketingAlarm) {
         this.marketingAlarm = marketingAlarm;
     }
-
+    public void updateRole(Role role) {
+        this.role = role;
+    }
     public void setOrderAlarm(Boolean orderAlarm) {
         this.orderAlarm = orderAlarm;
     }
@@ -233,4 +271,5 @@ public class User {
     public void updateIsMembership(Boolean isMembership) {
         this.isMembership = isMembership;
     }
+
 }

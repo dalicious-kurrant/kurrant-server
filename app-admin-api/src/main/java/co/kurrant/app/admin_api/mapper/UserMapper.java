@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.mapper;
 
+import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.GourmetType;
@@ -30,10 +31,10 @@ public interface UserMapper {
     @Mapping(source = "user.marketingAgreedDateTime", target = "marketingAgreedDateTime")
     @Mapping(source = "user.marketingAgree", target = "marketingAgreed")
     @Mapping(source = "user.isMembership", target = "isMembership")
-    @Mapping(source = "user.gourmetType",target = "gourmetType")
-    @Mapping(source = "user.point",target = "point")
+    @Mapping(source = "user.gourmetType", target = "gourmetType")
+    @Mapping(source = "user.point", target = "point")
     @Mapping(source = "user.groups", target = "groupName", qualifiedByName = "getGroupNameAll")
-    @Mapping(source = "user.email",target = "email")
+    @Mapping(source = "user.email", target = "email")
     @Mapping(source = "user.phone", target = "phone")
     @Mapping(source = "user.role", target = "role")
     @Mapping(source = "user.name", target = "userName")
@@ -41,63 +42,62 @@ public interface UserMapper {
     UserInfoResponseDto toDto(User user);
 
     @Named("getGroupNameAll")
-    default String getGroupNameAll(List<UserGroup> groups){
-
-        if (groups.size() == 0) return "없음";
-
-        if (groups.size() != 1){
-            StringBuilder resultName = null;
-            for (UserGroup userGroup : groups){
-                resultName = new StringBuilder(userGroup.getGroup().getName() + ", ");
+    default String getGroupNameAll(List<UserGroup> groups) {
+        if (groups.isEmpty()) {
+            return "없음";
+        } else if (groups.size() == 1) {
+            return groups.get(0).getGroup().getName();
+        } else {
+            StringBuilder resultName = new StringBuilder();
+            for (UserGroup userGroup : groups) {
+                resultName.append(userGroup.getGroup().getName()).append(", ");
             }
-            return resultName.substring(0, resultName.length()-2);
+            return resultName.substring(0, resultName.length() - 2);
         }
-        return groups.get(0).getGroup().getName();
     }
 
     @Named("getUserStatus")
-    default Integer getUserStatus(UserStatus userStatus){
+    default Integer getUserStatus(UserStatus userStatus) {
         return userStatus.getCode();
     }
 
 
     @Named("TimeFormat")
-    default String TimeFormat(Timestamp time){
+    default String TimeFormat(Timestamp time) {
         return DateUtils.format(time, "yyyy-MM-dd, HH:mm:ss");
     }
 
+//    @Mapping(source = "saveUser.userOrderAlarm", target = "orderAlarm")
+//    @Mapping(source = "saveUser.marketingAlarm", target = "marketingAlarm")
+//    @Mapping(source = "saveUser.marketingAgreedDateTime", target = "marketingAgreedDateTime", qualifiedByName = "generatedDateTime")
+//    @Mapping(source = "saveUser.marketingAgree", target = "marketingAgree")
+//    @Mapping(source = "saveUser.isMembership", target = "isMembership")
+//    @Mapping(source = "saveUser.gourmetType", target = "gourmetType", qualifiedByName = "generatedGourmetType")
+//    @Mapping(source = "saveUser.point", target = "point")
+//    @Mapping(source = "saveUser.status", target = "userStatus", qualifiedByName = "getStatus")
+//    @Mapping(source = "password", target = "password")
+//    @Mapping(source = "role", target = "role")
+//    @Mapping(source = "saveUser.phone", target = "phone")
+//    @Mapping(source = "saveUser.email", target = "email")
+//    @Mapping(source = "saveUser.name", target = "name")
+//    @Mapping(source = "saveUser.userId", target = "id")
+//    User toEntity(SaveUserListRequestDto saveUser, String password, Role role);
 
-//    @Mapping(source = "provideEmails", target = "providerEmails")
-    @Mapping(source = "saveUser.recentLoginDateTime", target = "recentLoginDateTime", qualifiedByName = "generatedDateTime")
-    @Mapping(source = "saveUser.userOrderAlarm", target = "orderAlarm")
-    @Mapping(source = "saveUser.marketingAlarm", target = "marketingAlarm")
-    @Mapping(source = "saveUser.marketingAgreedDateTime", target = "marketingAgreedDateTime", qualifiedByName = "generatedDateTime")
-    @Mapping(source = "saveUser.marketingAgree", target = "marketingAgree")
-    @Mapping(source = "saveUser.isMembership", target = "isMembership")
-    @Mapping(source = "saveUser.gourmetType", target = "gourmetType", qualifiedByName = "generatedGourmetType")
-    @Mapping(source = "saveUser.point", target = "point")
-    @Mapping(source = "saveUser.status", target = "userStatus", qualifiedByName = "getStatus")
-    @Mapping(source = "password", target = "password")
-    @Mapping(source = "role", target = "role")
-    @Mapping(source = "saveUser.phone", target = "phone")
-    @Mapping(source = "saveUser.email", target = "email")
-    @Mapping(source = "saveUser.name", target = "name")
-    @Mapping(source = "saveUser.userId", target = "id")
-    User toEntity(SaveUserListRequestDto saveUser, String password, Role role);
+    User toEntity(UserDto userDto);
 
 
     @Named("getStatus")
-    default UserStatus getStatus(Integer status){
+    default UserStatus getStatus(Integer status) {
         return UserStatus.ofCode(status);
     }
 
     @Named("generatedDateTime")
-    default Timestamp generatedDateTime(String dateTime){
+    default Timestamp generatedDateTime(String dateTime) {
         return Timestamp.valueOf(dateTime);
     }
 
     @Named("generatedGourmetType")
-    default GourmetType generatedGourmetType(Integer gourmetType){
+    default GourmetType generatedGourmetType(Integer gourmetType) {
         return GourmetType.ofCode(gourmetType);
     }
 

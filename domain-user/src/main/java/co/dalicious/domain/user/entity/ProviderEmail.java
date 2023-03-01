@@ -14,7 +14,7 @@ import java.math.BigInteger;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "user__oauth_mail")
+@Table(name = "user__oauth_mail", uniqueConstraints={@UniqueConstraint(columnNames={"provider", "email"})})
 public class ProviderEmail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
