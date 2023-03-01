@@ -36,6 +36,8 @@ public enum ExceptionEnum {
 	NOT_INPUT_PASSWORD(HttpStatus.BAD_REQUEST, "E4000026", "비밀번호를 입력하지 않았습니다. 확인해주세요."),
 	NOT_INPUT_USERNAME(HttpStatus.BAD_REQUEST, "E4000027", "아이디를 입력하지 않았습니다. 확인해주세요."),
 	CANNOT_CHANGE_STATUS(HttpStatus.BAD_REQUEST, "E4000028", "변경할 수 없는 상태입니다."),
+
+	EXCEL_EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "E4000100", "중복된 이메일 입력이 존재합니다."),
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
 	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "비밀번호가 일치하지 않습니다."),
