@@ -129,6 +129,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<BigInteger> dailyFoodIds = dailyFoodList.stream()
                 .map(FoodDto.DailyFood::getDailyFoodId)
                 .toList();
+        // TODO: null일 경우 예외처리
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByDailyFoodIds(dailyFoodIds);
 
         List<BigInteger> currentDailyFoodIds = dailyFoods.stream()
@@ -153,12 +154,17 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                     .filter(v -> v.getDailyFoodId().equals(dailyFood.getId()))
                     .findAny()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+            Group group = Group.getGroup(updateGroups, dailyFoodDto.getGroupName());
+            // 그룹이 가지고 있지 않은 식사 타입을 추가할 경우
+            if(!group.getDiningTypes().contains(DiningType.ofCode(dailyFoodDto.getDiningType()))) {
+                throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+            }
             dailyFood.updateFoodStatus(DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()));
             if(dailyFoodDto.getFoodCapacity().equals(dailyFoodDto.getFoodCount())) {
                 dailyFood.updateDiningType(DiningType.ofCode(dailyFoodDto.getDiningType()));
                 dailyFood.updateServiceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()));
                 dailyFood.updateFood(Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName()));
-                dailyFood.updateGroup(Group.getGroup(updateGroups, dailyFoodDto.getGroupName()));
+                dailyFood.updateGroup(group);
             }
         });
 

@@ -46,6 +46,10 @@ public interface DailyFoodMapper {
                   throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
             }
             Group group = Group.getGroup(groups, dailyFoodDto.getGroupName());
+            // 그룹이 가지고 있지 않은 식사 일정을 추가할 경우
+            if(!group.getDiningTypes().contains(DiningType.ofCode(dailyFoodDto.getDiningType()))) {
+                  throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+            }
             return DailyFood.builder()
                     .id(dailyFoodDto.getDailyFoodId() == null ? null : dailyFoodDto.getDailyFoodId())
                     .dailyFoodStatus(DailyFoodStatus.SALES)

@@ -137,8 +137,12 @@ public class UserServiceImpl implements UserService {
 
         for (User user : userUpdateMap.keySet()) {
             SaveUserListRequestDto saveUserListRequestDto = userUpdateMap.get(user);
+            // 비밀번호에 데이터가 없을 경우
+            if(saveUserListRequestDto.getPassword() == null || saveUserListRequestDto.getPassword().isEmpty()) {
+                user.changePassword(null);
+            }
             // 비밀번호가 변경되었을 경우
-            if (!saveUserListRequestDto.getPassword().equals(user.getPassword())) {
+            else if (!saveUserListRequestDto.getPassword().equals(user.getPassword())) {
                 String password = passwordEncoder.encode(saveUserListRequestDto.getPassword());
                 user.changePassword(password);
             }

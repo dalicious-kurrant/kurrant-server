@@ -40,6 +40,9 @@ public class GroupServiceImpl implements GroupService {
     private final CorporationMealInfoMapper mealInfoMapper;
     private final MealInfoRepository mealInfoRepository;
 
+    // TODO 1: 스팟 식사 일정(MealInfo) 생성시, 그룹이 설정한 식사일정(DiningType)의 MealInfo만 생성할 수 있도록
+    // TODO 2: 스팟 식사 일정 생성시, DType 정확하게 넣기. (ApartmentMealInfo / CorporationMealInfo)
+
 
     @Override
     @Transactional(readOnly = true)
