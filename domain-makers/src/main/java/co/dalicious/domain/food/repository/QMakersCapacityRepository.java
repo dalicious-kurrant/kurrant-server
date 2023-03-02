@@ -26,7 +26,7 @@ public class QMakersCapacityRepository {
 
     public List<MakersCapacity> findByMakers(Makers makers) {
         return queryFactory.selectFrom(makersCapacity)
-                .where(makersCapacity.makers.eq(makers))
+                .where(makersCapacity.makers.id.eq(makers.getId()))
                 .fetch();
     }
 
