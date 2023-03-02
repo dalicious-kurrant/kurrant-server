@@ -33,4 +33,12 @@ public class QEmployeeRepository {
                 .where(employee.id.eq(userId))
                 .execute();
     }
+
+    public void patchEmployee(String phone, String email, String name) {
+        queryFactory.update(employee)
+                .set(employee.email, email)
+                .set(employee.phone, phone)
+                .set(employee.name, name)
+                .execute();
+    }
 }
