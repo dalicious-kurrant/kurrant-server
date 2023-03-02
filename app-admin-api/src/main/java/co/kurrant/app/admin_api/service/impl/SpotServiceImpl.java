@@ -91,12 +91,14 @@ public class SpotServiceImpl implements SpotService {
                 if (dinnerMealInfo != null) {
                     mealInfoRepository.save(dinnerMealInfo);
                 }
-                spot.updateSpot(spotMap.get(spot), spot.getUpdatedDiningTypes());
+                spot.updateSpot(spotMap.get(spot));
+                spot.updatedDiningTypes(morningMealInfo, lunchMealInfo, dinnerMealInfo);
             }
             // CASE 2: 스팟에 식사 정보가 존재하지만, 요청값에 없는 경우
             else if (morningMealInfo == null && lunchMealInfo == null && dinnerMealInfo == null) {
                 mealInfoRepository.deleteAll(spot.getMealInfos());
-                spot.updateSpot(spotMap.get(spot), spot.getUpdatedDiningTypes());
+                spot.updateSpot(spotMap.get(spot));
+                spot.updatedDiningTypes(null, null, null);
             }
             // CASE 3: 스팟에 식사 정보가 존재하며 요청값에도 존재할 경우
             else {
@@ -138,7 +140,8 @@ public class SpotServiceImpl implements SpotService {
                         }
                     }
                 }
-                spot.updateSpot(spotMap.get(spot), spot.getUpdatedDiningTypes());
+                spot.updateSpot(spotMap.get(spot));
+                spot.updatedDiningTypes(morningMealInfo, lunchMealInfo, dinnerMealInfo);
             }
         }
 
