@@ -224,7 +224,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                     () -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)
             );
             // 메이커스 푸드 가져오기
-            List<Food> foodList = qFoodRepository.findByMakers(makers);
+            List<Food> foodList = qFoodRepository.findByMakersAndFoodStatus(makers);
             // 그룹 찾기
             List<BigInteger> groupingGroupIdList = groupingByMakers.get(recommendScheduleDto);
             // preset group schedule dto 과 preset food schedule dto 만들기
