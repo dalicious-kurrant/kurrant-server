@@ -94,16 +94,18 @@ public interface GroupMapper {
     @Named("serviceDayToString")
     default String serviceDayToString(List<Spot> spotList) {
         StringBuilder mealInfoBuilder = new StringBuilder();
-        TreeSet<String> serviceDayList = new TreeSet<>();
-        for(Spot spot : spotList) {
+        List<String> serviceDayList = new ArrayList<>();
+        for (Spot spot : spotList) {
             List<MealInfo> mealInfoList = spot.getMealInfos();
-            for(MealInfo mealInfo : mealInfoList) {
-                if(mealInfo.getServiceDays() == null || mealInfo.getServiceDays().isEmpty() || mealInfo.getServiceDays().isBlank()) continue;
-                List<String> useDays = List.of(mealInfo.getServiceDays().split(", "));
+            for (MealInfo mealInfo : mealInfoList) {
+                if (mealInfo.getServiceDays() == null || mealInfo.getServiceDays().isEmpty() || mealInfo.getServiceDays().isBlank()) {
+                    continue;
+                }
+                List<String> useDays = List.of(mealInfo.getServiceDays().split(", |,"));
                 serviceDayList.addAll(useDays);
             }
         }
-        serviceDayList.forEach(day -> mealInfoBuilder.append(day).append(", "));
+        serviceDayList.stream().distinct().forEach(day -> mealInfoBuilder.append(day).append(", "));
         return String.valueOf(mealInfoBuilder).substring(0, mealInfoBuilder.length() - 2);
     }
 
