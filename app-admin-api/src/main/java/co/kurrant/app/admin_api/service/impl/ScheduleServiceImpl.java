@@ -55,6 +55,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     @Transactional
     public void makePresetSchedulesByExcel(ExcelPresetDailyFoodDto dtoList) {
+        // TODO: 그룹이 가지고 있는 DiningType만 생성할 수 있도록 변경
         LinkedList<ExcelPresetDailyFoodDto.ExcelData> dataList = new LinkedList<>(dtoList.getExcelDataList());
 
         // 서비스날, 식사 타입, 메이커스로 몪고. - makers
