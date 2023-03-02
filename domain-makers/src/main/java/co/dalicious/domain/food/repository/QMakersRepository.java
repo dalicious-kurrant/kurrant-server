@@ -193,7 +193,7 @@ public class QMakersRepository {
 
     }
 
-    public void updateDailyCapaciy(Integer dailyCapacity, BigInteger id, int i) {
+    public void updateDailyCapacity(Integer dailyCapacity, BigInteger id, int i) {
         queryFactory.update(makers)
                 .set(makers.makersCapacities.get(i).capacity, dailyCapacity)
                 .where(makers.id.eq(id))

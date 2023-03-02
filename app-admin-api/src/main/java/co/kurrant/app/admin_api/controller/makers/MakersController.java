@@ -6,6 +6,7 @@ import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
 import co.kurrant.app.admin_api.service.MakersService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "3. Makers")
@@ -25,7 +26,7 @@ public class MakersController {
     }
 
     @PostMapping("")
-    public ResponseMessage saveMakers(@RequestBody SaveMakersRequestDtoList saveMakersRequestDtoList){
+    public ResponseMessage saveMakers(@RequestBody SaveMakersRequestDtoList saveMakersRequestDtoList) throws ParseException {
         makersService.saveMakers(saveMakersRequestDtoList);
         return ResponseMessage.builder()
                 .message("메이커스 저장에 성공하였습니다.")

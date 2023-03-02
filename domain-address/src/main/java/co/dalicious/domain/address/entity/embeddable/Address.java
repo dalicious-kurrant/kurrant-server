@@ -5,10 +5,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -26,17 +25,17 @@ public class Address {
   @Column(name = "address_depth_2", nullable = true, columnDefinition = "VARCHAR(255) COMMENT '상세주소'")
   private String address2;
 
-  @Column(name = "address_location", nullable = true, columnDefinition = "GEOMETRY")
+  @Column(name = "address_location", nullable = true)
   @Comment("위치")
   private Point location;
 
   @Builder
-  public Address(CreateAddressRequestDto createAddressRequestDto) {
+  public Address(CreateAddressRequestDto createAddressRequestDto) throws ParseException {
     this.zipCode = createAddressRequestDto.getZipCode();
     this.address1 = createAddressRequestDto.getAddress1();
     this.address2 = createAddressRequestDto.getAddress2();
     this.location = (createAddressRequestDto.getLatitude() == null || createAddressRequestDto.getLongitude() == null) ?
-            null : createPoint(Double.parseDouble(createAddressRequestDto.getLatitude()), Double.parseDouble(createAddressRequestDto.getLongitude()));
+            null : createPoint(String.format("Point(%s %s)", createAddressRequestDto.getLatitude(), createAddressRequestDto.getLongitude()));
   }
 
   public Address(String zipCode, String address1, String address2, Point location) {
@@ -50,8 +49,8 @@ public class Address {
     return this.address1 + " " + this.address2;
   }
 
-  public static Point createPoint(double x, double y) {
-    GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
-    return geometryFactory.createPoint(new Coordinate(x, y));
+  public static Point createPoint(String location) throws ParseException {
+    System.out.println(location + " address location check");
+    return (Point) new WKTReader().read(location);
   }
 }
