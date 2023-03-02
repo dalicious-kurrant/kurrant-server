@@ -11,6 +11,7 @@ import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.system.util.DateUtils;
+import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.mapper.CorporationMealInfoMapper;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
@@ -24,9 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -68,10 +67,14 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public void saveCorporationList(List<GroupExcelRequestDto> groupListDtoList) throws ParseException {
+    public void saveCorporationList(List<GroupExcelRequestDto> groupListDtoList) {
+        Set<BigInteger> groupIdList = new HashSet<>();
+        for(GroupExcelRequestDto groupExcelRequestDto : groupListDtoList) groupIdList.add(groupExcelRequestDto.getId());
+        List<Group> groupList = qGroupRepository.findAllByIds(groupIdList);
+        
         // 그룹이 있는지 찾아보기
         for(GroupExcelRequestDto groupInfoList : groupListDtoList) {
-            Group group = groupRepository.findById(groupInfoList.getId()).orElse(null);
+            Group group = groupList.stream().filter(groupMatch -> groupMatch.getId().equals(groupInfoList.getId())).findFirst().orElse(null);
             Address address = Address.builder().createAddressRequestDto(groupMapper.createAddressDto(groupInfoList)).build();
 
             // group 없으면

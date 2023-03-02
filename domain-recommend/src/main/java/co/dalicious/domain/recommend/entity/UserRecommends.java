@@ -47,5 +47,8 @@ public class UserRecommends {
     @Column(name = "dining_type")
     @Comment("식단 타입")
     private DiningType DiningType;
+
+    @Column(name = "rank")
+    private Integer rank;
 }
 
