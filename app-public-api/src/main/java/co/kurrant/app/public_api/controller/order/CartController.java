@@ -44,6 +44,7 @@ public class CartController {
                 .build();
     }
 
+    @Operation(summary = "장바구니 상품 삭제", description = "장바구니의 특정 상품을 삭제한다.")
     @DeleteMapping("/{cartDailyFoodId}")
     public ResponseMessage deleteById(Authentication authentication, @PathVariable BigInteger cartDailyFoodId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);

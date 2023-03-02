@@ -41,6 +41,10 @@ public class MealInfo {
     @Comment("배송 시간")
     private LocalTime deliveryTime;
 
+    @Column(name = "membership_benefit_time", nullable = false)
+    @Comment("멤버십 혜택 마감 시간")
+    private LocalTime membershipBenefitTime;
+
     @NotNull
     @Column(name = "last_order_time", nullable = false)
     @Comment("주문 마감 시간")
@@ -70,9 +74,10 @@ public class MealInfo {
     @Comment("스팟")
     private Spot spot;
 
-    public MealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Spot spot) {
+    public MealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime membershipBenefitTime,LocalTime lastOrderTime, String serviceDays, Spot spot) {
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
+        this.membershipBenefitTime = membershipBenefitTime;
         this.lastOrderTime = lastOrderTime;
         this.serviceDays = serviceDays;
         this.spot = spot;

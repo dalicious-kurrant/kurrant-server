@@ -272,4 +272,10 @@ public class User {
         this.isMembership = isMembership;
     }
 
+    public UserSpot getDefaultUserSpot() {
+        return this.userSpots.stream()
+                .filter(v -> v.getIsDefault().equals(true))
+                .findAny()
+                .orElse(null);
+    }
 }
