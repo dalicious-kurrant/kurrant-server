@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.food.entity.QFood.food;
 
@@ -58,5 +59,11 @@ public class QFoodRepository {
               .selectFrom(food)
               .where(food.makers.in(makers))
               .fetch();
+    }
+
+    public List<Food> findByNames(Set<String> names) {
+        return queryFactory.selectFrom(food)
+                .where(food.name.in(names))
+                .fetch();
     }
 }
