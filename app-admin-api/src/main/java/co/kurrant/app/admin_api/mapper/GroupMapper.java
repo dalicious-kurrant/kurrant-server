@@ -9,9 +9,13 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import jdk.jfr.Name;
+import org.hibernate.query.criteria.internal.path.SetAttributeJoin;
 import org.mapstruct.*;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,6 +81,7 @@ public interface GroupMapper {
     @Mapping( target = "location", expression = "java(String.valueOf(group.getAddress().getLocation()))")
     @Mapping(source = "group.diningTypes", target = "diningTypes", qualifiedByName = "getDiningCodeList")
     @Mapping(source = "group.spots", target = "serviceDays", qualifiedByName = "serviceDayToString")
+    @Mapping(source = "managerUser.id", target = "managerId")
     @Mapping(source = "managerUser.name", target = "managerName")
     @Mapping(source = "managerUser.phone", target = "managerPhone")
     @Mapping(source = "group", target = "isMembershipSupport", qualifiedByName = "getIsMembershipSupport")
@@ -84,7 +89,39 @@ public interface GroupMapper {
     @Mapping(source = "group", target = "isSetting", qualifiedByName = "getIsSetting")
     @Mapping(source = "group", target = "isGarbage", qualifiedByName = "getIsGarbage")
     @Mapping(source = "group", target = "isHotStorage", qualifiedByName = "getIsHotStorage")
+    @Mapping(source = "group.spots", target = "membershipBenefitTime", qualifiedByName = "getMembershipBenefitTime")
+    @Mapping(target = "morningSupportPrice", expression = "java(getSupportPrice(group, DiningType.MORNING))")
+    @Mapping(target = "lunchSupportPrice", expression = "java(getSupportPrice(group, DiningType.LUNCH))")
+    @Mapping(target = "dinnerSupportPrice", expression = "java(getSupportPrice(group, DiningType.DINNER))")
     GroupListDto.GroupInfoList toCorporationListDto(Group group, User managerUser);
+
+    @Named("getSupportPrice")
+    default BigDecimal getSupportPrice(Group group, DiningType type) {
+        if(group instanceof Corporation) {
+            List<Spot> spotList = group.getSpots();
+            for(Spot spot : spotList) {
+                List<MealInfo> mealInfoList = spot.getMealInfos();
+                for(MealInfo mealInfo : mealInfoList) {
+                    if(mealInfo.getDiningType().equals(type)) return ((CorporationMealInfo) mealInfo).getSupportPrice();
+                }
+            }
+        }
+        return null;
+    }
+
+    @Named("getMembershipBenefitTime")
+    default String getMembershipBenefitTime(List<Spot> spotList) {
+        LocalTime minMembershipBenefitTime = LocalTime.MAX;
+        for (Spot spot : spotList) {
+            List<MealInfo> mealInfoList = spot.getMealInfos();
+            for (MealInfo mealInfo : mealInfoList) {
+                if (mealInfo.getMembershipBenefitTime() != null) {
+                    minMembershipBenefitTime = minMembershipBenefitTime.isBefore(mealInfo.getMembershipBenefitTime()) ? minMembershipBenefitTime : mealInfo.getMembershipBenefitTime();
+                }
+            }
+        }
+        return minMembershipBenefitTime == LocalTime.MAX ? null : String.valueOf(minMembershipBenefitTime);
+    }
 
     @Named("getDiningCodeList")
     default List<Integer> getDiningCodeList(List<DiningType> diningTypeList) {
@@ -147,14 +184,14 @@ public interface GroupMapper {
     @Mapping(source = "address", target = "address")
     @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
     @Mapping(source = "groupInfoList.name", target = "name")
-    @Mapping(source = "managerId", target = "managerId")
+    @Mapping(source = "groupInfoList.managerId", target = "managerId")
     @Mapping(source = "groupInfoList.code", target = "code")
     @Mapping(source = "groupInfoList", target = "isMembershipSupport", qualifiedByName = "isMembershipSupport")
     @Mapping(source = "groupInfoList.employeeCount", target = "employeeCount")
     @Mapping(source = "groupInfoList", target = "isGarbage", qualifiedByName = "isGarbage")
     @Mapping(source = "groupInfoList", target = "isHotStorage", qualifiedByName = "isHotStorage")
     @Mapping(source = "groupInfoList", target = "isSetting", qualifiedByName = "isSetting")
-    Corporation groupInfoListToCorporationEntity(GroupExcelRequestDto groupInfoList, BigInteger managerId, Address address);
+    Corporation groupInfoListToCorporationEntity(GroupExcelRequestDto groupInfoList, Address address);
 
     @Named("isMembershipSupport")
     default Boolean isMembershipSupport(GroupExcelRequestDto groupInfoList) {
@@ -188,9 +225,9 @@ public interface GroupMapper {
     @Mapping(source = "address", target = "address")
     @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
     @Mapping(source = "groupInfoList.name", target = "name")
-    @Mapping(source = "managerId", target = "managerId")
+    @Mapping(source = "groupInfoList.managerId", target = "managerId")
     @Mapping(source = "groupInfoList.employeeCount", target = "familyCount")
-    Apartment groupInfoListToApartmentEntity(GroupExcelRequestDto groupInfoList, BigInteger managerId, Address address);
+    Apartment groupInfoListToApartmentEntity(GroupExcelRequestDto groupInfoList, Address address);
 
     @Mapping(target = "zipCode", expression = "java(String.valueOf(groupInfoList.getZipCode()))")
     @Mapping(source ="groupInfoList.address1", target = "address1")

@@ -1,7 +1,9 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
+import co.dalicious.system.util.DateUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -83,7 +85,8 @@ public class MealInfo {
         this.spot = spot;
     }
 
-    public void updateServiceDays(String serviceDays) {
+    public void updateMealInfo(LocalTime membershipBenefitTime, String serviceDays) {
+        this.membershipBenefitTime = membershipBenefitTime;
         this.serviceDays = serviceDays;
     }
 }

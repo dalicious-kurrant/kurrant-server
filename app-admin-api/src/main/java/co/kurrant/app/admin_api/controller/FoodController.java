@@ -24,7 +24,7 @@ public class FoodController {
 
     @Operation(summary = "상품 전체 조회", description = "존재하는 상품을 모두 조회합니다.")
     @GetMapping("/all")
-    public ResponseMessage getAllFoodList(@RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+    public ResponseMessage getAllFoodList(@RequestParam(required = false) Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("모든 상품을 조회했습니다.")
                 .data(foodService.getAllFoodList(limit, page, pageable))
