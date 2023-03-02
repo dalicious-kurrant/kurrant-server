@@ -71,16 +71,36 @@ public class MakersServiceImpl implements MakersService {
             Optional<Makers> optionalMakers = makersRepository.findById(saveMakersRequestDto.getId());
             //이미 존재하면 수정
             if (optionalMakers.isPresent()){
+
+                //DailyCapacity 수정
+                List<MakersCapacity> makersCapacityList = qMakersCapacityRepository.findByMakersId(saveMakersRequestDto.getId());
+                //다이닝 타입별 가능수량을 계산해서 저장해준다.
+                if (makersCapacityList.size() != 3){
+                    Integer dailyCapacity = saveMakersRequestDto.getDailyCapacity() / makersCapacityList.size();
+                    for (int i = 0; i < makersCapacityList.size(); i++) {
+                        qMakersRepository.updateDailyCapaciy(dailyCapacity, saveMakersRequestDto.getId(), i);
+                    }
+                } else {
+                    Integer divTen = saveMakersRequestDto.getDailyCapacity() / 10;
+                    Integer morning = divTen * 3;
+                    Integer lunch = divTen * 4;
+                    Integer dinner = divTen * 3;
+
+                    for (int i = 0; i < makersCapacityList.size(); i++) {
+                        qMakersRepository.updateDailyCapaciyByDiningType(morning, lunch, dinner, i, makersCapacityList.get(i).getDiningType(), saveMakersRequestDto.getId());
+                    }
+
+                }
+
+
+                //그 외 수정
                 qMakersRepository.updateMakers(saveMakersRequestDto.getId(),saveMakersRequestDto.getCode(),saveMakersRequestDto.getName(),
                         saveMakersRequestDto.getCompanyName(), saveMakersRequestDto.getCeo(), saveMakersRequestDto.getCeoPhone(),
-                        saveMakersRequestDto.getManagerName(), saveMakersRequestDto.getManagerPhone(), saveMakersRequestDto.getDiningTypes(),
-                        saveMakersRequestDto.getDailyCapacity(), saveMakersRequestDto.getServiceType(), saveMakersRequestDto.getServiceForm(),
-                        saveMakersRequestDto.getIsParentCompany(), saveMakersRequestDto.getParentCompanyId(),address, saveMakersRequestDto.getCompanyRegistrationNumber(),
-                        saveMakersRequestDto.getContractStartDate(),saveMakersRequestDto.getContractEndDate(), saveMakersRequestDto.getIsNutritionInformation(),
-                        saveMakersRequestDto.getOpenTime(), saveMakersRequestDto.getCloseTime(), saveMakersRequestDto.getBank(),
-                        saveMakersRequestDto.getDepositHolder(), saveMakersRequestDto.getAccountNumber());
-
-
+                        saveMakersRequestDto.getManagerName(), saveMakersRequestDto.getManagerPhone(), saveMakersRequestDto.getServiceType(),
+                        saveMakersRequestDto.getServiceForm(), saveMakersRequestDto.getIsParentCompany(), saveMakersRequestDto.getParentCompanyId(),
+                        address, saveMakersRequestDto.getCompanyRegistrationNumber(), saveMakersRequestDto.getContractStartDate(),
+                        saveMakersRequestDto.getContractEndDate(), saveMakersRequestDto.getIsNutritionInformation(), saveMakersRequestDto.getOpenTime(),
+                        saveMakersRequestDto.getCloseTime(), saveMakersRequestDto.getBank(), saveMakersRequestDto.getDepositHolder(), saveMakersRequestDto.getAccountNumber());
             }else {
                 Makers makers = makersMapper.toEntity(saveMakersRequestDto, address);
 
