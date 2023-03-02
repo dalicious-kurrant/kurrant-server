@@ -93,6 +93,13 @@ public class Group {
                 .orElse(null);
     }
 
+    public static Group getGroup(List<Group> groups, BigInteger id) {
+        return groups.stream()
+                .filter(v -> v.getId().equals(id))
+                .findAny()
+                .orElse(null);
+    }
+
     public static List<Group> getGroups(List<Group> groups, List<String> name) {
         return groups.stream()
                 .filter(group -> name.contains(group.getName()))

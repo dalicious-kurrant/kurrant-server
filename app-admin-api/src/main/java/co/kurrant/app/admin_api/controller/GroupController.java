@@ -8,6 +8,7 @@ import co.kurrant.app.admin_api.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
@@ -32,7 +33,7 @@ public class GroupController {
 
     @Operation(summary = "기업 정보 저장", description = "기업 정보를 저장했습니다.")
     @PostMapping("/excel")
-    public ResponseMessage saveCorporationList(@RequestBody List<GroupExcelRequestDto> corporationListDto) {
+    public ResponseMessage saveCorporationList(@RequestBody List<GroupExcelRequestDto> corporationListDto) throws ParseException {
         groupService.saveCorporationList(corporationListDto);
         return ResponseMessage.builder()
                 .message("기업 정보를 저장했습니다.")

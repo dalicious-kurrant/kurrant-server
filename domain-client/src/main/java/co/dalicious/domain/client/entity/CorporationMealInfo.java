@@ -29,6 +29,10 @@ public class CorporationMealInfo extends MealInfo{
         this.supportPrice = supportPrice;
     }
 
+    public void updateCorporationMealInfo(CorporationMealInfo mealInfo) {
+        super.updateMealInfo(mealInfo);
+        this.supportPrice = mealInfo.getSupportPrice();
+    }
     public void updateCorporationMealInfo(GroupExcelRequestDto groupInfoList) {
         updateMealInfo(groupInfoList.getServiceDays());
 

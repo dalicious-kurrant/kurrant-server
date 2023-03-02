@@ -19,6 +19,7 @@ import co.kurrant.app.admin_api.service.GroupService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +71,7 @@ public class GroupServiceImpl implements GroupService {
         Set<BigInteger> groupIdList = new HashSet<>();
         for(GroupExcelRequestDto groupExcelRequestDto : groupListDtoList) groupIdList.add(groupExcelRequestDto.getId());
         List<Group> groupList = qGroupRepository.findAllByIds(groupIdList);
+        
         // 그룹이 있는지 찾아보기
         for(GroupExcelRequestDto groupInfoList : groupListDtoList) {
             Group group = groupList.stream().filter(groupMatch -> groupMatch.getId().equals(groupInfoList.getId())).findFirst().orElse(null);
