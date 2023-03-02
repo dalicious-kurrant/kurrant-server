@@ -27,7 +27,7 @@ public class ClientServiceImpl implements ClientService{
 
     @Override
     // TODO: 백오피스 구현시 추후 수정 필요
-    public void createApartment(ApartmentRequestDto apartmentRequestDto) throws ParseException {
+    public void createApartment(ApartmentRequestDto apartmentRequestDto){
         CreateAddressRequestDto addressDto = apartmentRequestDto.getAddress();
         ApartmentRequestDto.ApartmentInfo apartmentDto = apartmentRequestDto.getApartmentInfo();
         List<ApartmentRequestDto.Meal> meals = apartmentRequestDto.getMeals();
@@ -77,7 +77,7 @@ public class ClientServiceImpl implements ClientService{
     }
 
     // TODO: 백오피스 구현시 추후 삭제
-    public void createCorporation(CorporationRequestDto corporationRequestDto) throws ParseException {
+    public void createCorporation(CorporationRequestDto corporationRequestDto) {
         CreateAddressRequestDto addressDto = corporationRequestDto.getAddress();
         CorporationRequestDto.CorporationInfo corporationInfo = corporationRequestDto.getCorporationInfo();
         List<CorporationRequestDto.Meal> meals = corporationRequestDto.getMeals();
