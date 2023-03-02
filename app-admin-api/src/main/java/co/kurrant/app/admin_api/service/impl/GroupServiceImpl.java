@@ -40,10 +40,6 @@ public class GroupServiceImpl implements GroupService {
     private final CorporationMealInfoMapper mealInfoMapper;
     private final MealInfoRepository mealInfoRepository;
 
-    // TODO 1: 스팟 식사 일정(MealInfo) 생성시, 그룹이 설정한 식사일정(DiningType)의 MealInfo만 생성할 수 있도록
-    // TODO 2: 스팟 식사 일정 생성시, DType 정확하게 넣기. (ApartmentMealInfo / CorporationMealInfo)
-
-
     @Override
     @Transactional(readOnly = true)
     public ItemPageableResponseDto<GroupListDto> getGroupList(BigInteger groupId, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
@@ -87,13 +83,32 @@ public class GroupServiceImpl implements GroupService {
                 if(groupInfoList.getCode() != null && !groupInfoList.getCode().isEmpty() && !groupInfoList.getCode().isBlank()) {
                     Corporation corporation = groupMapper.groupInfoListToCorporationEntity(groupInfoList, managerId, address);
                     groupRepository.save(corporation);
-                    createSpotAndMealInfo(groupInfoList, corporation);
+
+                    // spot 생성
+                    Spot spot = spotMapper.toEntity(corporation);
+                    spotRepository.save(spot);
+
+                    List<DiningType> spotDiningType = spot.getDiningTypes();
+                    for(DiningType diningType : spotDiningType) {
+                        // 스팟 식사 일정 생성
+                        CorporationMealInfo mealInfo = mealInfoMapper.toCorporationMealInfoEntity(groupInfoList, spot, diningType, "00:00");
+                        mealInfoRepository.save(mealInfo);
+                    }
                 }
                 // 아파트 인지 확인 - code 가 없으면 기업
                 else{
                     Apartment apartment = groupMapper.groupInfoListToApartmentEntity(groupInfoList, managerId, address);
                     groupRepository.save(apartment);
-                    createSpotAndMealInfo(groupInfoList, apartment);
+
+                    // spot 생성
+                    Spot spot = spotMapper.toEntity(apartment);
+                    spotRepository.save(spot);
+
+                    List<DiningType> spotDiningType = spot.getDiningTypes();
+                    for(DiningType diningType : spotDiningType) {
+                        ApartmentMealInfo mealInfo = mealInfoMapper.toApartmentMealInfoEntity(groupInfoList, spot, diningType, "00:00");
+                        mealInfoRepository.save(mealInfo);
+                    }
                 }
             }
             // group 있으면
@@ -106,7 +121,6 @@ public class GroupServiceImpl implements GroupService {
                     Boolean isMembership = null;
                     if(groupInfoList.getIsMembershipSupport().equals("미지원")) isMembership = false;
                     else if(groupInfoList.getIsMembershipSupport().equals("지원")) isMembership = true;
-
 
                     corporation.updateCorporation(groupInfoList, address, managerId, diningTypeList, isMembership, useOrNotUse(groupInfoList.getIsSetting()), useOrNotUse(groupInfoList.getIsGarbage()), useOrNotUse(groupInfoList.getIsHotStorage()));
                     updateGroupData(groupInfoList, address, corporation);
@@ -139,12 +153,5 @@ public class GroupServiceImpl implements GroupService {
             List<MealInfo> mealInfoList = spot.getMealInfos();
             for(MealInfo mealInfo : mealInfoList) mealInfo.updateServiceDays(groupInfoList.getServiceDays());
         }
-    }
-
-    private void createSpotAndMealInfo(GroupExcelRequestDto groupInfoList, Group group) {
-        Spot spot = spotMapper.toEntity(group);
-        spotRepository.save(spot);
-        MealInfo mealInfo = mealInfoMapper.toEntity(groupInfoList, spot, "00:00");
-        mealInfoRepository.save(mealInfo);
     }
 }

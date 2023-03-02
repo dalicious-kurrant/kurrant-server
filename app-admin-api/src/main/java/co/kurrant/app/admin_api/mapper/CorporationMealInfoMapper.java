@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.mapper;
 
 
+import co.dalicious.domain.client.entity.ApartmentMealInfo;
 import co.dalicious.domain.client.entity.CorporationMealInfo;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
@@ -19,10 +20,17 @@ public interface CorporationMealInfoMapper {
     @Mapping(source = "supportPrice", target = "supportPrice")
     CorporationMealInfo toEntity(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Spot spot, BigDecimal supportPrice);
 
-    @Mapping(target = "diningType", expression = "java(spot.getDiningTypes().get(0))")
+    @Mapping(source = "diningType", target = "diningType")
     @Mapping(target = "deliveryTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
     @Mapping(target = "lastOrderTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
     @Mapping(source = "groupInfoList.serviceDays", target = "serviceDays")
     @Mapping(source = "spot", target = "spot")
-    MealInfo toEntity(GroupExcelRequestDto groupInfoList, Spot spot, String defaultTime);
+    CorporationMealInfo toCorporationMealInfoEntity(GroupExcelRequestDto groupInfoList, Spot spot, DiningType diningType, String defaultTime);
+
+    @Mapping(source = "diningType", target = "diningType")
+    @Mapping(target = "deliveryTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
+    @Mapping(target = "lastOrderTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
+    @Mapping(source = "groupInfoList.serviceDays", target = "serviceDays")
+    @Mapping(source = "spot", target = "spot")
+    ApartmentMealInfo toApartmentMealInfoEntity(GroupExcelRequestDto groupInfoList, Spot spot, DiningType diningType, String defaultTime);
 }
