@@ -127,11 +127,6 @@ public class MakersServiceImpl implements MakersService {
         createAddressRequestDto.setAddress1(saveMakersRequestDto.getAddress1());
         createAddressRequestDto.setAddress2(saveMakersRequestDto.getAddress2());
         createAddressRequestDto.setZipCode(saveMakersRequestDto.getZipCode());
-        if (!saveMakersRequestDto.getLocation().isEmpty()){
-            String[] split = saveMakersRequestDto.getLocation().split(",");
-            createAddressRequestDto.setLatitude(split[0]);
-            createAddressRequestDto.setLongitude(split[1]);
-        }
 
 
         return Address.builder()
