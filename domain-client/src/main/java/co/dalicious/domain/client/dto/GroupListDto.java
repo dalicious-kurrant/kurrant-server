@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ public class GroupListDto {
         private String location;
         private List<Integer> diningTypes;
         private String serviceDays;
+        private BigInteger managerId;
         private String managerName;
         private String managerPhone;
         private Boolean isMembershipSupport;
@@ -50,6 +52,9 @@ public class GroupListDto {
         private Boolean isSetting;
         private Boolean isGarbage;
         private Boolean isHotStorage;
+        private BigDecimal morningSupportPrice;
+        private BigDecimal lunchSupportPrice;
+        private BigDecimal dinnerSupportPrice;
     }
 
     public static GroupListDto createGroupListDto(List<Group> groupList, List<GroupInfoList> groupInfoList) {

@@ -1,7 +1,9 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
+import co.dalicious.system.util.DateUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -23,7 +25,7 @@ import java.time.LocalTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
-@Table(name = "client__meal_info")
+@Table(name = "client__meal_info", uniqueConstraints={@UniqueConstraint(columnNames={"e_dining_type", "spot_id"})})
 public class MealInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -83,7 +85,14 @@ public class MealInfo {
         this.spot = spot;
     }
 
-    public void updateServiceDays(String serviceDays) {
+    public void updateMealInfo(String serviceDays) {
         this.serviceDays = serviceDays;
+    }
+
+    public void updateMealInfo(MealInfo mealInfo) {
+        this.deliveryTime = mealInfo.getDeliveryTime();
+        this.membershipBenefitTime = mealInfo.getMembershipBenefitTime();
+        this.lastOrderTime = mealInfo.getLastOrderTime();
+        this.serviceDays = mealInfo.getServiceDays();
     }
 }

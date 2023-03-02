@@ -38,6 +38,13 @@ public class Address {
             null : createPoint(String.format("Point(%s %s)", createAddressRequestDto.getLatitude(), createAddressRequestDto.getLongitude()));
   }
 
+  public Address(String zipCode, String address1, String address2, Point location) {
+    this.zipCode = zipCode;
+    this.address1 = address1;
+    this.address2 = address2;
+    this.location = location;
+  }
+
   public String addressToString() {
     return this.address1 + " " + this.address2;
   }

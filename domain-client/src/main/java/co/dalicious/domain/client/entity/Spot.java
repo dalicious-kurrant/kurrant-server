@@ -2,9 +2,12 @@ package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
-import co.dalicious.system.converter.DiningTypesConverter;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.converter.DiningTypesConverter;
+import co.dalicious.system.util.DiningTypesUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -16,10 +19,9 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
 import org.locationtech.jts.geom.Point;
 
-
+import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
@@ -97,14 +99,15 @@ public class Spot {
         return this.mealInfos.stream()
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
+                .orElse(null);
     }
 
     public LocalTime getDeliveryTime(DiningType diningType) {
         return this.mealInfos.stream()
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO)).getDeliveryTime();
+                .map(MealInfo::getDeliveryTime)
+                .orElse(null);
     }
 
     public LocalTime getMembershipBenefitTime(DiningType diningType) {
@@ -123,6 +126,17 @@ public class Spot {
         this.name = groupInfoList.getName();
         this.address = address;
         this.diningTypes = group.getDiningTypes();
+    }
+
+    public void updateSpot(SpotResponseDto spotResponseDto) {
+        if(this.status == SpotStatus.INACTIVE) {
+            this.status = SpotStatus.ACTIVE;
+        }
+        // TODO: Location 추가
+        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        this.name = spotResponseDto.getSpotName();
+        this.address = address;
+        this.diningTypes = DiningTypesUtils.stringToDiningTypes(spotResponseDto.getDiningType());
     }
 
 }

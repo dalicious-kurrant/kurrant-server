@@ -90,6 +90,9 @@ public interface ScheduleMapper {
 
         for (Spot spot : spots) {
             LocalTime deliveryTime = spot.getDeliveryTime(diningType);
+            if(deliveryTime == null) {
+                return null;
+            }
             if (deliveryTime.isBefore(earliestDeliveryTime)) {
                 earliestDeliveryTime = deliveryTime;
             }
