@@ -84,9 +84,8 @@ public class Spot {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    @ColumnDefault("1")
     @Comment("스팟 상태 ( 0: 비활성, 1: 활성 )")
-    private SpotStatus status;
+    private SpotStatus status = SpotStatus.ACTIVE;
 
     public Spot(String name, Address address, List<DiningType> diningTypes, Group group) {
         this.name = name;

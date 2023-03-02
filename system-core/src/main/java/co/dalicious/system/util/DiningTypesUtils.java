@@ -16,7 +16,7 @@ public class DiningTypesUtils {
         List<DiningType> diningTypes = new ArrayList<>();
 
         for(String diningTypeString : diningTypeStrings) {
-            diningTypes.add(DiningType.ofCode(Integer.parseInt(diningTypeString)));
+            diningTypes.add(DiningType.ofString(diningTypeString.trim()));
         }
         return diningTypes;
     }

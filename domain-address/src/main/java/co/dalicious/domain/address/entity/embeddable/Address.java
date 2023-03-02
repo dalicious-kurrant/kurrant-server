@@ -17,16 +17,16 @@ import javax.persistence.Embeddable;
 @Embeddable
 @NoArgsConstructor
 public class Address {
-  @Column(name = "zip_code", nullable = false, columnDefinition = "MEDIUMINT COMMENT '우편번호, 다섯자리'")
+  @Column(name = "zip_code", columnDefinition = "MEDIUMINT COMMENT '우편번호, 다섯자리'")
   private String zipCode;
 
-  @Column(name = "address_depth_1", nullable = true, columnDefinition = "VARCHAR(255) COMMENT '기본주소'")
+  @Column(name = "address_depth_1", columnDefinition = "VARCHAR(255) COMMENT '기본주소'")
   private String address1;
 
-  @Column(name = "address_depth_2", nullable = true, columnDefinition = "VARCHAR(255) COMMENT '상세주소'")
+  @Column(name = "address_depth_2", columnDefinition = "VARCHAR(255) COMMENT '상세주소'")
   private String address2;
 
-  @Column(name = "address_location", nullable = true)
+  @Column(name = "address_location")
   @Comment("위치")
   private Point location;
 
