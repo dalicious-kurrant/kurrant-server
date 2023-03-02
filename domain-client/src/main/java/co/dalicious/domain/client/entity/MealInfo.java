@@ -43,7 +43,7 @@ public class MealInfo {
     @Comment("배송 시간")
     private LocalTime deliveryTime;
 
-    @Column(name = "membership_benefit_time", nullable = false)
+    @Column(name = "membership_benefit_time")
     @Comment("멤버십 혜택 마감 시간")
     private LocalTime membershipBenefitTime;
 

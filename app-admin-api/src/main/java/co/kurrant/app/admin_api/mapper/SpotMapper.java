@@ -7,6 +7,8 @@ import co.dalicious.domain.client.entity.*;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 
+import exception.ApiException;
+import exception.ExceptionEnum;
 import org.apache.commons.math3.analysis.function.Add;
 import org.locationtech.jts.geom.Point;
 import org.mapstruct.Mapper;
@@ -17,7 +19,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class})
@@ -84,7 +88,7 @@ public interface SpotMapper {
         return spotResponseDto;
     }
 
-    default MealInfo toMealInfo(Spot spot, String lastOrderTime, String deliveryTime, String useDays, BigDecimal supportPrice) {
+    default MealInfo toMealInfo(Spot spot, DiningType diningType, String lastOrderTime, String deliveryTime, String useDays, BigDecimal supportPrice) {
         // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
         if (lastOrderTime == null || deliveryTime == null || useDays == null) {
             return null;
@@ -92,6 +96,8 @@ public interface SpotMapper {
         // 기업 스팟인 경우
         if (spot instanceof CorporationSpot) {
             return CorporationMealInfo.builder()
+                    .spot(spot)
+                    .diningType(diningType)
                     .lastOrderTime(DateUtils.stringToLocalTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
                     .serviceDays(useDays)
@@ -99,6 +105,8 @@ public interface SpotMapper {
                     .build();
         } else if (spot instanceof ApartmentSpot) {
             return ApartmentMealInfo.builder()
+                    .spot(spot)
+                    .diningType(diningType)
                     .lastOrderTime(DateUtils.stringToLocalTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
                     .serviceDays(useDays)
@@ -134,9 +142,15 @@ public interface SpotMapper {
 
 
     default Spot toEntity(SpotResponseDto spotInfo, Group group, List<DiningType> diningTypes) {
+        Set<DiningType> groupDiningTypes = new HashSet<>(group.getDiningTypes());
+        if (!groupDiningTypes.containsAll(diningTypes)) {
+            throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+        }
         //TODO: Location 생성
         Address address = new Address(spotInfo.getZipCode(), spotInfo.getAddress1(), spotInfo.getAddress2(), null);
-        return new Spot(spotInfo.getSpotName(), address, diningTypes, group);
+        if(group instanceof Apartment) return new ApartmentSpot(spotInfo.getSpotName(), address, diningTypes, group);
+        if(group instanceof Corporation) return new CorporationSpot(spotInfo.getSpotName(), address, diningTypes, group);
+        return null;
     }
 
     @Named("generatedGroup")

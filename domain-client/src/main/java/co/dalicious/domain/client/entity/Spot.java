@@ -27,7 +27,7 @@ import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalTime;
-import java.util.List;
+import java.util.*;
 
 @DynamicInsert
 @DynamicUpdate
@@ -36,7 +36,7 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @Getter
-@Table(name = "client__spot")
+@Table(name = "client__spot", uniqueConstraints={@UniqueConstraint(columnNames={"name", "client_group_id"})})
 public class Spot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -128,15 +128,28 @@ public class Spot {
         this.diningTypes = group.getDiningTypes();
     }
 
-    public void updateSpot(SpotResponseDto spotResponseDto) {
+    public void updateSpot(SpotResponseDto spotResponseDto, List<DiningType> diningTypes) {
         if(this.status == SpotStatus.INACTIVE) {
             this.status = SpotStatus.ACTIVE;
+        }
+        Set<DiningType> groupDiningTypes = new HashSet<>(this.getGroup().getDiningTypes());
+        if (!groupDiningTypes.containsAll(diningTypes)) {
+            throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
         }
         // TODO: Location 추가
         Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
         this.name = spotResponseDto.getSpotName();
         this.address = address;
-        this.diningTypes = DiningTypesUtils.stringToDiningTypes(spotResponseDto.getDiningType());
+        this.diningTypes = diningTypes;
     }
 
+    public void updateDiningTypes(List<DiningType> diningTypes) {
+        this.diningTypes = diningTypes;
+    }
+
+    public List<DiningType> getUpdatedDiningTypes() {
+        return this.getMealInfos().stream()
+                .map(MealInfo::getDiningType)
+                .toList();
+    }
 }
