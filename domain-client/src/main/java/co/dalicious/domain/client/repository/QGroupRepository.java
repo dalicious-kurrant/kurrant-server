@@ -37,7 +37,6 @@ public class QGroupRepository {
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
-
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 

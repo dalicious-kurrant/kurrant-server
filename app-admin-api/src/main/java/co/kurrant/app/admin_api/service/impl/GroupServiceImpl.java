@@ -10,6 +10,7 @@ import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.mapper.CorporationMealInfoMapper;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
@@ -40,7 +41,6 @@ public class GroupServiceImpl implements GroupService {
     private final CorporationMealInfoMapper mealInfoMapper;
     private final MealInfoRepository mealInfoRepository;
 
-    //TODO: managerID 추가해서 보내기
     @Override
     @Transactional(readOnly = true)
     public ItemPageableResponseDto<GroupListDto> getGroupList(BigInteger groupId, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
@@ -61,7 +61,7 @@ public class GroupServiceImpl implements GroupService {
         GroupListDto groupListDto = GroupListDto.createGroupListDto(groups, groupListDtoList);
 
         return ItemPageableResponseDto.<GroupListDto>builder().items(groupListDto)
-                .limit(pageable.getPageSize()).total(Objects.requireNonNull(groupList).getTotalPages())// + Objects.requireNonNull(apartmentList).getTotalPages()) - 1)
+                .limit(pageable.getPageSize()).total(Objects.requireNonNull(groupList).getTotalPages())
                 .count(groupList.getNumberOfElements()).build();
     }
 
@@ -71,18 +71,13 @@ public class GroupServiceImpl implements GroupService {
         // 그룹이 있는지 찾아보기
         for(GroupExcelRequestDto groupInfoList : groupListDtoList) {
             Group group = groupRepository.findById(groupInfoList.getId()).orElse(null);
-            BigInteger managerId = null;
-            if(groupInfoList.getManagerName() != null && !groupInfoList.getManagerName().isBlank() && !groupInfoList.getManagerName().isEmpty()) {
-                User manager = userRepository.findByName(groupInfoList.getManagerName());
-                managerId = manager.getId();
-            }
             Address address = Address.builder().createAddressRequestDto(groupMapper.createAddressDto(groupInfoList)).build();
 
             // group 없으면
             if(group == null) {
                 // 기업인지 - code 가 있으면 기업
                 if(groupInfoList.getCode() != null && !groupInfoList.getCode().isEmpty() && !groupInfoList.getCode().isBlank()) {
-                    Corporation corporation = groupMapper.groupInfoListToCorporationEntity(groupInfoList, managerId, address);
+                    Corporation corporation = groupMapper.groupInfoListToCorporationEntity(groupInfoList, address);
                     groupRepository.save(corporation);
 
                     // spot 생성
@@ -98,7 +93,7 @@ public class GroupServiceImpl implements GroupService {
                 }
                 // 아파트 인지 확인 - code 가 없으면 기업
                 else{
-                    Apartment apartment = groupMapper.groupInfoListToApartmentEntity(groupInfoList, managerId, address);
+                    Apartment apartment = groupMapper.groupInfoListToApartmentEntity(groupInfoList, address);
                     groupRepository.save(apartment);
 
                     // spot 생성
@@ -123,11 +118,11 @@ public class GroupServiceImpl implements GroupService {
                     if(groupInfoList.getIsMembershipSupport().equals("미지원")) isMembership = false;
                     else if(groupInfoList.getIsMembershipSupport().equals("지원")) isMembership = true;
 
-                    corporation.updateCorporation(groupInfoList, address, managerId, diningTypeList, isMembership, useOrNotUse(groupInfoList.getIsSetting()), useOrNotUse(groupInfoList.getIsGarbage()), useOrNotUse(groupInfoList.getIsHotStorage()));
+                    corporation.updateCorporation(groupInfoList, address, diningTypeList, isMembership, useOrNotUse(groupInfoList.getIsSetting()), useOrNotUse(groupInfoList.getIsGarbage()), useOrNotUse(groupInfoList.getIsHotStorage()));
                     updateGroupData(groupInfoList, address, corporation);
                 }
                 else if(group instanceof Apartment apartment) {
-                    apartment.updateApartment(groupInfoList, address, managerId, diningTypeList);
+                    apartment.updateApartment(groupInfoList, address, diningTypeList);
                     updateGroupData(groupInfoList, address, apartment);
                 }
             }
@@ -144,15 +139,35 @@ public class GroupServiceImpl implements GroupService {
 
     private void updateGroupData(GroupExcelRequestDto groupInfoList, Address address, Group group) {
         groupRepository.save(group);
-        // 하위 스팟의 모든 내용을 업데이트
-        List<Spot> spotList = group.getSpots();
-        for(Spot spot : spotList) {
-            spot.updateSpot(groupInfoList, address, group);
-            spotRepository.save(spot);
+        if(group instanceof Corporation corporation){
+            // 하위 스팟의 모든 내용을 업데이트
+            List<Spot> spotList = corporation.getSpots();
+            for(Spot spot : spotList) {
+                spot.updateSpot(groupInfoList, address, group);
+                spotRepository.save(spot);
 
-            // service days update
-            List<MealInfo> mealInfoList = spot.getMealInfos();
-            for(MealInfo mealInfo : mealInfoList) mealInfo.updateServiceDays(groupInfoList.getServiceDays());
+                // service days update
+                List<MealInfo> mealInfoList = spot.getMealInfos();
+                for(MealInfo mealInfo : mealInfoList)
+                    if(mealInfo instanceof CorporationMealInfo corporationMealInfo) {
+                        corporationMealInfo.updateCorporationMealInfo(groupInfoList);
+                    }
+            }
+        }
+        else if(group instanceof Apartment apartment) {
+            // 하위 스팟의 모든 내용을 업데이트
+            List<Spot> spotList = apartment.getSpots();
+            for(Spot spot : spotList) {
+                spot.updateSpot(groupInfoList, address, group);
+                spotRepository.save(spot);
+
+                // service days update
+                List<MealInfo> mealInfoList = spot.getMealInfos();
+                for(MealInfo mealInfo : mealInfoList)
+                    if(mealInfo instanceof ApartmentMealInfo apartmentMealInfo) {
+                        apartmentMealInfo.updateApartmentMealInfo(groupInfoList);
+                    }
+            }
         }
     }
 }

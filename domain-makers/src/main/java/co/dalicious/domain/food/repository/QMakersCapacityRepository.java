@@ -29,4 +29,5 @@ public class QMakersCapacityRepository {
                 .where(makersCapacity.makers.eq(makers))
                 .fetch();
     }
+
 }
