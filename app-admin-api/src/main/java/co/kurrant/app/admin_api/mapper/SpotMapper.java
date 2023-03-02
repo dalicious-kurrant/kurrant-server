@@ -59,6 +59,7 @@ public interface SpotMapper {
         spotResponseDto.setSpotName(spot.getName());
         spotResponseDto.setGroupId(spot.getGroup().getId());
         spotResponseDto.setGroupName(spot.getGroup().getName());
+        spotResponseDto.setZipCode(spot.getAddress().getZipCode());
         spotResponseDto.setAddress1(spot.getAddress().getAddress1());
         spotResponseDto.setAddress2(spot.getAddress().getAddress2());
         spotResponseDto.setLocation(getLocation(spot.getAddress().getLocation()));

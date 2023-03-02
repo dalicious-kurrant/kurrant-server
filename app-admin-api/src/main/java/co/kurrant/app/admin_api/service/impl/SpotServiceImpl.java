@@ -35,7 +35,6 @@ public class SpotServiceImpl implements SpotService {
     private final QSpotRepository qSpotRepository;
     private final SpotMapper spotMapper;
     private final QGroupRepository qGroupRepository;
-    private final ApartmentRepository apartmentRepository;
 
     @Override
     public List<SpotResponseDto> getAllSpotList() {
@@ -127,17 +126,21 @@ public class SpotServiceImpl implements SpotService {
                     MealInfo updatedMealInfo = entry.getValue();
                     if (updatedMealInfo != null) {
                         switch (diningType) {
-                            case MORNING -> mealInfoRepository.save(morningMealInfo);
-                            case LUNCH -> mealInfoRepository.save(lunchMealInfo);
-                            case DINNER -> mealInfoRepository.save(dinnerMealInfo);
+                            case MORNING -> {
+                                if (morningMealInfo != null) mealInfoRepository.save(morningMealInfo);
+                            }
+                            case LUNCH -> {
+                                if (lunchMealInfo != null) mealInfoRepository.save(lunchMealInfo);
+                            }
+                            case DINNER -> {
+                                if (dinnerMealInfo != null) mealInfoRepository.save(dinnerMealInfo);
+                            }
                         }
                     }
                 }
                 spot.updateSpot(spotMap.get(spot), spot.getUpdatedDiningTypes());
             }
         }
-
-        // ACTIVE
 
         // FIXME 스팟 생성
         List<SpotResponseDto> createSpots = spotResponseDtos.stream()

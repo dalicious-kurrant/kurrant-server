@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -223,7 +224,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                     () -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)
             );
             // 메이커스 푸드 가져오기
-            List<Food> foodList = qFoodRepository.findByMakers(makers);
+            List<Food> foodList = qFoodRepository.findByMakersAndFoodStatus(makers);
             // 그룹 찾기
             List<BigInteger> groupingGroupIdList = groupingByMakers.get(recommendScheduleDto);
             // preset group schedule dto 과 preset food schedule dto 만들기
@@ -248,7 +249,12 @@ public class ScheduleServiceImpl implements ScheduleService {
                     List<Spot> spotList = group.getSpots();
                     LinkedList<LocalTime> deliveryTimes = new LinkedList<>();
                     for(Spot spot : spotList) {
-                        deliveryTimes.add(spot.getDeliveryTime(recommendScheduleDto.getDiningType()));
+                        List<MealInfo> mealInfoList = spot.getMealInfos();
+                        if(mealInfoList.size() == 0) {
+                            if(recommendScheduleDto.getDiningType().equals(DiningType.MORNING)) deliveryTimes.add(DateUtils.stringToLocalTime("07:00"));
+                            else if(recommendScheduleDto.getDiningType().equals(DiningType.LUNCH)) deliveryTimes.add(DateUtils.stringToLocalTime("12:00"));
+                            else if(recommendScheduleDto.getDiningType().equals(DiningType.DINNER)) deliveryTimes.add(DateUtils.stringToLocalTime("18:00"));
+                        } else deliveryTimes.add(spot.getDeliveryTime(recommendScheduleDto.getDiningType()));
                     }
                     String pickupTime = DateTimeFormatter.ofPattern("HH:mm").format(deliveryTimes.stream().min(LocalTime::compareTo).orElseThrow(
                             () -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO)).minusMinutes(40));
