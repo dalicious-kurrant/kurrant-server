@@ -219,4 +219,10 @@ public class QMakersRepository {
         }
 
     }
+
+    public List<Makers> findMakersListById(Set<BigInteger> makersId) {
+        return queryFactory.selectFrom(makers)
+                .where(makers.id.in(makersId))
+                .fetch();
+    }
 }
