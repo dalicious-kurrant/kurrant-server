@@ -10,6 +10,7 @@ import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.domain.food.mapper.PresetDailyFoodMapper;
 import co.dalicious.domain.food.repository.*;
+import co.dalicious.domain.order.dto.CapacityDto;
 import co.dalicious.domain.recommend.dto.RecommendScheduleDto;
 import co.dalicious.domain.recommend.entity.GroupRecommends;
 import co.dalicious.domain.recommend.repository.QGroupRecommendRepository;
@@ -17,6 +18,7 @@ import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
+import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDailyFoodDto;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
@@ -26,6 +28,7 @@ import co.kurrant.app.admin_api.service.ScheduleService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +55,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final PresetDailyFoodMapper presetDailyFoodMapper;
     private final QGroupRecommendRepository qGroupRecommendRepository;
     private final QUserGroupRepository qUserGroupRepository;
+    private final QMakersRepository qMakersRepository;
+    private final QMakersCapacityRepository qMakersCapacityRepository;
 
     @Override
     @Transactional
@@ -59,8 +64,15 @@ public class ScheduleServiceImpl implements ScheduleService {
         LinkedList<ExcelPresetDailyFoodDto.ExcelData> dataList = new LinkedList<>(dtoList.getExcelDataList());
 
         // 서비스날, 식사 타입, 메이커스로 몪고. - makers
+        Set<String> makersNames = new HashSet<>();
         MultiValueMap<ExcelPresetDto, ExcelPresetDailyFoodDto.ExcelData> makersGrouping = new LinkedMultiValueMap<>();
-        goupingByMakersAndServiceDateAndDiningType(dataList, makersGrouping);
+        goupingByMakersAndServiceDateAndDiningType(dataList, makersGrouping, makersNames);
+        List<Makers> makersList = qMakersRepository.getMakersByName(makersNames);
+        Map<Makers, List<MakersCapacity>> makersCapaList = new HashMap<>();
+        for(Makers makers : makersList) {
+            List<MakersCapacity> makersCapacities = qMakersCapacityRepository.findByMakers(makers);
+            makersCapaList.put(makers, makersCapacities);
+        }
         // 서비스날, 식사 타입, 메이커스, 그룹으로 묶고. - group
         MultiValueMap<ExcelPresetDto.ExcelGroupDataDto, ExcelPresetDailyFoodDto.ExcelData> groupGrouping = new LinkedMultiValueMap<>();
         groupingByGroupAndMakersAndServiceDateAndDiningType(dataList, groupGrouping);
@@ -73,11 +85,23 @@ public class ScheduleServiceImpl implements ScheduleService {
             List<ExcelPresetDailyFoodDto.ExcelData> updateMakersDataList = makersGrouping.get(presetDto);
             ExcelPresetDailyFoodDto.ExcelData makersUpdateData = Objects.requireNonNull(updateMakersDataList).get(0);
 
+            Makers makers = null;
+            for(Makers match : makersList) {
+                if(match.getName().equalsIgnoreCase(presetDto.getMakersName())) makers = match;
+            }
+            if(makers == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
+
+            List<MakersCapacity> makersCapacities = null;
+            for(Makers match : makersCapaList.keySet()) {
+                if(match.equals(makers)) {
+                    makersCapacities = makersCapaList.get(match);
+                }
+            }
+
             if(existPresetDataList.containsKey(presetDto)) {
                 PresetMakersDailyFood existMakersPreset = existPresetDataList.get(presetDto);
                 existMakersPreset.updatePresetMakersDailyFood(ScheduleStatus.ofCode(makersUpdateData.getMakersScheduleStatus()), DateUtils.stringToLocalDateTime(dtoList.getDeadline()), ConfirmStatus.REQUEST);
                 presetMakersDailyFoodRepository.save(existMakersPreset);
-                Makers makers = existMakersPreset.getMakers();
 
                 // group preset daily food
                 List<PresetGroupDailyFood> existGroupPreset = existMakersPreset.getPresetGroupDailyFoods();
@@ -106,10 +130,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
             // 동일한 메이커스, 서비스 날, 식사 타입을 가진 실제 데이터가 없다면 생성
             else {
-                Makers makers = makersRepository.findByName(presetDto.getMakersName());
-                if(makers == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
-
-                PresetMakersDailyFood newPresetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, makersUpdateData.getMakersScheduleStatus(), makers, dtoList.getDeadline(), ConfirmStatus.REQUEST);
+                PresetMakersDailyFood newPresetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, makersUpdateData.getMakersScheduleStatus(), makers, dtoList.getDeadline(), ConfirmStatus.REQUEST, makersCapacities);
                 presetMakersDailyFoodRepository.save(newPresetMakersDailyFood);
 
                 // preset group daily food 와 preset daily food 만들기
@@ -243,8 +264,15 @@ public class ScheduleServiceImpl implements ScheduleService {
         LinkedList<ExcelPresetDailyFoodDto.ExcelData> dataList = new LinkedList<>(dtoList.getExcelDataList());
 
         // 서비스날, 식사 타입, 메이커스로 몪고. - makers
+        Set<String> makersNames = new HashSet<>();
         MultiValueMap<ExcelPresetDto, ExcelPresetDailyFoodDto.ExcelData> makersGrouping = new LinkedMultiValueMap<>();
-        goupingByMakersAndServiceDateAndDiningType(dataList, makersGrouping);
+        goupingByMakersAndServiceDateAndDiningType(dataList, makersGrouping, makersNames);
+        List<Makers> makersList = qMakersRepository.getMakersByName(makersNames);
+        Map<Makers, List<MakersCapacity>> makersCapaList = new HashMap<>();
+        for(Makers makers : makersList) {
+            List<MakersCapacity> makersCapacities = qMakersCapacityRepository.findByMakersId(makers.getId());
+            makersCapaList.put(makers, makersCapacities);
+        }
         // 서비스날, 식사 타입, 메이커스, 그룹으로 묶고. - group
         MultiValueMap<ExcelPresetDto.ExcelGroupDataDto, ExcelPresetDailyFoodDto.ExcelData> groupGrouping = new LinkedMultiValueMap<>();
         groupingByGroupAndMakersAndServiceDateAndDiningType(dataList, groupGrouping);
@@ -257,11 +285,22 @@ public class ScheduleServiceImpl implements ScheduleService {
             List<ExcelPresetDailyFoodDto.ExcelData> updateMakersDataList = makersGrouping.get(presetDto);
             ExcelPresetDailyFoodDto.ExcelData makersUpdateData = Objects.requireNonNull(updateMakersDataList).get(0);
 
+            Makers makers = null;
+            for(Makers match : makersList) {
+                if(match.getName().equalsIgnoreCase(presetDto.getMakersName())) makers = match;
+            }
+            if(makers == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
+
+            List<MakersCapacity> makersCapacities = null;
+            for(Makers match : makersCapaList.keySet()) {
+                if(match.equals(makers)) {
+                    makersCapacities = makersCapaList.get(match);
+                }
+            }
             if(existPresetDataList.containsKey(presetDto)) {
                 PresetMakersDailyFood existMakersPreset = existPresetDataList.get(presetDto);
                 existMakersPreset.updatePresetMakersDailyFood(ScheduleStatus.ofCode(makersUpdateData.getMakersScheduleStatus()), DateUtils.stringToLocalDateTime(dtoList.getDeadline()), ConfirmStatus.PAUSE);
                 presetMakersDailyFoodRepository.save(existMakersPreset);
-                Makers makers = existMakersPreset.getMakers();
 
                 // group preset daily food
                 List<PresetGroupDailyFood> existGroupPreset = existMakersPreset.getPresetGroupDailyFoods();
@@ -290,10 +329,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
             // 동일한 메이커스, 서비스 날, 식사 타입을 가진 실제 데이터가 없다면 생성
             else {
-                Makers makers = makersRepository.findByName(presetDto.getMakersName());
-                if(makers == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
-
-                PresetMakersDailyFood newPresetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, makersUpdateData.getMakersScheduleStatus(), makers, dtoList.getDeadline(), ConfirmStatus.PAUSE);
+                PresetMakersDailyFood newPresetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, makersUpdateData.getMakersScheduleStatus(), makers, dtoList.getDeadline(), ConfirmStatus.PAUSE, makersCapacities);
                 presetMakersDailyFoodRepository.save(newPresetMakersDailyFood);
 
                 // preset group daily food 와 preset daily food 만들기
@@ -369,10 +405,11 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
-    private void goupingByMakersAndServiceDateAndDiningType(LinkedList<ExcelPresetDailyFoodDto.ExcelData> dataList, MultiValueMap<ExcelPresetDto, ExcelPresetDailyFoodDto.ExcelData> makersGrouping) {
+    private void goupingByMakersAndServiceDateAndDiningType(LinkedList<ExcelPresetDailyFoodDto.ExcelData> dataList, MultiValueMap<ExcelPresetDto, ExcelPresetDailyFoodDto.ExcelData> makersGrouping, Set<String> makersNames) {
         for(ExcelPresetDailyFoodDto.ExcelData data : dataList) {
             ExcelPresetDto excelPresetDto = ExcelPresetDto.createExcelPresetDto(data);
             makersGrouping.add(excelPresetDto, data);
+            makersNames.add(data.getMakersName());
         }
     }
 }
