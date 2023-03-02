@@ -26,4 +26,9 @@ public class CorporationMealInfo extends MealInfo{
         super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, spot);
         this.supportPrice = supportPrice;
     }
+
+    public void updateCorporationMealInfo(CorporationMealInfo mealInfo) {
+        super.updateMealInfo(mealInfo);
+        this.supportPrice = mealInfo.getSupportPrice();
+    }
 }

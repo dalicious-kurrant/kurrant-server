@@ -159,6 +159,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
+    @Transactional
     public void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) {
         OrderStatus orderStatus = OrderStatus.ofCode(statusAndIdList.getStatus());
         if(!OrderStatus.completePayment().contains(orderStatus)) {

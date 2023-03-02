@@ -23,11 +23,11 @@ public class GroupRecommends {
     @Comment("ID")
     private BigInteger id;
 
-    @Column(name = "group_id")
+    @Column(name = "group_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("그룹 Id")
     private BigInteger groupId;
 
-    @Column(name = "makers_id")
+    @Column(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("메이커스 Id")
     private BigInteger makersId;
 

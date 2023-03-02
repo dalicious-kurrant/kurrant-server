@@ -57,4 +57,10 @@ public class QSpotRepository {
                 .where(spot.status.eq(SpotStatus.ACTIVE))
                 .fetch();
     }
+
+    public List<Spot> findAllByIds(List<BigInteger> ids) {
+        return queryFactory.selectFrom(spot)
+                .where(spot.id.in(ids))
+                .fetch();
+    }
 }
