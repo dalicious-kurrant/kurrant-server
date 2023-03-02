@@ -1,17 +1,24 @@
 package co.kurrant.app.admin_api.mapper;
 
+import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
+import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.MakersDto;
+import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
+import jdk.jfr.Name;
 import org.locationtech.jts.geom.Point;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,6 +65,8 @@ public interface MakersMapper {
     @Mapping(source = "makers.id", target = "id")
     MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<String> diningTypes);
 
+
+
     @Named("generatedServiceForm")
     default String generatedServiceForm(ServiceForm serviceForm){
         return serviceForm.getServiceForm();
@@ -80,6 +89,59 @@ public interface MakersMapper {
         }
         return location.toString();
     }
+
+
+    @Mapping(source = "dto.isNutritionInformation", target = "isNutritionInformation")
+    @Mapping(source = "dto.closeTime", target = "closeTime", qualifiedByName = "stringToTimeFormat")
+    @Mapping(source = "dto.openTime", target = "openTime", qualifiedByName = "stringToTimeFormat")
+    @Mapping(source = "dto.contractEndDate", target = "contractEndDate", qualifiedByName = "stringToDateFormat")
+    @Mapping(source = "dto.contractStartDate", target = "contractStartDate", qualifiedByName = "stringToDateFormat")
+    @Mapping(source = "address", target = "address")
+    @Mapping(source = "dto.serviceForm", target = "serviceForm", qualifiedByName = "getServiceForm")
+    @Mapping(source = "dto.serviceType", target = "serviceType", qualifiedByName = "getServiceType")
+    @Mapping(source = "dto.managerName", target = "managerName")
+    @Mapping(source = "dto.ceoPhone", target = "CEOPhone")
+    @Mapping(source = "dto.ceo", target = "CEO")
+    @Mapping(source = "dto.companyName", target = "companyName")
+    @Mapping(source = "dto.name", target = "name")
+    @Mapping(source = "dto.code", target = "code")
+    Makers toEntity(SaveMakersRequestDto dto, Address address);
+
+    /*
+    @Named("getRole")
+    default Role getRole(String role){
+        if (role.equals("관리자")){
+            return Role.MANAGER;
+        }
+        return Role.USER;
+    }
+    */
+
+    @Named("getServiceType")
+    default ServiceType getServiceType(String serviceType){
+        return ServiceType.ofString(serviceType);
+    }
+
+    @Named("getServiceForm")
+    default ServiceForm getServiceForm(String serviceForm){
+        return ServiceForm.ofString(serviceForm);
+    }
+
+    @Named("stringToDateFormat")
+    default LocalDate stringToDateFormat(String time){
+        return LocalDate.parse(time);
+    }
+
+    @Named("stringToTimeFormat")
+    default LocalTime stringToTimeFormat(String time){
+        return LocalTime.parse(time);
+    }
+
+    /*
+    @Named("stringToTimeStampFormat")
+    default Timestamp stringToTimeStampFormat(String time){
+        return Timestamp.valueOf(time);
+    }*/
 
 
 }

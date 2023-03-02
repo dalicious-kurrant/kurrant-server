@@ -42,6 +42,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -106,13 +107,22 @@ public class MemberServiceImpl implements MemberService {
         //code로 CorporationId 찾기 (=GroupId)
         Corporation corporation = qCorporationRepository.findEntityByCode(clientUserWaitingListSaveRequestDto.getCode());
 
-        Long result = null;
         for (int i = 0; i < clientUserWaitingListSaveRequestDto.getId().size(); i++) {
-            Employee employee = employeeMapper.toEntity(clientUserWaitingListSaveRequestDto.getEmail().get(i),
-                                                        clientUserWaitingListSaveRequestDto.getName().get(i),
-                                                        clientUserWaitingListSaveRequestDto.getPhone().get(i),
-                                                        corporation);
-            employeeRepository.save(employee);
+
+            String email = clientUserWaitingListSaveRequestDto.getEmail().get(i);
+            String phone = clientUserWaitingListSaveRequestDto.getEmail().get(i);
+            String name = clientUserWaitingListSaveRequestDto.getEmail().get(i);
+            //있는 ID의 경우 수정
+            Optional<Employee> optionalEmployee = employeeRepository.findById(clientUserWaitingListSaveRequestDto.getId().get(i));
+            if (optionalEmployee.isPresent()){
+                qEmployeeRepository.patchEmployee(clientUserWaitingListSaveRequestDto.getId().get(i),phone, email, name);
+            }else{
+                //ID가 없다면 생성
+                Employee employee = employeeMapper.toEntity(email, name, phone, corporation);
+
+                employeeRepository.save(employee);
+            }
+
         }
     }
     @Override

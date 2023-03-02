@@ -41,7 +41,7 @@ public class SpotServiceImpl implements SpotService {
     @Override
     public List<SpotResponseDto> getAllSpotList() {
 
-        List<Spot> spotList = spotRepository.findAll();
+        List<Spot> spotList = qSpotRepository.findAll();
 
         List<SpotResponseDto> resultList = new ArrayList<>();
         for (Spot spot : spotList){

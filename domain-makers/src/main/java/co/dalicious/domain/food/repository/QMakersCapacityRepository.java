@@ -1,5 +1,6 @@
 package co.dalicious.domain.food.repository;
 
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -22,4 +23,11 @@ public class QMakersCapacityRepository {
                 .where(makersCapacity.makers.id.eq(id))
                 .fetch();
     }
+
+    public List<MakersCapacity> findByMakers(Makers makers) {
+        return queryFactory.selectFrom(makersCapacity)
+                .where(makersCapacity.makers.eq(makers))
+                .fetch();
+    }
+
 }

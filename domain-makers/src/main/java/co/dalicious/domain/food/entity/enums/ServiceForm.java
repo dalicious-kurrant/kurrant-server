@@ -27,4 +27,12 @@ public enum ServiceForm {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
     }
+
+    public  static ServiceForm ofString(String dbData){
+        return Arrays.stream(ServiceForm.values())
+                .filter(v -> v.getServiceForm().equals(dbData))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+    }
+
 }

@@ -1,6 +1,8 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +17,11 @@ import java.time.LocalTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ApartmentMealInfo extends MealInfo {
     @Builder
-    public ApartmentMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Spot spot) {
-        super(diningType, deliveryTime, lastOrderTime, serviceDays, spot);
+    public ApartmentMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime membershipBenefitTime, LocalTime lastOrderTime, String serviceDays, Spot spot) {
+        super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, spot);
+    }
+
+    public void updateApartmentMealInfo(GroupExcelRequestDto groupInfoList) {
+        updateMealInfo(DateUtils.stringToLocalTime(groupInfoList.getMembershipBenefitTime()), groupInfoList.getServiceDays());
     }
 }

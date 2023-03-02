@@ -1,18 +1,20 @@
 package co.kurrant.app.admin_api.service.impl;
 
-import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
-import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
+import co.dalicious.domain.user.dto.UserDto;
+import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserHistory;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.entity.enums.Role;
+import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
-import co.dalicious.domain.user.repository.QUserGroupRepository;
-import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.UserHistoryRepository;
-import co.dalicious.domain.user.repository.UserRepository;
-import co.kurrant.app.admin_api.dto.user.SaveAndUpdateUserList;
+import co.dalicious.domain.user.repository.*;
 import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
 import co.kurrant.app.admin_api.dto.user.UserInfoResponseDto;
 import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
@@ -21,14 +23,16 @@ import co.kurrant.app.admin_api.service.UserService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -38,13 +42,16 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UserHistoryMapper userHistoryMapper;
-
+    private final QGroupRepository qGroupRepository;
     private final PasswordEncoder passwordEncoder;
 
     private final UserHistoryRepository userHistoryRepository;
     private final QUserRepository qUserRepository;
     private final QUserGroupRepository qUserGroupRepository;
     private final QOrderRepository qOrderRepository;
+    private final QProviderEmailRepository qProviderEmailRepository;
+    private final UserGroupRepository userGroupRepository;
+    private final ProviderEmailRepository providerEmailRepository;
 
 
     @Override
@@ -56,7 +63,7 @@ public class UserServiceImpl implements UserService {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-        List<UserInfoResponseDto> userInfoResponseDtoList =  users.stream()
+        List<UserInfoResponseDto> userInfoResponseDtoList = users.stream()
                 .map(userMapper::toDto).toList();
 
         return userInfoResponseDtoList;
@@ -77,14 +84,14 @@ public class UserServiceImpl implements UserService {
             //주문 체크
             long isOrder = qOrderRepository.orderCheck(deleteUser);
             //주문내역이 없다면 해당유저 찐 삭제
-            if (isOrder == 0){
+            if (isOrder == 0) {
                 long deleteReal = qUserRepository.deleteReal(deleteUser);
                 if (deleteReal != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
             }
 
             UserHistory userHistory = userHistoryMapper.toEntity(deleteUser, groupId);
 
-             userHistoryRepository.save(userHistory);
+            userHistoryRepository.save(userHistory);
             if (isOrder != 0) {
                 Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
                 if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
@@ -94,32 +101,137 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void saveUserList(SaveAndUpdateUserList saveAndUpdateUserList) {
+    @Transactional
+    public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
+        List<String> emails = saveUserListRequestDtoList.stream()
+                .map(SaveUserListRequestDto::getEmail)
+                .toList();
 
-        List<SaveUserListRequestDto> saveUserListRequestDtoList = saveAndUpdateUserList.getUserList();
+        Set<String> groupNames = saveUserListRequestDtoList.stream()
+                .flatMap(v -> {
+                    if (v.getGroupName() != null) return Arrays.stream(v.getGroupName().split(","));
+                    else return Stream.empty();
+                })
+                .map(String::trim)
+                .collect(Collectors.toSet());
+        List<Group> groups = qGroupRepository.findAllByNames(groupNames);
 
-        for (SaveUserListRequestDto saveUser : saveUserListRequestDtoList){
-            Optional<User> user = userRepository.findById(saveUser.getUserId());
-            String password = passwordEncoder.encode(saveUser.getPassword());
+        // 동일한 이메일 입력이 있으면 예외처리
+        if (emails.size() != emails.stream().distinct().count()) {
+            throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
+        }
 
-            Role role = null;
-            if (saveUser.getRole().equals("관리자"))
-            {
-                role = Role.ofCode(2L);
-            } else{
-                role = Role.ofCode(1L);
+        // FIXME 수정 요청
+        List<ProviderEmail> providerEmails = qProviderEmailRepository.getProviderEmails(emails);
+
+        Set<String> updateUserEmails = providerEmails.stream()
+                .map(ProviderEmail::getEmail)
+                .collect(Collectors.toSet());
+
+        Map<User, SaveUserListRequestDto> userUpdateMap = new HashMap<>();
+        for (ProviderEmail providerEmail : providerEmails) {
+            saveUserListRequestDtoList.stream()
+                    .filter(v -> v.getEmail().equals(providerEmail.getEmail()))
+                    .findAny().ifPresent(saveUserListRequestDto -> userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto));
+        }
+
+        for (User user : userUpdateMap.keySet()) {
+            SaveUserListRequestDto saveUserListRequestDto = userUpdateMap.get(user);
+            // 비밀번호에 데이터가 없을 경우
+            if(saveUserListRequestDto.getPassword() == null || saveUserListRequestDto.getPassword().isEmpty()) {
+                user.changePassword(null);
             }
-
-            User userEntity = userMapper.toEntity(saveUser, password, role);
-
-            //없는 유저라면 INSERT
-            if (user.isEmpty()){
-                userRepository.save(userEntity);
+            // 비밀번호가 변경되었을 경우
+            else if (!saveUserListRequestDto.getPassword().equals(user.getPassword())) {
+                String password = passwordEncoder.encode(saveUserListRequestDto.getPassword());
+                user.changePassword(password);
             }
+            // 그룹 변경
+            List<String> groupsName = Optional.ofNullable(saveUserListRequestDto.getGroupName())
+                    .map(name -> Arrays.stream(name.split(","))
+                            .map(String::trim)
+                            .toList())
+                    .orElse(Collections.emptyList());
 
-            // 있는 유저라면 수정
-            qUserRepository.updateUserInfo(userEntity,password);
+            if (groupsName.isEmpty()) {
+                // Case 1: 요청의 groupName 값이 null일 경우 기존의 UserGroup 철회
+                user.getGroups().forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
+            } else if (user.getGroups().isEmpty()) {
+                // Case 2: 유저에 포함된 그룹이 없을 때
+                List<UserGroup> userGroups = Group.getGroups(groups, groupsName).stream()
+                        .map(group -> UserGroup.builder()
+                                .group(group)
+                                .user(user)
+                                .clientStatus(ClientStatus.BELONG)
+                                .build())
+                        .collect(Collectors.toList());
 
+                userGroupRepository.saveAll(userGroups);
+            } else {
+                // Case 3: 유저에 포함된 그룹이 존재할 때
+                Map<String, Group> nameToGroupMap = groups.stream()
+                        .filter(group -> groupsName.contains(group.getName()))
+                        .collect(Collectors.toMap(Group::getName, Function.identity()));
+
+                user.getGroups().forEach(userGroup -> {
+                    if (nameToGroupMap.containsKey(userGroup.getGroup().getName())) {
+                        // 기존에 존재할 경우 상태값 변경(BELONG)
+                        userGroup.updateStatus(ClientStatus.BELONG);
+                        nameToGroupMap.remove(userGroup.getGroup().getName());
+                    } else {
+                        // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
+                        userGroup.updateStatus(ClientStatus.WITHDRAWAL);
+                    }
+                    userGroupRepository.save(userGroup);
+                });
+                // 유저 내에 존재하지 않는 그룹은 추가
+                List<UserGroup> userGroups = nameToGroupMap.values().stream()
+                        .map(group -> UserGroup.builder()
+                                .group(group)
+                                .user(user)
+                                .clientStatus(ClientStatus.BELONG)
+                                .build())
+                        .collect(Collectors.toList());
+
+                userGroupRepository.saveAll(userGroups);
+            }
+            user.updateName(saveUserListRequestDto.getName());
+            user.changePhoneNumber(saveUserListRequestDto.getPhone());
+            user.updateRole(Role.ofRoleName(saveUserListRequestDto.getRole()));
+            user.updateUserStatus(UserStatus.ofCode(saveUserListRequestDto.getStatus()));
+            user.updatePoint(BigDecimal.valueOf(saveUserListRequestDto.getPoint() == null ? 0 : saveUserListRequestDto.getPoint()));
+            user.changeMarketingAgreement(saveUserListRequestDto.getMarketingAgree(), saveUserListRequestDto.getMarketingAlarm(), saveUserListRequestDto.getOrderAlarm());
+        }
+
+        // FIXME 신규 생성 요청
+        List<SaveUserListRequestDto> createUserDtos = saveUserListRequestDtoList.stream()
+                .filter(v -> !updateUserEmails.contains(v.getEmail()))
+                .toList();
+        for (SaveUserListRequestDto createUserDto : createUserDtos) {
+            UserDto userDto = UserDto.builder()
+                    .email(createUserDto.getEmail())
+                    .password(passwordEncoder.encode(createUserDto.getPassword()))
+                    .phone(createUserDto.getPhone())
+                    .name(createUserDto.getName())
+                    .role(createUserDto.getRole() == null ? Role.USER : Role.ofRoleName(createUserDto.getRole())).build();
+            User user = userRepository.save(userMapper.toEntity(userDto));
+            user.updatePoint(BigDecimal.valueOf(createUserDto.getPoint() == null ? 0 : createUserDto.getPoint()));
+            user.changeMarketingAgreement(createUserDto.getMarketingAgree(), createUserDto.getMarketingAlarm(), createUserDto.getOrderAlarm());
+
+            ProviderEmail providerEmail = ProviderEmail.builder().email(createUserDto.getEmail()).provider(Provider.GENERAL).user(user).build();
+            providerEmailRepository.save(providerEmail);
+
+            List<String> groupsName = Optional.ofNullable(createUserDto.getGroupName())
+                    .map(name -> Arrays.stream(name.split(",")).map(String::trim).toList())
+                    .orElse(List.of());
+
+            Group.getGroups(groups, groupsName).stream()
+                    .map(group -> UserGroup.builder()
+                            .group(group)
+                            .user(user)
+                            .clientStatus(ClientStatus.BELONG)
+                            .build())
+                    .forEach(userGroupRepository::save);
         }
 
     }

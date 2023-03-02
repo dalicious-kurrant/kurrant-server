@@ -23,7 +23,7 @@ public class GroupController {
 
     @Operation(summary = "기업 정보 조회", description = "기업 정보를 조회합니다. 이름으로 필터링 할 수 있습니다.")
     @GetMapping("")
-    public ResponseMessage getGroupList(@RequestParam(required = false) BigInteger groupId, @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+    public ResponseMessage getGroupList(@RequestParam(required = false) BigInteger groupId, @RequestParam(required = false) Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("기업 정보를 조회했습니다.")
                 .data(groupService.getGroupList(groupId, limit, page, pageable))

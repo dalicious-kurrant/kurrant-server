@@ -118,7 +118,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
 
-
         Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
         List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
         List<BigInteger> cartDailyFoodIds = new ArrayList<>();
@@ -181,7 +180,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_ITEM_COUNT);
                 }
                 // 멤버십에 가입하지 않은 경우 멤버십 할인이 적용되지 않은 가격으로 보임
-                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, selectedCartDailyFood.getDailyFood().getFood());
+                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, spot, selectedCartDailyFood.getDailyFood());
                 // 금액 일치 확인 TODO: 금액 일치 오류 확인(NOT_MATCHED_PRICE) -> 반올림 문제
                 if (cartDailyFood.getDiscountedPrice().intValue() != discountDto.getDiscountedPrice().intValue()) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);

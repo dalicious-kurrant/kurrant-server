@@ -1,5 +1,7 @@
 package co.dalicious.domain.user.entity.enums;
 
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -31,4 +33,22 @@ public enum Role {
                 .findAny()
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 타입입니다."));
     }
+
+    public static Role ofString(String dbData) {
+        return Arrays.stream(Role.values())
+                .filter(v -> v.getAuthority().equals(dbData))
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 타입입니다."));
+    }
+
+    public static Role ofRoleName(String roleName) {
+        return switch (roleName) {
+            case "게스트" -> Role.GUEST;
+            case "일반" -> Role.USER;
+            case "관리자" -> Role.ADMIN;
+            case "매니저" -> Role.MANAGER;
+            default -> throw new ApiException(ExceptionEnum.ENUM_NOT_FOUND);
+        };
+    }
+
 }

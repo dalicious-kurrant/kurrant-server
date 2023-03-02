@@ -2,7 +2,9 @@ package co.dalicious.domain.order.util;
 
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
 import co.dalicious.domain.order.entity.*;
@@ -15,6 +17,7 @@ import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.PriceUtils;
 import exception.ApiException;
@@ -30,6 +33,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -88,9 +92,17 @@ public class OrderUtil {
         return false;
     }
 
-    public static DiscountDto checkMembershipAndGetDiscountDto(User user, Group group, Food food) {
+    public static DiscountDto checkMembershipAndGetDiscountDto(User user, Group group, Spot spot, DailyFood dailyFood) {
         group = (Group) Hibernate.unproxy(group);
-        return (isMembership(user, group)) ? DiscountDto.getDiscount(food) : DiscountDto.getDiscountWithoutMembership(food);
+
+        if (isMembership(user, group)) {
+            // 멤버십 혜택 마감 시간 (서비스 날짜 전일 + 마감시간)
+            LocalDateTime membershipBenefitTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(1), spot.getMembershipBenefitTime(dailyFood.getDiningType()));
+            if(spot.getDeliveryTime(dailyFood.getDiningType()) == null || LocalDateTime.now().isBefore(membershipBenefitTime)) {
+                return DiscountDto.getDiscount(dailyFood.getFood());
+            }
+        }
+        return DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
     }
 
     public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
@@ -187,7 +199,7 @@ public class OrderUtil {
                 PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.get(0);
                 BigDecimal tossRefundablePrice = paymentCancelHistory.getRefundablePrice();
                 if (tossRefundablePrice.compareTo(requestRefundPrice) < 0) {
-                    if(tossRefundablePrice.add(usingPoint.subtract(refundPoint)).compareTo(requestRefundPrice) < 0) {
+                    if (tossRefundablePrice.add(usingPoint.subtract(refundPoint)).compareTo(requestRefundPrice) < 0) {
                         throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
                     }
                     return new RefundPriceDto(tossRefundablePrice, renewSupportPrice, requestRefundPrice.subtract(tossRefundablePrice), deliveryFee, isLastOrderItemOfGroup);

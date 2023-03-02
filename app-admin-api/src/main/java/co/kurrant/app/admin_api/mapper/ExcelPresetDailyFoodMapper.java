@@ -20,12 +20,12 @@ public interface ExcelPresetDailyFoodMapper {
 
     @Mapping(source = "presetDto.serviceDate", target = "serviceDate")
     @Mapping(source = "presetDto.diningType" ,target = "diningType")
-    @Mapping(target = "capacity", expression = "java(checkMakersCapacity(makers.getMakersCapacities(), presetDto))")
+    @Mapping(target = "capacity", expression = "java(checkMakersCapacity(makersCapacities, presetDto))")
     @Mapping(source = "makers", target = "makers")
     @Mapping(target = "scheduleStatus", expression = "java(ScheduleStatus.ofCode(scheduleStatus))")
     @Mapping(target = "deadline", expression = "java(DateUtils.stringToLocalDateTime(deadLine))")
     @Mapping(target = "confirmStatus", source = "confirmStatus")
-    PresetMakersDailyFood toMakersDailyFoodEntity(ExcelPresetDto presetDto, Integer scheduleStatus, Makers makers, String deadLine, ConfirmStatus confirmStatus);
+    PresetMakersDailyFood toMakersDailyFoodEntity(ExcelPresetDto presetDto, Integer scheduleStatus, Makers makers, String deadLine, ConfirmStatus confirmStatus, List<MakersCapacity> makersCapacities);
 
     @Mapping(source = "data.groupCapacity", target = "capacity")
     @Mapping(source = "group", target = "group")

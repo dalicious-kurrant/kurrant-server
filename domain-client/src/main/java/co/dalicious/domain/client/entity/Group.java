@@ -93,6 +93,12 @@ public class Group {
                 .orElse(null);
     }
 
+    public static List<Group> getGroups(List<Group> groups, List<String> name) {
+        return groups.stream()
+                .filter(group -> name.contains(group.getName()))
+                .toList();
+    }
+
     public void updateGroup(Address address, List<DiningType> diningTypeList, String name, BigInteger managerId) {
         this.address = address;
         this.diningTypes = diningTypeList;

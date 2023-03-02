@@ -93,8 +93,8 @@ public class Corporation extends Group{
         this.isSetting = isSetting;
     }
 
-    public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, BigInteger managerId, List<DiningType> diningTypeList, Boolean isMembershipSupport, Boolean isSetting, Boolean isGarbage, Boolean isHotStorage) {
-        updateGroup(address, diningTypeList, groupInfoList.getName(), managerId);
+    public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList, Boolean isMembershipSupport, Boolean isSetting, Boolean isGarbage, Boolean isHotStorage) {
+        updateGroup(address, diningTypeList, groupInfoList.getName(), groupInfoList.getManagerId());
         this.code = groupInfoList.getCode();
         this.employeeCount = groupInfoList.getEmployeeCount();
         this.isMembershipSupport = isMembershipSupport;
