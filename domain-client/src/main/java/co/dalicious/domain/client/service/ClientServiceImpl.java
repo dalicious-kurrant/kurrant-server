@@ -9,6 +9,7 @@ import co.dalicious.domain.client.repository.*;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.enums.DiningType;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class ClientServiceImpl implements ClientService{
 
     @Override
     // TODO: 백오피스 구현시 추후 수정 필요
-    public void createApartment(ApartmentRequestDto apartmentRequestDto) {
+    public void createApartment(ApartmentRequestDto apartmentRequestDto) throws ParseException {
         CreateAddressRequestDto addressDto = apartmentRequestDto.getAddress();
         ApartmentRequestDto.ApartmentInfo apartmentDto = apartmentRequestDto.getApartmentInfo();
         List<ApartmentRequestDto.Meal> meals = apartmentRequestDto.getMeals();
@@ -76,7 +77,7 @@ public class ClientServiceImpl implements ClientService{
     }
 
     // TODO: 백오피스 구현시 추후 삭제
-    public void createCorporation(CorporationRequestDto corporationRequestDto) {
+    public void createCorporation(CorporationRequestDto corporationRequestDto) throws ParseException {
         CreateAddressRequestDto addressDto = corporationRequestDto.getAddress();
         CorporationRequestDto.CorporationInfo corporationInfo = corporationRequestDto.getCorporationInfo();
         List<CorporationRequestDto.Meal> meals = corporationRequestDto.getMeals();

@@ -9,6 +9,7 @@ import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -34,7 +35,7 @@ public interface SpotMapper {
     @Mapping(source = "diningTypeTemp", target="diningType")
     @Mapping(source = "spot.createdDateTime", target = "createdDateTime", qualifiedByName = "createdTimeFormat")
     @Mapping(source = "spot.updatedDateTime", target = "updatedDateTime", qualifiedByName = "updatedTimeFormat")
-    @Mapping(source = "spot.address.location", target = "location", qualifiedByName = "getLocation")
+    @Mapping(source = "location", target = "location")
     @Mapping(source = "spot.address.zipCode", target = "zipCode")
     @Mapping(source = "spot.address.address2", target = "address2")
     @Mapping(source = "spot.address.address1", target="address1")
@@ -45,7 +46,7 @@ public interface SpotMapper {
     SpotResponseDto toDto(Spot spot, String diningTypeTemp,
                           String breakfastUseDays, String breakfastDeliveryTime, BigDecimal breakfastSupportPrice,
                           String lunchUseDays, String lunchDeliveryTime, BigDecimal lunchSupportPrice,
-                          String dinnerUseDays, String dinnerDeliveryTime, BigDecimal dinnerSupportPrice, String lastOrderTime);
+                          String dinnerUseDays, String dinnerDeliveryTime, BigDecimal dinnerSupportPrice, String lastOrderTime,String location);
 
     @Named("createdTimeFormat")
     default String createdTimeFormat(Timestamp time){
@@ -57,13 +58,18 @@ public interface SpotMapper {
         return DateUtils.format(time, "yyyy-MM-dd");
     }
 
+    /*
     @Named("getLocation")
     default String getLocation(Point location){
         if (location == null){
             return null;
         }
-        return location.toString();
-    }
+        double x = location.getX();
+        double y = location.getY();
+        String latitude = String.valueOf(x);
+        String longitude = String.valueOf(y);
+        return latitude + longitude;
+    }*/
 
 
 

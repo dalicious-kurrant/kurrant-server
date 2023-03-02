@@ -16,6 +16,7 @@ import co.kurrant.app.admin_api.service.SpotService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,11 +99,12 @@ public class SpotServiceImpl implements SpotService {
                 }
             }
 
+            String location = spot.getLocation().toString();
 
             SpotResponseDto spotResponseDto = spotMapper.toDto(spot, diningTypeTemp,
                     breakfastUseDays, breakfastDeliveryTime, breakfastSupportPrice,
                     lunchUseDays, lunchDeliveryTime, lunchSupportPrice,
-                    dinnerUseDays, dinnerDeliveryTime, dinnerSupportPrice, lastOrderTime);
+                    dinnerUseDays, dinnerDeliveryTime, dinnerSupportPrice, lastOrderTime, location);
             resultList.add(spotResponseDto);
         }
 
@@ -111,7 +113,7 @@ public class SpotServiceImpl implements SpotService {
     }
 
     @Override
-    public void saveSpotList(SaveSpotList saveSpotList) {
+    public void saveSpotList(SaveSpotList saveSpotList) throws ParseException {
 
         for (SpotResponseDto spotInfo : saveSpotList.getSaveSpotList()){
 
@@ -123,7 +125,7 @@ public class SpotServiceImpl implements SpotService {
             String serviceDays = getServieDays(spotInfo);
 
             //address 생성
-            CreateAddressRequestDto createAddressRequestDto = makeCreateAddressRequestDto(spotInfo.getZipCode(), spotInfo.getAddress1(), spotInfo.getAddress2());
+            CreateAddressRequestDto createAddressRequestDto = makeCreateAddressRequestDto(spotInfo.getZipCode(), spotInfo.getAddress1(), spotInfo.getAddress2(), spotInfo.getLocation());
             Address address = new Address(createAddressRequestDto);
             String[] split = spotInfo.getDiningType().split(",");
             List<DiningType> diningTypes = new ArrayList<>();
@@ -163,11 +165,15 @@ public class SpotServiceImpl implements SpotService {
         }
     }
 
-    private CreateAddressRequestDto makeCreateAddressRequestDto(String zipCode, String address1, String address2) {
+    private CreateAddressRequestDto makeCreateAddressRequestDto(String zipCode, String address1, String address2, String location) {
         CreateAddressRequestDto createAddressRequestDto = new CreateAddressRequestDto();
         createAddressRequestDto.setAddress1(address1);
         createAddressRequestDto.setAddress2(address2);
         createAddressRequestDto.setZipCode(zipCode);
+        String[] split = location.split(",");
+        createAddressRequestDto.setLatitude(split[0]);
+        createAddressRequestDto.setLatitude(split[1]);
+
         return  createAddressRequestDto;
 
     }

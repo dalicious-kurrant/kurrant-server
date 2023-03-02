@@ -4,11 +4,12 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import org.locationtech.jts.io.ParseException;
 
 import java.math.BigInteger;
 import java.util.List;
 
 public interface GroupService {
     ItemPageableResponseDto<GroupListDto> getGroupList(BigInteger groupId, Integer limit, Integer page, OffsetBasedPageRequest pageable);
-    void saveCorporationList(List<GroupExcelRequestDto> groupListDto);
+    void saveCorporationList(List<GroupExcelRequestDto> groupListDto) throws ParseException;
 }

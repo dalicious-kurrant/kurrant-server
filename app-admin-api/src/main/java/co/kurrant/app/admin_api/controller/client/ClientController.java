@@ -7,6 +7,7 @@ import co.kurrant.app.admin_api.service.SpotService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public class ClientController {
     @Operation(summary = "저장하기", description = "수정사항을 저장한다.")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("")
-    public ResponseMessage saveSpotList(@RequestBody SaveSpotList saveSpotList){
+    public ResponseMessage saveSpotList(@RequestBody SaveSpotList saveSpotList) throws ParseException {
         spotService.saveSpotList(saveSpotList);
         return ResponseMessage.builder()
                 .message("저장에 성공하였습니다.")
