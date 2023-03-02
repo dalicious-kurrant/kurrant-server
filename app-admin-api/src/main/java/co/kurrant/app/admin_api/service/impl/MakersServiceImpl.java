@@ -76,6 +76,7 @@ public class MakersServiceImpl implements MakersService {
                 //DailyCapacity 수정
                 List<MakersCapacity> makersCapacityList = qMakersCapacityRepository.findByMakersId(saveMakersRequestDto.getId());
                 //다이닝 타입별 가능수량을 계산해서 저장해준다.
+
                 if (makersCapacityList.size() != 3){
                     Integer dailyCapacity = saveMakersRequestDto.getDailyCapacity() / makersCapacityList.size();
                     for (int i = 0; i < makersCapacityList.size(); i++) {
@@ -107,6 +108,7 @@ public class MakersServiceImpl implements MakersService {
 
                 Makers save = makersRepository.save(makers);
 
+
                 //capacity 생성 및 저장
                 for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
                     MakersCapacity makersCapacity = makersCapacityMapper.toEntity(makers, saveMakersRequestDto.getDiningTypes().get(i));
@@ -125,6 +127,12 @@ public class MakersServiceImpl implements MakersService {
         createAddressRequestDto.setAddress1(saveMakersRequestDto.getAddress1());
         createAddressRequestDto.setAddress2(saveMakersRequestDto.getAddress2());
         createAddressRequestDto.setZipCode(saveMakersRequestDto.getZipCode());
+        if (!saveMakersRequestDto.getLocation().isEmpty()){
+            String[] split = saveMakersRequestDto.getLocation().split(",");
+            createAddressRequestDto.setLatitude(split[0]);
+            createAddressRequestDto.setLongitude(split[1]);
+        }
+
 
         return Address.builder()
                 .createAddressRequestDto(createAddressRequestDto)

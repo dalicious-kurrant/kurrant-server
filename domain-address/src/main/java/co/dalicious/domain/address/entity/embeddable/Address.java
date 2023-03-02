@@ -5,8 +5,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKTReader;
 
 import javax.persistence.Column;
@@ -35,7 +38,7 @@ public class Address {
     this.address1 = createAddressRequestDto.getAddress1();
     this.address2 = createAddressRequestDto.getAddress2();
     this.location = (createAddressRequestDto.getLatitude() == null || createAddressRequestDto.getLongitude() == null) ?
-            null : createPoint(String.format("Point(%s %s)", createAddressRequestDto.getLatitude(), createAddressRequestDto.getLongitude()));
+            null : createPoint(Double.valueOf(createAddressRequestDto.getLatitude()), Double.valueOf(createAddressRequestDto.getLongitude()));
   }
 
   public Address(String zipCode, String address1, String address2, Point location) {
@@ -49,8 +52,8 @@ public class Address {
     return this.address1 + " " + this.address2;
   }
 
-  public static Point createPoint(String location) throws ParseException {
-    System.out.println(location + " address location check");
-    return (Point) new WKTReader().read(location);
+  public static Point createPoint(Double x, Double y)  {
+    GeometryFactory geometryFactory = new GeometryFactory();
+    return geometryFactory.createPoint(new Coordinate(x,y));
   }
 }
