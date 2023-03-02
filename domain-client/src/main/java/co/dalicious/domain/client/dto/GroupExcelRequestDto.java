@@ -26,7 +26,7 @@ public class GroupExcelRequestDto {
     private String isSetting;
     private String isGarbage;
     private String isHotStorage;
-    private String morningSupportPrice;
-    private String lunchSupportPrice;
-    private String dinnerSupportPrice;
+    private Integer morningSupportPrice;
+    private Integer lunchSupportPrice;
+    private Integer dinnerSupportPrice;
 }

@@ -40,9 +40,9 @@ public interface CorporationMealInfoMapper {
 
     default BigDecimal getSupportPrice(GroupExcelRequestDto groupInfoList, DiningType diningType) {
         BigDecimal supportPrice = BigDecimal.ZERO;
-        if(diningType.equals(DiningType.MORNING)) supportPrice = BigDecimal.valueOf(Integer.parseInt(groupInfoList.getMorningSupportPrice()));
-        else if(diningType.equals(DiningType.LUNCH)) supportPrice = BigDecimal.valueOf(Integer.parseInt(groupInfoList.getLunchSupportPrice()));
-        else if(diningType.equals(DiningType.DINNER)) supportPrice = BigDecimal.valueOf(Integer.parseInt(groupInfoList.getDinnerSupportPrice()));
+        if(diningType.equals(DiningType.MORNING)) supportPrice = BigDecimal.valueOf(groupInfoList.getMorningSupportPrice());
+        else if(diningType.equals(DiningType.LUNCH)) supportPrice = BigDecimal.valueOf(groupInfoList.getLunchSupportPrice());
+        else if(diningType.equals(DiningType.DINNER)) supportPrice = BigDecimal.valueOf(groupInfoList.getDinnerSupportPrice());
 
         return supportPrice;
     }

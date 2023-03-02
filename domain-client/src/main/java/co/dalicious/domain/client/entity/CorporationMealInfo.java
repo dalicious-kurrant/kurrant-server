@@ -33,17 +33,9 @@ public class CorporationMealInfo extends MealInfo{
         updateMealInfo(groupInfoList.getServiceDays());
 
         BigDecimal supportPrice = BigDecimal.ZERO;
-        if(groupInfoList.getMorningSupportPrice() != null && !groupInfoList.getMorningSupportPrice().isEmpty() &&
-                !groupInfoList.getMorningSupportPrice().isBlank() && !groupInfoList.getMorningSupportPrice().equals("null") &&
-                this.getDiningType().equals(DiningType.MORNING)) supportPrice = BigDecimal.valueOf(Double.parseDouble(groupInfoList.getMorningSupportPrice()));
-
-        else if(groupInfoList.getLunchSupportPrice() != null && !groupInfoList.getLunchSupportPrice().isEmpty() &&
-                !groupInfoList.getLunchSupportPrice().isBlank() && !groupInfoList.getLunchSupportPrice().equals("null") &&
-                this.getDiningType().equals(DiningType.LUNCH)) supportPrice = BigDecimal.valueOf(Double.parseDouble(groupInfoList.getLunchSupportPrice()));
-
-        else if(groupInfoList.getDinnerSupportPrice() != null && !groupInfoList.getDinnerSupportPrice().isEmpty() &&
-                !groupInfoList.getDinnerSupportPrice().isBlank() && !groupInfoList.getDinnerSupportPrice().equals("null") &&
-                this.getDiningType().equals(DiningType.DINNER)) supportPrice = BigDecimal.valueOf(Double.parseDouble(groupInfoList.getDinnerSupportPrice()));
+        if(groupInfoList.getMorningSupportPrice() != null && this.getDiningType().equals(DiningType.MORNING)) supportPrice = BigDecimal.valueOf(groupInfoList.getMorningSupportPrice());
+        else if(groupInfoList.getLunchSupportPrice() != null && this.getDiningType().equals(DiningType.LUNCH)) supportPrice = BigDecimal.valueOf(groupInfoList.getLunchSupportPrice());
+        else if(groupInfoList.getDinnerSupportPrice() != null && this.getDiningType().equals(DiningType.DINNER)) supportPrice = BigDecimal.valueOf(groupInfoList.getDinnerSupportPrice());
 
         this.supportPrice = supportPrice;
     }
