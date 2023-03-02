@@ -51,7 +51,7 @@ public class MemberController {
 
   @Operation(summary = "선택 가입 대기 유저 탈퇴처리", description = "선택한 유저를 가입 대기 유저를 탈퇴처리한다")
   @ResponseStatus(HttpStatus.OK)
-  @DeleteMapping("/waiting")
+  @PostMapping("/waiting")
   public ResponseMessage deleteWaitingMember(@RequestBody DeleteWaitingMemberRequestDto deleteWaitingMemberRequestDto){
     memberService.deleteWaitingMember(deleteWaitingMemberRequestDto);
     return ResponseMessage.builder()
