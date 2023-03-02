@@ -20,6 +20,4 @@ public class OrderItemDailyFoodReqDto {
     private Integer amount;
     @Schema(description = "spotId/cartDailyFoodDtoList/totalPrice/supportPrice/deliveryFee/userPoint")
     private OrderItems orderItems;
-
-
 }
