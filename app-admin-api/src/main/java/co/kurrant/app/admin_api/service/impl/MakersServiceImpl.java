@@ -10,6 +10,7 @@ import co.dalicious.domain.food.repository.MakersCapacityRepository;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QMakersCapacityRepository;
 
+import co.dalicious.domain.food.repository.QMakersRepository;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
@@ -32,6 +33,7 @@ public class MakersServiceImpl implements MakersService {
     private final MakersCapacityRepository makersCapacityRepository;
     private final MakersMapper makersMapper;
     private final MakersCapacityMapper makersCapacityMapper;
+    private final QMakersRepository qMakersRepository;
 
     @Override
     public Object findAllMakersInfo() {
@@ -67,8 +69,17 @@ public class MakersServiceImpl implements MakersService {
             Address address = makeAddress(saveMakersRequestDto);
 
             Optional<Makers> optionalMakers = makersRepository.findById(saveMakersRequestDto.getId());
-            //없다면 생성
-            if (!optionalMakers.isEmpty()){
+            //이미 존재하면 수정
+            if (optionalMakers.isPresent()){
+                qMakersRepository.updateMakers(saveMakersRequestDto.getId(),saveMakersRequestDto.getCode(),saveMakersRequestDto.getName(),
+                        saveMakersRequestDto.getCompanyName(), saveMakersRequestDto.getCeo(), saveMakersRequestDto.getCeoPhone(),
+                        saveMakersRequestDto.getManagerName(), saveMakersRequestDto.getManagerPhone(), saveMakersRequestDto.getDiningTypes(),
+                        saveMakersRequestDto.getDailyCapacity(), saveMakersRequestDto.getServiceType(), saveMakersRequestDto.getServiceForm(),
+                        saveMakersRequestDto.getIsParentCompany(), saveMakersRequestDto.getParentCompanyId(),address, saveMakersRequestDto.getCompanyRegistrationNumber(),
+                        saveMakersRequestDto.getContractStartDate(),saveMakersRequestDto.getContractEndDate(), saveMakersRequestDto.getIsNutritionInformation(),
+                        saveMakersRequestDto.getOpenTime(), saveMakersRequestDto.getCloseTime(), saveMakersRequestDto.getBank(),
+                        saveMakersRequestDto.getDepositHolder(), saveMakersRequestDto.getAccountNumber());
+
 
             }else {
                 Makers makers = makersMapper.toEntity(saveMakersRequestDto, address);
