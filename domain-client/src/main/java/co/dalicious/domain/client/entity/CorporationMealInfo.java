@@ -1,6 +1,8 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,6 +26,21 @@ public class CorporationMealInfo extends MealInfo{
     @Builder
     public CorporationMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime membershipBenefitTime, LocalTime lastOrderTime, String serviceDays, Spot spot, BigDecimal supportPrice) {
         super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, spot);
+        this.supportPrice = supportPrice;
+    }
+
+    public void updateCorporationMealInfo(CorporationMealInfo mealInfo) {
+        super.updateMealInfo(mealInfo);
+        this.supportPrice = mealInfo.getSupportPrice();
+    }
+    public void updateCorporationMealInfo(GroupExcelRequestDto groupInfoList) {
+        updateMealInfo(groupInfoList.getServiceDays());
+
+        BigDecimal supportPrice = BigDecimal.ZERO;
+        if(groupInfoList.getMorningSupportPrice() != null && this.getDiningType().equals(DiningType.MORNING)) supportPrice = BigDecimal.valueOf(groupInfoList.getMorningSupportPrice());
+        else if(groupInfoList.getLunchSupportPrice() != null && this.getDiningType().equals(DiningType.LUNCH)) supportPrice = BigDecimal.valueOf(groupInfoList.getLunchSupportPrice());
+        else if(groupInfoList.getDinnerSupportPrice() != null && this.getDiningType().equals(DiningType.DINNER)) supportPrice = BigDecimal.valueOf(groupInfoList.getDinnerSupportPrice());
+
         this.supportPrice = supportPrice;
     }
 }

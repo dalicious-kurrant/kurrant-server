@@ -2,9 +2,11 @@ package co.kurrant.app.admin_api.controller.makers;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
+import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
 import co.kurrant.app.admin_api.service.MakersService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "3. Makers")
@@ -24,8 +26,8 @@ public class MakersController {
     }
 
     @PostMapping("")
-    public ResponseMessage saveMakers(@RequestBody SaveMakersRequestDto saveMakersRequestDto){
-        makersService.saveMakers(saveMakersRequestDto);
+    public ResponseMessage saveMakers(@RequestBody SaveMakersRequestDtoList saveMakersRequestDtoList) throws ParseException {
+        makersService.saveMakers(saveMakersRequestDtoList);
         return ResponseMessage.builder()
                 .message("메이커스 저장에 성공하였습니다.")
                 .build();

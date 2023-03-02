@@ -3,6 +3,7 @@ package co.dalicious.domain.client.service;
 import co.dalicious.domain.client.dto.ApartmentRequestDto;
 import co.dalicious.domain.client.dto.ApartmentResponseDto;
 import co.dalicious.domain.client.dto.CorporationRequestDto;
+import org.locationtech.jts.io.ParseException;
 
 import java.util.List;
 

@@ -2,6 +2,7 @@ package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.enums.FoodStatus;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.food.entity.QFood.food;
 
@@ -36,10 +38,10 @@ public class QFoodRepository {
                 .fetchOne();
     }
 
-    public List<Food> findByMakers(Makers makers) {
+    public List<Food> findByMakersAndFoodStatus(Makers makers) {
         return queryFactory
                 .selectFrom(food)
-                .where(food.makers.eq(makers))
+                .where(food.makers.eq(makers), food.foodStatus.eq(FoodStatus.SALES))
                 .fetch();
     }
     
@@ -58,5 +60,11 @@ public class QFoodRepository {
               .selectFrom(food)
               .where(food.makers.in(makers))
               .fetch();
+    }
+
+    public List<Food> findByNames(Set<String> names) {
+        return queryFactory.selectFrom(food)
+                .where(food.name.in(names))
+                .fetch();
     }
 }

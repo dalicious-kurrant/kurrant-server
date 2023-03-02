@@ -145,7 +145,7 @@ public class Makers {
     @Comment("비밀번호, BCrpypt")
     private String password;
 
-    @NotNull
+    @ColumnDefault("1L")
     @Convert(converter = RoleConverter.class)
     @Column(name = "e_role")
     @Comment("유저 타입")

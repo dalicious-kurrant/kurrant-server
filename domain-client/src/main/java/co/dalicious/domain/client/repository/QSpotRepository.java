@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
 import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.dsl.Expressions;
@@ -51,4 +52,15 @@ public class QSpotRepository {
                 .execute();
     }
 
+    public List<Spot> findAll() {
+        return queryFactory.selectFrom(spot)
+                .where(spot.status.eq(SpotStatus.ACTIVE))
+                .fetch();
+    }
+
+    public List<Spot> findAllByIds(List<BigInteger> ids) {
+        return queryFactory.selectFrom(spot)
+                .where(spot.id.in(ids))
+                .fetch();
+    }
 }

@@ -33,4 +33,13 @@ public class QEmployeeRepository {
                 .where(employee.id.eq(userId))
                 .execute();
     }
+
+    public void patchEmployee(BigInteger id, String phone, String email, String name) {
+        queryFactory.update(employee)
+                .set(employee.email, email)
+                .set(employee.phone, phone)
+                .set(employee.name, name)
+                .where(employee.id.eq(id))
+                .execute();
+    }
 }

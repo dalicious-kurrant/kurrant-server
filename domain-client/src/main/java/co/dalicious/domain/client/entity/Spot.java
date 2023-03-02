@@ -3,9 +3,11 @@ package co.dalicious.domain.client.entity;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypesConverter;
+import co.dalicious.system.util.DiningTypesUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -25,7 +27,7 @@ import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalTime;
-import java.util.List;
+import java.util.*;
 
 @DynamicInsert
 @DynamicUpdate
@@ -34,7 +36,7 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @Getter
-@Table(name = "client__spot")
+@Table(name = "client__spot", uniqueConstraints={@UniqueConstraint(columnNames={"name", "client_group_id"})})
 public class Spot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -82,9 +84,8 @@ public class Spot {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    @ColumnDefault("1")
     @Comment("스팟 상태 ( 0: 비활성, 1: 활성 )")
-    private SpotStatus status;
+    private SpotStatus status = SpotStatus.ACTIVE;
 
     public Spot(String name, Address address, List<DiningType> diningTypes, Group group) {
         this.name = name;
@@ -97,14 +98,15 @@ public class Spot {
         return this.mealInfos.stream()
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
+                .orElse(null);
     }
 
     public LocalTime getDeliveryTime(DiningType diningType) {
         return this.mealInfos.stream()
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO)).getDeliveryTime();
+                .map(MealInfo::getDeliveryTime)
+                .orElse(null);
     }
 
     public LocalTime getMembershipBenefitTime(DiningType diningType) {
@@ -125,4 +127,28 @@ public class Spot {
         this.diningTypes = group.getDiningTypes();
     }
 
+    public void updateSpot(SpotResponseDto spotResponseDto, List<DiningType> diningTypes) {
+        if(this.status == SpotStatus.INACTIVE) {
+            this.status = SpotStatus.ACTIVE;
+        }
+        Set<DiningType> groupDiningTypes = new HashSet<>(this.getGroup().getDiningTypes());
+        if (!groupDiningTypes.containsAll(diningTypes)) {
+            throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+        }
+        // TODO: Location 추가
+        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        this.name = spotResponseDto.getSpotName();
+        this.address = address;
+        this.diningTypes = diningTypes;
+    }
+
+    public void updateDiningTypes(List<DiningType> diningTypes) {
+        this.diningTypes = diningTypes;
+    }
+
+    public List<DiningType> getUpdatedDiningTypes() {
+        return this.getMealInfos().stream()
+                .map(MealInfo::getDiningType)
+                .toList();
+    }
 }

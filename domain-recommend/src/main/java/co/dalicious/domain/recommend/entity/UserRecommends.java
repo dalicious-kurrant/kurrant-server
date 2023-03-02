@@ -23,19 +23,19 @@ public class UserRecommends {
     @Comment("ID")
     private BigInteger id;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("그룹 Id")
     private BigInteger userId;
 
-    @Column(name = "group_id")
+    @Column(name = "group_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("그룹 Id")
     private BigInteger groupId;
 
-    @Column(name = "makers_id")
+    @Column(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("메이커스 Id")
     private BigInteger makersId;
 
-    @Column(name = "food_id")
+    @Column(name = "food_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("그룹 Id")
     private BigInteger foodId;
 
@@ -47,5 +47,8 @@ public class UserRecommends {
     @Column(name = "dining_type")
     @Comment("식단 타입")
     private DiningType DiningType;
+
+    @Column(name = "rank")
+    private Integer rank;
 }
 

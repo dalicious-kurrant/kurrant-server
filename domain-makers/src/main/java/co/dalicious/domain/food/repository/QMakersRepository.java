@@ -1,11 +1,19 @@
 package co.dalicious.domain.food.repository;
 
+import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.food.dto.MakersCapacityDto;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.QMakers;
+import co.dalicious.domain.food.entity.enums.ServiceForm;
+import co.dalicious.domain.food.entity.enums.ServiceType;
+import co.dalicious.system.enums.DiningType;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 
@@ -26,6 +34,195 @@ public class QMakersRepository {
     public List<Makers> getMakersByName(Set<String> makersName) {
         return queryFactory.selectFrom(makers)
                 .where(makers.name.in(makersName))
+                .fetch();
+    }
+
+    public void updateMakers(BigInteger id, String code, String name, String companyName, String ceo, String ceoPhone, String managerName, String managerPhone, String serviceType, String serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, String contractStartDate, String contractEndDate, Boolean isNutritionInformation, String openTime, String closeTime, String bank, String depositHolder, String accountNumber) {
+        //코드수정
+        if (!code.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.code, code)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //이름 수정
+        if (!name.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.name, name)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+
+        //companyName수정
+        if (!companyName.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.companyName, companyName)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //ceo 수정
+        if (!ceo.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.CEO, ceo)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //ceoPhone 수정
+        if (!ceoPhone.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.CEOPhone, ceoPhone)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //managerName 수정
+        if (!managerName.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.managerName, managerName)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //managerPhone 수정
+        if (!managerPhone.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.managerPhone, managerPhone)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+
+        //서비스타입
+        if (!serviceType.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.serviceType, ServiceType.ofString(serviceType))
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //서비스 폼
+        if (!serviceForm.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.serviceForm, ServiceForm.ofString(serviceForm))
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //모회사여부
+        if (isParentCompany != null){
+            queryFactory.update(makers)
+                    .set(makers.isParentCompany, isParentCompany)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //모회사 아이디
+        if (parentCompanyId != null){
+            queryFactory.update(makers)
+                    .set(makers.parentCompanyId, parentCompanyId)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+
+        //address 수정
+        if (address != null){
+            queryFactory.update(makers)
+                    .set(makers.address, address)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //사업자번호 수정
+        if (!companyRegistrationNumber.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.companyRegistrationNumber, companyRegistrationNumber)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //계약 시작일 수정
+        if (!contractStartDate.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.contractStartDate, LocalDate.parse(contractStartDate))
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //계약 종료일 수정
+        if (!contractEndDate.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.contractEndDate, LocalDate.parse(contractEndDate))
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //isNutritionInformation 수정
+        if (isNutritionInformation != null){
+            queryFactory.update(makers)
+                    .set(makers.isNutritionInformation, isNutritionInformation)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //오픈시간 수정
+        if (!openTime.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.openTime, LocalTime.parse(openTime))
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //종료시간 수정
+        if (!closeTime.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.closeTime, LocalTime.parse(closeTime))
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //은행 수정
+        if (!bank.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.bank, bank)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //예금주 수정
+        if (!depositHolder.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.depositHolder, depositHolder)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+        //계좌번호 수정
+        if (!accountNumber.isEmpty()){
+            queryFactory.update(makers)
+                    .set(makers.accountNumber, accountNumber)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+
+
+
+    }
+
+    public void updateDailyCapacity(Integer dailyCapacity, BigInteger id, int i) {
+        queryFactory.update(makers)
+                .set(makers.makersCapacities.get(i).capacity, dailyCapacity)
+                .where(makers.id.eq(id))
+                .execute();
+    }
+
+    public void updateDailyCapaciyByDiningType(Integer morning, Integer lunch, Integer dinner, int i, DiningType diningType, BigInteger id) {
+        if (diningType.getDiningType().equals("아침")){
+            queryFactory.update(makers)
+                    .set(makers.makersCapacities.get(i).capacity, morning)
+                    .where(makers.id.eq(id))
+                    .execute();
+        } else if(diningType.getDiningType().equals("점심")){
+            queryFactory.update(makers)
+                    .set(makers.makersCapacities.get(i).capacity, lunch)
+                    .where(makers.id.eq(id))
+                    .execute();
+        } else {
+            queryFactory.update(makers)
+                    .set(makers.makersCapacities.get(i).capacity, dinner)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+
+    }
+
+    public List<Makers> findMakersListById(Set<BigInteger> makersId) {
+        return queryFactory.selectFrom(makers)
+                .where(makers.id.in(makersId))
                 .fetch();
     }
 }

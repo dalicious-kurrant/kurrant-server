@@ -43,6 +43,7 @@ public class FoodServiceImpl implements FoodService {
     @Override
     @Transactional
     public List<FoodListDto> getAllFoodList() {
+        // TODO:페이지네이션
         // 모든 상품 불러오기
         List<Food> allFoodList = foodRepository.findAll();
         if (allFoodList.size() == 0) {

@@ -47,6 +47,7 @@ public class FoodServiceImpl implements FoodService {
     private final QFoodRepository qFoodRepository;
     private final ImageService imageService;
 
+    //TODO: 메이커스 필터링 적용
     @Override
     @Transactional
     public ListItemResponseDto<FoodListDto> getAllFoodList(Integer limit, Integer page, OffsetBasedPageRequest pageable) {

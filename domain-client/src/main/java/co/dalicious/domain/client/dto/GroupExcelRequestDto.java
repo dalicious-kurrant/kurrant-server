@@ -18,6 +18,7 @@ public class GroupExcelRequestDto {
     private String location;
     private List<String> diningTypes;
     private String serviceDays;
+    private BigInteger managerId;
     private String managerName;
     private String managerPhone;
     private String isMembershipSupport;
@@ -25,4 +26,7 @@ public class GroupExcelRequestDto {
     private String isSetting;
     private String isGarbage;
     private String isHotStorage;
+    private Integer morningSupportPrice;
+    private Integer lunchSupportPrice;
+    private Integer dinnerSupportPrice;
 }
