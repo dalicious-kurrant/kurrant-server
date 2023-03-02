@@ -30,7 +30,7 @@ public class CorporationMealInfo extends MealInfo{
     }
 
     public void updateCorporationMealInfo(GroupExcelRequestDto groupInfoList) {
-        updateMealInfo(DateUtils.stringToLocalTime(groupInfoList.getMembershipBenefitTime()), groupInfoList.getServiceDays());
+        updateMealInfo(groupInfoList.getServiceDays());
 
         BigDecimal supportPrice = BigDecimal.ZERO;
         if(groupInfoList.getMorningSupportPrice() != null && !groupInfoList.getMorningSupportPrice().isEmpty() &&

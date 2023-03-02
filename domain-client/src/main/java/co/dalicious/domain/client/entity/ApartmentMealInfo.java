@@ -22,6 +22,6 @@ public class ApartmentMealInfo extends MealInfo {
     }
 
     public void updateApartmentMealInfo(GroupExcelRequestDto groupInfoList) {
-        updateMealInfo(DateUtils.stringToLocalTime(groupInfoList.getMembershipBenefitTime()), groupInfoList.getServiceDays());
+        updateMealInfo(groupInfoList.getServiceDays());
     }
 }

@@ -41,7 +41,6 @@ public class GroupServiceImpl implements GroupService {
     private final CorporationMealInfoMapper mealInfoMapper;
     private final MealInfoRepository mealInfoRepository;
 
-    //TODO: managerID 추가해서 보내기
     @Override
     @Transactional(readOnly = true)
     public ItemPageableResponseDto<GroupListDto> getGroupList(BigInteger groupId, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
