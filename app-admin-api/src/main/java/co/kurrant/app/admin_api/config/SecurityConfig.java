@@ -39,6 +39,7 @@ public class SecurityConfig {
             .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
             .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 //            .antMatchers("/v1/**").permitAll() // 테스트용
+            .antMatchers("/success").permitAll()
             .antMatchers("/v1/clients/all").permitAll()
             .antMatchers("/v1/auth/login").permitAll() // 테스트용
             //.antMatchers("/v1/users/all").permitAll() // 테스트용

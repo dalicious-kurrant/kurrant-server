@@ -106,6 +106,14 @@ public class Spot {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO)).getDeliveryTime();
     }
+
+    public LocalTime getMembershipBenefitTime(DiningType diningType) {
+        return this.mealInfos.stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .map(MealInfo::getMembershipBenefitTime)
+                .orElse(null);
+    }
     
     public Point getLocation(){
         return this.address.getLocation();

@@ -163,7 +163,7 @@ public class CartServiceImpl implements CartService {
                 DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(dailyFood.getServiceDate(), dailyFood.getDiningType());
                 diningTypeServiceDateDtos.add(diningTypeServiceDateDto);
                 // CartDailyFood Dto화
-                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, cartDailyFood.getDailyFood().getFood());
+                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, spot, dailyFood);
                 CartDailyFoodDto.DailyFood cartFood = cartDailyFoodsResMapper.toDto(cartDailyFood, discountDto);
                 cartFood.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
                 cartDailyFoodDtoMap.add(diningTypeServiceDateDto, cartFood);

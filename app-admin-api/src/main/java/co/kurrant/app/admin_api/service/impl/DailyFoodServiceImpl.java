@@ -129,8 +129,10 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<BigInteger> dailyFoodIds = dailyFoodList.stream()
                 .map(FoodDto.DailyFood::getDailyFoodId)
                 .toList();
-        // TODO: null일 경우 예외처리
-        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByDailyFoodIds(dailyFoodIds);
+        List<DailyFood> dailyFoods = new ArrayList<>();
+        if(!dailyFoodIds.stream().allMatch(Objects::isNull)) {
+             dailyFoods = qDailyFoodRepository.findAllByDailyFoodIds(dailyFoodIds);
+        }
 
         List<BigInteger> currentDailyFoodIds = dailyFoods.stream()
                 .map(DailyFood::getId)

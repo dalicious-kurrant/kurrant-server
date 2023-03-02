@@ -79,7 +79,7 @@ public class FoodServiceImpl implements FoodService {
                     dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
                 }
 
-                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), dailyFood.getFood());
+                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
                 dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
                 dailyFoodDtos.add(dailyFoodDto);
@@ -105,7 +105,7 @@ public class FoodServiceImpl implements FoodService {
                     dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
                 }
 
-                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), dailyFood.getFood());
+                DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
                 dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
                 dailyFoodDtos.add(dailyFoodDto);
@@ -126,7 +126,9 @@ public class FoodServiceImpl implements FoodService {
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
-        DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getGroup(), dailyFood.getFood());
+
+        Spot spot = user.getDefaultUserSpot().getSpot();
+        DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getGroup(), spot, dailyFood);
         FoodDetailDto foodDetailDto = foodMapper.toDto(dailyFood, discountDto);
         foodDetailDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
         return foodDetailDto;

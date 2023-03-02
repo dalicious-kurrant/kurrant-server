@@ -48,7 +48,7 @@ public class DailyFoodController {
     public ResponseMessage excelDailyFood(@RequestBody List<FoodDto.DailyFood> dailyFoodList) {
         dailyFoodService.excelDailyFoods(dailyFoodList);
         return ResponseMessage.builder()
-                .message("식단 조회에 성공하였습니다.")
+                .message("식단 엑셀 저장 및 수정에 성공하였습니다.")
                 .build();
     }
 }
