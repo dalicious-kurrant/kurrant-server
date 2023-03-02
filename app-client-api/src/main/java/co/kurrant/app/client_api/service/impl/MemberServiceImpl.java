@@ -114,8 +114,8 @@ public class MemberServiceImpl implements MemberService {
             String name = clientUserWaitingListSaveRequestDto.getEmail().get(i);
             //있는 ID의 경우 수정
             Optional<Employee> optionalEmployee = employeeRepository.findById(clientUserWaitingListSaveRequestDto.getId().get(i));
-            if (optionalEmployee.get().getId() != null){
-                qEmployeeRepository.patchEmployee(email, phone, name);
+            if (optionalEmployee.isPresent()){
+                qEmployeeRepository.patchEmployee(clientUserWaitingListSaveRequestDto.getId().get(i),email, phone, name);
             }else{
                 //ID가 없다면 생성
                 Employee employee = employeeMapper.toEntity(email, name, phone, corporation);

@@ -92,8 +92,6 @@ public interface MakersMapper {
 
 
     @Mapping(source = "dto.isNutritionInformation", target = "isNutritionInformation")
-    @Mapping(source = "dto.role", target = "role", qualifiedByName = "getRole")
-    @Mapping(source = "dto.createdDateTime", target = "createdDateTime", qualifiedByName = "stringToTimeStampFormat")
     @Mapping(source = "dto.closeTime", target = "closeTime", qualifiedByName = "stringToTimeFormat")
     @Mapping(source = "dto.openTime", target = "openTime", qualifiedByName = "stringToTimeFormat")
     @Mapping(source = "dto.contractEndDate", target = "contractEndDate", qualifiedByName = "stringToDateFormat")
@@ -109,6 +107,7 @@ public interface MakersMapper {
     @Mapping(source = "dto.code", target = "code")
     Makers toEntity(SaveMakersRequestDto dto, Address address);
 
+    /*
     @Named("getRole")
     default Role getRole(String role){
         if (role.equals("관리자")){
@@ -116,6 +115,7 @@ public interface MakersMapper {
         }
         return Role.USER;
     }
+    */
 
     @Named("getServiceType")
     default ServiceType getServiceType(String serviceType){
@@ -137,10 +137,11 @@ public interface MakersMapper {
         return LocalTime.parse(time);
     }
 
+    /*
     @Named("stringToTimeStampFormat")
     default Timestamp stringToTimeStampFormat(String time){
         return Timestamp.valueOf(time);
-    }
+    }*/
 
 
 }

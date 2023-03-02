@@ -11,6 +11,7 @@ import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QMakersCapacityRepository;
 
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
+import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.service.MakersService;
 import exception.ApiException;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -57,23 +59,32 @@ public class MakersServiceImpl implements MakersService {
     }
 
     @Override
-    public void saveMakers(SaveMakersRequestDto saveMakersRequestDto) {
+    public void saveMakers(SaveMakersRequestDtoList saveMakersRequestDtoList) {
 
-        //Address 생성
-        Address address = makeAddress(saveMakersRequestDto);
+        for (SaveMakersRequestDto saveMakersRequestDto : saveMakersRequestDtoList.getSaveMakersRequestDto()) {
 
-        Makers makers = makersMapper.toEntity(saveMakersRequestDto, address);
+            //Address 생성
+            Address address = makeAddress(saveMakersRequestDto);
 
-        Makers save = makersRepository.save(makers);
+            Optional<Makers> optionalMakers = makersRepository.findById(saveMakersRequestDto.getId());
+            //없다면 생성
+            if (!optionalMakers.isEmpty()){
 
-        //capacity 생성 및 저장
-        for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
-            MakersCapacity makersCapacity = makersCapacityMapper.toEntity(makers, saveMakersRequestDto.getDiningTypes().get(i));
-            makersCapacityRepository.save(makersCapacity);
-        }
+            }else {
+                Makers makers = makersMapper.toEntity(saveMakersRequestDto, address);
 
-        if (save == null){
-            throw new ApiException(ExceptionEnum.MAKERS_SAVE_FAILED);
+                Makers save = makersRepository.save(makers);
+
+                //capacity 생성 및 저장
+                for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
+                    MakersCapacity makersCapacity = makersCapacityMapper.toEntity(makers, saveMakersRequestDto.getDiningTypes().get(i));
+                    makersCapacityRepository.save(makersCapacity);
+                }
+
+                if (save == null) {
+                    throw new ApiException(ExceptionEnum.MAKERS_SAVE_FAILED);
+                }
+            }
         }
     }
 
@@ -82,8 +93,9 @@ public class MakersServiceImpl implements MakersService {
         createAddressRequestDto.setAddress1(saveMakersRequestDto.getAddress1());
         createAddressRequestDto.setAddress2(saveMakersRequestDto.getAddress2());
         createAddressRequestDto.setZipCode(saveMakersRequestDto.getZipCode());
-        createAddressRequestDto.setLongitude(saveMakersRequestDto.getLongitude());
-        createAddressRequestDto.setLatitude(saveMakersRequestDto.getLatitude());
+        String[] strings = saveMakersRequestDto.getLocation().split(",");
+        createAddressRequestDto.setLatitude(strings[0]);
+        createAddressRequestDto.setLongitude(strings[1]);
 
         return Address.builder()
                 .createAddressRequestDto(createAddressRequestDto)
