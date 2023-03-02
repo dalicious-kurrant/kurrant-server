@@ -12,14 +12,15 @@ import java.util.List;
 @Setter
 @Schema(description = "메이커스 저장 요청 DTO")
 public class SaveMakersRequestDto {
+    private BigInteger id;
     private String code;
-    private String password;
     private String name;
     private String companyName;
     private String ceo;
     private String ceoPhone;
     private String managerName;
     private String managerPhone;
+    private List<MakersCapacityDto> diningTypes;
     private Integer dailyCapacity;
     private String serviceType;
     private String serviceForm;
@@ -28,8 +29,7 @@ public class SaveMakersRequestDto {
     private String zipCode;
     private String address1;
     private String address2;
-    private String longitude;
-    private String latitude;
+    private String location;
     private String companyRegistrationNumber;
     private String contractStartDate;
     private String contractEndDate;
@@ -39,7 +39,4 @@ public class SaveMakersRequestDto {
     private String bank;
     private String depositHolder;
     private String accountNumber;
-    private String createdDateTime;
-    private String Role;
-    private List<MakersCapacityDto> diningTypes;
 }
