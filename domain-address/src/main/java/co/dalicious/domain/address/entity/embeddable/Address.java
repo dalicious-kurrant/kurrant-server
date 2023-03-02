@@ -8,9 +8,7 @@ import org.hibernate.annotations.Comment;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKBReader;
-import org.locationtech.jts.io.WKTReader;
+
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -33,7 +31,7 @@ public class Address {
   private Point location;
 
   @Builder
-  public Address(CreateAddressRequestDto createAddressRequestDto) throws ParseException {
+  public Address(CreateAddressRequestDto createAddressRequestDto){
     this.zipCode = createAddressRequestDto.getZipCode();
     this.address1 = createAddressRequestDto.getAddress1();
     this.address2 = createAddressRequestDto.getAddress2();
