@@ -3,12 +3,15 @@ package co.dalicious.domain.food.repository;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.food.dto.MakersCapacityDto;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.MakersCapacity;
 import co.dalicious.domain.food.entity.QMakers;
 import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
+import co.dalicious.domain.food.mapper.MakersCapacityMapper;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
@@ -24,6 +27,7 @@ import static co.dalicious.domain.food.entity.QMakers.makers;
 public class QMakersRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final MakersCapacityMapper makersCapacityMapper;
 
     public Makers findOneByCode(String code) {
         return queryFactory.selectFrom(makers)
@@ -37,7 +41,13 @@ public class QMakersRepository {
                 .fetch();
     }
 
-    public void updateMakers(BigInteger id, String code, String name, String companyName, String ceo, String ceoPhone, String managerName, String managerPhone, String serviceType, String serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, String contractStartDate, String contractEndDate, Boolean isNutritionInformation, String openTime, String closeTime, String bank, String depositHolder, String accountNumber) {
+    public void updateMakers(BigInteger id, String code, String name,
+                             String companyName, String ceo, String ceoPhone,
+                             String managerName, String managerPhone, String serviceType,
+                             String serviceForm, Boolean isParentCompany, BigInteger parentCompanyId,
+                             Address address, String companyRegistrationNumber, String contractStartDate,
+                             String contractEndDate, Boolean isNutritionInformation, String openTime,
+                             String closeTime, String bank, String depositHolder, String accountNumber) {
         //코드수정
         if (!code.isEmpty()){
             queryFactory.update(makers)
@@ -120,8 +130,14 @@ public class QMakersRepository {
 
         //address 수정
         if (address != null){
+
+
+
             queryFactory.update(makers)
-                    .set(makers.address, address)
+                    .set(makers.address.address1, address.getAddress1())
+                    .set(makers.address.address2, address.getAddress2())
+                    .set(makers.address.zipCode, address.getZipCode())
+                    .set(makers.address.location, address.getLocation())
                     .where(makers.id.eq(id))
                     .execute();
         }
@@ -188,36 +204,6 @@ public class QMakersRepository {
                     .where(makers.id.eq(id))
                     .execute();
         }
-
-
-
-    }
-
-    public void updateDailyCapacity(Integer dailyCapacity, BigInteger id, int i) {
-        queryFactory.update(makers)
-                .set(makers.makersCapacities.get(i).capacity, dailyCapacity)
-                .where(makers.id.eq(id))
-                .execute();
-    }
-
-    public void updateDailyCapaciyByDiningType(Integer morning, Integer lunch, Integer dinner, int i, DiningType diningType, BigInteger id) {
-        if (diningType.getDiningType().equals("아침")){
-            queryFactory.update(makers)
-                    .set(makers.makersCapacities.get(i).capacity, morning)
-                    .where(makers.id.eq(id))
-                    .execute();
-        } else if(diningType.getDiningType().equals("점심")){
-            queryFactory.update(makers)
-                    .set(makers.makersCapacities.get(i).capacity, lunch)
-                    .where(makers.id.eq(id))
-                    .execute();
-        } else {
-            queryFactory.update(makers)
-                    .set(makers.makersCapacities.get(i).capacity, dinner)
-                    .where(makers.id.eq(id))
-                    .execute();
-        }
-
     }
 
     public List<Makers> findMakersListById(Set<BigInteger> makersId) {
