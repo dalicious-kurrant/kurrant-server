@@ -89,7 +89,6 @@ public interface GroupMapper {
     @Mapping(source = "group", target = "isSetting", qualifiedByName = "getIsSetting")
     @Mapping(source = "group", target = "isGarbage", qualifiedByName = "getIsGarbage")
     @Mapping(source = "group", target = "isHotStorage", qualifiedByName = "getIsHotStorage")
-    @Mapping(source = "group.spots", target = "membershipBenefitTime", qualifiedByName = "getMembershipBenefitTime")
     @Mapping(target = "morningSupportPrice", expression = "java(getSupportPrice(group, DiningType.MORNING))")
     @Mapping(target = "lunchSupportPrice", expression = "java(getSupportPrice(group, DiningType.LUNCH))")
     @Mapping(target = "dinnerSupportPrice", expression = "java(getSupportPrice(group, DiningType.DINNER))")

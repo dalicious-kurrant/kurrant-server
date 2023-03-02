@@ -85,8 +85,7 @@ public class MealInfo {
         this.spot = spot;
     }
 
-    public void updateMealInfo(LocalTime membershipBenefitTime, String serviceDays) {
-        this.membershipBenefitTime = membershipBenefitTime;
+    public void updateMealInfo(String serviceDays) {
         this.serviceDays = serviceDays;
     }
 }
