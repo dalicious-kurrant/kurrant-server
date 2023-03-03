@@ -33,7 +33,7 @@ public interface MemberService {
 
     void insertMemberList(ClientUserWaitingListSaveRequestDtoList clientUserWaitingListSaveRequestDtoList);
 
-    void insertMemberListByExcel(ClientExcelSaveDtoList clientExcelSaveDtoList);
+    void insertMemberListByExcel(ClientUserWaitingListSaveRequestDtoList clientUserWaitingListSaveRequestDtoList);
 
     void deleteWaitingMember(DeleteWaitingMemberRequestDto deleteWaitingMemberRequestDto);
 }
