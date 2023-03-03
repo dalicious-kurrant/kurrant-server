@@ -3,6 +3,7 @@ package co.dalicious.domain.client.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -29,4 +30,6 @@ public class GroupExcelRequestDto {
     private Integer morningSupportPrice;
     private Integer lunchSupportPrice;
     private Integer dinnerSupportPrice;
+    private Integer minimumSpend;
+    private Integer maximumSpend;
 }
