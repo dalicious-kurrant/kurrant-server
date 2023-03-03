@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigInteger;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -92,7 +93,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 스팟 신청 정보 저장
         for (CorporationSpotRequestDto spot : spots) {
-            CorporationApplicationFormSpot corporationSpotApplicationForm = corporationApplicationSpotReqMapper.toEntity(spot);
+            CorporationApplicationFormSpot corporationSpotApplicationForm = null;
+            try {
+                corporationSpotApplicationForm = corporationApplicationSpotReqMapper.toEntity(spot);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
             corporationSpotApplicationForm.setCorporationApplicationForm(corporationApplicationForm);
             corporationApplicationFormSpotRepository.save(corporationSpotApplicationForm);
         }
