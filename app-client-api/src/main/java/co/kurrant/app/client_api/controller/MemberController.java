@@ -84,8 +84,8 @@ public class MemberController {
   @Operation(summary = "엑셀 저장하기", description = "엑셀로 받아온 수정사항을 저장한다.")
   @ResponseStatus(HttpStatus.OK)
   @PostMapping("/excel")
-  public ResponseMessage insertMemberListByExcel(@RequestBody ClientExcelSaveDtoList clientExcelSaveDtoList){
-    memberService.insertMemberListByExcel(clientExcelSaveDtoList);
+  public ResponseMessage insertMemberListByExcel(@RequestBody ClientUserWaitingListSaveRequestDtoList clientUserWaitingListSaveRequestDtoList){
+    memberService.insertMemberListByExcel(clientUserWaitingListSaveRequestDtoList);
     return ResponseMessage.builder()
             .message("저장에 성공하였습니다.")
             .build();

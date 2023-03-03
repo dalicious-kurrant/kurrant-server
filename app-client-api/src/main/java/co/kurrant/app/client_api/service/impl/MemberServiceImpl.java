@@ -278,20 +278,23 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void insertMemberListByExcel(ClientExcelSaveDtoList clientExcelSaveDtolist) {
+    public void insertMemberListByExcel(ClientUserWaitingListSaveRequestDtoList dtoList) {
+        //모두삭제
+        employeeRepository.deleteAll();
+
         //code로 CorporationId 찾기 (=GroupId)
-        for (ClientExcelSaveDto excel : clientExcelSaveDtolist.getSaveList()){
-            Corporation corporation = corporationRepository.findById(excel.getGroupId())
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        Corporation corporation = qCorporationRepository.findEntityByCode(dtoList.getCode());
 
+        for (int i = 0; i < dtoList.getSaveUserList().size(); i++) {
 
-            Employee employee = employeeMapper.toEntity(excel.getEmail(),
-                                                        excel.getName(),
-                                                        excel.getPhone(),
-                                                        corporation);
+            String email = dtoList.getSaveUserList().get(i).getEmail();
+            String phone = dtoList.getSaveUserList().get(i).getPhone();
+            String name = dtoList.getSaveUserList().get(i).getName();
+
+                //생성
+            Employee employee = employeeMapper.toEntity(email, name, phone, corporation);
+
             employeeRepository.save(employee);
-
-
 
         }
     }
