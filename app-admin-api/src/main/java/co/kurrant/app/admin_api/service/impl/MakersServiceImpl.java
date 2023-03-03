@@ -53,12 +53,24 @@ public class MakersServiceImpl implements MakersService {
             List<MakersCapacity> makersCapacity = qMakersCapacityRepository.findByMakersId(makers.getId());
             Integer dailyCapacity = 0;
             List<String> diningTypes = new ArrayList<>();
+            Integer morningCapacity = null;
+            Integer lunchCapacity = null;
+            Integer dinnerCapacity = null;
             for (MakersCapacity capacity : makersCapacity) {
                 dailyCapacity += capacity.getCapacity();
                 diningTypes.add(capacity.getDiningType().getDiningType());
+                if (capacity.getDiningType().getCode() == 1){
+                    morningCapacity = capacity.getCapacity();
+                } else if(capacity.getDiningType().getCode() == 2){
+                    lunchCapacity = capacity.getCapacity();
+                } else {
+                    dinnerCapacity = capacity.getCapacity();
+                }
+
             }
 
-            MakersInfoResponseDto makersInfo = makersMapper.toDto(makers, dailyCapacity, diningTypes);
+            MakersInfoResponseDto makersInfo = makersMapper.toDto(makers, dailyCapacity, diningTypes,
+                                                        morningCapacity, lunchCapacity, dinnerCapacity);
 
             makersInfoResponseDtoList.add(makersInfo);
 

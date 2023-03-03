@@ -1,9 +1,6 @@
 package co.kurrant.app.client_api.service.impl;
 
-import co.dalicious.domain.client.dto.ClientExcelSaveDto;
-import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
-import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
-import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
+import co.dalicious.domain.client.dto.*;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Employee;
 import co.dalicious.domain.client.entity.EmployeeHistory;
@@ -102,28 +99,30 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void insertMemberList(ClientUserWaitingListSaveRequestDto clientUserWaitingListSaveRequestDto) {
+    public void insertMemberList(ClientUserWaitingListSaveRequestDtoList dtoList) {
 
-        //code로 CorporationId 찾기 (=GroupId)
-        Corporation corporation = qCorporationRepository.findEntityByCode(clientUserWaitingListSaveRequestDto.getCode());
+            //code로 CorporationId 찾기 (=GroupId)
+            Corporation corporation = qCorporationRepository.findEntityByCode(dtoList.getCode());
 
-        for (int i = 0; i < clientUserWaitingListSaveRequestDto.getId().size(); i++) {
+            for (int i = 0; i < dtoList.getSaveUserList().size(); i++) {
 
-            String email = clientUserWaitingListSaveRequestDto.getEmail().get(i);
-            String phone = clientUserWaitingListSaveRequestDto.getEmail().get(i);
-            String name = clientUserWaitingListSaveRequestDto.getEmail().get(i);
-            //있는 ID의 경우 수정
-            Optional<Employee> optionalEmployee = employeeRepository.findById(clientUserWaitingListSaveRequestDto.getId().get(i));
-            if (optionalEmployee.isPresent()){
-                qEmployeeRepository.patchEmployee(clientUserWaitingListSaveRequestDto.getId().get(i),phone, email, name);
-            }else{
-                //ID가 없다면 생성
-                Employee employee = employeeMapper.toEntity(email, name, phone, corporation);
+                String email = dtoList.getSaveUserList().get(i).getEmail();
+                String phone = dtoList.getSaveUserList().get(i).getPhone();
+                String name = dtoList.getSaveUserList().get(i).getName();
+                //있는 ID의 경우 수정
+                Optional<Employee> optionalEmployee = employeeRepository.findById(dtoList.getSaveUserList().get(i).getId());
+                if (optionalEmployee.isPresent()){
+                    qEmployeeRepository.patchEmployee(dtoList.getSaveUserList().get(i).getId(),phone, email, name);
+                }else{
+                    //ID가 없다면 생성
+                    Employee employee = employeeMapper.toEntity(email, name, phone, corporation);
 
-                employeeRepository.save(employee);
+                    employeeRepository.save(employee);
+                }
+
             }
 
-        }
+
     }
     @Override
     public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
@@ -231,7 +230,7 @@ public class MemberServiceImpl implements MemberService {
         //해당 행의 번째 열 셀 생성
         headerCell = headerRow.createCell(3);
         headerCell.setCellValue("휴대폰 번호");
-
+/*
         //데이터 행 및 셀 생성후 데이터 넣어주기
         Row bodyRow = null;
         Cell bodyCell = null;
@@ -270,6 +269,11 @@ public class MemberServiceImpl implements MemberService {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM) //
                 .header("Content-Disposition", "attachment;filename=boardlist.xlsx") //
                 .body(new InputStreamResource(res));
+
+    }
+
+ */
+        return null;
     }
 
     @Override
