@@ -31,10 +31,11 @@ public class QMakersCapacityRepository {
                 .fetch();
     }
 
-    public void updateDailyCapacity(Integer dailyCapacity, BigInteger id) {
+    public void updateDailyCapacity(Integer diningType, Integer capacity, BigInteger id) {
         queryFactory.update(makersCapacity)
-                .set(makersCapacity.capacity, dailyCapacity)
-                .where(makersCapacity.makers.id.eq(id))
+                .set(makersCapacity.capacity, capacity)
+                .where(makersCapacity.makers.id.eq(id),
+                        makersCapacity.diningType.eq(DiningType.ofCode(diningType)))
                 .execute();
     }
 

@@ -17,7 +17,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -117,7 +119,7 @@ public class Spot {
                 .orElse(null);
     }
     
-    public Point getLocation(){
+    public Geometry getLocation(){
         return this.address.getLocation();
     }
 
@@ -127,7 +129,7 @@ public class Spot {
         this.diningTypes = group.getDiningTypes();
     }
 
-    public void updateSpot(SpotResponseDto spotResponseDto, List<DiningType> diningTypes) {
+    public void updateSpot(SpotResponseDto spotResponseDto, List<DiningType> diningTypes) throws ParseException {
         if(this.status == SpotStatus.INACTIVE) {
             this.status = SpotStatus.ACTIVE;
         }
@@ -136,7 +138,7 @@ public class Spot {
             throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
         }
         // TODO: Location 추가
-        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), spotResponseDto.getLocation());
         this.name = spotResponseDto.getSpotName();
         this.address = address;
         this.diningTypes = diningTypes;

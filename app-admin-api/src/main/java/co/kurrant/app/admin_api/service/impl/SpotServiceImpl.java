@@ -16,6 +16,7 @@ import co.kurrant.app.admin_api.service.SpotService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +53,7 @@ public class SpotServiceImpl implements SpotService {
 
     @Override
     @Transactional
-    public void saveSpotList(SaveSpotList saveSpotList) {
+    public void saveSpotList(SaveSpotList saveSpotList) throws ParseException {
         List<SpotResponseDto> spotResponseDtos = saveSpotList.getSaveSpotList();
         List<BigInteger> spotIds = spotResponseDtos.stream()
                 .map(SpotResponseDto::getSpotId)

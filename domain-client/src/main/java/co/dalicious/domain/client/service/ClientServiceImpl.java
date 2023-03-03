@@ -27,14 +27,17 @@ public class ClientServiceImpl implements ClientService{
 
     @Override
     // TODO: 백오피스 구현시 추후 수정 필요
-    public void createApartment(ApartmentRequestDto apartmentRequestDto){
+    public void createApartment(ApartmentRequestDto apartmentRequestDto) throws ParseException {
         CreateAddressRequestDto addressDto = apartmentRequestDto.getAddress();
         ApartmentRequestDto.ApartmentInfo apartmentDto = apartmentRequestDto.getApartmentInfo();
         List<ApartmentRequestDto.Meal> meals = apartmentRequestDto.getMeals();
 
-        Address address = Address.builder()
-                .createAddressRequestDto(addressDto)
-                .build();
+        String location = apartmentRequestDto.getAddress().getLatitude() + " " +apartmentRequestDto.getAddress().getLongitude();
+
+        Address address = new Address(apartmentRequestDto.getAddress().getZipCode(),
+                apartmentRequestDto.getAddress().getAddress1(),
+                apartmentRequestDto.getAddress().getAddress2(),
+                location);
 
         Apartment apartment = Apartment.builder()
                 .diningTypes(convertToEntityAttribute(apartmentDto.getDiningTypes()))
@@ -50,9 +53,8 @@ public class ClientServiceImpl implements ClientService{
             spotAddressDto.setZipCode(String.valueOf(10000 + i));
             spotAddressDto.setAddress1(addressDto.getAddress1());
             spotAddressDto.setAddress2("스팟" + (i + 1));
-            Address spotAddress = Address.builder()
-                    .createAddressRequestDto(spotAddressDto)
-                    .build();
+            String point = spotAddressDto.getLatitude() + " " + spotAddressDto.getLongitude();
+            Address spotAddress = new Address(spotAddressDto.getZipCode(), spotAddressDto.getAddress1(), spotAddressDto.getAddress2(), point);
             ApartmentSpot spot = ApartmentSpot.builder()
                     .group(apartment)
                     .diningTypes(convertToEntityAttribute(apartmentDto.getDiningTypes()))
@@ -77,14 +79,16 @@ public class ClientServiceImpl implements ClientService{
     }
 
     // TODO: 백오피스 구현시 추후 삭제
-    public void createCorporation(CorporationRequestDto corporationRequestDto) {
+    public void createCorporation(CorporationRequestDto corporationRequestDto) throws ParseException {
         CreateAddressRequestDto addressDto = corporationRequestDto.getAddress();
         CorporationRequestDto.CorporationInfo corporationInfo = corporationRequestDto.getCorporationInfo();
         List<CorporationRequestDto.Meal> meals = corporationRequestDto.getMeals();
 
-        Address address = Address.builder()
-                .createAddressRequestDto(addressDto)
-                .build();
+        String location = corporationRequestDto.getAddress().getLatitude() + " " + corporationRequestDto.getAddress().getLongitude();
+        Address address = new Address(corporationRequestDto.getAddress().getZipCode(),
+                                    corporationRequestDto.getAddress().getAddress1(),
+                                    corporationRequestDto.getAddress().getAddress2(),
+                                    location);
 
         Corporation corporation = Corporation.builder()
                 .name(corporationInfo.getName())

@@ -8,6 +8,7 @@ import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -80,7 +81,7 @@ public interface MakersMapper {
     }
 
     @Named("getLocation")
-    default String getLocation(Point location){
+    default String getLocation(Geometry location){
         if (location == null){
             return null;
         }
