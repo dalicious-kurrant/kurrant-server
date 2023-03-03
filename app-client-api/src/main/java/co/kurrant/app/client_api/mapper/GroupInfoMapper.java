@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 
-@Mapper(componentModel = "spring", imports = DateUtils.class)
+@Mapper(componentModel = "spring", imports = {DateUtils.class, DiningType.class})
 public interface GroupInfoMapper {
     @Mapping(source = "group.id", target = "id")
     @Mapping(source = "group", target = "code", qualifiedByName = "getGroupCode")
