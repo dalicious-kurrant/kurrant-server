@@ -83,7 +83,7 @@ public interface GroupMapper {
     @Mapping(source = "group.address.zipCode", target = "zipCode")
     @Mapping(source = "group.address.address1", target = "address1")
     @Mapping(source = "group.address.address2", target = "address2")
-    @Mapping( target = "location", expression = "java(String.valueOf(group.getAddress().getLocation()))")
+    @Mapping(source = "group", target = "location", qualifiedByName = "getLocation")
     @Mapping(source = "group.diningTypes", target = "diningTypes", qualifiedByName = "getDiningCodeList")
     @Mapping(source = "group.spots", target = "serviceDays", qualifiedByName = "serviceDayToString")
     @Mapping(source = "managerUser.id", target = "managerId")
@@ -100,6 +100,14 @@ public interface GroupMapper {
     @Mapping(source = "group", target = "minimumSpend", qualifiedByName = "getMinimumSpend")
     @Mapping(source = "group", target = "maximumSpend", qualifiedByName = "getMaximumSpend")
     GroupListDto.GroupInfoList toCorporationListDto(Group group, User managerUser);
+
+    @Named("getLocation")
+    default String getLocation(Group group) {
+        if(group.getAddress().getLocation() != null) {
+            return String.valueOf(group.getAddress().getLocation());
+        }
+        return null;
+    }
 
     @Named("getGroupDataType")
     default Integer getGroupDataType(Group group) {
@@ -216,9 +224,27 @@ public interface GroupMapper {
     @Mapping(source = "groupInfoList", target = "isGarbage", qualifiedByName = "isGarbage")
     @Mapping(source = "groupInfoList", target = "isHotStorage", qualifiedByName = "isHotStorage")
     @Mapping(source = "groupInfoList", target = "isSetting", qualifiedByName = "isSetting")
-    @Mapping(target = "minimumSpend", expression = "java(BigDecimal.valueOf(groupInfoList.getMinimumSpend()))")
-    @Mapping(target = "maximumSpend", expression = "java(BigDecimal.valueOf(groupInfoList.getMaximumSpend()))")
+    @Mapping(source = "groupInfoList", target = "minimumSpend", qualifiedByName = "setMinimumSpend")
+    @Mapping(source = "groupInfoList", target = "maximumSpend", qualifiedByName = "setMaximumSpend")
     Corporation groupInfoListToCorporationEntity(GroupExcelRequestDto groupInfoList, Address address);
+
+    @Named("setMinimumSpend")
+    default BigDecimal setMinimumSpend(GroupExcelRequestDto groupInfoList) {
+        if(groupInfoList.getMinimumSpend() != null) {
+            BigDecimal minimumSpend = BigDecimal.ZERO;
+            return minimumSpend.add(BigDecimal.valueOf(groupInfoList.getMinimumSpend()));
+        }
+        return null;
+    }
+
+    @Named("setMaximumSpend")
+    default BigDecimal setMaximumSpend(GroupExcelRequestDto groupInfoList) {
+        if(groupInfoList.getMaximumSpend() != null) {
+            BigDecimal maximumSpend = BigDecimal.ZERO;
+            return maximumSpend.add(BigDecimal.valueOf(groupInfoList.getMaximumSpend()));
+        }
+        return null;
+    }
 
     @Named("isMembershipSupport")
     default Boolean isMembershipSupport(GroupExcelRequestDto groupInfoList) {
