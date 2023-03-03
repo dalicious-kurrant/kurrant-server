@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.prefs.AbstractPreferences;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class})
 public interface SpotMapper {
@@ -151,6 +152,16 @@ public interface SpotMapper {
     @Mapping(source = "group.address", target = "address")
     @Mapping(source = "group.diningTypes", target = "diningTypes")
     @Mapping(source = "group", target = "group")
-    Spot toEntity(Group group);
+    CorporationSpot toCorporationSpotEntity(Group group);
+    @Mapping(source = "group.name", target = "name")
+    @Mapping(source = "group.address", target = "address")
+    @Mapping(source = "group.diningTypes", target = "diningTypes")
+    @Mapping(source = "group", target = "group")
+    ApartmentSpot toApartmentSpotEntity(Group group);
+    @Mapping(source = "group.name", target = "name")
+    @Mapping(source = "group.address", target = "address")
+    @Mapping(source = "group.diningTypes", target = "diningTypes")
+    @Mapping(source = "group", target = "group")
+    OpenGroupSpot toOpenGroupSpotEntity(Group group);
 }
 

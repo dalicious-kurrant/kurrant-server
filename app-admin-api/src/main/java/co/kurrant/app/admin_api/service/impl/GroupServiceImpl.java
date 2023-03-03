@@ -79,12 +79,12 @@ public class GroupServiceImpl implements GroupService {
             // group 없으면
             if(group == null) {
                 // 기업인지 - code 가 있으면 기업
-                if(GroupDataType.CORPORATION.equals(GroupDataType.ofCode(groupInfoList.getDType()))) {
+                if(GroupDataType.CORPORATION.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
                     Corporation corporation = groupMapper.groupInfoListToCorporationEntity(groupInfoList, address);
                     groupRepository.save(corporation);
 
                     // spot 생성
-                    CorporationSpot spot = (CorporationSpot) spotMapper.toEntity(corporation);
+                    CorporationSpot spot = spotMapper.toCorporationSpotEntity(corporation);
                     spotRepository.save(spot);
 
                     List<DiningType> spotDiningType = spot.getDiningTypes();
@@ -95,12 +95,12 @@ public class GroupServiceImpl implements GroupService {
                     }
                 }
                 // 아파트 인지 확인 - code 가 없으면 기업
-                else if(GroupDataType.APARTMENT.equals(GroupDataType.ofCode(groupInfoList.getDType()))){
+                else if(GroupDataType.APARTMENT.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))){
                     Apartment apartment = groupMapper.groupInfoListToApartmentEntity(groupInfoList, address);
                     groupRepository.save(apartment);
 
                     // spot 생성
-                    ApartmentSpot spot = (ApartmentSpot) spotMapper.toEntity(apartment);
+                    ApartmentSpot spot = spotMapper.toApartmentSpotEntity(apartment);
                     spotRepository.save(spot);
 
                     List<DiningType> spotDiningType = spot.getDiningTypes();
@@ -109,12 +109,12 @@ public class GroupServiceImpl implements GroupService {
                         mealInfoRepository.save(mealInfo);
                     }
                 }
-                else if(GroupDataType.OPEN_SPOT.equals(GroupDataType.ofCode(groupInfoList.getDType()))){
+                else if(GroupDataType.OPEN_SPOT.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))){
                     OpenGroup openGroup = groupMapper.groupInfoListToOpenGroupEntity(groupInfoList, address);
                     groupRepository.save(openGroup);
 
                     // spot 생성
-                    OpenGroupSpot spot = (OpenGroupSpot) spotMapper.toEntity(openGroup);
+                    OpenGroupSpot spot = spotMapper.toOpenGroupSpotEntity(openGroup);
                     spotRepository.save(spot);
 
                     List<DiningType> spotDiningType = spot.getDiningTypes();

@@ -11,6 +11,7 @@ import org.mapstruct.Named;
 import org.springframework.data.geo.Point;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -78,17 +79,22 @@ public interface GroupInfoMapper {
     @Named("serviceDayToString")
     default String serviceDayToString(List<Spot> spotList) {
         StringBuilder mealInfoBuilder = new StringBuilder();
-        HashSet<String> serviceDayList = new HashSet<>();
-        for(Spot spot : spotList) {
+        List<String> serviceDayList = new ArrayList<>();
+        for (Spot spot : spotList) {
             List<MealInfo> mealInfoList = spot.getMealInfos();
-            for(MealInfo mealInfo : mealInfoList) {
-                if(mealInfo.getServiceDays() == null || mealInfo.getServiceDays().isEmpty() || mealInfo.getServiceDays().isBlank()) continue;
-                List<String> useDays = List.of(mealInfo.getServiceDays().split(", "));
+            for (MealInfo mealInfo : mealInfoList) {
+                if (mealInfo.getServiceDays() == null || mealInfo.getServiceDays().isEmpty() || mealInfo.getServiceDays().isBlank()) {
+                    continue;
+                }
+                List<String> useDays = List.of(mealInfo.getServiceDays().split(", |,"));
                 serviceDayList.addAll(useDays);
             }
         }
-        serviceDayList.forEach(day -> mealInfoBuilder.append(day).append(", "));
-        return String.valueOf(mealInfoBuilder);
+        serviceDayList.stream().distinct().forEach(day -> mealInfoBuilder.append(day).append(", "));
+        if(mealInfoBuilder.length() != 0) {
+            return String.valueOf(mealInfoBuilder).substring(0, mealInfoBuilder.length() - 2);
+        }
+        return null;
     }
 
     @Named("getGroupCode")

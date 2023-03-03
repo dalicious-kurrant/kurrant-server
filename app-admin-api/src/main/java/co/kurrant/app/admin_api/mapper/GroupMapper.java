@@ -162,8 +162,11 @@ public interface GroupMapper {
             }
         }
         serviceDayList.stream().distinct().forEach(day -> mealInfoBuilder.append(day).append(", "));
-        if(mealInfoBuilder.length() == 0) return null;
-        return String.valueOf(mealInfoBuilder).substring(0, mealInfoBuilder.length() - 2);
+        if(mealInfoBuilder.length() != 0) {
+            return String.valueOf(mealInfoBuilder).substring(0, mealInfoBuilder.length() - 2);
+        }
+        return null;
+
     }
 
     @Named("getGroupCode")
