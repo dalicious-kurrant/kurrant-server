@@ -21,17 +21,14 @@ public class FoodListDto {
     private String foodImage;
     private String foodStatus;
     private BigDecimal defaultPrice;
+    private Integer membershipDiscount;
     private Integer makersDiscount;
     private Integer eventDiscount;
     private BigDecimal resultPrice;
     private String description;
     private List<String> foodTags;
 
-    public FoodListDto(
-            BigInteger foodId, String makersName, BigInteger makersId, String foodName, String foodImage, String foodStatus,
-            BigDecimal defaultPrice, Integer makersDiscount, Integer eventDiscount, BigDecimal resultPrice,
-            String description, List<String> foodTags) {
-
+    public FoodListDto(BigInteger foodId, String makersName, BigInteger makersId, String foodName, String foodImage, String foodStatus, BigDecimal defaultPrice, Integer membershipDiscount, Integer makersDiscount, Integer eventDiscount, BigDecimal resultPrice, String description, List<String> foodTags) {
         this.foodId = foodId;
         this.makersName = makersName;
         this.makersId = makersId;
@@ -39,11 +36,11 @@ public class FoodListDto {
         this.foodImage = foodImage;
         this.foodStatus = foodStatus;
         this.defaultPrice = defaultPrice;
+        this.membershipDiscount = membershipDiscount;
         this.makersDiscount = makersDiscount;
         this.eventDiscount = eventDiscount;
         this.resultPrice = resultPrice;
         this.description = description;
         this.foodTags = foodTags;
     }
-
 }
