@@ -55,6 +55,8 @@ public class GroupListDto {
         private BigDecimal morningSupportPrice;
         private BigDecimal lunchSupportPrice;
         private BigDecimal dinnerSupportPrice;
+        private BigDecimal minimumSpend;
+        private BigDecimal maximumSpend;
     }
 
     public static GroupListDto createGroupListDto(List<Group> groupList, List<GroupInfoList> groupInfoList) {
