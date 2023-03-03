@@ -12,7 +12,7 @@ import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.json.simple.parser.ParseException;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,7 +39,7 @@ public class PublicController {
 
     @Operation(summary = "결제 승인 API", description = "TOSS 결제 승인 API")
     @PostMapping("/payments/confirm")
-    public ResponseMessage paymentsConfirm(Authentication authentication, @RequestBody PaymentConfirmDto paymentConfirmDto) throws IOException, ParseException {
+    public ResponseMessage paymentsConfirm(Authentication authentication, @RequestBody PaymentConfirmDto paymentConfirmDto) throws IOException, ParseException, org.json.simple.parser.ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data( orderDailyFoodService.paymentsConfirm(paymentConfirmDto, securityUser))
@@ -51,7 +51,7 @@ public class PublicController {
 
     // TODO: 추후 백오피스 구현시 삭제
     @PostMapping("/apartment")
-    public ResponseMessage createApartment(@RequestBody ApartmentRequestDto apartmentRequestDto) {
+    public ResponseMessage createApartment(@RequestBody ApartmentRequestDto apartmentRequestDto) throws ParseException {
         clientService.createApartment(apartmentRequestDto);
         return ResponseMessage.builder()
                 .message("아파트 개설에 성공하셨습니다.")
@@ -59,7 +59,7 @@ public class PublicController {
     }
     // TODO: 추후 백오피스 구현시 삭제
     @PostMapping("/corporation")
-    public ResponseMessage createCorporation(@RequestBody CorporationRequestDto corporationRequestDto) {
+    public ResponseMessage createCorporation(@RequestBody CorporationRequestDto corporationRequestDto) throws ParseException {
         clientService.createCorporation(corporationRequestDto);
         return ResponseMessage.builder()
                 .message("기업 개설에 성공하셨습니다.")
