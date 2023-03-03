@@ -112,10 +112,10 @@ public interface GroupMapper {
     @Named("getGroupDataType")
     default Integer getGroupDataType(Group group) {
         Integer groupType = null;
-        if(group instanceof Corporation) return groupType = GroupDataType.CORPORATION.getCode();
-        else if(group instanceof Apartment) return groupType = GroupDataType.CORPORATION.getCode();
-        else if(group instanceof OpenGroup) return groupType = GroupDataType.CORPORATION.getCode();
-        throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
+        if(group instanceof Corporation ) groupType = GroupDataType.CORPORATION.getCode();
+        else if(group instanceof Apartment) groupType = GroupDataType.APARTMENT.getCode();
+        else if(group instanceof OpenGroup) groupType = GroupDataType.OPEN_SPOT.getCode();
+        return groupType;
     }
 
 
