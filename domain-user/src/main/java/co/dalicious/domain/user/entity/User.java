@@ -278,4 +278,11 @@ public class User {
                 .findAny()
                 .orElse(null);
     }
+
+    public void userSpotSetNull() {
+        List<UserSpot> userSpots = this.getUserSpots();
+        for (UserSpot userSpot : userSpots) {
+            userSpot.updateDefault(false);
+        }
+    }
 }

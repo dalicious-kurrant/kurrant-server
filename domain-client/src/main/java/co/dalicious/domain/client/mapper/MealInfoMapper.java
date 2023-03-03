@@ -16,8 +16,6 @@ import java.time.LocalTime;
 
 @Mapper(componentModel = "spring")
 public interface MealInfoMapper {
-
-
     @Mapping(source = "lastOrderTime", target = "lastOrderTime")
     @Mapping(source = "serviceDays", target = "serviceDays")
     @Mapping(source = "deliveryTime", target = "deliveryTime", qualifiedByName = "getDeliveryTime")

@@ -2,6 +2,7 @@ package co.dalicious.domain.client.repository;
 
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
@@ -52,10 +53,22 @@ public class QSpotRepository {
                 .execute();
     }
 
-    public List<Spot> findAll() {
-        return queryFactory.selectFrom(spot)
-                .where(spot.status.eq(SpotStatus.ACTIVE))
-                .fetch();
+    public List<Spot> findAllByStatus(Integer status) {
+        if(status == null) {
+            return queryFactory.selectFrom(spot)
+                    .fetch();
+        }
+        else if (status == 1) {
+            return queryFactory.selectFrom(spot)
+                    .where(spot.status.eq(SpotStatus.ACTIVE))
+                    .fetch();
+        }
+        else if(status == 0) {
+            return queryFactory.selectFrom(spot)
+                    .where(spot.status.eq(SpotStatus.INACTIVE))
+                    .fetch();
+        }
+        return null;
     }
 
     public List<Spot> findAllByIds(List<BigInteger> ids) {

@@ -28,36 +28,12 @@ import java.util.StringJoiner;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class})
 public interface SpotMapper {
-    @Mapping(source = "breakfastSupportPrice", target = "breakfastSupportPrice")
-    @Mapping(source = "lunchSupportPrice", target = "lunchSupportPrice")
-    @Mapping(source = "dinnerSupportPrice", target = "dinnerSupportPrice")
-    @Mapping(source = "breakfastDeliveryTime", target = "breakfastDeliveryTime")
-    @Mapping(source = "lunchDeliveryTime", target = "lunchDeliveryTime")
-    @Mapping(source = "dinnerDeliveryTime", target = "dinnerDeliveryTime")
-    @Mapping(source = "breakfastUseDays", target = "breakfastUseDays")
-    @Mapping(source = "lunchUseDays", target = "lunchUseDays")
-    @Mapping(source = "dinnerUseDays", target = "dinnerUseDays")
-    @Mapping(source = "diningTypeTemp", target = "diningType")
-    @Mapping(source = "spot.createdDateTime", target = "createdDateTime", qualifiedByName = "createdTimeFormat")
-    @Mapping(source = "spot.updatedDateTime", target = "updatedDateTime", qualifiedByName = "updatedTimeFormat")
-    @Mapping(source = "spot.address.location", target = "location", qualifiedByName = "getLocation")
-    @Mapping(source = "spot.address.zipCode", target = "zipCode")
-    @Mapping(source = "spot.address.address2", target = "address2")
-    @Mapping(source = "spot.address.address1", target = "address1")
-    @Mapping(source = "spot.group.name", target = "groupName")
-    @Mapping(source = "spot.group.id", target = "groupId")
-    @Mapping(source = "spot.name", target = "spotName")
-    @Mapping(source = "spot.id", target = "spotId")
-    SpotResponseDto toDto(Spot spot, String diningTypeTemp,
-                          String breakfastUseDays, String breakfastDeliveryTime, BigDecimal breakfastSupportPrice,
-                          String lunchUseDays, String lunchDeliveryTime, BigDecimal lunchSupportPrice,
-                          String dinnerUseDays, String dinnerDeliveryTime, BigDecimal dinnerSupportPrice, String lastOrderTime);
-
 
     default SpotResponseDto toDto(Spot spot) {
         SpotResponseDto spotResponseDto = new SpotResponseDto();
         boolean isCorporation = spot instanceof CorporationSpot;
         spotResponseDto.setSpotId(spot.getId());
+        spotResponseDto.setStatus(spot.getStatus().getCode());
         spotResponseDto.setSpotName(spot.getName());
         spotResponseDto.setGroupId(spot.getGroup().getId());
         spotResponseDto.setGroupName(spot.getGroup().getName());
@@ -68,15 +44,15 @@ public interface SpotMapper {
         spotResponseDto.setBreakfastLastOrderTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.MORNING).getLastOrderTime()));
         spotResponseDto.setBreakfastDeliveryTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.MORNING).getDeliveryTime()));
         spotResponseDto.setBreakfastUseDays(spot.getMealInfo(DiningType.MORNING) == null ? null : spot.getMealInfo(DiningType.MORNING).getServiceDays());
-        spotResponseDto.setBreakfastSupportPrice(spot.getMealInfo(DiningType.MORNING) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.MORNING)).getSupportPrice() : null);
+        spotResponseDto.setBreakfastSupportPrice(spot.getMealInfo(DiningType.MORNING) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.MORNING)).getSupportPrice() : BigDecimal.ZERO);
         spotResponseDto.setLunchLastOrderTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.LUNCH).getLastOrderTime()));
         spotResponseDto.setLunchDeliveryTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.LUNCH).getDeliveryTime()));
         spotResponseDto.setLunchUseDays(spot.getMealInfo(DiningType.LUNCH) == null ? null : spot.getMealInfo(DiningType.LUNCH).getServiceDays());
-        spotResponseDto.setLunchSupportPrice(spot.getMealInfo(DiningType.LUNCH) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.LUNCH)).getSupportPrice() : null);
+        spotResponseDto.setLunchSupportPrice(spot.getMealInfo(DiningType.LUNCH) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.LUNCH)).getSupportPrice() : BigDecimal.ZERO);
         spotResponseDto.setDinnerLastOrderTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.DINNER).getLastOrderTime()));
         spotResponseDto.setDinnerDeliveryTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.DINNER).getDeliveryTime()));
         spotResponseDto.setDinnerUseDays(spot.getMealInfo(DiningType.DINNER) == null ? null : spot.getMealInfo(DiningType.DINNER).getServiceDays());
-        spotResponseDto.setDinnerSupportPrice(spot.getMealInfo(DiningType.DINNER) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.DINNER)).getSupportPrice() : null);
+        spotResponseDto.setDinnerSupportPrice(spot.getMealInfo(DiningType.DINNER) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.DINNER)).getSupportPrice() : BigDecimal.ZERO);
         spotResponseDto.setCreatedDateTime(DateUtils.format(spot.getCreatedDateTime().toLocalDateTime().toLocalDate()));
         spotResponseDto.setUpdatedDateTime(DateUtils.format(spot.getUpdatedDateTime().toLocalDateTime().toLocalDate()));
 
@@ -114,6 +90,15 @@ public interface SpotMapper {
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
                     .serviceDays(useDays)
                     .build();
+        } else if (spot instanceof OpenGroupSpot) {
+            return OpenGroupMealInfo.builder()
+                    .spot(spot)
+                    .diningType(diningType)
+                    .lastOrderTime(DateUtils.stringToLocalTime(lastOrderTime))
+                    .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .serviceDays(useDays)
+                    .build();
+
         }
         return null;
     }

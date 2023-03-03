@@ -30,6 +30,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 @DynamicInsert
 @DynamicUpdate
@@ -148,9 +149,15 @@ public class Spot {
         this.diningTypes = diningTypes;
     }
 
-    public List<DiningType> getUpdatedDiningTypes() {
-        return this.getMealInfos().stream()
+    public void updatedDiningTypes(MealInfo morningMealInfo, MealInfo lunchMealInfo, MealInfo dinnerMealInfo) {
+        List<DiningType> newDiningTypes = Stream.of(morningMealInfo, lunchMealInfo, dinnerMealInfo)
+                .filter(Objects::nonNull)
                 .map(MealInfo::getDiningType)
                 .toList();
+        Set<DiningType> groupDiningTypes = new HashSet<>(this.getGroup().getDiningTypes());
+        if (!groupDiningTypes.containsAll(newDiningTypes)) {
+            throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+        }
+        updateDiningTypes(newDiningTypes);
     }
 }

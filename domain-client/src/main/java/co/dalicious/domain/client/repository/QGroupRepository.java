@@ -1,6 +1,8 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.OpenGroup;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
+
 
 @Repository
 @RequiredArgsConstructor
@@ -49,6 +52,12 @@ public class QGroupRepository {
     public List<Group> findAllByIds(Set<BigInteger> ids) {
         return queryFactory.selectFrom(group)
                 .where(group.id.in(ids))
+                .fetch();
+    }
+
+    public List<? extends Group> findAllOpenGroupAndApartment() {
+        return queryFactory.selectFrom(group)
+                .where(group.instanceOf(Apartment.class).or(group.instanceOf(OpenGroup.class)))
                 .fetch();
     }
 
