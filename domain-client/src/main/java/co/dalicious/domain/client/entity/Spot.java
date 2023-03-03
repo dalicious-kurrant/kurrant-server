@@ -123,8 +123,7 @@ public class Spot {
         return this.address.getLocation();
     }
 
-    public void updateSpot(GroupExcelRequestDto groupInfoList, Address address, Group group) {
-        this.name = groupInfoList.getName();
+    public void updateSpot(Address address, Group group) {
         this.address = address;
         this.diningTypes = group.getDiningTypes();
     }
