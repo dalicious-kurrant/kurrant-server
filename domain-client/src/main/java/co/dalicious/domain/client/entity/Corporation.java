@@ -112,7 +112,7 @@ public class Corporation extends Group{
         this.isGarbage = isGarbage;
         this.isHotStorage = isHotStorage;
         this.isSetting = isSetting;
-        this.minimumSpend = BigDecimal.valueOf(groupInfoList.getMinimumSpend());
-        this.maximumSpend = BigDecimal.valueOf(groupInfoList.getMaximumSpend());
+        this.minimumSpend = (groupInfoList.getMinimumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMinimumSpend());
+        this.maximumSpend = (groupInfoList.getMaximumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMaximumSpend());
     }
 }

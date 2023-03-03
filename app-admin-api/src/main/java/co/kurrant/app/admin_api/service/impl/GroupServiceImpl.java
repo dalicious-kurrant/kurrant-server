@@ -68,16 +68,21 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public void saveCorporationList(List<GroupExcelRequestDto> groupListDtoList) throws ParseException {
         Set<BigInteger> groupIdList = new HashSet<>();
-        for(GroupExcelRequestDto groupExcelRequestDto : groupListDtoList) groupIdList.add(groupExcelRequestDto.getId());
+        for(GroupExcelRequestDto groupExcelRequestDto : groupListDtoList) {
+            groupIdList.add(groupExcelRequestDto.getId());
+        }
         List<Group> groupList = qGroupRepository.findAllByIds(groupIdList);
         
         // 그룹이 있는지 찾아보기
         for(GroupExcelRequestDto groupInfoList : groupListDtoList) {
+            System.out.println("groupInfoList.getId() = " + groupInfoList.getId());
             Group group = groupList.stream().filter(groupMatch -> groupMatch.getId().equals(groupInfoList.getId())).findFirst().orElse(null);
+            System.out.println("group = " + group);
             Address address = new Address(String.valueOf(groupInfoList.getZipCode()), groupInfoList.getAddress1(), groupInfoList.getAddress2(), groupInfoList.getLocation());
 
             // group 없으면
             if(group == null) {
+                System.out.println("groupInfoList.getGroupType() = " + groupInfoList.getGroupType());
                 // 기업인지 - code 가 있으면 기업
                 if(GroupDataType.CORPORATION.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
                     Corporation corporation = groupMapper.groupInfoListToCorporationEntity(groupInfoList, address);
@@ -129,7 +134,10 @@ public class GroupServiceImpl implements GroupService {
             else {
                 List<DiningType> diningTypeList = new ArrayList<>();
                 List<String> integerList = groupInfoList.getDiningTypes();
-                for(String code : integerList) diningTypeList.add(DiningType.ofString(code));
+                for(String code : integerList) {
+                    System.out.println("code = " + code);
+                    diningTypeList.add(DiningType.ofString(code));
+                }
 
                 if(group instanceof Corporation corporation) {
                     Boolean isMembership = null;
@@ -166,7 +174,7 @@ public class GroupServiceImpl implements GroupService {
             List<Spot> spotList = corporation.getSpots();
             for(Spot spot : spotList) {
                 if(spot instanceof CorporationSpot corporationSpot) {
-                    corporationSpot.updateSpot(groupInfoList, address, group);
+                    corporationSpot.updateSpot(address, group);
                     spotRepository.save(corporationSpot);
                 }
 
@@ -184,7 +192,7 @@ public class GroupServiceImpl implements GroupService {
             List<Spot> spotList = apartment.getSpots();
             for(Spot spot : spotList) {
                 if(spot instanceof ApartmentSpot apartmentSpot) {
-                    apartmentSpot.updateSpot(groupInfoList, address, group);
+                    apartmentSpot.updateSpot(address, group);
                     spotRepository.save(apartmentSpot);
                 }
 
@@ -202,7 +210,7 @@ public class GroupServiceImpl implements GroupService {
             List<Spot> spotList = openGroup.getSpots();
             for(Spot spot : spotList) {
                 if(spot instanceof OpenGroupSpot openGroupSpot){
-                    openGroupSpot.updateSpot(groupInfoList, address, group);
+                    openGroupSpot.updateSpot(address, group);
                     spotRepository.save(openGroupSpot);
                 }
 

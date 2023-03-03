@@ -43,4 +43,9 @@ public class CorporationMealInfo extends MealInfo{
 
         this.supportPrice = supportPrice;
     }
+
+    public void updateMealInfo(CorporationMealInfo mealInfo) {
+        super.updateMealInfo(mealInfo);
+        this.supportPrice = mealInfo.getSupportPrice();
+    }
 }
