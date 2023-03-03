@@ -107,6 +107,10 @@ public class OrderUtil {
 
     public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
         BigDecimal totalPrice = BigDecimal.ZERO;
+        // 1. 배송비 추가
+        totalPrice = totalPrice.add(orderItemDailyFoodGroup.getDeliveryFee());
+
+        // 2. 할인된 상품 가격 추가
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
             if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)) {
                 totalPrice = totalPrice.add(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())));
@@ -114,7 +118,6 @@ public class OrderUtil {
         }
         BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
         totalPrice = totalPrice.subtract(usedSupportPrice);
-        totalPrice = totalPrice.add(orderItemDailyFoodGroup.getDeliveryFee());
 
         // 포인트 사용으로 인해 식사 일정별 환불 가능 금액이 주문 전체 금액이 더 작을 경우
         Order order = orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder();

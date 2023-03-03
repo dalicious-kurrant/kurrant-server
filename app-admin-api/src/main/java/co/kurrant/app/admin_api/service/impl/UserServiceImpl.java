@@ -182,7 +182,6 @@ public class UserServiceImpl implements UserService {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
                     }
-                    userGroupRepository.save(userGroup);
                 });
                 // 유저 내에 존재하지 않는 그룹은 추가
                 List<UserGroup> userGroups = nameToGroupMap.values().stream()
