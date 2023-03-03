@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.*;
@@ -277,5 +278,12 @@ public class User {
                 .filter(v -> v.getIsDefault().equals(true))
                 .findAny()
                 .orElse(null);
+    }
+
+    public void userSpotSetNull() {
+        List<UserSpot> userSpots = this.getUserSpots();
+        for (UserSpot userSpot : userSpots) {
+            userSpot.updateDefault(false);
+        }
     }
 }

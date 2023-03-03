@@ -8,7 +8,7 @@ import org.locationtech.jts.io.ParseException;
 import java.util.List;
 
 public interface SpotService {
-    List<SpotResponseDto> getAllSpotList();
+    List<SpotResponseDto> getAllSpotList(Integer status);
 
     void saveSpotList(SaveSpotList saveSpotList) throws ParseException;
 

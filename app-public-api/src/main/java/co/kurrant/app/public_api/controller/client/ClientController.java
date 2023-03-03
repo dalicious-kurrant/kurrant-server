@@ -33,12 +33,13 @@ public class ClientController {
                 .build();
     }
 
-    @Operation(summary = "고객사로 등록된 아파트 전체 조회", description = "고객사로 등록된 아파트들 전체를 조회한다.")
+    //TODO: 오픈 스팟 추가
+    @Operation(summary = "고객사로 등록된 오픈 그룹/아파트 전체 조회", description = "고객사로 등록된 오픈 그룹/아파트들 전체를 조회한다.")
     @GetMapping("/apartments")
-    public ResponseMessage getApartments(Authentication authentication) {
+    public ResponseMessage getOpenGroupsAndApartments(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(userClientService.getApartments(securityUser))
+                .data(userClientService.getOpenGroupsAndApartments(securityUser))
                 .message("아파트 전체 조회에 성공하셨습니다.")
                 .build();
     }
@@ -52,7 +53,7 @@ public class ClientController {
                 .build();
     }
 
-    @Operation(summary = "아파트 스팟 선택", description = "유저의 기본 스팟을 등록한다.")
+    @Operation(summary = "아파트 상세 스팟(호) 선택", description = "유저의 기본 스팟을 등록한다.")
     @PostMapping("/apartments/spots/{spotId}")
     public ResponseMessage saveUserSpot(Authentication authentication,
                                         @PathVariable BigInteger spotId,

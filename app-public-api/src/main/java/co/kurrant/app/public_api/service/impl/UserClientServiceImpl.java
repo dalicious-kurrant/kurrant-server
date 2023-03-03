@@ -1,8 +1,8 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.client.dto.ApartmentResponseDto;
+import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.mapper.ApartmentListMapper;
+import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
@@ -30,9 +30,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserClientServiceImpl implements UserClientService {
-    private final ApartmentListMapper apartmentMapper;
+    private final GroupResponseMapper groupResponseMapper;
     private final UserUtil userUtil;
-    private final ApartmentRepository apartmentRepository;
+    private final QGroupRepository qGroupRepository;
     private final UserGroupRepository userGroupRepository;
     private final SpotRepository spotRepository;
     private final UserSpotRepository userSpotRepository;
@@ -68,6 +68,7 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
+    //TODO: 오픈 스팟 수정
     public BigInteger selectUserSpot(SecurityUser securityUser, BigInteger spotId) {
         // 유저를 조회한다.
         User user = userUtil.getUser(securityUser);
@@ -89,32 +90,40 @@ public class UserClientServiceImpl implements UserClientService {
             // 아파트 스팟이 존재할 경우, 이전에 등록된 스팟과 일치하는지 확인한다.
             Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().equals(spot) && v.getClientType().equals(ClientType.APARTMENT)).findAny();
             if (userSpot.isPresent()) {
-                userSpots.forEach(us -> us.updateDefault(false));
+                user.userSpotSetNull();
                 userSpot.get().updateDefault(true);
                 return spot.getId();
             }
             return null;
         }
-        // 등록하려는 스팟이 기업일 경우
-        // 유저 스팟에서 기업 스팟이 존재하는지 확인한다.
-        Optional<UserSpot> corporationUser = userSpots.stream().filter(v -> v.getClientType().equals(ClientType.CORPORATION)).findAny();
-        // 기업이 존재할 경우 업데이트 한다.
-        if (corporationUser.isPresent()) {
-            UserSpot corporationUserSpot = corporationUser.get();
-            userSpots.forEach(us -> us.updateDefault(false));
-            if (!corporationUserSpot.getSpot().equals(spot)) {
-                corporationUserSpot.updateSpot(spot);
+        // 등록하려는 스팟이 기업/오픈그룹일 경우
+        // 유저 스팟에서 기업/오픈그룹 스팟이 존재하는지 확인한다.
+        Optional<UserSpot> optionalUserSpot = userSpots.stream().filter(v -> v.getClientType().equals(ClientType.CORPORATION) || v.getClientType().equals(ClientType.OPEN_GROUP)).findAny();
+        // 기업/오픈그룹이 존재할 경우 업데이트 한다.
+        if (optionalUserSpot.isPresent()) {
+            UserSpot userSpot = optionalUserSpot.get();
+            user.userSpotSetNull();
+            if (!userSpot.getSpot().equals(spot)) {
+                userSpot.updateSpot(spot);
             }
-            corporationUser.get().updateDefault(true);
+            optionalUserSpot.get().updateDefault(true);
             return spot.getId();
         }
-        // 기업 스팟이 존재하지 않을 경우 유저 스팟을 저장한다.
+        // 기업/오픈그룹 스팟이 존재하지 않을 경우 유저 스팟을 저장한다.
         else {
+            ClientType clientType = null;
+            if(spot instanceof  CorporationSpot) {
+                clientType = ClientType.CORPORATION;
+            }
+            else if(spot instanceof OpenGroupSpot) {
+                clientType = ClientType.OPEN_GROUP;
+            }
             UserSpot newUserSpot = UserSpot.builder()
                     .spot(spot)
                     .user(user)
-                    .clientType(ClientType.CORPORATION)
+                    .clientType(clientType)
                     .build();
+            user.userSpotSetNull();
             newUserSpot.updateDefault(true);
             userSpotRepository.save(newUserSpot);
             return spot.getId();
@@ -201,12 +210,12 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public List<ApartmentResponseDto> getApartments(SecurityUser securityUser) {
-        List<Apartment> apartments = apartmentRepository.findAll();
-        List<ApartmentResponseDto> apartmentResponseDtos = new ArrayList<>();
-        for (Apartment apartment : apartments) {
-            apartmentResponseDtos.add(apartmentMapper.toDto(apartment));
+    public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser) {
+        List<? extends Group> groups = qGroupRepository.findAllOpenGroupAndApartment();
+        List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
+        for (Group group : groups) {
+            openGroupResponseDtos.add(groupResponseMapper.toOpenGroupDto(group));
         }
-        return apartmentResponseDtos;
+        return openGroupResponseDtos;
     }
 }

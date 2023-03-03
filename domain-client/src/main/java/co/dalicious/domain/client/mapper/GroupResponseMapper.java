@@ -1,5 +1,7 @@
 package co.dalicious.domain.client.mapper;
 
+import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.*;
 import org.mapstruct.Mapper;
@@ -26,5 +28,13 @@ public interface GroupResponseMapper {
                     .build());
         }
         return spotDtoList;
+    }
+
+    @Mapping(source = "address", target = "address", qualifiedByName = "addressToString")
+    OpenGroupResponseDto toOpenGroupDto(Group group);
+
+    @Named("addressToString")
+    default String addressToString(Address address) {
+        return address.addressToString();
     }
 }

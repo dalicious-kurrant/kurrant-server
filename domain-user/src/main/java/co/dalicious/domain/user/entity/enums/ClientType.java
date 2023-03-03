@@ -1,11 +1,14 @@
 package co.dalicious.domain.user.entity.enums;
 
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.Getter;
 
 @Getter
 public enum ClientType {
     APARTMENT("아파트", 0),
-    CORPORATION("기업", 1);
+    CORPORATION("기업", 1),
+    OPEN_GROUP("오픈 그룹", 2),;
 
     private final String client;
     private final Integer code;
@@ -19,7 +22,8 @@ public enum ClientType {
         return switch (dbData) {
             case 0 -> APARTMENT;
             case 1 -> CORPORATION;
-            default -> throw new IllegalArgumentException("존재하지 않는 그룹입니다.");
+            case 2 -> OPEN_GROUP;
+            default -> throw new ApiException(ExceptionEnum.ENUM_NOT_FOUND);
         };
     }
 }

@@ -21,10 +21,10 @@ public class ClientController {
 
     @Operation(summary = "스팟정보 전체 조회", description = "존재하는 스팟을 모두 조회합니다.")
     @GetMapping("/spot/all")
-    public ResponseMessage getAllSpotList() {
+    public ResponseMessage getAllSpotList(@RequestParam(required = false) Integer status) {
         return ResponseMessage.builder()
                 .message("모든 스팟을 조회했습니다.")
-                .data(spotService.getAllSpotList())
+                .data(spotService.getAllSpotList(status))
                 .build();
     }
 

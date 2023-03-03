@@ -14,6 +14,8 @@ public class SpotResponseDto {
 
     @Schema(description = "스팟 아이디")
     private BigInteger spotId;
+    @Schema(description = "스팟 상태")
+    private Integer status;
     @Schema(description = "스팟 이름")
     private String spotName;
     @Schema(description = "그룹 아이디")

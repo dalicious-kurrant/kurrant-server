@@ -37,9 +37,9 @@ public class SpotServiceImpl implements SpotService {
     private final QGroupRepository qGroupRepository;
 
     @Override
-    public List<SpotResponseDto> getAllSpotList() {
+    public List<SpotResponseDto> getAllSpotList(Integer status) {
 
-        List<Spot> spotList = qSpotRepository.findAll();
+        List<Spot> spotList = qSpotRepository.findAllByStatus(status);
 
         List<SpotResponseDto> resultList = new ArrayList<>();
         for (Spot spot : spotList) {

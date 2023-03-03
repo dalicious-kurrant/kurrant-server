@@ -421,7 +421,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public List<SpotListResponseDto> getClients(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
-        // 그룹/스팟 정보 가져오기r
+        // 그룹/스팟 정보 가져오기
         List<UserGroup> userGroups = user.getGroups();
         // 그룹/스팟 리스트를 담아줄 Dto 생성하기
         List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
