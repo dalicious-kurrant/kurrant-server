@@ -10,7 +10,9 @@ import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.apache.commons.math3.analysis.function.Add;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -112,7 +114,7 @@ public interface SpotMapper {
     }
 
     @Named("getLocation")
-    default String getLocation(Point location) {
+    default String getLocation(Geometry location) {
         if (location == null) {
             return null;
         }
@@ -127,13 +129,14 @@ public interface SpotMapper {
     Spot toEntity(SpotResponseDto spotInfo, Address address, List<DiningType> diningTypes);
 
 
-    default Spot toEntity(SpotResponseDto spotInfo, Group group, List<DiningType> diningTypes) {
+    default Spot toEntity(SpotResponseDto spotInfo, Group group, List<DiningType> diningTypes) throws ParseException {
         Set<DiningType> groupDiningTypes = new HashSet<>(group.getDiningTypes());
         if (!groupDiningTypes.containsAll(diningTypes)) {
             throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
         }
         //TODO: Location 생성
-        Address address = new Address(spotInfo.getZipCode(), spotInfo.getAddress1(), spotInfo.getAddress2(), null);
+        String location = spotInfo.getLocation();
+        Address address = new Address(spotInfo.getZipCode(), spotInfo.getAddress1(), spotInfo.getAddress2(), location);
         if(group instanceof Apartment) return new ApartmentSpot(spotInfo.getSpotName(), address, diningTypes, group);
         if(group instanceof Corporation) return new CorporationSpot(spotInfo.getSpotName(), address, diningTypes, group);
         return null;

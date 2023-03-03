@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.food.dto.LocationTestDto;
 import co.dalicious.domain.food.dto.MakersCapacityDto;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
@@ -11,6 +12,7 @@ import co.dalicious.domain.food.mapper.MakersCapacityMapper;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Repository;
 
@@ -210,5 +212,12 @@ public class QMakersRepository {
         return queryFactory.selectFrom(makers)
                 .where(makers.id.in(makersId))
                 .fetch();
+    }
+
+    public void updateLocation(Geometry location, LocationTestDto locationTestDto) {
+        queryFactory.update(makers)
+                .set(makers.address.location, location)
+                .where(makers.id.eq(locationTestDto.getId()))
+                .execute();
     }
 }

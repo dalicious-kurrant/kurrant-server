@@ -16,6 +16,7 @@ import co.kurrant.app.admin_api.service.SpotService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,9 +38,9 @@ public class SpotServiceImpl implements SpotService {
     private final QGroupRepository qGroupRepository;
 
     @Override
-    public List<SpotResponseDto> getAllSpotList(Integer status) {
+    public List<SpotResponseDto> getAllSpotList() {
 
-        List<Spot> spotList = qSpotRepository.findAllByStatus(status);
+        List<Spot> spotList = qSpotRepository.findAll();
 
         List<SpotResponseDto> resultList = new ArrayList<>();
         for (Spot spot : spotList) {
@@ -52,7 +53,7 @@ public class SpotServiceImpl implements SpotService {
 
     @Override
     @Transactional
-    public void saveSpotList(SaveSpotList saveSpotList) {
+    public void saveSpotList(SaveSpotList saveSpotList) throws ParseException {
         List<SpotResponseDto> spotResponseDtos = saveSpotList.getSaveSpotList();
         List<BigInteger> spotIds = spotResponseDtos.stream()
                 .map(SpotResponseDto::getSpotId)
@@ -91,14 +92,12 @@ public class SpotServiceImpl implements SpotService {
                 if (dinnerMealInfo != null) {
                     mealInfoRepository.save(dinnerMealInfo);
                 }
-                spot.updateSpot(spotMap.get(spot));
-                spot.updatedDiningTypes(morningMealInfo, lunchMealInfo, dinnerMealInfo);
+                spot.updateSpot(spotMap.get(spot), spot.getUpdatedDiningTypes());
             }
             // CASE 2: 스팟에 식사 정보가 존재하지만, 요청값에 없는 경우
             else if (morningMealInfo == null && lunchMealInfo == null && dinnerMealInfo == null) {
                 mealInfoRepository.deleteAll(spot.getMealInfos());
-                spot.updateSpot(spotMap.get(spot));
-                spot.updatedDiningTypes(null, null, null);
+                spot.updateSpot(spotMap.get(spot), spot.getUpdatedDiningTypes());
             }
             // CASE 3: 스팟에 식사 정보가 존재하며 요청값에도 존재할 경우
             else {
@@ -140,8 +139,7 @@ public class SpotServiceImpl implements SpotService {
                         }
                     }
                 }
-                spot.updateSpot(spotMap.get(spot));
-                spot.updatedDiningTypes(morningMealInfo, lunchMealInfo, dinnerMealInfo);
+                spot.updateSpot(spotMap.get(spot), spot.getUpdatedDiningTypes());
             }
         }
 

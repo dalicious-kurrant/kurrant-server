@@ -67,7 +67,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public void saveCorporationList(List<GroupExcelRequestDto> groupListDtoList) {
+    public void saveCorporationList(List<GroupExcelRequestDto> groupListDtoList) throws ParseException {
         Set<BigInteger> groupIdList = new HashSet<>();
         for(GroupExcelRequestDto groupExcelRequestDto : groupListDtoList) groupIdList.add(groupExcelRequestDto.getId());
         List<Group> groupList = qGroupRepository.findAllByIds(groupIdList);

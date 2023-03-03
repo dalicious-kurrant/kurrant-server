@@ -17,7 +17,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -118,7 +120,7 @@ public class Spot {
                 .orElse(null);
     }
     
-    public Point getLocation(){
+    public Geometry getLocation(){
         return this.address.getLocation();
     }
 
@@ -128,16 +130,19 @@ public class Spot {
         this.diningTypes = group.getDiningTypes();
     }
 
-    public void updateSpot(SpotResponseDto spotResponseDto) {
+    public void updateSpot(SpotResponseDto spotResponseDto, List<DiningType> diningTypes) throws ParseException {
         if(this.status == SpotStatus.INACTIVE) {
             this.status = SpotStatus.ACTIVE;
         }
-
+        Set<DiningType> groupDiningTypes = new HashSet<>(this.getGroup().getDiningTypes());
+        if (!groupDiningTypes.containsAll(diningTypes)) {
+            throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+        }
         // TODO: Location 추가
-        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), spotResponseDto.getLocation());
         this.name = spotResponseDto.getSpotName();
-        this.status = SpotStatus.ofCode(spotResponseDto.getStatus());
         this.address = address;
+        this.diningTypes = diningTypes;
     }
 
     public void updateDiningTypes(List<DiningType> diningTypes) {

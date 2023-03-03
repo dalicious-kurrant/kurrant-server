@@ -1,7 +1,7 @@
 package co.kurrant.app.admin_api.controller.makers;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
+import co.dalicious.domain.food.dto.LocationTestDto;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
 import co.kurrant.app.admin_api.service.MakersService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,6 +31,15 @@ public class MakersController {
         return ResponseMessage.builder()
                 .message("메이커스 저장에 성공하였습니다.")
                 .build();
+    }
+
+
+    @PatchMapping("/location/test")
+    public ResponseMessage updateLocation(@RequestBody LocationTestDto locationTestDto) throws ParseException {
+        makersService.locationTest(locationTestDto);
+                return ResponseMessage.builder()
+                        .message("성공!")
+                        .build();
     }
 
 

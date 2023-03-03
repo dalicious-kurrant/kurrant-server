@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.food.dto.LocationTestDto;
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
@@ -11,14 +12,16 @@ import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QMakersCapacityRepository;
 
 import co.dalicious.domain.food.repository.QMakersRepository;
+import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.service.MakersService;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.math3.analysis.function.Add;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,7 +72,7 @@ public class MakersServiceImpl implements MakersService {
         for (SaveMakersRequestDto saveMakersRequestDto : saveMakersRequestDtoList.getSaveMakersRequestDto()) {
 
             //Address 생성
-            Address address = makeAddress(saveMakersRequestDto);
+            Address address = new Address(saveMakersRequestDto.getZipCode(), saveMakersRequestDto.getAddress1(), saveMakersRequestDto.getAddress2(), saveMakersRequestDto.getLocation());
 
             Optional<Makers> optionalMakers = makersRepository.findById(saveMakersRequestDto.getId());
             //이미 존재하면 수정
@@ -80,10 +83,16 @@ public class MakersServiceImpl implements MakersService {
                 //다이닝 타입별 가능수량을 계산해서 저장해준다.
 
                 if (makersCapacityList.size() != 3){
-                    Integer dailyCapacity = saveMakersRequestDto.getDailyCapacity() / makersCapacityList.size();
+
 
                     for (int i = 0; i < makersCapacityList.size(); i++) {
-                        qMakersCapacityRepository.updateDailyCapacity(dailyCapacity, saveMakersRequestDto.getId());
+
+                            Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
+                            Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
+                            System.out.println(capacity + " capa");
+                            qMakersCapacityRepository.updateDailyCapacity(diningType, capacity, saveMakersRequestDto.getId());
+
+
                     }
                 } else {
                     Integer divTen = saveMakersRequestDto.getDailyCapacity() / 10;
@@ -130,15 +139,14 @@ public class MakersServiceImpl implements MakersService {
         }
     }
 
-    private Address makeAddress(SaveMakersRequestDto saveMakersRequestDto) {
-        CreateAddressRequestDto createAddressRequestDto = new CreateAddressRequestDto();
-        createAddressRequestDto.setAddress1(saveMakersRequestDto.getAddress1());
-        createAddressRequestDto.setAddress2(saveMakersRequestDto.getAddress2());
-        createAddressRequestDto.setZipCode(saveMakersRequestDto.getZipCode());
+    @Override
+    public void locationTest(LocationTestDto locationTestDto) throws ParseException {
 
+        WKTReader wktReader = new WKTReader();
+        Geometry location = wktReader.read(locationTestDto.getLocation());
 
-        return Address.builder()
-                .createAddressRequestDto(createAddressRequestDto)
-                .build();
+        System.out.println(location + " location");
+
+        qMakersRepository.updateLocation(location, locationTestDto);
     }
 }

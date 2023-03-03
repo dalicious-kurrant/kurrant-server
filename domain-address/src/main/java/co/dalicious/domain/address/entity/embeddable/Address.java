@@ -5,10 +5,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -28,30 +27,30 @@ public class Address {
 
   @Column(name = "address_location")
   @Comment("위치")
-  private Point location;
+  private Geometry location;
 
   @Builder
-  public Address(CreateAddressRequestDto createAddressRequestDto){
+  public Address(CreateAddressRequestDto createAddressRequestDto) throws ParseException {
     this.zipCode = createAddressRequestDto.getZipCode();
     this.address1 = createAddressRequestDto.getAddress1();
     this.address2 = createAddressRequestDto.getAddress2();
-    this.location = (createAddressRequestDto.getLatitude() == null || createAddressRequestDto.getLongitude() == null) ?
-            null : createPoint(Double.valueOf(createAddressRequestDto.getLatitude()), Double.valueOf(createAddressRequestDto.getLongitude()));
+    this.location = createPoint(createAddressRequestDto.getLatitude() + " " + createAddressRequestDto.getLongitude());
   }
 
-  public Address(String zipCode, String address1, String address2, Point location) {
+
+  public Address(String zipCode, String address1, String address2, String location) throws ParseException {
     this.zipCode = zipCode;
     this.address1 = address1;
     this.address2 = address2;
-    this.location = location;
+    this.location = createPoint(location);
   }
 
   public String addressToString() {
     return this.address1 + " " + this.address2;
   }
 
-  public static Point createPoint(Double x, Double y)  {
-    GeometryFactory geometryFactory = new GeometryFactory();
-    return geometryFactory.createPoint(new Coordinate(x,y));
+  public static Geometry createPoint(String location) throws ParseException {
+    WKTReader wktReader = new WKTReader();
+    return wktReader.read("POINT("+location+")");
   }
 }
