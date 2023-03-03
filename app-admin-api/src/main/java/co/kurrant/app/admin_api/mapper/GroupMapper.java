@@ -9,6 +9,9 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.kurrant.app.admin_api.model.enums.GroupDataType;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import jdk.jfr.Name;
 import org.hibernate.query.criteria.internal.path.SetAttributeJoin;
 import org.mapstruct.*;
@@ -20,7 +23,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class})
+@Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class, BigDecimal.class})
 public interface GroupMapper {
     @Mapping(source = "id", target = "groupId")
     @Mapping(source = "name", target = "groupName")
@@ -74,6 +77,7 @@ public interface GroupMapper {
         return groupDto;
     }
     @Mapping(source = "group.id", target = "id")
+    @Mapping(source = "group", target = "groupType", qualifiedByName = "getGroupDataType")
     @Mapping(source = "group", target = "code", qualifiedByName = "getGroupCode")
     @Mapping(source = "group.name", target = "name")
     @Mapping(source = "group.address.zipCode", target = "zipCode")
@@ -96,6 +100,16 @@ public interface GroupMapper {
     @Mapping(source = "group", target = "minimumSpend", qualifiedByName = "getMinimumSpend")
     @Mapping(source = "group", target = "maximumSpend", qualifiedByName = "getMaximumSpend")
     GroupListDto.GroupInfoList toCorporationListDto(Group group, User managerUser);
+
+    @Named("getGroupDataType")
+    default Integer getGroupDataType(Group group) {
+        Integer groupType = null;
+        if(group instanceof Corporation) return groupType = GroupDataType.CORPORATION.getCode();
+        else if(group instanceof Apartment) return groupType = GroupDataType.CORPORATION.getCode();
+        else if(group instanceof OpenGroup) return groupType = GroupDataType.CORPORATION.getCode();
+        throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
+    }
+
 
     @Named("getMinimumSpend")
     default BigDecimal getMinimumSpend(Group group) {
@@ -239,19 +253,11 @@ public interface GroupMapper {
     @Mapping(source = "groupInfoList.employeeCount", target = "familyCount")
     Apartment groupInfoListToApartmentEntity(GroupExcelRequestDto groupInfoList, Address address);
 
-    @Mapping(target = "zipCode", expression = "java(String.valueOf(groupInfoList.getZipCode()))")
-    @Mapping(source ="groupInfoList.address1", target = "address1")
-    @Mapping(source ="groupInfoList.address2", target = "address2")
-    @Mapping(source ="groupInfoList", target = "latitude", qualifiedByName = "checkNull")
-    @Mapping(source ="groupInfoList", target = "longitude", qualifiedByName = "checkNull")
-    CreateAddressRequestDto createAddressDto(GroupExcelRequestDto groupInfoList);
-
-    @Named("checkNull")
-    default String checkNull(GroupExcelRequestDto groupInfoList) {
-        if(groupInfoList.getLocation() == null || groupInfoList.getLocation().isEmpty() || groupInfoList.getLocation().isBlank() || groupInfoList.getLocation().equals("null")) {
-            return null;
-        } else return groupInfoList.getLocation();
-    }
+    @Mapping(source = "address", target = "address")
+    @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
+    @Mapping(source = "groupInfoList.name", target = "name")
+    @Mapping(source = "groupInfoList.managerId", target = "managerId")
+    OpenGroup groupInfoListToOpenGroupEntity(GroupExcelRequestDto groupInfoList, Address address);
 
     @Named("getDiningType")
     default List<DiningType> getDiningType(List<String> diningTypeInteger) {

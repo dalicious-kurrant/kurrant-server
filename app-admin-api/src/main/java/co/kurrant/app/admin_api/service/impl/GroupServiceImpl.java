@@ -10,11 +10,10 @@ import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
-import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.mapper.CorporationMealInfoMapper;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
+import co.kurrant.app.admin_api.model.enums.GroupDataType;
 import co.kurrant.app.admin_api.service.GroupService;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -24,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -76,17 +74,17 @@ public class GroupServiceImpl implements GroupService {
         // 그룹이 있는지 찾아보기
         for(GroupExcelRequestDto groupInfoList : groupListDtoList) {
             Group group = groupList.stream().filter(groupMatch -> groupMatch.getId().equals(groupInfoList.getId())).findFirst().orElse(null);
-            Address address = Address.builder().createAddressRequestDto(groupMapper.createAddressDto(groupInfoList)).build();
+            Address address = new Address(String.valueOf(groupInfoList.getZipCode()), groupInfoList.getAddress1(), groupInfoList.getAddress2(), groupInfoList.getLocation());
 
             // group 없으면
             if(group == null) {
                 // 기업인지 - code 가 있으면 기업
-                if(groupInfoList.getCode() != null && !groupInfoList.getCode().isEmpty() && !groupInfoList.getCode().isBlank()) {
+                if(GroupDataType.CORPORATION.equals(GroupDataType.ofCode(groupInfoList.getDType()))) {
                     Corporation corporation = groupMapper.groupInfoListToCorporationEntity(groupInfoList, address);
                     groupRepository.save(corporation);
 
                     // spot 생성
-                    Spot spot = spotMapper.toEntity(corporation);
+                    CorporationSpot spot = (CorporationSpot) spotMapper.toEntity(corporation);
                     spotRepository.save(spot);
 
                     List<DiningType> spotDiningType = spot.getDiningTypes();
@@ -97,12 +95,12 @@ public class GroupServiceImpl implements GroupService {
                     }
                 }
                 // 아파트 인지 확인 - code 가 없으면 기업
-                else{
+                else if(GroupDataType.APARTMENT.equals(GroupDataType.ofCode(groupInfoList.getDType()))){
                     Apartment apartment = groupMapper.groupInfoListToApartmentEntity(groupInfoList, address);
                     groupRepository.save(apartment);
 
                     // spot 생성
-                    Spot spot = spotMapper.toEntity(apartment);
+                    ApartmentSpot spot = (ApartmentSpot) spotMapper.toEntity(apartment);
                     spotRepository.save(spot);
 
                     List<DiningType> spotDiningType = spot.getDiningTypes();
@@ -110,6 +108,21 @@ public class GroupServiceImpl implements GroupService {
                         ApartmentMealInfo mealInfo = mealInfoMapper.toApartmentMealInfoEntity(groupInfoList, spot, diningType, "00:00");
                         mealInfoRepository.save(mealInfo);
                     }
+                }
+                else if(GroupDataType.OPEN_SPOT.equals(GroupDataType.ofCode(groupInfoList.getDType()))){
+                    OpenGroup openGroup = groupMapper.groupInfoListToOpenGroupEntity(groupInfoList, address);
+                    groupRepository.save(openGroup);
+
+                    // spot 생성
+                    OpenGroupSpot spot = (OpenGroupSpot) spotMapper.toEntity(openGroup);
+                    spotRepository.save(spot);
+
+                    List<DiningType> spotDiningType = spot.getDiningTypes();
+                    for(DiningType diningType : spotDiningType) {
+                        OpenGroupMealInfo mealInfo = mealInfoMapper.toOpenGroupMealInfoEntity(groupInfoList, spot, diningType, "00:00");
+                        mealInfoRepository.save(mealInfo);
+                    }
+
                 }
             }
             // group 있으면
@@ -130,6 +143,10 @@ public class GroupServiceImpl implements GroupService {
                     apartment.updateApartment(groupInfoList, address, diningTypeList);
                     updateGroupData(groupInfoList, address, apartment);
                 }
+                else if(group instanceof OpenGroup openGroup) {
+                    openGroup.updateOpenSpot(groupInfoList, address, diningTypeList);
+                    updateGroupData(groupInfoList, address, openGroup);
+                }
             }
         }
 
@@ -148,14 +165,17 @@ public class GroupServiceImpl implements GroupService {
             // 하위 스팟의 모든 내용을 업데이트
             List<Spot> spotList = corporation.getSpots();
             for(Spot spot : spotList) {
-                spot.updateSpot(groupInfoList, address, group);
-                spotRepository.save(spot);
+                if(spot instanceof CorporationSpot corporationSpot) {
+                    corporationSpot.updateSpot(groupInfoList, address, group);
+                    spotRepository.save(corporationSpot);
+                }
 
                 // service days update
                 List<MealInfo> mealInfoList = spot.getMealInfos();
                 for(MealInfo mealInfo : mealInfoList)
                     if(mealInfo instanceof CorporationMealInfo corporationMealInfo) {
                         corporationMealInfo.updateCorporationMealInfo(groupInfoList);
+                        mealInfoRepository.save(corporationMealInfo);
                     }
             }
         }
@@ -163,14 +183,35 @@ public class GroupServiceImpl implements GroupService {
             // 하위 스팟의 모든 내용을 업데이트
             List<Spot> spotList = apartment.getSpots();
             for(Spot spot : spotList) {
-                spot.updateSpot(groupInfoList, address, group);
-                spotRepository.save(spot);
+                if(spot instanceof ApartmentSpot apartmentSpot) {
+                    apartmentSpot.updateSpot(groupInfoList, address, group);
+                    spotRepository.save(apartmentSpot);
+                }
 
                 // service days update
                 List<MealInfo> mealInfoList = spot.getMealInfos();
                 for(MealInfo mealInfo : mealInfoList)
                     if(mealInfo instanceof ApartmentMealInfo apartmentMealInfo) {
                         apartmentMealInfo.updateApartmentMealInfo(groupInfoList);
+                        mealInfoRepository.save(apartmentMealInfo);
+                    }
+            }
+        }
+        else if(group instanceof OpenGroup openGroup) {
+            // 하위 스팟의 모든 내용을 업데이트
+            List<Spot> spotList = openGroup.getSpots();
+            for(Spot spot : spotList) {
+                if(spot instanceof OpenGroupSpot openGroupSpot){
+                    openGroupSpot.updateSpot(groupInfoList, address, group);
+                    spotRepository.save(openGroupSpot);
+                }
+
+                // service days update
+                List<MealInfo> mealInfoList = spot.getMealInfos();
+                for(MealInfo mealInfo : mealInfoList)
+                    if(mealInfo instanceof OpenGroupMealInfo openGroupMealInfo) {
+                        openGroupMealInfo.updateOpenGroupMealInfo(groupInfoList);
+                        mealInfoRepository.save(openGroupMealInfo);
                     }
             }
         }

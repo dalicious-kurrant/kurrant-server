@@ -36,6 +36,7 @@ public class GroupListDto {
     @Setter
     public static class GroupInfoList {
         private BigInteger id;
+        private Integer groupType;
         private String code;
         private String name;
         private String zipCode;

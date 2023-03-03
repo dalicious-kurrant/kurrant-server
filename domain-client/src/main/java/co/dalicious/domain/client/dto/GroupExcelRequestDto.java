@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 public class GroupExcelRequestDto {
     private BigInteger id;
+    private Integer dType;
     private String code;
     private String name;
     private Integer zipCode;
