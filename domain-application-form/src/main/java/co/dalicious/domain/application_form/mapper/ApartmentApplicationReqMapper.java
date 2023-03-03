@@ -1,7 +1,10 @@
 package co.dalicious.domain.application_form.mapper;
 
+import co.dalicious.domain.address.dto.CreateAddressRequestDto;
+import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.entity.ApartmentApplicationForm;
+import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -13,7 +16,7 @@ public interface ApartmentApplicationReqMapper {
     @Mapping(source = "user.name", target = "applierName")
     @Mapping(source = "user.phone", target = "phone")
     @Mapping(source = "user.email", target = "email")
-    @Mapping(source = "address", target = "address")
+    @Mapping(source = "address", target = "address", qualifiedByName = "getAddress")
     @Mapping(target = "progressStatus", constant = "APPLY")
     @Mapping(source = "apartmentInfo.apartmentName", target = "apartmentName")
     @Mapping(source = "apartmentInfo.serviceStartDate", target = "serviceStartDate", qualifiedByName = "stringToLocalDate")
@@ -27,4 +30,18 @@ public interface ApartmentApplicationReqMapper {
                 Integer.parseInt(serviceDate.substring(4, 6)),
                 Integer.parseInt(serviceDate.substring(6, 8)));
     }
+
+    @Named("getAddress")
+    default Address getAddress(CreateAddressRequestDto createAddressRequestDto) {
+        String location = createAddressRequestDto.getLatitude() + " " + createAddressRequestDto.getLongitude();
+        try {
+            return new Address(createAddressRequestDto.getZipCode(),
+                                createAddressRequestDto.getAddress1(),
+                            createAddressRequestDto.getAddress2(),
+                            location);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

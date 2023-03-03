@@ -34,7 +34,8 @@ public class Address {
     this.zipCode = createAddressRequestDto.getZipCode();
     this.address1 = createAddressRequestDto.getAddress1();
     this.address2 = createAddressRequestDto.getAddress2();
-    this.location = createPoint(createAddressRequestDto.getLatitude() + " " + createAddressRequestDto.getLongitude());
+    this.location = (createAddressRequestDto.getLatitude() == null || createAddressRequestDto.getLongitude() == null) ?
+            null : createPoint(createAddressRequestDto.getLatitude() + " " + createAddressRequestDto.getLongitude());
   }
 
 
