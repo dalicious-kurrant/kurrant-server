@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.dto.ClientExcelSaveDto;
 import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
+import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDtoList;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.service.MemberService;
@@ -72,8 +73,8 @@ public class MemberController {
   @Operation(summary = "저장하기", description = "수정사항을 저장한다.")
   @ResponseStatus(HttpStatus.OK)
   @PostMapping("")
-  public ResponseMessage insertMemberList(@RequestBody ClientUserWaitingListSaveRequestDto clientUserWaitingListSaveRequestDto){
-    memberService.insertMemberList(clientUserWaitingListSaveRequestDto);
+  public ResponseMessage insertMemberList(@RequestBody ClientUserWaitingListSaveRequestDtoList clientUserWaitingListSaveRequestDtoList){
+    memberService.insertMemberList(clientUserWaitingListSaveRequestDtoList);
     return ResponseMessage.builder()
             .message("저장에 성공하였습니다.")
             .build();

@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.ClientExcelSaveDtoList;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
+import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDtoList;
 import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
@@ -30,7 +31,7 @@ public interface MemberService {
 
     ResponseEntity<InputStreamResource> exportExcelForWaitingUserList(HttpServletResponse response, ClientUserWaitingListSaveRequestDto exportExcelWaitngUserListRequestDto) throws IOException;
 
-    void insertMemberList(ClientUserWaitingListSaveRequestDto clientUserWaitingListSaveRequestDto);
+    void insertMemberList(ClientUserWaitingListSaveRequestDtoList clientUserWaitingListSaveRequestDtoList);
 
     void insertMemberListByExcel(ClientExcelSaveDtoList clientExcelSaveDtoList);
 

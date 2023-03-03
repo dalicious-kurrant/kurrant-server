@@ -32,6 +32,10 @@ public interface MakersMapper {
                 .collect(Collectors.toList());
     }
 
+
+    @Mapping(source = "dinnerCapacity", target = "dinnerCapacity")
+    @Mapping(source = "lunchCapacity", target = "lunchCapacity")
+    @Mapping(source = "morningCapacity", target = "morningCapacity")
     @Mapping(source = "diningTypes", target = "diningTypes")
     @Mapping(source = "makers.address.location", target = "location", qualifiedByName = "getLocation")
     @Mapping(source = "makers.address.address2", target = "address2")
@@ -61,7 +65,8 @@ public interface MakersMapper {
     @Mapping(source = "makers.name", target = "name")
     @Mapping(source = "makers.code", target = "code")
     @Mapping(source = "makers.id", target = "id")
-    MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<String> diningTypes);
+    MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<String> diningTypes,
+                                Integer morningCapacity, Integer lunchCapacity, Integer dinnerCapacity);
 
 
 
