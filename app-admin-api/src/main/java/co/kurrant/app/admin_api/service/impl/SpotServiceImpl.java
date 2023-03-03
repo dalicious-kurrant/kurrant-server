@@ -114,7 +114,11 @@ public class SpotServiceImpl implements SpotService {
                     if (updatedMealInfos.containsKey(diningType)) {
                         MealInfo updatedMealInfo = updatedMealInfos.get(diningType);
                         if (updatedMealInfo != null) {
-                            mealInfo.updateMealInfo(updatedMealInfo);
+                            if(updatedMealInfo instanceof CorporationMealInfo corporationMealInfo) {
+                                ((CorporationMealInfo) mealInfo).updateMealInfo(corporationMealInfo);
+                            } else {
+                                mealInfo.updateMealInfo(updatedMealInfo);
+                            }
                         } else {
                             mealInfoRepository.delete(mealInfo);
                         }
