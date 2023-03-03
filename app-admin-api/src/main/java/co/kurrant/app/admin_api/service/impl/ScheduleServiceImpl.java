@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
@@ -20,17 +21,14 @@ import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
-import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDailyFoodDto;
 import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
-import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.kurrant.app.admin_api.dto.schedules.ScheduleResponseDto;
 import co.kurrant.app.admin_api.mapper.ExcelPresetDailyFoodMapper;
 import co.kurrant.app.admin_api.service.ScheduleService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

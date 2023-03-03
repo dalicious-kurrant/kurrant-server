@@ -36,6 +36,7 @@ public class GroupListDto {
     @Setter
     public static class GroupInfoList {
         private BigInteger id;
+        private Integer groupType;
         private String code;
         private String name;
         private String zipCode;
@@ -55,6 +56,8 @@ public class GroupListDto {
         private BigDecimal morningSupportPrice;
         private BigDecimal lunchSupportPrice;
         private BigDecimal dinnerSupportPrice;
+        private BigDecimal minimumSpend;
+        private BigDecimal maximumSpend;
     }
 
     public static GroupListDto createGroupListDto(List<Group> groupList, List<GroupInfoList> groupInfoList) {

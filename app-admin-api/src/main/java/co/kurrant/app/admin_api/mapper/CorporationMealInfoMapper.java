@@ -1,10 +1,7 @@
 package co.kurrant.app.admin_api.mapper;
 
 
-import co.dalicious.domain.client.entity.ApartmentMealInfo;
-import co.dalicious.domain.client.entity.CorporationMealInfo;
-import co.dalicious.domain.client.entity.MealInfo;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
@@ -37,6 +34,14 @@ public interface CorporationMealInfoMapper {
     @Mapping(source = "spot", target = "spot")
     @Mapping(target = "membershipBenefitTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
     ApartmentMealInfo toApartmentMealInfoEntity(GroupExcelRequestDto groupInfoList, Spot spot, DiningType diningType, String defaultTime);
+
+    @Mapping(source = "diningType", target = "diningType")
+    @Mapping(target = "deliveryTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
+    @Mapping(target = "lastOrderTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
+    @Mapping(source = "groupInfoList.serviceDays", target = "serviceDays")
+    @Mapping(source = "spot", target = "spot")
+    @Mapping(target = "membershipBenefitTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
+    OpenGroupMealInfo toOpenGroupMealInfoEntity(GroupExcelRequestDto groupInfoList, Spot spot, DiningType diningType, String defaultTime);
 
     default BigDecimal getSupportPrice(GroupExcelRequestDto groupInfoList, DiningType diningType) {
         BigDecimal supportPrice = BigDecimal.ZERO;

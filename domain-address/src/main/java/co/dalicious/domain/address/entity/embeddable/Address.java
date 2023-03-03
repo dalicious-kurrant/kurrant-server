@@ -53,6 +53,7 @@ public class Address {
 
   public static Geometry createPoint(String location) throws ParseException {
     WKTReader wktReader = new WKTReader();
+    if(location == null) return null;
     return wktReader.read("POINT("+location+")");
   }
 }
