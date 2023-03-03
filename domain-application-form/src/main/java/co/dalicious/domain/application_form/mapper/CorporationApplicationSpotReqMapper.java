@@ -7,6 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +16,7 @@ public interface CorporationApplicationSpotReqMapper {
     @Mapping(source = "spotName", target = "name")
     @Mapping(source = "address", target = "address")
     @Mapping(source = "diningTypes", target = "diningTypes", qualifiedByName = "codeToDiningType")
-    CorporationApplicationFormSpot toEntity(CorporationSpotRequestDto corporationApplicationFormSpot);
+    CorporationApplicationFormSpot toEntity(CorporationSpotRequestDto corporationApplicationFormSpot) throws ParseException;
 
     @Named("codeToDiningType")
     default List<DiningType> codeToDiningType(List<Integer> diningTypes) {
