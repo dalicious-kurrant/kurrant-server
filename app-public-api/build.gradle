@@ -14,6 +14,7 @@ dependencies {
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation'
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
 	implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.6.11'
+	implementation 'org.hibernate:hibernate-spatial'
 
 	implementation 'com.querydsl:querydsl-jpa:4.4.0'
 	implementation "com.querydsl:querydsl-core:4.4.0"
