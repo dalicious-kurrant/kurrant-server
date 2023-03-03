@@ -39,7 +39,7 @@ public class QEmployeeRepository {
                 .set(employee.email, email)
                 .set(employee.phone, phone)
                 .set(employee.name, name)
-                .where(employee.id.eq(id))
+                .where(employee.id.eq(id).or(employee.email.eq(email)))
                 .execute();
     }
 }

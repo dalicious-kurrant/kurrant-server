@@ -111,7 +111,8 @@ public class MemberServiceImpl implements MemberService {
                 String name = dtoList.getSaveUserList().get(i).getName();
                 //있는 ID의 경우 수정
                 Optional<Employee> optionalEmployee = employeeRepository.findById(dtoList.getSaveUserList().get(i).getId());
-                if (optionalEmployee.isPresent()){
+                List<Employee> employees = employeeRepository.findAllByEmail(email);
+                if (optionalEmployee.isPresent() || employees.size() != 0){
                     qEmployeeRepository.patchEmployee(dtoList.getSaveUserList().get(i).getId(),phone, email, name);
                 }else{
                     //ID가 없다면 생성
