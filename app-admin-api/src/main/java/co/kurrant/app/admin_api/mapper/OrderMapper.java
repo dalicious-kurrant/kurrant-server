@@ -27,7 +27,7 @@ public interface OrderMapper {
     @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getDailyFood().getServiceDate()))")
     @Mapping(source = "dailyFood.food.makers.name", target = "makers")
     @Mapping(source = "orderStatus.orderStatus", target = "orderStatus")
-    @Mapping(source = "dailyFood.food.name", target = "foodName")
+    @Mapping(source = "name", target = "foodName")
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getOrderItemTotalPrice())")
     @Mapping(source = "count", target = "count")
     @Mapping(source = "order.user.name", target = "userName")
@@ -41,7 +41,7 @@ public interface OrderMapper {
 
     @Mapping(source = "id", target = "orderItemDailyFoodId")
     @Mapping(source = "dailyFood.food.makers.name", target = "makers")
-    @Mapping(source = "dailyFood.food.name", target = "foodName")
+    @Mapping(source = "name", target = "foodName")
     @Mapping(target = "discountedPrice", expression = "java(orderItemDailyFood.getOrderItemTotalPrice())")
     @Mapping(source = "count", target = "count")
     @Mapping(source = "orderStatus.orderStatus", target = "orderStatus")
@@ -160,7 +160,7 @@ public interface OrderMapper {
             orderItemDailyFoodGroupDto.setDiningType(orderItemDailyFoodGroup.getDiningType().getDiningType());
             orderItemDailyFoodGroupDto.setTotalPrice(orderItemDailyFoodGroup.getTotalPriceByGroup());
             orderItemDailyFoodGroupDto.setSupportPrice(orderItemDailyFoodGroup.getUsingSupportPrice());
-            orderItemDailyFoodGroupDto.setPayPrice(OrderUtil.getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup));
+            orderItemDailyFoodGroupDto.setPayPrice(orderItemDailyFoodGroup.getPayPrice());
             orderItemDailyFoodGroupDto.setDeliveryPrice((orderItemDailyFoodGroup.getOrderStatus() != OrderStatus.CANCELED) ? orderItemDailyFoodGroup.getDeliveryFee() : BigDecimal.ZERO);
             orderItemDailyFoodGroupDto.setOrderItemDailyFoods(orderItemDailyFoodGroupItemsToDtos(orderItemDailyFoodGroup.getOrderDailyFoods()));
 

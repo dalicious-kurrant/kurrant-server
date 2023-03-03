@@ -3,6 +3,7 @@ package co.dalicious.domain.order.entity;
 import co.dalicious.domain.order.converter.OrderStatusConverter;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -86,10 +87,33 @@ public class OrderItemDailyFoodGroup {
         if(this.orderStatus.equals(OrderStatus.CANCELED)) return totalPrice;
 
         for (OrderItemDailyFood orderDailyFood : this.orderDailyFoods) {
-            totalPrice = totalPrice.add((OrderStatus.completePayment().contains(orderDailyFood.getOrderStatus())) ? orderDailyFood.getDiscountedPrice() : BigDecimal.ZERO);
+            totalPrice = totalPrice.add((OrderStatus.completePayment().contains(orderDailyFood.getOrderStatus())) ? orderDailyFood.getOrderItemTotalPrice() : BigDecimal.ZERO);
         }
         totalPrice = totalPrice.add(this.deliveryFee);
-        totalPrice = totalPrice.subtract(getUsingSupportPrice());
+        return totalPrice;
+    }
+
+    public BigDecimal getPayPrice() {
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        // 1. 배송비 추가
+        totalPrice = totalPrice.add(this.getDeliveryFee());
+
+        // 2. 할인된 상품 가격 추가
+        for (OrderItemDailyFood orderItemDailyFood : this.getOrderDailyFoods()) {
+            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+                totalPrice = totalPrice.add(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())));
+            }
+        }
+        // 3. 지원금 사용 가격 제외
+        BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(this.getUserSupportPriceHistories());
+        totalPrice = totalPrice.subtract(usedSupportPrice);
+
+        // 예외. 포인트 사용으로 인해 식사 일정별 환불 가능 금액이 주문 전체 금액이 더 작을 경우
+        Order order = this.getOrderDailyFoods().get(0).getOrder();
+        if (order.getTotalPrice().compareTo(totalPrice) < 0) {
+            return order.getTotalPrice();
+        }
+
         return totalPrice;
     }
 }

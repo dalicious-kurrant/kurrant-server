@@ -116,10 +116,11 @@ public class OrderUtil {
                 totalPrice = totalPrice.add(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())));
             }
         }
+        // 3. 지원금 사용 가격 제외
         BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
         totalPrice = totalPrice.subtract(usedSupportPrice);
 
-        // 포인트 사용으로 인해 식사 일정별 환불 가능 금액이 주문 전체 금액이 더 작을 경우
+        // 예외. 포인트 사용으로 인해 식사 일정별 환불 가능 금액이 주문 전체 금액이 더 작을 경우
         Order order = orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder();
         if (order.getTotalPrice().compareTo(totalPrice) < 0) {
             return order.getTotalPrice();
