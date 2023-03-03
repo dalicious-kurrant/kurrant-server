@@ -20,11 +20,13 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class MakersServiceImpl implements MakersService {
@@ -79,8 +81,9 @@ public class MakersServiceImpl implements MakersService {
 
                 if (makersCapacityList.size() != 3){
                     Integer dailyCapacity = saveMakersRequestDto.getDailyCapacity() / makersCapacityList.size();
+
                     for (int i = 0; i < makersCapacityList.size(); i++) {
-                        qMakersRepository.updateDailyCapacity(dailyCapacity, saveMakersRequestDto.getId(), i);
+                        qMakersCapacityRepository.updateDailyCapacity(dailyCapacity, saveMakersRequestDto.getId());
                     }
                 } else {
                     Integer divTen = saveMakersRequestDto.getDailyCapacity() / 10;
@@ -89,7 +92,7 @@ public class MakersServiceImpl implements MakersService {
                     Integer dinner = divTen * 3;
 
                     for (int i = 0; i < makersCapacityList.size(); i++) {
-                        qMakersRepository.updateDailyCapaciyByDiningType(morning, lunch, dinner, i, makersCapacityList.get(i).getDiningType(), saveMakersRequestDto.getId());
+                       qMakersCapacityRepository.updateDailyCapacityDiningType(morning, lunch, dinner, makersCapacityList.get(i).getDiningType().getDiningType(), saveMakersRequestDto.getId());
                     }
 
                 }
@@ -106,8 +109,13 @@ public class MakersServiceImpl implements MakersService {
             }else {
                 Makers makers = makersMapper.toEntity(saveMakersRequestDto, address);
 
-                Makers save = makersRepository.save(makers);
-
+                makersRepository.save(makers);
+                /*
+                makersRepository.savePoint(makers.getCEO(), makers.getCEOPhone(), makers.getAccountNumber(), makers.getAddress().getAddress1(), makers.getAddress().getAddress2(),
+                        makers.getAddress().getLocation(), makers.getAddress().getZipCode(), makers.getBank(), makers.getCode(), makers.getCompanyName(), makers.getCompanyRegistrationNumber(),
+                        makers.getContractEndDate(), makers.getContractStartDate(), makers.getDepositHolder(), makers.getIsNutritionInformation(), makers.getIsParentCompany(),
+                        makers.getManagerName(), makers.getManagerPhone(), makers.getName(), makers.getOpenTime(), makers.getCloseTime(), makers.getParentCompanyId(), makers.getServiceForm().getCode(), makers.getServiceType().getCode());
+                */
 
                 //capacity 생성 및 저장
                 for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
@@ -115,14 +123,14 @@ public class MakersServiceImpl implements MakersService {
                     makersCapacityRepository.save(makersCapacity);
                 }
 
-                if (save == null) {
-                    throw new ApiException(ExceptionEnum.MAKERS_SAVE_FAILED);
-                }
+//                if (result != 1) {
+//                    throw new ApiException(ExceptionEnum.MAKERS_SAVE_FAILED);
+//                }
             }
         }
     }
 
-    private Address makeAddress(SaveMakersRequestDto saveMakersRequestDto) throws ParseException {
+    private Address makeAddress(SaveMakersRequestDto saveMakersRequestDto) {
         CreateAddressRequestDto createAddressRequestDto = new CreateAddressRequestDto();
         createAddressRequestDto.setAddress1(saveMakersRequestDto.getAddress1());
         createAddressRequestDto.setAddress2(saveMakersRequestDto.getAddress2());

@@ -28,6 +28,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 @DynamicInsert
 @DynamicUpdate
@@ -127,28 +128,30 @@ public class Spot {
         this.diningTypes = group.getDiningTypes();
     }
 
-    public void updateSpot(SpotResponseDto spotResponseDto, List<DiningType> diningTypes) {
+    public void updateSpot(SpotResponseDto spotResponseDto) {
         if(this.status == SpotStatus.INACTIVE) {
             this.status = SpotStatus.ACTIVE;
         }
-        Set<DiningType> groupDiningTypes = new HashSet<>(this.getGroup().getDiningTypes());
-        if (!groupDiningTypes.containsAll(diningTypes)) {
-            throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
-        }
+
         // TODO: Location 추가
         Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
         this.name = spotResponseDto.getSpotName();
         this.address = address;
-        this.diningTypes = diningTypes;
     }
 
     public void updateDiningTypes(List<DiningType> diningTypes) {
         this.diningTypes = diningTypes;
     }
 
-    public List<DiningType> getUpdatedDiningTypes() {
-        return this.getMealInfos().stream()
+    public void updatedDiningTypes(MealInfo morningMealInfo, MealInfo lunchMealInfo, MealInfo dinnerMealInfo) {
+        List<DiningType> newDiningTypes = Stream.of(morningMealInfo, lunchMealInfo, dinnerMealInfo)
+                .filter(Objects::nonNull)
                 .map(MealInfo::getDiningType)
                 .toList();
+        Set<DiningType> groupDiningTypes = new HashSet<>(this.getGroup().getDiningTypes());
+        if (!groupDiningTypes.containsAll(newDiningTypes)) {
+            throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+        }
+        updateDiningTypes(newDiningTypes);
     }
 }

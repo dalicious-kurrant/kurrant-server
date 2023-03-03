@@ -2,6 +2,7 @@ package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
+import co.dalicious.system.enums.DiningType;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -30,4 +31,19 @@ public class QMakersCapacityRepository {
                 .fetch();
     }
 
+    public void updateDailyCapacity(Integer dailyCapacity, BigInteger id) {
+        queryFactory.update(makersCapacity)
+                .set(makersCapacity.capacity, dailyCapacity)
+                .where(makersCapacity.makers.id.eq(id))
+                .execute();
+    }
+
+    public void updateDailyCapacityDiningType(Integer morning, Integer lunch, Integer dinner, String diningType, BigInteger id) {
+        queryFactory.update(makersCapacity)
+                .set(makersCapacity.capacity, morning)
+                .where(makersCapacity.diningType.eq(DiningType.ofString(diningType)),
+                        makersCapacity.makers.id.eq(id))
+                .execute();
+
+    }
 }
