@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.data.geo.Point;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 
@@ -31,7 +32,43 @@ public interface GroupInfoMapper {
     @Mapping(source = "group", target = "isSetting", qualifiedByName = "getIsSetting")
     @Mapping(source = "group", target = "isGarbage", qualifiedByName = "getIsGarbage")
     @Mapping(source = "group", target = "isHotStorage", qualifiedByName = "getIsHotStorage")
+    @Mapping(target = "morningSupportPrice", expression = "java(getSupportPrice(group, DiningType.MORNING))")
+    @Mapping(target = "lunchSupportPrice", expression = "java(getSupportPrice(group, DiningType.LUNCH))")
+    @Mapping(target = "dinnerSupportPrice", expression = "java(getSupportPrice(group, DiningType.DINNER))")
+    @Mapping(source = "group", target = "minimumSpend", qualifiedByName = "getMinimumSpend")
+    @Mapping(source = "group", target = "maximumSpend", qualifiedByName = "getMaximumSpend")
     GroupListDto.GroupInfoList toCorporationListDto(Group group, User managerUser);
+
+    @Named("getMinimumSpend")
+    default BigDecimal getMinimumSpend(Group group) {
+        BigDecimal minimumSpend = BigDecimal.ZERO;
+        if(group instanceof Corporation corporation) {
+            return minimumSpend = corporation.getMinimumSpend();
+        }
+        return minimumSpend;
+    }
+    @Named("getMaximumSpend")
+    default BigDecimal getMaximumSpend(Group group) {
+        BigDecimal maximumSpend = BigDecimal.ZERO;
+        if(group instanceof Corporation corporation) {
+            return maximumSpend = corporation.getMaximumSpend();
+        }
+        return maximumSpend;
+    }
+
+    @Named("getSupportPrice")
+    default BigDecimal getSupportPrice(Group group, DiningType type) {
+        if(group instanceof Corporation) {
+            List<Spot> spotList = group.getSpots();
+            for(Spot spot : spotList) {
+                List<MealInfo> mealInfoList = spot.getMealInfos();
+                for(MealInfo mealInfo : mealInfoList) {
+                    if(mealInfo.getDiningType().equals(type)) return ((CorporationMealInfo) mealInfo).getSupportPrice();
+                }
+            }
+        }
+        return null;
+    }
 
     @Named("getDiningCodeList")
     default List<Integer> getDiningCodeList(List<DiningType> diningTypeList) {

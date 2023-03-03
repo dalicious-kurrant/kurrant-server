@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -16,5 +17,9 @@ public class OpenGroupMealInfo extends MealInfo{
     @Builder
     public OpenGroupMealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime membershipBenefitTime, LocalTime lastOrderTime, String serviceDays, Spot spot) {
         super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, spot);
+    }
+
+    public void updateOpenGroupMealInfo(GroupExcelRequestDto groupInfoList) {
+        updateMealInfo(groupInfoList.getServiceDays());
     }
 }

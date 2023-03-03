@@ -18,6 +18,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,8 +83,16 @@ public class Corporation extends Group{
     @Comment("특정 상품 제외")
     private List<BigInteger> excludedFood;
 
+    @Column(name = "minimum_spend")
+    @Comment("최소 구매 가능 금액")
+    private BigDecimal minimumSpend;
+
+    @Column(name = "maximum_spend")
+    @Comment("최대 구매 가능 금액")
+    private BigDecimal maximumSpend;
+
     @Builder
-    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String code, Boolean isMembershipSupport) {
+    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String code, Boolean isMembershipSupport, BigDecimal minimumSpend, BigDecimal maximumSpend) {
         super(address, diningTypes, name, managerId);
         this.code = code;
         this.employeeCount = employeeCount;
@@ -91,6 +100,8 @@ public class Corporation extends Group{
         this.isGarbage = isGarbage;
         this.isHotStorage = isHotStorage;
         this.isSetting = isSetting;
+        this.minimumSpend = minimumSpend;
+        this.maximumSpend = maximumSpend;
     }
 
     public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList, Boolean isMembershipSupport, Boolean isSetting, Boolean isGarbage, Boolean isHotStorage) {
@@ -101,5 +112,7 @@ public class Corporation extends Group{
         this.isGarbage = isGarbage;
         this.isHotStorage = isHotStorage;
         this.isSetting = isSetting;
+        this.minimumSpend = BigDecimal.valueOf(groupInfoList.getMinimumSpend());
+        this.maximumSpend = BigDecimal.valueOf(groupInfoList.getMaximumSpend());
     }
 }
