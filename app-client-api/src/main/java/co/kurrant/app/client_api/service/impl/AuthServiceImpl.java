@@ -1,6 +1,7 @@
 package co.kurrant.app.client_api.service.impl;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
+import co.dalicious.client.core.filter.provider.SimpleJwtTokenProvider;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.repository.QCorporationRepository;
 import co.dalicious.domain.user.entity.enums.Role;
@@ -11,12 +12,10 @@ import exception.ExceptionEnum;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.kurrant.app.client_api.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +26,7 @@ import java.util.List;
 public class AuthServiceImpl implements AuthService {
 
   private final PasswordEncoder passwordEncoder;
-  private final JwtTokenProvider jwtTokenProvider;
+  private final SimpleJwtTokenProvider jwtTokenProvider;
   private final QCorporationRepository qCorporationRepository;
 
   @Override
