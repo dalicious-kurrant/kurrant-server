@@ -59,8 +59,8 @@ public class FoodServiceImpl implements FoodService {
         List<FoodListDto> dtoList = new ArrayList<>();
 
         for(Food food : allFoodPage) {
-            DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
-            BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
+            DiscountDto discountDto = DiscountDto.getDiscount(food);
+            BigDecimal resultPrice = discountDto.getDiscountedPrice();
             FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }
@@ -85,8 +85,8 @@ public class FoodServiceImpl implements FoodService {
         List<FoodListDto> dtoList = new ArrayList<>();
 
         for(Food food : foodListByMakers) {
-            DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
-            BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
+            DiscountDto discountDto = DiscountDto.getDiscount(food);
+            BigDecimal resultPrice = discountDto.getDiscountedPrice();
             FoodListDto dto = makersFoodMapper.toAllFoodListByMakersDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }
@@ -105,7 +105,7 @@ public class FoodServiceImpl implements FoodService {
         // 만약 food가 없으면 예외처리
         if(food == null) throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
 
-        DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
+        DiscountDto discountDto = DiscountDto.getDiscount(food);
 
         return makersFoodMapper.toFoodManagingDto(food, discountDto);
     }
@@ -149,9 +149,11 @@ public class FoodServiceImpl implements FoodService {
                 foodRepository.save(newFood);
 
                 // 푸드 할인 정책 생성
+                FoodDiscountPolicy membershipDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.MEMBERSHIP_DISCOUNT, foodListDto.getMembershipDiscount(), newFood);
                 FoodDiscountPolicy makersDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.MAKERS_DISCOUNT, foodListDto.getMakersDiscount(), newFood);
                 FoodDiscountPolicy periodDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.PERIOD_DISCOUNT, foodListDto.getEventDiscount(), newFood);
 
+                foodDiscountPolicyRepository.save(membershipDiscount);
                 foodDiscountPolicyRepository.save(makersDiscount);
                 foodDiscountPolicyRepository.save(periodDiscount);
 
@@ -176,10 +178,15 @@ public class FoodServiceImpl implements FoodService {
                 //food discount policy UPDATE
                 List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
                 for(FoodDiscountPolicy discountPolicy : discountPolicyList) {
-                    if(discountPolicy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT)) {
+                    if(discountPolicy.getDiscountType().equals(DiscountType.MEMBERSHIP_DISCOUNT)) {
+                        discountPolicy.updateFoodDiscountPolicy(foodListDto.getMembershipDiscount());
+                        foodDiscountPolicyRepository.save(discountPolicy);
+                    }
+                    else if(discountPolicy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT)) {
                         discountPolicy.updateFoodDiscountPolicy(foodListDto.getMakersDiscount());
                         foodDiscountPolicyRepository.save(discountPolicy);
-                    } else if(discountPolicy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT)) {
+                    }
+                    else if(discountPolicy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT)) {
                         discountPolicy.updateFoodDiscountPolicy(foodListDto.getEventDiscount());
                         foodDiscountPolicyRepository.save(discountPolicy);
                     }
@@ -198,7 +205,7 @@ public class FoodServiceImpl implements FoodService {
         // 이미지가 삭제되었다면 S3에서도 삭제
         List<Image> images = new ArrayList<>();
         List<String> requestImage = foodDetailDto.getImages();
-        if(requestImage.size() != food.getImages().size()) {
+        if(requestImage != null && requestImage.size() != food.getImages().size()) {
             List<Image> deleteImages = food.getImages();
             List<Image> selectedImages = food.getImages().stream()
                     .filter(v -> requestImage.contains(v.getLocation()))
@@ -234,6 +241,15 @@ public class FoodServiceImpl implements FoodService {
         }
 
         //음식 할인 정책 저장
+        if (food.getFoodDiscountPolicy(DiscountType.MEMBERSHIP_DISCOUNT) == null) {
+            foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.MEMBERSHIP_DISCOUNT, foodDetailDto.getMembershipDiscountRate()));
+        }
+        else if (foodDetailDto.getMembershipDiscountRate() == 0) {
+            foodDiscountPolicyRepository.delete(food.getFoodDiscountPolicy(DiscountType.MEMBERSHIP_DISCOUNT));
+        }
+        else {
+            food.getFoodDiscountPolicy(DiscountType.MEMBERSHIP_DISCOUNT).updateFoodDiscountPolicy(foodDetailDto.getMembershipDiscountRate());
+        }
         if (food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT) == null) {
             foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.MAKERS_DISCOUNT, foodDetailDto.getMakersDiscountRate()));
         }
