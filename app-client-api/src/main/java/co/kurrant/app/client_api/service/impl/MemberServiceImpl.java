@@ -65,7 +65,7 @@ public class MemberServiceImpl implements MemberService {
     public List<MemberListResponseDto> getUserList(String code) {
 
         //code로 CorporationId 찾기 (=GroupId)
-        BigInteger corporationId = qCorporationRepository.findOneByCode(code);
+        BigInteger corporationId = qCorporationRepository.findOneByCode(code.toUpperCase());
 
         //corporationId로 GroupName 가져오기
         String userGroupName = qUserGroupRepository.findNameById(corporationId);
