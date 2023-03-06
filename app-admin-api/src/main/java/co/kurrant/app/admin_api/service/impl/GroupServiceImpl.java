@@ -75,14 +75,11 @@ public class GroupServiceImpl implements GroupService {
         
         // 그룹이 있는지 찾아보기
         for(GroupExcelRequestDto groupInfoList : groupListDtoList) {
-            System.out.println("groupInfoList.getId() = " + groupInfoList.getId());
             Group group = groupList.stream().filter(groupMatch -> groupMatch.getId().equals(groupInfoList.getId())).findFirst().orElse(null);
-            System.out.println("group = " + group);
             Address address = new Address(String.valueOf(groupInfoList.getZipCode()), groupInfoList.getAddress1(), groupInfoList.getAddress2(), groupInfoList.getLocation());
 
             // group 없으면
             if(group == null) {
-                System.out.println("groupInfoList.getGroupType() = " + groupInfoList.getGroupType());
                 // 기업인지 - code 가 있으면 기업
                 if(GroupDataType.CORPORATION.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
                     Corporation corporation = groupMapper.groupInfoListToCorporationEntity(groupInfoList, address);
