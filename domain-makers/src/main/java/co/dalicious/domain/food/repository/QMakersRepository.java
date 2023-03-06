@@ -217,4 +217,10 @@ public class QMakersRepository {
                 .where(makers.id.eq(locationTestDto.getId()))
                 .execute();
     }
+
+    public List<Makers> findByIdList(List<BigInteger> makersIds) {
+        return queryFactory.selectFrom(makers)
+                .where(makers.id.in(makersIds))
+                .fetch();
+    }
 }

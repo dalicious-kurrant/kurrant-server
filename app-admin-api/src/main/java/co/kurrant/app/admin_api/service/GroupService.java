@@ -12,4 +12,5 @@ import java.util.List;
 public interface GroupService {
     ItemPageableResponseDto<GroupListDto> getGroupList(BigInteger groupId, Integer limit, Integer page, OffsetBasedPageRequest pageable);
     void saveCorporationList(List<GroupExcelRequestDto> groupListDto) throws ParseException;
+    List<GroupListDto.GroupInfoList> getAllGroupForExcel();
 }

@@ -42,45 +42,20 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public List<FoodListDto> getAllFoodList() {
-        // TODO:페이지네이션
-        // 모든 상품 불러오기
-        List<Food> allFoodList = foodRepository.findAll();
-        if (allFoodList.size() == 0) {
-            throw new ApiException(ExceptionEnum.NOT_FOUND);
-        }
-
-        // 상품 dto에 담기
-        List<FoodListDto> dtoList = new ArrayList<>();
-
-        for (Food food : allFoodList) {
-            DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
-            BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
-            FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
-            dtoList.add(dto);
-        }
-
-        return dtoList;
-    }
-
-    @Override
-    @Transactional
-    public List<FoodListDto> getAllFoodListByMakers(SecurityUser securityUser) {
+    public List<FoodListDto.FoodList> getAllFoodListByMakers(SecurityUser securityUser) {
         Makers makers = userUtil.getMakers(securityUser);
 
         // makersId로 상품 조회
         List<Food> foodListByMakers = foodRepository.findByMakersOrderById(makers);
-        if (foodListByMakers == null) {
-            throw new ApiException(ExceptionEnum.NOT_FOUND);
-        }
+        if (foodListByMakers.isEmpty()) { return null; }
 
         // 상품 dto에 담기
-        List<FoodListDto> dtoList = new ArrayList<>();
+        List<FoodListDto.FoodList> dtoList = new ArrayList<>();
 
         for (Food food : foodListByMakers) {
-            DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
-            BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPriceWithoutMembershipDiscount(food, discountDto);
-            FoodListDto dto = makersFoodMapper.toAllFoodListByMakersDto(food, discountDto, resultPrice);
+            DiscountDto discountDto = DiscountDto.getDiscount(food);
+            BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPrice(food, discountDto);
+            FoodListDto.FoodList dto = makersFoodMapper.toAllFoodListByMakersDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }
 
@@ -96,7 +71,7 @@ public class FoodServiceImpl implements FoodService {
         // 만약 food가 없으면 예외처리
         if (food == null) throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
 
-        DiscountDto discountDto = DiscountDto.getDiscountDtoWithoutMembershipDiscount(food);
+        DiscountDto discountDto = DiscountDto.getDiscount(food);
 
         return makersFoodMapper.toFoodManagingDto(food, discountDto);
     }
@@ -109,8 +84,8 @@ public class FoodServiceImpl implements FoodService {
     //대량 수정
     @Override
     @Transactional
-    public void updateFoodMass(List<FoodListDto> foodListDtoList) {
-        for (FoodListDto foodListDto : foodListDtoList) {
+    public void updateFoodMass(List<FoodListDto.FoodList> foodListDtoList) {
+        for (FoodListDto.FoodList foodListDto : foodListDtoList) {
             Food food = foodRepository.findById(foodListDto.getFoodId()).orElse(null);
 
             List<FoodTag> foodTags = new ArrayList<>();

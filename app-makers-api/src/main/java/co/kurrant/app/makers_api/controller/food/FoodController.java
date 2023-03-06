@@ -64,7 +64,7 @@ public class FoodController {
 
     @Operation(summary = "대량 상품 수정", description = "엑셀로 상품을 대량 수정합니다.")
     @PostMapping("/mass")
-    public ResponseMessage updateFoodMass(Authentication authentication, @RequestBody List<FoodListDto> foodListDto) {
+    public ResponseMessage updateFoodMass(Authentication authentication, @RequestBody List<FoodListDto.FoodList> foodListDto) {
         UserUtil.securityUser(authentication);
         foodService.updateFoodMass(foodListDto);
         return ResponseMessage.builder()

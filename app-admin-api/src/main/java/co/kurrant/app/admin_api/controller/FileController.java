@@ -88,27 +88,27 @@ public class FileController {
     private boolean isAllowedMIMEType(String mimeType) {
         return mimeType.equals("application/x-tika-ooxml");
     }
-  @Operation(summary = "전체 조회 엑셀 파일 불러오기", description = "전체 조회 엑셀 파일의 데이터를 불러옵니다.")
-  @PostMapping("/food/all")
-  public ResponseMessage allFoodExcel(Authentication authentication, @RequestParam("file") MultipartFile file) throws IOException {
-    UserUtil.securityUser(authentication);
-    return ResponseMessage.builder()
-            .message("엑셀 불러오기를 완료했습닌다.")
-            .data(excelService.allFoodExcel(file))
-            .build();
-
-  }
-
-  @Operation(summary = "엑셀 파일 불러오기", description = "엑셀 파일의 데이터를 불러옵니다.")
-  @PostMapping("/food/makers")
-  public ResponseMessage makersFoodExcel(Authentication authentication, @RequestParam("file") MultipartFile file) throws IOException {
-    UserUtil.securityUser(authentication);
-    return ResponseMessage.builder()
-            .message("엑셀 불러오기를 완료했습닌다.")
-            .data(excelService.makersFoodExcel(file))
-            .build();
-
-  }
+//  @Operation(summary = "전체 조회 엑셀 파일 불러오기", description = "전체 조회 엑셀 파일의 데이터를 불러옵니다.")
+//  @PostMapping("/food/all")
+//  public ResponseMessage allFoodExcel(Authentication authentication, @RequestParam("file") MultipartFile file) throws IOException {
+//    UserUtil.securityUser(authentication);
+//    return ResponseMessage.builder()
+//            .message("엑셀 불러오기를 완료했습닌다.")
+//            .data(excelService.allFoodExcel(file))
+//            .build();
+//
+//  }
+//
+//  @Operation(summary = "엑셀 파일 불러오기", description = "엑셀 파일의 데이터를 불러옵니다.")
+//  @PostMapping("/food/makers")
+//  public ResponseMessage makersFoodExcel(Authentication authentication, @RequestParam("file") MultipartFile file) throws IOException {
+//    UserUtil.securityUser(authentication);
+//    return ResponseMessage.builder()
+//            .message("엑셀 불러오기를 완료했습닌다.")
+//            .data(excelService.makersFoodExcel(file))
+//            .build();
+//
+//  }
 
 }
 
