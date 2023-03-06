@@ -127,7 +127,7 @@ public class TossUtil {
     public JSONObject cardCancelOne(String paymentKey, String cancelReason, Integer cancelAmount) throws IOException, ParseException {
 
         Base64.Encoder encode = Base64.getEncoder();
-        byte[] encodeByte = encode.encode(secretKey.getBytes("UTF-8"));
+        byte[] encodeByte = encode.encode(billingSecretKey.getBytes("UTF-8"));
         String authorizations = "Basic "+ new String(encodeByte, 0, encodeByte.length);
 
         URL url = new URL("https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel");
