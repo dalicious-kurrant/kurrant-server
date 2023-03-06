@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.food.entity.PresetDailyFood;
+import co.dalicious.domain.food.entity.PresetGroupDailyFood;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -23,18 +24,17 @@ public class QPresetDailyFoodRepository{
                 .fetchOne();
     }
 
-//    public static StringTemplate getStringTemplate() {
-//        StringTemplate formattedDate = Expressions.stringTemplate(
-//                "DATE_FORMAT({0}, {1})"
-//                , presetDailyFood.createdDateTime
-//                , ConstantImpl.create("%Y-%m-%d"));
-//        return formattedDate;
-//    }
     public List<PresetDailyFood> getApprovedPresetDailyFoodBetweenServiceDate(LocalDate startDate, LocalDate endDate) {
         return queryFactory.selectFrom(presetDailyFood)
                 .where(presetDailyFood.scheduleStatus.eq(ScheduleStatus.APPROVAL),
                         presetDailyFood.presetGroupDailyFood.presetMakersDailyFood.serviceDate.goe(startDate),
                         presetDailyFood.presetGroupDailyFood.presetMakersDailyFood.serviceDate.loe(endDate))
+                .fetch();
+    }
+
+    public List<PresetDailyFood> getAllAndPresetGroupDailyFood(List<PresetGroupDailyFood> presetGroupDailyFoodList) {
+        return queryFactory.selectFrom(presetDailyFood)
+                .where(presetDailyFood.presetGroupDailyFood.in(presetGroupDailyFoodList))
                 .fetch();
     }
 }

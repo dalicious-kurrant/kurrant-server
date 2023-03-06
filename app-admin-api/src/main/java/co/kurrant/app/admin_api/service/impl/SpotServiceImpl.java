@@ -16,6 +16,7 @@ import co.kurrant.app.admin_api.service.SpotService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -156,6 +157,9 @@ public class SpotServiceImpl implements SpotService {
                 .toList();
         for (SpotResponseDto createSpot : createSpots) {
             Spot spot = spotMapper.toEntity(createSpot, Group.getGroup(groups, createSpot.getGroupId()), DiningTypesUtils.stringToDiningTypes(createSpot.getDiningType()));
+            if(Group.getGroup(groups, createSpot.getGroupId()) == null) {
+                throw new IllegalIdentifierException("상세스팟 아이디:" + createSpot.getSpotId().toString() + " 등록되어있지 않은 그룹입니다.");
+            }
             spotRepository.save(spot);
             List<DiningType> groupDiningTypes = spot.getGroup().getDiningTypes();
 
