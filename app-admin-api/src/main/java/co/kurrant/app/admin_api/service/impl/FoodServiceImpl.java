@@ -53,16 +53,17 @@ public class FoodServiceImpl implements FoodService {
     public ListItemResponseDto<FoodListDto> getAllFoodList(Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         // 모든 상품 불러오기
         Page<Food> allFoodPage = qFoodRepository.findAllPage(limit, page, pageable);
-        if(allFoodPage.isEmpty()) { throw new ApiException(ExceptionEnum.NOT_FOUND); }
 
         // 상품 dto에 담기
         List<FoodListDto> dtoList = new ArrayList<>();
 
-        for(Food food : allFoodPage) {
-            DiscountDto discountDto = DiscountDto.getDiscount(food);
-            BigDecimal resultPrice = discountDto.getDiscountedPrice();
-            FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
-            dtoList.add(dto);
+        if(allFoodPage != null) {
+            for(Food food : allFoodPage) {
+                DiscountDto discountDto = DiscountDto.getDiscount(food);
+                BigDecimal resultPrice = discountDto.getDiscountedPrice();
+                FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
+                dtoList.add(dto);
+            }
         }
 
         return ListItemResponseDto.<FoodListDto>builder().items(dtoList)
@@ -224,6 +225,11 @@ public class FoodServiceImpl implements FoodService {
         if(files != null && !files.isEmpty()) {
             List<ImageResponseDto> imageResponseDtos = imageService.upload(files, "food");
             images.addAll(Image.toImages(imageResponseDtos));
+        }
+
+        //기존 설명을 수정하지 않으면
+        if(foodDetailDto.getDescription() == null || foodDetailDto.getDescription().isEmpty() || foodDetailDto.getDescription().isBlank()) {
+            foodDetailDto.setDescription(food.getDescription());
         }
 
         // 이미지 및 음식 업데이트
