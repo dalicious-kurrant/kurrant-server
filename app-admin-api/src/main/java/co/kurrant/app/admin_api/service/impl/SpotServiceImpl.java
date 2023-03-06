@@ -114,7 +114,7 @@ public class SpotServiceImpl implements SpotService {
                     if (updatedMealInfos.containsKey(diningType)) {
                         MealInfo updatedMealInfo = updatedMealInfos.get(diningType);
                         if (updatedMealInfo != null) {
-                            if(updatedMealInfo instanceof CorporationMealInfo corporationMealInfo) {
+                            if (updatedMealInfo instanceof CorporationMealInfo corporationMealInfo) {
                                 ((CorporationMealInfo) mealInfo).updateMealInfo(corporationMealInfo);
                             } else {
                                 mealInfo.updateMealInfo(updatedMealInfo);
@@ -171,13 +171,11 @@ public class SpotServiceImpl implements SpotService {
     }
 
     @Override
-    public void deleteSpot(DeleteSpotRequestDto deleteSpotRequestDto) {
+    public void deleteSpot(List<BigInteger> spotIdList) {
         //요청받은 spot을 비활성한다.
-        for (BigInteger spotId : deleteSpotRequestDto.getSpotIdList()) {
-            long result = qSpotRepository.deleteSpot(spotId);
-            if (result != 1) {
-                throw new ApiException(ExceptionEnum.SPOT_PATCH_ERROR);
-            }
+        long result = qSpotRepository.deleteSpots(spotIdList);
+        if (result != 1) {
+            throw new ApiException(ExceptionEnum.SPOT_PATCH_ERROR);
         }
     }
 
@@ -188,48 +186,5 @@ public class SpotServiceImpl implements SpotService {
         createAddressRequestDto.setZipCode(zipCode);
         return createAddressRequestDto;
 
-    }
-
-    private BigDecimal getSupportPrice(SpotResponseDto spotInfo) {
-
-        BigDecimal result = null;
-
-        if (spotInfo.getBreakfastSupportPrice() != null) {
-            result = spotInfo.getBreakfastSupportPrice();
-        }
-        if (spotInfo.getLunchSupportPrice() != null) {
-            result = spotInfo.getBreakfastSupportPrice();
-        }
-        if (spotInfo.getDinnerSupportPrice() != null) {
-            result = spotInfo.getBreakfastSupportPrice();
-        }
-        return result;
-    }
-
-    private String getServieDays(SpotResponseDto spotInfo) {
-        String result = null;
-        if (spotInfo.getBreakfastUseDays() != null) {
-            result = spotInfo.getBreakfastUseDays();
-        }
-        if (spotInfo.getBreakfastUseDays() != null) {
-            result = spotInfo.getLunchUseDays();
-        }
-        if (spotInfo.getBreakfastUseDays() != null) {
-            result = spotInfo.getDinnerUseDays();
-        }
-        return result;
-    }
-
-    private String getDeliveryTime(SpotResponseDto spotInfo) {
-        if (spotInfo.getBreakfastDeliveryTime() != null) {
-            return spotInfo.getBreakfastDeliveryTime();
-        }
-        if (spotInfo.getBreakfastDeliveryTime() != null) {
-            return spotInfo.getLunchDeliveryTime();
-        }
-        if (spotInfo.getBreakfastDeliveryTime() != null) {
-            return spotInfo.getDinnerDeliveryTime();
-        }
-        return "null";
     }
 }

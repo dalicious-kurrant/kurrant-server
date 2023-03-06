@@ -34,4 +34,12 @@ public class StringUtils {
         }
         return result;
     }
+
+    public static String StringListToString(List<String> stringList) {
+        StringBuilder resultName = new StringBuilder();
+        for (String str : stringList) {
+            resultName.append(str).append(", ");
+        }
+        return resultName.substring(0, resultName.length() - 2);
+    }
 }

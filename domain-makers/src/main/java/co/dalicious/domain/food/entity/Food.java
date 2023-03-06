@@ -34,7 +34,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "food__food", uniqueConstraints={@UniqueConstraint(columnNames={"name", "makers_id"})})
+@Table(name = "food__food", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "makers_id"})})
 public class Food {
     // TODO: 추후 Item 상속 추가
     @Id
@@ -157,13 +157,15 @@ public class Food {
     public FoodCapacity updateFoodCapacity(DiningType diningType, Integer capacity) {
         FoodCapacity foodCapacity = getFoodCapacity(diningType);
         if (foodCapacity == null) {
-            if (this.makers.getMakersCapacity(diningType).getCapacity().equals(capacity)) {
+            if (this.makers.getMakersCapacity(diningType) == null || this.makers.getMakersCapacity(diningType).getCapacity().equals(capacity)) {
                 return null;
-            } else FoodCapacity.builder()
-                    .capacity(capacity)
-                    .food(this)
-                    .diningType(diningType)
-                    .build();
+            } else {
+                return FoodCapacity.builder()
+                        .capacity(capacity)
+                        .food(this)
+                        .diningType(diningType)
+                        .build();
+            }
         } else {
             if (foodCapacity.getCapacity().equals(capacity)) {
                 return null;

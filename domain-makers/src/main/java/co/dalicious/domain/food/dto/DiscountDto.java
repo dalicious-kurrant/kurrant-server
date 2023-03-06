@@ -2,6 +2,7 @@ package co.dalicious.domain.food.dto;
 
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
+import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.util.PriceUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -27,21 +28,13 @@ public class DiscountDto {
         BigDecimal price = food.getPrice();
         discountDto.setPrice(price);
         // 할인 비율
-        Integer membershipDiscountedRate = 0;
-        Integer makersDiscountedRate = 0;
-        Integer periodDiscountedRate = 0;
+        Integer membershipDiscountedRate = food.getFoodDiscountPolicy(DiscountType.MEMBERSHIP_DISCOUNT) == null ? 0 : food.getFoodDiscountPolicy(DiscountType.MEMBERSHIP_DISCOUNT).getDiscountRate();
+        Integer makersDiscountedRate = food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT) == null ? 0 : food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT).getDiscountRate();
+        Integer periodDiscountedRate = food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT) == null ? 0 : food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT).getDiscountRate();
         // 할인 가격
         BigDecimal membershipDiscountedPrice = BigDecimal.ZERO;
         BigDecimal makersDiscountedPrice = BigDecimal.ZERO;
         BigDecimal periodDiscountedPrice = BigDecimal.ZERO;
-
-        for(FoodDiscountPolicy foodDiscountPolicy : food.getFoodDiscountPolicyList()) {
-            switch (foodDiscountPolicy.getDiscountType()) {
-                case MEMBERSHIP_DISCOUNT -> membershipDiscountedRate = foodDiscountPolicy.getDiscountRate();
-                case MAKERS_DISCOUNT -> makersDiscountedRate = foodDiscountPolicy.getDiscountRate();
-                case PERIOD_DISCOUNT -> periodDiscountedRate = foodDiscountPolicy.getDiscountRate();
-            }
-        }
 
         // 1. 멤버십 할인
         if(membershipDiscountedRate != 0) {

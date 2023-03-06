@@ -4,6 +4,7 @@ import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.GourmetType;
+import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.validator.UserValidator;
@@ -18,10 +19,8 @@ import org.mapstruct.Named;
 import java.sql.Timestamp;
 import java.util.List;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, UserValidator.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, UserValidator.class, Provider.class})
 public interface UserMapper {
-
-
     @Mapping(source = "user.userStatus", target = "status", qualifiedByName = "getUserStatus")
     @Mapping(source = "user.marketingAlarm", target = "marketingAlarm")
     @Mapping(source = "user.updatedDateTime", target = "userUpdatedDateTime", qualifiedByName = "TimeFormat")
@@ -33,28 +32,18 @@ public interface UserMapper {
     @Mapping(source = "user.isMembership", target = "isMembership")
     @Mapping(source = "user.gourmetType", target = "gourmetType")
     @Mapping(source = "user.point", target = "point")
-    @Mapping(source = "user.groups", target = "groupName", qualifiedByName = "getGroupNameAll")
+    @Mapping(target = "groupName", expression = "java(user.getActiveUserGrouptoString())")
     @Mapping(source = "user.email", target = "email")
     @Mapping(source = "user.phone", target = "phone")
     @Mapping(source = "user.role", target = "role")
     @Mapping(source = "user.name", target = "userName")
     @Mapping(source = "user.password", target = "password")
+    @Mapping(target = "generalEmail", expression = "java(user.getProviderEmail(Provider.GENERAL))")
+    @Mapping(target = "kakaoEmail", expression = "java(user.getProviderEmail(Provider.KAKAO))")
+    @Mapping(target = "naverEmail", expression = "java(user.getProviderEmail(Provider.NAVER))")
+    @Mapping(target = "facebookEmail", expression = "java(user.getProviderEmail(Provider.FACEBOOK))")
+    @Mapping(target = "appleEmail", expression = "java(user.getProviderEmail(Provider.APPLE))")
     UserInfoResponseDto toDto(User user);
-
-    @Named("getGroupNameAll")
-    default String getGroupNameAll(List<UserGroup> groups) {
-        if (groups.isEmpty()) {
-            return "없음";
-        } else if (groups.size() == 1) {
-            return groups.get(0).getGroup().getName();
-        } else {
-            StringBuilder resultName = new StringBuilder();
-            for (UserGroup userGroup : groups) {
-                resultName.append(userGroup.getGroup().getName()).append(", ");
-            }
-            return resultName.substring(0, resultName.length() - 2);
-        }
-    }
 
     @Named("getUserStatus")
     default Integer getUserStatus(UserStatus userStatus) {
