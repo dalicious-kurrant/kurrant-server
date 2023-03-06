@@ -173,10 +173,7 @@ public class SpotServiceImpl implements SpotService {
     @Override
     public void deleteSpot(List<BigInteger> spotIdList) {
         //요청받은 spot을 비활성한다.
-        long result = qSpotRepository.deleteSpots(spotIdList);
-        if (result != 1) {
-            throw new ApiException(ExceptionEnum.SPOT_PATCH_ERROR);
-        }
+        qSpotRepository.deleteSpots(spotIdList);
     }
 
     private CreateAddressRequestDto makeCreateAddressRequestDto(String zipCode, String address1, String address2) {
