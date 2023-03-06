@@ -132,7 +132,6 @@ public class GroupServiceImpl implements GroupService {
                 List<DiningType> diningTypeList = new ArrayList<>();
                 List<String> integerList = groupInfoList.getDiningTypes();
                 for(String code : integerList) {
-                    System.out.println("code = " + code);
                     diningTypeList.add(DiningType.ofString(code));
                 }
 
@@ -155,6 +154,11 @@ public class GroupServiceImpl implements GroupService {
             }
         }
 
+    }
+
+    @Override
+    public List<GroupListDto.GroupInfoList> getAllGroupForExcel() {
+        return null;
     }
 
     private Boolean useOrNotUse(String data) {

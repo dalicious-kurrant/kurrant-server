@@ -38,4 +38,14 @@ public class GroupController {
                 .message("기업 정보를 저장했습니다.")
                 .build();
     }
+
+    @Operation(summary = "기업 정보 조회", description = "기업 정보를 조회했습니다.")
+    @GetMapping("/excels")
+    public ResponseMessage getAllGroupForExcel() {
+        return ResponseMessage.builder()
+                .message("기업 정보를 저장했습니다.")
+                .data(groupService.getAllGroupForExcel())
+                .build();
+    }
+
 }

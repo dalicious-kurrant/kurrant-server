@@ -57,6 +57,7 @@ public enum FoodTag {
     FOOD_TYPE_GRILL("식품유형", "구이류", 2021),
     FOOD_TYPE_PANCAKE("식품유형", "전/부침류", 2022),
     FOOD_TYPE_SALAD("식품유형", "샐러드류", 2023),
+    FOOD_TYPE_RICE("식품유형", "밥류", 2024),
 
 
     INGREDIENT_BEEF("주재료", "소고기", 3001),

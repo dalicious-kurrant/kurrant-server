@@ -27,4 +27,5 @@ public interface MakersRepository extends JpaRepository<Makers, BigInteger> {
                    @Param("location") Point location , @Param("zipCode") String zipCode, @Param("bank") String bank, @Param("code") String code, @Param("companyName") String companyName, @Param("registryNumber") String registryNumber,
                    @Param("contractEndDate") LocalDate contractEndDate, @Param("contractStartDate") LocalDate contractStartDate, @Param("depositHolder") String depositHolder, @Param("isNutritionInformation") Boolean isNutritionInformation, @Param("isParentCompany") Boolean isParentCompany,
                    @Param("managerName") String managerName, @Param("managerPhone") String managerPhone, @Param("name")String name, @Param("openTime") LocalTime openTime, @Param("closeTime") LocalTime closeTime, @Param("parentCompanyId") BigInteger parentCompanyId, @Param("serviceForm")Integer serviceForm, @Param("serviceType") Integer serviceType);
+
 }

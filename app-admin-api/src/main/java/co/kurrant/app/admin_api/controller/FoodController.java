@@ -24,19 +24,10 @@ public class FoodController {
 
     @Operation(summary = "상품 전체 조회", description = "존재하는 상품을 모두 조회합니다.")
     @GetMapping("/all")
-    public ResponseMessage getAllFoodList(@RequestParam(required = false) Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+    public ResponseMessage getAllFoodList(@RequestParam(required = false) BigInteger makersId, @RequestParam(required = false) Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("모든 상품을 조회했습니다.")
-                .data(foodService.getAllFoodList(limit, page, pageable))
-                .build();
-    }
-
-    @Operation(summary = "메이커스 별 상품 조회", description = "메이커스 별 상품을 모두 조회합니다.")
-    @GetMapping("/makers")
-    public ResponseMessage getAllFoodListByMakers(@RequestParam BigInteger makersId) {
-        return ResponseMessage.builder()
-                .message("모든 상품을 조회했습니다.")
-                .data(foodService.getAllFoodListByMakers(makersId))
+                .data(foodService.getAllFoodList(makersId, limit, page, pageable))
                 .build();
     }
 
@@ -60,7 +51,7 @@ public class FoodController {
 
     @Operation(summary = "대량 상품 수정", description = "엑셀로 상품을 대량 수정합니다.")
     @PostMapping("/mass")
-    public ResponseMessage updateFoodMass(@RequestBody List<FoodListDto> foodListDto) {
+    public ResponseMessage updateFoodMass(@RequestBody List<FoodListDto.FoodList> foodListDto) {
         foodService.updateFoodMass(foodListDto);
         return ResponseMessage.builder()
                 .message("상품을 수정했습니다.")
@@ -73,6 +64,15 @@ public class FoodController {
         foodService.updateFood(files, contents);
         return ResponseMessage.builder()
                 .message("상품을 수정했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "엑셀 내보내기 용 조회", description = "엑셀 내보내기를 위해 전체 조회")
+    @GetMapping("/excels")
+    public ResponseMessage getAllFoodForExcel() {
+        return ResponseMessage.builder()
+                .message("상품을 조회 했습니다.")
+                .data(foodService.getAllFoodForExcel())
                 .build();
     }
 }

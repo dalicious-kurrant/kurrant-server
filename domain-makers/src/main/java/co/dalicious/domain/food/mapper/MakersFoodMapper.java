@@ -35,7 +35,7 @@ public interface MakersFoodMapper {
     @Mapping(source = "resultPrice", target = "resultPrice")
     @Mapping(source = "food.description", target = "description")
     @Mapping(source = "food.foodTags", target = "foodTags", qualifiedByName = "getAllFoodList")
-    FoodListDto toAllFoodListDto(Food food, DiscountDto discountDto, BigDecimal resultPrice);
+    FoodListDto.FoodList toAllFoodListDto(Food food, DiscountDto discountDto, BigDecimal resultPrice);
 
 
     @Mapping(source = "food.id", target = "foodId")
@@ -51,7 +51,7 @@ public interface MakersFoodMapper {
     @Mapping(source = "resultPrice", target = "resultPrice")
     @Mapping(source = "food.description", target = "description")
     @Mapping(source = "food.foodTags", target = "foodTags", qualifiedByName = "getAllFoodList")
-    FoodListDto toAllFoodListByMakersDto(Food food, DiscountDto discountDto, BigDecimal resultPrice);
+    FoodListDto.FoodList toAllFoodListByMakersDto(Food food, DiscountDto discountDto, BigDecimal resultPrice);
 
     @Mapping(source = "food.makers.name", target = "makersName")
     @Mapping(source = "food.id", target = "foodId")

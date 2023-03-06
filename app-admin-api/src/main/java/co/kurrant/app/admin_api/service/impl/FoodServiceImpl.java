@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
@@ -31,6 +32,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -47,52 +49,31 @@ public class FoodServiceImpl implements FoodService {
     private final QFoodRepository qFoodRepository;
     private final ImageService imageService;
 
-    //TODO: 메이커스 필터링 적용
     @Override
     @Transactional
-    public ListItemResponseDto<FoodListDto> getAllFoodList(Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+    public ItemPageableResponseDto<FoodListDto> getAllFoodList(BigInteger makersIds, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+        BigInteger makersId = (makersIds == null) ? null : makersIds;
+
         // 모든 상품 불러오기
-        Page<Food> allFoodPage = qFoodRepository.findAllPage(limit, page, pageable);
+        Page<Food> allFoodPage = qFoodRepository.findAllPage(makersId, limit, page, pageable);
 
         // 상품 dto에 담기
-        List<FoodListDto> dtoList = new ArrayList<>();
+        List<FoodListDto.FoodList> dtoList = new ArrayList<>();
 
         if(allFoodPage != null) {
             for(Food food : allFoodPage) {
                 DiscountDto discountDto = DiscountDto.getDiscount(food);
                 BigDecimal resultPrice = discountDto.getDiscountedPrice();
-                FoodListDto dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
+                FoodListDto.FoodList dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
                 dtoList.add(dto);
             }
         }
+        List<Makers> makersList = makersRepository.findAll();
+        FoodListDto responseList = FoodListDto.createFoodListDto(makersList, dtoList);
 
-        return ListItemResponseDto.<FoodListDto>builder().items(dtoList)
-                .limit(pageable.getPageSize()).total((long) allFoodPage.getTotalPages())
-                .count(allFoodPage.getNumberOfElements()).offset(pageable.getOffset()).build();
-    }
-
-    @Override
-    @Transactional
-    public List<FoodListDto> getAllFoodListByMakers(BigInteger makersId) {
-        Makers makers = makersRepository.findById(makersId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)
-        );
-
-        // makersId로 상품 조회
-        List<Food> foodListByMakers = foodRepository.findByMakersOrderById(makers);
-        if(foodListByMakers == null) { throw new ApiException(ExceptionEnum.NOT_FOUND); }
-
-        // 상품 dto에 담기
-        List<FoodListDto> dtoList = new ArrayList<>();
-
-        for(Food food : foodListByMakers) {
-            DiscountDto discountDto = DiscountDto.getDiscount(food);
-            BigDecimal resultPrice = discountDto.getDiscountedPrice();
-            FoodListDto dto = makersFoodMapper.toAllFoodListByMakersDto(food, discountDto, resultPrice);
-            dtoList.add(dto);
-        }
-
-        return dtoList;
+        return ItemPageableResponseDto.<FoodListDto>builder().items(responseList)
+                .limit(pageable.getPageSize()).total(Objects.requireNonNull(allFoodPage).getTotalPages())
+                .count(allFoodPage.getNumberOfElements()).build();
     }
 
     @Override
@@ -131,8 +112,8 @@ public class FoodServiceImpl implements FoodService {
     //대량 수정
     @Override
     @Transactional
-    public void updateFoodMass(List<FoodListDto> foodListDtoList) {
-        for(FoodListDto foodListDto : foodListDtoList) {
+    public void updateFoodMass(List<FoodListDto.FoodList> foodListDtoList) {
+        for(FoodListDto.FoodList foodListDto : foodListDtoList) {
             Food food = foodRepository.findById(foodListDto.getFoodId()).orElse(null);
 
             List<FoodTag> foodTags = new ArrayList<>();
@@ -275,5 +256,23 @@ public class FoodServiceImpl implements FoodService {
         else {
             food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT).updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<FoodListDto.FoodList> getAllFoodForExcel() {
+        List<Food> foodList = foodRepository.findAll();
+        List<FoodListDto.FoodList> responseList = new ArrayList<>();
+
+        if(foodList != null) {
+            for(Food food : foodList) {
+                DiscountDto discountDto = DiscountDto.getDiscount(food);
+                BigDecimal resultPrice = discountDto.getDiscountedPrice();
+                FoodListDto.FoodList dto = makersFoodMapper.toAllFoodListDto(food, discountDto, resultPrice);
+                responseList.add(dto);
+            }
+        }
+
+        return responseList;
     }
 }

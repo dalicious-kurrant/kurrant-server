@@ -126,7 +126,15 @@ public class ScheduleServiceImpl implements ScheduleService {
 
                     // 수정할 데이터이면 푸드 스테이터스 변경
                     if(existGroupPresetDataList.containsKey(groupPresetDto)) {
-                        updatePresetGroupDailyFood(existGroupPresetDataList, groupPresetDto, updatePresetDataList);
+                        List<PresetDailyFood> existPresetDailyFood = existGroupPresetDataList.get(groupPresetDto).getPresetDailyFoods();
+                        for(PresetDailyFood presetDailyFood : existPresetDailyFood) {
+                            for(ExcelPresetDailyFoodDto.ExcelData updateData : Objects.requireNonNull(updatePresetDataList)) {
+                                if(updateData.getFoodName().equals(presetDailyFood.getFood().getName())) {
+                                    presetDailyFood.updateStatus(ScheduleStatus.ofCode(updateData.getFoodScheduleStatus()));
+                                    presetDailyFoodRepository.save(presetDailyFood);
+                                }
+                            }
+                        }
                     }
                     // 생성해야 할 데이터면 생성
                     else {
@@ -385,18 +393,6 @@ public class ScheduleServiceImpl implements ScheduleService {
                 if (food == null) throw new ApiException(ExceptionEnum.NOT_FOUND);
                 PresetDailyFood newPresetDailyFood = excelPresetDailyFoodMapper.toPresetDailyFoodEntity(createData, food, newPresetGroupDailyFood);
                 presetDailyFoodRepository.save(newPresetDailyFood);
-            }
-        }
-    }
-
-    private void updatePresetGroupDailyFood(Map<ExcelPresetDto.ExcelGroupDataDto, PresetGroupDailyFood> existGroupPresetDataList, ExcelPresetDto.ExcelGroupDataDto groupPresetDto, List<ExcelPresetDailyFoodDto.ExcelData> updatePresetDataList) {
-        List<PresetDailyFood> existPresetDailyFood = existGroupPresetDataList.get(groupPresetDto).getPresetDailyFoods();
-        for(PresetDailyFood presetDailyFood : existPresetDailyFood) {
-            for(ExcelPresetDailyFoodDto.ExcelData updateData : Objects.requireNonNull(updatePresetDataList)) {
-                if(updateData.getFoodName().equals(presetDailyFood.getFood().getName())) {
-                    presetDailyFood.updateStatus(ScheduleStatus.ofCode(updateData.getFoodScheduleStatus()));
-                    presetDailyFoodRepository.save(presetDailyFood);
-                }
             }
         }
     }
