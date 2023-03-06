@@ -49,9 +49,9 @@ public class SnsLoginServiceImpl implements SnsLoginService{
             throw new ApiException(ExceptionEnum.CANNOT_CONNECT_SNS);
         }
         return SnsLoginResponseDto.builder()
-                .phone(response.getResponse().mobile.replaceAll("-", ""))
-                .email(response.getResponse().email)
-                .name(response.getResponse().name)
+                .phone(response.getResponse().getMobile().replaceAll("-", ""))
+                .email(response.getResponse().getEmail())
+                .name(response.getResponse().getName() == null ? "이름없음" : response.getResponse().getName())
                 .build();
     }
 
@@ -79,7 +79,7 @@ public class SnsLoginServiceImpl implements SnsLoginService{
         return SnsLoginResponseDto.builder()
                 .phone("0" + response.getKakao_account().getPhone_number().substring(4).replaceAll("-", ""))
                 .email(response.getKakao_account().getEmail())
-                .name(response.getKakao_account().getName())
+                .name(response.getKakao_account().getName() == null ? "이름없음" : response.getKakao_account().getName())
                 .build();
     }
 
@@ -107,7 +107,7 @@ public class SnsLoginServiceImpl implements SnsLoginService{
 
         return SnsLoginResponseDto.builder()
                 .email(googleResponse.getEmail())
-                .name(googleResponse.getName().replaceAll(" ", ""))
+                .name(googleResponse.getName() == null ? "이름없음" : googleResponse.getName().replaceAll(" ", ""))
                 .build();
     }
 
@@ -175,7 +175,7 @@ public class SnsLoginServiceImpl implements SnsLoginService{
 
         return SnsLoginResponseDto.builder()
                 .email(response.getEmail())
-                .name(response.getName())
+                .name(response.getName() == null ? "이름없음" : response.getName())
                 .build();
     }
 }

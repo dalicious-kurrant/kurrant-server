@@ -40,6 +40,8 @@ public class SpotResponseDto {
     private String breakfastUseDays;
     @Schema(description = "아침 지원금")
     private BigDecimal breakfastSupportPrice;
+    @Schema(description = "아침 멤버십 혜택 마감시간")
+    private String breakfastMembershipBenefitTime;
     @Schema(description = "점심 주문 마감시간")
     private String lunchLastOrderTime;
     @Schema(description = "점심 배송시간")
@@ -48,6 +50,8 @@ public class SpotResponseDto {
     private String lunchUseDays;
     @Schema(description = "점심 지원금")
     private BigDecimal lunchSupportPrice;
+    @Schema(description = "점심 멤버십 혜택 마감시간")
+    private String lunchMembershipBenefitTime;
     @Schema(description = "저녁 주문 마감시간")
     private String dinnerLastOrderTime;
     @Schema(description = "저녁 배송시간")
@@ -56,11 +60,10 @@ public class SpotResponseDto {
     private String dinnerUseDays;
     @Schema(description = "저녁 지원금")
     private BigDecimal dinnerSupportPrice;
+    @Schema(description = "저녁 멤버십 혜택 마감시간")
+    private String dinnerMembershipBenefitTime;
     @Schema(description = "생성일")
     private String createdDateTime;
     @Schema(description = "수정일")
     private String updatedDateTime;
-
-
-
 }
