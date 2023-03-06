@@ -38,7 +38,7 @@ public class PresetGroupDailyFood {
     @Comment("픽업 시간")
     private LocalTime pickupTime;
 
-    @OneToMany(mappedBy = "presetGroupDailyFood")
+    @OneToMany(mappedBy = "presetGroupDailyFood", cascade = CascadeType.ALL)
     @JsonManagedReference(value = "preset_group_daily_food_fk")
     @Comment("음식별 예비 식단")
     private List<PresetDailyFood> presetDailyFoods;

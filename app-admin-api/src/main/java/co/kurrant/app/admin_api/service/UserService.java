@@ -8,10 +8,11 @@ import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
 
-    Object getUserList();
+    Object getUserList(Map<String, Object> parameters);
 
     long deleteMember(DeleteMemberRequestDto deleteMemberRequestDto);
 

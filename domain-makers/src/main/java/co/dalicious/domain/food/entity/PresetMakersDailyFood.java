@@ -66,7 +66,7 @@ public class PresetMakersDailyFood {
     @Comment("임시저장 상태 (0. 임시저장, 1. 요청, 2. 완료)")
     private ConfirmStatus confirmStatus;
 
-    @OneToMany(mappedBy = "presetMakersDailyFood")
+    @OneToMany(mappedBy = "presetMakersDailyFood", cascade = CascadeType.ALL)
     @JsonManagedReference(value = "preset_makers_daily_food_fk")
     @Comment("고객사 예비 식단")
     private List<PresetGroupDailyFood> presetGroupDailyFoods;
