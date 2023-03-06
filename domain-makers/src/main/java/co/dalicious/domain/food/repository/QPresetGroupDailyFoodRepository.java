@@ -1,11 +1,15 @@
 package co.dalicious.domain.food.repository;
 
-import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.PresetGroupDailyFood;
 import co.dalicious.domain.food.entity.PresetMakersDailyFood;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static co.dalicious.domain.food.entity.QPresetGroupDailyFood.presetGroupDailyFood;
 
@@ -14,10 +18,9 @@ import static co.dalicious.domain.food.entity.QPresetGroupDailyFood.presetGroupD
 public class QPresetGroupDailyFoodRepository {
     private final JPAQueryFactory queryFactory;
 
-    public PresetGroupDailyFood findByGroupAndMakersDailyFood(Group group, PresetMakersDailyFood presetMakersDailyFood) {
+    public List<PresetGroupDailyFood> findAllAndPresetMakersDailyFood(List<PresetMakersDailyFood> presetMakersDailyFoodList) {
         return queryFactory.selectFrom(presetGroupDailyFood)
-                .where(presetGroupDailyFood.group.eq(group),
-                        presetGroupDailyFood.presetMakersDailyFood.eq(presetMakersDailyFood))
-                .fetchOne();
+                .where(presetGroupDailyFood.presetMakersDailyFood.in(presetMakersDailyFoodList))
+                .fetch();
     }
 }
