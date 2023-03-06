@@ -46,24 +46,18 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
-
-    private final QUserSpotRepository qUserSpotRepository;
-    private final CorporationRepository corporationRepository;
     private final QCorporationRepository qCorporationRepository;
-    private final QSpotRepository qSpotRepository;
     private final QUserGroupRepository qUserGroupRepository;
     private final MemberMapper memberMapper;
     private final EmployeeRepository employeeRepository;
     private final QEmployeeRepository qEmployeeRepository;
     private final QUserRepository qUserRepository;
-    private final GroupRepository groupRepository;
     private final EmployeeMapper employeeMapper;
     private final EmployeeHistoryMapper employeeHistoryMapper;
     private final EmployeeHistoryRepository employeeHistoryRepository;
 
     @Override
     public List<MemberListResponseDto> getUserList(String code) {
-
         //code로 CorporationId 찾기 (=GroupId)
         BigInteger corporationId = qCorporationRepository.findOneByCode(code.toUpperCase());
 

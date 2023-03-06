@@ -10,6 +10,7 @@ import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.apache.commons.math3.analysis.function.Add;
+import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
@@ -131,6 +132,9 @@ public interface SpotMapper {
 
 
     default Spot toEntity(SpotResponseDto spotInfo, Group group, List<DiningType> diningTypes) throws ParseException {
+        if(group == null) {
+            throw new IllegalArgumentException("상세스팟 아이디:" + spotInfo.getSpotId().toString() + " 등록되어있지 않은 그룹입니다.");
+        }
         Set<DiningType> groupDiningTypes = new HashSet<>(group.getDiningTypes());
         if (!groupDiningTypes.containsAll(diningTypes)) {
             throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);

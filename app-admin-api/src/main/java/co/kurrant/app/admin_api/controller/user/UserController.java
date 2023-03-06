@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "4.User")
 @RequiredArgsConstructor
@@ -29,9 +30,9 @@ public class UserController {
     @Operation(summary = "유저조회", description = "유저 목록을 조회한다.")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/all")
-    public ResponseMessage getUserList() {
+    public ResponseMessage getUserList(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
-                .data(userService.getUserList())
+                .data(userService.getUserList(parameters))
                 .message("유저 목록 조회")
                 .build();
     }

@@ -15,6 +15,7 @@ import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
 import co.kurrant.app.admin_api.dto.user.UserInfoResponseDto;
 import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
@@ -55,18 +56,10 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public List<UserInfoResponseDto> getUserList() {
+    public List<UserInfoResponseDto> getUserList(Map<String, Object> parameters) {
+        List<User> users = qUserRepository.findAllByParameter(parameters);
 
-        List<User> users = userRepository.findAll();
-
-        users.stream().filter(user -> user.getUserStatus().getCode() != 0)
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-
-        List<UserInfoResponseDto> userInfoResponseDtoList = users.stream()
-                .map(userMapper::toDto).toList();
-
-        return userInfoResponseDtoList;
+        return users.stream().map(userMapper::toDto).toList();
     }
 
     @Override

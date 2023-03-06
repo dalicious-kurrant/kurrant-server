@@ -4,6 +4,7 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.user.entity.User;
 import exception.ApiException;
@@ -30,6 +31,8 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
             return getApartmentUserDeliveryFee(user, (Apartment) group);
         } else if (group instanceof Corporation) {
             return getCorporationDeliveryFee(user, (Corporation) group);
+        } else if (group instanceof OpenGroup) {
+            return getOpenGroupDeliveryFee(user, (OpenGroup) group);
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);
     }
@@ -41,6 +44,16 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
             return getMembershipApartmentDeliveryFee();
         } else {
             return getNoMembershipApartmentDeliveryFee();
+        }
+    }
+
+    @Override
+    public BigDecimal getOpenGroupDeliveryFee(User user, OpenGroup openGroup) {
+        Boolean isMembership = user.getIsMembership();
+        if (isMembership) {
+            return getMembershipOpenGroupDeliveryFee();
+        } else {
+            return getNoMembershipOpenGroupDeliveryFee();
         }
     }
 
@@ -64,6 +77,16 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
 
     @Override
     public BigDecimal getNoMembershipApartmentDeliveryFee() {
+        return DELIVERY_FEE;
+    }
+
+    @Override
+    public BigDecimal getMembershipOpenGroupDeliveryFee() {
+        return BigDecimal.ZERO;
+    }
+
+    @Override
+    public BigDecimal getNoMembershipOpenGroupDeliveryFee() {
         return DELIVERY_FEE;
     }
 
