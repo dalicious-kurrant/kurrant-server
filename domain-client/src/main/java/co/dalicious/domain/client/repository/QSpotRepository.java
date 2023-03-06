@@ -46,10 +46,10 @@ public class QSpotRepository {
                 .limit(2);
     }
 
-    public long deleteSpot(BigInteger spotId) {
+    public long deleteSpots(List<BigInteger> spotIdList) {
         return queryFactory.update(spot)
                 .set(spot.status , SpotStatus.INACTIVE)
-                .where(spot.id.eq(spotId))
+                .where(spot.id.in(spotIdList))
                 .execute();
     }
 

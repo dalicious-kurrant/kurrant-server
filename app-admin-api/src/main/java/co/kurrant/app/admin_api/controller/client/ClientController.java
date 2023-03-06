@@ -11,6 +11,9 @@ import org.locationtech.jts.io.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
+import java.util.List;
+
 @Tag(name = "3.Client")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/clients")
@@ -42,8 +45,8 @@ public class ClientController {
     @Operation(summary = "스팟 삭제하기", description = "선택한 스팟을 삭제한다.")
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("")
-    public ResponseMessage deleteSpot(@RequestBody DeleteSpotRequestDto deleteSpotRequestDto){
-        spotService.deleteSpot(deleteSpotRequestDto);
+    public ResponseMessage deleteSpot(@RequestBody List<BigInteger> spotIdList){
+        spotService.deleteSpot(spotIdList);
         return ResponseMessage.builder()
                 .message("선택한 스팟를 비활성 처리했습니다.")
                 .build();

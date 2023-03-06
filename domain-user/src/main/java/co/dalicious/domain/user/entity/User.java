@@ -1,9 +1,8 @@
 package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.converter.UserStatusConverter;
-import co.dalicious.domain.user.entity.enums.GourmetType;
-import co.dalicious.domain.user.entity.enums.Role;
-import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.entity.enums.*;
+import co.dalicious.system.util.StringUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -13,6 +12,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -284,5 +284,29 @@ public class User {
         for (UserSpot userSpot : userSpots) {
             userSpot.updateDefault(false);
         }
+    }
+
+    public List<UserGroup> getActiveUserGroup() {
+        return this.getGroups().stream()
+                .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
+                .collect(Collectors.toList());
+    }
+
+    public String getActiveUserGrouptoString() {
+        List<String> groupNames = getActiveUserGroup().stream()
+                .map(v -> v.getGroup().getName())
+                .toList();
+        if(groupNames.isEmpty()) {
+            return null;
+        }
+        return StringUtils.StringListToString(groupNames);
+    }
+
+    public String getProviderEmail(Provider provider) {
+        return getProviderEmails().stream()
+                .filter(v -> v.getProvider().equals(provider))
+                .map(ProviderEmail::getEmail)
+                .findFirst()
+                .orElse(null);
     }
 }

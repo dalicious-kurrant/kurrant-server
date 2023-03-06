@@ -31,6 +31,7 @@ public class FoodDiscountPolicy {
     @Column(name = "discount_type")
     private DiscountType discountType;
 
+    @Column(nullable = false)
     @Comment("할인율")
     private Integer discountRate;
 
