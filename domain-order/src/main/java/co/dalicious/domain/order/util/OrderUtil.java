@@ -97,7 +97,7 @@ public class OrderUtil {
 
         if (isMembership(user, group)) {
             // 멤버십 혜택 마감 시간 (서비스 날짜 전일 + 마감시간)
-            LocalDateTime membershipBenefitTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(1), spot.getMembershipBenefitTime(dailyFood.getDiningType()));
+            LocalDateTime membershipBenefitTime = LocalDateTime.of(LocalDate.now().minusDays(spot.getMembershipBenefitTime(dailyFood.getDiningType()).getDay()), spot.getMembershipBenefitTime(dailyFood.getDiningType()).getTime());
             if(spot.getDeliveryTime(dailyFood.getDiningType()) == null || LocalDateTime.now().isBefore(membershipBenefitTime)) {
                 return DiscountDto.getDiscount(dailyFood.getFood());
             }

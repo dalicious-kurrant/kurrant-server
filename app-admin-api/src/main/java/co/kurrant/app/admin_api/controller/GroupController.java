@@ -3,7 +3,6 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
-import co.dalicious.domain.client.dto.GroupListDto;
 import co.kurrant.app.admin_api.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,7 +16,7 @@ import java.util.List;
 @Tag(name = "3. Group")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "v1/groups")
+@RequestMapping(value = "/v1/groups")
 public class GroupController {
 
     public final GroupService groupService;

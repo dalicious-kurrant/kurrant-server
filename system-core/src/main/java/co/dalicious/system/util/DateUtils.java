@@ -96,6 +96,6 @@ public class DateUtils {
     }
     public static LocalTime stringToLocalTime(String time) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        return LocalTime.parse(time, formatter);
+        return LocalTime.parse(time.trim(), formatter);
     }
 }

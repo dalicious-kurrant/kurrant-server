@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.client.converter.DayAndTimeConverter;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
@@ -18,6 +19,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
@@ -44,8 +46,9 @@ public class MealInfo {
     private LocalTime deliveryTime;
 
     @Column(name = "membership_benefit_time")
-    @Comment("멤버십 혜택 마감 시간")
-    private LocalTime membershipBenefitTime;
+    @Convert(converter = DayAndTimeConverter.class)
+    @Comment("멤버십 혜택 마감 일시")
+    private DayAndTime membershipBenefitTime;
 
     @NotNull
     @Column(name = "last_order_time", nullable = false)
@@ -76,7 +79,7 @@ public class MealInfo {
     @Comment("스팟")
     private Spot spot;
 
-    public MealInfo(DiningType diningType, LocalTime deliveryTime, LocalTime membershipBenefitTime,LocalTime lastOrderTime, String serviceDays, Spot spot) {
+    public MealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime,LocalTime lastOrderTime, String serviceDays, Spot spot) {
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
         this.membershipBenefitTime = membershipBenefitTime;
@@ -94,5 +97,37 @@ public class MealInfo {
         this.membershipBenefitTime = mealInfo.getMembershipBenefitTime();
         this.lastOrderTime = mealInfo.getLastOrderTime();
         this.serviceDays = mealInfo.getServiceDays();
+    }
+
+    public String dayAndTimeToString() {
+        if(this.getMembershipBenefitTime() == null) {
+            return "정보 없음";
+        }
+        else {
+            String timeStr = this.getMembershipBenefitTime().getTime().toString();
+            if (timeStr.matches("\\d{2}:\\d{2}")) {
+                return "0일전 " + timeStr;
+            } else {
+                return this.getMembershipBenefitTime().getDay() + "일전 " + timeStr;
+            }
+        }
+    }
+
+    public static DayAndTime stringToDayAndTime(String str) {
+        if (str.equals("정보 없음")) {
+            return null;
+        }
+       else {
+            String[] parts = str.split("일전 ");
+            Integer day = 0;
+            LocalTime time;
+            if (parts.length == 1) {
+                time = LocalTime.parse(parts[0]);
+            } else {
+                day = Integer.parseInt(parts[0]);
+                time = LocalTime.parse(parts[1]);
+            }
+            return new DayAndTime(day, time);
+        }
     }
 }
