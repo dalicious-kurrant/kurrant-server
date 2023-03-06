@@ -450,6 +450,7 @@ public class UserServiceImpl implements UserService {
         //TOSS에 요청하기 위한 request 객체 빌드
         JSONObject response = tossUtil.cardRegisterRequest(saveCreditCardRequestDto.getCardNumber(), saveCreditCardRequestDto.getExpirationYear(), saveCreditCardRequestDto.getExpirationMonth(),
                 saveCreditCardRequestDto.getCardPassword(), identityNumber, customerKey);
+        System.out.println(response + " RESPONSE CHECK===========================================");
 
         //빌링키가 없다면 Exception 처리
         if (!response.containsKey("billingKey")) {
