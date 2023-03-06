@@ -18,10 +18,15 @@ import java.util.Random;
 public class TossUtil {
 
     private String secretKey;
+    private String billingSecretKey;
 
-    TossUtil(@Value("${toss.secret-key}") String secretKey){
+    TossUtil(@Value("${toss.secret-key}") String secretKey,
+             @Value("${toss.billing-secret-key}") String billingSecretKey){
         this.secretKey = secretKey;
+        this.billingSecretKey = billingSecretKey;
     }
+
+
     public String createCustomerKey() {
         int leftLimit = 48; // 숫자 '0'
         int rightLimit = 122; // 영소문자 'z'
@@ -40,7 +45,7 @@ public class TossUtil {
     //카드 등록요청(자동결제 빌링키 발급)
     public JSONObject cardRegisterRequest(String cardNumber, String expirationYear, String expirationMonth,
                           String cardPassword, String identityNumber, String customerKey) throws IOException, ParseException {
-        byte[] secretKeyToByte = secretKey.getBytes();
+        byte[] secretKeyToByte = billingSecretKey.getBytes();
 
         Base64.Encoder encode = Base64.getEncoder();
         byte[] encodeByte = encode.encode(secretKeyToByte);
@@ -87,7 +92,7 @@ public class TossUtil {
     public JSONObject payToCard(String customerKey, Integer amount,String orderId, String orderName, String billingKey) throws IOException, InterruptedException, ParseException {
 
         Base64.Encoder encode = Base64.getEncoder();
-        byte[] encodeByte = encode.encode(secretKey.getBytes("UTF-8"));
+        byte[] encodeByte = encode.encode(billingSecretKey.getBytes("UTF-8"));
         String authorizations = "Basic "+ new String(encodeByte, 0, encodeByte.length);
 
         URL url = new URL("https://api.tosspayments.com/v1/billing/" + billingKey);
