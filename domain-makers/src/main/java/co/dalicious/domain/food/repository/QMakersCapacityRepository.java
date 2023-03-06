@@ -31,16 +31,16 @@ public class QMakersCapacityRepository {
                 .fetch();
     }
 
-    public void updateDailyCapacity(Integer diningType, Integer capacity, BigInteger id) {
-        queryFactory.update(makersCapacity)
+    public long updateDailyCapacity(Integer diningType, Integer capacity, BigInteger id) {
+        return queryFactory.update(makersCapacity)
                 .set(makersCapacity.capacity, capacity)
                 .where(makersCapacity.makers.id.eq(id),
                         makersCapacity.diningType.eq(DiningType.ofCode(diningType)))
                 .execute();
     }
 
-    public void updateDailyCapacityDiningType(Integer morning, Integer lunch, Integer dinner, String diningType, BigInteger id) {
-        queryFactory.update(makersCapacity)
+    public long updateDailyCapacityDiningType(Integer morning, Integer lunch, Integer dinner, String diningType, BigInteger id) {
+        return queryFactory.update(makersCapacity)
                 .set(makersCapacity.capacity, morning)
                 .where(makersCapacity.diningType.eq(DiningType.ofString(diningType)),
                         makersCapacity.makers.id.eq(id))

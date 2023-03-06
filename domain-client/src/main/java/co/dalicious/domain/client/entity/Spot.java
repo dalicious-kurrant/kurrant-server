@@ -111,7 +111,7 @@ public class Spot {
                 .orElse(null);
     }
 
-    public LocalTime getMembershipBenefitTime(DiningType diningType) {
+    public DayAndTime getMembershipBenefitTime(DiningType diningType) {
         return this.mealInfos.stream()
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()

@@ -17,6 +17,8 @@ import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.service.MakersService;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.math3.analysis.function.Add;
 import org.locationtech.jts.geom.Geometry;
@@ -45,12 +47,19 @@ public class MakersServiceImpl implements MakersService {
     public Object findAllMakersInfo() {
 
         List<Makers> makersList = makersRepository.findAll();
+        if (makersList.size() == 0){
+            throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
+        }
 
         List<MakersInfoResponseDto> makersInfoResponseDtoList = new ArrayList<>();
 
         for (Makers makers : makersList) {
             //dailyCapacity 구하기
             List<MakersCapacity> makersCapacity = qMakersCapacityRepository.findByMakersId(makers.getId());
+            if (makersCapacity.size() == 0){
+                throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS_CAPACITY);
+            }
+
             Integer dailyCapacity = 0;
             List<String> diningTypes = new ArrayList<>();
             Integer morningCapacity = null;
@@ -86,9 +95,9 @@ public class MakersServiceImpl implements MakersService {
             //Address 생성
             Address address = new Address(saveMakersRequestDto.getZipCode(), saveMakersRequestDto.getAddress1(), saveMakersRequestDto.getAddress2(), saveMakersRequestDto.getLocation());
 
-            Optional<Makers> optionalMakers = makersRepository.findById(saveMakersRequestDto.getId());
+            Makers optionalMakers = makersRepository.findById(saveMakersRequestDto.getId()).orElseThrow(() ->  new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
             //이미 존재하면 수정
-            if (optionalMakers.isPresent()){
+            if (optionalMakers != null){
 
                 //DailyCapacity 수정
                 List<MakersCapacity> makersCapacityList = qMakersCapacityRepository.findByMakersId(saveMakersRequestDto.getId());
@@ -101,10 +110,10 @@ public class MakersServiceImpl implements MakersService {
 
                             Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
                             Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
-                            System.out.println(capacity + " capa");
-                            qMakersCapacityRepository.updateDailyCapacity(diningType, capacity, saveMakersRequestDto.getId());
-
-
+                        long updateResult = qMakersCapacityRepository.updateDailyCapacity(diningType, capacity, saveMakersRequestDto.getId());
+                        if (updateResult != 1){
+                            throw new ApiException(ExceptionEnum.MAKERS_UPDATE_FAILED);
+                        }
                     }
                 } else {
                     Integer divTen = saveMakersRequestDto.getDailyCapacity() / 10;
@@ -113,11 +122,13 @@ public class MakersServiceImpl implements MakersService {
                     Integer dinner = divTen * 3;
 
                     for (int i = 0; i < makersCapacityList.size(); i++) {
-                       qMakersCapacityRepository.updateDailyCapacityDiningType(morning, lunch, dinner, makersCapacityList.get(i).getDiningType().getDiningType(), saveMakersRequestDto.getId());
+                        long updateResult = qMakersCapacityRepository.updateDailyCapacityDiningType(morning, lunch, dinner, makersCapacityList.get(i).getDiningType().getDiningType(), saveMakersRequestDto.getId());
+                        if (updateResult != 1){
+                            throw new ApiException(ExceptionEnum.MAKERS_UPDATE_FAILED);
+                        }
                     }
 
                 }
-
 
                 //그 외 수정
                 qMakersRepository.updateMakers(saveMakersRequestDto.getId(),saveMakersRequestDto.getCode(),saveMakersRequestDto.getName(),
@@ -130,30 +141,26 @@ public class MakersServiceImpl implements MakersService {
             }else {
                 Makers makers = makersMapper.toEntity(saveMakersRequestDto, address);
 
-                makersRepository.save(makers);
-                /*
-                makersRepository.savePoint(makers.getCEO(), makers.getCEOPhone(), makers.getAccountNumber(), makers.getAddress().getAddress1(), makers.getAddress().getAddress2(),
-                        makers.getAddress().getLocation(), makers.getAddress().getZipCode(), makers.getBank(), makers.getCode(), makers.getCompanyName(), makers.getCompanyRegistrationNumber(),
-                        makers.getContractEndDate(), makers.getContractStartDate(), makers.getDepositHolder(), makers.getIsNutritionInformation(), makers.getIsParentCompany(),
-                        makers.getManagerName(), makers.getManagerPhone(), makers.getName(), makers.getOpenTime(), makers.getCloseTime(), makers.getParentCompanyId(), makers.getServiceForm().getCode(), makers.getServiceType().getCode());
-                */
+                Makers saveResult = makersRepository.save(makers);
+                if (saveResult == null){
+                    throw new ApiException(ExceptionEnum.MAKERS_SAVE_FAILED);
+                }
 
                 //capacity 생성 및 저장
                 for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
                     MakersCapacity makersCapacity = makersCapacityMapper.toEntity(makers, saveMakersRequestDto.getDiningTypes().get(i));
-                    makersCapacityRepository.save(makersCapacity);
+                    MakersCapacity capacitySaveResult = makersCapacityRepository.save(makersCapacity);
+                    if (capacitySaveResult == null){
+                        throw new ApiException(ExceptionEnum.MAKERS_SAVE_FAILED);
+                    }
                 }
-
-//                if (result != 1) {
-//                    throw new ApiException(ExceptionEnum.MAKERS_SAVE_FAILED);
-//                }
             }
         }
     }
 
     @Override
     public void locationTest(LocationTestDto locationTestDto) throws ParseException {
-
+        //Only For LocationTest
         WKTReader wktReader = new WKTReader();
         Geometry location = wktReader.read(locationTestDto.getLocation());
 

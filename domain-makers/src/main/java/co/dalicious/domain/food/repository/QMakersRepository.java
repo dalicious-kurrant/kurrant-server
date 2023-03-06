@@ -51,14 +51,14 @@ public class QMakersRepository {
                              String contractEndDate, Boolean isNutritionInformation, String openTime,
                              String closeTime, String bank, String depositHolder, String accountNumber) {
         //코드수정
-        if (!code.isEmpty()){
+        if (code != null && !code.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.code, code)
                     .where(makers.id.eq(id))
                     .execute();
         }
         //이름 수정
-        if (!name.isEmpty()){
+        if (name != null && !name.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.name, name)
                     .where(makers.id.eq(id))
@@ -66,35 +66,35 @@ public class QMakersRepository {
         }
 
         //companyName수정
-        if (!companyName.isEmpty()){
+        if (companyName != null && !companyName.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.companyName, companyName)
                     .where(makers.id.eq(id))
                     .execute();
         }
         //ceo 수정
-        if (!ceo.isEmpty()){
+        if (ceo != null && !ceo.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.CEO, ceo)
                     .where(makers.id.eq(id))
                     .execute();
         }
         //ceoPhone 수정
-        if (!ceoPhone.isEmpty()){
+        if (ceoPhone != null && !ceoPhone.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.CEOPhone, ceoPhone)
                     .where(makers.id.eq(id))
                     .execute();
         }
         //managerName 수정
-        if (!managerName.isEmpty()){
+        if (managerName != null && !managerName.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.managerName, managerName)
                     .where(makers.id.eq(id))
                     .execute();
         }
         //managerPhone 수정
-        if (!managerPhone.isEmpty()){
+        if (managerPhone != null && !managerPhone.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.managerPhone, managerPhone)
                     .where(makers.id.eq(id))
@@ -102,14 +102,14 @@ public class QMakersRepository {
         }
 
         //서비스타입
-        if (!serviceType.isEmpty()){
+        if (serviceType != null && !serviceType.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.serviceType, ServiceType.ofString(serviceType))
                     .where(makers.id.eq(id))
                     .execute();
         }
         //서비스 폼
-        if (!serviceForm.isEmpty()){
+        if (serviceForm != null && !serviceForm.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.serviceForm, ServiceForm.ofString(serviceForm))
                     .where(makers.id.eq(id))
@@ -132,9 +132,6 @@ public class QMakersRepository {
 
         //address 수정
         if (address != null){
-
-
-
             queryFactory.update(makers)
                     .set(makers.address.address1, address.getAddress1())
                     .set(makers.address.address2, address.getAddress2())
@@ -144,7 +141,7 @@ public class QMakersRepository {
                     .execute();
         }
         //사업자번호 수정
-        if (!companyRegistrationNumber.isEmpty()){
+        if (companyRegistrationNumber != null && !companyRegistrationNumber.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.companyRegistrationNumber, companyRegistrationNumber)
                     .where(makers.id.eq(id))
@@ -158,7 +155,7 @@ public class QMakersRepository {
                     .execute();
         }
         //계약 종료일 수정
-        if (!contractEndDate.isEmpty()){
+        if (contractEndDate != null && !contractEndDate.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.contractEndDate, LocalDate.parse(contractEndDate))
                     .where(makers.id.eq(id))
@@ -172,35 +169,35 @@ public class QMakersRepository {
                     .execute();
         }
         //오픈시간 수정
-        if (!openTime.isEmpty()){
+        if (openTime != null && !openTime.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.openTime, LocalTime.parse(openTime))
                     .where(makers.id.eq(id))
                     .execute();
         }
         //종료시간 수정
-        if (!closeTime.isEmpty()){
+        if (closeTime != null && !closeTime.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.closeTime, LocalTime.parse(closeTime))
                     .where(makers.id.eq(id))
                     .execute();
         }
         //은행 수정
-        if (!bank.isEmpty()){
+        if (bank != null && !bank.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.bank, bank)
                     .where(makers.id.eq(id))
                     .execute();
         }
         //예금주 수정
-        if (!depositHolder.isEmpty()){
+        if (depositHolder != null && !depositHolder.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.depositHolder, depositHolder)
                     .where(makers.id.eq(id))
                     .execute();
         }
         //계좌번호 수정
-        if (!accountNumber.isEmpty()){
+        if (accountNumber != null && !accountNumber.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.accountNumber, accountNumber)
                     .where(makers.id.eq(id))

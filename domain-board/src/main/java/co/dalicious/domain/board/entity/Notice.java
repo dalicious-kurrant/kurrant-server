@@ -48,7 +48,7 @@ public class Notice {
     private String content;
 
     @Column(name="type")
-    @Comment("1:전체공지/ 2:스팟공지")
+    @Comment("0:전체공지/ 1:스팟공지")
     private Integer type;
 
     @Builder

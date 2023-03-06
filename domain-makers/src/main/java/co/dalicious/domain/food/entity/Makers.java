@@ -78,7 +78,7 @@ public class Makers {
     @Comment("서비스 형태")
     private ServiceForm serviceForm;
 
-    @Comment("모회사 여부")
+    @Comment("모회사 여부(이 회사가 모회사인지)")
     private Boolean isParentCompany;
 
     @Comment("모회사 id")
@@ -145,7 +145,7 @@ public class Makers {
     @Comment("비밀번호, BCrpypt")
     private String password;
 
-    @ColumnDefault("1L")
+    @ColumnDefault("1")
     @Convert(converter = RoleConverter.class)
     @Column(name = "e_role")
     @Comment("유저 타입")
