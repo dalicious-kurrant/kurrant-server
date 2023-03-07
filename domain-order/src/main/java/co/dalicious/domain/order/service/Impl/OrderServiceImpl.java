@@ -13,7 +13,6 @@ import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
-import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.util.CreditCardValidator;
 import co.dalicious.domain.payment.util.TossUtil;

@@ -30,6 +30,10 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
         if(group instanceof Apartment) {
             return getApartmentUserDeliveryFee(user, (Apartment) group);
         } else if (group instanceof Corporation) {
+            // TODO: 추후 삭제
+            if(group.getName().replaceAll("\\s+", "").contains("스파크플러스")) {
+                return getMembershipCorporationDeliveryFee();
+            }
             return getCorporationDeliveryFee(user, (Corporation) group);
         } else if (group instanceof OpenGroup) {
             return getOpenGroupDeliveryFee(user, (OpenGroup) group);

@@ -180,8 +180,8 @@ jobs:
           docker stop client_kurrant_v1
           sleep 5
           docker run -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
-          docker run -d --rm --net redis_redis_cluster --name makers_kurrant_v1 -p 8884:8884 makers_kurrant_v1
+          docker run -d --rm --name makers_kurrant_v1 -p 8884:8884 makers_kurrant_v1
           docker run -d --rm --name client_kurrant_v1 -p 8886:8886 client_kurrant_v1
-          docker run -d --rm --net redis_redis_cluster --name admin_kurrant_v1 -p 8888:8888 admin_kurrant_v1
+          docker run -d --rm --name admin_kurrant_v1 -p 8888:8888 admin_kurrant_v1
           
 

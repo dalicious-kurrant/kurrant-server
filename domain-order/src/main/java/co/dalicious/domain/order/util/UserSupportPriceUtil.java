@@ -73,6 +73,16 @@ public class UserSupportPriceUtil {
         } else {
             return usableSupportPrice;
         }
+    }
 
+    public static BigDecimal getUsableSupportPrice(Spot spot, List<UserSupportPriceHistory> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
+        //TODO: 추후 수정
+        if(!spot.getName().contains("메드트로닉")) {
+            BigDecimal supportPrice =  getGroupSupportPriceByDiningType(spot, diningType);
+            BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, serviceDate, diningType);
+            return supportPrice.subtract(usedSupportPrice);
+        } else {
+            return BigDecimal.valueOf(10000000000L);
+        }
     }
 }

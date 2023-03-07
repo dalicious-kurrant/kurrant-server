@@ -131,7 +131,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         // 프론트에서 제공한 정보와 실제 정보가 일치하는지 확인
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 배송비 일치 점증 및 배송비 계산
-            System.out.println(deliveryFeePolicy.getGroupDeliveryFee(user,group) + "배송비");
             if (cartDailyFoodDto.getDeliveryFee().compareTo(deliveryFeePolicy.getGroupDeliveryFee(user, group)) != 0) {
                 throw new ApiException(ExceptionEnum.NOT_MATCHED_DELIVERY_FEE);
             }
@@ -159,11 +158,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             BigDecimal supportPrice = BigDecimal.ZERO;
             BigDecimal orderItemGroupTotalPrice = BigDecimal.ZERO;
             if (spot instanceof CorporationSpot) {
-                supportPrice = UserSupportPriceUtil.getGroupSupportPriceByDiningType(spot, DiningType.ofString(cartDailyFoodDto.getDiningType()));
-                // 기존에 사용한 지원금이 있다면 차감
-                BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType()));
-                supportPrice = supportPrice.subtract(usedSupportPrice);
-                if (cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
+                supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType()));
+                if (!spot.getName().contains("메드트로닉") && cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
                 }
             }
@@ -227,7 +223,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if (spot instanceof CorporationSpot) {
                 BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                 if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
-                    UserSupportPriceHistory userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                    UserSupportPriceHistory userSupportPriceHistory;
+                    if(spot.getName().contains("메드트로닉")) {
+                        userSupportPriceHistory = userSupportPriceHistoryReqMapper.toMedTronicSupportPrice(orderItemDailyFood);
+                    }
+                    else {
+                        userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                    }
                     userSupportPriceHistoryRepository.save(userSupportPriceHistory);
                     totalSupportPrice = totalSupportPrice.add(usableSupportPrice);
                 }
