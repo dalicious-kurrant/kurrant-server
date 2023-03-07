@@ -140,6 +140,8 @@ public class QOrderDailyFoodRepository {
             whereClause = whereClause.and(dailyFood.diningType.in(diningTypes));
         }
 
+        whereClause = whereClause.and(orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()));
+
         return queryFactory.selectFrom(orderItemDailyFood)
                 .innerJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
                 .innerJoin(orderItemDailyFood.dailyFood, dailyFood)

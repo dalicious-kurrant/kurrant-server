@@ -52,8 +52,7 @@ public interface DailyFoodMapper {
             }
             return DailyFood.builder()
                     .id(dailyFoodDto.getDailyFoodId() == null ? null : dailyFoodDto.getDailyFoodId())
-                    .dailyFoodStatus(DailyFoodStatus.SALES)
-                    .dailyFoodStatus(DailyFoodStatus.SALES)
+                    .dailyFoodStatus(DailyFoodStatus.WAITING)
                     .diningType(DiningType.ofCode(dailyFoodDto.getDiningType()))
                     .serviceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()))
                     .food(food)
