@@ -98,8 +98,7 @@ public class FoodServiceImpl implements FoodService {
 
             // dto에 랭크 추가
             dailyFoodDtos.forEach(dto -> {
-                UserRecommends userRecommend = userRecommendList.stream().filter(recommend -> recommend.getFoodId().equals(dto.getFoodId())).findFirst().orElse(null);
-                if(userRecommend != null) dto.setRank(userRecommend.getRank());
+                userRecommendList.stream().filter(recommend -> recommend.getFoodId().equals(dto.getFoodId())).findFirst().ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
             });
 
             return RetrieveDailyFoodDto.builder()
