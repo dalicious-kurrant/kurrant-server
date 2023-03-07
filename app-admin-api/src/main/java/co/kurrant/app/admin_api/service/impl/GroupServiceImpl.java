@@ -158,7 +158,20 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public List<GroupListDto.GroupInfoList> getAllGroupForExcel() {
-        return null;
+        List<Group> groupAllList = groupRepository.findAll();
+        // 기업 정보 dto 맵핑하기
+        List<GroupListDto.GroupInfoList> groupListDtoList = new ArrayList<>();
+
+        if(groupAllList.isEmpty()) { return groupListDtoList; }
+
+        for(Group group : groupAllList) {
+            User managerUser = null;
+            if(group.getManagerId() != null) { managerUser = userRepository.findById(group.getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));}
+            GroupListDto.GroupInfoList corporationListDto = groupMapper.toCorporationListDto(group, managerUser);
+            groupListDtoList.add(corporationListDto);
+        }
+
+        return groupListDtoList;
     }
 
     private Boolean useOrNotUse(String data) {
