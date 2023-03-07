@@ -33,6 +33,7 @@ public class FoodListDto {
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class FoodList {
 
         private BigInteger foodId;

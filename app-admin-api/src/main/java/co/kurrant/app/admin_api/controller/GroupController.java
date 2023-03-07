@@ -43,7 +43,7 @@ public class GroupController {
     @GetMapping("/excels")
     public ResponseMessage getAllGroupForExcel() {
         return ResponseMessage.builder()
-                .message("기업 정보를 저장했습니다.")
+                .message("기업 정보를 조회했습니다.")
                 .data(groupService.getAllGroupForExcel())
                 .build();
     }
