@@ -167,7 +167,7 @@ public interface OrderDailyFoodByMakersMapper {
             spotByDateDiningType.setSpotId(spot.getId());
             spotByDateDiningType.setSpotName(spot.getName());
             spotByDateDiningType.setFoods(foodList);
-            spotByDateDiningType.setDeliveryTime(DateUtils.timeToString(spot.getDeliveryTime(diningType)));
+            spotByDateDiningType.setDeliveryTime(spot.getDeliveryTime(diningType) == null ? null : DateUtils.timeToString(spot.getDeliveryTime(diningType)));
             spotByDateDiningTypes.add(spotByDateDiningType);
         }
         return spotByDateDiningTypes;
