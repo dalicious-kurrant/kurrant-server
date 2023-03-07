@@ -307,8 +307,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     } else {
                         paymentCompanyCode = (String) card.get("issuerCode");
                     }
+                    System.out.println("jsonObject = " + jsonObject);
                     PaymentCompany paymentCompany = PaymentCompany.ofCode(paymentCompanyCode);
-                    qOrderDailyFoodRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderDailyFood.getId(), paymentCompany);
+                    orderDailyFood.updateOrderDailyFoodAfterPayment(receiptUrl, paymentKey, orderItemDailyFoodReqDto.getOrderId(), paymentCompany);
                 }
                 // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
                 else {

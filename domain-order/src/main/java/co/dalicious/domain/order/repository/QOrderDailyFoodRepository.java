@@ -45,16 +45,6 @@ import static com.querydsl.core.group.GroupBy.sum;
 public class QOrderDailyFoodRepository {
 
     public final JPAQueryFactory queryFactory;
-
-    public void afterPaymentUpdate(String receiptUrl, String paymentKey, BigInteger orderId, PaymentCompany paymentCompany) {
-        long update = queryFactory.update(orderDailyFood)
-                .set(orderDailyFood.receiptUrl, receiptUrl)
-                .set(orderDailyFood.paymentKey, paymentKey)
-                .set(orderDailyFood.paymentCompany, paymentCompany)
-                .where(orderDailyFood.id.eq(orderId))
-                .execute();
-    }
-
     public List<OrderItemDailyFood> findByUserAndServiceDateBetween(User user, LocalDate startDate, LocalDate endDate) {
         return queryFactory
                 .selectFrom(orderItemDailyFood)

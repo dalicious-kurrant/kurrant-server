@@ -17,6 +17,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 @DynamicInsert
 @DynamicUpdate
@@ -65,6 +66,12 @@ public class OrderDailyFood extends Order{
     }
 
     public void updatePaymentCompany(PaymentCompany paymentCompany) {
+        this.paymentCompany = paymentCompany;
+    }
+
+
+    public void updateOrderDailyFoodAfterPayment(String receiptUrl, String paymentKey, String code, PaymentCompany paymentCompany) {
+        super.updateOrderAfterPayment(receiptUrl, paymentKey, code);
         this.paymentCompany = paymentCompany;
     }
 }
