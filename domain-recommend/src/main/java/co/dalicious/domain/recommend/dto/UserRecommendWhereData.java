@@ -18,15 +18,13 @@ public class UserRecommendWhereData {
     private BigInteger userId;
     private BigInteger groupId;
     private List<BigInteger> foodId;
-    private DiningType diningType;
     private LocalDate serviceDate;
 
-    public static UserRecommendWhereData createUserRecommendWhereData(BigInteger userId, BigInteger groupId, List<BigInteger> foodIds, DiningType diningType, LocalDate serviceDate) {
+    public static UserRecommendWhereData createUserRecommendWhereData(BigInteger userId, BigInteger groupId, List<BigInteger> foodIds, LocalDate serviceDate) {
         return UserRecommendWhereData.builder()
                 .userId(userId)
                 .groupId(groupId)
                 .foodId(foodIds)
-                .diningType(diningType)
                 .serviceDate(serviceDate)
                 .build();
     }
