@@ -106,4 +106,10 @@ public class QUserRepository {
                 .where(whereClause)
                 .fetch();
     }
+
+    public List<User> getUsersByEmails(List<String> emails) {
+        return queryFactory.selectFrom(user)
+                .where(user.email.in(emails))
+                .fetch();
+    }
 }
