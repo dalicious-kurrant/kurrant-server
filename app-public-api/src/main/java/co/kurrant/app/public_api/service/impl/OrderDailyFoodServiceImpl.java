@@ -150,7 +150,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
         // 1. 주문서 저장하기
-        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot));
+        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 2. 유저 사용 지원금 가져오기
