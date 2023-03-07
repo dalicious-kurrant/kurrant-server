@@ -99,37 +99,17 @@ public class MakersServiceImpl implements MakersService {
             //이미 존재하면 수정
             if (optionalMakers.isPresent()){
 
-                //DailyCapacity 수정
-                List<MakersCapacity> makersCapacityList = qMakersCapacityRepository.findByMakersId(saveMakersRequestDto.getId());
-
                 //다이닝 타입별 가능수량을 계산해서 저장해준다.
-                if (makersCapacityList.size() < 4 && makersCapacityList.size() != 0){
-                    for (int i = 0; i < makersCapacityList.size(); i++) {
+                    for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
+                        Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
+                        Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
 
-                            Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
-                            Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
                         long updateResult = qMakersCapacityRepository.updateDailyCapacity(diningType, capacity, saveMakersRequestDto.getId());
+
                         if (updateResult != 1){
                             throw new ApiException(ExceptionEnum.MAKERS_UPDATE_FAILED);
                         }
                     }
-                }
-
-                /*else {
-                    Integer divTen = saveMakersRequestDto.getDailyCapacity() / 10;
-                    Integer morning = divTen * 3;
-                    Integer lunch = divTen * 4;
-                    Integer dinner = divTen * 3;
-
-                    for (int i = 0; i < makersCapacityList.size(); i++) {
-                        long updateResult = qMakersCapacityRepository.updateDailyCapacityDiningType(morning, lunch, dinner, makersCapacityList.get(i).getDiningType().getDiningType(), saveMakersRequestDto.getId());
-                        if (updateResult != 1){
-                            throw new ApiException(ExceptionEnum.MAKERS_UPDATE_FAILED);
-                        }
-                    }
-
-                }*/
-
                 //그 외 수정
                 qMakersRepository.updateMakers(saveMakersRequestDto.getId(),saveMakersRequestDto.getCode(),saveMakersRequestDto.getName(),
                         saveMakersRequestDto.getCompanyName(), saveMakersRequestDto.getCeo(), saveMakersRequestDto.getCeoPhone(),
