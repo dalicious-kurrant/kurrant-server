@@ -52,4 +52,13 @@ public class ScheduleController {
                 .message("데이터를 임시 저장 했습니다.")
                 .build();
     }
+
+    @Operation(summary = "식단 전체 조회", description = "존재하는 식단을 모두 조회합니다.")
+    @GetMapping("/excels")
+    public ResponseMessage getAllPresetScheduleListForExcel() {
+        return ResponseMessage.builder()
+                .message("모든 상품을 조회했습니다.")
+                .data(scheduleService.getAllPresetScheduleListForExcel())
+                .build();
+    }
 }
