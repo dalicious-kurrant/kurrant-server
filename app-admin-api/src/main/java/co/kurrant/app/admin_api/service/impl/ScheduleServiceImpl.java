@@ -371,6 +371,55 @@ public class ScheduleServiceImpl implements ScheduleService {
         presetDailyFoodRepository.saveAll(presetDailyFoodList);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<PresetScheduleResponseDto> getAllPresetScheduleListForExcel() {
+        List<PresetScheduleResponseDto> presetScheduleResponseDtoList = new ArrayList<>();
+
+        List<PresetMakersDailyFood> presetMakersDailyFoodList = qPresetMakersDailyFoodRepository.findByServiceDateAndConfirmStatus();
+        if(presetMakersDailyFoodList == null) return presetScheduleResponseDtoList;
+        List<PresetGroupDailyFood> presetGroupDailyFoodList = qPresetGroupDailyFoodRepository.findAllAndPresetMakersDailyFood(presetMakersDailyFoodList);
+        List<PresetDailyFood> presetDailyFoodList = qPresetDailyFoodRepository.getAllAndPresetGroupDailyFood(presetGroupDailyFoodList);
+
+        Map<PresetMakersDailyFood, List<PresetGroupDailyFood>> presetMakersDailyFoodListMap = new HashMap<>();
+        Map<PresetGroupDailyFood, List<PresetDailyFood>> presetGroupDailyFoodListMap = new HashMap<>();
+
+        presetMakersDailyFoodList.forEach(presetMakersDailyFood -> {
+            List<PresetGroupDailyFood> groupDailyFood = presetGroupDailyFoodList.stream().filter(presetGroupDailyFood ->
+                    presetGroupDailyFood.getPresetMakersDailyFood().equals(presetMakersDailyFood)).toList();
+            presetMakersDailyFoodListMap.put(presetMakersDailyFood, groupDailyFood);
+        });
+        presetGroupDailyFoodList.forEach(presetGroupDailyFood -> {
+            List<PresetDailyFood> dailyFood = presetDailyFoodList.stream().filter(presetDailyFood ->
+                    presetDailyFood.getPresetGroupDailyFood().equals(presetGroupDailyFood)).toList();
+            presetGroupDailyFoodListMap.put(presetGroupDailyFood, dailyFood);
+        });
+
+        Map<PresetGroupDailyFood, PresetScheduleResponseDto.clientSchedule> clientScheduleMap = new HashMap<>();
+        for(PresetGroupDailyFood groupDailyFood : presetGroupDailyFoodListMap.keySet()) {
+            List<PresetDailyFood> presetDailyFoods = presetGroupDailyFoodListMap.get(groupDailyFood);
+            List<PresetScheduleResponseDto.foodSchedule> foodScheduleList = new ArrayList<>();
+
+            presetDailyFoods.forEach(presetDailyFood -> foodScheduleList.add(presetDailyFoodMapper.toFoodScheduleDto(presetDailyFood)));
+            clientScheduleMap.put(groupDailyFood, presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList));
+        }
+
+        for(PresetMakersDailyFood presetMakersDailyFood : presetMakersDailyFoodListMap.keySet()) {
+            List<PresetGroupDailyFood> groupDailyFoodList = presetMakersDailyFoodListMap.get(presetMakersDailyFood);
+
+            List<PresetScheduleResponseDto.clientSchedule> clientScheduleList = new ArrayList<>();
+            groupDailyFoodList.forEach(presetGroupDailyFood -> {
+                PresetScheduleResponseDto.clientSchedule clientSchedule = clientScheduleMap.get(presetGroupDailyFood);
+                clientScheduleList.add(clientSchedule);
+            });
+
+            PresetScheduleResponseDto makersScheduleDto = presetDailyFoodMapper.toDto(presetMakersDailyFood, clientScheduleList);
+            presetScheduleResponseDtoList.add(makersScheduleDto);
+        }
+
+        return presetScheduleResponseDtoList;
+    }
+
     private ScheduleResponseDto getScheduleResponseDto(List<PresetScheduleResponseDto> presetScheduleResponseDtoList) {
         // 드롭박스에 들어갈 데이터
         List<Group> group = groupRepository.findAll();

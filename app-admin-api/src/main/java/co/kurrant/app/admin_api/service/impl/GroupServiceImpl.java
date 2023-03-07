@@ -157,6 +157,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GroupListDto.GroupInfoList> getAllGroupForExcel() {
         List<Group> groupAllList = groupRepository.findAll();
         // 기업 정보 dto 맵핑하기

@@ -82,6 +82,7 @@ public enum ExceptionEnum {
 	NOT_FOUND_FOOD_STATUS(HttpStatus.NOT_FOUND,"E4040025", "존재하지 않는 식사 상태입니다."),
 	NOT_FOUND_MAKERS_CAPACITY(HttpStatus.NOT_FOUND,"E4040025", "메이커스 식사 수량을 먼저 설정해주세요."),
 	NOT_FOUND_FOOD_CAPACITY(HttpStatus.NOT_FOUND,"E4040026", "음식 수량을 먼저 설정해주세요."),
+	GROUP_PRESET_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040026", "그룹 식사 일정이 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
