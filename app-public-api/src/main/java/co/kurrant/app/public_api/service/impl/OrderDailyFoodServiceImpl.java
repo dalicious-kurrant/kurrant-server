@@ -3,10 +3,7 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
-import co.dalicious.domain.client.entity.CorporationSpot;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MealInfo;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -383,7 +380,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 )
                 .collect(Collectors.toList());
 
-        findOrderByServiceDateNotification(securityUser);
+        findOrderByServiceDateNotification(user);
 
         return orderDetailDtos;
     }
@@ -467,60 +464,44 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
     }
 
-    private void findOrderByServiceDateNotification(SecurityUser securityUser) {
-        User user = userUtil.getUser(securityUser);
+    private void findOrderByServiceDateNotification(User user) {
         //오늘이 무슨 요일인지 체크
         LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
         String dayOfWeek = now.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
 
-        //등록한 스팟
+        // Get registered spots
         List<UserSpot> userSpots = user.getUserSpots();
-        System.out.println("userSpots.size() = " + userSpots.size());
-        if(userSpots.size() == 0) { return; }
-        // 등록된 스팟 중 default 설정 된 스팟
-        Spot defaultSpot = null;
-        for(UserSpot userSpot : userSpots) {
-            if(userSpot.getIsDefault()) {
-                defaultSpot = userSpot.getSpot();
-                break;
-            }
-        }
-        if(defaultSpot == null) { return; }
+        if (userSpots.isEmpty()) return;
 
-        //default 스팟의 식사 타입, 서비스 가능일, 마감시간을 확인
+        // Get the default set spot among the registered spots
+        Spot defaultSpot = userSpots.stream()
+                .filter(UserSpot::getIsDefault)
+                .map(UserSpot::getSpot)
+                .findFirst()
+                .orElse(null);
+        if (defaultSpot == null) return;
+
+        // Check the meal type, serviceable days, and closing time of the default spot
         List<MealInfo> mealInfos = defaultSpot.getMealInfos();
-        List<OrderByServiceDateNotyDto> notyDtos = new ArrayList<>();
-        for(MealInfo mealInfo : mealInfos) {
-            OrderByServiceDateNotyDto notyDto = OrderByServiceDateNotyDto.builder()
-                    .type(mealInfo.getDiningType())
-                    .serviceDays(List.of(mealInfo.getServiceDays().split(", ")))
-                    .lastOrderTime(mealInfo.getLastOrderTime())
-                    .build();
-
-            notyDtos.add(notyDto);
-        }
-        System.out.println("notyDtos.size() = " + notyDtos.size());
+        List<OrderByServiceDateNotyDto> notyDtos = mealInfos.stream().map(OrderByServiceDateNotyDto::createOrderByServiceDateNotyDto).collect(Collectors.toList());
 
         // 오늘 주문 여부 확인. 오늘 주문한 기록이 없으면
         List<OrderItemDailyFood> todayOrderFoods = qOrderDailyFoodRepository.findByServiceDate(now);
-        System.out.println("todayOrderFoods.size() = " + todayOrderFoods.size());
-        if(todayOrderFoods.size() == 0) { lastOrderTimeNotification(user, dayOfWeek, notyDtos); }
+        if(todayOrderFoods.size() == 0) { lastOrderTimeNotification(user, dayOfWeek, notyDtos, now); }
 
         // 제공하는 dining type 중 하나라도 하지 않았다면
         HashSet<DiningType> mealInfoDiningType = new HashSet<>();
         HashSet<DiningType> todayOrderFoodDiningType = new HashSet<>();
-        todayOrderFoods.stream().forEach(order -> todayOrderFoodDiningType.add(order.getDailyFood().getDiningType()));
-        notyDtos.stream().forEach(info -> mealInfoDiningType.add(info.getType()));
-        System.out.println("todayOrderFoodDiningType.size() = " + todayOrderFoodDiningType.size());
-        System.out.println("mealInfoDiningType = " + mealInfoDiningType.size());
+        todayOrderFoods.forEach(order -> todayOrderFoodDiningType.add(order.getDailyFood().getDiningType()));
+        notyDtos.forEach(info -> mealInfoDiningType.add(info.getType()));
+
         if(mealInfoDiningType.size() > todayOrderFoodDiningType.size()) {
-            lastOrderTimeNotification(user, dayOfWeek, notyDtos);
+            lastOrderTimeNotification(user, dayOfWeek, notyDtos, now);
         }
 
         // 다음주 주문이 없을 때
         // 하루에 한 번만 알림 보내기 - 알림을 읽었으면 그날 하루는 더 이상 보내지 않음.
-        List<NotificationHash> todayAlreadySendNotys =
-                notificationHashRepository.findByUserIdAndTypeAndIsReadAndCreateDate(user.getId(), 5, true, now);
+        List<NotificationHash> todayAlreadySendNotys = notificationHashRepository.findByUserIdAndTypeAndIsReadAndCreateDate(user.getId(), 5, true, now);
         if(todayAlreadySendNotys.size() != 0) return;
 
         // 알림을 보낸적 없으면
@@ -532,7 +513,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             case "금" -> now.plusDays(3);
             case "토" -> now.plusDays(2);
             case "일" -> now.plusDays(1);
-            default -> null;
+            default -> now;
         };
         LocalDate endDate = startDate.plusDays(7);
         List<OrderItemDailyFood> nextWeekOrderFoods =  qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, startDate, endDate);
@@ -541,13 +522,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             return;
         }
 
-        HashSet<String> nextWeekOrderFoodServiceDays = new HashSet<>();
-        HashSet<String> mealInfoServiceDays = new HashSet<>();
-        nextWeekOrderFoods.stream().forEach(order ->
-                nextWeekOrderFoodServiceDays.add(order.getDailyFood().getServiceDate().getDayOfWeek().getDisplayName(TextStyle.SHORT,Locale.KOREA)));
-        for(OrderByServiceDateNotyDto notyDto : notyDtos) {
-            notyDto.getServiceDays().stream().forEach(serviceDay -> mealInfoServiceDays.add(serviceDay));
-        }
+        Set<String> nextWeekOrderFoodServiceDays = nextWeekOrderFoods.stream()
+                .map(order -> order.getDailyFood().getServiceDate().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA))
+                .collect(Collectors.toSet());
+        Set<String> mealInfoServiceDays = notyDtos.stream()
+                .flatMap(notyDto -> notyDto.getServiceDays().stream())
+                .collect(Collectors.toSet());
 
         //다음주 주문 중 모든 서비스 날이 포함 되었는지 확인
         if(nextWeekOrderFoodServiceDays.size() < mealInfoServiceDays.size()) {
@@ -557,18 +537,34 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     }
 
-    private void lastOrderTimeNotification(User user, String dayOfWeek, List<OrderByServiceDateNotyDto> notyDtos) {
-
+    private void lastOrderTimeNotification(User user, String dayOfWeek, List<OrderByServiceDateNotyDto> notyDtos, LocalDate now) {
         //오늘 주문한게 없고,
         for (OrderByServiceDateNotyDto notyDto : notyDtos) {
-            boolean serviceDay = notyDto.getServiceDays().stream().anyMatch(dayOfWeek::contains);
+            LocalTime curranTime = LocalTime.now(ZoneId.of("Asia/Seoul"));
+            List<String> days = Arrays.asList("월", "화", "수", "목", "금", "토", "일");
+            String isServiceDay = notyDto.getServiceDays().stream().filter(serviceDay -> serviceDay.equalsIgnoreCase(dayOfWeek)).findFirst().orElse(null);
+            String serviceDayAfterNow = notyDto.getServiceDays().stream().filter(serviceDay -> days.indexOf(dayOfWeek)+1 < days.indexOf(serviceDay)+1).findFirst().orElse(null);
+
+            // 오늘이 멤버십 할인 시간
+            Integer day = notyDto.getMembershipBenefitTime().getDay();
+            LocalTime time = notyDto.getMembershipBenefitTime().getTime();
+
+            String membershipDate = now.minusDays(day).getDayOfWeek().getDisplayName(TextStyle.SHORT,Locale.KOREA);
+            LocalTime membershipTime = curranTime.minusHours(time.getHour()).minusMinutes(time.getMinute());
+            int value1 = days.indexOf(membershipDate) + 1;
+            int value2 = days.indexOf(serviceDayAfterNow) + 1;
+
+            if(value1 < value2 && curranTime.isBefore(membershipTime.minusHours(2))) {
+                String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(notyDto.getLastOrderTime()) + "까지 해야 할인을 받을 수 있어요!";
+                sseService.send(user.getId(), 4, content);
+            }
+
             //오늘이 서비스 가능일이 아니면 나가기
-            if(!serviceDay) return;
+            if(isServiceDay == null) return;
 
             // 서비스 가능일 이고,
-            LocalTime curranTime = LocalTime.now();
             LocalTime notificationTime = notyDto.getLastOrderTime().minusHours(2);
-            // 마감까지 2시간 이상 남았을 때.
+            // 마감까지 2시간 이상 남았을 때
             if(curranTime.isBefore(notificationTime)) return;
 
             String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(notyDto.getLastOrderTime()) + "까지 해야 할인을 받을 수 있어요!";
