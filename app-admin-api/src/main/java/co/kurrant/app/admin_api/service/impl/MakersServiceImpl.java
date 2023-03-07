@@ -1,6 +1,5 @@
 package co.kurrant.app.admin_api.service.impl;
 
-import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.food.dto.LocationTestDto;
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
@@ -10,9 +9,7 @@ import co.dalicious.domain.food.mapper.MakersCapacityMapper;
 import co.dalicious.domain.food.repository.MakersCapacityRepository;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QMakersCapacityRepository;
-
 import co.dalicious.domain.food.repository.QMakersRepository;
-import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
@@ -20,7 +17,6 @@ import co.kurrant.app.admin_api.service.MakersService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.math3.analysis.function.Add;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
