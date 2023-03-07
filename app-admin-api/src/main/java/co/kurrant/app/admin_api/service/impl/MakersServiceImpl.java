@@ -95,9 +95,9 @@ public class MakersServiceImpl implements MakersService {
             //Address 생성
             Address address = new Address(saveMakersRequestDto.getZipCode(), saveMakersRequestDto.getAddress1(), saveMakersRequestDto.getAddress2(), saveMakersRequestDto.getLocation());
 
-            Makers optionalMakers = makersRepository.findById(saveMakersRequestDto.getId()).orElseThrow(() ->  new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+            Optional<Makers> optionalMakers = makersRepository.findById(saveMakersRequestDto.getId());
             //이미 존재하면 수정
-            if (optionalMakers != null){
+            if (optionalMakers.isPresent()){
 
                 //DailyCapacity 수정
                 List<MakersCapacity> makersCapacityList = qMakersCapacityRepository.findByMakersId(saveMakersRequestDto.getId());
