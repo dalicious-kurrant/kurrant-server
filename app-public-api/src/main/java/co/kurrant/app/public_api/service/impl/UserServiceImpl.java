@@ -454,6 +454,8 @@ public class UserServiceImpl implements UserService {
         //ASCII코드상 숫자 48~57 / 영대문자 65~90 / 영소문자 97~122
         String customerKey = tossUtil.createCustomerKey();
 
+        System.out.println(customerKey + "customerKey");
+
         String identityNumber = saveCreditCardRequestDto.getIdentityNumber().substring(2);
 
         //TOSS에 요청하기 위한 request 객체 빌드
