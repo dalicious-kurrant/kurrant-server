@@ -106,7 +106,7 @@ public class MakersServiceImpl implements MakersService {
                 if (makersCapacityList.size() != 3){
 
 
-                    for (int i = 0; i < makersCapacityList.size(); i++) {
+                    for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
 
                             Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
                             Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
