@@ -70,9 +70,8 @@ public class MemberServiceImpl implements MemberService {
         List<User> groupUserList = qUserGroupRepository.findAllByGroupId(corporationId);
 
 
-        groupUserList.stream().filter(u -> u.getUserStatus().getCode() != 0)
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        Optional<User> any = groupUserList.stream().filter(u -> u.getUserStatus().getCode() != 0)
+                .findAny();
 
         List<MemberListResponseDto> memberListResponseList = groupUserList.stream()
                 .map((user) -> memberMapper.toMemberListDto(user, userGroupName)).collect(Collectors.toList());
