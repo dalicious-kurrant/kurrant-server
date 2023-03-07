@@ -91,7 +91,6 @@ public class MakersServiceImpl implements MakersService {
     public void saveMakers(SaveMakersRequestDtoList saveMakersRequestDtoList) throws ParseException {
 
         for (SaveMakersRequestDto saveMakersRequestDto : saveMakersRequestDtoList.getSaveMakersRequestDto()) {
-
             //Address 생성
             Address address = new Address(saveMakersRequestDto.getZipCode(), saveMakersRequestDto.getAddress1(), saveMakersRequestDto.getAddress2(), saveMakersRequestDto.getLocation());
 
@@ -99,16 +98,19 @@ public class MakersServiceImpl implements MakersService {
             //이미 존재하면 수정
             if (optionalMakers.isPresent()){
 
+                //수정한것 외에 다른 다이닝타입은 지우기 위해 전체삭제
+                if (saveMakersRequestDto.getDiningTypes().size() != 0 && !saveMakersRequestDto.getDiningTypes().isEmpty()){
+                    qMakersCapacityRepository.deleteAllByMakersId(saveMakersRequestDto.getId());
+                }
                 //다이닝 타입별 가능수량을 계산해서 저장해준다.
-                    for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
+                for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
+
                         Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
                         Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
 
-                        long updateResult = qMakersCapacityRepository.updateDailyCapacity(diningType, capacity, saveMakersRequestDto.getId());
+                        MakersCapacity makersCapacity = makersCapacityMapper.toEntityForCapacitySave(optionalMakers.get(), diningType, capacity);
 
-                        if (updateResult != 1){
-                            throw new ApiException(ExceptionEnum.MAKERS_UPDATE_FAILED);
-                        }
+                        makersCapacityRepository.save(makersCapacity);
                     }
                 //그 외 수정
                 qMakersRepository.updateMakers(saveMakersRequestDto.getId(),saveMakersRequestDto.getCode(),saveMakersRequestDto.getName(),

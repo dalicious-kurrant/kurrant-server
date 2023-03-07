@@ -47,4 +47,10 @@ public class QMakersCapacityRepository {
                 .execute();
 
     }
+
+    public void deleteAllByMakersId(BigInteger id) {
+        queryFactory.delete(makersCapacity)
+                .where(makersCapacity.makers.id.eq(id))
+                .execute();
+    }
 }
