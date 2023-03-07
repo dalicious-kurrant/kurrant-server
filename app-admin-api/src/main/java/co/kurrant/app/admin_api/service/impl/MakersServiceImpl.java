@@ -101,11 +101,9 @@ public class MakersServiceImpl implements MakersService {
 
                 //DailyCapacity 수정
                 List<MakersCapacity> makersCapacityList = qMakersCapacityRepository.findByMakersId(saveMakersRequestDto.getId());
+
                 //다이닝 타입별 가능수량을 계산해서 저장해준다.
-
-                if (makersCapacityList.size() != 3){
-
-
+                if (makersCapacityList.size() < 4 && makersCapacityList.size() != 0){
                     for (int i = 0; i < makersCapacityList.size(); i++) {
 
                             Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
@@ -115,7 +113,9 @@ public class MakersServiceImpl implements MakersService {
                             throw new ApiException(ExceptionEnum.MAKERS_UPDATE_FAILED);
                         }
                     }
-                } else {
+                }
+
+                /*else {
                     Integer divTen = saveMakersRequestDto.getDailyCapacity() / 10;
                     Integer morning = divTen * 3;
                     Integer lunch = divTen * 4;
@@ -128,7 +128,7 @@ public class MakersServiceImpl implements MakersService {
                         }
                     }
 
-                }
+                }*/
 
                 //그 외 수정
                 qMakersRepository.updateMakers(saveMakersRequestDto.getId(),saveMakersRequestDto.getCode(),saveMakersRequestDto.getName(),
