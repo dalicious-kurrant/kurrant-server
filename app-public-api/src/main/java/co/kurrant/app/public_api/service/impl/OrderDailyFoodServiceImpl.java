@@ -541,34 +541,29 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         //오늘 주문한게 없고,
         for (OrderByServiceDateNotyDto notyDto : notyDtos) {
             LocalTime curranTime = LocalTime.now(ZoneId.of("Asia/Seoul"));
-            List<String> days = Arrays.asList("월", "화", "수", "목", "금", "토", "일");
             String isServiceDay = notyDto.getServiceDays().stream().filter(serviceDay -> serviceDay.equalsIgnoreCase(dayOfWeek)).findFirst().orElse(null);
-            String serviceDayAfterNow = notyDto.getServiceDays().stream().filter(serviceDay -> days.indexOf(dayOfWeek)+1 < days.indexOf(serviceDay)+1).findFirst().orElse(null);
 
-            // 오늘이 멤버십 할인 시간
-            Integer day = notyDto.getMembershipBenefitTime().getDay();
-            LocalTime time = notyDto.getMembershipBenefitTime().getTime();
+            if(notyDto.getMembershipBenefitTime() != null) {
+                // 오늘이 멤버십 할인 시간
+                Integer day = notyDto.getMembershipBenefitTime().getDay();
+                LocalTime time = notyDto.getMembershipBenefitTime().getTime();
 
-            String membershipDate = now.minusDays(day).getDayOfWeek().getDisplayName(TextStyle.SHORT,Locale.KOREA);
-            LocalTime membershipTime = curranTime.minusHours(time.getHour()).minusMinutes(time.getMinute());
-            int value1 = days.indexOf(membershipDate) + 1;
-            int value2 = days.indexOf(serviceDayAfterNow) + 1;
+                String membershipDayOfWeek = now.minusDays(day).getDayOfWeek().getDisplayName(TextStyle.SHORT,Locale.KOREA);
+                LocalTime membershipTime = time.minusHours(2);
 
-            if(value1 < value2 && curranTime.isBefore(membershipTime.minusHours(2))) {
-                String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(notyDto.getLastOrderTime()) + "까지 해야 할인을 받을 수 있어요!";
-                sseService.send(user.getId(), 4, content);
+                if(dayOfWeek.equalsIgnoreCase(membershipDayOfWeek) && curranTime.isAfter(membershipTime) && curranTime.isBefore(time)) {
+                    String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "까지 해야 멤버십 할인을 받을 수 있어요!";
+                    sseService.send(user.getId(), 4, content);
+                }
             }
-
-            //오늘이 서비스 가능일이 아니면 나가기
-            if(isServiceDay == null) return;
-
-            // 서비스 가능일 이고,
-            LocalTime notificationTime = notyDto.getLastOrderTime().minusHours(2);
-            // 마감까지 2시간 이상 남았을 때
-            if(curranTime.isBefore(notificationTime)) return;
-
-            String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(notyDto.getLastOrderTime()) + "까지 해야 할인을 받을 수 있어요!";
-            sseService.send(user.getId(), 4, content);
+            if(notyDto.getLastOrderTime() != null) {
+                LocalTime notificationTime = notyDto.getLastOrderTime().minusHours(2);
+                // 서비스 가능일 이고, 오늘이 서비스 가능일이 아니면 나가기
+                if(isServiceDay != null && curranTime.isAfter(notificationTime) && curranTime.isAfter(notyDto.getLastOrderTime())) {
+                    String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(notyDto.getLastOrderTime()) + "에 마감이예요!";
+                    sseService.send(user.getId(), 4, content);
+                }
+            }
         }
     }
 
