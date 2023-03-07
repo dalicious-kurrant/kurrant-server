@@ -4,10 +4,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class ReviewListDto {
-    private String imageLocation;
+    private List<String> imageLocation;
     private String content;
     private Integer satisfaction;
     private String createDate;
@@ -17,7 +19,7 @@ public class ReviewListDto {
     private String itemName;
 
     @Builder
-    public ReviewListDto(String imageLocation, String content, Integer satisfaction,String createDate, String updateDate,Boolean forMakers, String makersName,String itemName) {
+    public ReviewListDto(List<String> imageLocation, String content, Integer satisfaction,String createDate, String updateDate,Boolean forMakers, String makersName,String itemName) {
         this.imageLocation = imageLocation;
         this.content = content;
         this.satisfaction = satisfaction;

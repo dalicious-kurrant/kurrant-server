@@ -9,9 +9,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.text.ParseException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,11 +26,14 @@ public class ReviewController {
     // 수정 필요. dailyfood id로 검색할 경우 product가 들어욌을 때 애매
     @Operation(summary = "리뷰 작성", description = "리뷰 작성 하기")
     @PostMapping("")
-    public ResponseMessage createReview(Authentication authentication, @RequestBody ReviewReqDto reviewDto, @RequestParam BigInteger itemId) {
+    public ResponseMessage createReview(Authentication authentication,
+                                        @RequestPart(required = false) List<MultipartFile> fileList,
+                                        @RequestPart ReviewReqDto reviewDto,
+                                        @RequestParam BigInteger itemId) throws IOException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
+        reviewService.createReview(securityUser, reviewDto, itemId, fileList);
         return ResponseMessage.builder()
                 .message("리뷰 작성을 완료했습니다.")
-                .data(reviewService.createReview(securityUser, reviewDto, itemId))
                 .build();
     }
 

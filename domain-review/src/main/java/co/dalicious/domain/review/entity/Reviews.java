@@ -17,6 +17,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.List;
 
 @Entity
 @Getter
@@ -37,12 +38,15 @@ public class Reviews{
     @Comment("원본 리뷰 내용")
     private String contentOrigin;
 
-    @Embedded
-    private Image image;
+    @ElementCollection
+    @Comment("이미지 경로")
+    @CollectionTable(name = "reviews__images")
+    private List<Image> images;
 
-    @Column(name = "image_origin")
+    @ElementCollection
+    @CollectionTable(name = "reviews__image_origin")
     @Comment("원본 리뷰 이미지 경로")
-    private String imageOrigin;
+    private List<Image> imageOrigin;
 
     @Column(name = "satisfaction", nullable = false)
     @Comment("만족도")
@@ -90,16 +94,17 @@ public class Reviews{
     private Food food;
 
     @Builder
-    public Reviews(String content, String contentOrigin, String imageOrigin, Integer satisfaction, Integer satisfactionOrigin, Boolean forMakers, User user, OrderItem orderItem, Food food) {
+    public Reviews(String content, String contentOrigin, Integer satisfaction, Integer satisfactionOrigin, Boolean forMakers, User user, OrderItem orderItem, Food food, List<Image> imageOrigin, List<Image> images) {
         this.content = content;
         this.contentOrigin = contentOrigin;
-        this.imageOrigin = imageOrigin;
         this.satisfaction = satisfaction;
         this.satisfactionOrigin = satisfactionOrigin;
         this.forMakers = forMakers;
         this.user = user;
         this.orderItem = orderItem;
         this.food = food;
+        this.images = images;
+        this.imageOrigin = imageOrigin;
     }
 
 }
