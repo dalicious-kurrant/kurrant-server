@@ -3,6 +3,7 @@ package co.dalicious.domain.food.repository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -16,6 +17,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
+import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.food.entity.QFood.food;
 
 @Repository
@@ -45,9 +47,16 @@ public class QFoodRepository {
                 .fetch();
     }
     
-    public Page<Food> findAllPage(Integer limit, Integer page, Pageable pageable) {
+    public Page<Food> findAllPage(BigInteger makersId, Integer limit, Integer page, Pageable pageable) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if(makersId != null) {
+            whereClause.and(food.makers.id.eq(makersId));
+        }
+
       int offset = limit * (page - 1);
       QueryResults<Food> results = queryFactory.selectFrom(food)
+              .where(whereClause)
               .limit(limit)
               .offset(offset)
               .fetchResults();

@@ -47,7 +47,7 @@ public interface FoodMapper {
     @Mapping(source = "foodListDto.description", target = "description")
     @Mapping(source = "foodTags", target = "foodTags")
     @Mapping(source = "customPrice", target = "customPrice")
-    Food toNewEntity(FoodListDto foodListDto, Makers makers, BigDecimal customPrice, List<FoodTag> foodTags);
+    Food toNewEntity(FoodListDto.FoodList foodListDto, Makers makers, BigDecimal customPrice, List<FoodTag> foodTags);
 
 
     default FoodDiscountPolicy toFoodDiscountPolicy(Food food, DiscountType discountType, Integer discountRate) {

@@ -150,7 +150,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
         // 1. 주문서 저장하기
-        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot));
+        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 2. 유저 사용 지원금 가져오기
@@ -574,17 +574,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(notyDto.getLastOrderTime()) + "까지 해야 할인을 받을 수 있어요!";
             sseService.send(user.getId(), 4, content);
         }
-    }
-
-    @Transactional
-    @Override
-    public JSONObject paymentsConfirm(PaymentConfirmDto paymentConfirmDto, SecurityUser securityUser) throws IOException, ParseException {
-
-        User user = userUtil.getUser(securityUser);
-
-        JSONObject jsonObject = tossUtil.paymentConfirm(paymentConfirmDto.getPaymentKey(), paymentConfirmDto.getAmount(), paymentConfirmDto.getOrderId());
-
-        return jsonObject;
     }
 }
 

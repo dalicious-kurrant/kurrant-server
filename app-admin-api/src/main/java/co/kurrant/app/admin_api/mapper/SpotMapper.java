@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.prefs.AbstractPreferences;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class, MealInfo.class})
 public interface SpotMapper {
 
     default SpotResponseDto toDto(Spot spot) {
@@ -43,18 +43,25 @@ public interface SpotMapper {
         spotResponseDto.setAddress1(spot.getAddress().getAddress1());
         spotResponseDto.setAddress2(spot.getAddress().getAddress2());
         spotResponseDto.setLocation(getLocation(spot.getAddress().getLocation()));
+
         spotResponseDto.setBreakfastLastOrderTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.MORNING).getLastOrderTime()));
         spotResponseDto.setBreakfastDeliveryTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.MORNING).getDeliveryTime()));
         spotResponseDto.setBreakfastUseDays(spot.getMealInfo(DiningType.MORNING) == null ? null : spot.getMealInfo(DiningType.MORNING).getServiceDays());
         spotResponseDto.setBreakfastSupportPrice(spot.getMealInfo(DiningType.MORNING) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.MORNING)).getSupportPrice() : BigDecimal.ZERO);
+        spotResponseDto.setBreakfastMembershipBenefitTime(spot.getMealInfo(DiningType.MORNING) == null ? null : spot.getMealInfo(DiningType.MORNING).dayAndTimeToString());
+
         spotResponseDto.setLunchLastOrderTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.LUNCH).getLastOrderTime()));
         spotResponseDto.setLunchDeliveryTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.LUNCH).getDeliveryTime()));
         spotResponseDto.setLunchUseDays(spot.getMealInfo(DiningType.LUNCH) == null ? null : spot.getMealInfo(DiningType.LUNCH).getServiceDays());
         spotResponseDto.setLunchSupportPrice(spot.getMealInfo(DiningType.LUNCH) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.LUNCH)).getSupportPrice() : BigDecimal.ZERO);
+        spotResponseDto.setLunchMembershipBenefitTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : spot.getMealInfo(DiningType.LUNCH).dayAndTimeToString());
+
         spotResponseDto.setDinnerLastOrderTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.DINNER).getLastOrderTime()));
         spotResponseDto.setDinnerDeliveryTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.DINNER).getDeliveryTime()));
         spotResponseDto.setDinnerUseDays(spot.getMealInfo(DiningType.DINNER) == null ? null : spot.getMealInfo(DiningType.DINNER).getServiceDays());
         spotResponseDto.setDinnerSupportPrice(spot.getMealInfo(DiningType.DINNER) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.DINNER)).getSupportPrice() : BigDecimal.ZERO);
+        spotResponseDto.setDinnerMembershipBenefitTime((spot.getMealInfo(DiningType.DINNER) == null ? null : spot.getMealInfo(DiningType.DINNER).dayAndTimeToString()));
+
         spotResponseDto.setCreatedDateTime(DateUtils.format(spot.getCreatedDateTime().toLocalDateTime().toLocalDate()));
         spotResponseDto.setUpdatedDateTime(DateUtils.format(spot.getUpdatedDateTime().toLocalDateTime().toLocalDate()));
 
@@ -69,7 +76,7 @@ public interface SpotMapper {
         return spotResponseDto;
     }
 
-    default MealInfo toMealInfo(Spot spot, DiningType diningType, String lastOrderTime, String deliveryTime, String useDays, BigDecimal supportPrice) {
+    default MealInfo toMealInfo(Spot spot, DiningType diningType, String lastOrderTime, String deliveryTime, String useDays, BigDecimal supportPrice, String membershipBenefitTime) {
         // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
         if (lastOrderTime == null || deliveryTime == null || useDays == null) {
             return null;
@@ -82,6 +89,7 @@ public interface SpotMapper {
                     .lastOrderTime(DateUtils.stringToLocalTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
                     .serviceDays(useDays)
+                    .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .supportPrice(supportPrice)
                     .build();
         } else if (spot instanceof ApartmentSpot) {
@@ -90,6 +98,7 @@ public interface SpotMapper {
                     .diningType(diningType)
                     .lastOrderTime(DateUtils.stringToLocalTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDays(useDays)
                     .build();
         } else if (spot instanceof OpenGroupSpot) {
@@ -98,6 +107,7 @@ public interface SpotMapper {
                     .diningType(diningType)
                     .lastOrderTime(DateUtils.stringToLocalTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDays(useDays)
                     .build();
 

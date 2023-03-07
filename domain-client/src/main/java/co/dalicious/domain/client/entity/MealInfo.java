@@ -105,7 +105,7 @@ public class MealInfo {
         }
         else {
             String timeStr = this.getMembershipBenefitTime().getTime().toString();
-            if (timeStr.matches("\\d{2}:\\d{2}")) {
+            if (this.getMembershipBenefitTime().getDay() == null) {
                 return "0일전 " + timeStr;
             } else {
                 return this.getMembershipBenefitTime().getDay() + "일전 " + timeStr;

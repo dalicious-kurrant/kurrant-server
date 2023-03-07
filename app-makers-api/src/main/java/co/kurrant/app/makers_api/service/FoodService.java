@@ -10,10 +10,9 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface FoodService {
-    List<FoodListDto> getAllFoodList();
-    List<FoodListDto> getAllFoodListByMakers(SecurityUser securityUser);
+    List<FoodListDto.FoodList> getAllFoodListByMakers(SecurityUser securityUser);
     MakersFoodDetailDto getFoodDetail(BigInteger foodId, SecurityUser securityUser);
     void updateFoodStatus(FoodStatusUpdateDto foodStatusUpdateDto);
-    void updateFoodMass(List<FoodListDto> foodListDto);
+    void updateFoodMass(List<FoodListDto.FoodList> foodListDto);
     void updateFood(MakersFoodDetailReqDto foodDetailDto);
 }

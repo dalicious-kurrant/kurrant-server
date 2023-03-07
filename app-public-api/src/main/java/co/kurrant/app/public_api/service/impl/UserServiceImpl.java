@@ -377,12 +377,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    // TODO: 추후 백오피스 구현시 삭제
     public void settingGroup(SecurityUser securityUser, BigInteger groupId) {
         User user = userUtil.getUser(securityUser);
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         List<UserGroup> userGroups =  user.getGroups();
+
+        // TODO: 그룹 슬롯 증가의 경우 반영 필요
+        // 그룹의 개수가 2개 이상일 떄
+        long userGroupCount = userGroups.stream().
+                filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
+                .count();
+        if(userGroupCount > 2) {
+            throw new ApiException(ExceptionEnum.REQUEST_OVER_GROUP);
+        }
+
         Optional<UserGroup> selectedGroup =  userGroups.stream().filter(g -> g.getGroup().equals(group)).findAny();
         if(selectedGroup.isPresent()) {
             if(selectedGroup.get().getClientStatus() == ClientStatus.WITHDRAWAL) {

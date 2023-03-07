@@ -113,7 +113,7 @@ public class Food {
         this.customPrice = customPrice;
     }
 
-    public void updateFoodMass(FoodListDto foodListDto, List<FoodTag> foodTags, Makers makers) {
+    public void updateFoodMass(FoodListDto.FoodList foodListDto, List<FoodTag> foodTags, Makers makers) {
         this.foodStatus = FoodStatus.ofString(foodListDto.getFoodStatus());
         this.name = foodListDto.getFoodName();
         this.price = foodListDto.getDefaultPrice();

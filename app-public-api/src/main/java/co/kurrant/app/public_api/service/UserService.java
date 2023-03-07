@@ -40,7 +40,7 @@ public interface UserService {
     MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto);
     // 마이페이지(개인정보) 유저 정보 가져오기
     UserPersonalInfoDto getPersonalUserInfo(SecurityUser securityUser);
-    // TODO: 추후 백오피스 구현시 삭제
+    // 오픈스팟 그룹 설정
     void settingGroup(SecurityUser securityUser, BigInteger groupId);
     // 멤버십 구독 정보를 가져온다.
     List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo();
