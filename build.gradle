@@ -188,6 +188,7 @@ project(':app-public-api') {
         implementation project(':client-external-sms')
         implementation project(':data-redis')
         implementation project(':client-sse')
+        implementation project(':domain-recommend')
     }
 }
 

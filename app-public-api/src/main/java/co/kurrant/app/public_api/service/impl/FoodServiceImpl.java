@@ -12,6 +12,9 @@ import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
+import co.dalicious.domain.recommend.dto.UserRecommendWhereData;
+import co.dalicious.domain.recommend.entity.UserRecommends;
+import co.dalicious.domain.recommend.repository.QUserRecommendRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.order.mapper.FoodMapper;
@@ -32,6 +35,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +48,7 @@ public class FoodServiceImpl implements FoodService {
     private final SpotRepository spotRepository;
     private final DailyFoodRepository dailyFoodRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
+    private final QUserRecommendRepository qUserRecommendRepository;
 
 
     @Override
@@ -84,6 +89,18 @@ public class FoodServiceImpl implements FoodService {
                 dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
                 dailyFoodDtos.add(dailyFoodDto);
             }
+
+            // recommend 가져오기
+            List<BigInteger> foodIds = new ArrayList<>();
+            dailyFoodDtos.forEach(dto -> foodIds.add(dto.getFoodId()));
+            List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
+                    UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, diningType, selectedDate));
+
+            // dto에 랭크 추가
+            dailyFoodDtos.forEach(dto -> {
+                userRecommendList.stream().filter(recommend -> recommend.getFoodId().equals(dto.getFoodId())).findFirst().ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
+            });
+
             return RetrieveDailyFoodDto.builder()
                     .dailyFoodDtos(dailyFoodDtos)
                     .build();
@@ -110,6 +127,8 @@ public class FoodServiceImpl implements FoodService {
                 dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
                 dailyFoodDtos.add(dailyFoodDto);
             }
+
+
             return RetrieveDailyFoodDto.builder()
                     .diningTypes(diningTypes)
                     .dailyFoodDtos(dailyFoodDtos)
