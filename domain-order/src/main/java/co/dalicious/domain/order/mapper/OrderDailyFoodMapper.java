@@ -14,7 +14,6 @@ import java.math.BigInteger;
 
 @Mapper(componentModel = "spring")
 public interface OrderDailyFoodMapper {
-    @Mapping(source = "orderCode", target = "code")
     @Mapping(source = "spot.address", target = "address")
     @Mapping(target = "paymentType", constant = "CREDIT_CARD") // TODO: 결제타입 넣기 로직 필요
     @Mapping(source = "user", target = "user")
@@ -22,5 +21,5 @@ public interface OrderDailyFoodMapper {
     @Mapping(source = "spot.name", target = "spotName")
     @Mapping(source = "spot", target = "spot")
     @Mapping(target = "orderType", constant = "DAILYFOOD")
-    OrderDailyFood toEntity(User user, Spot spot, String orderCode);
+    OrderDailyFood toEntity(User user, Spot spot);
 }

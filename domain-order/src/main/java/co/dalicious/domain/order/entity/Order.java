@@ -7,6 +7,7 @@ import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.user.converter.PaymentTypeConverter;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.entity.User;
@@ -155,5 +156,11 @@ public class Order {
 
     public BigDecimal getDiscountPrice() {
         return this.defaultPrice.subtract(this.totalPrice);
+    }
+
+    public void updateOrderAfterPayment(String receiptUrl, String paymentKey, String orderCode) {
+        this.receiptUrl = receiptUrl;
+        this.paymentKey = paymentKey;
+        this.code = orderCode;
     }
 }
