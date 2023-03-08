@@ -95,15 +95,15 @@ public class FoodServiceImpl implements FoodService {
             dailyFoodDtos.forEach(dto -> foodIds.add(dto.getFoodId()));
             List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
                     UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, selectedDate));
-            System.out.println("userRecommendList = " + userRecommendList.size());
-            System.out.println("userRecommendList.get(0).getRank() = " + userRecommendList.get(0).getRank());
+            if(!userRecommendList.isEmpty()){
+                // dto에 랭크 추가
+                dailyFoodDtos.forEach(dto -> {
+                    userRecommendList.stream().filter(recommend ->
+                                    recommend.getFoodId().equals(dto.getFoodId()) && recommend.getDiningType().getCode().equals(dto.getDiningType())).findFirst()
+                            .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
+                });
+            }
 
-            // dto에 랭크 추가
-            dailyFoodDtos.forEach(dto -> {
-                userRecommendList.stream().filter(recommend ->
-                        recommend.getFoodId().equals(dto.getFoodId()) && recommend.getDiningType().getCode().equals(dto.getDiningType())).findFirst()
-                        .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
-            });
 
             return RetrieveDailyFoodDto.builder()
                     .dailyFoodDtos(dailyFoodDtos)
@@ -137,15 +137,15 @@ public class FoodServiceImpl implements FoodService {
             dailyFoodDtos.forEach(dto -> foodIds.add(dto.getFoodId()));
             List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
                     UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, selectedDate));
-            System.out.println("userRecommendList = " + userRecommendList.size());
-            System.out.println("userRecommendList.get(0).getRank() = " + userRecommendList.get(0).getRank());
 
-            // dto에 랭크 추가
-            dailyFoodDtos.forEach(dto -> {
-                userRecommendList.stream().filter(recommend ->
-                                recommend.getFoodId().equals(dto.getFoodId()) && recommend.getDiningType().getCode().equals(dto.getDiningType())).findFirst()
-                        .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
-            });
+            if(!userRecommendList.isEmpty()){
+                // dto에 랭크 추가
+                dailyFoodDtos.forEach(dto -> {
+                    userRecommendList.stream().filter(recommend ->
+                                    recommend.getFoodId().equals(dto.getFoodId()) && recommend.getDiningType().getCode().equals(dto.getDiningType())).findFirst()
+                            .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
+                });
+            }
 
             return RetrieveDailyFoodDto.builder()
                     .diningTypes(diningTypes)
