@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.dto;
 
 import co.dalicious.domain.client.entity.CorporationMealInfo;
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.system.util.DateUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -38,7 +39,7 @@ public class ClientSpotDetailResDto {
         public MealTypeInfo(MealInfo mealInfo) {
             this.diningType = mealInfo.getDiningType().getCode();
             this.serviceDays = mealInfo.getServiceDays();
-            this.lastOrderTime = DateUtils.timeToString(mealInfo.getLastOrderTime()) ;
+            this.lastOrderTime = DayAndTime.dayAndTimeToString(mealInfo.getLastOrderTime()) ;
             this.deliveryTime =  DateUtils.timeToString(mealInfo.getDeliveryTime());
             this.supportPrice = (mealInfo instanceof CorporationMealInfo) ?
                         ((CorporationMealInfo) mealInfo).getSupportPrice() :

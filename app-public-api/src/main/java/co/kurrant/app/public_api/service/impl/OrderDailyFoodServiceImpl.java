@@ -560,10 +560,15 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
             }
             if(notyDto.getLastOrderTime() != null) {
-                LocalTime notificationTime = notyDto.getLastOrderTime().minusHours(2);
+                // TODO: 지성님 확인
+                Integer day = notyDto.getLastOrderTime().getDay();
+                LocalTime time = notyDto.getLastOrderTime().getTime();
+
+                String lastOrderDayOfWeek = now.minusDays(day).getDayOfWeek().getDisplayName(TextStyle.SHORT,Locale.KOREA);
+                LocalTime lastOrderNoticeTime = time.minusHours(2);
                 // 서비스 가능일 이고, 오늘이 서비스 가능일이 아니면 나가기
-                if(isServiceDay != null && curranTime.isAfter(notificationTime) && curranTime.isAfter(notyDto.getLastOrderTime())) {
-                    String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(notyDto.getLastOrderTime()) + "에 마감이예요!";
+                if(dayOfWeek.equalsIgnoreCase(lastOrderDayOfWeek) && curranTime.isAfter(lastOrderNoticeTime) && curranTime.isBefore(time)) {
+                    String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "에 마감이예요!";
                     sseService.send(user.getId(), 4, content);
                 }
             }

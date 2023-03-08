@@ -18,7 +18,7 @@ import java.util.List;
 public class OrderByServiceDateNotyDto {
     private DiningType type;
     private List<String> serviceDays;
-    private LocalTime lastOrderTime;
+    private DayAndTime lastOrderTime;
     private DayAndTime membershipBenefitTime;
 
     public static OrderByServiceDateNotyDto createOrderByServiceDateNotyDto(MealInfo mealInfo) {

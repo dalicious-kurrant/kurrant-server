@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +84,8 @@ public class FoodServiceImpl implements FoodService {
             for (DailyFood dailyFood : dailyFoodList) {
                 // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
                 MealInfo mealInfo = spot.getMealInfo(dailyFood.getDiningType());
-                if(LocalDate.now().equals(dailyFood.getServiceDate()) && LocalTime.now().isAfter(mealInfo.getLastOrderTime())) {
+                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
+                if(LocalDate.now().equals(dailyFood.getServiceDate()) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
                     dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
                 }
 
@@ -124,7 +126,8 @@ public class FoodServiceImpl implements FoodService {
             for (DailyFood dailyFood : dailyFoodList) {
                 // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
                 MealInfo mealInfo = spot.getMealInfo(dailyFood.getDiningType());
-                if(LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate()) && LocalTime.now().isAfter(mealInfo.getLastOrderTime())) {
+                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
+                if(LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate()) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
                     dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
                 }
 
