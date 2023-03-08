@@ -103,6 +103,10 @@ public class Spot {
                 .orElse(null);
     }
 
+    public DayAndTime getLastOrderTime(DiningType diningType) {
+        return getMealInfo(diningType).getLastOrderTime();
+    }
+
     public LocalTime getDeliveryTime(DiningType diningType) {
         return this.mealInfos.stream()
                 .filter(v -> v.getDiningType().equals(diningType))

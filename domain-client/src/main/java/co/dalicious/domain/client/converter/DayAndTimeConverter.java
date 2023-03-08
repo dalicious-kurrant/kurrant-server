@@ -14,7 +14,7 @@ public class DayAndTimeConverter implements AttributeConverter<DayAndTime, Strin
         if (dayAndTime == null) {
             return null;
         }
-        String day = Integer.toString(dayAndTime.getDay());
+        String day = Integer.toString(dayAndTime.getDay() == null ? 0 : dayAndTime.getDay());
         String time = DateUtils.timeToString(dayAndTime.getTime());
         return String.format("%s (%s)", day, time);
     }

@@ -50,10 +50,10 @@ public class MealInfo {
     @Comment("멤버십 혜택 마감 일시")
     private DayAndTime membershipBenefitTime;
 
-    @NotNull
-    @Column(name = "last_order_time", nullable = false)
+    @Column(name = "last_order_time")
+    @Convert(converter = DayAndTimeConverter.class)
     @Comment("주문 마감 시간")
-    private LocalTime lastOrderTime;
+    private DayAndTime lastOrderTime;
 
     @Size(max = 255)
     @Column(name = "emb_use_days")
@@ -79,7 +79,7 @@ public class MealInfo {
     @Comment("스팟")
     private Spot spot;
 
-    public MealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime,LocalTime lastOrderTime, String serviceDays, Spot spot) {
+    public MealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, String serviceDays, Spot spot) {
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
         this.membershipBenefitTime = membershipBenefitTime;

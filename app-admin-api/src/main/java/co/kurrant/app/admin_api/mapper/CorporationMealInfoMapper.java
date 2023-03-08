@@ -16,11 +16,11 @@ import java.time.LocalTime;
 public interface CorporationMealInfoMapper {
 
     @Mapping(source = "supportPrice", target = "supportPrice")
-    CorporationMealInfo toEntity(DiningType diningType, LocalTime deliveryTime, LocalTime lastOrderTime, String serviceDays, Spot spot, BigDecimal supportPrice);
+    CorporationMealInfo toEntity(DiningType diningType, LocalTime deliveryTime, DayAndTime lastOrderTime, String serviceDays, Spot spot, BigDecimal supportPrice);
 
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(target = "deliveryTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
-    @Mapping(target = "lastOrderTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
+    @Mapping(target = "lastOrderTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
     @Mapping(source = "groupInfoList.serviceDays", target = "serviceDays")
     @Mapping(source = "spot", target = "spot")
     @Mapping(target = "membershipBenefitTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
@@ -29,7 +29,7 @@ public interface CorporationMealInfoMapper {
 
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(target = "deliveryTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
-    @Mapping(target = "lastOrderTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
+    @Mapping(target = "lastOrderTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
     @Mapping(source = "groupInfoList.serviceDays", target = "serviceDays")
     @Mapping(source = "spot", target = "spot")
     @Mapping(target = "membershipBenefitTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
@@ -37,7 +37,7 @@ public interface CorporationMealInfoMapper {
 
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(target = "deliveryTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
-    @Mapping(target = "lastOrderTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
+    @Mapping(target = "lastOrderTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
     @Mapping(source = "groupInfoList.serviceDays", target = "serviceDays")
     @Mapping(source = "spot", target = "spot")
     @Mapping(target = "membershipBenefitTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
