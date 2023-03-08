@@ -16,6 +16,7 @@ import co.dalicious.domain.review.mapper.ReviewMapper;
 import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.review.repository.ReviewRepository;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ReviewService;
@@ -47,13 +48,15 @@ public class ReviewServiceImpl implements ReviewService {
     private final QOrderItemRepository qOrderItemRepository;
     private final OrderItemRepository orderItemRepository;
     private final ImageService imageService;
+    private final QUserRepository qUserRepository;
 
     @Override
     @Transactional
-    public void createReview(SecurityUser securityUser, ReviewReqDto reviewDto, BigInteger itemId, List<MultipartFile> fileList) throws IOException {
+    public void createReview(SecurityUser securityUser, ReviewReqDto reviewDto, List<MultipartFile> fileList) throws IOException {
         // 필요한 정보 가져오기 - 유저, 상품
         User user = userUtil.getUser(securityUser);
-        OrderItem orderItem = orderItemRepository.findById(itemId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_ITEM));
+        OrderItem orderItem = qOrderItemRepository.findByUserAndOrderId(user, reviewDto.getOrderItemId());
+        if(orderItem == null) throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM);
 
         // content의 최소 글자 수와 최대 글자 수 확인
         if(reviewDto.getContent() == null) {
@@ -94,24 +97,24 @@ public class ReviewServiceImpl implements ReviewService {
         reviewRepository.save(reviews);
 
         // 포인트 적립
-        BigDecimal point = BigDecimal.ZERO;
-        if(fileList != null && !fileList.isEmpty()) point.add(BigDecimal.valueOf(100));
-        point.add(BigDecimal.valueOf(50));
-        user.updatePoint(point);
+        // image 있으면 150
+        if(fileList != null && !fileList.isEmpty()) qUserRepository.updateUserPoint(user.getId(), BigDecimal.valueOf(100), BigDecimal.valueOf(50));
+        // 없으면 50
+        qUserRepository.updateUserPoint(user.getId(), null, BigDecimal.valueOf(50));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReviewableItemResDto getOrderItemForReview(SecurityUser securityUser) throws ParseException {
         User user = userUtil.getUser(securityUser);
 
         //리뷰 가능한 상품이 있는 지 확인
         List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatus(user, OrderStatus.RECEIPT_COMPLETE);
-        if(receiptCompleteItem == null || receiptCompleteItem.size() == 0) {
-            throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
-        }
+        List<ReviewableItemListDto> itemsForReview = new ArrayList<>();
+        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) {
+            return ReviewableItemResDto.create(itemsForReview); }
 
         //리뷰가 가능한 상품인지 확인
-        List<ReviewableItemListDto> itemsForReview = new ArrayList<>();
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         for(OrderItem item : receiptCompleteItem) {
             //리뷰 가능일 구하기
@@ -138,16 +141,16 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    @Transactional
     public ReviewsForUserResDto getReviewsForUser(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
 
         //user가 작성한 리뷰 찾기
         List<Reviews> reviews = reviewRepository.findByUser(user);
-        if(reviews.size() == 0) {
-            throw new ApiException(ExceptionEnum.NOT_FOUND_REVIEWS);
-        }
-
         List<ReviewListDto> reviewListDtos = new ArrayList<>();
+        if(reviews == null || reviews.isEmpty()) {
+            return ReviewsForUserResDto.create(reviewListDtos);
+        }
         for(Reviews review : reviews) {
             ReviewListDto reviewListDto = reviewMapper.toReviewListDto(review);
             reviewListDtos.add(reviewListDto);

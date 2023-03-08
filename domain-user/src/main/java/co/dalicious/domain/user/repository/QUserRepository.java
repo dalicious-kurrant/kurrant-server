@@ -10,6 +10,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +108,22 @@ public class QUserRepository {
                 .where(whereClause)
                 .fetch();
     }
+    
+    public void updateUserPoint(BigInteger userId, BigDecimal imagePoint, BigDecimal contentPoint) {
+        BigDecimal point = BigDecimal.ZERO;
+        if(imagePoint != null) {
+            point = point.add(imagePoint);
+        }
+        if(contentPoint != null) {
+            point = point.add(contentPoint);
+        }
 
+        queryFactory.update(user)
+                .where(user.id.eq(userId))
+                .set(user.point, user.point.add(point))
+                .execute();
+    }
+      
     public List<User> getUsersByEmails(List<String> emails) {
         return queryFactory.selectFrom(user)
                 .where(user.email.in(emails))

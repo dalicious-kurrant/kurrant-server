@@ -9,7 +9,7 @@ import java.math.BigInteger;
 @Getter
 @Setter
 public class ReviewableItemListDto {
-    private BigInteger itemId;
+    private BigInteger orderItemId;
     private String diningType;
     private String serviceDate;
     private String imageLocation;
@@ -18,8 +18,8 @@ public class ReviewableItemListDto {
     private long reviewDDay;
 
     @Builder
-    public ReviewableItemListDto(BigInteger itemId, String diningType, String serviceDate, String imageLocation, String makersName, String foodName, long reviewDDAy) {
-        this.itemId = itemId;
+    public ReviewableItemListDto(BigInteger orderItemId, String diningType, String serviceDate, String imageLocation, String makersName, String foodName, long reviewDDAy) {
+        this.orderItemId = orderItemId;
         this.diningType = diningType;
         this.serviceDate = serviceDate;
         this.imageLocation = imageLocation;
