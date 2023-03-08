@@ -11,6 +11,7 @@ import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -58,7 +59,8 @@ public interface ReviewMapper {
 
     @Named("getMakersName")
     default String getMakersName(OrderItem orderItem) {
-        if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+        OrderItem item = (OrderItem) Hibernate.unproxy(orderItem);
+        if(item instanceof OrderItemDailyFood orderItemDailyFood) {
             return orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
@@ -66,10 +68,10 @@ public interface ReviewMapper {
 
     @Named("getItemName")
     default String getItemName(OrderItem orderItem) {
-        if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+        OrderItem item = (OrderItem) Hibernate.unproxy(orderItem);
+        if(item instanceof OrderItemDailyFood orderItemDailyFood) {
             return orderItemDailyFood.getDailyFood().getFood().getName();
         }
-
         throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM);
     }
 }
