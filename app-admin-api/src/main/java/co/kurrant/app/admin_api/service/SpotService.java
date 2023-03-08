@@ -15,5 +15,5 @@ public interface SpotService {
     void saveSpotList(SaveSpotList saveSpotList) throws ParseException;
 
     void deleteSpot(List<BigInteger> spotIdList);
-    List<GroupDto.Spot> getSpotList();
+    List<GroupDto.Group> getGroupList();
 }

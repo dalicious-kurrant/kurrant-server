@@ -21,12 +21,12 @@ public class SpotController {
 
     private final SpotService spotService;
 
-    @Operation(summary = "스팟 리스트 조회", description = "존재하는 스팟의 리스트를 조회한다.")
+    @Operation(summary = "그룹 리스트 조회", description = "존재하는 그룹의 리스트를 조회한다.")
     @GetMapping("/spots")
     public ResponseMessage getSpotList() {
         return ResponseMessage.builder()
-                .message("스팟 리스트 조회에 성공하였습니다.")
-                .data(spotService.getSpotList())
+                .message("그룹 리스트 조회에 성공하였습니다.")
+                .data(spotService.getGroupList())
                 .build();
     }
 
