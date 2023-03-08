@@ -90,7 +90,7 @@ public interface MakersMapper {
         if (location == null){
             return null;
         }
-        return location.toString();
+        return location.toString().substring(7,location.toString().length()-1);
     }
 
 

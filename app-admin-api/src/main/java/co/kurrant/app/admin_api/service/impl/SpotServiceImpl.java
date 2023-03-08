@@ -9,8 +9,10 @@ import co.dalicious.domain.client.repository.*;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.StringUtils;
+import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.client.DeleteSpotRequestDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
+import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.SpotService;
 import exception.ApiException;
@@ -37,6 +39,8 @@ public class SpotServiceImpl implements SpotService {
     private final QSpotRepository qSpotRepository;
     private final SpotMapper spotMapper;
     private final QGroupRepository qGroupRepository;
+    private final GroupMapper groupMapper;
+    private final GroupRepository groupRepository;
 
     @Override
     public List<SpotResponseDto> getAllSpotList(Integer status) {
@@ -178,6 +182,12 @@ public class SpotServiceImpl implements SpotService {
     public void deleteSpot(List<BigInteger> spotIdList) {
         //요청받은 spot을 비활성한다.
         qSpotRepository.deleteSpots(spotIdList);
+    }
+
+    @Override
+    public List<GroupDto.Group> getGroupList() {
+        List<Group> groups = groupRepository.findAll();
+        return groupMapper.groupsToDtos(groups);
     }
 
     private CreateAddressRequestDto makeCreateAddressRequestDto(String zipCode, String address1, String address2) {

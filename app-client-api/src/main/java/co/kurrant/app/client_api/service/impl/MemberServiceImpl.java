@@ -9,10 +9,11 @@ import co.dalicious.domain.client.mapper.EmployeeHistoryMapper;
 import co.dalicious.domain.client.mapper.EmployeeMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
+import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.repository.QUserGroupRepository;
-import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.QUserSpotRepository;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.repository.*;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.dto.MemberListResponseDto;
 import co.kurrant.app.client_api.dto.MemberWaitingListResponseDto;
@@ -55,6 +56,8 @@ public class MemberServiceImpl implements MemberService {
     private final EmployeeMapper employeeMapper;
     private final EmployeeHistoryMapper employeeHistoryMapper;
     private final EmployeeHistoryRepository employeeHistoryRepository;
+    private final QProviderEmailRepository qProviderEmailRepository;
+    private final UserGroupRepository userGroupRepository;
 
     @Override
     public List<MemberListResponseDto> getUserList(String code) {
@@ -63,13 +66,12 @@ public class MemberServiceImpl implements MemberService {
 
         //corporationId로 GroupName 가져오기
         String userGroupName = qUserGroupRepository.findNameById(corporationId);
-            //groupID로 user목록 조회
+        //groupID로 user목록 조회
         List<User> groupUserList = qUserGroupRepository.findAllByGroupId(corporationId);
 
 
-        groupUserList.stream().filter(u -> u.getUserStatus().getCode() != 0)
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        Optional<User> any = groupUserList.stream().filter(u -> u.getUserStatus().getCode() != 0)
+                .findAny();
 
         List<MemberListResponseDto> memberListResponseList = groupUserList.stream()
                 .map((user) -> memberMapper.toMemberListDto(user, userGroupName)).collect(Collectors.toList());
@@ -95,30 +97,62 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public void insertMemberList(ClientUserWaitingListSaveRequestDtoList dtoList) {
 
-            //code로 CorporationId 찾기 (=GroupId)
-            Corporation corporation = qCorporationRepository.findEntityByCode(dtoList.getCode());
+        //code로 CorporationId 찾기 (=GroupId)
+        Corporation corporation = qCorporationRepository.findEntityByCode(dtoList.getCode());
 
-            for (int i = 0; i < dtoList.getSaveUserList().size(); i++) {
+        List<String> emails = dtoList.getSaveUserList().stream()
+                .map(ClientUserWaitingListSaveRequestDto::getEmail)
+                .toList();
+        List<ProviderEmail> providerEmails = qProviderEmailRepository.getProviderEmails(emails);
 
-                String email = dtoList.getSaveUserList().get(i).getEmail();
-                String phone = dtoList.getSaveUserList().get(i).getPhone();
-                String name = dtoList.getSaveUserList().get(i).getName();
-                //있는 ID의 경우 수정
-                Optional<Employee> optionalEmployee = employeeRepository.findById(dtoList.getSaveUserList().get(i).getId());
-                List<Employee> employees = employeeRepository.findAllByEmail(email);
-                if (optionalEmployee.isPresent() || employees.size() != 0){
-                    qEmployeeRepository.patchEmployee(dtoList.getSaveUserList().get(i).getId(),phone, email, name);
-                }else{
-                    //ID가 없다면 생성
-                    Employee employee = employeeMapper.toEntity(email, name, phone, corporation);
+        if (!providerEmails.isEmpty()) {
+            // 기존에 그룹에 포함된 인원인지 체크한다.
+            for (ProviderEmail providerEmail : providerEmails) {
+                User user = providerEmail.getUser();
+                List<UserGroup> userGroups = user.getGroups();
 
-                    employeeRepository.save(employee);
+                // 이미 그룹에 포함된 유저인지 체크한다.
+                boolean alreadyMember = userGroups.stream()
+                        .anyMatch(ug -> ug.getGroup().equals(corporation));
+
+                if (!alreadyMember) {
+                    UserGroup userGroup = UserGroup.builder()
+                            .group(corporation)
+                            .user(user)
+                            .clientStatus(ClientStatus.BELONG)
+                            .build();
+                    userGroupRepository.save(userGroup);
+                } else {
+                    userGroups.stream()
+                            .filter(ug -> ug.getGroup().equals(corporation))
+                            .forEach(ug -> ug.updateStatus(ClientStatus.BELONG));
                 }
 
             }
+        }
+
+        for (int i = 0; i < dtoList.getSaveUserList().size(); i++) {
+
+            String email = dtoList.getSaveUserList().get(i).getEmail();
+            String phone = dtoList.getSaveUserList().get(i).getPhone();
+            String name = dtoList.getSaveUserList().get(i).getName();
+            //있는 ID의 경우 수정
+            Optional<Employee> optionalEmployee = employeeRepository.findById(dtoList.getSaveUserList().get(i).getId());
+            List<Employee> employees = employeeRepository.findAllByEmail(email);
+            if (optionalEmployee.isPresent() || employees.size() != 0) {
+                qEmployeeRepository.patchEmployee(dtoList.getSaveUserList().get(i).getId(), phone, email, name);
+            } else {
+                //ID가 없다면 생성
+                Employee employee = employeeMapper.toEntity(email, name, phone, corporation);
+
+                employeeRepository.save(employee);
+            }
+
+        }
 
 
     }
+
     @Override
     public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
         //userId 리스트 가져오기
@@ -130,7 +164,7 @@ public class MemberServiceImpl implements MemberService {
 
         if (userIdList.size() == 0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
-        for (BigInteger userId : userIdList){
+        for (BigInteger userId : userIdList) {
             User deleteUser = qUserRepository.findByUserId(userId);
             EmployeeHistoryType type = EmployeeHistoryType.USER;
             EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, deleteUser.getName(), deleteUser.getEmail(), deleteUser.getPhone(), type);
@@ -143,7 +177,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public void deleteWaitingMember(DeleteWaitingMemberRequestDto deleteWaitingMemberRequestDto) {
         //받아온 Employee ID를 삭제한다
-        for(BigInteger userId : deleteWaitingMemberRequestDto.getWaitMemberIdList()){
+        for (BigInteger userId : deleteWaitingMemberRequestDto.getWaitMemberIdList()) {
             //삭제 전에 기록 남기기
             Employee employee = employeeRepository.findById(userId)
                     .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
@@ -152,7 +186,7 @@ public class MemberServiceImpl implements MemberService {
             employeeHistoryRepository.save(employeeHistory);
 
             long result = qEmployeeRepository.deleteWaitingMember(userId);
-            if (result != 1){
+            if (result != 1) {
                 throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
             }
         }
@@ -279,13 +313,44 @@ public class MemberServiceImpl implements MemberService {
         //code로 CorporationId 찾기 (=GroupId)
         Corporation corporation = qCorporationRepository.findEntityByCode(dtoList.getCode());
 
+        List<String> emails = dtoList.getSaveUserList().stream()
+                .map(ClientUserWaitingListSaveRequestDto::getEmail)
+                .toList();
+        List<ProviderEmail> providerEmails = qProviderEmailRepository.getProviderEmails(emails);
+
+        if (!providerEmails.isEmpty()) {
+            // 기존에 그룹에 포함된 인원인지 체크한다.
+            for (ProviderEmail providerEmail : providerEmails) {
+                User user = providerEmail.getUser();
+                List<UserGroup> userGroups = user.getGroups();
+
+                // 이미 그룹에 포함된 유저인지 체크한다.
+                boolean alreadyMember = userGroups.stream()
+                        .anyMatch(ug -> ug.getGroup().equals(corporation));
+
+                if (!alreadyMember) {
+                    UserGroup userGroup = UserGroup.builder()
+                            .group(corporation)
+                            .user(user)
+                            .clientStatus(ClientStatus.BELONG)
+                            .build();
+                    userGroupRepository.save(userGroup);
+                } else {
+                    userGroups.stream()
+                            .filter(ug -> ug.getGroup().equals(corporation))
+                            .forEach(ug -> ug.updateStatus(ClientStatus.BELONG));
+                }
+
+            }
+        }
+
         for (int i = 0; i < dtoList.getSaveUserList().size(); i++) {
 
             String email = dtoList.getSaveUserList().get(i).getEmail();
             String phone = dtoList.getSaveUserList().get(i).getPhone();
             String name = dtoList.getSaveUserList().get(i).getName();
 
-                //생성
+            //생성
             Employee employee = employeeMapper.toEntity(email, name, phone, corporation);
 
             employeeRepository.save(employee);

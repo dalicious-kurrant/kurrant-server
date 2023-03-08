@@ -1,6 +1,5 @@
 package co.kurrant.app.admin_api.service.impl;
 
-import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.food.dto.LocationTestDto;
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
@@ -10,9 +9,7 @@ import co.dalicious.domain.food.mapper.MakersCapacityMapper;
 import co.dalicious.domain.food.repository.MakersCapacityRepository;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QMakersCapacityRepository;
-
 import co.dalicious.domain.food.repository.QMakersRepository;
-import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
 import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
@@ -20,7 +17,6 @@ import co.kurrant.app.admin_api.service.MakersService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.math3.analysis.function.Add;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -91,45 +87,27 @@ public class MakersServiceImpl implements MakersService {
     public void saveMakers(SaveMakersRequestDtoList saveMakersRequestDtoList) throws ParseException {
 
         for (SaveMakersRequestDto saveMakersRequestDto : saveMakersRequestDtoList.getSaveMakersRequestDto()) {
-
             //Address 생성
             Address address = new Address(saveMakersRequestDto.getZipCode(), saveMakersRequestDto.getAddress1(), saveMakersRequestDto.getAddress2(), saveMakersRequestDto.getLocation());
 
-            Makers optionalMakers = makersRepository.findById(saveMakersRequestDto.getId()).orElseThrow(() ->  new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+            Optional<Makers> optionalMakers = makersRepository.findById(saveMakersRequestDto.getId());
             //이미 존재하면 수정
-            if (optionalMakers != null){
+            if (optionalMakers.isPresent()){
 
-                //DailyCapacity 수정
-                List<MakersCapacity> makersCapacityList = qMakersCapacityRepository.findByMakersId(saveMakersRequestDto.getId());
-                //다이닝 타입별 가능수량을 계산해서 저장해준다.
-
-                if (makersCapacityList.size() != 3){
-
-
-                    for (int i = 0; i < makersCapacityList.size(); i++) {
-
-                            Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
-                            Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
-                        long updateResult = qMakersCapacityRepository.updateDailyCapacity(diningType, capacity, saveMakersRequestDto.getId());
-                        if (updateResult != 1){
-                            throw new ApiException(ExceptionEnum.MAKERS_UPDATE_FAILED);
-                        }
-                    }
-                } else {
-                    Integer divTen = saveMakersRequestDto.getDailyCapacity() / 10;
-                    Integer morning = divTen * 3;
-                    Integer lunch = divTen * 4;
-                    Integer dinner = divTen * 3;
-
-                    for (int i = 0; i < makersCapacityList.size(); i++) {
-                        long updateResult = qMakersCapacityRepository.updateDailyCapacityDiningType(morning, lunch, dinner, makersCapacityList.get(i).getDiningType().getDiningType(), saveMakersRequestDto.getId());
-                        if (updateResult != 1){
-                            throw new ApiException(ExceptionEnum.MAKERS_UPDATE_FAILED);
-                        }
-                    }
-
+                //수정한것 외에 다른 다이닝타입은 지우기 위해 전체삭제
+                if (saveMakersRequestDto.getDiningTypes().size() != 0 && !saveMakersRequestDto.getDiningTypes().isEmpty()){
+                    qMakersCapacityRepository.deleteAllByMakersId(saveMakersRequestDto.getId());
                 }
+                //다이닝 타입별 가능수량을 계산해서 저장해준다.
+                for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
 
+                        Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
+                        Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
+
+                        MakersCapacity makersCapacity = makersCapacityMapper.toEntityForCapacitySave(optionalMakers.get(), diningType, capacity);
+
+                        makersCapacityRepository.save(makersCapacity);
+                    }
                 //그 외 수정
                 qMakersRepository.updateMakers(saveMakersRequestDto.getId(),saveMakersRequestDto.getCode(),saveMakersRequestDto.getName(),
                         saveMakersRequestDto.getCompanyName(), saveMakersRequestDto.getCeo(), saveMakersRequestDto.getCeoPhone(),

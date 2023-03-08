@@ -15,7 +15,6 @@ import java.math.BigInteger;
 @Component
 @RequiredArgsConstructor
 public class UserUtil {
-    private final GroupRepository groupRepository;
     // SecurityUser를 통해서 유저 객체 정보를 가져온다.
     public BigInteger getGroupId(SecurityUser securityUser) {
         return securityUser.getId();

@@ -30,21 +30,6 @@ public class QSpotRepository {
                 .fetch();
     }
 
-    public void testSJ() {
-        //DateFormat 테스트 OK
-         StringTemplate formattedDate = Expressions.stringTemplate(
-                "DATE_FORMAT({0},{1})"
-                ,spot.createdDateTime
-                , ConstantImpl.create("%Y-%m-%d"));
-
-
-         queryFactory
-                .select(formattedDate)
-                .from(spot)
-                .groupBy(formattedDate)
-                .orderBy(spot.createdDateTime.desc())
-                .limit(2);
-    }
 
     public long deleteSpots(List<BigInteger> spotIdList) {
         return queryFactory.update(spot)

@@ -13,6 +13,8 @@ import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Component
 public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
@@ -32,6 +34,10 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
         } else if (group instanceof Corporation) {
             return getCorporationDeliveryFee(user, (Corporation) group);
         } else if (group instanceof OpenGroup) {
+            // TODO: 추후 삭제
+            if(group.getName().replaceAll("\\s+", "").contains("스파크플러스") && LocalDate.now().isBefore(LocalDate.of(2023, 4, 1))) {
+                return getMembershipCorporationDeliveryFee();
+            }
             return getOpenGroupDeliveryFee(user, (OpenGroup) group);
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);

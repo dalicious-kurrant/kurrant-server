@@ -15,7 +15,7 @@ import java.math.BigInteger;
 @Tag(name = "3. Group")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "v1/groups")
+@RequestMapping(value = "/v1/groups")
 public class GroupController {
 
     public final GroupService groupService;

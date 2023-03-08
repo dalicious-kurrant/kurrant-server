@@ -27,7 +27,10 @@ public class CorsFilter implements Filter {
                 || origin.startsWith("http://localhost:3006") || origin.startsWith("http://localhost:3007 ")|| origin.startsWith("http://localhost:3008")
                 || origin.startsWith("http://localhost:3009") || origin.startsWith("http://localhost:3010")||origin.startsWith("https://kurrant.co")
                 || origin.startsWith("http://3.35.197.186") || origin.startsWith("http://3.39.196.44")
-                || origin.startsWith("http://admin.dalicious.co") || origin.startsWith("http://group.dalicious.co")|| origin.startsWith("http://makers.dalicious.co")){
+                || origin.startsWith("http://admin.dalicious.co") || origin.startsWith("http://group.dalicious.co")|| origin.startsWith("http://makers.dalicious.co")
+                || origin.startsWith("https://admin.dalicious.co") || origin.startsWith("https://group.dalicious.co")|| origin.startsWith("https://makers.dalicious.co")
+                || origin.startsWith("https://prod.dalicious.co") || origin.startsWith("https://dev.dalicious.co")|| origin.startsWith("https://dalicious.co")
+                || origin.startsWith("https://api.tosspayments.com/v1/payments/")){
             response.setHeader("Access-Control-Allow-Origin", origin); //허용대상 도메인
         }
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, DELETE, PUT, PATCH, OPTIONS");

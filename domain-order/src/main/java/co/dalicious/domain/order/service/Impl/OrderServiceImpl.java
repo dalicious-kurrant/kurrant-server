@@ -13,7 +13,6 @@ import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
-import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.util.CreditCardValidator;
 import co.dalicious.domain.payment.util.TossUtil;
@@ -55,7 +54,6 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMembershipRepository orderMembershipRepository;
     private final OrderItemMembershipRepository orderItemMembershipRepository;
     private final MembershipDiscountPolicyRepository membershipDiscountPolicyRepository;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final OrderUserInfoMapper orderUserInfoMapper;
     private final OrderUtil orderUtil;
     private final TossUtil tossUtil;
@@ -237,19 +235,7 @@ public class OrderServiceImpl implements OrderService {
                 order.updatePaymentKey(paymentKey);
                 order.updateReceiptUrl(receiptUrl);
 
-                JSONObject card = (JSONObject) payResult.get("card");
-                String paymentCompanyCode;
-                if(card == null) {
-                    JSONObject easyPay = (JSONObject) payResult.get("easyPay");
-                    if(easyPay == null) {
-                        throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-                    }
-                    paymentCompanyCode = (String) easyPay.get("provider");
-                } else {
-                    paymentCompanyCode = (String) card.get("issuerCode");
-                }
-                PaymentCompany paymentCompany = PaymentCompany.ofCode(paymentCompanyCode);
-                qOrderDailyFoodRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderItemMembership.getOrder().getId(), paymentCompany);
+                order.updateOrderMembershipAfterPayment(receiptUrl, paymentKey, orderItemMembership.getOrder().getCode(), creditCardInfo.get());
             }
             // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
             else {

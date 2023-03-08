@@ -91,6 +91,7 @@ public class QUserRepository {
         if (userStatus != null) {
             whereClause.and(user.userStatus.eq(UserStatus.ofCode(userStatus)));
         }
+        // TODO: 수정 필요
         if (groupId != null) {
             whereClause.and(
                     JPAExpressions.selectFrom(userGroup)
@@ -107,7 +108,7 @@ public class QUserRepository {
                 .where(whereClause)
                 .fetch();
     }
-
+    
     public void updateUserPoint(BigInteger userId, BigDecimal imagePoint, BigDecimal contentPoint) {
         BigDecimal point = BigDecimal.ZERO;
         if(imagePoint != null) {
@@ -121,5 +122,11 @@ public class QUserRepository {
                 .where(user.id.eq(userId))
                 .set(user.point, user.point.add(point))
                 .execute();
+    }
+      
+    public List<User> getUsersByEmails(List<String> emails) {
+        return queryFactory.selectFrom(user)
+                .where(user.email.in(emails))
+                .fetch();
     }
 }

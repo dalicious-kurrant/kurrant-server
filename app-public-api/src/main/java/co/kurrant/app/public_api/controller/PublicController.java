@@ -37,18 +37,6 @@ public class PublicController {
                 .build();
     }
 
-    @Operation(summary = "결제 승인 API", description = "TOSS 결제 승인 API")
-    @PostMapping("/payments/confirm")
-    public ResponseMessage paymentsConfirm(Authentication authentication, @RequestBody PaymentConfirmDto paymentConfirmDto) throws IOException, ParseException, org.json.simple.parser.ParseException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data( orderDailyFoodService.paymentsConfirm(paymentConfirmDto, securityUser))
-                .message("결제 승인이 완료되었습니다.")
-                .build();
-    }
-
-
-
     // TODO: 추후 백오피스 구현시 삭제
     @PostMapping("/apartment")
     public ResponseMessage createApartment(@RequestBody ApartmentRequestDto apartmentRequestDto) throws ParseException {

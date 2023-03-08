@@ -128,7 +128,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         // 프론트에서 제공한 정보와 실제 정보가 일치하는지 확인
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 배송비 일치 점증 및 배송비 계산
-            System.out.println(deliveryFeePolicy.getGroupDeliveryFee(user,group) + "배송비");
             if (cartDailyFoodDto.getDeliveryFee().compareTo(deliveryFeePolicy.getGroupDeliveryFee(user, group)) != 0) {
                 throw new ApiException(ExceptionEnum.NOT_MATCHED_DELIVERY_FEE);
             }
@@ -147,7 +146,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
         // 1. 주문서 저장하기
-        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot));
+        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 2. 유저 사용 지원금 가져오기
@@ -156,11 +155,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             BigDecimal supportPrice = BigDecimal.ZERO;
             BigDecimal orderItemGroupTotalPrice = BigDecimal.ZERO;
             if (spot instanceof CorporationSpot) {
-                supportPrice = UserSupportPriceUtil.getGroupSupportPriceByDiningType(spot, DiningType.ofString(cartDailyFoodDto.getDiningType()));
-                // 기존에 사용한 지원금이 있다면 차감
-                BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType()));
-                supportPrice = supportPrice.subtract(usedSupportPrice);
-                if (cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
+                supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType()));
+                if (!spot.getName().contains("메드트로닉") && cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
                 }
             }
@@ -224,7 +220,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if (spot instanceof CorporationSpot) {
                 BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                 if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
-                    UserSupportPriceHistory userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                    UserSupportPriceHistory userSupportPriceHistory;
+                    if(spot.getName().contains("메드트로닉")) {
+                        userSupportPriceHistory = userSupportPriceHistoryReqMapper.toMedTronicSupportPrice(orderItemDailyFood);
+                    }
+                    else {
+                        userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                    }
                     userSupportPriceHistoryRepository.save(userSupportPriceHistory);
                     totalSupportPrice = totalSupportPrice.add(usableSupportPrice);
                 }
@@ -304,8 +306,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     } else {
                         paymentCompanyCode = (String) card.get("issuerCode");
                     }
+                    System.out.println("jsonObject = " + jsonObject);
                     PaymentCompany paymentCompany = PaymentCompany.ofCode(paymentCompanyCode);
-                    qOrderDailyFoodRepository.afterPaymentUpdate(receiptUrl, paymentKey, orderDailyFood.getId(), paymentCompany);
+                    orderDailyFood.updateOrderDailyFoodAfterPayment(receiptUrl, paymentKey, orderItemDailyFoodReqDto.getOrderId(), paymentCompany);
                 }
                 // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
                 else {
@@ -565,17 +568,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
             }
         }
-    }
-
-    @Transactional
-    @Override
-    public JSONObject paymentsConfirm(PaymentConfirmDto paymentConfirmDto, SecurityUser securityUser) throws IOException, ParseException {
-
-        User user = userUtil.getUser(securityUser);
-
-        JSONObject jsonObject = tossUtil.paymentConfirm(paymentConfirmDto.getPaymentKey(), paymentConfirmDto.getAmount(), paymentConfirmDto.getOrderId());
-
-        return jsonObject;
     }
 }
 

@@ -72,7 +72,6 @@ public class CartServiceImpl implements CartService {
         if (dailyFoods.isEmpty()) {
             throw new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND);
         }
-
         // TODO: 상품마다 주문시간이 다른 경우가 존재하는지 확인
         Spot spot = spotRepository.findById(cartDtoList.get(0).getSpotId()).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
@@ -88,6 +87,10 @@ public class CartServiceImpl implements CartService {
             DailyFood dailyFood = dailyFoods.stream().filter(v -> v.getId().equals(cartDto.getDailyFoodId()))
                     .findAny()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND));
+
+            if(!spot.getGroup().equals(dailyFood.getGroup())) {
+                throw new ApiException(ExceptionEnum.BAD_REQUEST);
+            }
 
             // 주문 시간이 지났는지 확인하기
             LocalDateTime lastOrderTime = LocalDateTime.of(dailyFood.getServiceDate(), mealInfo.getLastOrderTime());
@@ -148,7 +151,7 @@ public class CartServiceImpl implements CartService {
         }
         // 스팟별로 식단 나누기
         for (CartDailyFood spotDailyFood : cartDailyFoods) {
-            spotDailyFoodMap.add(spotDailyFood.getSpot(), spotDailyFood);
+            spotDailyFoodMap.add((Spot) Hibernate.unproxy(spotDailyFood.getSpot()), spotDailyFood);
         }
         for (Spot spot : spotDailyFoodMap.keySet()) {
             Group group = spot.getGroup();
@@ -180,10 +183,7 @@ public class CartServiceImpl implements CartService {
                 // 사용 가능한 지원금 가져오기
                 spot = (Spot) Hibernate.unproxy(spot);
                 if (spot instanceof CorporationSpot) {
-                    supportPrice = UserSupportPriceUtil.getGroupSupportPriceByDiningType(spot, diningTypeServiceDateDto.getDiningType());
-                    // 기존에 사용한 지원금이 있다면 차감
-                    BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, diningTypeServiceDateDto.getServiceDate(), diningTypeServiceDateDto.getDiningType());
-                    supportPrice = supportPrice.subtract(usedSupportPrice);
+                    supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, diningTypeServiceDateDto.getServiceDate(), diningTypeServiceDateDto.getDiningType());
                 }
                 CartDailyFoodDto cartDailyFoodDto = CartDailyFoodDto.builder()
                         .serviceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate(), "yyyy-MM-dd"))

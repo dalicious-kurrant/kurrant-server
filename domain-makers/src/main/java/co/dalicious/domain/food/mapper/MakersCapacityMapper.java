@@ -8,10 +8,14 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import java.util.List;
-
 @Mapper(componentModel = "spring")
 public interface MakersCapacityMapper {
+
+    @Mapping(source = "capacity", target = "capacity")
+    @Mapping(source = "diningType", target = "diningType", qualifiedByName = "getDiningType")
+    @Mapping(source = "makers", target = "makers")
+    MakersCapacity toEntityForCapacitySave(Makers makers, Integer diningType, Integer capacity);
+
 
     @Mapping(source = "diningTypes.capacity", target = "capacity")
     @Mapping(source = "diningTypes.diningType", target = "diningType", qualifiedByName = "getDiningType")
