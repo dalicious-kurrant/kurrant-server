@@ -13,13 +13,13 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "Recommend__user_recommends")
+@Table(name = "recommend__user_recommends")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserRecommends {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
+    @Column(columnDefinition = "BIGINT UNSIGNED")
     @Comment("ID")
     private BigInteger id;
 
