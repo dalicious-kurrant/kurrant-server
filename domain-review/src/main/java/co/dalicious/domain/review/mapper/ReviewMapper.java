@@ -30,7 +30,7 @@ public interface ReviewMapper {
     @Mapping(source = "reviewDto.forMakers", target = "forMakers")
     Reviews toEntity(ReviewReqDto reviewDto, User user, OrderItem orderItem, Food food, List<Image> imageList);
 
-    @Mapping(source = "orderItemDailyFood.dailyFood.id", target = "itemId")
+    @Mapping(source = "orderItemDailyFood.id", target = "orderItemId")
     @Mapping(source = "orderItemDailyFood.dailyFood.diningType.diningType", target = "diningType")
     @Mapping(source = "orderItemDailyFood.dailyFood.serviceDate", target = "serviceDate")
     @Mapping(target = "imageLocation", expression = "java(orderItemDailyFood.getDailyFood().getFood().getImages() == null || orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty() ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")
@@ -58,21 +58,16 @@ public interface ReviewMapper {
 
     @Named("getMakersName")
     default String getMakersName(OrderItem orderItem) {
-        String makersName = null;
-        if(orderItem instanceof OrderItemDailyFood) {
-            OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) orderItem;
-            return makersName = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
+        if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+            return orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
         }
-
         throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
     }
 
     @Named("getItemName")
     default String getItemName(OrderItem orderItem) {
-        String itemName = null;
-        if(orderItem instanceof OrderItemDailyFood) {
-            OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) orderItem;
-            return itemName = orderItemDailyFood.getDailyFood().getFood().getName();
+        if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+            return orderItemDailyFood.getDailyFood().getFood().getName();
         }
 
         throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM);

@@ -28,10 +28,9 @@ public class ReviewController {
     @PostMapping("")
     public ResponseMessage createReview(Authentication authentication,
                                         @RequestPart(required = false) List<MultipartFile> fileList,
-                                        @RequestPart ReviewReqDto reviewDto,
-                                        @RequestParam BigInteger itemId) throws IOException {
+                                        @RequestPart ReviewReqDto reviewDto) throws IOException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        reviewService.createReview(securityUser, reviewDto, itemId, fileList);
+        reviewService.createReview(securityUser, reviewDto, fileList);
         return ResponseMessage.builder()
                 .message("리뷰 작성을 완료했습니다.")
                 .build();
