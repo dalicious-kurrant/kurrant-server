@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -30,16 +31,10 @@ public class QuartzJob implements Job {
      * so, cannot use constructor dependency injection with Quartz jobs.
      * */
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private QMembershipRepository qMembershipRepository;
 
     @Autowired
     private OrderService orderService;
-
-    @Autowired
-    private QCreditCardInfoRepository qCreditCardInfoRepository;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -55,7 +50,6 @@ public class QuartzJob implements Job {
 
         // 로직 수행
         List<Membership> memberships = qMembershipRepository.findAllByEndDate();
-        List<User> users = new ArrayList<>();
 
         for (Membership membership : memberships) {
             try {
@@ -65,7 +59,8 @@ public class QuartzJob implements Job {
                         MembershipUtil.getStartAndEndDateYearly(membership.getEndDate().plusMonths(1));
                 orderService.payMembership(membership.getUser(), membership.getMembershipSubscriptionType(), periodDto, PaymentType.CREDIT_CARD);
             } catch (Exception ignored) {
-
+                membership.changeAutoPaymentStatus(false);
+                membership.getUser().changeMembershipStatus(false);
             }
         }
 

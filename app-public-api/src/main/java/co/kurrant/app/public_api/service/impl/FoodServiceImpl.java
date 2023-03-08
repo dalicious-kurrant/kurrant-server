@@ -1,8 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MealInfo;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -10,8 +8,11 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.order.entity.UserSupportPriceHistory;
+import co.dalicious.domain.order.repository.UserSupportPriceHistoryRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
+import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.recommend.dto.UserRecommendWhereData;
 import co.dalicious.domain.recommend.entity.UserRecommends;
 import co.dalicious.domain.recommend.repository.QUserRecommendRepository;
@@ -50,6 +51,7 @@ public class FoodServiceImpl implements FoodService {
     private final DailyFoodRepository dailyFoodRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QUserRecommendRepository qUserRecommendRepository;
+    private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
 
 
     @Override
@@ -147,9 +149,22 @@ public class FoodServiceImpl implements FoodService {
                             .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
                 });
             }
+            // 대상이 기업이라면 일일 지원금 필요
+            RetrieveDailyFoodDto.SupportPrice supportPriceDto = new RetrieveDailyFoodDto.SupportPrice();
+            if( Hibernate.unproxy(group) instanceof Corporation) {
+                List<UserSupportPriceHistory> userSupportPriceHistories = userSupportPriceHistoryRepository.findAllByUserAndGroupAndServiceDate(user, group, selectedDate);
+                for (Integer diningType : diningTypes) {
+                    switch (DiningType.ofCode(diningType)) {
+                        case MORNING -> supportPriceDto.setMorningSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, selectedDate, DiningType.MORNING));
+                        case LUNCH -> supportPriceDto.setLunchSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, selectedDate, DiningType.LUNCH));
+                        case DINNER -> supportPriceDto.setDinnerSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, selectedDate, DiningType.DINNER));
+                    }
+                }
+            }
 
             return RetrieveDailyFoodDto.builder()
                     .diningTypes(diningTypes)
+                    .supportPrice(supportPriceDto)
                     .dailyFoodDtos(dailyFoodDtos)
                     .build();
         }
