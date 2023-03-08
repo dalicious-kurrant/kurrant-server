@@ -1,5 +1,6 @@
 package co.dalicious.domain.review.mapper;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -14,16 +15,20 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Mapper(componentModel = "spring")
 public interface ReviewMapper {
 
-    @Mapping(source = "reviewDto.image", target = "imageOrigin")
+    @Mapping(source = "imageList", target = "images")
+    @Mapping(source = "imageList", target = "imageOrigin")
     @Mapping(source = "reviewDto.content", target = "content")
     @Mapping(source = "reviewDto.content", target = "contentOrigin")
     @Mapping(source = "reviewDto.satisfaction", target = "satisfaction")
     @Mapping(source = "reviewDto.satisfaction", target = "satisfactionOrigin")
     @Mapping(source = "reviewDto.forMakers", target = "forMakers")
-    Reviews toEntity(ReviewReqDto reviewDto, User user, OrderItem orderItem, Food food);
+    Reviews toEntity(ReviewReqDto reviewDto, User user, OrderItem orderItem, Food food, List<Image> imageList);
 
     @Mapping(source = "orderItemDailyFood.dailyFood.id", target = "itemId")
     @Mapping(source = "orderItemDailyFood.dailyFood.diningType.diningType", target = "diningType")
@@ -33,7 +38,7 @@ public interface ReviewMapper {
     @Mapping(source = "orderItemDailyFood.dailyFood.food.name", target = "foodName")
     ReviewableItemListDto toDailyFoodResDto(OrderItemDailyFood orderItemDailyFood, long reviewDDAy);
 
-    @Mapping(source = "reviews.image.location", target = "imageLocation")
+    @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocation")
     @Mapping(source = "reviews.content", target = "content")
     @Mapping(source = "reviews.satisfaction", target = "satisfaction")
     @Mapping(source = "reviews.createdDateTime", target = "createDate")
@@ -42,6 +47,14 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
     @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
     ReviewListDto toReviewListDto(Reviews reviews);
+
+    @Named("getImagesLocation")
+    default List<String>  getImagesLocation(List<Image> imageList) {
+        if(imageList != null && !imageList.isEmpty()) {
+            return imageList.stream().map(Image::getLocation).toList();
+        }
+        return null;
+    }
 
     @Named("getMakersName")
     default String getMakersName(OrderItem orderItem) {

@@ -19,7 +19,6 @@ public class QUserRecommendRepository {
     public List<UserRecommends> getUserRecommends(UserRecommendWhereData data) {
         return queryFactory.selectFrom(userRecommends)
                 .where(userRecommends.userId.eq(data.getUserId()),
-                        userRecommends.DiningType.eq(data.getDiningType()),
                         userRecommends.serviceDate.eq(data.getServiceDate()),
                         userRecommends.foodId.in(data.getFoodId()))
                 .fetch();
