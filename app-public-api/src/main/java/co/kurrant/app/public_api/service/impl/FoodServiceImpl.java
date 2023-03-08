@@ -27,6 +27,7 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
