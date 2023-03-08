@@ -40,6 +40,7 @@ public class SpotServiceImpl implements SpotService {
     private final SpotMapper spotMapper;
     private final QGroupRepository qGroupRepository;
     private final GroupMapper groupMapper;
+    private final GroupRepository groupRepository;
 
     @Override
     public List<SpotResponseDto> getAllSpotList(Integer status) {
@@ -184,9 +185,9 @@ public class SpotServiceImpl implements SpotService {
     }
 
     @Override
-    public List<GroupDto.Spot> getSpotList() {
-        List<Spot> spots = qSpotRepository.findAllByStatus(1);
-        return groupMapper.spotsToDtos(spots);
+    public List<GroupDto.Group> getGroupList() {
+        List<Group> groups = groupRepository.findAll();
+        return groupMapper.groupsToDtos(groups);
     }
 
     private CreateAddressRequestDto makeCreateAddressRequestDto(String zipCode, String address1, String address2) {
