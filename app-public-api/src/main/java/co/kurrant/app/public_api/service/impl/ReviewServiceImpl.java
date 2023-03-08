@@ -1,5 +1,8 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.file.dto.ImageResponseDto;
+import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItem;
@@ -22,7 +25,10 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -40,16 +46,14 @@ public class ReviewServiceImpl implements ReviewService {
     private final QReviewRepository qReviewRepository;
     private final QOrderItemRepository qOrderItemRepository;
     private final OrderItemRepository orderItemRepository;
+    private final ImageService imageService;
 
     @Override
     @Transactional
-    public BigInteger createReview(SecurityUser securityUser, ReviewReqDto reviewDto, BigInteger itemId) {
+    public void createReview(SecurityUser securityUser, ReviewReqDto reviewDto, BigInteger itemId, List<MultipartFile> fileList) throws IOException {
         // 필요한 정보 가져오기 - 유저, 상품
         User user = userUtil.getUser(securityUser);
-        OrderItem orderItem = orderItemRepository.findById(itemId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.NOT_FOUND_ITEM)
-        );
-
+        OrderItem orderItem = orderItemRepository.findById(itemId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_ITEM));
 
         // content의 최소 글자 수와 최대 글자 수 확인
         if(reviewDto.getContent() == null) {
@@ -68,26 +72,32 @@ public class ReviewServiceImpl implements ReviewService {
         // 찾은 주문 상품이 dailyfood이면
         DailyFood dailyFood;
         Food food = null;
-        if(orderItem instanceof OrderItemDailyFood) {
-            OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) orderItem;
+        if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
             dailyFood = orderItemDailyFood.getDailyFood();
             food = dailyFood.getFood();
         }
-
-        // review 생성
-        Reviews reviews = reviewMapper.toEntity(reviewDto, user, orderItem, food);
 
         // 이미 review를 작성한 건인지 검증
         if(qReviewRepository.findByUserAndOrderItem(user, orderItem) != null) {
             throw new ApiException(ExceptionEnum.ALREADY_WRITING_REVIEW);
         }
 
+        List<Image> images = new ArrayList<>();
+        if(fileList != null && !fileList.isEmpty()) {
+            List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
+            images.addAll(Image.toImages(imageResponseDtos));
+        }
+
+        // review 생성
+        Reviews reviews = reviewMapper.toEntity(reviewDto, user, orderItem, food, images);
         // review 저장
         reviewRepository.save(reviews);
 
-        // TODO: 포인트 적립 구현필요
-
-        return reviews.getId();
+        // 포인트 적립
+        BigDecimal point = BigDecimal.ZERO;
+        if(fileList != null && !fileList.isEmpty()) point.add(BigDecimal.valueOf(100));
+        point.add(BigDecimal.valueOf(50));
+        user.updatePoint(point);
     }
 
     @Override
@@ -117,8 +127,7 @@ public class ReviewServiceImpl implements ReviewService {
             long leftDay = DateUtils.calculatedDDay(reviewableString, todayString);
 
             ReviewableItemListDto responseDto = null;
-            if(item instanceof OrderItemDailyFood) {
-                OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) item;
+            if(item instanceof OrderItemDailyFood orderItemDailyFood) {
                 responseDto = reviewMapper.toDailyFoodResDto(orderItemDailyFood, leftDay);
             }
 
@@ -134,7 +143,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         //user가 작성한 리뷰 찾기
         List<Reviews> reviews = reviewRepository.findByUser(user);
-        if(reviews.size() == 0 || reviews == null) {
+        if(reviews.size() == 0) {
             throw new ApiException(ExceptionEnum.NOT_FOUND_REVIEWS);
         }
 

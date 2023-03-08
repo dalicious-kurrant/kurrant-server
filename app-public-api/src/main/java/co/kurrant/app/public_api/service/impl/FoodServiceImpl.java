@@ -27,6 +27,7 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -94,12 +95,16 @@ public class FoodServiceImpl implements FoodService {
             List<BigInteger> foodIds = new ArrayList<>();
             dailyFoodDtos.forEach(dto -> foodIds.add(dto.getFoodId()));
             List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
-                    UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, diningType, selectedDate));
+                    UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, selectedDate));
+            if(!userRecommendList.isEmpty()){
+                // dto에 랭크 추가
+                dailyFoodDtos.forEach(dto -> {
+                    userRecommendList.stream().filter(recommend ->
+                                    recommend.getFoodId().equals(dto.getFoodId()) && recommend.getDiningType().getCode().equals(dto.getDiningType())).findFirst()
+                            .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
+                });
+            }
 
-            // dto에 랭크 추가
-            dailyFoodDtos.forEach(dto -> {
-                userRecommendList.stream().filter(recommend -> recommend.getFoodId().equals(dto.getFoodId())).findFirst().ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
-            });
 
             return RetrieveDailyFoodDto.builder()
                     .dailyFoodDtos(dailyFoodDtos)
@@ -128,6 +133,20 @@ public class FoodServiceImpl implements FoodService {
                 dailyFoodDtos.add(dailyFoodDto);
             }
 
+            // recommend 가져오기
+            List<BigInteger> foodIds = new ArrayList<>();
+            dailyFoodDtos.forEach(dto -> foodIds.add(dto.getFoodId()));
+            List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
+                    UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, selectedDate));
+
+            if(!userRecommendList.isEmpty()){
+                // dto에 랭크 추가
+                dailyFoodDtos.forEach(dto -> {
+                    userRecommendList.stream().filter(recommend ->
+                                    recommend.getFoodId().equals(dto.getFoodId()) && recommend.getDiningType().getCode().equals(dto.getDiningType())).findFirst()
+                            .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
+                });
+            }
 
             return RetrieveDailyFoodDto.builder()
                     .diningTypes(diningTypes)

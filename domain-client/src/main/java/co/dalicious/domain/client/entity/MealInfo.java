@@ -114,7 +114,7 @@ public class MealInfo {
     }
 
     public static DayAndTime stringToDayAndTime(String str) {
-        if (str.equals("정보 없음")) {
+        if (str == null || str.equals("정보 없음")) {
             return null;
         }
        else {

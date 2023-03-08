@@ -1,7 +1,6 @@
 package co.kurrant.app.admin_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.kurrant.app.admin_api.dto.client.DeleteSpotRequestDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
 import co.kurrant.app.admin_api.service.SpotService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,9 +17,18 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/clients")
 @RestController
-public class ClientController {
+public class SpotController {
 
     private final SpotService spotService;
+
+    @Operation(summary = "스팟 리스트 조회", description = "존재하는 스팟의 리스트를 조회한다.")
+    @GetMapping("/spots")
+    public ResponseMessage getSpotList() {
+        return ResponseMessage.builder()
+                .message("스팟 리스트 조회에 성공하였습니다.")
+                .data(spotService.getSpotList())
+                .build();
+    }
 
     @Operation(summary = "스팟정보 전체 조회", description = "존재하는 스팟을 모두 조회합니다.")
     @GetMapping("/spot/all")

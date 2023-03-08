@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.repository;
+package co.dalicious.domain.user.repository;
 
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static co.dalicious.domain.user.entity.QMembership.membership;
@@ -37,5 +38,13 @@ public class QMembershipRepository {
                         membership.endDate.goe(now),
                         membership.membershipStatus.eq(MembershipStatus.PROCESSING))
                 .fetchOne();
+    }
+
+    public List<Membership> findAllByEndDate() {
+        LocalDate now = LocalDate.now();
+        return queryFactory.selectFrom(membership)
+                .where(membership.endDate.eq(now),
+                        membership.autoPayment.eq(true))
+                .fetch();
     }
 }
