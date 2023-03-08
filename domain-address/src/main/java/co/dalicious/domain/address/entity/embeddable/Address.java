@@ -17,7 +17,7 @@ import javax.persistence.Embeddable;
 @Embeddable
 @NoArgsConstructor
 public class Address {
-  @Column(name = "zip_code", columnDefinition = "MEDIUMINT COMMENT '우편번호, 다섯자리'")
+  @Column(name = "zip_code", columnDefinition = "VARCHAR(5) COMMENT '우편번호, 다섯자리'")
   private String zipCode;
 
   @Column(name = "address_depth_1", columnDefinition = "VARCHAR(255) COMMENT '기본주소'")
