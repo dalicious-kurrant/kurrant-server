@@ -48,6 +48,12 @@ public class QCreditCardInfoRepository {
                 .fetch();
     }
 
+    public List<CreditCardInfo> findAllMembershipCardByUsers(List<User> users) {
+        return queryFactory.selectFrom(creditCardInfo)
+                .where(creditCardInfo.user.in(users), creditCardInfo.defaultType.eq(2))
+                .fetch();
+    }
+
 
     public long patchDefaultCard(BigInteger cardId, Integer defaultType) {
         return queryFactory.update(creditCardInfo)
