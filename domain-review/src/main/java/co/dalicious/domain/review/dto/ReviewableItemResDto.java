@@ -14,8 +14,11 @@ public class ReviewableItemResDto {
     private List<ReviewableItemListDto> items;
 
     public static ReviewableItemResDto create(List<ReviewableItemListDto> items) {
+        int size = 0;
+        if(!items.isEmpty()) size = items.size();
+
         return ReviewableItemResDto.builder()
-                .count(items.size())
+                .count(size)
                 .items(items)
                 .build();
     }

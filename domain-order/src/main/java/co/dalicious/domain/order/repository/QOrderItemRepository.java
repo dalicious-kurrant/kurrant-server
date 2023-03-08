@@ -12,6 +12,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
+import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 
@@ -32,7 +33,13 @@ public class QOrderItemRepository {
     public List<OrderItem> findByUserAndOrderStatus(User user, OrderStatus orderStatus) {
         return queryFactory
                 .selectFrom(orderItem)
-                .where(orderItem.order.user.eq(user), orderItem.orderStatus.eq(orderStatus))
+                .where(orderItem.orderStatus.eq(orderStatus), orderItem.order.user.eq(user))
                 .fetch();
+    }
+
+    public OrderItem findByUserAndOrderId(User user, BigInteger orderItemId) {
+        return queryFactory.selectFrom(orderItem)
+                .where(orderItem.id.eq(orderItemId), orderItem.order.user.eq(user))
+                .fetchOne();
     }
 }
