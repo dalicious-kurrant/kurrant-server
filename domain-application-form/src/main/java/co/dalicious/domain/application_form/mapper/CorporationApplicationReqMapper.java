@@ -36,12 +36,12 @@ public interface CorporationApplicationReqMapper {
 
     @Named("getAddress")
     default Address getAddress(CreateAddressRequestDto createAddressRequestDto) {
-        String location = createAddressRequestDto.getLatitude() + " " + createAddressRequestDto.getLongitude();
+        // FIXME: 위도 경도 추가?
         try {
             return new Address(createAddressRequestDto.getZipCode(),
                     createAddressRequestDto.getAddress1(),
                     createAddressRequestDto.getAddress2(),
-                    location);
+                    null);
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }

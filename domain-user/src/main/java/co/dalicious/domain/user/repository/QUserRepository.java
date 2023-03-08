@@ -90,6 +90,7 @@ public class QUserRepository {
         if (userStatus != null) {
             whereClause.and(user.userStatus.eq(UserStatus.ofCode(userStatus)));
         }
+        // TODO: 수정 필요
         if (groupId != null) {
             whereClause.and(
                     JPAExpressions.selectFrom(userGroup)

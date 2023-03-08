@@ -388,7 +388,7 @@ public class UserServiceImpl implements UserService {
         long userGroupCount = userGroups.stream().
                 filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
                 .count();
-        if(userGroupCount > 2) {
+        if(userGroupCount >= 2) {
             throw new ApiException(ExceptionEnum.REQUEST_OVER_GROUP);
         }
 

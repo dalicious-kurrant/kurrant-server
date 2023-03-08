@@ -82,7 +82,7 @@ public class UserSupportPriceUtil {
             BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, serviceDate, diningType);
             return supportPrice.subtract(usedSupportPrice);
         } else {
-            return BigDecimal.valueOf(10000000000L);
+            return BigDecimal.valueOf(62471004L);
         }
     }
 }

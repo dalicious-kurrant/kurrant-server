@@ -30,16 +30,12 @@ public interface CorporationApplicationSpotReqMapper {
     }
 
     @Named("getAddress")
-    default Address getAddress(CreateAddressRequestDto createAddressRequestDto) {
-        String location = createAddressRequestDto.getLatitude() + " " + createAddressRequestDto.getLongitude();
-        try {
+    default Address getAddress(CreateAddressRequestDto createAddressRequestDto) throws org.locationtech.jts.io.ParseException {
+        // FIXME: 위도 경도 추가?
             return new Address(createAddressRequestDto.getZipCode(),
                     createAddressRequestDto.getAddress1(),
                     createAddressRequestDto.getAddress2(),
-                    location);
-        } catch (org.locationtech.jts.io.ParseException e) {
-            throw new RuntimeException(e);
-        }
+                    null);
 
     }
 
