@@ -26,14 +26,14 @@ public interface UserSupportPriceHistoryReqMapper {
     @Mapping(target = "monetaryStatus", constant = "DEDUCTION")
     UserSupportPriceHistory toEntity(OrderItemDailyFood orderItemDailyFood, BigDecimal supportPrice);
 
-    @Mapping(source = "order.user", target = "user")
-    @Mapping(source = "order", target = "group", qualifiedByName = "getGroup")
-    @Mapping(target = "usingSupportPrice", expression = "java(PriceUtils.roundToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5))))")
-    @Mapping(source = "orderItemDailyFoodGroup.serviceDate", target = "serviceDate")
-    @Mapping(source = "orderItemDailyFoodGroup.diningType", target = "diningType")
-    @Mapping(source = "orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
+    @Mapping(source = "orderItemDailyFood.order.user", target = "user")
+    @Mapping(source = "orderItemDailyFood.order", target = "group", qualifiedByName = "getGroup")
+    @Mapping(source = "orderItemGroupTotalPrice", target = "usingSupportPrice", qualifiedByName = "getMedTronicPrice")
+    @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup.serviceDate", target = "serviceDate")
+    @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup.diningType", target = "diningType")
+    @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
     @Mapping(target = "monetaryStatus", constant = "DEDUCTION")
-    UserSupportPriceHistory toMedTronicSupportPrice(OrderItemDailyFood orderItemDailyFood);
+    UserSupportPriceHistory toMedTronicSupportPrice(OrderItemDailyFood orderItemDailyFood, BigDecimal orderItemGroupTotalPrice);
 
     @Named("getGroup")
     default Group getGroup(Order order) {
@@ -42,5 +42,10 @@ public interface UserSupportPriceHistoryReqMapper {
             return ((OrderDailyFood) order).getSpot().getGroup();
         }
         throw new ApiException(ExceptionEnum.SPOT_NOT_FOUND);
+    }
+
+    @Named("getMedTronicPrice")
+    default BigDecimal getMedTronicPrice(BigDecimal orderItemGroupTotalPrice) {
+        return PriceUtils.roundToOneDigit(orderItemGroupTotalPrice.multiply(BigDecimal.valueOf(0.5)));
     }
 }
