@@ -6,5 +6,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.math.BigInteger;
 
 public interface GroupRepository extends JpaRepository<Group, BigInteger> {
-    Group findByName(String name);
 }

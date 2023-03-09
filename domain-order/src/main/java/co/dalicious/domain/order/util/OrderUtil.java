@@ -287,7 +287,7 @@ public class OrderUtil {
 
     public PaymentCancelHistory cancelOrderItemMembership(String paymentKey, CreditCardInfo creditCardInfo, String cancelReason, OrderItemMembership orderItem, BigDecimal refundPrice) throws IOException, ParseException {
         //결제 취소 요청
-        JSONObject response = tossUtil.cardCancelOne(paymentKey, cancelReason, refundPrice.intValue());
+        JSONObject response = tossUtil.billingCardCancelOne(paymentKey, cancelReason, refundPrice.intValue());
         System.out.println(response);
 
         String orderCode = response.get("orderId").toString();

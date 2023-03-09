@@ -1,7 +1,7 @@
 package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.kurrant.app.admin_api.dto.OrderDto;
+import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.admin_api.service.OrderDailyFoodService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

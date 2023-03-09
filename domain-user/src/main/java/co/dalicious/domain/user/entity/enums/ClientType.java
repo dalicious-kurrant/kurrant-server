@@ -5,7 +5,7 @@ import exception.ExceptionEnum;
 import lombok.Getter;
 
 @Getter
-public enum ClientType {
+public enum  ClientType {
     APARTMENT("아파트", 0),
     CORPORATION("기업", 1),
     OPEN_GROUP("오픈 그룹", 2),;
