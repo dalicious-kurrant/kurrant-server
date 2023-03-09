@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 public interface ReviewMapper {
 
     @Mapping(source = "imageList", target = "images")
-    @Mapping(source = "imageList", target = "imageOrigin")
     @Mapping(source = "reviewDto.content", target = "content")
     @Mapping(source = "reviewDto.content", target = "contentOrigin")
     @Mapping(source = "reviewDto.satisfaction", target = "satisfaction")
