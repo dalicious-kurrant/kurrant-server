@@ -260,7 +260,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                     LinkedList<LocalTime> deliveryTimes = new LinkedList<>();
                     for(Spot spot : spotList) {
                         List<MealInfo> mealInfoList = spot.getMealInfos();
-                        if(mealInfoList.size() == 0) {
+                        if(mealInfoList == null || mealInfoList.isEmpty()) {
                             if(recommendScheduleDto.getDiningType().equals(DiningType.MORNING)) deliveryTimes.add(DateUtils.stringToLocalTime("07:00"));
                             else if(recommendScheduleDto.getDiningType().equals(DiningType.LUNCH)) deliveryTimes.add(DateUtils.stringToLocalTime("12:00"));
                             else if(recommendScheduleDto.getDiningType().equals(DiningType.DINNER)) deliveryTimes.add(DateUtils.stringToLocalTime("18:00"));
