@@ -257,15 +257,20 @@ public class ScheduleServiceImpl implements ScheduleService {
                     Integer groupCapacity = qUserGroupRepository.userCountInGroup(groupId);
                     // 스팟 중 가장 픽업 시간이 가장 빠른 시간 구해서 40분을 빼기 - 픽업 시간
                     List<Spot> spotList = group.getSpots();
-                    LinkedList<LocalTime> deliveryTimes = new LinkedList<>();
+                    List<LocalTime> deliveryTimes = new ArrayList<>();
                     for(Spot spot : spotList) {
                         List<MealInfo> mealInfoList = spot.getMealInfos();
-                        if(mealInfoList == null || mealInfoList.isEmpty()) {
-                            if(recommendScheduleDto.getDiningType().equals(DiningType.MORNING)) deliveryTimes.add(DateUtils.stringToLocalTime("07:00"));
-                            else if(recommendScheduleDto.getDiningType().equals(DiningType.LUNCH)) deliveryTimes.add(DateUtils.stringToLocalTime("12:00"));
-                            else if(recommendScheduleDto.getDiningType().equals(DiningType.DINNER)) deliveryTimes.add(DateUtils.stringToLocalTime("18:00"));
-                        } else deliveryTimes.add(spot.getDeliveryTime(recommendScheduleDto.getDiningType()));
+                        if(mealInfoList == null || mealInfoList.isEmpty()) continue;
+                        mealInfoList.forEach(mealInfo -> {
+                            if(mealInfo.getDeliveryTime() == null) {
+                                if(mealInfo.getDiningType().equals(DiningType.MORNING)) deliveryTimes.add(DateUtils.stringToLocalTime("07:00"));
+                                if(mealInfo.getDiningType().equals(DiningType.LUNCH)) deliveryTimes.add(DateUtils.stringToLocalTime("12:00"));
+                                if(mealInfo.getDiningType().equals(DiningType.DINNER)) deliveryTimes.add(DateUtils.stringToLocalTime("18:00"));
+                            }
+                            deliveryTimes.add(mealInfo.getDeliveryTime());
+                        });
                     }
+                    deliveryTimes.forEach(System.out::println);
                     String pickupTime = DateTimeFormatter.ofPattern("HH:mm").format(deliveryTimes.stream().min(LocalTime::compareTo).orElseThrow(
                             () -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO)).minusMinutes(40));
 
