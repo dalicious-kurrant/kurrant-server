@@ -35,7 +35,6 @@ import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -106,7 +105,17 @@ public class FoodServiceImpl implements FoodService {
                                     recommend.getFoodId().equals(dto.getFoodId()) && recommend.getDiningType().getCode().equals(dto.getDiningType())).findFirst()
                             .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
                 });
+                dailyFoodDtos = dailyFoodDtos.stream().sorted((dto1, dto2) -> {
+                            if (dto1.getRank() == null) {
+                                return 1;
+                            }
+                            if (dto2.getRank() == null) {
+                                return -1;
+                            }
+                            return dto1.getRank().compareTo(dto2.getRank());
+                        }).toList();
             }
+
 
 
             return RetrieveDailyFoodDto.builder()
@@ -149,6 +158,16 @@ public class FoodServiceImpl implements FoodService {
                                     recommend.getFoodId().equals(dto.getFoodId()) && recommend.getDiningType().getCode().equals(dto.getDiningType())).findFirst()
                             .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
                 });
+
+                dailyFoodDtos = dailyFoodDtos.stream().sorted((dto1, dto2) -> {
+                    if (dto1.getRank() == null) {
+                        return 1;
+                    }
+                    if (dto2.getRank() == null) {
+                        return -1;
+                    }
+                    return dto1.getRank().compareTo(dto2.getRank());
+                }).toList();
             }
             // 대상이 기업이라면 일일 지원금 필요
             RetrieveDailyFoodDto.SupportPrice supportPriceDto = new RetrieveDailyFoodDto.SupportPrice();

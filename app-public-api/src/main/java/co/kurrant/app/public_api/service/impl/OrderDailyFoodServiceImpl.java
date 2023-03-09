@@ -222,7 +222,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
                     UserSupportPriceHistory userSupportPriceHistory;
                     if(spot.getName().contains("메드트로닉")) {
-                        userSupportPriceHistory = userSupportPriceHistoryReqMapper.toMedTronicSupportPrice(orderItemDailyFood);
+                        userSupportPriceHistory = userSupportPriceHistoryReqMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
                     }
                     else {
                         userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
