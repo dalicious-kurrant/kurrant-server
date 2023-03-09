@@ -346,24 +346,30 @@ public class ScheduleServiceImpl implements ScheduleService {
 
             PresetMakersDailyFood presetMakersDailyFood = excelPresetDailyFoodMapper.toMakersDailyFoodEntity(presetDto, makersUpdateData.getFoodScheduleStatus(), makers, dtoList.getDeadline(), ConfirmStatus.PAUSE, makersCapacities);
             presetMakersDailyFoodList.add(presetMakersDailyFood);
+        }
 
-            for(ExcelPresetDto.ExcelGroupDataDto groupDataDto : groupGroupingList.keySet()) {
-                List<ExcelPresetDailyFoodDto.ExcelData> createGroupDataList = groupGroupingList.get(groupDataDto);
-                ExcelPresetDailyFoodDto.ExcelData groupUpdateData = Objects.requireNonNull(createGroupDataList).stream().findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        for(ExcelPresetDto.ExcelGroupDataDto groupDataDto : groupGroupingList.keySet()) {
+            PresetMakersDailyFood presetMakersDailyFood = presetMakersDailyFoodList.stream().filter(preset ->
+                preset.getServiceDate().equals(groupDataDto.getServiceDate()) &&
+                        preset.getDiningType().equals(groupDataDto.getDiningType()) &&
+                        preset.getMakers().getName().equalsIgnoreCase(groupDataDto.getMakersName())).findFirst().orElse(null);
+            if(presetMakersDailyFood == null) continue;
 
-                Group group = groupList.stream().filter(match -> match.getName().equalsIgnoreCase(groupDataDto.getGroupName())).findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+            List<ExcelPresetDailyFoodDto.ExcelData> createGroupDataList = groupGroupingList.get(groupDataDto);
+            ExcelPresetDailyFoodDto.ExcelData groupUpdateData = Objects.requireNonNull(createGroupDataList).stream().findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
-                List<DiningType> groupDiningType = group.getDiningTypes();
-                DiningType match = groupDiningType.stream().filter(diningType -> diningType.equals(groupDataDto.getDiningType())).findFirst().orElse(null);
-                if(match != null) {
-                    PresetGroupDailyFood presetGroupDailyFood = excelPresetDailyFoodMapper.toGroupDailyFoodEntity(groupUpdateData, group, presetMakersDailyFood);
-                    presetGroupDailyFoodList.add(presetGroupDailyFood);
-                    for(ExcelPresetDailyFoodDto.ExcelData updateDailyFoodData : createGroupDataList) {
-                        Food food = foodListGroupingByMakers.get(makers).stream().filter(matchFood -> matchFood.getName().equalsIgnoreCase(updateDailyFoodData.getFoodName())).findFirst().orElse(null);
-                        if (food != null) {
-                            PresetDailyFood presetDailyFood = excelPresetDailyFoodMapper.toPresetDailyFoodEntity(updateDailyFoodData, food, presetGroupDailyFood);
-                            presetDailyFoodList.add(presetDailyFood);
-                        }
+            Group group = groupList.stream().filter(match -> match.getName().equalsIgnoreCase(groupDataDto.getGroupName())).findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+
+            List<DiningType> groupDiningType = group.getDiningTypes();
+            DiningType match = groupDiningType.stream().filter(diningType -> diningType.equals(groupDataDto.getDiningType())).findFirst().orElse(null);
+            if(match != null) {
+                PresetGroupDailyFood presetGroupDailyFood = excelPresetDailyFoodMapper.toGroupDailyFoodEntity(groupUpdateData, group, presetMakersDailyFood);
+                presetGroupDailyFoodList.add(presetGroupDailyFood);
+                for(ExcelPresetDailyFoodDto.ExcelData updateDailyFoodData : createGroupDataList) {
+                    Food food = foodListGroupingByMakers.get(presetMakersDailyFood.getMakers()).stream().filter(matchFood -> matchFood.getName().equalsIgnoreCase(updateDailyFoodData.getFoodName())).findFirst().orElse(null);
+                    if (food != null) {
+                        PresetDailyFood presetDailyFood = excelPresetDailyFoodMapper.toPresetDailyFoodEntity(updateDailyFoodData, food, presetGroupDailyFood);
+                        presetDailyFoodList.add(presetDailyFood);
                     }
                 }
             }
