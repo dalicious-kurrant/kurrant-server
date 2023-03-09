@@ -11,6 +11,7 @@ build/
 .yml
 .db
 .properties
+.json
 org.eclipse.buildship.core.prefs
 
 ### STS ###
