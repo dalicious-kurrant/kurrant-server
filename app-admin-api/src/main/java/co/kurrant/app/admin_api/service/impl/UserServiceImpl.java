@@ -5,10 +5,7 @@ import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.UserDto;
-import co.dalicious.domain.user.entity.ProviderEmail;
-import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.UserHistory;
+import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.entity.enums.Role;
@@ -53,6 +50,7 @@ public class UserServiceImpl implements UserService {
     private final QProviderEmailRepository qProviderEmailRepository;
     private final UserGroupRepository userGroupRepository;
     private final ProviderEmailRepository providerEmailRepository;
+    private final UserSpotRepository userSpotRepository;
 
 
     @Override
@@ -174,6 +172,10 @@ public class UserServiceImpl implements UserService {
                     } else {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
+                        List<UserSpot> userSpots = user.getUserSpots();
+                        Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
+                                .findAny();
+                        userSpot.ifPresent(userSpotRepository::delete);
                     }
                 });
                 // 유저 내에 존재하지 않는 그룹은 추가
