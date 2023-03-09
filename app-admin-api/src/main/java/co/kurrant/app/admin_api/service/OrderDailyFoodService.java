@@ -3,7 +3,7 @@ package co.kurrant.app.admin_api.service;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
-import co.kurrant.app.admin_api.dto.OrderDto;
+import co.dalicious.domain.order.dto.OrderDto;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;

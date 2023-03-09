@@ -15,7 +15,7 @@ public enum OrderStatus {
     PENDING_PAYMENT("결제대기중", 3L),
     FAILED("주문실패", 4L),
     COMPLETED("결제완료", 5L),
-     WAIT_DELIVERY("배송대기", 6L),
+    WAIT_DELIVERY("배송대기", 6L),
     CANCELED("취소", 7L),
     WAITING_CANCEL("취소대기", 8L),
     DELIVERING("배송중", 9L),

@@ -12,7 +12,7 @@ import org.mapstruct.Named;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, MealInfo.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, DayAndTime.class, MealInfo.class})
 public interface CorporationMealInfoMapper {
 
     @Mapping(source = "supportPrice", target = "supportPrice")
@@ -20,27 +20,27 @@ public interface CorporationMealInfoMapper {
 
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(target = "deliveryTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
-    @Mapping(target = "lastOrderTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
+    @Mapping(target = "lastOrderTime", expression = "java(DayAndTime.stringToDayAndTime(defaultTime))")
     @Mapping(source = "groupInfoList.serviceDays", target = "serviceDays")
     @Mapping(source = "spot", target = "spot")
-    @Mapping(target = "membershipBenefitTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
+    @Mapping(target = "membershipBenefitTime", expression = "java(DayAndTime.stringToDayAndTime(defaultTime))")
     @Mapping(target = "supportPrice", expression = "java(getSupportPrice(groupInfoList, diningType))")
     CorporationMealInfo toCorporationMealInfoEntity(GroupExcelRequestDto groupInfoList, Spot spot, DiningType diningType, String defaultTime);
 
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(target = "deliveryTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
-    @Mapping(target = "lastOrderTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
+    @Mapping(target = "lastOrderTime", expression = "java(DayAndTime.stringToDayAndTime(defaultTime))")
     @Mapping(source = "groupInfoList.serviceDays", target = "serviceDays")
     @Mapping(source = "spot", target = "spot")
-    @Mapping(target = "membershipBenefitTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
+    @Mapping(target = "membershipBenefitTime", expression = "java(DayAndTime.stringToDayAndTime(defaultTime))")
     ApartmentMealInfo toApartmentMealInfoEntity(GroupExcelRequestDto groupInfoList, Spot spot, DiningType diningType, String defaultTime);
 
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(target = "deliveryTime", expression = "java(DateUtils.stringToLocalTime(defaultTime))")
-    @Mapping(target = "lastOrderTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
+    @Mapping(target = "lastOrderTime", expression = "java(DayAndTime.stringToDayAndTime(defaultTime))")
     @Mapping(source = "groupInfoList.serviceDays", target = "serviceDays")
     @Mapping(source = "spot", target = "spot")
-    @Mapping(target = "membershipBenefitTime", expression = "java(MealInfo.stringToDayAndTime(defaultTime))")
+    @Mapping(target = "membershipBenefitTime", expression = "java(DayAndTime.stringToDayAndTime(defaultTime))")
     OpenGroupMealInfo toOpenGroupMealInfoEntity(GroupExcelRequestDto groupInfoList, Spot spot, DiningType diningType, String defaultTime);
 
     default BigDecimal getSupportPrice(GroupExcelRequestDto groupInfoList, DiningType diningType) {

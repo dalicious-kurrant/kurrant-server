@@ -217,6 +217,8 @@ project(':app-client-api') {
         implementation project(':domain-client')
         implementation project(':data-redis')
         implementation project(':domain-address')
+        implementation project(':domain-order')
+        implementation project(':domain-makers')
     }
 }
 
