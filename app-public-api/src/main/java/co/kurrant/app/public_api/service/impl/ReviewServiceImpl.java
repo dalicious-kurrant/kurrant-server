@@ -194,6 +194,16 @@ public class ReviewServiceImpl implements ReviewService {
         reviews.updatedReviews(updateReqDto, imageList);
     }
 
+    @Override
+    public void deleteReviews(SecurityUser securityUser, BigInteger reviewId) {
+        User user = userUtil.getUser(securityUser);
+        Reviews reviews = qReviewRepository.findByUserAndId(user, reviewId);
+        if(reviews == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REVIEWS);
+
+        reviews.updatedIsDelete(true);
+        reviewRepository.save(reviews);
+    }
+
     private void validate(Integer satisfaction, String content) {
         if (satisfaction == null || satisfaction < 1) {
             throw new ApiException(ExceptionEnum.ENTER_SATISFACTION_LEVEL);

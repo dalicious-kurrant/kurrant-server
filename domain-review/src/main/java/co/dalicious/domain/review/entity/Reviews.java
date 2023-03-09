@@ -114,4 +114,8 @@ public class Reviews{
         this.images = images;
     }
 
+    public void updatedIsDelete(Boolean status) {
+        this.isDelete = status;
+    }
+
 }
