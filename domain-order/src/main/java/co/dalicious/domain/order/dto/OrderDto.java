@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.dto;
+package co.dalicious.domain.order.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -14,7 +14,7 @@ import java.util.List;
 public class OrderDto {
     @Getter
     @Setter
-    @Schema(description = "주문 상품 리스트 조회 DTO")
+    @Schema(description = "백오피스 주문 상품 리스트 조회 DTO")
     public static class OrderItemDailyFoodList {
         private BigInteger spotId;
         private Integer spotFoodCount;
@@ -51,7 +51,18 @@ public class OrderDto {
 
     @Getter
     @Setter
-    @Schema(description = "주문 상세 조회 DTO")
+    @Schema(description = "고객사 주문 상품 리스트 조회 DTO")
+    public static class GroupOrderItemDailyFoodList {
+        private BigDecimal totalPrice;
+        private Integer totalFoodCount;
+        private Integer buyingUserCount;
+        private List<OrderItemDailyFood> orderItemDailyFoods;
+
+    }
+
+    @Getter
+    @Setter
+    @Schema(description = "백오피스 주문 상세 조회 DTO")
     public static class OrderDailyFoodDetail {
         private BigInteger orderId;
         private String orderCode;
@@ -63,6 +74,29 @@ public class OrderDto {
         private BigDecimal deliveryFee;
         private BigDecimal point;
         private List<OrderItemDailyFoodGroup> orderItemDailyFoodGroups;
+    }
+
+    @Getter
+    @Setter
+    @Schema(description = "고객사 주간 주문 현황")
+    public static class OrderItemStatic {
+        private String serviceDate;
+        private String diningType;
+        private Integer foodCount;
+        private Integer buyingUserCount;
+        private BigDecimal orderRate;
+        private String orderRateFormula;
+        private BigDecimal cancelRate;
+        private String cancelRateFormula;
+        private BigDecimal totalPrice;
+
+        public void setOrderRateFormula(Integer userGroupCount, Integer orderComplementUserCount) {
+            this.orderRateFormula =  "(" + orderComplementUserCount.toString() + " / " + userGroupCount.toString() + ") * 100 = " + this.orderRate.toString();
+        }
+
+        public void setCancelRateFormula(Integer orderUserCount, Integer orderCancelCount) {
+            this.cancelRateFormula = "(" + orderCancelCount.toString() + " / " + orderUserCount.toString() + ") * 100 = " + this.orderRate.toString();
+        }
     }
 
     @Getter

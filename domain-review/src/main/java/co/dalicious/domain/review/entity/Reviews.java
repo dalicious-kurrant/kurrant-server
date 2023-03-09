@@ -3,6 +3,7 @@ package co.dalicious.domain.review.entity;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItem;
+import co.dalicious.domain.review.dto.ReviewUpdateReqDto;
 import co.dalicious.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import exception.ApiException;
@@ -105,6 +106,12 @@ public class Reviews{
         this.food = food;
         this.images = images;
         this.imageOrigin = imageOrigin;
+    }
+
+    public void updatedReviews(ReviewUpdateReqDto updateReqDto, List<Image> images) {
+        this.content = updateReqDto.getContent();
+        this.satisfaction = updateReqDto.getSatisfaction();
+        this.images = images;
     }
 
 }

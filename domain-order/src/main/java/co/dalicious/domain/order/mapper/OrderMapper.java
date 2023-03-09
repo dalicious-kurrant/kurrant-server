@@ -1,18 +1,22 @@
-package co.kurrant.app.admin_api.mapper;
+package co.dalicious.domain.order.mapper;
 
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.admin_api.dto.OrderDto;
+import co.dalicious.domain.order.dto.OrderDto;
+import co.dalicious.system.util.PriceUtils;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -22,7 +26,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, OrderDailyFood.class, Hibernate.class, OrderUtil.class, UserSupportPriceUtil.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, OrderDailyFood.class, Hibernate.class, OrderUtil.class, UserSupportPriceUtil.class, PriceUtils.class})
 public interface OrderMapper {
     @Mapping(source = "id", target = "orderItemDailyFoodId")
     @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getDailyFood().getServiceDate()))")
@@ -65,7 +69,9 @@ public interface OrderMapper {
                             .map(diningTypeEntry -> toOrderItemDailyFoodListDto(spotEntry.getKey(), diningTypeEntry.getKey(), diningTypeEntry.getValue()));
                 })
                 .collect(Collectors.toList());
-    };
+    }
+
+    ;
 
     default OrderDto.OrderItemDailyFoodList toOrderItemDailyFoodListDto(Spot spot, DiningType diningType, List<OrderItemDailyFood> orderItemDailyFoods) {
         OrderDto.OrderItemDailyFoodList orderItemDailyFoodList = new OrderDto.OrderItemDailyFoodList();
@@ -174,6 +180,74 @@ public interface OrderMapper {
         return orderItemDailyFoods.stream()
                 .map(this::orderItemDailyFoodGroupItemToDto)
                 .collect(Collectors.toList());
+    }
+
+    default OrderDto.GroupOrderItemDailyFoodList toGroupOrderDto(List<OrderItemDailyFood> orderItemDailyFoods) {
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        Integer foodCount = 0;
+        Set<User> buyingUser = new HashSet<>();
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            // 취소된 상품을 제외하고 계산
+            if (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
+                totalPrice = totalPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
+                foodCount += orderItemDailyFood.getCount();
+                buyingUser.add(orderItemDailyFood.getOrder().getUser());
+            }
+        }
+        List<OrderDto.OrderItemDailyFood> orderItemDailyFoodDtos = orderItemDailyFoodsToDtos(orderItemDailyFoods);
+
+        OrderDto.GroupOrderItemDailyFoodList orderItemDailyFoodList = new OrderDto.GroupOrderItemDailyFoodList();
+        orderItemDailyFoodList.setTotalPrice(totalPrice);
+        orderItemDailyFoodList.setTotalFoodCount(foodCount);
+        orderItemDailyFoodList.setBuyingUserCount(buyingUser.size());
+        orderItemDailyFoodList.setOrderItemDailyFoods(orderItemDailyFoodDtos);
+
+        return orderItemDailyFoodList;
+    }
+
+    default List<OrderDto.OrderItemStatic> toOrderItemStatic(List<OrderItemDailyFood> orderItemDailyFoods, List<UserGroup> userGroups) {
+        List<OrderDto.OrderItemStatic> orderItemStatics = new ArrayList<>();
+        MultiValueMap<DiningTypeServiceDateDto, OrderItemDailyFood> orderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(orderItemDailyFood.getDailyFood().getServiceDate(), orderItemDailyFood.getDailyFood().getDiningType());
+            orderItemDailyFoodMultiValueMap.add(diningTypeServiceDateDto, orderItemDailyFood);
+        }
+        for (DiningTypeServiceDateDto diningTypeServiceDateDto : orderItemDailyFoodMultiValueMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoodList = orderItemDailyFoodMultiValueMap.get(diningTypeServiceDateDto);
+
+            Set<User> orderUsers = (orderItemDailyFoodList == null) ? Collections.emptySet() :
+                    orderItemDailyFoodList.stream()
+                            .map(v -> v.getOrder().getUser())
+                            .collect(Collectors.toSet());
+            Set<User> orderCompleteUsers = (orderItemDailyFoodList == null) ? Collections.emptySet() :
+                    orderItemDailyFoodList.stream()
+                            .filter(v -> OrderStatus.completePayment().contains(v.getOrderStatus()))
+                            .map(v -> v.getOrder().getUser())
+                            .collect(Collectors.toSet());
+
+            Integer foodCount = 0;
+            BigDecimal totalPrice = BigDecimal.ZERO;
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
+                if(OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
+                    foodCount += orderItemDailyFood.getCount();
+                    totalPrice = totalPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
+                }
+            }
+
+            OrderDto.OrderItemStatic orderItemStatic = new OrderDto.OrderItemStatic();
+            orderItemStatic.setServiceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate()));
+            orderItemStatic.setDiningType(diningTypeServiceDateDto.getDiningType().getDiningType());
+            orderItemStatic.setFoodCount(foodCount);
+            orderItemStatic.setBuyingUserCount(orderCompleteUsers.size());
+            orderItemStatic.setOrderRate(PriceUtils.getPercent(userGroups.size(), orderCompleteUsers.size()));
+            orderItemStatic.setCancelRate(PriceUtils.getPercent(orderUsers.size(), orderUsers.size() - orderCompleteUsers.size()));
+            orderItemStatic.setOrderRateFormula(userGroups.size(), orderCompleteUsers.size());
+            orderItemStatic.setCancelRateFormula(orderUsers.size(), orderUsers.size() - orderCompleteUsers.size());
+            orderItemStatic.setTotalPrice(totalPrice);
+
+            orderItemStatics.add(orderItemStatic);
+        }
+        return orderItemStatics;
     }
 }
 

@@ -44,19 +44,19 @@ public interface SpotMapper {
         spotResponseDto.setAddress2(spot.getAddress().getAddress2());
         spotResponseDto.setLocation(getLocation(spot.getAddress().getLocation()));
 
-        spotResponseDto.setBreakfastLastOrderTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.MORNING).getLastOrderTime()));
+        spotResponseDto.setBreakfastLastOrderTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DayAndTime.dayAndTimeToString(spot.getMealInfo(DiningType.MORNING).getLastOrderTime()));
         spotResponseDto.setBreakfastDeliveryTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.MORNING).getDeliveryTime()));
         spotResponseDto.setBreakfastUseDays(spot.getMealInfo(DiningType.MORNING) == null ? null : spot.getMealInfo(DiningType.MORNING).getServiceDays());
         spotResponseDto.setBreakfastSupportPrice(spot.getMealInfo(DiningType.MORNING) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.MORNING)).getSupportPrice() : BigDecimal.ZERO);
         spotResponseDto.setBreakfastMembershipBenefitTime(spot.getMealInfo(DiningType.MORNING) == null ? null : spot.getMealInfo(DiningType.MORNING).dayAndTimeToString());
 
-        spotResponseDto.setLunchLastOrderTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.LUNCH).getLastOrderTime()));
+        spotResponseDto.setLunchLastOrderTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DayAndTime.dayAndTimeToString(spot.getMealInfo(DiningType.LUNCH).getLastOrderTime()));
         spotResponseDto.setLunchDeliveryTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.LUNCH).getDeliveryTime()));
         spotResponseDto.setLunchUseDays(spot.getMealInfo(DiningType.LUNCH) == null ? null : spot.getMealInfo(DiningType.LUNCH).getServiceDays());
         spotResponseDto.setLunchSupportPrice(spot.getMealInfo(DiningType.LUNCH) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.LUNCH)).getSupportPrice() : BigDecimal.ZERO);
         spotResponseDto.setLunchMembershipBenefitTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : spot.getMealInfo(DiningType.LUNCH).dayAndTimeToString());
 
-        spotResponseDto.setDinnerLastOrderTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.DINNER).getLastOrderTime()));
+        spotResponseDto.setDinnerLastOrderTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DayAndTime.dayAndTimeToString(spot.getMealInfo(DiningType.DINNER).getLastOrderTime()));
         spotResponseDto.setDinnerDeliveryTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.DINNER).getDeliveryTime()));
         spotResponseDto.setDinnerUseDays(spot.getMealInfo(DiningType.DINNER) == null ? null : spot.getMealInfo(DiningType.DINNER).getServiceDays());
         spotResponseDto.setDinnerSupportPrice(spot.getMealInfo(DiningType.DINNER) == null ? null : (isCorporation) ? ((CorporationMealInfo) spot.getMealInfo(DiningType.DINNER)).getSupportPrice() : BigDecimal.ZERO);
@@ -86,7 +86,7 @@ public interface SpotMapper {
             return CorporationMealInfo.builder()
                     .spot(spot)
                     .diningType(diningType)
-                    .lastOrderTime(DateUtils.stringToLocalTime(lastOrderTime))
+                    .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
                     .serviceDays(useDays)
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
@@ -96,7 +96,7 @@ public interface SpotMapper {
             return ApartmentMealInfo.builder()
                     .spot(spot)
                     .diningType(diningType)
-                    .lastOrderTime(DateUtils.stringToLocalTime(lastOrderTime))
+                    .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDays(useDays)
@@ -105,7 +105,7 @@ public interface SpotMapper {
             return OpenGroupMealInfo.builder()
                     .spot(spot)
                     .diningType(diningType)
-                    .lastOrderTime(DateUtils.stringToLocalTime(lastOrderTime))
+                    .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDays(useDays)

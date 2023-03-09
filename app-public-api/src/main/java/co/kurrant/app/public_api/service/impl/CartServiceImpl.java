@@ -93,7 +93,7 @@ public class CartServiceImpl implements CartService {
             }
 
             // 주문 시간이 지났는지 확인하기
-            LocalDateTime lastOrderTime = LocalDateTime.of(dailyFood.getServiceDate(), mealInfo.getLastOrderTime());
+            LocalDateTime lastOrderTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
             if (LocalDateTime.now().isAfter(lastOrderTime)) {
                 throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
             }

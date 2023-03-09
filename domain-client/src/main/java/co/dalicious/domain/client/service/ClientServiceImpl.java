@@ -68,7 +68,7 @@ public class ClientServiceImpl implements ClientService{
                 ApartmentMealInfo apartmentMealInfo = ApartmentMealInfo.builder()
                         .spot(spot)
                         .deliveryTime(DateUtils.stringToTime(meal.getDeliveryTime(), ":"))
-                        .lastOrderTime(DateUtils.stringToTime(meal.getLastOrderTime(), ":"))
+                        .lastOrderTime(DayAndTime.stringToDayAndTime(meal.getLastOrderTime()))
                         .diningType(DiningType.ofCode(meal.getDiningType()))
                         .serviceDays(meal.getServiceDays())
                         .build();
@@ -121,7 +121,7 @@ public class ClientServiceImpl implements ClientService{
                 CorporationMealInfo corporationMealInfo = CorporationMealInfo.builder()
                         .spot(spot)
                         .deliveryTime(DateUtils.stringToTime(meal.getDeliveryTime(), ":"))
-                        .lastOrderTime(DateUtils.stringToTime(meal.getLastOrderTime(), ":"))
+                        .lastOrderTime(DayAndTime.stringToDayAndTime(meal.getLastOrderTime()))
                         .diningType(DiningType.ofCode(meal.getDiningType()))
                         .supportPrice(meal.getSupportPrice())
                         .serviceDays(meal.getServiceDays())

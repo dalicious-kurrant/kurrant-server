@@ -309,8 +309,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<Makers> makersList = qMakersRepository.getMakersByName(makersNames);
         List<Group> groupList = qGroupRepository.findAllByNames(groupNames);
 
-        Map<Group, Integer> groupCapacityList = qUserGroupRepository.userCountsInGroup(groupList);
-
         Map<Makers, List<MakersCapacity>> makersCapacityGroupingByMakers = new HashMap<>();
         Map<Makers, List<Food>> foodListGroupingByMakers = new HashMap<>();
         List<Food> foodListByMakers = qFoodRepository.findByMakers(makersList);
@@ -325,9 +323,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<PresetMakersDailyFood> existPresetMakersDailyFood = qPresetMakersDailyFoodRepository.findByServiceDateAndConfirmStatus();
         List<PresetGroupDailyFood> existPresetGroupDailyFood = qPresetGroupDailyFoodRepository.findAllAndPresetMakersDailyFood(existPresetMakersDailyFood);
         List<PresetDailyFood> existPresetDailyFood = qPresetDailyFoodRepository.getAllAndPresetGroupDailyFood(existPresetGroupDailyFood);
-        presetMakersDailyFoodRepository.deleteAll(existPresetMakersDailyFood);
-        presetGroupDailyFoodRepository.deleteAll(existPresetGroupDailyFood);
         presetDailyFoodRepository.deleteAll(existPresetDailyFood);
+        presetGroupDailyFoodRepository.deleteAll(existPresetGroupDailyFood);
+        presetMakersDailyFoodRepository.deleteAll(existPresetMakersDailyFood);
 
         List<PresetMakersDailyFood> presetMakersDailyFoodList = new ArrayList<>();
         List<PresetGroupDailyFood> presetGroupDailyFoodList = new ArrayList<>();

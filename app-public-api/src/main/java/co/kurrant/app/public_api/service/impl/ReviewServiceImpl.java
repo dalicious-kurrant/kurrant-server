@@ -8,7 +8,6 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.order.repository.QOrderItemRepository;
 import co.dalicious.domain.review.dto.*;
 import co.dalicious.domain.review.entity.Reviews;
@@ -23,6 +22,7 @@ import co.kurrant.app.public_api.service.ReviewService;
 import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.file.AccessDeniedException;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -46,31 +47,21 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final QReviewRepository qReviewRepository;
     private final QOrderItemRepository qOrderItemRepository;
-    private final OrderItemRepository orderItemRepository;
     private final ImageService imageService;
     private final QUserRepository qUserRepository;
 
     @Override
     @Transactional
     public void createReview(SecurityUser securityUser, ReviewReqDto reviewDto, List<MultipartFile> fileList) throws IOException {
+        // 파일의 최대 갯수는 6개 이다.
+        if(fileList != null && fileList.size() > 6) throw new ApiException(ExceptionEnum.REQUEST_OVER_IMAGE_FILE);
+
         // 필요한 정보 가져오기 - 유저, 상품
         User user = userUtil.getUser(securityUser);
         OrderItem orderItem = qOrderItemRepository.findByUserAndOrderId(user, reviewDto.getOrderItemId());
-        if(orderItem == null) throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM);
+        if(orderItem == null) throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
 
-        // content의 최소 글자 수와 최대 글자 수 확인
-        if(reviewDto.getContent() == null) {
-            throw new ApiException(ExceptionEnum.WRITING_REVIEW);
-        } else if(reviewDto.getContent().length() < 11) {
-            throw new ApiException(ExceptionEnum.NOT_MATCHED_MIN_OF_CONTENT);
-        } else if (reviewDto.getContent().length() > 500) {
-            throw new ApiException(ExceptionEnum.OVER_MAX_LIMIT_OF_CONTENT);
-        }
-
-        // satisfaction 확인
-        if(reviewDto.getSatisfaction() == null || reviewDto.getSatisfaction() < 1) {
-            throw new ApiException(ExceptionEnum.NOT_ENOUGH_SATISFACTION);
-        }
+        validate(reviewDto.getSatisfaction(), reviewDto.getContent());
 
         // 찾은 주문 상품이 dailyfood이면
         DailyFood dailyFood;
@@ -141,7 +132,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public ReviewsForUserResDto getReviewsForUser(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
 
@@ -157,5 +148,58 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         return ReviewsForUserResDto.create(reviewListDtos);
+    }
+
+    @Override
+    @Transactional
+    public void updateReviews(SecurityUser securityUser, List<MultipartFile> fileList, ReviewUpdateReqDto updateReqDto, BigInteger reviewsId) throws IOException {
+        // 파일의 최대 갯수는 6개 이다.
+        if(fileList != null && (fileList.size() + updateReqDto.getImages().size()) > 6) throw new ApiException(ExceptionEnum.REQUEST_OVER_IMAGE_FILE);
+
+        User user = userUtil.getUser(securityUser);
+        Reviews reviews = qReviewRepository.findByUserAndId(user, reviewsId);
+        if(reviews == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REVIEWS);
+
+        validate(updateReqDto.getSatisfaction(), updateReqDto.getContent());
+
+        // 작성일에서 3일이 지났는지 확인 - 리뷰 수정 불가
+        LocalDate createdDate = reviews.getCreatedDateTime().toLocalDateTime().toLocalDate();
+        LocalDate limitedDate = createdDate.plusDays(3);
+        if(createdDate.isAfter(limitedDate)) throw new ApiException(ExceptionEnum.CANNOT_UPDATE_REVIEW);
+
+        // 이미지가 삭제되었다면 S3에서도 삭제
+        List<Image> imageList = new ArrayList<>();
+        List<String> requestImage = updateReqDto.getImages();
+        if(requestImage != null && requestImage.size() != reviews.getImages().size()) {
+            List<Image> deleteImages = reviews.getImages();
+            List<Image> selectedImages = reviews.getImages().stream()
+                    .filter(v -> requestImage.contains(v.getLocation()))
+                    .toList();
+            deleteImages.removeAll(selectedImages);
+            if(!deleteImages.isEmpty()) {
+                for (Image image : deleteImages) {
+                    imageService.delete(image.getPrefix());
+                }
+            }
+            imageList.addAll(selectedImages);
+        } else {
+            imageList.addAll(reviews.getImages());
+        }
+
+        if(fileList != null && !fileList.isEmpty()) {
+            List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
+            imageList.addAll(Image.toImages(imageResponseDtos));
+        }
+
+        reviews.updatedReviews(updateReqDto, imageList);
+    }
+
+    private void validate(Integer satisfaction, String content) {
+        if (satisfaction == null || satisfaction < 1) {
+            throw new ApiException(ExceptionEnum.ENTER_SATISFACTION_LEVEL);
+        }
+        if (content == null || content.length() < 11 || content.length() >= 500) {
+            throw new ApiException(ExceptionEnum.FILL_OUT_THE_REVIEW);
+        }
     }
 }

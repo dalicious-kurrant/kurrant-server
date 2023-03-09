@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.service;
 
 
 import co.dalicious.domain.review.dto.ReviewReqDto;
+import co.dalicious.domain.review.dto.ReviewUpdateReqDto;
 import co.dalicious.domain.review.dto.ReviewableItemResDto;
 import co.dalicious.domain.review.dto.ReviewsForUserResDto;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -19,4 +20,6 @@ public interface ReviewService {
     ReviewableItemResDto getOrderItemForReview(SecurityUser securityUser) throws ParseException;
     //유저가 작성한 리뷰 조회
     ReviewsForUserResDto getReviewsForUser(SecurityUser securityUser);
+    //리뷰 수정
+    void updateReviews(SecurityUser securityUser, List<MultipartFile> fileList, ReviewUpdateReqDto updateReqDto, BigInteger reviewsId) throws IOException;
 }

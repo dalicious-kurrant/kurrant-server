@@ -125,6 +125,38 @@ public class TossUtil {
     }
 
     //카드 결제 부분취소
+    public JSONObject billingCardCancelOne(String paymentKey, String cancelReason, Integer cancelAmount) throws IOException, ParseException {
+        Base64.Encoder encode = Base64.getEncoder();
+        byte[] encodeByte = encode.encode(billingSecretKey.getBytes("UTF-8"));
+        String authorizations = "Basic "+ new String(encodeByte, 0, encodeByte.length);
+
+        URL url = new URL("https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestProperty("Authorization", authorizations);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+
+
+        //요청 JSON 오브젝트 생성
+        JSONObject obj = new JSONObject();
+        obj.put("cancelReason", cancelReason);
+        obj.put("cancelAmount", cancelAmount);
+
+        OutputStream outputStream = connection.getOutputStream();
+        outputStream.write(obj.toString().getBytes(StandardCharsets.UTF_8));
+
+        int code = connection.getResponseCode();
+        boolean isSuccess = code == 200? true : false;
+
+        InputStream responseStream = isSuccess? connection.getInputStream(): connection.getErrorStream();
+
+        Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8);
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) parser.parse(reader);
+        responseStream.close();
+        return jsonObject;
+    }
     public JSONObject cardCancelOne(String paymentKey, String cancelReason, Integer cancelAmount) throws IOException, ParseException {
 
         Base64.Encoder encode = Base64.getEncoder();

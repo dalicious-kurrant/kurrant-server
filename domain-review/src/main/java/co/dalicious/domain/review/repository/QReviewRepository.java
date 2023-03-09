@@ -8,6 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
@@ -25,6 +26,12 @@ public class QReviewRepository {
                 .selectFrom(reviews)
                 .where(reviews.user.eq(user),
                         reviews.orderItem.eq(orderItem))
+                .fetchOne();
+    }
+
+    public Reviews findByUserAndId(User user, BigInteger reviewId) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.id.eq(reviewId), reviews.user.eq(user))
                 .fetchOne();
     }
 }
