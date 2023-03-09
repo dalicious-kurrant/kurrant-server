@@ -204,7 +204,7 @@ public class UserServiceImpl implements UserService {
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
             UserDto userDto = UserDto.builder()
                     .email(createUserDto.getEmail())
-                    .password(passwordEncoder.encode(createUserDto.getPassword()))
+                    .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
                     .phone(createUserDto.getPhone())
                     .name(createUserDto.getName())
                     .role(createUserDto.getRole() == null ? Role.USER : Role.ofRoleName(createUserDto.getRole())).build();
