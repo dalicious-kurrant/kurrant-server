@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.controller.review;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.review.dto.ReviewReqDto;
+import co.dalicious.domain.review.dto.ReviewUpdateReqDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ReviewService;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -11,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.ParseException;
@@ -28,7 +30,7 @@ public class ReviewController {
     @PostMapping("")
     public ResponseMessage createReview(Authentication authentication,
                                         @RequestPart(required = false) List<MultipartFile> fileList,
-                                        @RequestPart ReviewReqDto reviewDto) throws IOException {
+                                       @Valid @RequestPart ReviewReqDto reviewDto) throws IOException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         reviewService.createReview(securityUser, reviewDto, fileList);
         return ResponseMessage.builder()
@@ -53,6 +55,18 @@ public class ReviewController {
         return ResponseMessage.builder()
                 .message("작성한 리뷰를 불러왔습니다.")
                 .data(reviewService.getReviewsForUser(securityUser))
+                .build();
+    }
+
+    @Operation(summary = "리뷰 수정", description = "작성한 리뷰 수정")
+    @PatchMapping("")
+    public ResponseMessage updateReviews(Authentication authentication, @RequestParam BigInteger reviewId,
+                                         @RequestPart(required = false) List<MultipartFile> fileList,
+                                         @Valid @RequestPart ReviewUpdateReqDto updateReqDto) throws IOException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        reviewService.updateReviews(securityUser, fileList, updateReqDto, reviewId);
+        return ResponseMessage.builder()
+                .message("리뷰를 수정했습니다.")
                 .build();
     }
 }
