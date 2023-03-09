@@ -39,6 +39,7 @@ public interface ReviewMapper {
     @Mapping(source = "orderItemDailyFood.dailyFood.food.name", target = "foodName")
     ReviewableItemListDto toDailyFoodResDto(OrderItemDailyFood orderItemDailyFood, long reviewDDAy);
 
+    @Mapping(source = "reviews.id", target = "reviewId")
     @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocation")
     @Mapping(source = "reviews.content", target = "content")
     @Mapping(source = "reviews.satisfaction", target = "satisfaction")
