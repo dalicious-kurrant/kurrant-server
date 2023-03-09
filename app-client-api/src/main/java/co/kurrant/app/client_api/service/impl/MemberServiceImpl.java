@@ -307,11 +307,11 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void insertMemberListByExcel(ClientUserWaitingListSaveRequestDtoList dtoList) {
-        //모두삭제
-        employeeRepository.deleteAll();
-
         //code로 CorporationId 찾기 (=GroupId)
         Corporation corporation = qCorporationRepository.findEntityByCode(dtoList.getCode());
+
+        //모두삭제
+        employeeRepository.deleteAllByCorporationId(corporation.getId());
 
         List<String> emails = dtoList.getSaveUserList().stream()
                 .map(ClientUserWaitingListSaveRequestDto::getEmail)

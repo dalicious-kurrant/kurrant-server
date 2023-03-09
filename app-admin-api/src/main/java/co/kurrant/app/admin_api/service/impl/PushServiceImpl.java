@@ -1,8 +1,11 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.kurrant.app.admin_api.dto.push.PushByTopicRequestDto;
 import co.kurrant.app.admin_api.dto.push.PushRequestDto;
 import co.kurrant.app.admin_api.service.PushService;
 import com.google.firebase.messaging.*;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +57,43 @@ public class PushServiceImpl implements PushService {
         }
     }
 
+    @Override
+    public void sendByTopic(PushByTopicRequestDto pushByTopicRequestDto) {
 
+        String title = pushByTopicRequestDto.getTitle();
+        String content = pushByTopicRequestDto.getContent();
 
+        String topic = null;
+        switch(pushByTopicRequestDto.getTopic().toLowerCase()) {
+            case ("push"):
+                topic = "appPush";
+                break;
+            case ("event"):
+                topic = "event";
+                break;
+            case ("notice") :
+                topic = "notice";
+                break;
+            default :
+                throw new ApiException(ExceptionEnum.BAD_REQUEST_TOPIC);
+        }
+
+        Message message = Message.builder()
+                .putData("time", LocalDateTime.now().toString())
+                .setNotification(Notification.builder()
+                        .setTitle(title)
+                        .setBody(content)
+                        .build())
+                .setTopic(topic)
+                .build();
+
+        String response;
+        try {
+            response = FirebaseMessaging.getInstance().send(message);
+            System.out.println("push를 성공적으로 보냈습니다.");
+        } catch (FirebaseMessagingException e) {
+            System.out.println("cannot send to memberList push message. error info : ()" + e.getMessage());
+        }
+
+    }
 }
