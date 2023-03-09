@@ -54,7 +54,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     public void createReview(SecurityUser securityUser, ReviewReqDto reviewDto, List<MultipartFile> fileList) throws IOException {
         // 파일의 최대 갯수는 6개 이다.
-        if(fileList != null && fileList.size() > 6) throw new ApiException(ExceptionEnum.MAX_LIMIT_IMAGE_FILE);
+        if(fileList != null && fileList.size() > 6) throw new ApiException(ExceptionEnum.REQUEST_OVER_IMAGE_FILE);
 
         // 필요한 정보 가져오기 - 유저, 상품
         User user = userUtil.getUser(securityUser);
@@ -154,7 +154,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     public void updateReviews(SecurityUser securityUser, List<MultipartFile> fileList, ReviewUpdateReqDto updateReqDto, BigInteger reviewsId) throws IOException {
         // 파일의 최대 갯수는 6개 이다.
-        if(fileList != null && (fileList.size() + updateReqDto.getImages().size()) > 6) throw new ApiException(ExceptionEnum.MAX_LIMIT_IMAGE_FILE);
+        if(fileList != null && (fileList.size() + updateReqDto.getImages().size()) > 6) throw new ApiException(ExceptionEnum.REQUEST_OVER_IMAGE_FILE);
 
         User user = userUtil.getUser(securityUser);
         Reviews reviews = qReviewRepository.findByUserAndId(user, reviewsId);
@@ -165,7 +165,7 @@ public class ReviewServiceImpl implements ReviewService {
         // 작성일에서 3일이 지났는지 확인 - 리뷰 수정 불가
         LocalDate createdDate = reviews.getCreatedDateTime().toLocalDateTime().toLocalDate();
         LocalDate limitedDate = createdDate.plusDays(3);
-        if(createdDate.isAfter(limitedDate)) throw new ApiException(ExceptionEnum.CAN_NOT_UPDATE_REVIEW);
+        if(createdDate.isAfter(limitedDate)) throw new ApiException(ExceptionEnum.CANNOT_UPDATE_REVIEW);
 
         // 이미지가 삭제되었다면 S3에서도 삭제
         List<Image> imageList = new ArrayList<>();

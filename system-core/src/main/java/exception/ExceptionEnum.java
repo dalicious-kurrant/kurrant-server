@@ -40,6 +40,8 @@ public enum ExceptionEnum {
 	ENTER_SATISFACTION_LEVEL(HttpStatus.BAD_REQUEST, "E4000023", "만족도를 입력해주세요."),
 	FILL_OUT_THE_REVIEW(HttpStatus.BAD_REQUEST, "E4000024", "리뷰 내용은 최소 10자 이상, 500자 미만으로 작성하실 수 있습니다."),
 	REQUEST_OVER_GROUP(HttpStatus.BAD_REQUEST, "E4000030", "등록 가능한 그룹의 개수를 초과 하였습니다."),
+	REQUEST_OVER_IMAGE_FILE(HttpStatus.BAD_REQUEST, "E4000031", "등록 가능한 이미지의 개수를 초과 하였습니다."),
+	CANNOT_UPDATE_REVIEW(HttpStatus.BAD_REQUEST, "E4000032", "리뷰 수정 기한이 지났습니다."),
 
 	EXCEL_EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "E4000100", "중복된 이메일 입력이 존재합니다."),
 	/* E401 */
