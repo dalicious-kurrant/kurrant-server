@@ -3,7 +3,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation project(path: ':domain-payment')
+    implementation 'org.springframework.boot:spring-boot-starter'
     runtimeOnly 'mysql:mysql-connector-java'
     implementation 'com.querydsl:querydsl-jpa:4.4.0'
     implementation "com.querydsl:querydsl-core:4.4.0"
