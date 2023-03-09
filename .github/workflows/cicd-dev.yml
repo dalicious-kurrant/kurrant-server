@@ -64,9 +64,7 @@ jobs:
       - name: app-admin-api application.yaml 생성
         run: |
           cd ./app-admin-api/src/main
-          if [ ! -d "resources" ]; then
           mkdir resources
-          fi
           cd resources
           touch ./application.yaml
           echo "${{ secrets.APP_ADMIN_API_DEV_YAML }}" > ./application.yaml
