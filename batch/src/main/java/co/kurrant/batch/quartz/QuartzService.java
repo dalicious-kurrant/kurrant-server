@@ -1,6 +1,7 @@
 package co.kurrant.batch.quartz;
 
 import co.dalicious.system.util.DateUtils;
+import co.kurrant.batch.job.QuartzBatchJob;
 import co.kurrant.batch.job.QuartzJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class QuartzService {
     private final Scheduler scheduler;
+    public static final String JOB_NAME = "JOB_NAME";
 
     @PostConstruct
     public void initializeScheduler() {
@@ -32,7 +34,9 @@ public class QuartzService {
             jobParameters.put("executeCount", executeCount);
             jobParameters.put("date", dateString);
 
-            addJob(QuartzJob.class, "QuartzJob", "Quartz Job 입니다", jobParameters, "0/5 * * * * ?");
+//            addJob(QuartzJob.class, "QuartzJob", "Quartz Job 입니다", jobParameters, "0/5 * * * * ?");
+            addJob(QuartzBatchJob.class, "batchJob1", "Batch Job 1 입니다", jobParameters, "0/5 * * * * ?");
+            addJob(QuartzBatchJob.class, "batchJob2", "Batch Job 2 입니다", jobParameters, "0/5 * * * * ?");
         } catch (SchedulerException e) {
             log.error("addJob error : {}", e);
         }
@@ -70,6 +74,7 @@ public class QuartzService {
 
     private JobDetail buildJobDetail(Class<? extends Job> job, String name, String description, Map<String, Object> parameters) {
         JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put(JOB_NAME, name);
         jobDataMap.putAll(parameters);
 
         return JobBuilder.newJob(job)
