@@ -156,7 +156,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             BigDecimal orderItemGroupTotalPrice = BigDecimal.ZERO;
             if (spot instanceof CorporationSpot) {
                 supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType()));
-                if (!spot.getName().contains("메드트로닉") && cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
+                if (!spot.getGroup().getName().contains("메드트로닉") && cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
                 }
             }
@@ -221,7 +221,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                 if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
                     UserSupportPriceHistory userSupportPriceHistory;
-                    if(spot.getName().contains("메드트로닉")) {
+                    if(spot.getGroup().getName().contains("메드트로닉")) {
                         userSupportPriceHistory = userSupportPriceHistoryReqMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
                     }
                     else {
