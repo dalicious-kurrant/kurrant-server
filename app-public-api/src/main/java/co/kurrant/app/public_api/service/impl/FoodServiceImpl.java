@@ -27,7 +27,6 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -35,6 +34,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -102,7 +102,17 @@ public class FoodServiceImpl implements FoodService {
                                     recommend.getFoodId().equals(dto.getFoodId()) && recommend.getDiningType().getCode().equals(dto.getDiningType())).findFirst()
                             .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
                 });
+                dailyFoodDtos = dailyFoodDtos.stream().sorted((dto1, dto2) -> {
+                            if (dto1.getRank() == null) {
+                                return 1;
+                            }
+                            if (dto2.getRank() == null) {
+                                return -1;
+                            }
+                            return dto1.getRank().compareTo(dto2.getRank());
+                        }).toList();
             }
+
 
 
             return RetrieveDailyFoodDto.builder()
@@ -144,6 +154,16 @@ public class FoodServiceImpl implements FoodService {
                                     recommend.getFoodId().equals(dto.getFoodId()) && recommend.getDiningType().getCode().equals(dto.getDiningType())).findFirst()
                             .ifPresent(userRecommend -> dto.setRank(userRecommend.getRank()));
                 });
+
+                dailyFoodDtos = dailyFoodDtos.stream().sorted((dto1, dto2) -> {
+                    if (dto1.getRank() == null) {
+                        return 1;
+                    }
+                    if (dto2.getRank() == null) {
+                        return -1;
+                    }
+                    return dto1.getRank().compareTo(dto2.getRank());
+                }).toList();
             }
 
             return RetrieveDailyFoodDto.builder()
