@@ -10,12 +10,14 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@Transactional
 public class ClientUtil {
     private final EmployeeRepository employeeRepository;
     private final UserGroupRepository userGroupRepository;
@@ -31,6 +33,7 @@ public class ClientUtil {
                 UserGroup userCorporation = UserGroup.builder()
                         .user(user)
                         .group(employee.getCorporation())
+                        .clientStatus(ClientStatus.BELONG)
                         .build();
                 userGroupRepository.save(userCorporation);
             }

@@ -11,6 +11,8 @@ import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.data.redis.entity.CertificationHash;
 import co.dalicious.data.redis.repository.CertificationHashRepository;
+import co.dalicious.domain.client.entity.Employee;
+import co.dalicious.domain.client.repository.EmployeeRepository;
 import co.dalicious.domain.user.dto.ProviderEmailDto;
 import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.entity.enums.Role;
@@ -56,6 +58,7 @@ import java.util.*;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -71,6 +74,7 @@ public class AuthServiceImpl implements AuthService {
     private final SnsLoginService snsLoginService;
     private final UserValidator userValidator;
     private final UserMapper userMapper;
+    private final EmployeeRepository employeeRepository;
 
     // 이메일 인증
     @Override
@@ -169,6 +173,10 @@ public class AuthServiceImpl implements AuthService {
     // 회원가입
     @Override
     public User signUp(SignUpRequestDto signUpRequestDto) {
+
+        //가입가능 리스트에 있는 유저검색
+        List<Employee> employeeList = employeeRepository.findAllByEmail(signUpRequestDto.getEmail());
+
         // 기존에 가입된 사용자인지 확인
         String mail = signUpRequestDto.getEmail();
         User user = userValidator.getExistingUser(mail);
@@ -183,9 +191,10 @@ public class AuthServiceImpl implements AuthService {
         userValidator.isValidPassword(password);
 
         // 인증을 진행한 유저인지 체크
-        verifyUtil.isAuthenticated(signUpRequestDto.getEmail(), RequiredAuth.SIGNUP);
-        verifyUtil.isAuthenticated(signUpRequestDto.getPhone(), RequiredAuth.SIGNUP);
-
+        if (employeeList.isEmpty()) {
+            verifyUtil.isAuthenticated(signUpRequestDto.getEmail(), RequiredAuth.SIGNUP);
+            verifyUtil.isAuthenticated(signUpRequestDto.getPhone(), RequiredAuth.SIGNUP);
+        }
         // Hashed Password 생성
         String hashedPassword = passwordEncoder.encode(password);
 
@@ -205,6 +214,12 @@ public class AuthServiceImpl implements AuthService {
 
         ProviderEmail providerEmail = ProviderEmail.builder().email(mail).provider(Provider.GENERAL).user(user).build();
         providerEmailRepository.save(providerEmail);
+
+        //가입가능리스트에서 삭제
+        if (employeeList.size() >= 1){
+            employeeRepository.deleteAllByEmail(employeeList.get(0).getEmail());
+        }
+
         return user;
     }
 
