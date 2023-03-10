@@ -34,18 +34,18 @@ public class SimpleJwtAuthenticationFilter extends OncePerRequestFilter {
             logger.debug("if request options method is options, return true");
             return;
         }
-//
-//        List<String> excludedUrl = new ArrayList<>();
-//        excludedUrl.add("/v1/auth/login");
-//        excludedUrl.add("/v1/makers/login");
-//        // url에 login이 포함 되어 욌으면 토큰 검증을 하지 않음.
-//        URI uri = UriComponentsBuilder.fromHttpUrl(String.valueOf(request.getRequestURL())).build().toUri();
-//        if(excludedUrl.contains(uri.getPath())) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-//
-//
+
+        List<String> excludedUrl = new ArrayList<>();
+        excludedUrl.add("/v1/auth/login");
+        excludedUrl.add("/v1/makers/login");
+        // url에 login이 포함 되어 욌으면 토큰 검증을 하지 않음.
+        URI uri = UriComponentsBuilder.fromHttpUrl(String.valueOf(request.getRequestURL())).build().toUri();
+        if(excludedUrl.contains(uri.getPath())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+
         // 1. Request Header에서 JWT 토큰 추출
         String jwtToken = null;
         try {
