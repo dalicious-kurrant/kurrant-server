@@ -36,7 +36,7 @@ public interface GroupMapper {
 
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(source = "code", target = "code")
-    GroupDto.DiningType diningTypeToDto (DiningType diningType);
+    GroupDto.DiningType diningTypeToDto(DiningType diningType);
 
     @Mapping(source = "id", target = "userId")
     @Mapping(source = "name", target = "userName")
@@ -68,7 +68,7 @@ public interface GroupMapper {
 
     default GroupDto groupToGroupDto(Group group, List<User> users) {
         GroupDto groupDto = new GroupDto();
-        if(group != null) {
+        if (group != null) {
             groupDto.setGroup(groupToDto(group));
             groupDto.setSpots(spotsToDtos(group.getSpots()));
             groupDto.setDiningTypes(diningTypesToDtos(group.getDiningTypes()));
@@ -76,6 +76,7 @@ public interface GroupMapper {
         groupDto.setUsers(usersToDtos(users));
         return groupDto;
     }
+
     @Mapping(source = "group.id", target = "id")
     @Mapping(source = "group", target = "groupType", qualifiedByName = "getGroupDataType")
     @Mapping(source = "group", target = "code", qualifiedByName = "getGroupCode")
@@ -103,7 +104,7 @@ public interface GroupMapper {
 
     @Named("getLocation")
     default String getLocation(Group group) {
-        if(group.getAddress().getLocation() != null) {
+        if (group.getAddress().getLocation() != null) {
             return String.valueOf(group.getAddress().getLocation());
         }
         return null;
@@ -112,9 +113,9 @@ public interface GroupMapper {
     @Named("getGroupDataType")
     default Integer getGroupDataType(Group group) {
         Integer groupType = null;
-        if(group instanceof Corporation ) groupType = GroupDataType.CORPORATION.getCode();
-        else if(group instanceof Apartment) groupType = GroupDataType.APARTMENT.getCode();
-        else if(group instanceof OpenGroup) groupType = GroupDataType.OPEN_SPOT.getCode();
+        if (group instanceof Corporation) groupType = GroupDataType.CORPORATION.getCode();
+        else if (group instanceof Apartment) groupType = GroupDataType.APARTMENT.getCode();
+        else if (group instanceof OpenGroup) groupType = GroupDataType.OPEN_SPOT.getCode();
         return groupType;
     }
 
@@ -122,15 +123,16 @@ public interface GroupMapper {
     @Named("getMinimumSpend")
     default BigDecimal getMinimumSpend(Group group) {
         BigDecimal minimumSpend = BigDecimal.ZERO;
-        if(group instanceof Corporation corporation) {
+        if (group instanceof Corporation corporation) {
             return minimumSpend = corporation.getMinimumSpend();
         }
         return minimumSpend;
     }
+
     @Named("getMaximumSpend")
     default BigDecimal getMaximumSpend(Group group) {
         BigDecimal maximumSpend = BigDecimal.ZERO;
-        if(group instanceof Corporation corporation) {
+        if (group instanceof Corporation corporation) {
             return maximumSpend = corporation.getMaximumSpend();
         }
         return maximumSpend;
@@ -138,13 +140,9 @@ public interface GroupMapper {
 
     @Named("getSupportPrice")
     default BigDecimal getSupportPrice(Group group, DiningType type) {
-        if(group instanceof Corporation) {
-            List<Spot> spotList = group.getSpots();
-            for(Spot spot : spotList) {
-                List<MealInfo> mealInfoList = spot.getMealInfos();
-                for(MealInfo mealInfo : mealInfoList) {
-                    if(mealInfo.getDiningType().equals(type)) return ((CorporationMealInfo) mealInfo).getSupportPrice();
-                }
+        if (group instanceof Corporation) {
+            for (MealInfo mealInfo : group.getMealInfos()) {
+                if (mealInfo.getDiningType().equals(type)) return ((CorporationMealInfo) mealInfo).getSupportPrice();
             }
         }
         return null;
@@ -160,6 +158,7 @@ public interface GroupMapper {
         StringBuilder mealInfoBuilder = new StringBuilder();
         List<String> serviceDayList = new ArrayList<>();
         for (Spot spot : spotList) {
+            List<DiningType> diningTypes = spot.getDiningTypes();
             List<MealInfo> mealInfoList = spot.getMealInfos();
             for (MealInfo mealInfo : mealInfoList) {
                 if (mealInfo.getServiceDays() == null || mealInfo.getServiceDays().isEmpty() || mealInfo.getServiceDays().isBlank()) {
@@ -170,7 +169,7 @@ public interface GroupMapper {
             }
         }
         serviceDayList.stream().distinct().forEach(day -> mealInfoBuilder.append(day).append(", "));
-        if(mealInfoBuilder.length() != 0) {
+        if (mealInfoBuilder.length() != 0) {
             return String.valueOf(mealInfoBuilder).substring(0, mealInfoBuilder.length() - 2);
         }
         return null;
@@ -179,39 +178,39 @@ public interface GroupMapper {
 
     @Named("getGroupCode")
     default String getGroupCode(Group group) {
-        if(group instanceof Corporation corporation) return corporation.getCode();
+        if (group instanceof Corporation corporation) return corporation.getCode();
         else return null;
     }
 
     @Named("getEmployeeCount")
     default Integer getEmployeeCount(Group group) {
-        if(group instanceof Corporation corporation) return corporation.getEmployeeCount();
-        else if(group instanceof Apartment apartment) return apartment.getFamilyCount();
-        else if(group instanceof OpenGroup openGroup) return openGroup.getOpenGroupUserCount();
+        if (group instanceof Corporation corporation) return corporation.getEmployeeCount();
+        else if (group instanceof Apartment apartment) return apartment.getFamilyCount();
+        else if (group instanceof OpenGroup openGroup) return openGroup.getOpenGroupUserCount();
         else return null;
     }
 
     @Named("getIsSetting")
     default Boolean getIsSetting(Group group) {
-        if(group instanceof Corporation corporation) return corporation.getIsSetting();
+        if (group instanceof Corporation corporation) return corporation.getIsSetting();
         else return null;
     }
 
     @Named("getIsGarbage")
     default Boolean getIsGarbage(Group group) {
-        if(group instanceof Corporation corporation) return corporation.getIsGarbage();
+        if (group instanceof Corporation corporation) return corporation.getIsGarbage();
         else return null;
     }
 
     @Named("getIsHotStorage")
     default Boolean getIsHotStorage(Group group) {
-        if(group instanceof Corporation corporation) return corporation.getIsHotStorage();
+        if (group instanceof Corporation corporation) return corporation.getIsHotStorage();
         else return null;
     }
 
     @Named("getIsMembershipSupport")
     default Boolean getIsMembershipSupport(Group group) {
-        if(group instanceof Corporation corporation) return corporation.getIsMembershipSupport();
+        if (group instanceof Corporation corporation) return corporation.getIsMembershipSupport();
         else return null;
     }
 
@@ -231,7 +230,7 @@ public interface GroupMapper {
 
     @Named("setMinimumSpend")
     default BigDecimal setMinimumSpend(GroupExcelRequestDto groupInfoList) {
-        if(groupInfoList.getMinimumSpend() != null) {
+        if (groupInfoList.getMinimumSpend() != null) {
             BigDecimal minimumSpend = BigDecimal.ZERO;
             return minimumSpend.add(BigDecimal.valueOf(groupInfoList.getMinimumSpend()));
         }
@@ -240,7 +239,7 @@ public interface GroupMapper {
 
     @Named("setMaximumSpend")
     default BigDecimal setMaximumSpend(GroupExcelRequestDto groupInfoList) {
-        if(groupInfoList.getMaximumSpend() != null) {
+        if (groupInfoList.getMaximumSpend() != null) {
             BigDecimal maximumSpend = BigDecimal.ZERO;
             return maximumSpend.add(BigDecimal.valueOf(groupInfoList.getMaximumSpend()));
         }
@@ -254,6 +253,7 @@ public interface GroupMapper {
         else if (Objects.equals(groupInfoList.getIsMembershipSupport(), "지원")) result = true;
         return result;
     }
+
     @Named("isGarbage")
     default Boolean isGarbage(GroupExcelRequestDto groupInfoList) {
         Boolean result = null;
@@ -261,6 +261,7 @@ public interface GroupMapper {
         else if (Objects.equals(groupInfoList.getIsGarbage(), "사용")) result = true;
         return result;
     }
+
     @Named("isHotStorage")
     default Boolean isHotStorage(GroupExcelRequestDto groupInfoList) {
         Boolean result = null;
@@ -268,6 +269,7 @@ public interface GroupMapper {
         else if (Objects.equals(groupInfoList.getIsHotStorage(), "사용")) result = true;
         return result;
     }
+
     @Named("isSetting")
     default Boolean isSetting(GroupExcelRequestDto groupInfoList) {
         Boolean result = null;
@@ -293,8 +295,8 @@ public interface GroupMapper {
     @Named("getDiningType")
     default List<DiningType> getDiningType(List<String> diningTypeInteger) {
         List<DiningType> diningTypeList = new ArrayList<>();
-        if(diningTypeInteger != null && !diningTypeInteger.isEmpty()) {
-            for(String diningTypeCode : diningTypeInteger) {
+        if (diningTypeInteger != null && !diningTypeInteger.isEmpty()) {
+            for (String diningTypeCode : diningTypeInteger) {
                 diningTypeList.add(DiningType.ofString(diningTypeCode));
             }
             return diningTypeList;

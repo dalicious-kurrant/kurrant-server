@@ -92,7 +92,7 @@ public class GroupServiceImpl implements GroupService {
                     List<DiningType> spotDiningType = spot.getDiningTypes();
                     for(DiningType diningType : spotDiningType) {
                         // 스팟 식사 일정 생성
-                        CorporationMealInfo mealInfo = mealInfoMapper.toCorporationMealInfoEntity(groupInfoList, spot, diningType, "00:00");
+                        CorporationMealInfo mealInfo = mealInfoMapper.toCorporationMealInfoEntity(groupInfoList, spot.getGroup(), diningType, "00:00");
                         mealInfoRepository.save(mealInfo);
                     }
                 }
@@ -107,7 +107,7 @@ public class GroupServiceImpl implements GroupService {
 
                     List<DiningType> spotDiningType = spot.getDiningTypes();
                     for(DiningType diningType : spotDiningType) {
-                        ApartmentMealInfo mealInfo = mealInfoMapper.toApartmentMealInfoEntity(groupInfoList, spot, diningType, "00:00");
+                        ApartmentMealInfo mealInfo = mealInfoMapper.toApartmentMealInfoEntity(groupInfoList, spot.getGroup(), diningType, "00:00");
                         mealInfoRepository.save(mealInfo);
                     }
                 }
@@ -121,7 +121,7 @@ public class GroupServiceImpl implements GroupService {
 
                     List<DiningType> spotDiningType = spot.getDiningTypes();
                     for(DiningType diningType : spotDiningType) {
-                        OpenGroupMealInfo mealInfo = mealInfoMapper.toOpenGroupMealInfoEntity(groupInfoList, spot, diningType, "00:00");
+                        OpenGroupMealInfo mealInfo = mealInfoMapper.toOpenGroupMealInfoEntity(groupInfoList, spot.getGroup(), diningType, "00:00");
                         mealInfoRepository.save(mealInfo);
                     }
 

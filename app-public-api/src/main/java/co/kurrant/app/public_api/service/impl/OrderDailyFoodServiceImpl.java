@@ -19,7 +19,6 @@ import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
-import co.dalicious.domain.payment.dto.PaymentConfirmDto;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.entity.*;
@@ -32,6 +31,7 @@ import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.PriceUtils;
 import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
@@ -228,14 +228,22 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                         userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
                     }
                     userSupportPriceHistoryRepository.save(userSupportPriceHistory);
-                    totalSupportPrice = totalSupportPrice.add(usableSupportPrice);
+                    totalSupportPrice = totalSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
                 }
             }
         }
 
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
         BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
-        if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
+        // TODO: 추후 수정 -> 프론트에서 주는 값이 1의 자리로 줌으로 추가 로직 생성.
+        if(spot.getGroup().getName().contains("메드트로닉")) {
+            BigDecimal medTronicTotalPrice = PriceUtils.floorToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice());
+            BigDecimal medTronicSupportPrice = PriceUtils.roundToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice());
+            if (payPrice.compareTo(medTronicTotalPrice) != 0 || totalSupportPrice.compareTo(medTronicSupportPrice) != 0) {
+                throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+            }
+        }
+        else if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
