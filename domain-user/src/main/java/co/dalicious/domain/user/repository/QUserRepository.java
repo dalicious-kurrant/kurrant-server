@@ -2,7 +2,6 @@ package co.dalicious.domain.user.repository;
 
 
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPAExpressions;
@@ -127,6 +126,12 @@ public class QUserRepository {
     public List<User> getUsersByEmails(List<String> emails) {
         return queryFactory.selectFrom(user)
                 .where(user.email.in(emails))
+                .fetch();
+    }
+
+    public List<User> getUserAllById(List<BigInteger> ids) {
+        return queryFactory.selectFrom(user)
+                .where(user.id.in(ids))
                 .fetch();
     }
 }
