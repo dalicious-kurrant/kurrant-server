@@ -15,8 +15,8 @@ import java.time.LocalTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OpenGroupMealInfo extends MealInfo{
     @Builder
-    public OpenGroupMealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, String serviceDays, Spot spot) {
-        super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, spot);
+    public OpenGroupMealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, String serviceDays, Group group) {
+        super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, group);
     }
 
     public void updateOpenGroupMealInfo(GroupExcelRequestDto groupInfoList) {

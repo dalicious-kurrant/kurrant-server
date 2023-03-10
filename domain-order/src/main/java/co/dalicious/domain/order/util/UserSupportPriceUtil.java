@@ -30,10 +30,10 @@ public class UserSupportPriceUtil {
         return mealInfo.getSupportPrice();
     }
 
-    public static BigDecimal getUsedSupportPrice(List<UserSupportPriceHistory> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
+    public static BigDecimal getUsedSupportPrice(Spot spot, List<UserSupportPriceHistory> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
         BigDecimal usedSupportPrice = BigDecimal.ZERO;
         for (UserSupportPriceHistory userSupportPriceHistory : userSupportPriceHistories) {
-            if (userSupportPriceHistory.getServiceDate().equals(serviceDate) && userSupportPriceHistory.getDiningType().equals(diningType)) {
+            if (userSupportPriceHistory.getGroup().equals(spot.getGroup()) && userSupportPriceHistory.getServiceDate().equals(serviceDate) && userSupportPriceHistory.getDiningType().equals(diningType)) {
                 if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
                     usedSupportPrice = usedSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
                 }
@@ -79,7 +79,7 @@ public class UserSupportPriceUtil {
         //TODO: 추후 수정
         if(!spot.getGroup().getName().contains("메드트로닉")) {
             BigDecimal supportPrice =  getGroupSupportPriceByDiningType(spot, diningType);
-            BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(userSupportPriceHistories, serviceDate, diningType);
+            BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(spot, userSupportPriceHistories, serviceDate, diningType);
             return supportPrice.subtract(usedSupportPrice);
         } else {
             return BigDecimal.valueOf(62471004L);

@@ -70,6 +70,11 @@ public class Group {
     private Timestamp updatedDateTime;
 
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
+    @JsonBackReference(value = "client__group_fk")
+    @Comment("식사 정보 리스트")
+    List<MealInfo> mealInfos;
+
+    @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
     @JsonBackReference(value = "client__apartment_fk")
     @Comment("스팟 리스트")
     List<Spot> spots;
@@ -103,6 +108,13 @@ public class Group {
         return groups.stream()
                 .filter(group -> name.contains(group.getName()))
                 .toList();
+    }
+
+    public MealInfo getMealInfo(DiningType diningType) {
+        return this.getMealInfos().stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .orElse(null);
     }
 
     public void updateGroup(Address address, List<DiningType> diningTypeList, String name, BigInteger managerId) {

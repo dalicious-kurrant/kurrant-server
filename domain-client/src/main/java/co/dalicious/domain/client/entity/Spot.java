@@ -69,11 +69,6 @@ public class Spot {
     @Comment("그룹")
     private Group group;
 
-    @OneToMany(mappedBy = "spot", fetch = FetchType.LAZY)
-    @JsonBackReference(value = "client__spot_fk")
-    @Comment("식사 정보 리스트")
-    List<MealInfo> mealInfos;
-
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
@@ -96,8 +91,23 @@ public class Spot {
         this.group = group;
     }
 
+    public List<MealInfo> getMealInfos() {
+        List<DiningType> diningTypeList = this.diningTypes;
+        return this.group.getMealInfos().stream()
+                .filter(v -> diningTypeList.contains(v.getDiningType()))
+                .toList();
+    }
+
+    public DayAndTime getMembershipBenefitTime(DiningType diningType) {
+        return this.getGroup().getMealInfos().stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .map(MealInfo::getMembershipBenefitTime)
+                .orElse(null);
+    }
+
     public MealInfo getMealInfo(DiningType diningType) {
-        return this.mealInfos.stream()
+        return this.getGroup().getMealInfos().stream()
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElse(null);
@@ -108,18 +118,10 @@ public class Spot {
     }
 
     public LocalTime getDeliveryTime(DiningType diningType) {
-        return this.mealInfos.stream()
+        return this.getGroup().getMealInfos().stream()
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .map(MealInfo::getDeliveryTime)
-                .orElse(null);
-    }
-
-    public DayAndTime getMembershipBenefitTime(DiningType diningType) {
-        return this.mealInfos.stream()
-                .filter(v -> v.getDiningType().equals(diningType))
-                .findAny()
-                .map(MealInfo::getMembershipBenefitTime)
                 .orElse(null);
     }
 
