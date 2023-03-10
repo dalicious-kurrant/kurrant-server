@@ -13,4 +13,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, BigInteger> 
     List<Employee> findAllByEmail(String email);
 
     void deleteAllByCorporationId(BigInteger corporationId);
+
+    void deleteAllByEmail(String email);
 }
