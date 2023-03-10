@@ -44,7 +44,8 @@ public class QCreditCardInfoRepository {
 
     public List<CreditCardInfo> findAllByUserId(BigInteger id) {
         return queryFactory.selectFrom(creditCardInfo)
-                .where(creditCardInfo.user.id.eq(id))
+                .where(creditCardInfo.user.id.eq(id),
+                        creditCardInfo.status.notIn(0))
                 .fetch();
     }
 

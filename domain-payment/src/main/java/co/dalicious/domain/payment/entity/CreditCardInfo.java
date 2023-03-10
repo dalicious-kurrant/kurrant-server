@@ -69,4 +69,8 @@ public class CreditCardInfo {
         this.cardCompany = cardCompany;
         this.defaultType = defaultType;
     }
+
+    public CreditCardInfo(Integer status) {
+        this.status = status;
+    }
 }

@@ -35,7 +35,13 @@ public class SimpleJwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        if (request.getRequestURI().startsWith("/v1/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         List<String> excludedUrl = new ArrayList<>();
+        excludedUrl.add("/v1/auth/login");
         excludedUrl.add("/v1/auth/login");
         excludedUrl.add("/v1/makers/login");
         // url에 login이 포함 되어 욌으면 토큰 검증을 하지 않음.
