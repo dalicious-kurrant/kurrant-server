@@ -1,27 +1,20 @@
 package co.kurrant.app.admin_api.mapper;
 
-import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
-import co.kurrant.app.admin_api.model.enums.GroupDataType;
-import exception.ApiException;
-import exception.ExceptionEnum;
-import jdk.jfr.Name;
-import org.hibernate.query.criteria.internal.path.SetAttributeJoin;
 import org.mapstruct.*;
-import org.springframework.core.io.ClassPathResource;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class, BigDecimal.class})
 public interface GroupMapper {
@@ -86,7 +79,7 @@ public interface GroupMapper {
     @Mapping(source = "group.address.address2", target = "address2")
     @Mapping(source = "group", target = "location", qualifiedByName = "getLocation")
     @Mapping(source = "group.diningTypes", target = "diningTypes", qualifiedByName = "getDiningCodeList")
-    @Mapping(source = "group.spots", target = "serviceDays", qualifiedByName = "serviceDayToString")
+    @Mapping(source = "group", target = "serviceDays", qualifiedByName = "serviceDayToString")
     @Mapping(source = "managerUser.id", target = "managerId")
     @Mapping(source = "managerUser.name", target = "managerName")
     @Mapping(source = "managerUser.phone", target = "managerPhone")
@@ -113,9 +106,9 @@ public interface GroupMapper {
     @Named("getGroupDataType")
     default Integer getGroupDataType(Group group) {
         Integer groupType = null;
-        if (group instanceof Corporation) groupType = GroupDataType.CORPORATION.getCode();
-        else if (group instanceof Apartment) groupType = GroupDataType.APARTMENT.getCode();
-        else if (group instanceof OpenGroup) groupType = GroupDataType.OPEN_SPOT.getCode();
+        if(group instanceof Corporation ) groupType = ClientType.CORPORATION.getCode();
+        else if(group instanceof Apartment) groupType = ClientType.APARTMENT.getCode();
+        else if(group instanceof OpenGroup) groupType = ClientType.OPEN_GROUP.getCode();
         return groupType;
     }
 
@@ -154,20 +147,15 @@ public interface GroupMapper {
     }
 
     @Named("serviceDayToString")
-    default String serviceDayToString(List<Spot> spotList) {
+    default String serviceDayToString(Group group) {
         StringBuilder mealInfoBuilder = new StringBuilder();
-        List<String> serviceDayList = new ArrayList<>();
-        for (Spot spot : spotList) {
-            List<DiningType> diningTypes = spot.getDiningTypes();
-            List<MealInfo> mealInfoList = spot.getMealInfos();
-            for (MealInfo mealInfo : mealInfoList) {
-                if (mealInfo.getServiceDays() == null || mealInfo.getServiceDays().isEmpty() || mealInfo.getServiceDays().isBlank()) {
-                    continue;
-                }
-                List<String> useDays = List.of(mealInfo.getServiceDays().split(", |,"));
-                serviceDayList.addAll(useDays);
-            }
-        }
+
+        List<MealInfo> mealInfoList = group.getMealInfos();
+        List<String> serviceDayList = mealInfoList.stream()
+                .map(MealInfo::getServiceDays)
+                .filter(serviceDays -> serviceDays != null && !serviceDays.isBlank())
+                .flatMap(serviceDays -> Stream.of(serviceDays.split(", |,"))).toList();
+
         serviceDayList.stream().distinct().forEach(day -> mealInfoBuilder.append(day).append(", "));
         if (mealInfoBuilder.length() != 0) {
             return String.valueOf(mealInfoBuilder).substring(0, mealInfoBuilder.length() - 2);
@@ -230,7 +218,7 @@ public interface GroupMapper {
 
     @Named("setMinimumSpend")
     default BigDecimal setMinimumSpend(GroupExcelRequestDto groupInfoList) {
-        if (groupInfoList.getMinimumSpend() != null) {
+        if(groupInfoList.getMinimumSpend() != null) {
             BigDecimal minimumSpend = BigDecimal.ZERO;
             return minimumSpend.add(BigDecimal.valueOf(groupInfoList.getMinimumSpend()));
         }
@@ -239,7 +227,7 @@ public interface GroupMapper {
 
     @Named("setMaximumSpend")
     default BigDecimal setMaximumSpend(GroupExcelRequestDto groupInfoList) {
-        if (groupInfoList.getMaximumSpend() != null) {
+        if(groupInfoList.getMaximumSpend() != null) {
             BigDecimal maximumSpend = BigDecimal.ZERO;
             return maximumSpend.add(BigDecimal.valueOf(groupInfoList.getMaximumSpend()));
         }

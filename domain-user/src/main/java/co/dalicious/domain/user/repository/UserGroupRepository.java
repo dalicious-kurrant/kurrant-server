@@ -15,4 +15,5 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, BigInteger
     Optional<UserGroup> findOneByUserAndGroupAndClientStatus(User user, Group group, ClientStatus clientStatus);
     List<UserGroup> findAllByUserAndClientStatus(User user, ClientStatus clientStatus);
     List<UserGroup> findAllByGroupAndClientStatus(Group group, ClientStatus clientStatus);
+    List<UserGroup> findAllByGroup(Group group);
 }

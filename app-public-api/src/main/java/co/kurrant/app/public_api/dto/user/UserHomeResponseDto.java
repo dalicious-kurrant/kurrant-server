@@ -25,4 +25,5 @@ public class UserHomeResponseDto {
     private int membershipUsingPeriod;
     private int foundersNumber;
     private int leftFoundersNumber;
+    private Integer groupDataType;
 }

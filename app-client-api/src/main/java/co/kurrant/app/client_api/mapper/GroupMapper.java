@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class, BigDecimal.class})
@@ -37,6 +38,14 @@ public interface GroupMapper {
     @Mapping(source = "id", target = "userId")
     @Mapping(source = "name", target = "userName")
     GroupDto.User userToDto(User user);
+
+
+    default GroupDto.User withDrawlUsersToDto(User user) {
+        GroupDto.User userDto = new GroupDto.User();
+        userDto.setUserId(user.getId());
+        userDto.setUserName("(탈퇴) " + user.getName());
+        return userDto;
+    };
 
     default List<GroupDto.Group> groupsToDtos(List<? extends Group> groups) {
         return groups.stream()
@@ -62,6 +71,17 @@ public interface GroupMapper {
                 .collect(Collectors.toList());
     }
 
+    default List<GroupDto.User> usersToDtos(Set<User> users, Set<User> withDrawlUsers) {
+        List<GroupDto.User> userDtos = users.stream()
+                .map(this::userToDto)
+                .collect(Collectors.toList());
+        List<GroupDto.User> withDrawlUserDtos = withDrawlUsers.stream()
+                .map(this::withDrawlUsersToDto)
+                .toList();
+        userDtos.addAll(withDrawlUserDtos);
+        return userDtos;
+    }
+
     default GroupDto groupToGroupDto(Group group, List<User> users) {
         GroupDto groupDto = new GroupDto();
         if(group != null) {
@@ -70,6 +90,17 @@ public interface GroupMapper {
             groupDto.setDiningTypes(diningTypesToDtos(group.getDiningTypes()));
         }
         groupDto.setUsers(usersToDtos(users));
+        return groupDto;
+    }
+
+    default GroupDto groupToGroupDto(Group group, Set<User> users, Set<User> withDrawlUsers) {
+        GroupDto groupDto = new GroupDto();
+        if(group != null) {
+            groupDto.setGroup(groupToDto(group));
+            groupDto.setSpots(spotsToDtos(group.getSpots()));
+            groupDto.setDiningTypes(diningTypesToDtos(group.getDiningTypes()));
+        }
+        groupDto.setUsers(usersToDtos(users, withDrawlUsers));
         return groupDto;
     }
     @Mapping(source = "group.id", target = "id")
