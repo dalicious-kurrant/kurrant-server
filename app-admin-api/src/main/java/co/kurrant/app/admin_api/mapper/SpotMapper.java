@@ -76,15 +76,15 @@ public interface SpotMapper {
         return spotResponseDto;
     }
 
-    default MealInfo toMealInfo(Spot spot, DiningType diningType, String lastOrderTime, String deliveryTime, String useDays, BigDecimal supportPrice, String membershipBenefitTime) {
+    default MealInfo toMealInfo(Group group, DiningType diningType, String lastOrderTime, String deliveryTime, String useDays, BigDecimal supportPrice, String membershipBenefitTime) {
         // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
         if (lastOrderTime == null || deliveryTime == null || useDays == null) {
             return null;
         }
         // 기업 스팟인 경우
-        if (spot instanceof CorporationSpot) {
+        if (group instanceof Corporation corporation) {
             return CorporationMealInfo.builder()
-                    .spot(spot)
+                    .group(corporation)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
@@ -92,18 +92,18 @@ public interface SpotMapper {
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .supportPrice(supportPrice)
                     .build();
-        } else if (spot instanceof ApartmentSpot) {
+        } else if (group instanceof Apartment apartment) {
             return ApartmentMealInfo.builder()
-                    .spot(spot)
+                    .group(apartment)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDays(useDays)
                     .build();
-        } else if (spot instanceof OpenGroupSpot) {
+        } else if (group instanceof OpenGroup openGroup) {
             return OpenGroupMealInfo.builder()
-                    .spot(spot)
+                    .group(openGroup)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
                     .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))

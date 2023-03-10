@@ -33,7 +33,7 @@ public class RetrieveDailyFoodDto {
 
         public void setMorningSupportPrice(BigDecimal morningSupportPrice) {
             if(morningSupportPrice.compareTo(BigDecimal.valueOf(62471004L)) == 0 ) {
-                this.morningSupportPrice = "할인된 금액의 50% 지원";
+                this.morningSupportPrice = "금액의 50%";
                 return;
             }
             int price = morningSupportPrice.intValue();
@@ -48,7 +48,7 @@ public class RetrieveDailyFoodDto {
 
         public void setLunchSupportPrice(BigDecimal lunchSupportPrice) {
             if(lunchSupportPrice.compareTo(BigDecimal.valueOf(62471004L)) == 0 ) {
-                this.lunchSupportPrice = "할인된 금액의 50% 지원";
+                this.lunchSupportPrice = "금액의 50%";
                 return;
             }
             int price = lunchSupportPrice.intValue();
@@ -63,7 +63,7 @@ public class RetrieveDailyFoodDto {
 
         public void setDinnerSupportPrice(BigDecimal dinnerSupportPrice) {
             if(dinnerSupportPrice.compareTo(BigDecimal.valueOf(62471004L)) == 0 ) {
-                this.dinnerSupportPrice = "할인된 금액의 50% 지원";
+                this.dinnerSupportPrice = "금액의 50%";
                 return;
             }
             int price = dinnerSupportPrice.intValue();

@@ -27,7 +27,7 @@ import java.time.LocalTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
-@Table(name = "client__meal_info", uniqueConstraints={@UniqueConstraint(columnNames={"e_dining_type", "spot_id"})})
+@Table(name = "client__meal_info", uniqueConstraints={@UniqueConstraint(columnNames={"e_dining_type", "group_id"})})
 public class MealInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -74,18 +74,18 @@ public class MealInfo {
     private Timestamp updatedDateTime;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JsonManagedReference(value = "client__spot_fk")
-    @JoinColumn
+    @JsonManagedReference(value = "client__group_fk")
+    @JoinColumn(name = "group_id")
     @Comment("스팟")
-    private Spot spot;
+    private Group group;
 
-    public MealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, String serviceDays, Spot spot) {
+    public MealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, String serviceDays, Group group) {
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
         this.membershipBenefitTime = membershipBenefitTime;
         this.lastOrderTime = lastOrderTime;
         this.serviceDays = serviceDays;
-        this.spot = spot;
+        this.group = group;
     }
 
     public void updateMealInfo(String serviceDays) {
