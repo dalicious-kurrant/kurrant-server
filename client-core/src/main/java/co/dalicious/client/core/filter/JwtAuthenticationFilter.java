@@ -42,6 +42,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // /v1/auth로 시작하는 모든 요청 필터링 건너뛰기
+        if (request.getRequestURI().startsWith("/v1/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // 1. Request Header에서 JWT 토큰 추출
         String jwtToken = null;
         try {

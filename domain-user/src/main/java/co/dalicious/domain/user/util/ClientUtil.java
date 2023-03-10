@@ -23,7 +23,7 @@ public class ClientUtil {
     private final UserGroupRepository userGroupRepository;
 
     // 그룹(기업)에 등록되어 있는 유저인지 확인 후 등록
-    public void isRegisteredUser(User user) {
+    public Boolean isRegisteredUser(User user) {
         // 해당 이메일로 등록된 사원이 있는지 확인
         String email = user.getEmail();
         List<Employee> employees = employeeRepository.findAllByEmail(email);
@@ -37,7 +37,9 @@ public class ClientUtil {
                         .build();
                 userGroupRepository.save(userCorporation);
             }
+            return true;
         }
+        return false;
     }
 
     public SpotStatus getSpotStatus(User user) {

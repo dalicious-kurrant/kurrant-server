@@ -23,7 +23,7 @@ public class ClientOrderController {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(clientOrderService.getGroupInfo(securityUser))
-                .message("주문 조회에 성공하였습니다.")
+                .message("고객사 정보 조회에 성공하였습니다.")
                 .build();
     }
     @GetMapping("")
