@@ -12,6 +12,12 @@ public class PriceUtils {
         return BigDecimal.valueOf(integer);
     }
 
+    public static BigDecimal floorToOneDigit(BigDecimal bigDecimal) {
+        int integer = bigDecimal.intValue();
+        integer = integer / 10 * 10;
+        return BigDecimal.valueOf(integer);
+    }
+
     public static BigDecimal getPercent(Integer totalCount, Integer count) {
         if (totalCount == null || totalCount == 0) {
             return BigDecimal.ZERO;

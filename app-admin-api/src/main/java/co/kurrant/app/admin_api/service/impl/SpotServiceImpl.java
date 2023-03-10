@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 public class SpotServiceImpl implements SpotService {
 
     private final SpotRepository spotRepository;
-    private final MealInfoRepository mealInfoRepository;
     private final QSpotRepository qSpotRepository;
     private final SpotMapper spotMapper;
     private final QGroupRepository qGroupRepository;
@@ -83,26 +82,28 @@ public class SpotServiceImpl implements SpotService {
         for (Spot spot : spotMap.keySet()) {
             List<DiningType> spotDiningTypes = DiningTypesUtils.stringToDiningTypes(spotMap.get(spot).getDiningType());
 
-            MealInfo morningMealInfo = (spotDiningTypes.contains(DiningType.MORNING)) ? spotMapper.toMealInfo(spot, DiningType.MORNING, spotMap.get(spot).getBreakfastLastOrderTime(), spotMap.get(spot).getBreakfastDeliveryTime(), spotMap.get(spot).getBreakfastUseDays(), spotMap.get(spot).getBreakfastSupportPrice(), spotMap.get(spot).getBreakfastMembershipBenefitTime()) : null;
-            MealInfo lunchMealInfo = (spotDiningTypes.contains(DiningType.LUNCH)) ? spotMapper.toMealInfo(spot, DiningType.LUNCH, spotMap.get(spot).getLunchLastOrderTime(), spotMap.get(spot).getLunchDeliveryTime(), spotMap.get(spot).getLunchUseDays(), spotMap.get(spot).getLunchSupportPrice(), spotMap.get(spot).getLunchMembershipBenefitTime()) : null;
-            MealInfo dinnerMealInfo = (spotDiningTypes.contains(DiningType.DINNER)) ? spotMapper.toMealInfo(spot, DiningType.DINNER, spotMap.get(spot).getDinnerLastOrderTime(), spotMap.get(spot).getDinnerDeliveryTime(), spotMap.get(spot).getDinnerUseDays(), spotMap.get(spot).getDinnerSupportPrice(), spotMap.get(spot).getDinnerMembershipBenefitTime()) : null;
+            MealInfo morningMealInfo = (spotDiningTypes.contains(DiningType.MORNING)) ? spotMapper.toMealInfo(spot.getGroup(), DiningType.MORNING, spotMap.get(spot).getBreakfastLastOrderTime(), spotMap.get(spot).getBreakfastDeliveryTime(), spotMap.get(spot).getBreakfastUseDays(), spotMap.get(spot).getBreakfastSupportPrice(), spotMap.get(spot).getBreakfastMembershipBenefitTime()) : null;
+            MealInfo lunchMealInfo = (spotDiningTypes.contains(DiningType.LUNCH)) ? spotMapper.toMealInfo(spot.getGroup(), DiningType.LUNCH, spotMap.get(spot).getLunchLastOrderTime(), spotMap.get(spot).getLunchDeliveryTime(), spotMap.get(spot).getLunchUseDays(), spotMap.get(spot).getLunchSupportPrice(), spotMap.get(spot).getLunchMembershipBenefitTime()) : null;
+            MealInfo dinnerMealInfo = (spotDiningTypes.contains(DiningType.DINNER)) ? spotMapper.toMealInfo(spot.getGroup(), DiningType.DINNER, spotMap.get(spot).getDinnerLastOrderTime(), spotMap.get(spot).getDinnerDeliveryTime(), spotMap.get(spot).getDinnerUseDays(), spotMap.get(spot).getDinnerSupportPrice(), spotMap.get(spot).getDinnerMembershipBenefitTime()) : null;
             // CASE 1: 스팟에 식사 정보가 존재하지 않을 경우
             if (spot.getMealInfos().isEmpty()) {
                 if (morningMealInfo != null) {
-                    mealInfoRepository.save(morningMealInfo);
+                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.MORNING);
+                    mealInfo.updateMealInfo(morningMealInfo);
                 }
                 if (lunchMealInfo != null) {
-                    mealInfoRepository.save(lunchMealInfo);
+                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.LUNCH);
+                    mealInfo.updateMealInfo(lunchMealInfo);
                 }
                 if (dinnerMealInfo != null) {
-                    mealInfoRepository.save(dinnerMealInfo);
+                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.DINNER);
+                    mealInfo.updateMealInfo(dinnerMealInfo);
                 }
                 spot.updateSpot(spotMap.get(spot));
                 spot.updatedDiningTypes(morningMealInfo, lunchMealInfo, dinnerMealInfo);
             }
             // CASE 2: 스팟에 식사 정보가 존재하지만, 요청값에 없는 경우
             else if (morningMealInfo == null && lunchMealInfo == null && dinnerMealInfo == null) {
-                mealInfoRepository.deleteAll(spot.getMealInfos());
                 spot.updateSpot(spotMap.get(spot));
                 spot.updatedDiningTypes(null, null, null);
             }
@@ -124,12 +125,8 @@ public class SpotServiceImpl implements SpotService {
                             } else {
                                 mealInfo.updateMealInfo(updatedMealInfo);
                             }
-                        } else {
-                            mealInfoRepository.delete(mealInfo);
                         }
                         updatedMealInfos.remove(diningType);
-                    } else {
-                        mealInfoRepository.delete(mealInfo);
                     }
                 }
 
@@ -139,13 +136,22 @@ public class SpotServiceImpl implements SpotService {
                     if (updatedMealInfo != null) {
                         switch (diningType) {
                             case MORNING -> {
-                                if (morningMealInfo != null) mealInfoRepository.save(morningMealInfo);
+                                if (morningMealInfo != null) {
+                                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.MORNING);
+                                    mealInfo.updateMealInfo(morningMealInfo);
+                                }
                             }
                             case LUNCH -> {
-                                if (lunchMealInfo != null) mealInfoRepository.save(lunchMealInfo);
+                                if (lunchMealInfo != null) {
+                                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.LUNCH);
+                                    mealInfo.updateMealInfo(lunchMealInfo);
+                                }
                             }
                             case DINNER -> {
-                                if (dinnerMealInfo != null) mealInfoRepository.save(dinnerMealInfo);
+                                if (dinnerMealInfo != null) {
+                                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.MORNING);
+                                    mealInfo.updateMealInfo(dinnerMealInfo);
+                                }
                             }
                         }
                     }
@@ -161,21 +167,14 @@ public class SpotServiceImpl implements SpotService {
                 .toList();
         for (SpotResponseDto createSpot : createSpots) {
             Spot spot = spotMapper.toEntity(createSpot, Group.getGroup(groups, createSpot.getGroupId()), DiningTypesUtils.stringToDiningTypes(createSpot.getDiningType()));
-            if(Group.getGroup(groups, createSpot.getGroupId()) == null) {
+            if (Group.getGroup(groups, createSpot.getGroupId()) == null) {
                 throw new IllegalIdentifierException("(상세스팟 아이디:" + createSpot.getSpotId().toString() + ") 등록되어있지 않은 그룹입니다.");
             }
             spotRepository.save(spot);
-            List<DiningType> groupDiningTypes = spot.getGroup().getDiningTypes();
-
-            MealInfo morningMealInfo = (groupDiningTypes.contains(DiningType.MORNING)) ? spotMapper.toMealInfo(spot, DiningType.MORNING, createSpot.getBreakfastLastOrderTime(), createSpot.getBreakfastDeliveryTime(), createSpot.getBreakfastUseDays(), createSpot.getBreakfastSupportPrice(), createSpot.getBreakfastMembershipBenefitTime()) : null;
-            MealInfo lunchMealInfo = (groupDiningTypes.contains(DiningType.LUNCH)) ? spotMapper.toMealInfo(spot, DiningType.LUNCH, createSpot.getLunchLastOrderTime(), createSpot.getLunchDeliveryTime(), createSpot.getLunchUseDays(), createSpot.getLunchSupportPrice(), createSpot.getLunchMembershipBenefitTime()) : null;
-            MealInfo dinnerMealInfo = (groupDiningTypes.contains(DiningType.DINNER)) ? spotMapper.toMealInfo(spot, DiningType.DINNER, createSpot.getDinnerLastOrderTime(), createSpot.getDinnerDeliveryTime(), createSpot.getDinnerUseDays(), createSpot.getDinnerSupportPrice(), createSpot.getDinnerMembershipBenefitTime()) : null;
-            if (morningMealInfo != null) mealInfoRepository.save(morningMealInfo);
-            if (lunchMealInfo != null) mealInfoRepository.save(lunchMealInfo);
-            if (dinnerMealInfo != null) mealInfoRepository.save(dinnerMealInfo);
 
             spot.updateDiningTypes(spot.getDiningTypes());
         }
+
     }
 
     @Override

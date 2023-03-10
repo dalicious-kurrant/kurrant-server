@@ -2,6 +2,7 @@ package co.dalicious.domain.client.mapper;
 
 import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.entity.DayAndTime;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.system.enums.DiningType;
@@ -21,8 +22,8 @@ public interface MealInfoMapper {
     @Mapping(source = "serviceDays", target = "serviceDays")
     @Mapping(source = "deliveryTime", target = "deliveryTime", qualifiedByName = "getDeliveryTime")
     @Mapping(source = "diningType", target = "diningType", qualifiedByName = "getDiningType")
-    @Mapping(source = "spot", target = "spot")
-    MealInfo toEntity(SpotResponseDto spotInfo, String deliveryTime, String serviceDays, String diningType, DayAndTime lastOrderTime, Spot spot);
+    @Mapping(source = "group", target = "group")
+    MealInfo toEntity(SpotResponseDto spotInfo, String deliveryTime, String serviceDays, String diningType, DayAndTime lastOrderTime, Group group);
 
     @Named("getDiningType")
     default DiningType getDiningType(String diningType){
