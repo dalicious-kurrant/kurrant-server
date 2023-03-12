@@ -11,9 +11,9 @@ import javax.persistence.Entity;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MakersComments extends Comments {
-
-    @Builder
-    public MakersComments(String content, Reviews reviews) {
-        super(content, reviews);
-    }
+//
+//    @Builder
+//    public MakersComments(String content, Reviews reviews) {
+//        super(content, reviews);
+//    }
 }

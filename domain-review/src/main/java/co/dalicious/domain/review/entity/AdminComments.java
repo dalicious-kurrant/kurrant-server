@@ -11,9 +11,8 @@ import javax.persistence.Entity;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdminComments extends Comments{
-
-    @Builder
-    public AdminComments(String content, Reviews reviews) {
-        super(content, reviews);
-    }
+//    @Builder
+//    public AdminComments(String content, Reviews reviews) {
+//        super(content, reviews);
+//    }
 }

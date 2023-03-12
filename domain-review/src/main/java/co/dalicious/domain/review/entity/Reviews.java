@@ -62,7 +62,7 @@ public class Reviews{
 
     @Column(name = "is_report")
     @Comment("신고 여부")
-    private Boolean isReport;
+    private Boolean isReports;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -115,5 +115,7 @@ public class Reviews{
     public void updatedIsDelete(Boolean status) {
         this.isDelete = status;
     }
+
+    public void updateIsReport(Boolean status) { this.isReports = status; }
 
 }
