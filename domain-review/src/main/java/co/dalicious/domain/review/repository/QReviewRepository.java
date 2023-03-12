@@ -42,34 +42,27 @@ public class QReviewRepository {
                 .fetchOne();
     }
 
-    public List<Reviews> findAllByFilter(Makers makers, Food food, User user, LocalDate start, LocalDate end) {
+    public List<Reviews> findAllByFilter(BigInteger makersId, BigInteger orderItemId, String orderItemName, String userName, List<OrderItem> orderItemList, Boolean isReport) {
         BooleanBuilder filter = new BooleanBuilder();
 
-        if(makers != null) {
-            filter.and(reviews.food.makers.eq(makers));
+        if(makersId != null) {
+            filter.and(reviews.food.makers.id.eq(makersId));
         }
-        if(food != null) {
-            filter.and(reviews.food.eq(food));
+        if(orderItemId != null) {
+            filter.and(reviews.orderItem.id.eq(orderItemId));
         }
-        if(user != null) {
-            filter.and(reviews.user.eq(user));
+        if(userName != null) {
+            filter.and(reviews.user.name.containsIgnoreCase(userName));
         }
-
-        QOrderItemDailyFood orderItemDailyFood = QOrderItemDailyFood.orderItemDailyFood;
-        JPAQuery<OrderItemDailyFood> query = new JPAQuery<>(entityManager);
-
-        List<OrderItemDailyFood> result = query
-                .select(orderItemDailyFood)
-                .from(orderItemDailyFood)
-                .where(orderItemDailyFood.dailyFood.serviceDate.between(start, end))
-                .fetch();
+        if(orderItemName != null) {
+            filter.and(reviews.food.name.containsIgnoreCase(orderItemName));
+        }
+        if(isReport != null) {
+            filter.and(reviews.isReports.eq(isReport));
+        }
 
         return queryFactory.selectFrom(reviews)
-                .where(reviews.orderItem.in(result), filter)
+                .where(reviews.orderItem.in(orderItemList), filter)
                 .fetch();
-
-
-
-
     }
 }
