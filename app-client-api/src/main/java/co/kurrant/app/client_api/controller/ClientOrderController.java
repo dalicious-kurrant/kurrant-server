@@ -49,7 +49,7 @@ public class ClientOrderController {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(clientOrderService.getOrderStatistic(securityUser, parameters))
-                .message("주문 상세 조회에 성공하였습니다.")
+                .message("주문 통계 조회에 성공하였습니다.")
                 .build();
     }
 }

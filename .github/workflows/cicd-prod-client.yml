@@ -9,7 +9,7 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "release" ]
+    branches: [ "release-client" ]
 
 permissions:
   contents: read
@@ -25,16 +25,16 @@ jobs:
         java-version: '17'
         distribution: 'adopt'
 
-    # app-public-api의 설정파일(.yaml) 생성
-    - name: app-public-api application.yaml(prod) 생성
+    # app-client-api의 설정파일(.yaml) 생성
+    - name: app-client-api application.yaml(prod) 생성
       run: |
-        cd ./app-public-api/src/main
+        cd ./app-client-api/src/main
         mkdir resources
         cd resources
         touch ./application.yaml
-        echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application.yaml
+        echo "${{ secrets.APP_CLIENT_API_PROD_YAML }}" > ./application.yaml
         touch ./application-prod.yaml
-        echo "${{ secrets.APP_PUBLIC_API_PROD_PROD_YAML }}" > ./application-prod.yaml
+        echo "${{ secrets.APP_CLIENT_API_PROD_PROD_YAML }}" > ./application-prod.yaml
       shell: bash
 
     - name: client-core application-jwt.properties 생성
@@ -100,10 +100,10 @@ jobs:
     - name: Docker 빌드
       run: |
         docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-        cd app-public-api
-        docker build -t kurrant_v1 .
-        docker tag kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
-        docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
+        cd app-client-api
+        docker build -t client_kurrant_v1 .
+        docker tag client_kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
+        docker push ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
 
 
     - name: 배포
@@ -114,8 +114,10 @@ jobs:
         key: ${{ secrets.PROD_PRIVATE_KEY }}
         envs: GITHUB_SHA
         script: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
-          docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
-          docker stop kurrant_v1
+          docker pull ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7} client_kurrant_v1
+          docker stop client_kurrant_v1
           sleep 5
-          docker run -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
+          docker run -d --rm --net redis_redis_cluster --name client_kurrant_v1 -p 8886:8886 client_kurrant_v1
+          
+

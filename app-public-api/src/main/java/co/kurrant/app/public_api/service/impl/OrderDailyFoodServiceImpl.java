@@ -248,7 +248,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // 멤버십을 지원하는 기업의 식사를 주문하면서, 멤버십에 가입되지 않은 회원이라면 멤버십 가입.
-        if(OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+        if(OrderUtil.isMembership(user, (Group) Hibernate.unproxy(group)) && !user.getIsMembership()) {
             LocalDate now = LocalDate.now();
             LocalDate membershipStartDate = LocalDate.of(now.getYear(), now.getMonth(), group.getContractStartDate().getDayOfMonth());
             PeriodDto membershipPeriod = new PeriodDto(membershipStartDate, membershipStartDate.plusMonths(1));
