@@ -73,14 +73,14 @@ jobs:
         shell: bash
 
       # batch의 설정파일(.yaml) 생성
-      - name: app-admin-api application.yaml 생성
+      - name: batch application.yaml 생성
         run: |
           cd ./batch/src/main
           mkdir resources
           cd resources
           touch ./application.yaml
           echo "${{ secrets.BATCH_DEV_YAML }}" > ./application.yaml
-          touch ./application-dev.yaml
+          touch ./quartz.properties
           echo "${{ secrets.BATCH_QUARTZ_DEV_PROPERTIES }}" > ./quartz.properties
         shell: bash
 
