@@ -82,11 +82,11 @@ public class FoodServiceImpl implements FoodService {
 
             for (DailyFood dailyFood : dailyFoodList) {
                 // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
-                MealInfo mealInfo = spot.getMealInfo(dailyFood.getDiningType());
-                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
-                if(LocalDate.now().equals(dailyFood.getServiceDate()) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
-                    dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
-                }
+//                MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
+//                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
+//                if(LocalDate.now().equals(dailyFood.getServiceDate()) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
+//                    dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
+//                }
 
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
@@ -134,11 +134,11 @@ public class FoodServiceImpl implements FoodService {
             // 값이 있다면 결과값으로 담아준다.
             for (DailyFood dailyFood : dailyFoodList) {
                 // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
-                MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
-                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
-                if(LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate()) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
-                    dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
-                }
+//                MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
+//                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
+//                if(LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate()) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
+//                    dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
+//                }
 
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
