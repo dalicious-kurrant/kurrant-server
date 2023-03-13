@@ -24,6 +24,19 @@ jobs:
         with:
           java-version: '17'
           distribution: 'adopt'
+
+      # batch의 설정파일(.yaml) 생성
+      - name: batch application.yaml 생성
+        run: |
+          cd ./batch/src/main
+          mkdir resources
+          cd resources
+          touch ./application.yaml
+          echo "${{ secrets.BATCH_DEV_YAML }}" > ./application.yaml
+          touch ./quartz.properties
+          echo "${{ secrets.BATCH_QUARTZ_DEV_PROPERTIES }}" > ./quartz.properties
+        shell: bash
+
       # app-public-api의 설정파일(.yaml) 생성
       - name: app-public-api application.yaml(dev) 생성
         run: |
@@ -70,18 +83,6 @@ jobs:
           echo "${{ secrets.APP_ADMIN_API_DEV_YAML }}" > ./application.yaml
           touch ./application-dev.yaml
           echo "${{ secrets.APP_ADMIN_API_DEV_DEV_YAML }}" > ./application-dev.yaml
-        shell: bash
-
-      # batch의 설정파일(.yaml) 생성
-      - name: batch application.yaml 생성
-        run: |
-          cd ./batch/src/main
-          mkdir resources
-          cd resources
-          touch ./application.yaml
-          echo "${{ secrets.BATCH_DEV_YAML }}" > ./application.yaml
-          touch ./quartz.properties
-          echo "${{ secrets.BATCH_QUARTZ_DEV_PROPERTIES }}" > ./quartz.properties
         shell: bash
 
       - name: app-admin-api firebase.json 생성
