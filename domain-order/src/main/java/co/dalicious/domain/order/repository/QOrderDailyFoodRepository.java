@@ -261,4 +261,10 @@ public class QOrderDailyFoodRepository {
                 .where(orderItemDailyFood.id.in(ids))
                 .fetch();
     }
+
+    public List<OrderItemDailyFood> findAllByServiceDateBetweenStartAndEnd(LocalDate start, LocalDate end) {
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.dailyFood.serviceDate.between(start, end))
+                .fetch();
+    }
 }

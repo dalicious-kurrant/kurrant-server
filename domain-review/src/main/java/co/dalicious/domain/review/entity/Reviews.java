@@ -44,11 +44,6 @@ public class Reviews{
     @CollectionTable(name = "reviews__images")
     private List<Image> images;
 
-    @ElementCollection
-    @CollectionTable(name = "reviews__image_origin")
-    @Comment("원본 리뷰 이미지 경로")
-    private List<Image> imageOrigin;
-
     @Column(name = "satisfaction", nullable = false)
     @Comment("만족도")
     private Integer satisfaction;
@@ -64,6 +59,10 @@ public class Reviews{
     @Column(name = "is_delete")
     @Comment("삭제 여부")
     private Boolean isDelete;
+
+    @Column(name = "is_report")
+    @Comment("신고 여부")
+    private Boolean isReports;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -95,7 +94,7 @@ public class Reviews{
     private Food food;
 
     @Builder
-    public Reviews(String content, String contentOrigin, Integer satisfaction, Integer satisfactionOrigin, Boolean forMakers, User user, OrderItem orderItem, Food food, List<Image> imageOrigin, List<Image> images) {
+    public Reviews(String content, String contentOrigin, Integer satisfaction, Integer satisfactionOrigin, Boolean forMakers, User user, OrderItem orderItem, Food food, List<Image> images) {
         this.content = content;
         this.contentOrigin = contentOrigin;
         this.satisfaction = satisfaction;
@@ -105,7 +104,6 @@ public class Reviews{
         this.orderItem = orderItem;
         this.food = food;
         this.images = images;
-        this.imageOrigin = imageOrigin;
     }
 
     public void updatedReviews(ReviewUpdateReqDto updateReqDto, List<Image> images) {
@@ -113,5 +111,11 @@ public class Reviews{
         this.satisfaction = updateReqDto.getSatisfaction();
         this.images = images;
     }
+
+    public void updatedIsDelete(Boolean status) {
+        this.isDelete = status;
+    }
+
+    public void updateIsReport(Boolean status) { this.isReports = status; }
 
 }
