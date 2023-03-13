@@ -25,6 +25,7 @@ public interface OrderDailyFoodByMakersMapper {
         OrderDailyFoodByMakersDto.ByPeriod byPeriod = new OrderDailyFoodByMakersDto.ByPeriod();
         MultiValueMap<DiningTypeServiceDateDto, OrderItemDailyFood> diningTypeServiceDateMap = new LinkedMultiValueMap<>();
         MultiValueMap<Food, OrderItemDailyFood> foodMap = new LinkedMultiValueMap<>();
+
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
             DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate(), orderItemDailyFood.getOrderItemDailyFoodGroup().getDiningType());
             diningTypeServiceDateMap.add(diningTypeServiceDateDto, orderItemDailyFood);
@@ -140,9 +141,9 @@ public interface OrderDailyFoodByMakersMapper {
     default List<OrderDailyFoodByMakersDto.SpotByDateDiningType> toSpotByDateDiningType(MultiValueMap<Spot, OrderItemDailyFood> spotMap) {
         List<OrderDailyFoodByMakersDto.SpotByDateDiningType> spotByDateDiningTypes = new ArrayList<>();
 
-        MultiValueMap<Food, OrderItemDailyFood> foodMultiValueMap = new LinkedMultiValueMap<>();
         DiningType diningType = null;
         for (Spot spot : spotMap.keySet()) {
+            MultiValueMap<Food, OrderItemDailyFood> foodMultiValueMap = new LinkedMultiValueMap<>();
             List<OrderItemDailyFood> orderItemDailyFoods = spotMap.get(spot);
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                 Food food = orderItemDailyFood.getDailyFood().getFood();
