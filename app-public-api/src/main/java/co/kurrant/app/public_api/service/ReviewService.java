@@ -22,4 +22,6 @@ public interface ReviewService {
     ReviewsForUserResDto getReviewsForUser(SecurityUser securityUser);
     //리뷰 수정
     void updateReviews(SecurityUser securityUser, List<MultipartFile> fileList, ReviewUpdateReqDto updateReqDto, BigInteger reviewsId) throws IOException;
+    //리뷰 삭제
+    void deleteReviews(SecurityUser securityUser, BigInteger reviewId);
 }

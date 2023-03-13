@@ -1,9 +1,14 @@
 package co.kurrant.app.public_api.mapper.user;
 
+import co.dalicious.domain.client.entity.Apartment;
+import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.kurrant.app.public_api.dto.user.UserHomeResponseDto;
+import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -27,17 +32,14 @@ public interface UserHomeInfoMapper {
 
     @Named("getSpotTypeCode")
     default Integer getSpotTypeCode(List<UserSpot> userSpots) {
-        return userSpots.stream()
-                .filter(UserSpot::getIsDefault)
-                .map(spot -> spot.getClientType().getCode())
-                .map(code -> {
-                    if (code == 0) return GroupDataType.APARTMENT.getCode();
-                    else if (code == 1) return GroupDataType.CORPORATION.getCode();
-                    else if (code == 2) return GroupDataType.OPEN_GROUP.getCode();
-                    return null;
-                })
-                .findAny()
-                .orElse(null);
+        Optional<UserSpot> userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findFirst();
+        Group group = (Group) Hibernate.unproxy(userSpot.map(spot -> spot.getSpot().getGroup()).orElse(null));
+        if(group != null) {
+            if(group instanceof Corporation) return GroupDataType.CORPORATION.getCode();
+            else if(group instanceof Apartment) return GroupDataType.APARTMENT.getCode();
+            else if(group instanceof OpenGroup) return GroupDataType.OPEN_GROUP.getCode();
+        }
+        return null;
     }
 
     @Named("getSpotId")
