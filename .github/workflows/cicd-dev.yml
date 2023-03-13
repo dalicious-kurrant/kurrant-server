@@ -32,9 +32,12 @@ jobs:
           mkdir resources
           cd resources
           touch ./application.yaml
-          echo "${{ secrets.BATCH_DEV_YAML }}" > ./application.yaml
+          echo "$BATCH_DEV_YAML" > ./application.yaml
           touch ./application-quartz.properties
-          echo "${{ secrets.BATCH_QUARTZ_DEV_PROPERTIES }}" > ./application-quartz.properties
+          echo "$BATCH_QUARTZ_DEV_PROPERTIES" > ./application-quartz.properties
+        env:
+          BATCH_DEV_YAML: ${{ secrets.BATCH_DEV_YAML }}
+          BATCH_QUARTZ_DEV_PROPERTIES: ${{ secrets.BATCH_QUARTZ_DEV_PROPERTIES }}
         shell: bash
 
       # app-public-api의 설정파일(.yaml) 생성
