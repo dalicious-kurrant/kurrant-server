@@ -6,6 +6,7 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.MealInfoRepository;
 import co.dalicious.domain.client.repository.QCorporationRepository;
@@ -84,7 +85,7 @@ public class GroupServiceImpl implements GroupService {
 
             // group 없으면
             if(group == null) {
-                if(ClientType.CORPORATION.equals(ClientType.ofCode(groupInfoList.getGroupType()))) {
+                if(GroupDataType.CORPORATION.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
                     Corporation corporation = groupMapper.groupInfoListToCorporationEntity(groupInfoList, address);
                     newGroupList.add(corporation);
 
@@ -94,7 +95,7 @@ public class GroupServiceImpl implements GroupService {
                         newMealInfoList.add(mealInfo);
                     }
                 }
-                else if(ClientType.APARTMENT.equals(ClientType.ofCode(groupInfoList.getGroupType()))){
+                else if(GroupDataType.APARTMENT.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))){
                     Apartment apartment = groupMapper.groupInfoListToApartmentEntity(groupInfoList, address);
                     newGroupList.add(apartment);
 
@@ -104,7 +105,7 @@ public class GroupServiceImpl implements GroupService {
                         newMealInfoList.add(mealInfo);
                     }
                 }
-                else if(ClientType.OPEN_GROUP.equals(ClientType.ofCode(groupInfoList.getGroupType()))){
+                else if(GroupDataType.OPEN_GROUP.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))){
                     OpenGroup openGroup = groupMapper.groupInfoListToOpenGroupEntity(groupInfoList, address);
                     newGroupList.add(openGroup);
 
