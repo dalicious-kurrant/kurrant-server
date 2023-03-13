@@ -267,4 +267,22 @@ public class QOrderDailyFoodRepository {
                 .where(orderItemDailyFood.dailyFood.serviceDate.between(start, end))
                 .fetch();
     }
+
+    public List<OrderItemDailyFood> findAllFilterGroup(LocalDate start, LocalDate end, List<Group> groups) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if (start != null) {
+            whereClause.and(orderItemDailyFood.dailyFood.serviceDate.goe(start));
+        }
+        if (end != null) {
+            whereClause.and(orderItemDailyFood.dailyFood.serviceDate.loe(end));
+        }
+        if(groups != null) {
+            whereClause.and(orderItemDailyFood.dailyFood.group.in(groups));
+        }
+
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .where(whereClause)
+                .fetch();
+    }
 }
