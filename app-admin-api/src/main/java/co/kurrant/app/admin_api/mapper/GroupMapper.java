@@ -218,7 +218,7 @@ public interface GroupMapper {
     @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
     @Mapping(source = "groupInfoList.name", target = "name")
     @Mapping(source = "groupInfoList.managerId", target = "managerId")
-    @Mapping(source = "groupInfoList.code", target = "code")
+    @Mapping(source = "groupInfoList.code", target = "code", qualifiedByName = "createCode")
     @Mapping(source = "groupInfoList", target = "isMembershipSupport", qualifiedByName = "isMembershipSupport")
     @Mapping(source = "groupInfoList.employeeCount", target = "employeeCount")
     @Mapping(source = "groupInfoList", target = "isGarbage", qualifiedByName = "isGarbage")
@@ -227,6 +227,25 @@ public interface GroupMapper {
     @Mapping(source = "groupInfoList", target = "minimumSpend", qualifiedByName = "setMinimumSpend")
     @Mapping(source = "groupInfoList", target = "maximumSpend", qualifiedByName = "setMaximumSpend")
     Corporation groupInfoListToCorporationEntity(GroupExcelRequestDto groupInfoList, Address address);
+
+
+    @Named("createCode")
+    default String createCode(String code){
+        //65~90
+        int leftLimit = 65; // 영 대문자 65~90
+        int rightLimit = 90;
+        int targetStringLength = 6; // 길이제한
+        Random random = new Random();
+
+        String generatedString = random.ints(leftLimit,rightLimit + 1)
+                .filter(i -> (i >= 65) && (i <= 90))
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+
+        return generatedString;
+    }
+
 
     @Named("setMinimumSpend")
     default BigDecimal setMinimumSpend(GroupExcelRequestDto groupInfoList) {
