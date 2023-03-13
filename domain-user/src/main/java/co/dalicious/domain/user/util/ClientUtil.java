@@ -6,6 +6,7 @@ import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
+import co.dalicious.domain.user.repository.UserSpotRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +22,10 @@ import java.util.Optional;
 public class ClientUtil {
     private final EmployeeRepository employeeRepository;
     private final UserGroupRepository userGroupRepository;
+    private final UserSpotRepository userSpotRepository;
 
     // 그룹(기업)에 등록되어 있는 유저인지 확인 후 등록
-    public void isRegisteredUser(User user) {
+    public Boolean isRegisteredUser(User user) {
         // 해당 이메일로 등록된 사원이 있는지 확인
         String email = user.getEmail();
         List<Employee> employees = employeeRepository.findAllByEmail(email);
@@ -37,7 +39,9 @@ public class ClientUtil {
                         .build();
                 userGroupRepository.save(userCorporation);
             }
+            return true;
         }
+        return false;
     }
 
     public SpotStatus getSpotStatus(User user) {
@@ -64,7 +68,8 @@ public class ClientUtil {
             // 유저가 그 그룹에 속해있는지 조회한다.
             Optional<UserGroup> userGroup = userGroupRepository.findOneByUserAndGroupAndClientStatus(user, group, ClientStatus.BELONG);
             if (userGroup.isEmpty()) {
-                throw new ApiException(ExceptionEnum.SPOT_DATA_INTEGRITY_ERROR);
+                userSpotRepository.delete(userSpot.get());
+                return SpotStatus.NO_SPOT_BUT_HAS_CLIENT;
             }
             // 그룹과 스팟이 모두 존재할 경우
             return SpotStatus.HAS_SPOT_AND_CLIENT;

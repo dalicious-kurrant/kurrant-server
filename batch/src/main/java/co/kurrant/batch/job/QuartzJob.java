@@ -30,12 +30,6 @@ public class QuartzJob implements Job {
      * and it does not have access to the Spring container to perform dependency injection.
      * so, cannot use constructor dependency injection with Quartz jobs.
      * */
-    @Autowired
-    private QMembershipRepository qMembershipRepository;
-
-    @Autowired
-    private OrderService orderService;
-
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         log.info("Quartz Job 실행");
@@ -49,20 +43,20 @@ public class QuartzJob implements Job {
         dataMap.put("executeCount", ++count);
 
         // 로직 수행
-        List<Membership> memberships = qMembershipRepository.findAllByEndDate();
-
-        for (Membership membership : memberships) {
-            try {
-                // TODO: 결제 수단이 추가 될 시 수정
-                PeriodDto periodDto = (membership.getMembershipSubscriptionType().equals(MembershipSubscriptionType.MONTH)) ?
-                        MembershipUtil.getStartAndEndDateMonthly(membership.getEndDate()) :
-                        MembershipUtil.getStartAndEndDateYearly(membership.getEndDate().plusMonths(1));
-                orderService.payMembership(membership.getUser(), membership.getMembershipSubscriptionType(), periodDto, PaymentType.CREDIT_CARD);
-            } catch (Exception ignored) {
-                membership.changeAutoPaymentStatus(false);
-                membership.getUser().changeMembershipStatus(false);
-            }
-        }
+//        List<Membership> memberships = qMembershipRepository.findAllByEndDate();
+//
+//        for (Membership membership : memberships) {
+//            try {
+//                // TODO: 결제 수단이 추가 될 시 수정
+//                PeriodDto periodDto = (membership.getMembershipSubscriptionType().equals(MembershipSubscriptionType.MONTH)) ?
+//                        MembershipUtil.getStartAndEndDateMonthly(membership.getEndDate()) :
+//                        MembershipUtil.getStartAndEndDateYearly(membership.getEndDate().plusMonths(1));
+//                orderService.payMembership(membership.getUser(), membership.getMembershipSubscriptionType(), periodDto, PaymentType.CREDIT_CARD);
+//            } catch (Exception ignored) {
+//                membership.changeAutoPaymentStatus(false);
+//                membership.getUser().changeMembershipStatus(false);
+//            }
+//        }
 
     }
 }

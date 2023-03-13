@@ -4,6 +4,7 @@ import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.util.OrderUtil;
@@ -247,6 +248,12 @@ public interface OrderMapper {
 
             orderItemStatics.add(orderItemStatic);
         }
+
+        orderItemStatics = orderItemStatics.stream()
+                .sorted(Comparator.comparing((OrderDto.OrderItemStatic v) -> DateUtils.stringToDate(v.getServiceDate()))
+                        .thenComparing(v -> DiningType.ofString(v.getDiningType()))
+                )
+                .collect(Collectors.toList());
         return orderItemStatics;
     }
 }

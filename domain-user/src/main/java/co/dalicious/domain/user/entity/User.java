@@ -11,6 +11,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.*;
@@ -308,5 +309,13 @@ public class User {
                 .map(ProviderEmail::getEmail)
                 .findFirst()
                 .orElse(null);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id);
     }
 }

@@ -95,7 +95,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
         List<String> emails = saveUserListRequestDtoList.stream()
-                .map(SaveUserListRequestDto::getEmail)
+                .map(v -> v.getEmail().trim())
                 .toList();
 
         Set<String> groupNames = saveUserListRequestDtoList.stream()
@@ -203,7 +203,7 @@ public class UserServiceImpl implements UserService {
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
             UserDto userDto = UserDto.builder()
-                    .email(createUserDto.getEmail())
+                    .email(createUserDto.getEmail().trim())
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
                     .phone(createUserDto.getPhone())
                     .name(createUserDto.getName())

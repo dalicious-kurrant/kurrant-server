@@ -50,12 +50,18 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     @Transactional
     public GroupDto getGroupInfo(SecurityUser securityUser) {
         Corporation corporation = userUtil.getCorporation(securityUser);
-        List<UserGroup> userGroups = userGroupRepository.findAllByGroupAndClientStatus(corporation, ClientStatus.BELONG);
+        List<UserGroup> userGroups = userGroupRepository.findAllByGroup(corporation);
         Set<User> users = userGroups.stream()
+                .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
                 .map(UserGroup::getUser)
                 .collect(Collectors.toSet());
-        List<User> userList = users.stream().toList();
-        return groupMapper.groupToGroupDto(corporation, userList);
+
+        Set<User> withDrawlUsers = userGroups.stream()
+                .filter(v -> v.getClientStatus().equals(ClientStatus.WITHDRAWAL))
+                .map(UserGroup::getUser)
+                .collect(Collectors.toSet());
+
+        return groupMapper.groupToGroupDto(corporation, users, withDrawlUsers);
     }
 
     @Override

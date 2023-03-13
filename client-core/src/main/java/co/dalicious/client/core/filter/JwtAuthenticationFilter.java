@@ -37,7 +37,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // TODO: 도메인 적용시 변경
         URI uri = UriComponentsBuilder.fromHttpUrl(String.valueOf(request.getRequestURL())).build().toUri();
-        if (uri.getPort() == 8888 || uri.getPort() == 8886 || uri.getPort() == 8884) {
+        if (uri.getPort() == 8888 || uri.getPort() == 8886 || uri.getPort() == 8884) { //|| uri.getPath().contains("/v1/auth/login")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // /v1/auth로 시작하는 모든 요청 필터링 건너뛰기
+        if (request.getRequestURI().startsWith("/v1/auth")) {
             filterChain.doFilter(request, response);
             return;
         }

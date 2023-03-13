@@ -1,11 +1,9 @@
 package co.kurrant.app.public_api.mapper.user;
 
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
-import co.dalicious.domain.user.entity.enums.ClientType;
 import co.kurrant.app.public_api.dto.user.UserHomeResponseDto;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -29,9 +27,17 @@ public interface UserHomeInfoMapper {
 
     @Named("getSpotTypeCode")
     default Integer getSpotTypeCode(List<UserSpot> userSpots) {
-        if(userSpots.isEmpty()) return null;
-        Optional<UserSpot> userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny();
-        return userSpot.map(spot -> spot.getClientType().getCode()).orElse(null);
+        return userSpots.stream()
+                .filter(UserSpot::getIsDefault)
+                .map(spot -> spot.getClientType().getCode())
+                .map(code -> {
+                    if (code == 0) return GroupDataType.APARTMENT.getCode();
+                    else if (code == 1) return GroupDataType.CORPORATION.getCode();
+                    else if (code == 2) return GroupDataType.OPEN_GROUP.getCode();
+                    return null;
+                })
+                .findAny()
+                .orElse(null);
     }
 
     @Named("getSpotId")
@@ -61,4 +67,5 @@ public interface UserHomeInfoMapper {
         Optional<UserSpot> userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny();
         return userSpot.map(spot -> spot.getSpot().getGroup().getName()).orElse(null);
     }
+
 }

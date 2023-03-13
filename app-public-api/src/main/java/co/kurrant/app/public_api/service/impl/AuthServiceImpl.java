@@ -200,7 +200,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 기존에 회원가입을 한 이력이 없는 유저라면 -> 유저 생성
         if (user == null) {
-            UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
+            UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail().trim()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
 
             // Corporation과 Apartment가 null로 대입되는 오류 발생 -> nullable = true 설정
             user = userMapper.toEntity(userDto);
@@ -306,22 +306,26 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 어떤 것도 가입되지 않은 유저라면 계정 생성
-        UserDto userDto = UserDto.builder().role(Role.USER).email(email).phone(phone).name(name).build();
+        UserDto userDto = UserDto.builder().role(Role.USER).email(email.trim()).phone(phone).name(name).build();
 
         User user = userRepository.save(userMapper.toEntity(userDto));
 
         // 등록된 사원인지 검증
-        clientUtil.isRegisteredUser(user);
+        Boolean isRegisteredUser = clientUtil.isRegisteredUser(user);
 
         ProviderEmail newProviderEmail2 = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
         providerEmailRepository.save(newProviderEmail2);
-        return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
 
+        if (isRegisteredUser) {
+            return getLoginAccessToken(user, SpotStatus.NO_SPOT_BUT_HAS_CLIENT);
+
+        }
+        return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
     }
 
     @Override
     @Transactional
-    public LoginResponseDto appleLoginOrJoin(Map<String,Object> appleLoginDto) throws JsonProcessingException {
+    public LoginResponseDto appleLoginOrJoin(Map<String, Object> appleLoginDto) throws JsonProcessingException {
         Provider provider = Provider.APPLE;
 
         // Vendor 로그인 시도
@@ -351,22 +355,27 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 어떤 것도 가입되지 않은 유저라면 계정 생성
-        UserDto userDto = UserDto.builder().role(Role.USER).email(email).name(name).build();
+        UserDto userDto = UserDto.builder().role(Role.USER).email(email.trim()).name(name).build();
 
         User user = userRepository.save(userMapper.toEntity(userDto));
 
         // 등록된 사원인지 검증
-        clientUtil.isRegisteredUser(user);
+        Boolean isRegisteredUser = clientUtil.isRegisteredUser(user);
 
         ProviderEmail newProviderEmail2 = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
         providerEmailRepository.save(newProviderEmail2);
+
+        if (isRegisteredUser) {
+            return getLoginAccessToken(user, SpotStatus.NO_SPOT_BUT_HAS_CLIENT);
+
+        }
         return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
     }
 
     @Override
     public LoginTokenDto reissue(TokenDto reissueTokenDto) {
         // Access Token이 유효한 경우
-        if(jwtTokenProvider.validateToken(reissueTokenDto.getAccessToken())) {
+        if (jwtTokenProvider.validateToken(reissueTokenDto.getAccessToken())) {
             // 1. Refresh Token 검증
             if (!jwtTokenProvider.validateToken(reissueTokenDto.getRefreshToken())) {
                 throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
@@ -379,7 +388,7 @@ public class AuthServiceImpl implements AuthService {
             List<RefreshTokenHash> refreshTokenHashs = refreshTokenRepository.findAllByUserId(userId);
 
             // 4. 로그아웃 되어 Refresh Token이 존재하지 않는 경우 처리
-            if(refreshTokenHashs == null) {
+            if (refreshTokenHashs == null) {
                 throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
             }
             // 5. 잘못된 Refresh Token일 경우 예외 처리
@@ -417,7 +426,7 @@ public class AuthServiceImpl implements AuthService {
             Optional<RefreshTokenHash> refreshTokenHash = refreshTokenRepository.findOneByRefreshToken(refreshToken);
 
             // 3. 로그아웃 되어 Refresh Token이 존재하지 않는 경우 처리
-            if(refreshTokenHash.isEmpty()) {
+            if (refreshTokenHash.isEmpty()) {
                 throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
             }
             // 4. Refresh Token을 통해 유저 정보 가져오기
