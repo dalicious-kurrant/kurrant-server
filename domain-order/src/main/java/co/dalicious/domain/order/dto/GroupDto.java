@@ -1,4 +1,4 @@
-package co.kurrant.app.client_api.dto;
+package co.dalicious.domain.order.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -11,16 +11,16 @@ import java.util.List;
 @Setter
 @Schema(description = "그룹 조회 DTO")
 public class GroupDto {
-    private Group group;
     private List<Spot> spots;
+    private List<Makers> makers;
     private List<DiningType> diningTypes;
     private List<User> users;
 
     @Setter
     @Getter
-    public static class Group {
-        private BigInteger groupId;
-        private String groupName;
+    public static class Makers {
+        private BigInteger makersId;
+        private String makersName;
     }
 
     @Setter

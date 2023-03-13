@@ -180,9 +180,9 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7}
           
           cd ../batch
-          docker build -t batch .
-          docker tag batch ${{ secrets.DOCKER_USERNAME }}/batch:${GITHUB_SHA::7}
-          docker push ${{ secrets.DOCKER_USERNAME }}/batch:${GITHUB_SHA::7}
+          docker build -t kurrant_batch .
+          docker tag kurrant_batch ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
+          docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
 
 
       - name: 배포
@@ -201,18 +201,18 @@ jobs:
             docker tag ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7} client_kurrant_v1
             docker pull ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7}
             docker tag ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7} admin_kurrant_v1
-            docker pull ${{ secrets.DOCKER_USERNAME }}/batch:${GITHUB_SHA::7}
-            docker tag ${{ secrets.DOCKER_USERNAME }}/batch:${GITHUB_SHA::7} batch
+            docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
+            docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7} kurrant_batch
             docker stop kurrant_v1
             docker stop makers_kurrant_v1
             docker stop client_kurrant_v1
             docker stop admin_kurrant_v1
-            docker stop batch
+            docker stop kurrant_batch
             sleep 5
             docker run -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
             docker run -d --rm --net redis_redis_cluster --name makers_kurrant_v1 -p 8884:8884 makers_kurrant_v1
             docker run -d --rm --net redis_redis_cluster --name client_kurrant_v1 -p 8886:8886 client_kurrant_v1
             docker run -d --rm --net redis_redis_cluster --name admin_kurrant_v1 -p 8888:8888 admin_kurrant_v1
-            docker run -d --rm --net redis_redis_cluster --name batch -p 8888:8888 batch
+            docker run -d --rm --name kurrant_batch -p 8890:8890 kurrant_batch
 
 
