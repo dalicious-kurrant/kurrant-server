@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +27,9 @@ public class ReviewsController {
     @GetMapping("/all")
     public ResponseMessage getAllReviews(@RequestParam Map<String, Object> parameters,
                                          @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable,
-                                         @RequestParam LocalDate start, @RequestParam LocalDate end) {
+                                         @RequestParam String startDate, @RequestParam String endDate) {
+        LocalDate start = DateUtils.stringToDate(startDate);
+        LocalDate end = DateUtils.stringToDate(endDate);
         return ResponseMessage.builder()
                 .message("리뷰를 조회했습니다.")
                 .data(reviewService.getAllReviews(parameters, limit, page, pageable, start, end))

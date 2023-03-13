@@ -1,14 +1,18 @@
 package co.dalicious.domain.review.mapper;
 
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.review.dto.ReviewAdminResDto;
 import co.dalicious.domain.review.dto.ReviewListDto;
 import co.dalicious.domain.review.dto.ReviewReqDto;
 import co.dalicious.domain.review.dto.ReviewableItemListDto;
+import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
@@ -19,7 +23,7 @@ import org.mapstruct.Named;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface ReviewMapper {
 
     @Mapping(source = "imageList", target = "images")
@@ -74,4 +78,24 @@ public interface ReviewMapper {
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM);
     }
+
+    @Mapping(source = "reviews.id", target = "reviewId")
+    @Mapping(source = "reviews.orderItem", target = "serviceDate", qualifiedByName = "getServiceDate")
+    @Mapping(source = "reviews.orderItem.id", target = "orderItemId")
+    @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
+    @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
+    @Mapping(source = "reviews.satisfaction", target = "satisfaction")
+    @Mapping(source = "reviews.createdDateTime", target = "createdDate")
+    @Mapping(source = "reviews.content", target = "content")
+    @Mapping(source = "reviews.isReports", target = "isReport")
+    ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
+
+    @Named("getServiceDate")
+    default String getServiceDate(OrderItem orderItem) {
+        if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+            return DateUtils.localDateToString(orderItemDailyFood.getDailyFood().getServiceDate());
+        }
+        return null;
+    }
+
 }

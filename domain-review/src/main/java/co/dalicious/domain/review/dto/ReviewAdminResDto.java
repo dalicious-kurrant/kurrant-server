@@ -15,8 +15,9 @@ import java.util.stream.Collectors;
 @Builder
 public class ReviewAdminResDto {
 
-    List<MakersInfo> makersInfoList;
-    List<ReviewList> reviewList;
+    private Integer unansweredCount;
+    private List<MakersInfo> makersInfoList;
+    private List<ReviewList> reviewList;
 
     @Getter
     @Setter
@@ -65,9 +66,10 @@ public class ReviewAdminResDto {
         }
     }
 
-    public static ReviewAdminResDto create(List<Makers> makersList, List<ReviewList> reviewList) {
+    public static ReviewAdminResDto create(List<Makers> makersList, List<ReviewList> reviewList, Integer count) {
         List<MakersInfo> makersInfos = makersList.stream().map(MakersInfo::create).collect(Collectors.toList());
         return ReviewAdminResDto.builder()
+                .unansweredCount(count)
                 .makersInfoList(makersInfos)
                 .reviewList(reviewList)
                 .build();
