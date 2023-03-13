@@ -1,6 +1,8 @@
 package co.kurrant.app.client_api.service.impl;
 
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderDailyFood;
@@ -16,7 +18,7 @@ import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
-import co.kurrant.app.client_api.dto.GroupDto;
+import co.dalicious.domain.order.dto.GroupDto;
 import co.kurrant.app.client_api.mapper.GroupMapper;
 import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.ClientOrderService;
@@ -45,23 +47,18 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     private final OrderRepository orderRepository;
     private final UserGroupRepository userGroupRepository;
     private final GroupMapper groupMapper;
+    private final MakersRepository makersRepository;
 
     @Override
     @Transactional
-    public GroupDto getGroupInfo(SecurityUser securityUser) {
+    public GroupDto getGroupInfo(SecurityUser securityUser, Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
         Corporation corporation = userUtil.getCorporation(securityUser);
-        List<UserGroup> userGroups = userGroupRepository.findAllByGroup(corporation);
-        Set<User> users = userGroups.stream()
-                .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
-                .map(UserGroup::getUser)
-                .collect(Collectors.toSet());
 
-        Set<User> withDrawlUsers = userGroups.stream()
-                .filter(v -> v.getClientStatus().equals(ClientStatus.WITHDRAWAL))
-                .map(UserGroup::getUser)
-                .collect(Collectors.toSet());
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllGroupOrderByFilter(corporation, startDate, endDate, null, null, null);
 
-        return groupMapper.groupToGroupDto(corporation, users, withDrawlUsers);
+        return orderMapper.toGroupDtos(corporation, orderItemDailyFoods);
     }
 
     @Override
@@ -72,10 +69,13 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         List<BigInteger> spotIds = !parameters.containsKey("spots") || parameters.get("spots").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("spots"));
         Integer diningTypeCode = !parameters.containsKey("diningType") || parameters.get("diningType").equals("") ? null : Integer.parseInt((String) parameters.get("diningType"));
         BigInteger userId = !parameters.containsKey("userId") || parameters.get("userId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("userId")));
+        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
 
         Corporation corporation = userUtil.getCorporation(securityUser);
+        Makers makers = (makersId != null) ? makersRepository.findById(makersId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
 
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllGroupOrderByFilter(corporation, startDate, endDate, spotIds, diningTypeCode, userId);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, corporation, spotIds, diningTypeCode, userId, makers);
         return orderMapper.toGroupOrderDto(orderItemDailyFoods);
     }
 

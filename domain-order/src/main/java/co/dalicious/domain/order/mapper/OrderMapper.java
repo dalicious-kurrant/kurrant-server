@@ -1,10 +1,11 @@
 package co.dalicious.domain.order.mapper;
 
-import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
-import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
+import co.dalicious.domain.order.dto.GroupDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.util.OrderUtil;
@@ -22,7 +23,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -96,6 +96,9 @@ public interface OrderMapper {
     default List<OrderDto.OrderItemDailyFood> orderItemDailyFoodsToDtos(List<OrderItemDailyFood> orderItemDailyFoods) {
         return orderItemDailyFoods.stream()
                 .map(this::orderItemDailyFoodToDto)
+                .sorted(Comparator.comparing((OrderDto.OrderItemDailyFood v) -> DateUtils.stringToDate(v.getServiceDate()))
+                        .thenComparing(v -> DiningType.ofString(v.getDiningType()))
+                )
                 .collect(Collectors.toList());
     }
 
@@ -255,6 +258,62 @@ public interface OrderMapper {
                 )
                 .collect(Collectors.toList());
         return orderItemStatics;
+    }
+
+
+    default GroupDto toGroupDtos(Group group, List<OrderItemDailyFood> orderItemDailyFoods) {
+        GroupDto groupDto = new GroupDto();
+        Set<User> users = new HashSet<>();
+        Set<Makers> makers = new HashSet<>();
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            users.add(orderItemDailyFood.getOrder().getUser());
+            makers.add(orderItemDailyFood.getDailyFood().getFood().getMakers());
+        }
+        groupDto.setSpots(spotsToDtos(group.getSpots()));
+        groupDto.setUsers(userToDtos(users));
+        groupDto.setDiningTypes(diningTypesToDtos(group.getDiningTypes()));
+        groupDto.setMakers(makersToDtos(makers));
+        return groupDto;
+    }
+
+    @Mapping(source = "id", target = "spotId")
+    @Mapping(source = "name", target = "spotName")
+    GroupDto.Spot spotToDto(Spot spot);
+
+    @Mapping(source = "diningType", target = "diningType")
+    @Mapping(source = "code", target = "code")
+    GroupDto.DiningType diningTypeToDto (DiningType diningType);
+
+    @Mapping(source = "id", target = "userId")
+    @Mapping(source = "name", target = "userName")
+    GroupDto.User userToDto(User user);
+
+    @Mapping(source = "id", target = "makersId")
+    @Mapping(source = "name", target = "makersName")
+    GroupDto.Makers makersToDto(Makers makers);
+
+    default List<GroupDto.User> userToDtos(Set<User> users) {
+        return users.stream()
+                .map(this::userToDto)
+                .collect(Collectors.toList());
+    }
+
+    default List<GroupDto.Spot> spotsToDtos(List<Spot> spots) {
+        return spots.stream()
+                .map(this::spotToDto)
+                .collect(Collectors.toList());
+    }
+
+    default List<GroupDto.Makers> makersToDtos(Set<Makers> makers) {
+        return makers.stream()
+                .map(this::makersToDto)
+                .collect(Collectors.toList());
+    }
+
+    default List<GroupDto.DiningType> diningTypesToDtos(List<DiningType> diningTypes) {
+        return diningTypes.stream()
+                .map(this::diningTypeToDto)
+                .collect(Collectors.toList());
     }
 }
 
