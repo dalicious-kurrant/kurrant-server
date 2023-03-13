@@ -180,7 +180,7 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7}
           
           cd ../batch
-          docker build -t batch .
+          docker build -t kurrant_batch .
           docker tag kurrant_batch ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
           docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
 
@@ -213,6 +213,6 @@ jobs:
             docker run -d --rm --net redis_redis_cluster --name makers_kurrant_v1 -p 8884:8884 makers_kurrant_v1
             docker run -d --rm --net redis_redis_cluster --name client_kurrant_v1 -p 8886:8886 client_kurrant_v1
             docker run -d --rm --net redis_redis_cluster --name admin_kurrant_v1 -p 8888:8888 admin_kurrant_v1
-            docker run -d --rm --name batch -p 8890:8890 kurrant_batch
+            docker run -d --rm --name kurrant_batch -p 8890:8890 kurrant_batch
 
 
