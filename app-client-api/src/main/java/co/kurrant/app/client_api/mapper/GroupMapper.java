@@ -4,11 +4,12 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.client_api.dto.GroupDto;
+import co.dalicious.domain.order.dto.GroupDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -22,10 +23,6 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class, BigDecimal.class})
 public interface GroupMapper {
-    @Mapping(source = "id", target = "groupId")
-    @Mapping(source = "name", target = "groupName")
-    @Named("toIdAndNameDto")
-    GroupDto.Group groupToDto(Group group);
 
     @Mapping(source = "id", target = "spotId")
     @Mapping(source = "name", target = "spotName")
@@ -39,6 +36,10 @@ public interface GroupMapper {
     @Mapping(source = "name", target = "userName")
     GroupDto.User userToDto(User user);
 
+    @Mapping(source = "id", target = "makersId")
+    @Mapping(source = "name", target = "makersName")
+    GroupDto.Makers makersToDto(Makers makers);
+
 
     default GroupDto.User withDrawlUsersToDto(User user) {
         GroupDto.User userDto = new GroupDto.User();
@@ -47,15 +48,15 @@ public interface GroupMapper {
         return userDto;
     };
 
-    default List<GroupDto.Group> groupsToDtos(List<? extends Group> groups) {
-        return groups.stream()
-                .map(this::groupToDto)
-                .collect(Collectors.toList());
-    }
-
     default List<GroupDto.Spot> spotsToDtos(List<Spot> spots) {
         return spots.stream()
                 .map(this::spotToDto)
+                .collect(Collectors.toList());
+    }
+
+    default List<GroupDto.Makers> makersToDtos(List<Makers> makers) {
+        return makers.stream()
+                .map(this::makersToDto)
                 .collect(Collectors.toList());
     }
 
@@ -82,21 +83,11 @@ public interface GroupMapper {
         return userDtos;
     }
 
-    default GroupDto groupToGroupDto(Group group, List<User> users) {
-        GroupDto groupDto = new GroupDto();
-        if(group != null) {
-            groupDto.setGroup(groupToDto(group));
-            groupDto.setSpots(spotsToDtos(group.getSpots()));
-            groupDto.setDiningTypes(diningTypesToDtos(group.getDiningTypes()));
-        }
-        groupDto.setUsers(usersToDtos(users));
-        return groupDto;
-    }
 
-    default GroupDto groupToGroupDto(Group group, Set<User> users, Set<User> withDrawlUsers) {
+    default GroupDto groupToGroupDto(Group group, Set<User> users, Set<User> withDrawlUsers, List<Makers> makers) {
         GroupDto groupDto = new GroupDto();
         if(group != null) {
-            groupDto.setGroup(groupToDto(group));
+            groupDto.setMakers(makersToDtos(makers));
             groupDto.setSpots(spotsToDtos(group.getSpots()));
             groupDto.setDiningTypes(diningTypesToDtos(group.getDiningTypes()));
         }

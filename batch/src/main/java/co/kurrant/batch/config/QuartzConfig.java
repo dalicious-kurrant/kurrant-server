@@ -39,7 +39,7 @@ public class QuartzConfig {
 
     private Properties quartzProperties() {
         PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
-        propertiesFactoryBean.setLocation(new ClassPathResource("quartz.properties"));
+        propertiesFactoryBean.setLocation(new ClassPathResource("application-quartz.properties"));
         Properties properties = null;
         try {
             propertiesFactoryBean.afterPropertiesSet();

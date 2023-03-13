@@ -203,7 +203,7 @@ public class UserServiceImpl implements UserService {
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
             UserDto userDto = UserDto.builder()
-                    .email(createUserDto.getEmail())
+                    .email(createUserDto.getEmail().trim())
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
                     .phone(createUserDto.getPhone())
                     .name(createUserDto.getName())

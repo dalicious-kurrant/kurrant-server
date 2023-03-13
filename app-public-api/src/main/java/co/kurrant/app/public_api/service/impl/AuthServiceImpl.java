@@ -200,7 +200,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 기존에 회원가입을 한 이력이 없는 유저라면 -> 유저 생성
         if (user == null) {
-            UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
+            UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail().trim()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
 
             // Corporation과 Apartment가 null로 대입되는 오류 발생 -> nullable = true 설정
             user = userMapper.toEntity(userDto);
@@ -306,7 +306,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 어떤 것도 가입되지 않은 유저라면 계정 생성
-        UserDto userDto = UserDto.builder().role(Role.USER).email(email).phone(phone).name(name).build();
+        UserDto userDto = UserDto.builder().role(Role.USER).email(email.trim()).phone(phone).name(name).build();
 
         User user = userRepository.save(userMapper.toEntity(userDto));
 
@@ -355,7 +355,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 어떤 것도 가입되지 않은 유저라면 계정 생성
-        UserDto userDto = UserDto.builder().role(Role.USER).email(email).name(name).build();
+        UserDto userDto = UserDto.builder().role(Role.USER).email(email.trim()).name(name).build();
 
         User user = userRepository.save(userMapper.toEntity(userDto));
 
