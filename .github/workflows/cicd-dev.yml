@@ -33,8 +33,8 @@ jobs:
           cd resources
           touch ./application.yaml
           echo "${{ secrets.BATCH_DEV_YAML }}" > ./application.yaml
-          touch ./quartz.properties
-          echo "${{ secrets.BATCH_QUARTZ_DEV_PROPERTIES }}" > ./quartz.properties
+          touch ./application-quartz.properties
+          echo "${{ secrets.BATCH_QUARTZ_DEV_PROPERTIES }}" > ./application-quartz.properties
         shell: bash
 
       # app-public-api의 설정파일(.yaml) 생성
