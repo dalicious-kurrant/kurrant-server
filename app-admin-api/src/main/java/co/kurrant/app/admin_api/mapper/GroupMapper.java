@@ -3,8 +3,8 @@ package co.kurrant.app.admin_api.mapper;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
@@ -106,9 +106,9 @@ public interface GroupMapper {
     @Named("getGroupDataType")
     default Integer getGroupDataType(Group group) {
         Integer groupType = null;
-        if(group instanceof Corporation ) groupType = ClientType.CORPORATION.getCode();
-        else if(group instanceof Apartment) groupType = ClientType.APARTMENT.getCode();
-        else if(group instanceof OpenGroup) groupType = ClientType.OPEN_GROUP.getCode();
+        if(group instanceof Corporation ) groupType = GroupDataType.CORPORATION.getCode();
+        else if(group instanceof Apartment) groupType = GroupDataType.APARTMENT.getCode();
+        else if(group instanceof OpenGroup) groupType = GroupDataType.OPEN_GROUP.getCode();
         return groupType;
     }
 
