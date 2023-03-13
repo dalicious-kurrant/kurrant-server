@@ -46,7 +46,6 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
     private final OrderRepository orderRepository;
     private final UserGroupRepository userGroupRepository;
-    private final GroupMapper groupMapper;
     private final MakersRepository makersRepository;
 
     @Override

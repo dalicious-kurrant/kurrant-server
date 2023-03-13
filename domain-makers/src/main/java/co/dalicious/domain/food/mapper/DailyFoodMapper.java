@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.food.dto.DailyFoodGroupDto;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodDto;
 import co.dalicious.domain.food.entity.*;
@@ -15,32 +16,53 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
 import org.mapstruct.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalTime;
+import java.util.*;
 
-@Mapper(componentModel = "spring", imports = FoodUtil.class)
+@Mapper(componentModel = "spring", imports = {FoodUtil.class, DateUtils.class})
 public interface DailyFoodMapper {
       @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.diningType", target = "diningType")
-      @Mapping(target = "dailyFoodStatus", constant = "SALES")
+      @Mapping(target = "dailyFoodStatus", constant = "WAITING")
       @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.serviceDate", target = "serviceDate")
       @Mapping(source = "food", target = "food")
       @Mapping(source = "presetGroupDailyFood.group", target = "group")
-      DailyFood toDailyFood(PresetDailyFood presetDailyFood);
+      @Mapping(target = "dailyFoodGroup", expression = "java(toDailyFoodGroup(presetGroupDailyFood))")
+      default DailyFood toDailyFood(PresetDailyFood presetDailyFood, DailyFoodGroup dailyFoodGroup) {
+            return DailyFood.builder()
+                    .diningType(presetDailyFood.getPresetGroupDailyFood().getPresetMakersDailyFood().getDiningType())
+                    .dailyFoodStatus(DailyFoodStatus.WAITING)
+                    .serviceDate(presetDailyFood.getPresetGroupDailyFood().getPresetMakersDailyFood().getServiceDate())
+                    .food(presetDailyFood.getFood())
+                    .group(presetDailyFood.getPresetGroupDailyFood().getGroup())
+                    .dailyFoodGroup(dailyFoodGroup)
+                    .build();
+      };
 
-      default List<DailyFood> toDailyFoods(List<FoodDto.DailyFood> dailyFoodDtos, List<Group> groups, List<Food> foods) {
+      @Mapping(source = "pickupTime", target = "pickupTime")
+      DailyFoodGroup toDailyFoodGroup(PresetGroupDailyFood presetGroupDailyFood);
+
+      default DailyFoodGroup toDailyFoodGroup(FoodDto.DailyFood dailyFood) {
+            return new DailyFoodGroup(DateUtils.stringToLocalTime(dailyFood.getMakersPickupTime()));
+      };
+
+      default List<DailyFood> toDailyFoods(MultiValueMap<DailyFoodGroup, FoodDto.DailyFood> dailyFoodMap, List<Group> groups, List<Food> foods) {
             List<DailyFood> dailyFoods = new ArrayList<>();
-            for (FoodDto.DailyFood dailyFoodDto : dailyFoodDtos) {
-                  dailyFoods.add(toDailyFood(groups, dailyFoodDto, foods));
+            for (DailyFoodGroup dailyFoodGroup : dailyFoodMap.keySet()) {
+                  List<FoodDto.DailyFood> dailyFoodDtos = dailyFoodMap.get(dailyFoodGroup);
+                  for (FoodDto.DailyFood dailyFoodDto : dailyFoodDtos) {
+                        dailyFoods.add(toDailyFood(groups, dailyFoodDto, foods, dailyFoodGroup));
+                  }
             }
             return dailyFoods;
       }
 
 
-      default DailyFood toDailyFood(List<Group> groups, FoodDto.DailyFood dailyFoodDto, List<Food> foods) {
+      default DailyFood toDailyFood(List<Group> groups, FoodDto.DailyFood dailyFoodDto, List<Food> foods, DailyFoodGroup dailyFoodGroup) {
             Food food = Food.getFood(foods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
             if(food == null) {
                   throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
@@ -51,7 +73,7 @@ public interface DailyFoodMapper {
                   throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
             }
             return DailyFood.builder()
-                    .id(dailyFoodDto.getDailyFoodId() == null ? null : dailyFoodDto.getDailyFoodId())
+                    .dailyFoodGroup(dailyFoodGroup)
                     .dailyFoodStatus(DailyFoodStatus.WAITING)
                     .diningType(DiningType.ofCode(dailyFoodDto.getDiningType()))
                     .serviceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()))
