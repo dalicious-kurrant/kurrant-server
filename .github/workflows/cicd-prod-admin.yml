@@ -25,16 +25,16 @@ jobs:
         java-version: '17'
         distribution: 'adopt'
 
-    # app-makers-api의 설정파일(.yaml) 생성
-    - name: app-makers-api application.yaml(prod) 생성
+    # app-admin-api의 설정파일(.yaml) 생성
+    - name: app-admin-api application.yaml(prod) 생성
       run: |
-        cd ./app-makers-api/src/main
+        cd ./app-admin-api/src/main
         mkdir resources
         cd resources
         touch ./application.yaml
-        echo "${{ secrets.APP_MAKERS_API_PROD_YAML }}" > ./application.yaml
+        echo "${{ secrets.APP_ADMIN_API_PROD_YAML }}" > ./application.yaml
         touch ./application-prod.yaml
-        echo "${{ secrets.APP_MAKERS_API_PROD_PROD_YAML }}" > ./application-prod.yaml
+        echo "${{ secrets.APP_ADMIN_API_PROD_PROD_YAML }}" > ./application-prod.yaml
       shell: bash
 
     - name: app-admin-api firebase.json 생성
