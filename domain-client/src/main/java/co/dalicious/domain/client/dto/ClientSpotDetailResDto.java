@@ -31,6 +31,7 @@ public class ClientSpotDetailResDto {
     public static class MealTypeInfo {
         private Integer diningType;
         private String serviceDays;
+        private String membershipBenefitTime;
         private String lastOrderTime;
         private String deliveryTime;
         private BigDecimal supportPrice;
@@ -39,7 +40,8 @@ public class ClientSpotDetailResDto {
         public MealTypeInfo(MealInfo mealInfo) {
             this.diningType = mealInfo.getDiningType().getCode();
             this.serviceDays = mealInfo.getServiceDays();
-            this.lastOrderTime = DayAndTime.dayAndTimeToString(mealInfo.getLastOrderTime()) ;
+            this.membershipBenefitTime = DayAndTime.dayAndTimeToString(mealInfo.getMembershipBenefitTime());
+            this.lastOrderTime = DayAndTime.dayAndTimeToString(mealInfo.getLastOrderTime());
             this.deliveryTime =  DateUtils.timeToString(mealInfo.getDeliveryTime());
             this.supportPrice = (mealInfo instanceof CorporationMealInfo) ?
                         ((CorporationMealInfo) mealInfo).getSupportPrice() :
