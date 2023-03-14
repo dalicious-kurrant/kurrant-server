@@ -282,7 +282,9 @@ public class QOrderDailyFoodRepository {
         }
 
         return queryFactory.selectFrom(orderItemDailyFood)
-                .where(whereClause)
+                .where(whereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED))
                 .fetch();
     }
+
+
 }

@@ -2,13 +2,19 @@ package co.kurrant.app.admin_api.dto;
 
 import co.dalicious.domain.client.dto.GroupInfo;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.Makers;
+import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.geolatte.geom.M;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -86,5 +92,33 @@ public class DeliveryDto {
                 .groupInfoList(groupInfos)
                 .deliveryInfoList(deliveryInfoList)
                 .build();
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    public static class MakersGrouping {
+        private LocalDate serviceDate;
+        private Group group;
+        private Makers makers;
+
+        public static MakersGrouping create(DailyFood dailyFood) {
+            return MakersGrouping.builder()
+                    .serviceDate(dailyFood.getServiceDate())
+                    .group(dailyFood.getGroup())
+                    .makers(dailyFood.getFood().getMakers())
+                    .build();
+        }
+
+        public boolean equals(Object obj) {
+            if(obj instanceof MakersGrouping tmp) {
+                return serviceDate.equals(tmp.serviceDate) && group.equals(tmp.group) && makers.equals(tmp.makers);
+            }
+            return false;
+        }
+
+        public int hashCode() {
+            return Objects.hash(serviceDate, group, makers);
+        }
     }
 }
