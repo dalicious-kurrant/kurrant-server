@@ -4,6 +4,8 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.DeliveryDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -11,7 +13,10 @@ import org.mapstruct.Named;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Mapper(componentModel = "spring")
 public interface DeliveryMapper {
@@ -24,8 +29,9 @@ public interface DeliveryMapper {
     @Mapping(source = "group.id", target = "groupId")
     @Mapping(source = "group.name", target = "groupName")
     @Mapping(source = "deliveryTime", target = "deliveryTime")
+    @Mapping(source = "diningType", target = "diningType")
     @Mapping(source = "deliveryMakersList", target = "makers")
-    DeliveryDto.DeliveryGroup toDeliveryGroup(Group group, LocalTime deliveryTime, List<DeliveryDto.DeliveryMakers> deliveryMakersList);
+    DeliveryDto.DeliveryGroup toDeliveryGroup(Group group, Integer diningType, LocalTime deliveryTime, List<DeliveryDto.DeliveryMakers> deliveryMakersList);
 
     @Named("getDeliveryTime")
     default LocalTime getDeliveryTime(List<MealInfo> mealInfos) {

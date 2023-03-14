@@ -12,7 +12,6 @@ import co.dalicious.domain.client.repository.MealInfoRepository;
 import co.dalicious.domain.client.repository.QCorporationRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.admin_api.mapper.CorporationMealInfoMapper;
@@ -47,12 +46,12 @@ public class GroupServiceImpl implements GroupService {
         // 기업 정보 dto 맵핑하기
         List<GroupListDto.GroupInfoList> groupListDtoList = new ArrayList<>();
         if(groupList != null && !groupList.isEmpty()) {
-            List<BigInteger> managerIds = groupList.stream().map(Group::getManagerId).toList();
-            List<User> users = qUserRepository.getUserAllById(managerIds);
+            List<BigInteger> managerIds = groupList.stream().map(Group::getManagerId).filter(Objects::nonNull).toList();
+            List<User> users = (managerIds.isEmpty()) ? null : qUserRepository.getUserAllById(managerIds);
             for(Group group : groupList) {
                 User managerUser = null;
                 if(group.getManagerId() != null) {
-                    managerUser = users.stream().filter(user -> user.getId().equals(group.getManagerId())).findFirst().orElse(null);
+                    managerUser = (users != null) ? users.stream().filter(user -> user.getId().equals(group.getManagerId())).findFirst().orElse(null) : null;
                 }
                 GroupListDto.GroupInfoList corporationListDto = groupMapper.toCorporationListDto(group, managerUser);
                 groupListDtoList.add(corporationListDto);
@@ -199,12 +198,12 @@ public class GroupServiceImpl implements GroupService {
 
         if(groupAllList.isEmpty()) { return groupListDtoList; }
 
-        List<BigInteger> managerIds = groupAllList.stream().map(Group::getManagerId).toList();
-        List<User> users = qUserRepository.getUserAllById(managerIds);
+        List<BigInteger> managerIds = groupAllList.stream().map(Group::getManagerId).filter(Objects::nonNull).toList();
+        List<User> users = (managerIds.isEmpty()) ? null : qUserRepository.getUserAllById(managerIds);
         for(Group group : groupAllList) {
             User managerUser = null;
             if(group.getManagerId() != null) {
-                managerUser = users.stream().filter(user -> user.getId().equals(group.getManagerId())).findFirst().orElse(null);
+                managerUser = (users != null) ? users.stream().filter(user -> user.getId().equals(group.getManagerId())).findFirst().orElse(null) : null;
             }
             GroupListDto.GroupInfoList corporationListDto = groupMapper.toCorporationListDto(group, managerUser);
             groupListDtoList.add(corporationListDto);
