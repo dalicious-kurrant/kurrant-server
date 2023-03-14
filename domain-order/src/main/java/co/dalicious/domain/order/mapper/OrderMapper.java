@@ -239,14 +239,15 @@ public interface OrderMapper {
             }
 
             OrderDto.OrderItemStatic orderItemStatic = new OrderDto.OrderItemStatic();
+            Integer userCount = UserGroup.activeUserCount(diningTypeServiceDateDto.getServiceDate(), userGroups).intValue();
             orderItemStatic.setServiceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate()));
             orderItemStatic.setDiningType(diningTypeServiceDateDto.getDiningType().getDiningType());
+            orderItemStatic.setUserCount(userCount);
+            orderItemStatic.setOrderUserCount(orderUsers.size());
             orderItemStatic.setFoodCount(foodCount);
             orderItemStatic.setBuyingUserCount(orderCompleteUsers.size());
-            orderItemStatic.setOrderRate(PriceUtils.getPercent(userGroups.size(), orderCompleteUsers.size()));
+            orderItemStatic.setOrderRate(PriceUtils.getPercent(userCount, orderCompleteUsers.size()));
             orderItemStatic.setCancelRate(PriceUtils.getPercent(orderUsers.size(), orderUsers.size() - orderCompleteUsers.size()));
-            orderItemStatic.setOrderRateFormula(userGroups.size(), orderCompleteUsers.size());
-            orderItemStatic.setCancelRateFormula(orderUsers.size(), orderUsers.size() - orderCompleteUsers.size());
             orderItemStatic.setTotalPrice(totalPrice);
 
             orderItemStatics.add(orderItemStatic);
