@@ -212,7 +212,7 @@ public class UserServiceImpl implements UserService {
             user.updatePoint(BigDecimal.valueOf(createUserDto.getPoint() == null ? 0 : createUserDto.getPoint()));
             user.changeMarketingAgreement(createUserDto.getMarketingAgree(), createUserDto.getMarketingAlarm(), createUserDto.getOrderAlarm());
 
-            ProviderEmail providerEmail = ProviderEmail.builder().email(createUserDto.getEmail()).provider(Provider.GENERAL).user(user).build();
+            ProviderEmail providerEmail = ProviderEmail.builder().email(createUserDto.getEmail().trim()).provider(Provider.GENERAL).user(user).build();
             providerEmailRepository.save(providerEmail);
 
             List<String> groupsName = Optional.ofNullable(createUserDto.getGroupName())
