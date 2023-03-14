@@ -14,6 +14,7 @@ import org.mapstruct.Mapper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -164,10 +165,12 @@ public interface OrderDailyFoodByMakersMapper {
                 foodDto.setFoodName(food.getName());
                 foodList.add(foodDto);
             }
+            LocalTime pickupTime = orderItemDailyFoods.get(0).getDailyFood().getDailyFoodGroup().getPickupTime();
             OrderDailyFoodByMakersDto.SpotByDateDiningType spotByDateDiningType = new OrderDailyFoodByMakersDto.SpotByDateDiningType();
             spotByDateDiningType.setSpotId(spot.getId());
             spotByDateDiningType.setSpotName(spot.getName());
             spotByDateDiningType.setFoods(foodList);
+            spotByDateDiningType.setPickupTime(DateUtils.timeToString(pickupTime));
             spotByDateDiningType.setDeliveryTime(spot.getDeliveryTime(diningType) == null ? null : DateUtils.timeToString(spot.getDeliveryTime(diningType)));
             spotByDateDiningTypes.add(spotByDateDiningType);
         }

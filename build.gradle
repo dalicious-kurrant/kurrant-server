@@ -204,6 +204,7 @@ project(':app-admin-api') {
         implementation project(':domain-order')
         implementation project(':domain-client')
         implementation project(':domain-recommend')
+        implementation project(':domain-review')
     }
 }
 

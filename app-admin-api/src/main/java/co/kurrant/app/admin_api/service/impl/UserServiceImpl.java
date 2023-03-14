@@ -112,7 +112,7 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
         }
 
-        // FIXME 수정 요청
+        // FIXME: 수정 요청
         List<ProviderEmail> providerEmails = qProviderEmailRepository.getProviderEmails(emails);
 
         Set<String> updateUserEmails = providerEmails.stream()
@@ -172,10 +172,10 @@ public class UserServiceImpl implements UserService {
                     } else {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
-                        List<UserSpot> userSpots = user.getUserSpots();
-                        Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
-                                .findAny();
-                        userSpot.ifPresent(userSpotRepository::delete);
+                        List<UserSpot> deleteUserSpots = user.getUserSpots().stream()
+                                .filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
+                                .toList();
+                        userSpotRepository.deleteAll(deleteUserSpots);
                     }
                 });
                 // 유저 내에 존재하지 않는 그룹은 추가
@@ -197,7 +197,7 @@ public class UserServiceImpl implements UserService {
             user.changeMarketingAgreement(saveUserListRequestDto.getMarketingAgree(), saveUserListRequestDto.getMarketingAlarm(), saveUserListRequestDto.getOrderAlarm());
         }
 
-        // FIXME 신규 생성 요청
+        // FIXME: 신규 생성 요청
         List<SaveUserListRequestDto> createUserDtos = saveUserListRequestDtoList.stream()
                 .filter(v -> !updateUserEmails.contains(v.getEmail()))
                 .toList();
@@ -212,7 +212,7 @@ public class UserServiceImpl implements UserService {
             user.updatePoint(BigDecimal.valueOf(createUserDto.getPoint() == null ? 0 : createUserDto.getPoint()));
             user.changeMarketingAgreement(createUserDto.getMarketingAgree(), createUserDto.getMarketingAlarm(), createUserDto.getOrderAlarm());
 
-            ProviderEmail providerEmail = ProviderEmail.builder().email(createUserDto.getEmail()).provider(Provider.GENERAL).user(user).build();
+            ProviderEmail providerEmail = ProviderEmail.builder().email(createUserDto.getEmail().trim()).provider(Provider.GENERAL).user(user).build();
             providerEmailRepository.save(providerEmail);
 
             List<String> groupsName = Optional.ofNullable(createUserDto.getGroupName())

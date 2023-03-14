@@ -59,14 +59,24 @@ public class ReviewController {
     }
 
     @Operation(summary = "리뷰 수정", description = "작성한 리뷰 수정")
-    @PatchMapping("")
-    public ResponseMessage updateReviews(Authentication authentication, @RequestParam BigInteger reviewId,
+    @PatchMapping("/update")
+    public ResponseMessage updateReviews(Authentication authentication, @RequestParam BigInteger id,
                                          @RequestPart(required = false) List<MultipartFile> fileList,
                                          @Valid @RequestPart ReviewUpdateReqDto updateReqDto) throws IOException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        reviewService.updateReviews(securityUser, fileList, updateReqDto, reviewId);
+        reviewService.updateReviews(securityUser, fileList, updateReqDto, id);
         return ResponseMessage.builder()
                 .message("리뷰를 수정했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "리뷰 삭제", description = "작성한 리뷰 삭제")
+    @PatchMapping("/delete")
+    public ResponseMessage deleteReviews(Authentication authentication, @RequestParam BigInteger id) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        reviewService.deleteReviews(securityUser, id);
+        return ResponseMessage.builder()
+                .message("리뷰를 삭제했습니다.")
                 .build();
     }
 }
