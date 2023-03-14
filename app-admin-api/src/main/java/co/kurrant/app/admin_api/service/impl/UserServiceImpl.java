@@ -94,8 +94,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
+        saveUserListRequestDtoList.forEach(dto -> dto.setEmail(dto.getEmail().trim()));
+
         List<String> emails = saveUserListRequestDtoList.stream()
-                .map(v -> v.getEmail().trim())
+                .map(SaveUserListRequestDto::getEmail)
                 .toList();
 
         Set<String> groupNames = saveUserListRequestDtoList.stream()
@@ -203,7 +205,7 @@ public class UserServiceImpl implements UserService {
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
             UserDto userDto = UserDto.builder()
-                    .email(createUserDto.getEmail().trim())
+                    .email(createUserDto.getEmail())
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
                     .phone(createUserDto.getPhone())
                     .name(createUserDto.getName())
@@ -212,7 +214,7 @@ public class UserServiceImpl implements UserService {
             user.updatePoint(BigDecimal.valueOf(createUserDto.getPoint() == null ? 0 : createUserDto.getPoint()));
             user.changeMarketingAgreement(createUserDto.getMarketingAgree(), createUserDto.getMarketingAlarm(), createUserDto.getOrderAlarm());
 
-            ProviderEmail providerEmail = ProviderEmail.builder().email(createUserDto.getEmail().trim()).provider(Provider.GENERAL).user(user).build();
+            ProviderEmail providerEmail = ProviderEmail.builder().email(createUserDto.getEmail()).provider(Provider.GENERAL).user(user).build();
             providerEmailRepository.save(providerEmail);
 
             List<String> groupsName = Optional.ofNullable(createUserDto.getGroupName())
