@@ -79,7 +79,8 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         MultiValueMap<LocalDate, DeliveryDto.DeliveryGroup> deliveryGroupMap = new LinkedMultiValueMap<>();
         for(DeliveryDto.GroupGrouping groupGrouping : deliveryMakersMap.keySet()) {
-            List<DeliveryDto.DeliveryMakers> deliveryMakersList = deliveryMakersMap.get(groupGrouping);
+            List<DeliveryDto.DeliveryMakers> deliveryMakersList = Objects.requireNonNull(deliveryMakersMap.get(groupGrouping))
+                    .stream().sorted(Comparator.comparing(deliveryMakers -> LocalTime.parse(deliveryMakers.getPickupTime()))).collect(Collectors.toList());
 
             DiningType diningType = dailyFoodSet.stream()
                     .filter(v -> v.getGroup().equals(groupGrouping.getGroup()) && v.getServiceDate().equals(groupGrouping.getServiceDate()) && v.getDiningType().equals(groupGrouping.getDiningType()))
