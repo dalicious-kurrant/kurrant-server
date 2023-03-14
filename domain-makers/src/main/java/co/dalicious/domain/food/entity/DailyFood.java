@@ -6,6 +6,7 @@ import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -69,28 +70,24 @@ public class DailyFood {
     @Comment("그룹")
     private Group group;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn
+    @JsonManagedReference(value = "daily_food_group_fk")
+    @Comment("그룹")
+    private DailyFoodGroup dailyFoodGroup;
+
     public void updateFoodStatus(DailyFoodStatus dailyFoodStatus) {
         this.dailyFoodStatus = dailyFoodStatus;
     }
 
-    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, Timestamp createdDateTime, Timestamp updatedDateTime, Food food, Group group) {
-        this.diningType = diningType;
-        this.dailyFoodStatus = dailyFoodStatus;
-        this.serviceDate = serviceDate;
-        this.createdDateTime = createdDateTime;
-        this.updatedDateTime = updatedDateTime;
-        this.food = food;
-        this.group = group;
-    }
-
     @Builder
-    public DailyFood(BigInteger id, DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, Food food, Group group) {
-        this.id = id;
+    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, Food food, Group group, DailyFoodGroup dailyFoodGroup) {
         this.diningType = diningType;
         this.dailyFoodStatus = dailyFoodStatus;
         this.serviceDate = serviceDate;
         this.food = food;
         this.group = group;
+        this.dailyFoodGroup = dailyFoodGroup;
     }
 
     public void updateDiningType(DiningType diningType) {

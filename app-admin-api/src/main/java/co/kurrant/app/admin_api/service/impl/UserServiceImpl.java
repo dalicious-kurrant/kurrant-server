@@ -94,8 +94,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
+        saveUserListRequestDtoList.forEach(dto -> dto.setEmail(dto.getEmail().trim()));
+
         List<String> emails = saveUserListRequestDtoList.stream()
-                .map(v -> v.getEmail().trim())
+                .map(SaveUserListRequestDto::getEmail)
                 .toList();
 
         Set<String> groupNames = saveUserListRequestDtoList.stream()
@@ -112,7 +114,7 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
         }
 
-        // FIXME 수정 요청
+        // FIXME: 수정 요청
         List<ProviderEmail> providerEmails = qProviderEmailRepository.getProviderEmails(emails);
 
         Set<String> updateUserEmails = providerEmails.stream()
@@ -172,10 +174,10 @@ public class UserServiceImpl implements UserService {
                     } else {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
-                        List<UserSpot> userSpots = user.getUserSpots();
-                        Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
-                                .findAny();
-                        userSpot.ifPresent(userSpotRepository::delete);
+                        List<UserSpot> deleteUserSpots = user.getUserSpots().stream()
+                                .filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
+                                .toList();
+                        userSpotRepository.deleteAll(deleteUserSpots);
                     }
                 });
                 // 유저 내에 존재하지 않는 그룹은 추가
@@ -197,13 +199,13 @@ public class UserServiceImpl implements UserService {
             user.changeMarketingAgreement(saveUserListRequestDto.getMarketingAgree(), saveUserListRequestDto.getMarketingAlarm(), saveUserListRequestDto.getOrderAlarm());
         }
 
-        // FIXME 신규 생성 요청
+        // FIXME: 신규 생성 요청
         List<SaveUserListRequestDto> createUserDtos = saveUserListRequestDtoList.stream()
                 .filter(v -> !updateUserEmails.contains(v.getEmail()))
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
             UserDto userDto = UserDto.builder()
-                    .email(createUserDto.getEmail().trim())
+                    .email(createUserDto.getEmail())
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
                     .phone(createUserDto.getPhone())
                     .name(createUserDto.getName())

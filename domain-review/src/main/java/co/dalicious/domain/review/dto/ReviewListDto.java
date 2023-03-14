@@ -4,11 +4,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigInteger;
 import java.util.List;
 
 @Getter
 @Setter
 public class ReviewListDto {
+    private BigInteger reviewId;
     private List<String> imageLocation;
     private String content;
     private Integer satisfaction;
@@ -19,7 +21,8 @@ public class ReviewListDto {
     private String itemName;
 
     @Builder
-    public ReviewListDto(List<String> imageLocation, String content, Integer satisfaction,String createDate, String updateDate,Boolean forMakers, String makersName,String itemName) {
+    public ReviewListDto(BigInteger reviewId, List<String> imageLocation, String content, Integer satisfaction,String createDate, String updateDate,Boolean forMakers, String makersName,String itemName) {
+        this.reviewId = reviewId;
         this.imageLocation = imageLocation;
         this.content = content;
         this.satisfaction = satisfaction;

@@ -22,7 +22,6 @@ import co.kurrant.app.public_api.service.ReviewService;
 import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +30,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.file.AccessDeniedException;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -192,6 +190,16 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         reviews.updatedReviews(updateReqDto, imageList);
+    }
+
+    @Override
+    public void deleteReviews(SecurityUser securityUser, BigInteger reviewId) {
+        User user = userUtil.getUser(securityUser);
+        Reviews reviews = qReviewRepository.findByUserAndId(user, reviewId);
+        if(reviews == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REVIEWS);
+
+        reviews.updatedIsDelete(true);
+        reviewRepository.save(reviews);
     }
 
     private void validate(Integer satisfaction, String content) {

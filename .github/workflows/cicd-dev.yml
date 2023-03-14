@@ -29,7 +29,9 @@ jobs:
       - name: batch application.yaml 생성
         run: |
           cd ./batch/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application.yaml
           echo "$BATCH_DEV_YAML" > ./application.yaml
@@ -44,7 +46,9 @@ jobs:
       - name: app-public-api application.yaml(dev) 생성
         run: |
           cd ./app-public-api/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application.yaml
           echo "${{ secrets.APP_PUBLIC_API_DEV_YAML }}" > ./application.yaml
@@ -56,7 +60,9 @@ jobs:
       - name: app-makers-api application.yaml(dev) 생성
         run: |
           cd ./app-makers-api/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application.yaml
           echo "${{ secrets.APP_MAKERS_API_DEV_YAML }}" > ./application.yaml
@@ -68,7 +74,9 @@ jobs:
       - name: app-client-api application.yaml(dev) 생성
         run: |
           cd ./app-client-api/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application.yaml
           echo "${{ secrets.APP_CLIENT_API_DEV_YAML }}" > ./application.yaml
@@ -80,7 +88,9 @@ jobs:
       - name: app-admin-api application.yaml 생성
         run: |
           cd ./app-admin-api/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application.yaml
           echo "${{ secrets.APP_ADMIN_API_DEV_YAML }}" > ./application.yaml
