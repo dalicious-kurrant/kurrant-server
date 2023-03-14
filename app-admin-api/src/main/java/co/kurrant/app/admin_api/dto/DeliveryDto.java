@@ -4,11 +4,11 @@ import co.dalicious.domain.client.dto.GroupInfo;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
-import co.kurrant.app.admin_api.dto.schedules.ExcelPresetDto;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.geolatte.geom.M;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -41,14 +41,14 @@ public class DeliveryDto {
     public static class DeliveryGroup {
         private BigInteger groupId;
         private String groupName;
-        private LocalTime deliveryTime;
+        private String deliveryTime;
         private List<DeliveryMakers> makers;
 
         @Builder
         public DeliveryGroup(BigInteger groupId, String groupName, LocalTime deliveryTime, List<DeliveryMakers> makers) {
             this.groupId = groupId;
             this.groupName = groupName;
-            this.deliveryTime = deliveryTime;
+            this.deliveryTime = (deliveryTime == null) ? null : DateUtils.timeToString(deliveryTime);
             this.makers = makers;
         }
     }
@@ -58,14 +58,14 @@ public class DeliveryDto {
     public static class DeliveryMakers {
         private BigInteger makersId;
         private String makersName;
-        private LocalTime pickupTime;
+        private String pickupTime;
         private List<DeliveryFood> foods;
 
         @Builder
         public DeliveryMakers(BigInteger makersId, String makersName, LocalTime pickupTime, List<DeliveryFood> foods) {
             this.makersId = makersId;
             this.makersName = makersName;
-            this.pickupTime = pickupTime;
+            this.pickupTime = (pickupTime == null) ? null : DateUtils.timeToString(pickupTime);
             this.foods = foods;
         }
     }
@@ -99,6 +99,7 @@ public class DeliveryDto {
     @Builder
     public static class MakersGrouping {
         private LocalDate serviceDate;
+        private DiningType diningType;
         private Group group;
         private Makers makers;
 
@@ -107,18 +108,47 @@ public class DeliveryDto {
                     .serviceDate(dailyFood.getServiceDate())
                     .group(dailyFood.getGroup())
                     .makers(dailyFood.getFood().getMakers())
+                    .diningType(dailyFood.getDiningType())
                     .build();
         }
 
         public boolean equals(Object obj) {
             if(obj instanceof MakersGrouping tmp) {
-                return serviceDate.equals(tmp.serviceDate) && group.equals(tmp.group) && makers.equals(tmp.makers);
+                return serviceDate.equals(tmp.serviceDate) && group.equals(tmp.group) && makers.equals(tmp.makers) && diningType.equals(tmp.diningType);
             }
             return false;
         }
 
         public int hashCode() {
-            return Objects.hash(serviceDate, group, makers);
+            return Objects.hash(serviceDate, group, makers, diningType);
+        }
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    public static class GroupGrouping {
+        private LocalDate serviceDate;
+        private DiningType diningType;
+        private Group group;
+
+        public static GroupGrouping create(MakersGrouping makersGrouping) {
+            return GroupGrouping.builder()
+                    .serviceDate(makersGrouping.getServiceDate())
+                    .group(makersGrouping.getGroup())
+                    .diningType(makersGrouping.diningType)
+                    .build();
+        }
+
+        public boolean equals(Object obj) {
+            if(obj instanceof GroupGrouping tmp) {
+                return serviceDate.equals(tmp.serviceDate) && group.equals(tmp.group) && diningType.equals(tmp.diningType);
+            }
+            return false;
+        }
+
+        public int hashCode() {
+            return Objects.hash(serviceDate, group, diningType);
         }
     }
 }

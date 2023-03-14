@@ -1,12 +1,15 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.DailyFoodGroup;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
-import co.dalicious.system.util.PeriodDto;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.DeliveryDto;
 import co.kurrant.app.admin_api.mapper.DeliveryMapper;
 import co.kurrant.app.admin_api.service.DeliveryService;
@@ -18,6 +21,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,14 +32,21 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final QGroupRepository qGroupRepository;
     private final DeliveryMapper deliveryMapper;
+    private final GroupRepository groupRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public DeliveryDto getDeliverySchedule(PeriodDto.PeriodStringDto periodDto, List<BigInteger> groupIds) {
+    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds) {
         List<Group> groups = (groupIds == null) ? null : qGroupRepository.findAllByIds(groupIds);
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllFilterGroup(periodDto.toPeriodDto().getStartDate(), periodDto.toPeriodDto().getEndDate(), groups);
+        LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
+        LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllFilterGroup(startDate, endDate, groups);
 
-        // daily food count 구하기
+        List<Group> groupAllList = groupRepository.findAll();
+
+        Set<DailyFood> dailyFoodSet = orderItemDailyFoods.stream().map(OrderItemDailyFood::getDailyFood).collect(Collectors.toSet());
+
+        // daily food count 구하기, pickup time 가져오기
         Map<DailyFood, Integer> dailyFoodCount = new HashMap<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             DailyFood dailyFood = orderItemDailyFood.getDailyFood();
@@ -51,13 +62,45 @@ public class DeliveryServiceImpl implements DeliveryService {
             deliveryFoodMap.add(makersGrouping, deliveryFood);
         }
 
+        MultiValueMap<DeliveryDto.GroupGrouping, DeliveryDto.DeliveryMakers> deliveryMakersMap = new LinkedMultiValueMap<>();
         for(DeliveryDto.MakersGrouping makersGrouping : deliveryFoodMap.keySet()) {
             List<DeliveryDto.DeliveryFood> deliveryFoodList = deliveryFoodMap.get(makersGrouping);
-            DeliveryDto.DeliveryMakers deliveryMakers = deliveryMapper.toDeliveryGroup()
+
+            LocalTime pickupTime = dailyFoodSet.stream()
+                            .filter(v -> v.getGroup().equals(makersGrouping.getGroup()) && v.getServiceDate().equals(makersGrouping.getServiceDate())
+                                    && v.getFood().getMakers().equals(makersGrouping.getMakers()) && v.getDiningType().equals(makersGrouping.getDiningType()))
+                            .map(DailyFood::getDailyFoodGroup).findFirst()
+                    .map(DailyFoodGroup::getPickupTime).orElse(null);
+
+            DeliveryDto.DeliveryMakers deliveryMakers = deliveryMapper.toDeliveryMakers(makersGrouping.getMakers(), deliveryFoodList, pickupTime);
+
+            DeliveryDto.GroupGrouping groupGrouping = DeliveryDto.GroupGrouping.create(makersGrouping);
+            deliveryMakersMap.add(groupGrouping, deliveryMakers);
         }
 
+        MultiValueMap<LocalDate, DeliveryDto.DeliveryGroup> deliveryGroupMap = new LinkedMultiValueMap<>();
+        for(DeliveryDto.GroupGrouping groupGrouping : deliveryMakersMap.keySet()) {
+            List<DeliveryDto.DeliveryMakers> deliveryMakersList = deliveryMakersMap.get(groupGrouping);
 
+            DiningType diningType = dailyFoodSet.stream()
+                    .filter(v -> v.getGroup().equals(groupGrouping.getGroup()) && v.getServiceDate().equals(groupGrouping.getServiceDate()) && v.getDiningType().equals(groupGrouping.getDiningType()))
+                    .map(DailyFood::getDiningType).findFirst().orElse(null);
 
-        return null;
+            LocalTime deliveryTime = groupGrouping.getGroup().getMealInfos().stream()
+                    .filter(v -> v.getDiningType().equals(diningType))
+                    .map(MealInfo::getDeliveryTime).findFirst().orElse(null);
+
+            DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(groupGrouping.getGroup(), deliveryTime, deliveryMakersList);
+            deliveryGroupMap.add(groupGrouping.getServiceDate(), deliveryGroup);
+        }
+
+        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
+        for(LocalDate serviceDate : deliveryGroupMap.keySet()) {
+            List<DeliveryDto.DeliveryGroup> deliveryGroupList = deliveryGroupMap.get(serviceDate);
+            DeliveryDto.DeliveryInfo deliveryInfo = deliveryMapper.toDeliveryInfo(serviceDate, deliveryGroupList);
+            deliveryInfoList.add(deliveryInfo);
+        }
+
+        return DeliveryDto.create(groupAllList, deliveryInfoList);
     }
 }
