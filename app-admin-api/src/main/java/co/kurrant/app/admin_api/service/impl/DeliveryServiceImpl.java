@@ -89,7 +89,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                     .filter(v -> v.getDiningType().equals(diningType))
                     .map(MealInfo::getDeliveryTime).findFirst().orElse(null);
 
-            DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(groupGrouping.getGroup(), deliveryTime, deliveryMakersList);
+            DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(groupGrouping.getGroup(), Objects.requireNonNull(diningType).getCode(), deliveryTime, deliveryMakersList);
             deliveryGroupMap.add(groupGrouping.getServiceDate(), deliveryGroup);
         }
 

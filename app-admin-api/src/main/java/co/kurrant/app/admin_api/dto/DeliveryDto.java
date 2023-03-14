@@ -8,7 +8,9 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.checkerframework.checker.units.qual.N;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -25,6 +27,7 @@ public class DeliveryDto {
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class DeliveryInfo {
         private String serviceDate;
         private List<DeliveryGroup> group;
@@ -42,13 +45,15 @@ public class DeliveryDto {
         private BigInteger groupId;
         private String groupName;
         private String deliveryTime;
+        private Integer diningType;
         private List<DeliveryMakers> makers;
 
         @Builder
-        public DeliveryGroup(BigInteger groupId, String groupName, LocalTime deliveryTime, List<DeliveryMakers> makers) {
+        public DeliveryGroup(BigInteger groupId, String groupName, LocalTime deliveryTime, List<DeliveryMakers> makers, Integer diningType) {
             this.groupId = groupId;
             this.groupName = groupName;
             this.deliveryTime = (deliveryTime == null) ? null : DateUtils.timeToString(deliveryTime);
+            this.diningType = diningType;
             this.makers = makers;
         }
     }
