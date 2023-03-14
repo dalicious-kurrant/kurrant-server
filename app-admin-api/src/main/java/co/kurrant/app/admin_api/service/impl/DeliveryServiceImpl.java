@@ -37,12 +37,11 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional(readOnly = true)
     public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds) {
-        List<Group> groups = (groupIds == null) ? null : qGroupRepository.findAllByIds(groupIds);
+        List<Group> groupAllList = groupRepository.findAll();
+        List<Group> groups = (groupIds == null) ? null : groupAllList.stream().filter(group -> groupIds.contains(group.getId())).collect(Collectors.toList());
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllFilterGroup(startDate, endDate, groups);
-
-        List<Group> groupAllList = groupRepository.findAll();
 
         Set<DailyFood> dailyFoodSet = orderItemDailyFoods.stream().map(OrderItemDailyFood::getDailyFood).collect(Collectors.toSet());
 
@@ -100,6 +99,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             DeliveryDto.DeliveryInfo deliveryInfo = deliveryMapper.toDeliveryInfo(serviceDate, deliveryGroupList);
             deliveryInfoList.add(deliveryInfo);
         }
+        deliveryInfoList = deliveryInfoList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate)).collect(Collectors.toList());
 
         return DeliveryDto.create(groupAllList, deliveryInfoList);
     }
