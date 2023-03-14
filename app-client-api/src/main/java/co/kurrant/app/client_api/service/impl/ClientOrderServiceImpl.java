@@ -103,7 +103,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
 
         Corporation corporation = userUtil.getCorporation(securityUser);
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllGroupOrderByFilter(corporation, startDate, endDate, null, null, null);
-        List<UserGroup> userGroups = userGroupRepository.findAllByGroupAndClientStatus(corporation, ClientStatus.BELONG);
+        List<UserGroup> userGroups = userGroupRepository.findAllByGroup(corporation);
 
         return orderMapper.toOrderItemStatic(orderItemDailyFoods, userGroups);
     }
