@@ -15,6 +15,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter
@@ -63,5 +65,12 @@ public class UserGroup {
         this.group = group;
         this.user = user;
         this.clientStatus = clientStatus;
+    }
+
+    public static Long activeUserCount(LocalDate serviceDate, List<UserGroup> userGroupList) {
+        return userGroupList.stream()
+                .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG) ||
+                        (v.getClientStatus().equals(ClientStatus.WITHDRAWAL) && v.getUpdatedDateTime().compareTo(Timestamp.valueOf(serviceDate.atStartOfDay())) > 0))
+                .count();
     }
 }

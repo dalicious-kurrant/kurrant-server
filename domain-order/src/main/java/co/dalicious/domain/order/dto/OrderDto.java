@@ -82,21 +82,13 @@ public class OrderDto {
     public static class OrderItemStatic {
         private String serviceDate;
         private String diningType;
-        private Integer foodCount;
+        private Integer userCount;
+        private Integer orderUserCount;
         private Integer buyingUserCount;
+        private Integer foodCount;
         private BigDecimal orderRate;
-        private String orderRateFormula;
         private BigDecimal cancelRate;
-        private String cancelRateFormula;
         private BigDecimal totalPrice;
-
-        public void setOrderRateFormula(Integer userGroupCount, Integer orderComplementUserCount) {
-            this.orderRateFormula =  "(" + orderComplementUserCount.toString() + " / " + userGroupCount.toString() + ") * 100 = " + this.orderRate.toString();
-        }
-
-        public void setCancelRateFormula(Integer orderUserCount, Integer orderCancelCount) {
-            this.cancelRateFormula = "(" + orderCancelCount.toString() + " / " + orderUserCount.toString() + ") * 100 = " + this.orderRate.toString();
-        }
     }
 
     @Getter

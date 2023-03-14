@@ -61,4 +61,10 @@ public class QGroupRepository {
                 .fetch();
     }
 
+    public List<Group> findAllByIds(List<BigInteger> ids) {
+        return queryFactory.selectFrom(group)
+                .where(group.id.in(ids))
+                .fetch();
+    }
+
 }
