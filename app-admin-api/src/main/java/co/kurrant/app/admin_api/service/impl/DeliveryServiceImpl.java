@@ -7,6 +7,7 @@ import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.DailyFoodGroup;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -54,8 +55,6 @@ public class DeliveryServiceImpl implements DeliveryService {
             }
         }
 
-        Set<DailyFood> dailyFoodSet = orderItemDailyFoods.stream().map(OrderItemDailyFood::getDailyFood).collect(Collectors.toSet());
-
         // daily food count 구하기, pickup time 가져오기
         Map<DailyFood, Integer> dailyFoodCount = new HashMap<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -64,57 +63,93 @@ public class DeliveryServiceImpl implements DeliveryService {
             dailyFoodCount.put(dailyFood, dailyFoodCount.getOrDefault(dailyFood, 0) + count);
         }
 
-        MultiValueMap<DeliveryDto.MakersGrouping, DeliveryDto.DeliveryFood> deliveryFoodMap = new LinkedMultiValueMap<>();
-        for(DailyFood dailyFood : dailyFoodCount.keySet()) {
-            Integer count = dailyFoodCount.get(dailyFood);
-            DeliveryDto.DeliveryFood deliveryFood = deliveryMapper.toDeliveryFood(dailyFood, count);
-            Spot spot = orderList.stream()
-                    .map(OrderDailyFood::getSpot)
-                    .filter(v -> v.getGroup().equals(dailyFood.getGroup()))
-                    .findFirst().orElse(null);
-            DeliveryDto.MakersGrouping makersGrouping = DeliveryDto.MakersGrouping.create(dailyFood, spot);
-            deliveryFoodMap.add(makersGrouping, deliveryFood);
-        }
-
-        MultiValueMap<DeliveryDto.GroupGrouping, DeliveryDto.DeliveryMakers> deliveryMakersMap = new LinkedMultiValueMap<>();
-        for(DeliveryDto.MakersGrouping makersGrouping : deliveryFoodMap.keySet()) {
-            List<DeliveryDto.DeliveryFood> deliveryFoodList = deliveryFoodMap.get(makersGrouping);
-
-            LocalTime pickupTime = dailyFoodSet.stream()
-                    .filter(v -> v.getGroup().equals(makersGrouping.getGroup()) && v.getServiceDate().equals(makersGrouping.getServiceDate())
-                            && v.getFood().getMakers().equals(makersGrouping.getMakers()) && v.getDiningType().equals(makersGrouping.getDiningType()))
-                    .map(DailyFood::getDailyFoodGroup).findFirst()
-                    .map(DailyFoodGroup::getPickupTime).orElse(null);
-
-            DeliveryDto.DeliveryMakers deliveryMakers = deliveryMapper.toDeliveryMakers(makersGrouping.getMakers(), deliveryFoodList, pickupTime);
-
-            DeliveryDto.GroupGrouping groupGrouping = DeliveryDto.GroupGrouping.create(makersGrouping);
-            deliveryMakersMap.add(groupGrouping, deliveryMakers);
-        }
-
-        MultiValueMap<LocalDate, DeliveryDto.DeliveryGroup> deliveryGroupMap = new LinkedMultiValueMap<>();
-        for(DeliveryDto.GroupGrouping groupGrouping : deliveryMakersMap.keySet()) {
-            List<DeliveryDto.DeliveryMakers> deliveryMakersList = Objects.requireNonNull(deliveryMakersMap.get(groupGrouping))
-                    .stream().sorted(Comparator.comparing(deliveryMakers -> LocalTime.parse(deliveryMakers.getPickupTime()))).collect(Collectors.toList());
-
-            DiningType diningType = dailyFoodSet.stream()
-                    .filter(v -> v.getGroup().equals(groupGrouping.getGroup()) && v.getServiceDate().equals(groupGrouping.getServiceDate()) && v.getDiningType().equals(groupGrouping.getDiningType()))
-                    .map(DailyFood::getDiningType).findFirst().orElse(null);
-
-            LocalTime deliveryTime = groupGrouping.getGroup().getMealInfos().stream()
-                    .filter(v -> v.getDiningType().equals(diningType))
-                    .map(MealInfo::getDeliveryTime).findFirst().orElse(null);
-
-            DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(groupGrouping.getSpot(), Objects.requireNonNull(diningType).getCode(), deliveryTime, deliveryMakersList);
-            deliveryGroupMap.add(groupGrouping.getServiceDate(), deliveryGroup);
+        // service date 묶기
+        MultiValueMap<LocalDate, OrderItemDailyFood> serviceDateMap = new LinkedMultiValueMap<>();
+        for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
+            serviceDateMap.add(serviceDate, orderItemDailyFood);
         }
 
         List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
-        for(LocalDate serviceDate : deliveryGroupMap.keySet()) {
-            List<DeliveryDto.DeliveryGroup> deliveryGroupList = deliveryGroupMap.get(serviceDate);
+        for(LocalDate serviceDate : serviceDateMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoodList = serviceDateMap.get(serviceDate);
+
+            // spot 묶기
+            MultiValueMap<Spot, OrderItemDailyFood> spotMap = new LinkedMultiValueMap<>();
+            for(OrderItemDailyFood orderItemDailyFood : Objects.requireNonNull(orderItemDailyFoodList)) {
+                Spot spot = orderList.stream()
+                                .filter(orderDailyFood -> orderDailyFood.getId().equals(orderItemDailyFood.getOrder().getId()))
+                                .map(OrderDailyFood::getSpot)
+                                .findFirst().orElse(null);
+
+                spotMap.add(Objects.requireNonNull(spot), orderItemDailyFood);
+            }
+
+            List<DeliveryDto.DeliveryGroup> deliveryGroupList = new ArrayList<>();
+            for(Spot spot : spotMap.keySet()) {
+                List<OrderItemDailyFood> spotOrderItemDailyFoodList = spotMap.get(spot);
+
+                // makers 묶기
+                MultiValueMap<Makers, OrderItemDailyFood> makersMap = new LinkedMultiValueMap<>();
+                for(OrderItemDailyFood orderItemDailyFood : Objects.requireNonNull(spotOrderItemDailyFoodList)) {
+                    Makers makers = orderItemDailyFood.getDailyFood().getFood().getMakers();
+                    makersMap.add(makers, orderItemDailyFood);
+                }
+
+                DiningType diningType = null;
+                LocalTime deliveryTime = null;
+
+                List<DeliveryDto.DeliveryMakers> deliveryMakersList = new ArrayList<>();
+                for(Makers makers : makersMap.keySet()) {
+                    List<OrderItemDailyFood> makersOrderItemDailyFoodList = makersMap.get(makers);
+
+                    LocalTime pickupTime = null;
+                    List<DeliveryDto.DeliveryFood> deliveryFoodList = new ArrayList<>();
+                    for(OrderItemDailyFood orderItemDailyFood : Objects.requireNonNull(makersOrderItemDailyFoodList)) {
+                        DailyFood dailyFood = orderItemDailyFood.getDailyFood();
+                        Integer count = dailyFoodCount.get(dailyFood);
+
+                        // delivery food 만들기
+                        DeliveryDto.DeliveryFood deliveryFood = deliveryMapper.toDeliveryFood(dailyFood, count);
+
+                        deliveryFoodList.add(deliveryFood);
+
+                        if(pickupTime == null) {
+                            pickupTime = dailyFood.getDailyFoodGroup().getPickupTime();
+                        }
+                        if(diningType == null) {
+                            diningType = dailyFood.getDiningType();
+                        }
+                    }
+
+                    // delivery makers 만들기
+                    DeliveryDto.DeliveryMakers deliveryMakers = deliveryMapper.toDeliveryMakers(makers, deliveryFoodList, pickupTime);
+                    deliveryMakersList.add(deliveryMakers);
+                }
+
+                if(diningType != null) {
+                    DiningType finalDiningType = diningType;
+                    deliveryTime = spot.getGroup().getMealInfos().stream()
+                            .filter(mealInfo -> mealInfo.getDiningType().equals(finalDiningType))
+                            .map(MealInfo::getDeliveryTime)
+                            .findFirst().orElse(null);
+                }
+
+                // delivery makers list 를 pickup time 으로 정렬
+                deliveryMakersList = deliveryMakersList.stream()
+                        .sorted(Comparator.comparing(deliveryMakers -> LocalTime.parse(deliveryMakers.getPickupTime()))).collect(Collectors.toList());
+
+                // delivery group 만들기
+                DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(spot, Objects.requireNonNull(diningType).getCode(), deliveryTime, deliveryMakersList);
+                deliveryGroupList.add(deliveryGroup);
+            }
+
+            // delivery info 만들기
             DeliveryDto.DeliveryInfo deliveryInfo = deliveryMapper.toDeliveryInfo(serviceDate, deliveryGroupList);
             deliveryInfoList.add(deliveryInfo);
         }
+
+        // service date 로 정렬
         deliveryInfoList = deliveryInfoList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate)).collect(Collectors.toList());
 
         return DeliveryDto.create(groupAllList, deliveryInfoList);
