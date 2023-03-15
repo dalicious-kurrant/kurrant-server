@@ -2,7 +2,6 @@ package co.kurrant.batch.job.batch;
 
 import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.user.entity.Membership;
-import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.util.MembershipUtil;
@@ -25,10 +24,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.persistence.EntityManagerFactory;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -63,15 +59,18 @@ public class MembershipPayJob {
     @StepScope
     public JpaPagingItemReader<Membership> membershipReader() {
         log.info("[Membership 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
-        Map<String, Object> parameterValues = new HashMap<>();
-        LocalDate now = LocalDate.now();
-        parameterValues.put("now", now);
-        String queryString = "SELECT m FROM Membership m JOIN FETCH m.user WHERE m.endDate <= :now AND m.autoPayment = true";
+
+        String queryString = "SELECT m FROM Membership m \n" +
+                "JOIN FETCH m.user u \n" +
+                "WHERE m.endDate <= NOW() \n" +
+                "AND m.autoPayment = true\n" +
+                "AND m.createdDateTime = (\n" +
+                "   SELECT MAX(m2.createdDateTime) FROM Membership m2 WHERE m2.user = u\n" +
+                ")";
 
         return new JpaPagingItemReaderBuilder<Membership>()
                 .entityManagerFactory(entityManagerFactory)
                 .pageSize(100)
-                .parameterValues(parameterValues)
                 .queryString(queryString)
                 .name("JpaPagingItemReader")
                 .build();
