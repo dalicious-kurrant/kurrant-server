@@ -71,7 +71,7 @@ public class DailyFood {
     private Group group;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn
+    @JoinColumn(name = "daily_food_group_id")
     @JsonManagedReference(value = "daily_food_group_fk")
     @Comment("그룹")
     private DailyFoodGroup dailyFoodGroup;
