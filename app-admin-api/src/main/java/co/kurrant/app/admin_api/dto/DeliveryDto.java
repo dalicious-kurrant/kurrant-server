@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.dto;
 
 import co.dalicious.domain.client.dto.GroupInfo;
+import co.dalicious.domain.client.dto.SpotInfo;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -24,6 +25,7 @@ import java.util.Objects;
 @Builder
 public class DeliveryDto {
     private List<GroupInfo> groupInfoList;
+    private List<SpotInfo> spotInfoList;
     private List<DeliveryInfo> deliveryInfoList;
 
     @Getter
@@ -97,74 +99,14 @@ public class DeliveryDto {
         }
     }
 
-    public static DeliveryDto create (List<Group> groupList, List<DeliveryInfo> deliveryInfoList) {
+    public static DeliveryDto create (List<Group> groupList, List<DeliveryInfo> deliveryInfoList, List<Spot> spotList) {
         List<GroupInfo> groupInfos = groupList.stream().map(group -> GroupInfo.create(group.getId(), group.getName())).toList();
+        List<SpotInfo> spotInfos = spotList.stream().map(spot -> SpotInfo.create(spot.getId(), spot.getName())).toList();
 
         return DeliveryDto.builder()
                 .groupInfoList(groupInfos)
+                .spotInfoList(spotInfos)
                 .deliveryInfoList(deliveryInfoList)
                 .build();
-    }
-
-    @Getter
-    @Setter
-    @Builder
-    public static class MakersGrouping {
-        private LocalDate serviceDate;
-        private DiningType diningType;
-        private Group group;
-        private Spot spot;
-        private Makers makers;
-
-        public static MakersGrouping create(DailyFood dailyFood, Spot spot) {
-            return MakersGrouping.builder()
-                    .serviceDate(dailyFood.getServiceDate())
-                    .group(dailyFood.getGroup())
-                    .makers(dailyFood.getFood().getMakers())
-                    .spot(spot)
-                    .diningType(dailyFood.getDiningType())
-                    .build();
-        }
-
-        public boolean equals(Object obj) {
-            if(obj instanceof MakersGrouping tmp) {
-                return serviceDate.equals(tmp.serviceDate) && group.equals(tmp.group) && makers.equals(tmp.makers) && diningType.equals(tmp.diningType);
-            }
-            return false;
-        }
-
-        public int hashCode() {
-            return Objects.hash(serviceDate, group, makers, diningType);
-        }
-    }
-
-    @Getter
-    @Setter
-    @Builder
-    public static class GroupGrouping {
-        private LocalDate serviceDate;
-        private DiningType diningType;
-        private Group group;
-        private Spot spot;
-
-        public static GroupGrouping create(MakersGrouping makersGrouping) {
-            return GroupGrouping.builder()
-                    .serviceDate(makersGrouping.getServiceDate())
-                    .group(makersGrouping.getGroup())
-                    .spot(makersGrouping.spot)
-                    .diningType(makersGrouping.diningType)
-                    .build();
-        }
-
-        public boolean equals(Object obj) {
-            if(obj instanceof GroupGrouping tmp) {
-                return serviceDate.equals(tmp.serviceDate) && group.equals(tmp.group) && diningType.equals(tmp.diningType);
-            }
-            return false;
-        }
-
-        public int hashCode() {
-            return Objects.hash(serviceDate, group, diningType);
-        }
     }
 }

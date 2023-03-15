@@ -20,10 +20,11 @@ public class DeliveryController {
 
     @Operation(summary = "배송 일정 조회", description = "배송 날짜를 기준으로 배송 일정을 조회한다.")
     @GetMapping("")
-    public ResponseMessage getDeliverySchedule(@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate, @RequestParam(required = false) List<BigInteger> groupIds) {
+    public ResponseMessage getDeliverySchedule(@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate,
+                                               @RequestParam(required = false) List<BigInteger> groupIds, @RequestParam(required = false) List<BigInteger> spotIds) {
         return ResponseMessage.builder()
-                .message(startDate + " ~ " + endDate + "사이의 식단을 승인했습니다.")
-                .data(deliveryService.getDeliverySchedule(startDate, endDate, groupIds))
+                .message(startDate + " ~ " + endDate + "사이의 배송 현황을 조회했습니다.")
+                .data(deliveryService.getDeliverySchedule(startDate, endDate, groupIds, spotIds))
                 .build();
     }
 }
