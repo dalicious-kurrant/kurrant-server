@@ -4,6 +4,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.DailyFoodGroup;
 import co.dalicious.domain.food.entity.Makers;
@@ -11,13 +12,16 @@ import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.QOrder;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.DeliveryDto;
 import co.kurrant.app.admin_api.mapper.DeliveryMapper;
 import co.kurrant.app.admin_api.service.DeliveryService;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.N;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,15 +41,18 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final DeliveryMapper deliveryMapper;
     private final GroupRepository groupRepository;
+    private final SpotRepository spotRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds) {
+    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds) {
         List<Group> groupAllList = groupRepository.findAll();
+        List<Spot> spotAllList = spotRepository.findAll();
         List<Group> groups = (groupIds == null) ? null : groupAllList.stream().filter(group -> groupIds.contains(group.getId())).collect(Collectors.toList());
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllFilterGroup(startDate, endDate, groups);
+        List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllFilterGroup(startDate, endDate, groups, spots);
 
         List<OrderDailyFood> orderList = new ArrayList<>();
         for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -88,6 +95,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             List<DeliveryDto.DeliveryGroup> deliveryGroupList = new ArrayList<>();
             for(Spot spot : spotMap.keySet()) {
                 List<OrderItemDailyFood> spotOrderItemDailyFoodList = spotMap.get(spot);
+
 
                 // makers 묶기
                 MultiValueMap<Makers, OrderItemDailyFood> makersMap = new LinkedMultiValueMap<>();
@@ -152,6 +160,6 @@ public class DeliveryServiceImpl implements DeliveryService {
         // service date 로 정렬
         deliveryInfoList = deliveryInfoList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate)).collect(Collectors.toList());
 
-        return DeliveryDto.create(groupAllList, deliveryInfoList);
+        return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
     }
 }
