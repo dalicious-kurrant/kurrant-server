@@ -13,4 +13,5 @@ public class LoginResponseDto {
   private Long expiresIn;
   private Integer spotStatus;
   private Boolean isActive;
+  private Integer leftWithdrawDays;
 }

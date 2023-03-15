@@ -36,7 +36,7 @@ public class SimpleJwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         URI prodUri = UriComponentsBuilder.fromHttpUrl(String.valueOf(request.getRequestURL())).build().toUri();
-        if(prodUri.getHost().contains("prod.dalicious.co")) {
+        if(prodUri.getHost().contains("prod.dalicious.co") || prodUri.getHost().contains("3.39.196.44")) {
             filterChain.doFilter(request, response);
             return;
         }
