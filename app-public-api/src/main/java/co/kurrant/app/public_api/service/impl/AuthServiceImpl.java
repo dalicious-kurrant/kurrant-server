@@ -51,6 +51,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -234,12 +235,21 @@ public class AuthServiceImpl implements AuthService {
         Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
         user.updateRecentLoginDateTime(timestamp);
 
+        Integer leftWithdrawDays = null;
+
+        if(user.getUserStatus().equals(UserStatus.REQUEST_WITHDRAWAL)) {
+            LocalDateTime withdrawRequestDateTime = user.getUpdatedDateTime().toLocalDateTime();
+            Duration interval = Duration.between(withdrawRequestDateTime, LocalDateTime.now());
+            leftWithdrawDays = (int) interval.toDays();
+        }
+
         return LoginResponseDto.builder()
                 .accessToken(loginResponseDto.getAccessToken())
                 .refreshToken(loginResponseDto.getRefreshToken())
                 .expiresIn(loginResponseDto.getAccessTokenExpiredIn())
                 .spotStatus(spotStatus.getCode())
-                .isActive((user.getUserStatus().equals(UserStatus.ACTIVE)))
+                .isActive(user.getUserStatus().equals(UserStatus.ACTIVE))
+                .leftWithdrawDays(leftWithdrawDays)
                 .build();
     }
 
