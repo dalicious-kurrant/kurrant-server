@@ -99,25 +99,26 @@ public class UserClientServiceImpl implements UserClientService {
         // 등록하려는 스팟이 기업/오픈그룹일 경우
         // 유저 스팟에서 기업/오픈그룹 스팟이 존재하는지 확인한다.
         Optional<UserSpot> optionalUserSpot = userSpots.stream().filter(v -> v.getClientType().equals(ClientType.CORPORATION) || v.getClientType().equals(ClientType.OPEN_GROUP)).findAny();
+        ClientType clientType = null;
+        if(spot instanceof  CorporationSpot) {
+            clientType = ClientType.CORPORATION;
+        }
+        else if(spot instanceof OpenGroupSpot) {
+            clientType = ClientType.OPEN_GROUP;
+        }
         // 기업/오픈그룹이 존재할 경우 업데이트 한다.
         if (optionalUserSpot.isPresent()) {
             UserSpot userSpot = optionalUserSpot.get();
             user.userSpotSetNull();
             if (!userSpot.getSpot().equals(spot)) {
                 userSpot.updateSpot(spot);
+                userSpot.updateClientType(clientType);
             }
             optionalUserSpot.get().updateDefault(true);
             return spot.getId();
         }
         // 기업/오픈그룹 스팟이 존재하지 않을 경우 유저 스팟을 저장한다.
         else {
-            ClientType clientType = null;
-            if(spot instanceof  CorporationSpot) {
-                clientType = ClientType.CORPORATION;
-            }
-            else if(spot instanceof OpenGroupSpot) {
-                clientType = ClientType.OPEN_GROUP;
-            }
             UserSpot newUserSpot = UserSpot.builder()
                     .spot(spot)
                     .user(user)

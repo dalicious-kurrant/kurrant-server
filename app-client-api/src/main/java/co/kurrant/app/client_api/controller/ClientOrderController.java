@@ -19,10 +19,10 @@ public class ClientOrderController {
     private final ClientOrderService clientOrderService;
 
     @GetMapping("/info")
-    public ResponseMessage getGroupInfo(Authentication authentication) {
+    public ResponseMessage getGroupInfo(Authentication authentication, @RequestParam Map<String, Object> parameters) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(clientOrderService.getGroupInfo(securityUser))
+                .data(clientOrderService.getGroupInfo(securityUser, parameters))
                 .message("고객사 정보 조회에 성공하였습니다.")
                 .build();
     }

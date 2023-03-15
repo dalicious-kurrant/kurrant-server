@@ -125,10 +125,6 @@ public class Makers {
     @Comment("원산지")
     private List<Origin> origins;
 
-    @ElementCollection
-    @Comment("식사 일정별 메이커스 픽업 시간")
-    private List<PickupTime> pickupTimes;
-
     @CreationTimestamp
     @Column(name = "created_datetime", nullable = false, insertable = false, updatable = false,
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) COMMENT '생성일'")
@@ -191,18 +187,5 @@ public class Makers {
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElse(null);
-    }
-
-    public PickupTime getPickupTime(DiningType diningType) {
-        return this.getPickupTimes().stream()
-                .filter(v -> v.getDiningType().equals(diningType))
-                .findAny()
-                .orElse(null);
-    }
-
-    public String getPickupTimeString(DiningType diningType) {
-        PickupTime pickupTime = getPickupTime(diningType);
-        if(pickupTime == null) return null;
-        return DateUtils.timeToString(pickupTime.getPickupTime());
     }
 }
