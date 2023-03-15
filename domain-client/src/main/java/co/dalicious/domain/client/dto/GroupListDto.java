@@ -14,23 +14,8 @@ import java.util.List;
 @Setter
 @Builder
 public class GroupListDto {
-    List<GroupIdList> groupIdList;
+    List<GroupInfo> groupIdList;
     List<GroupInfoList> groupInfoList;
-
-    @Getter
-    @Setter
-    @Builder
-    public static class GroupIdList {
-        private BigInteger groupId;
-        private String groupName;
-
-        public static GroupIdList groupIdList(BigInteger groupId, String groupName) {
-            return GroupIdList.builder()
-                    .groupId(groupId)
-                    .groupName(groupName)
-                    .build();
-        }
-    }
 
     @Getter
     @Setter
@@ -61,9 +46,9 @@ public class GroupListDto {
     }
 
     public static GroupListDto createGroupListDto(List<Group> groupList, List<GroupInfoList> groupInfoList) {
-        List<GroupIdList> groupIdLists = new ArrayList<>();
+        List<GroupInfo> groupIdLists = new ArrayList<>();
         for(Group group : groupList) {
-            GroupIdList groupIdList = GroupIdList.groupIdList(group.getId(), group.getName());
+            GroupInfo groupIdList = GroupInfo.create(group.getId(), group.getName());
             groupIdLists.add(groupIdList);
         }
         return GroupListDto.builder()

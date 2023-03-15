@@ -58,6 +58,10 @@ public class UserSpot {
         this.isDefault = isDefault;
     }
 
+    public void updateClientType(ClientType clientType) {
+        this.clientType = clientType;
+    }
+
     @Builder
     public UserSpot(User user, ClientType clientType, Spot spot, Boolean isDefault) {
         this.user = user;

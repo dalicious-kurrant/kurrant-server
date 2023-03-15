@@ -17,7 +17,7 @@ public class ScheduleController {
 
     private final ScheduleService scheduleService;
 
-    @Operation(summary = "식단 전체 조회", description = "존재하는 식단을 모두 조회합니다.")
+    @Operation(summary = "Preset 식단 전체 조회", description = "존재하는 식단을 모두 조회합니다.")
     @GetMapping("/all")
     public ResponseMessage getAllPresetScheduleList(@RequestParam Map<String, Object> parameter, @RequestParam(required = false) Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
@@ -26,7 +26,7 @@ public class ScheduleController {
                 .build();
     }
 
-    @Operation(summary = "식단 생성 및 수정", description = "엑셀로 받은 데이터로 식단을 생성 및 수정합니다.")
+    @Operation(summary = "Preset 식단 생성 및 수정", description = "엑셀로 받은 데이터로 식단을 생성 및 수정합니다.")
     @PostMapping("/excel")
     public ResponseMessage postPresetDailyFoodByExcel(@RequestBody ExcelPresetDailyFoodDto dtoList) {
         scheduleService.makePresetSchedulesByExcel(dtoList);
@@ -35,7 +35,7 @@ public class ScheduleController {
                 .build();
     }
 
-    @Operation(summary = "추천 식단 생성", description = "추천 데이터를 기반으로 식단을 생성합니다.")
+    @Operation(summary = "Preset 추천 식단 생성", description = "추천 데이터를 기반으로 식단을 생성합니다.")
     @GetMapping("/recommends")
     public ResponseMessage getRecommendPresetSchedule(@RequestParam String startDate, @RequestParam String endDate, @RequestParam(required = false) Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
@@ -44,7 +44,7 @@ public class ScheduleController {
                 .build();
     }
 
-    @Operation(summary = "저장 하기", description = "데이터를 임시 저장 합니다.")
+    @Operation(summary = "Preset 저장 하기", description = "데이터를 임시 저장 합니다.")
     @PostMapping("/pause")
     public ResponseMessage updateDataInTemporary(@RequestBody ExcelPresetDailyFoodDto dtoList) {
         scheduleService.updateDataInTemporary(dtoList);
@@ -53,7 +53,7 @@ public class ScheduleController {
                 .build();
     }
 
-    @Operation(summary = "식단 전체 조회", description = "존재하는 식단을 모두 조회합니다.")
+    @Operation(summary = "Preset 식단 전체 조회", description = "존재하는 식단을 모두 조회합니다.")
     @GetMapping("/excels")
     public ResponseMessage getAllPresetScheduleListForExcel() {
         return ResponseMessage.builder()

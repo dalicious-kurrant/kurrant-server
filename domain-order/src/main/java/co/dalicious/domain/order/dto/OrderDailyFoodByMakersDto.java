@@ -39,6 +39,7 @@ public class OrderDailyFoodByMakersDto {
     @Setter
     public static class Foods {
         private BigInteger foodId;
+        private String description;
         private String FoodName;
         private Integer totalFoodCount;
     }
@@ -62,6 +63,7 @@ public class OrderDailyFoodByMakersDto {
     @Getter
     @Setter
     public static class SpotByDateDiningType {
+        private String pickupTime;
         private String deliveryTime;
         private BigInteger spotId;
         private String spotName;

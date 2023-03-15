@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.food.dto.DailyFoodGroupDto;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
@@ -29,10 +30,13 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,6 +61,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final MakersMapper makersMapper;
     private final QMakersRepository qMakersRepository;
     private final QFoodRepository qFoodRepository;
+    private final DailyFoodGroupRepository dailyFoodGroupRepository;
 
     @Override
     @Transactional
@@ -64,11 +69,18 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         PeriodDto periodDto = periodStringDto.toPeriodDto();
         List<PresetDailyFood> presetDailyFoods = qPresetDailyFoodRepository.getApprovedPresetDailyFoodBetweenServiceDate(periodDto.getStartDate(), periodDto.getEndDate());
 
+        Map<PresetGroupDailyFood, DailyFoodGroup> presetGroupDailyFoodMap = new HashMap<>();
         Set<PresetMakersDailyFood> presetMakersDailyFoodSet = new HashSet<>();
+
+        // DailyFoodGroup 저장
+        for (PresetDailyFood presetDailyFood : presetDailyFoods) {
+            presetGroupDailyFoodMap.put(presetDailyFood.getPresetGroupDailyFood(), dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(presetDailyFood.getPresetGroupDailyFood())));
+        }
 
         // 식단 저장 후 저장할 FoodSchedule을 찾은 후 저장한다.
         for (PresetDailyFood presetDailyFood : presetDailyFoods) {
-            DailyFood dailyFood = dailyFoodMapper.toDailyFood(presetDailyFood);
+            DailyFoodGroup dailyFoodGroup = presetGroupDailyFoodMap.get(presetDailyFood.getPresetGroupDailyFood());
+            DailyFood dailyFood = dailyFoodMapper.toDailyFood(presetDailyFood, dailyFoodGroup);
             dailyFoodRepository.save(dailyFood);
             FoodSchedule foodSchedule = capacityMapper.toFoodSchedule(presetDailyFood);
             if (foodSchedule != null) {
@@ -129,6 +141,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<BigInteger> dailyFoodIds = dailyFoodList.stream()
                 .map(FoodDto.DailyFood::getDailyFoodId)
                 .toList();
+
+        // Request 중, 해당하는 id를 가지고 있는 DailyFood 가져오기
         List<DailyFood> dailyFoods = new ArrayList<>();
         if(!dailyFoodIds.stream().allMatch(Objects::isNull)) {
              dailyFoods = qDailyFoodRepository.findAllByDailyFoodIds(dailyFoodIds);
@@ -151,6 +165,24 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<Food> updateFoods = qFoodRepository.findByMakers(updateMakersList);
         List<Group> updateGroups = qGroupRepository.findAllByNames(updateGroupNames);
 
+        MultiValueMap<DailyFoodGroupDto, FoodDto.DailyFood> dailyFoodGroupMap = new LinkedMultiValueMap<>();
+
+        for (FoodDto.DailyFood dailyFood : dailyFoodList) {
+            DailyFoodGroupDto dailyFoodGroupDto = new DailyFoodGroupDto(dailyFood);
+            dailyFoodGroupMap.add(dailyFoodGroupDto, dailyFood);
+        }
+
+        for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
+            List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
+            List<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()
+                    .map(v -> DateUtils.stringToLocalTime(v.getMakersPickupTime()))
+                    .toList();
+            if (makersPickupTimes.stream().distinct().count() > 1) {
+                throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+            }
+
+        }
+
         dailyFoods.forEach(dailyFood -> {
             FoodDto.DailyFood dailyFoodDto = dailyFoodList.stream()
                     .filter(v -> v.getDailyFoodId().equals(dailyFood.getId()))
@@ -162,6 +194,12 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
             }
             dailyFood.updateFoodStatus(DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()));
+
+            if(!Objects.equals(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), dailyFood.getDailyFoodGroup().getPickupTime())) {
+                dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()));
+            }
+
+            // 식단을 구매한 사람이 없다면
             if(dailyFoodDto.getFoodCapacity().equals(dailyFoodDto.getFoodCount())) {
                 dailyFood.updateDiningType(DiningType.ofCode(dailyFoodDto.getDiningType()));
                 dailyFood.updateServiceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()));
@@ -187,7 +225,20 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<Makers> makersList = qMakersRepository.getMakersByName(makersName);
         List<Food> foodsByMakers = qFoodRepository.findByMakers(makersList);
         List<Group> groups = qGroupRepository.findAllByNames(groupNames);
-        List<DailyFood> newDailyFoods = dailyFoodMapper.toDailyFoods(newDailyFoodDtos, groups, foodsByMakers);
+
+        // 픽업 시간 저장
+        MultiValueMap<DailyFoodGroup, FoodDto.DailyFood> newDailyFoodGroupMap = new LinkedMultiValueMap<>();
+        MultiValueMap<DailyFoodGroupDto, FoodDto.DailyFood> dailyFoodGroupDtoMap = new LinkedMultiValueMap<>();
+        for (FoodDto.DailyFood dailyFood : newDailyFoodDtos) {
+            dailyFoodGroupDtoMap.add(new DailyFoodGroupDto(dailyFood), dailyFood);
+        }
+        for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupDtoMap.keySet()) {
+            List<FoodDto.DailyFood> dailyFoodDtos = dailyFoodGroupDtoMap.get(dailyFoodGroupDto);
+            DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(dailyFoodGroupDtoMap.get(dailyFoodGroupDto).get(0)));
+            newDailyFoodGroupMap.put(dailyFoodGroup, dailyFoodDtos);
+        }
+
+        List<DailyFood> newDailyFoods = dailyFoodMapper.toDailyFoods(newDailyFoodGroupMap, groups, foodsByMakers);
         dailyFoodRepository.saveAll(newDailyFoods);
     }
 }
