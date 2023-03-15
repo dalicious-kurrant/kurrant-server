@@ -2,10 +2,13 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.GroupRepository;
-import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.DailyFoodGroup;
+import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.entity.Order;
+import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.system.enums.DiningType;
@@ -14,6 +17,7 @@ import co.kurrant.app.admin_api.dto.DeliveryDto;
 import co.kurrant.app.admin_api.mapper.DeliveryMapper;
 import co.kurrant.app.admin_api.service.DeliveryService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -30,7 +34,6 @@ import java.util.stream.Collectors;
 public class DeliveryServiceImpl implements DeliveryService {
 
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
-    private final QGroupRepository qGroupRepository;
     private final DeliveryMapper deliveryMapper;
     private final GroupRepository groupRepository;
 
@@ -42,6 +45,14 @@ public class DeliveryServiceImpl implements DeliveryService {
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllFilterGroup(startDate, endDate, groups);
+
+        List<OrderDailyFood> orderList = new ArrayList<>();
+        for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            Order order = (Order) Hibernate.unproxy(orderItemDailyFood.getOrder());
+            if(order instanceof OrderDailyFood orderDailyFood) {
+                orderList.add(orderDailyFood);
+            }
+        }
 
         Set<DailyFood> dailyFoodSet = orderItemDailyFoods.stream().map(OrderItemDailyFood::getDailyFood).collect(Collectors.toSet());
 
@@ -57,7 +68,11 @@ public class DeliveryServiceImpl implements DeliveryService {
         for(DailyFood dailyFood : dailyFoodCount.keySet()) {
             Integer count = dailyFoodCount.get(dailyFood);
             DeliveryDto.DeliveryFood deliveryFood = deliveryMapper.toDeliveryFood(dailyFood, count);
-            DeliveryDto.MakersGrouping makersGrouping = DeliveryDto.MakersGrouping.create(dailyFood);
+            Spot spot = orderList.stream()
+                    .map(OrderDailyFood::getSpot)
+                    .filter(v -> v.getGroup().equals(dailyFood.getGroup()))
+                    .findFirst().orElse(null);
+            DeliveryDto.MakersGrouping makersGrouping = DeliveryDto.MakersGrouping.create(dailyFood, spot);
             deliveryFoodMap.add(makersGrouping, deliveryFood);
         }
 
@@ -66,9 +81,9 @@ public class DeliveryServiceImpl implements DeliveryService {
             List<DeliveryDto.DeliveryFood> deliveryFoodList = deliveryFoodMap.get(makersGrouping);
 
             LocalTime pickupTime = dailyFoodSet.stream()
-                            .filter(v -> v.getGroup().equals(makersGrouping.getGroup()) && v.getServiceDate().equals(makersGrouping.getServiceDate())
-                                    && v.getFood().getMakers().equals(makersGrouping.getMakers()) && v.getDiningType().equals(makersGrouping.getDiningType()))
-                            .map(DailyFood::getDailyFoodGroup).findFirst()
+                    .filter(v -> v.getGroup().equals(makersGrouping.getGroup()) && v.getServiceDate().equals(makersGrouping.getServiceDate())
+                            && v.getFood().getMakers().equals(makersGrouping.getMakers()) && v.getDiningType().equals(makersGrouping.getDiningType()))
+                    .map(DailyFood::getDailyFoodGroup).findFirst()
                     .map(DailyFoodGroup::getPickupTime).orElse(null);
 
             DeliveryDto.DeliveryMakers deliveryMakers = deliveryMapper.toDeliveryMakers(makersGrouping.getMakers(), deliveryFoodList, pickupTime);
@@ -90,7 +105,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                     .filter(v -> v.getDiningType().equals(diningType))
                     .map(MealInfo::getDeliveryTime).findFirst().orElse(null);
 
-            DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(groupGrouping.getGroup(), Objects.requireNonNull(diningType).getCode(), deliveryTime, deliveryMakersList);
+            DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(groupGrouping.getSpot(), Objects.requireNonNull(diningType).getCode(), deliveryTime, deliveryMakersList);
             deliveryGroupMap.add(groupGrouping.getServiceDate(), deliveryGroup);
         }
 

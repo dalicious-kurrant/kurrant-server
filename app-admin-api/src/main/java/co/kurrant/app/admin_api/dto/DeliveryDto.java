@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.dto;
 
 import co.dalicious.domain.client.dto.GroupInfo;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.system.enums.DiningType;
@@ -44,14 +45,20 @@ public class DeliveryDto {
     public static class DeliveryGroup {
         private BigInteger groupId;
         private String groupName;
+        private String spotName;
+        private BigInteger spotId;
+        private String address;
         private String deliveryTime;
         private Integer diningType;
         private List<DeliveryMakers> makers;
 
         @Builder
-        public DeliveryGroup(BigInteger groupId, String groupName, LocalTime deliveryTime, List<DeliveryMakers> makers, Integer diningType) {
+        public DeliveryGroup(BigInteger groupId, String groupName, String spotName, BigInteger spotId, String address, LocalTime deliveryTime, Integer diningType, List<DeliveryMakers> makers) {
             this.groupId = groupId;
             this.groupName = groupName;
+            this.spotName = spotName;
+            this.spotId = spotId;
+            this.address = address;
             this.deliveryTime = (deliveryTime == null) ? null : DateUtils.timeToString(deliveryTime);
             this.diningType = diningType;
             this.makers = makers;
@@ -106,13 +113,15 @@ public class DeliveryDto {
         private LocalDate serviceDate;
         private DiningType diningType;
         private Group group;
+        private Spot spot;
         private Makers makers;
 
-        public static MakersGrouping create(DailyFood dailyFood) {
+        public static MakersGrouping create(DailyFood dailyFood, Spot spot) {
             return MakersGrouping.builder()
                     .serviceDate(dailyFood.getServiceDate())
                     .group(dailyFood.getGroup())
                     .makers(dailyFood.getFood().getMakers())
+                    .spot(spot)
                     .diningType(dailyFood.getDiningType())
                     .build();
         }
@@ -136,11 +145,13 @@ public class DeliveryDto {
         private LocalDate serviceDate;
         private DiningType diningType;
         private Group group;
+        private Spot spot;
 
         public static GroupGrouping create(MakersGrouping makersGrouping) {
             return GroupGrouping.builder()
                     .serviceDate(makersGrouping.getServiceDate())
                     .group(makersGrouping.getGroup())
+                    .spot(makersGrouping.spot)
                     .diningType(makersGrouping.diningType)
                     .build();
         }
