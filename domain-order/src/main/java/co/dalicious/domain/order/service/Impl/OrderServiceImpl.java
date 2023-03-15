@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.service.Impl;
 
+import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
@@ -79,6 +80,10 @@ public class OrderServiceImpl implements OrderService {
                 throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
             }
 
+            if(orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+                throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
+            }
+
             BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories());
 
             RefundPriceDto refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
@@ -128,6 +133,10 @@ public class OrderServiceImpl implements OrderService {
         // 상태값이 이미 7L(취소)인지 확인
         if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
             throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
+        }
+
+        if(orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+            throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
         }
 
         // 이전에 환불을 진행한 경우

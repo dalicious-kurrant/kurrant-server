@@ -14,10 +14,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
 public interface ScheduleMapper {
@@ -53,12 +50,13 @@ public interface ScheduleMapper {
                     List<ScheduleDto.FoodSchedule> foodSchedules = new ArrayList<>();
                     List<DailyFood> makersDailyFoods = makersDailyFoodMap.get(makers);
                     Integer makersCount = getMakersCount(makers, makersCapacities);
+                    LocalTime makersPickupTime = makersDailyFoods.get(0).getDailyFoodGroup().getPickupTime();
                     for (DailyFood makersDailyFood : makersDailyFoods) {
                         Integer count = dailyFoodMap.get(makersDailyFood);
                         ScheduleDto.FoodSchedule foodSchedule = toFoodSchedule(makersDailyFood, count);
                         foodSchedules.add(foodSchedule);
                     }
-                    ScheduleDto.MakersSchedule makersSchedule = toMakersSchedule(makers, diningTypeServiceDateDto.getDiningType(), makersCount, foodSchedules);
+                    ScheduleDto.MakersSchedule makersSchedule = toMakersSchedule(makers, diningTypeServiceDateDto.getDiningType(), makersPickupTime, makersCount, foodSchedules);
                     makersSchedules.add(makersSchedule);
                 }
 
@@ -114,12 +112,12 @@ public interface ScheduleMapper {
         return foodSchedule;
     }
 
-    default ScheduleDto.MakersSchedule toMakersSchedule(Makers makers, DiningType diningType, Integer makersCount, List<ScheduleDto.FoodSchedule> foodSchedules) {
+    default ScheduleDto.MakersSchedule toMakersSchedule(Makers makers, DiningType diningType, LocalTime makersPickupTime, Integer makersCount, List<ScheduleDto.FoodSchedule> foodSchedules) {
         ScheduleDto.MakersSchedule makersSchedule = new ScheduleDto.MakersSchedule();
         makersSchedule.setMakersName(makers.getName());
         makersSchedule.setMakersCapacity(makers.getMakersCapacity(diningType).getCapacity()); //TODO: 설정 필요
         makersSchedule.setMakersCount(makersCount);
-        makersSchedule.setMakersPickupTime(makers.getPickupTimeString(diningType));
+        makersSchedule.setMakersPickupTime(DateUtils.timeToString(makersPickupTime));
         makersSchedule.setFoodSchedules(foodSchedules);
         return makersSchedule;
     }
