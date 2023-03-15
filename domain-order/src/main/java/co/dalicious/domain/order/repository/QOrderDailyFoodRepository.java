@@ -289,8 +289,8 @@ public class QOrderDailyFoodRepository {
         }
 
         return queryFactory.selectFrom(orderItemDailyFood)
-                .join(orderItemDailyFood.dailyFood, dailyFood).fetchJoin()
-                .join(dailyFood.group, group).fetchJoin()
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(dailyFood.group, group)
                 .leftJoin(orderDailyFood)
                 .on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
                 .where(whereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED))

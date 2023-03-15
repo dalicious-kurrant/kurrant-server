@@ -160,6 +160,6 @@ public class DeliveryServiceImpl implements DeliveryService {
         // service date 로 정렬
         deliveryInfoList = deliveryInfoList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate)).collect(Collectors.toList());
 
-        return DeliveryDto.create(groupAllList, deliveryInfoList);
+        return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
     }
 }
