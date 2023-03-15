@@ -35,6 +35,12 @@ public class SimpleJwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        URI prodUri = UriComponentsBuilder.fromHttpUrl(String.valueOf(request.getRequestURL())).build().toUri();
+        if(prodUri.getHost().contains("prod.dalicious.co")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (request.getRequestURI().startsWith("/v1/auth")) {
             filterChain.doFilter(request, response);
             return;

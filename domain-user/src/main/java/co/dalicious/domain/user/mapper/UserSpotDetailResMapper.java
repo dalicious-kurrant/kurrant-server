@@ -12,6 +12,7 @@ import org.mapstruct.Named;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -44,9 +45,13 @@ public interface UserSpotDetailResMapper {
     @Named("getMealTypeInfoList")
     default List<ClientSpotDetailResDto.MealTypeInfo> getMealTypeInfoList(List<MealInfo> mealInfos) {
         List<ClientSpotDetailResDto.MealTypeInfo> mealTypeInfos = new ArrayList<>();
+
         for (MealInfo mealInfo : mealInfos) {
             mealTypeInfos.add(ClientSpotDetailResDto.MealTypeInfo.builder().mealInfo(mealInfo).build());
         }
+        mealTypeInfos = mealTypeInfos.stream()
+                .sorted(Comparator.comparing(ClientSpotDetailResDto.MealTypeInfo::getDiningType)).toList();
+
         return mealTypeInfos;
     }
 }

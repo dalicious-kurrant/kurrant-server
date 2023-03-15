@@ -3,6 +3,9 @@ package co.kurrant.batch.job.batch;
 import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
+import co.dalicious.domain.order.entity.OrderDailyFood;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +20,7 @@ import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,6 +50,7 @@ public class DailyFoodJob {
     public Job dailyFoodJob1() {
         return jobBuilderFactory.get("dailyFoodJob1")
                 .start(dailyFoodJob_step1())
+                .next(dailyFoodJob_step2())
                 .build();
     }
 
@@ -62,6 +67,18 @@ public class DailyFoodJob {
     }
 
     @Bean
+    @JobScope
+    public Step dailyFoodJob_step2() {
+        // 식사 정보를 통해 주문 마감 시간 가져오기
+        return stepBuilderFactory.get("dailyFoodJob_step2")
+                .<OrderItemDailyFood, OrderItemDailyFood>chunk(CHUNK_SIZE)
+                .reader(orderItemDailyFoodReader(matchingDailyFoodIds()))
+                .processor(orderItemDailyFoodProcessor())
+                .writer(orderItemDailyFoodWriter())
+                .build();
+    }
+
+    @Bean(name = "matchingDailyFoodIds")
     public List<BigInteger> matchingDailyFoodIds() {
         log.info("[DailyFood 읽기 시작] : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
@@ -94,7 +111,7 @@ public class DailyFoodJob {
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<DailyFood> dailyFoodReader(List<BigInteger> dailyFoodIds) {
+    public JpaPagingItemReader<DailyFood> dailyFoodReader(@Qualifier("matchingDailyFoodIds") List<BigInteger> dailyFoodIds) {
         log.info("[DailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("dailyFoodIds", dailyFoodIds);
@@ -111,7 +128,6 @@ public class DailyFoodJob {
                 .name("JpaPagingItemReader")
                 .build();
     }
-
 
     @Bean
     @JobScope
@@ -131,5 +147,45 @@ public class DailyFoodJob {
     public JpaItemWriter<DailyFood> dailyFoodWriter() {
         log.info("DailyFood 상태 저장 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
         return new JpaItemWriterBuilder<DailyFood>().entityManagerFactory(entityManagerFactory).build();
+    }
+
+    @Bean
+    @StepScope
+    public JpaPagingItemReader<OrderItemDailyFood> orderItemDailyFoodReader(@Qualifier("matchingDailyFoodIds") List<BigInteger> dailyFoodIds) {
+        log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
+        Map<String, Object> parameterValues = new HashMap<>();
+        parameterValues.put("dailyFoodIds", dailyFoodIds);
+
+        String queryString = "SELECT od from OrderItemDailyFood od\n" +
+                "WHERE od.orderStatus = 5L\n" +
+                "AND od.dailyFood.id IN :dailyFoodIds";
+
+        return new JpaPagingItemReaderBuilder<OrderItemDailyFood>()
+                .entityManagerFactory(entityManagerFactory)
+                .pageSize(100)
+                .parameterValues(parameterValues)
+                .queryString(queryString)
+                .name("JpaPagingItemReader")
+                .build();
+    }
+
+    @Bean
+    @JobScope
+    public ItemProcessor <OrderItemDailyFood, OrderItemDailyFood> orderItemDailyFoodProcessor() {
+        return new ItemProcessor<OrderItemDailyFood, OrderItemDailyFood>() {
+            @Override
+            public OrderItemDailyFood process(OrderItemDailyFood orderItemDailyFood) throws Exception {
+                log.info("[OrderItemDailyFood 상태 업데이트 시작] : {}", orderItemDailyFood.getId());
+                orderItemDailyFood.updateOrderStatus(OrderStatus.WAIT_DELIVERY);
+                return orderItemDailyFood;
+            }
+        };
+    }
+
+    @Bean
+    @JobScope
+    public JpaItemWriter<OrderItemDailyFood> orderItemDailyFoodWriter() {
+        log.info("DailyFood 상태 저장 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
+        return new JpaItemWriterBuilder<OrderItemDailyFood>().entityManagerFactory(entityManagerFactory).build();
     }
 }
