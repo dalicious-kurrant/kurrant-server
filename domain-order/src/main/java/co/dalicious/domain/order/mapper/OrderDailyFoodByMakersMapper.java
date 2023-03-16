@@ -7,6 +7,7 @@ import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.PaymentCancelHistory;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import org.hibernate.Hibernate;
@@ -92,6 +93,8 @@ public interface OrderDailyFoodByMakersMapper {
             foodDto.setFoodName(food.getName());
             foodDtoList.add(foodDto);
         }
+        foodDtoList = foodDtoList.stream()
+                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.Food::getFoodId)).toList();
         return foodDtoList;
     }
 
