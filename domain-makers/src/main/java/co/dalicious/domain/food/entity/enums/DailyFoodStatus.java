@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 @Getter
 public enum DailyFoodStatus {
-
     WAITING_SALE("판매대기", 0),
     SALES("판매중", 1),
     SOLD_OUT("품절", 2),

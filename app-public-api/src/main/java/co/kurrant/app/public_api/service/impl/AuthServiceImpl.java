@@ -402,7 +402,7 @@ public class AuthServiceImpl implements AuthService {
                 throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
             }
             // 5. 잘못된 Refresh Token일 경우 예외 처리
-            RefreshTokenHash refreshTokenHash = refreshTokenHashs.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
+            refreshTokenHashs.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
                     .findAny()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR));
 
@@ -416,7 +416,7 @@ public class AuthServiceImpl implements AuthService {
             LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(userId, strAuthorities);
 
             // 7. RefreshToken Redis 업데이트
-            refreshTokenRepository.delete(refreshTokenHash);
+            refreshTokenRepository.deleteAll(refreshTokenHashs);
             RefreshTokenHash newRefreshTokenHash = RefreshTokenHash.builder()
                     .refreshToken(loginResponseDto.getRefreshToken())
                     .userId(userId)
@@ -452,7 +452,8 @@ public class AuthServiceImpl implements AuthService {
             LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(strUserId, roles);
 
             // 7. RefreshToken Redis 업데이트
-            refreshTokenRepository.delete(refreshTokenHash.get());
+            List<RefreshTokenHash> refreshTokenHashs = refreshTokenRepository.findAllByUserId(strUserId);
+            refreshTokenRepository.deleteAll(refreshTokenHashs);
             RefreshTokenHash newRefreshTokenHash = RefreshTokenHash.builder()
                     .refreshToken(loginResponseDto.getRefreshToken())
                     .userId(strUserId)
