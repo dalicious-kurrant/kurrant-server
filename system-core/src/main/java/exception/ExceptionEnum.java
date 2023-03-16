@@ -108,6 +108,7 @@ public enum ExceptionEnum {
   	SPOT_PATCH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000010", "스팟 비활성 처리 실패"),
   	MAKERS_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000011", "메이커스 정보 저장 실패"),
   	MAKERS_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000012", "메이커스 정보 수정 실패"),
+  	ALIMTALK_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000013", "알림톡 발송 실패"),
 
 
   	/* E422 */
