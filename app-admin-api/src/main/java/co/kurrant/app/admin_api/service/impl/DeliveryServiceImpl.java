@@ -45,18 +45,13 @@ public class DeliveryServiceImpl implements DeliveryService {
     public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds) {
         List<Group> groupAllList = groupRepository.findAll();
         // 그룹과 연관된 스팟만 보여주기
-        List<Spot> spotAllList;
-        if(groupIds != null) {
-            spotAllList = qSpotRepository.findAllByGroupIds(groupIds);
-        } else {
-            spotAllList = spotRepository.findAll();
-        }
+        List<Spot> spotAllList = spotRepository.findAll();;
 
         List<Group> groups = (groupIds == null) ? null : groupAllList.stream().filter(group -> groupIds.contains(group.getId())).collect(Collectors.toList());
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
         List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllFilterGroup(startDate, endDate, groups, spots);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
 
         List<OrderDailyFood> orderList = new ArrayList<>();
         for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -169,6 +164,10 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         // service date 로 정렬
         deliveryInfoList = deliveryInfoList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate)).collect(Collectors.toList());
+
+        if(groups != null && !groups.isEmpty()) {
+            spotAllList = spotAllList.stream().filter(spot -> groups.contains(spot.getGroup())).toList();
+        }
 
         return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
     }

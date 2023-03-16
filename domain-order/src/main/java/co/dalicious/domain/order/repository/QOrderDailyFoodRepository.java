@@ -32,6 +32,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QSpot.spot;
@@ -272,7 +274,7 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
-    public List<OrderItemDailyFood> findAllFilterGroup(LocalDate start, LocalDate end, List<Group> groups, List<Spot> spotList) {
+    public List<OrderItemDailyFood> findAllFilterGroupAndSpot(LocalDate start, LocalDate end, List<Group> groups, List<Spot> spotList) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (start != null) {
@@ -281,20 +283,75 @@ public class QOrderDailyFoodRepository {
         if (end != null) {
             whereClause.and(dailyFood.serviceDate.loe(end));
         }
+
+        // 그룹으로 찾을 때
+        BooleanBuilder groupWhereClause = new BooleanBuilder();
         if(groups != null && !groups.isEmpty()) {
-            whereClause.and(dailyFood.group.in(groups));
-        }
-        if(spotList != null && !spotList.isEmpty()) {
-            whereClause.and(orderDailyFood.spot.in(spotList));
+            groupWhereClause.and(dailyFood.group.in(groups));
         }
 
-        return queryFactory.selectFrom(orderItemDailyFood)
-                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
-                .leftJoin(dailyFood.group, group)
-                .leftJoin(orderDailyFood)
-                .on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
-                .where(whereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED))
-                .fetch();
+        // 스팟으로 찾을 때
+        BooleanBuilder spotWhereClause = new BooleanBuilder();
+        if(spotList != null && !spotList.isEmpty()) {
+            spotWhereClause.and(orderDailyFood.spot.in(spotList));
+        }
+
+        List<OrderItemDailyFood> result = new ArrayList<>();
+
+        if (groups != null && !groups.isEmpty()) {
+            if (spotList != null && !spotList.isEmpty()) {
+                // groups와 spotList가 모두 존재하는 경우
+                for (Group g : groups) {
+                    for (Spot s : spotList) {
+                        if (g.getSpots().contains(s)) {
+                            // 해당 그룹과 스팟에 대한 OrderItemDailyFood를 찾아서 결과 리스트에 추가
+                            result = queryFactory.selectFrom(orderItemDailyFood)
+                                    .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                                    .leftJoin(dailyFood.group, group)
+                                    .leftJoin(orderDailyFood)
+                                    .on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                                    .where(whereClause, groupWhereClause, spotWhereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED))
+                                    .fetch();
+                        }
+                        else {
+                            // 해당 그룹과 스팟에 대한 OrderItemDailyFood를 찾아서 결과 리스트에 추가
+                            List<OrderItemDailyFood> groupResult = queryFactory.selectFrom(orderItemDailyFood)
+                                    .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                                    .leftJoin(dailyFood.group, group)
+                                    .where(whereClause, groupWhereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED))
+                                    .fetch();
+
+                            List<OrderItemDailyFood> spotResult = queryFactory.selectFrom(orderItemDailyFood)
+                                    .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                                    .leftJoin(orderDailyFood)
+                                    .on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                                    .where(whereClause, spotWhereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED))
+                                    .fetch();
+
+                            result.addAll(groupResult);
+                            result.addAll(spotResult);
+                        }
+                    }
+                }
+            } else {
+                // groups만 존재하는 경우
+                result = queryFactory.selectFrom(orderItemDailyFood)
+                        .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                        .leftJoin(dailyFood.group, group)
+                        .where(whereClause, groupWhereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED))
+                        .fetch();
+            }
+        } else if (spotList != null && !spotList.isEmpty()) {
+            // spotList만 존재하는 경우
+            result = queryFactory.selectFrom(orderItemDailyFood)
+                    .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                    .leftJoin(orderDailyFood)
+                    .on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                    .where(whereClause, spotWhereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED))
+                    .fetch();
+        }
+
+        return result;
     }
 
 
