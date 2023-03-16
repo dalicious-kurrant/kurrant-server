@@ -239,7 +239,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         if(spot.getGroup().getName().contains("메드트로닉")) {
             BigDecimal medTronicTotalPrice = PriceUtils.floorToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice());
             BigDecimal medTronicSupportPrice = PriceUtils.roundToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice());
-            if (payPrice.compareTo(medTronicTotalPrice) != 0 || totalSupportPrice.compareTo(medTronicSupportPrice) != 0) {
+            if (PriceUtils.floorToOneDigit(payPrice).compareTo(medTronicTotalPrice) != 0 ||  PriceUtils.roundToOneDigit(totalSupportPrice).compareTo(medTronicSupportPrice) != 0) {
                 throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
             }
         }
