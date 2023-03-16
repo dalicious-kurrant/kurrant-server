@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 @Getter
 public enum DailyFoodStatus {
-
     SOLD_OUT("판매종료", 0),
     SALES("판매중", 1),
     PASS_LAST_ORDER_TIME("주문마감", 2),
