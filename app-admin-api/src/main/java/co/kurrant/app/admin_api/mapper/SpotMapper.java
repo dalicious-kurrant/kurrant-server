@@ -65,10 +65,11 @@ public interface SpotMapper {
         spotResponseDto.setCreatedDateTime(DateUtils.format(spot.getCreatedDateTime().toLocalDateTime().toLocalDate()));
         spotResponseDto.setUpdatedDateTime(DateUtils.format(spot.getUpdatedDateTime().toLocalDateTime().toLocalDate()));
 
-        List<MealInfo> mealInfos = spot.getMealInfos();
         StringJoiner diningTypes = new StringJoiner(", ");
-        for (MealInfo mealInfo : mealInfos) {
-            diningTypes.add(mealInfo.getDiningType().getDiningType());
+        // 상세 스팟에 식사 정보가 없기 때문에 다이닝 타입만 찾아서 다이닝 타입 보내기
+        List<DiningType> diningTypeList = spot.getDiningTypes();
+        for(DiningType diningType : diningTypeList) {
+            diningTypes.add(diningType.getDiningType());
         }
         String diningTypesStr = diningTypes.toString();
 
