@@ -38,7 +38,7 @@ public class CreditCardInfo {
     private String cardType;
 
     @Comment(value = "카드 상태, 0:삭제된카드, 1:사용중인 카드")
-    @Column(name = "status", columnDefinition = "INT")
+    @Column(name = "status", columnDefinition = "INT", nullable = false)
     private Integer status;
 
     @Comment(value = "디폴트 타입, 1:기본 결제카드, 2:멤버십 결제카드, 0:아무것도 아님")
@@ -59,7 +59,7 @@ public class CreditCardInfo {
     @Builder
     CreditCardInfo(String cardNumber, User user, String ownerType,
                    String cardType, String customerKey, String billingKey,
-                   String cardCompany, Integer defaultType){
+                   String cardCompany, Integer defaultType, Integer status){
         this.cardNumber = cardNumber;
         this.user = user;
         this.ownerType = ownerType;
@@ -68,6 +68,7 @@ public class CreditCardInfo {
         this.billingKey = billingKey;
         this.cardCompany = cardCompany;
         this.defaultType = defaultType;
+        this.status = status;
     }
 
     public CreditCardInfo(Integer status) {

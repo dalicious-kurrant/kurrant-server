@@ -187,6 +187,7 @@ public interface OrderDailyFoodByMakersMapper {
             }
             OrderDailyFoodByMakersDto.Foods foods = new OrderDailyFoodByMakersDto.Foods();
             foods.setFoodId(food.getId());
+            foods.setDescription(food.getDescription());
             foods.setFoodName(food.getName());
             foods.setTotalFoodCount(count);
             foodsList.add(foods);

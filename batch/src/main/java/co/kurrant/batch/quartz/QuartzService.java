@@ -35,8 +35,8 @@ public class QuartzService {
             jobParameters.put("date", dateString);
 
 //            addJob(QuartzJob.class, "QuartzJob", "Quartz Job 입니다", jobParameters, "0/5 * * * * ?");
-//            addJob(QuartzBatchJob.class, "dailyFoodJob1", "DailyFood 상태 업데이트 Job", jobParameters, "0 0/10 7-10,15-19,21-23,0-1 * * ?");
-            addJob(QuartzBatchJob.class, "dailyFoodJob1", "DailyFood 상태 업데이트 Job", jobParameters, "0/10 * * * * ?");
+            addJob(QuartzBatchJob.class, "dailyFoodJob1", "DailyFood 상태 업데이트 Job", jobParameters, "0 0/10 7-10,15-19,21-23,0-1 * * ?");
+//            addJob(QuartzBatchJob.class, "dailyFoodJob1", "DailyFood 상태 업데이트 Job", jobParameters, "0/10 * * * * ?");
             addJob(QuartzBatchJob.class, "membershipPayJob1", "Membership 결제 Job", jobParameters, "0 0 4 * * ?");
         } catch (SchedulerException e) {
             log.error("addJob error : {}", e);

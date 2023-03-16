@@ -20,11 +20,18 @@ import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -33,6 +40,7 @@ public class MembershipPayJob {
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory entityManagerFactory;
+    private final EntityManager entityManager;
     private final OrderService orderService;
     private final int CHUNK_SIZE = 100;
 
@@ -49,24 +57,42 @@ public class MembershipPayJob {
         // 식사 정보를 통해 주문 마감 시간 가져오기
         return stepBuilderFactory.get("membershipPayJob_step1")
                 .<Membership, Membership>chunk(CHUNK_SIZE)
-                .reader(membershipReader())
+                .reader(membershipReader(matchingMembershipIds()))
                 .processor(membershipProcessor())
                 .writer(membershipWriter())
                 .build();
     }
 
-    @Bean
-    @StepScope
-    public JpaPagingItemReader<Membership> membershipReader() {
+    @Bean(name = "matchingMembershipIds")
+    public List<BigInteger> matchingMembershipIds() {
         log.info("[Membership 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
-        String queryString = "SELECT m FROM Membership m \n" +
-                "JOIN FETCH m.user u \n" +
-                "WHERE m.endDate <= NOW() \n" +
-                "AND m.autoPayment = true\n" +
-                "AND m.createdDateTime = (\n" +
-                "   SELECT MAX(m2.createdDateTime) FROM Membership m2 WHERE m2.user = u\n" +
+        String queryString = "SELECT m.id FROM Membership m " +
+                "JOIN m.user u " +
+                "WHERE m.endDate <= NOW() " +
+                "AND m.autoPayment = true " +
+                "AND m.createdDateTime = (" +
+                "   SELECT MAX(m2.createdDateTime) FROM Membership m2 WHERE m2.user = u" +
                 ")";
+
+        TypedQuery<BigInteger> query = entityManager.createQuery(queryString, BigInteger.class);
+        List<BigInteger> membershipIds = query.getResultList();
+
+        return membershipIds;
+    }
+
+    @Bean
+    @StepScope
+    public JpaPagingItemReader<Membership> membershipReader(@Qualifier("matchingMembershipIds") List<BigInteger> membershipIds) {
+        log.info("[Membership 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
+
+        Map<String, Object> parameterValues = new HashMap<>();
+        parameterValues.put("membershipIds", membershipIds);
+
+        String queryString = "SELECT m FROM OrderItemMembership om\n" +
+                "INNER JOIN Order o ON om.order = o\n" +
+                "INNER JOIN Membership m ON om.membership = m\n" +
+                "WHERE o.orderType = 3 and o.paymentType = 1 AND om.membership.id IN :membershipIds";
 
         return new JpaPagingItemReaderBuilder<Membership>()
                 .entityManagerFactory(entityManagerFactory)

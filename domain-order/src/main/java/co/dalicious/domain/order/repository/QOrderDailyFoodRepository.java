@@ -7,6 +7,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
 import co.dalicious.domain.order.entity.Order;
+import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
@@ -32,9 +33,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static co.dalicious.domain.client.entity.QGroup.group;
+import static co.dalicious.domain.client.entity.QSpot.spot;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;
+import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static com.querydsl.core.group.GroupBy.sum;
@@ -268,23 +272,31 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
-    public List<OrderItemDailyFood> findAllFilterGroup(LocalDate start, LocalDate end, List<Group> groups) {
+    public List<OrderItemDailyFood> findAllFilterGroupAndSpot(LocalDate start, LocalDate end, List<Group> groups, List<Spot> spotList) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (start != null) {
-            whereClause.and(orderItemDailyFood.dailyFood.serviceDate.goe(start));
+            whereClause.and(dailyFood.serviceDate.goe(start));
         }
         if (end != null) {
-            whereClause.and(orderItemDailyFood.dailyFood.serviceDate.loe(end));
+            whereClause.and(dailyFood.serviceDate.loe(end));
         }
-        if(groups != null) {
-            whereClause.and(orderItemDailyFood.dailyFood.group.in(groups));
+        if(groups != null && !groups.isEmpty()) {
+            whereClause.and(group.in(groups));
+        }
+        if(spotList != null && !spotList.isEmpty()) {
+            whereClause.and(orderDailyFood.spot.in(spotList));
         }
 
         return queryFactory.selectFrom(orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(dailyFood.group, group)
+                .leftJoin(orderDailyFood)
+                .on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
                 .where(whereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED))
                 .fetch();
     }
+
 
 
 }

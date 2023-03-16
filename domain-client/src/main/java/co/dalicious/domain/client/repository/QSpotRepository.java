@@ -33,22 +33,20 @@ public class QSpotRepository {
 
     public long deleteSpots(List<BigInteger> spotIdList) {
         return queryFactory.update(spot)
-                .set(spot.status , SpotStatus.INACTIVE)
+                .set(spot.status, SpotStatus.INACTIVE)
                 .where(spot.id.in(spotIdList))
                 .execute();
     }
 
     public List<Spot> findAllByStatus(Integer status) {
-        if(status == null) {
+        if (status == null) {
             return queryFactory.selectFrom(spot)
                     .fetch();
-        }
-        else if (status == 1) {
+        } else if (status == 1) {
             return queryFactory.selectFrom(spot)
                     .where(spot.status.eq(SpotStatus.ACTIVE))
                     .fetch();
-        }
-        else if(status == 0) {
+        } else if (status == 0) {
             return queryFactory.selectFrom(spot)
                     .where(spot.status.eq(SpotStatus.INACTIVE))
                     .fetch();
@@ -61,4 +59,11 @@ public class QSpotRepository {
                 .where(spot.id.in(ids))
                 .fetch();
     }
+
+    public List<Spot> findAllByGroupIds(List<BigInteger> groupIds) {
+        return queryFactory.selectFrom(spot)
+                .where(spot.group.id.in(groupIds))
+                .fetch();
+    }
+
 }
