@@ -125,8 +125,9 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void cancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException {
         Order order = orderItemDailyFood.getOrder();
+        User orderUser = (User) Hibernate.unproxy(order.getUser());
 
-        if(!order.getUser().equals(user)) {
+        if(!orderUser.equals(user)) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
 
