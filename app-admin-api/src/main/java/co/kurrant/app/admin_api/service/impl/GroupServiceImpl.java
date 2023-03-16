@@ -80,7 +80,7 @@ public class GroupServiceImpl implements GroupService {
         // 그룹이 있는지 찾아보기
         for(GroupExcelRequestDto groupInfoList : groupListDtoList) {
             Group group = groupList.stream().filter(groupMatch -> groupMatch.getId().equals(groupInfoList.getId())).findFirst().orElse(null);
-            Address address = new Address(String.valueOf(groupInfoList.getZipCode()), groupInfoList.getAddress1(), groupInfoList.getAddress2(), groupInfoList.getLocation());
+            Address address = new Address(groupInfoList.getZipCode(), groupInfoList.getAddress1(), groupInfoList.getAddress2(), groupInfoList.getLocation());
 
             // group 없으면
             if(group == null) {
