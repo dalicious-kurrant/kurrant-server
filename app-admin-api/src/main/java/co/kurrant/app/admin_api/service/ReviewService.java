@@ -11,4 +11,5 @@ import java.util.Map;
 public interface ReviewService {
 
     ItemPageableResponseDto<ReviewAdminResDto> getAllReviews(@RequestParam Map<String, Object> parameters, Integer limit, Integer page, OffsetBasedPageRequest pageable);
+//    ReviewAdminResDto getAllReviews(@RequestParam Map<String, Object> parameters, Integer limit, Integer page, OffsetBasedPageRequest pageable);
 }

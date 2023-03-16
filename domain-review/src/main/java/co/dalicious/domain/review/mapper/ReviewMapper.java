@@ -13,6 +13,7 @@ import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
+import com.querydsl.core.BooleanBuilder;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
@@ -85,17 +86,18 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
     @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
     @Mapping(source = "reviews.satisfaction", target = "satisfaction")
-    @Mapping(source = "reviews.createdDateTime", target = "createdDate")
+    @Mapping(target = "createdDate", expression = "java(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()))")
     @Mapping(source = "reviews.content", target = "content")
-    @Mapping(source = "reviews.isReports", target = "isReport")
+    @Mapping(target = "isReport", expression = "java(reviews.getIsReports() == null || !reviews.getIsReports() ? false : true)")
     ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
 
     @Named("getServiceDate")
     default String getServiceDate(OrderItem orderItem) {
-        if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
-            return DateUtils.localDateToString(orderItemDailyFood.getDailyFood().getServiceDate());
+        String serviceDate = null;
+        if(Hibernate.unproxy(orderItem) instanceof OrderItemDailyFood orderItemDailyFood) {
+            serviceDate = DateUtils.localDateToString(orderItemDailyFood.getDailyFood().getServiceDate());
         }
-        return null;
+        return serviceDate;
     }
 
 }

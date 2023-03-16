@@ -59,13 +59,13 @@ public class QReviewRepository {
         BooleanBuilder filter = new BooleanBuilder();
 
         if(startDate != null) {
-            filter.and(orderItemDailyFood.dailyFood.serviceDate.goe(startDate));
+            filter.and(dailyFood.serviceDate.goe(startDate));
         }
         if (endDate != null) {
-            filter.and(orderItemDailyFood.dailyFood.serviceDate.loe(endDate));
+            filter.and(dailyFood.serviceDate.loe(endDate));
         }
         if(makersId != null) {
-            filter.and(food.makers.id.eq(makersId));
+            filter.and(reviews.food.makers.id.eq(makersId));
         }
         if(orderItemId != null) {
             filter.and(orderItem.id.eq(orderItemId));
@@ -74,7 +74,7 @@ public class QReviewRepository {
             filter.and(reviews.user.name.containsIgnoreCase(userName));
         }
         if(orderItemName != null) {
-            filter.and(food.name.containsIgnoreCase(orderItemName));
+            filter.and(reviews.food.name.containsIgnoreCase(orderItemName));
         }
         if(isReport != null) {
             filter.and(reviews.isReports.eq(isReport));
@@ -89,17 +89,57 @@ public class QReviewRepository {
         int offset = limit * (page - 1);
 
         QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
-                .join(reviews.comments, comments)
                 .leftJoin(reviews.orderItem, orderItem)
-                .leftJoin(orderItemDailyFood)
-                .on(orderItemDailyFood.id.eq(orderItem.id))
-                .leftJoin(reviews.food, food)
+                .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(comments).on(reviews.comments.contains(comments))
                 .where(filter)
-                .orderBy(reviews.id.desc())
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
+
+//    public List<Reviews> findAllByFilter(BigInteger makersId, BigInteger orderItemId, String orderItemName, String userName, LocalDate startDate, LocalDate endDate, Boolean isReport,
+//                                         Boolean isMakersComment, Boolean isAdminComment) {
+//        BooleanBuilder filter = new BooleanBuilder();
+//
+//        if(startDate != null) {
+//            filter.and(dailyFood.serviceDate.goe(startDate));
+//        }
+//        if (endDate != null) {
+//            filter.and(dailyFood.serviceDate.loe(endDate));
+//        }
+//        if(makersId != null) {
+//            filter.and(reviews.food.makers.id.eq(makersId));
+//        }
+//        if(orderItemId != null) {
+//            filter.and(orderItem.id.eq(orderItemId));
+//        }
+//        if(userName != null) {
+//            filter.and(reviews.user.name.containsIgnoreCase(userName));
+//        }
+//        if(orderItemName != null) {
+//            filter.and(reviews.food.name.containsIgnoreCase(orderItemName));
+//        }
+//        if(isReport != null) {
+//            filter.and(reviews.isReports.eq(isReport));
+//        }
+//        if(isMakersComment != null) {
+//            filter.and(comments.instanceOf(MakersComments.class));
+//        }
+//        if(isAdminComment != null) {
+//            filter.and(comments.instanceOf(AdminComments.class));
+//        }
+//
+//        return queryFactory.selectFrom(reviews)
+//                .leftJoin(reviews.orderItem, orderItem)
+//                .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
+//                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+//                .leftJoin(comments).on(reviews.comments.contains(comments))
+//                .where(filter)
+//                .fetch();
+//
+//    }
 }

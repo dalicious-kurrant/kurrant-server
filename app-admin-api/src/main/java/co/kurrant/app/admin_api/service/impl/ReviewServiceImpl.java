@@ -46,6 +46,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public ItemPageableResponseDto<ReviewAdminResDto> getAllReviews(Map<String, Object> parameters, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+//    public ReviewAdminResDto getAllReviews(Map<String, Object> parameters, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId") == null ? null : BigInteger.valueOf(Integer.parseInt(String.valueOf(parameters.get("makersId"))));
         BigInteger orderItemId = !parameters.containsKey("orderItemId") || parameters.get("orderItemId") == null ? null : BigInteger.valueOf(Integer.parseInt(String.valueOf(parameters.get("orderItemId"))));
         String orderItemName = !parameters.containsKey("orderItemName") || parameters.get("orderItemName") == null ? null : String.valueOf(parameters.get("orderItemName"));
@@ -58,8 +59,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         // orderItem 으로 변경하고 관련 주문 상품과 연관 있는 리뷰를 불러온다.
         Page<Reviews> reviewsList = qReviewRepository.findAllByFilter(makersId, orderItemId, orderItemName, writer, startDate, endDate, isReport, isMakersComment, isAdminComment, limit, page, pageable);
-        Set<Reviews> reviews = reviewsList.stream().collect(Collectors.toSet());
-        Map<Reviews, List<Comments>> commentsList = qCommentRepository.findAllByReviews(reviews);
+//        List<Reviews> reviewsList = qReviewRepository.findAllByFilter(makersId, orderItemId, orderItemName, writer, startDate, endDate, isReport, isMakersComment, isAdminComment);
         List<Makers> makersList = makersRepository.findAll();
 
         List<ReviewAdminResDto.ReviewList> reviewDtoList = new ArrayList<>();
@@ -69,48 +69,27 @@ public class ReviewServiceImpl implements ReviewService {
         for(Reviews review : reviewsList) {
             ReviewAdminResDto.ReviewList reviewDto = reviewMapper.toAdminDto(review);
 
-            List<Comments> comments = commentsList.get(review);
+            List<Comments> comments = review.getComments();
             // 달린 코멘트가 하나도 없으면
-            if(comments == null) {
+            if(comments.isEmpty()) {
                 reviewDto.setIsMakersComment(false);
                 reviewDto.setIsAdminComment(false);
                 count++;
             }
             else {
-                MakersComments makersComments = Objects.requireNonNull(comments).stream()
-                        .filter(c -> c instanceof MakersComments)
-                        .map(c -> (MakersComments) c)
-                        .findFirst().orElse(null);
-
-                AdminComments adminComments = Objects.requireNonNull(comments).stream()
-                        .filter(c -> c instanceof AdminComments)
-                        .map(c -> (AdminComments) c)
-                        .findFirst().orElse(null);
-                // 메이커스 코멘트만 있으면
-                if(makersComments != null) {
-                    reviewDto.setIsMakersComment(true);
-                }
-                // 운영진 코멘트만 있으면
-                if(adminComments != null) {
-                    reviewDto.setIsAdminComment(true);
-                }
+                comments.forEach(comment -> {
+                    if (comment instanceof MakersComments) {
+                        reviewDto.setIsMakersComment(true);
+                    } else if (comment instanceof AdminComments) {
+                        reviewDto.setIsAdminComment(true);
+                    }
+                });
             }
             reviewDtoList.add(reviewDto);
         }
-        // comment 필터링
-        if(isMakersComment == null && isAdminComment == null) {
-            return ItemPageableResponseDto.<ReviewAdminResDto>builder().items(ReviewAdminResDto.create(makersList, reviewDtoList, count))
-                    .limit(pageable.getPageSize()).count(reviewsList.getNumberOfElements()).total(reviewsList.getTotalPages()).build();
-        }
-        else if(isMakersComment != null) {
-            List<ReviewAdminResDto.ReviewList> result = reviewDtoList.stream().filter(v -> v.getIsMakersComment() != null && v.getIsMakersComment().equals(true)).toList();
-            return ItemPageableResponseDto.<ReviewAdminResDto>builder().items(ReviewAdminResDto.create(makersList, result, count))
-                    .limit(pageable.getPageSize()).count(reviewsList.getNumberOfElements()).total(reviewsList.getTotalPages()).build();
-        }
-        else {
-            List<ReviewAdminResDto.ReviewList> result = reviewDtoList.stream().filter(v -> v.getIsAdminComment() != null && v.getIsAdminComment().equals(true)).toList();
-            return ItemPageableResponseDto.<ReviewAdminResDto>builder().items(ReviewAdminResDto.create(makersList, result, count))
-                    .limit(pageable.getPageSize()).count(reviewsList.getNumberOfElements()).total(reviewsList.getTotalPages()).build();
-        }
+
+        return ItemPageableResponseDto.<ReviewAdminResDto>builder().items(ReviewAdminResDto.create(makersList, reviewDtoList, count))
+                .limit(pageable.getPageSize()).count(reviewsList.getNumberOfElements()).total(reviewsList.getTotalPages()).build();
+
     }
 }
