@@ -131,7 +131,7 @@ public class UserServiceImpl implements UserService {
         for (User user : userUpdateMap.keySet()) {
             SaveUserListRequestDto saveUserListRequestDto = userUpdateMap.get(user);
             // 비밀번호에 데이터가 없을 경우
-            if(saveUserListRequestDto.getPassword() == null || saveUserListRequestDto.getPassword().isEmpty()) {
+            if (saveUserListRequestDto.getPassword() == null || saveUserListRequestDto.getPassword().isEmpty()) {
                 user.changePassword(null);
             }
             // 비밀번호가 변경되었을 경우
@@ -191,12 +191,26 @@ public class UserServiceImpl implements UserService {
 
                 userGroupRepository.saveAll(userGroups);
             }
-            user.updateName(saveUserListRequestDto.getName());
-            user.changePhoneNumber(saveUserListRequestDto.getPhone());
-            user.updateRole(Role.ofRoleName(saveUserListRequestDto.getRole()));
-            user.updateUserStatus(UserStatus.ofCode(saveUserListRequestDto.getStatus()));
-            user.updatePoint(BigDecimal.valueOf(saveUserListRequestDto.getPoint() == null ? 0 : saveUserListRequestDto.getPoint()));
-            user.changeMarketingAgreement(saveUserListRequestDto.getMarketingAgree(), saveUserListRequestDto.getMarketingAlarm(), saveUserListRequestDto.getOrderAlarm());
+            if (saveUserListRequestDto.getName() != null && !user.getName().equals(saveUserListRequestDto.getName()))
+                user.updateName(saveUserListRequestDto.getName());
+            if (saveUserListRequestDto.getPhone() != null && !user.getPhone().equals(saveUserListRequestDto.getPhone()))
+                user.changePhoneNumber(saveUserListRequestDto.getPhone());
+            if (saveUserListRequestDto.getRole() != null && !user.getRole().equals(Role.ofRoleName(saveUserListRequestDto.getRole())))
+                user.updateRole(Role.ofRoleName(saveUserListRequestDto.getRole()));
+            if (saveUserListRequestDto.getStatus() != null && !user.getUserStatus().equals(UserStatus.ofCode(saveUserListRequestDto.getStatus())))
+                user.updateUserStatus(UserStatus.ofCode(saveUserListRequestDto.getStatus()));
+            if (saveUserListRequestDto.getPoint() != null) {
+                BigDecimal point = BigDecimal.valueOf(saveUserListRequestDto.getPoint());
+                if (!user.getPoint().equals(point))
+                    user.updatePoint(point);
+            }
+            if (saveUserListRequestDto.getMarketingAgree() != null && saveUserListRequestDto.getMarketingAlarm() != null && saveUserListRequestDto.getOrderAlarm() != null &&
+                    (!user.getMarketingAgree().equals(saveUserListRequestDto.getMarketingAgree()) ||
+                            !user.getMarketingAlarm().equals(saveUserListRequestDto.getMarketingAgree()) ||
+                            !user.getOrderAlarm().equals(saveUserListRequestDto.getOrderAlarm()))) {
+                user.changeMarketingAgreement(saveUserListRequestDto.getMarketingAgree(), saveUserListRequestDto.getMarketingAlarm(), saveUserListRequestDto.getOrderAlarm());
+            }
+
         }
 
         // FIXME: 신규 생성 요청

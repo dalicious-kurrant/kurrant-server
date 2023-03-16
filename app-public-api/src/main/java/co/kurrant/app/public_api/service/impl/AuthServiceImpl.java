@@ -51,6 +51,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -234,12 +235,21 @@ public class AuthServiceImpl implements AuthService {
         Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
         user.updateRecentLoginDateTime(timestamp);
 
+        Integer leftWithdrawDays = null;
+
+        if(user.getUserStatus().equals(UserStatus.REQUEST_WITHDRAWAL)) {
+            LocalDateTime withdrawRequestDateTime = user.getUpdatedDateTime().toLocalDateTime();
+            Duration interval = Duration.between(withdrawRequestDateTime, LocalDateTime.now());
+            leftWithdrawDays = (int) interval.toDays();
+        }
+
         return LoginResponseDto.builder()
                 .accessToken(loginResponseDto.getAccessToken())
                 .refreshToken(loginResponseDto.getRefreshToken())
                 .expiresIn(loginResponseDto.getAccessTokenExpiredIn())
                 .spotStatus(spotStatus.getCode())
-                .isActive((user.getUserStatus().equals(UserStatus.ACTIVE)))
+                .isActive(user.getUserStatus().equals(UserStatus.ACTIVE))
+                .leftWithdrawDays(leftWithdrawDays)
                 .build();
     }
 
@@ -392,7 +402,7 @@ public class AuthServiceImpl implements AuthService {
                 throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
             }
             // 5. 잘못된 Refresh Token일 경우 예외 처리
-            RefreshTokenHash refreshTokenHash = refreshTokenHashs.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
+            refreshTokenHashs.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
                     .findAny()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR));
 
@@ -406,7 +416,7 @@ public class AuthServiceImpl implements AuthService {
             LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(userId, strAuthorities);
 
             // 7. RefreshToken Redis 업데이트
-            refreshTokenRepository.delete(refreshTokenHash);
+            refreshTokenRepository.deleteAll(refreshTokenHashs);
             RefreshTokenHash newRefreshTokenHash = RefreshTokenHash.builder()
                     .refreshToken(loginResponseDto.getRefreshToken())
                     .userId(userId)
@@ -442,7 +452,8 @@ public class AuthServiceImpl implements AuthService {
             LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(strUserId, roles);
 
             // 7. RefreshToken Redis 업데이트
-            refreshTokenRepository.delete(refreshTokenHash.get());
+            List<RefreshTokenHash> refreshTokenHashs = refreshTokenRepository.findAllByUserId(strUserId);
+            refreshTokenRepository.deleteAll(refreshTokenHashs);
             RefreshTokenHash newRefreshTokenHash = RefreshTokenHash.builder()
                     .refreshToken(loginResponseDto.getRefreshToken())
                     .userId(strUserId)

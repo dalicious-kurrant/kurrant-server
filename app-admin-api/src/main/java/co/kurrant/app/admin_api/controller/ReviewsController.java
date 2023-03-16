@@ -26,13 +26,10 @@ public class ReviewsController {
     @Operation(summary = "리뷰 조회", description = "리뷰를 조회 합니다.")
     @GetMapping("/all")
     public ResponseMessage getAllReviews(@RequestParam Map<String, Object> parameters,
-                                         @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable,
-                                         @RequestParam String startDate, @RequestParam String endDate) {
-        LocalDate start = DateUtils.stringToDate(startDate);
-        LocalDate end = DateUtils.stringToDate(endDate);
+                                         @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("리뷰를 조회했습니다.")
-                .data(reviewService.getAllReviews(parameters, limit, page, pageable, start, end))
+                .data(reviewService.getAllReviews(parameters, limit, page, pageable))
                 .build();
     }
 }

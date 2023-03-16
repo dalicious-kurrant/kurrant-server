@@ -5,6 +5,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.review.dto.ReviewUpdateReqDto;
 import co.dalicious.domain.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -92,6 +93,11 @@ public class Reviews{
     @JoinColumn(name = "food_id")
     @Comment("푸드 ID")
     private Food food;
+
+    @OneToMany(mappedBy = "reviews", fetch = FetchType.LAZY)
+    @JsonBackReference(value = "reviews__comments_fk")
+    @Comment("댓글 리스트")
+    private List<Comments> comments;
 
     @Builder
     public Reviews(String content, String contentOrigin, Integer satisfaction, Integer satisfactionOrigin, Boolean forMakers, User user, OrderItem orderItem, Food food, List<Image> images) {

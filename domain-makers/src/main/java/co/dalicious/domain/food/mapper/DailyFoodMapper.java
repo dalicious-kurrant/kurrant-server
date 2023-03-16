@@ -75,7 +75,7 @@ public interface DailyFoodMapper {
             }
             return DailyFood.builder()
                     .dailyFoodGroup(dailyFoodGroup)
-                    .dailyFoodStatus(DailyFoodStatus.WAITING)
+                    .dailyFoodStatus(DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()))
                     .diningType(DiningType.ofCode(dailyFoodDto.getDiningType()))
                     .serviceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()))
                     .food(food)
