@@ -80,7 +80,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
             }
 
-            if(orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+            if(orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
                 throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
             }
 
@@ -136,7 +136,7 @@ public class OrderServiceImpl implements OrderService {
             throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
         }
 
-        if(orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+        if(orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
             throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
         }
 
