@@ -1,7 +1,9 @@
 package co.kurrant.app.admin_api.mapper;
 
+import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -26,12 +28,22 @@ public interface DeliveryMapper {
     @Mapping(source = "deliveryGroupList", target = "group")
     DeliveryDto.DeliveryInfo toDeliveryInfo(LocalDate serviceDate, List<DeliveryDto.DeliveryGroup> deliveryGroupList);
 
-    @Mapping(source = "group.id", target = "groupId")
-    @Mapping(source = "group.name", target = "groupName")
+    @Mapping(source = "spot.group.id", target = "groupId")
+    @Mapping(source = "spot.group.name", target = "groupName")
     @Mapping(source = "deliveryTime", target = "deliveryTime")
     @Mapping(source = "diningType", target = "diningType")
+    @Mapping(source = "spot.name", target = "spotName")
+    @Mapping(source = "spot.id", target = "spotId")
+    @Mapping(source = "spot.address", target = "address")
     @Mapping(source = "deliveryMakersList", target = "makers")
-    DeliveryDto.DeliveryGroup toDeliveryGroup(Group group, Integer diningType, LocalTime deliveryTime, List<DeliveryDto.DeliveryMakers> deliveryMakersList);
+    DeliveryDto.DeliveryGroup toDeliveryGroup(Spot spot, Integer diningType, LocalTime deliveryTime, List<DeliveryDto.DeliveryMakers> deliveryMakersList);
+
+    default String getAddress(Address address) {
+        if(address == null) return null;
+        StringBuilder addressBuider = new StringBuilder();
+        addressBuider.append(address.getAddress1()).append(", ").append(address.getAddress2());
+        return String.valueOf(addressBuider);
+    }
 
     @Named("getDeliveryTime")
     default LocalTime getDeliveryTime(List<MealInfo> mealInfos) {

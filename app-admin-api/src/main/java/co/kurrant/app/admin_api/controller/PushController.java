@@ -1,15 +1,20 @@
 package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.admin_api.dto.push.AlimtalkRequestDto;
 import co.kurrant.app.admin_api.dto.push.PushByTopicRequestDto;
 import co.kurrant.app.admin_api.dto.push.PushRequestDto;
 import co.kurrant.app.admin_api.service.PushService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.parser.ParseException;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
 
 @Tag(name = "A. Push ")
 @RequiredArgsConstructor
@@ -37,5 +42,13 @@ public class PushController {
                 .build();
     }
 
+    @PostMapping("/talk")
+    @Operation(summary = "알림톡 보내기 샘플", description = "알림톡을 보낸다")
+    public ResponseMessage sendAlimTalk(@RequestBody AlimtalkRequestDto alimtalkRequestDto) throws IOException, ParseException {
+        pushService.sendToTalk(alimtalkRequestDto);
+        return ResponseMessage.builder()
+                .message("알림톡 발송 성공!")
+                .build();
+    }
 
 }
