@@ -16,7 +16,8 @@ import java.sql.Timestamp;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn
 @Table(name = "review__comment")
 public class Comments {
 
@@ -49,10 +50,19 @@ public class Comments {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    @Builder
-    public Comments(String content, Reviews reviews) {
+    @Column(name = "is_delete")
+    @Comment("삭제 여부")
+    private Boolean isDelete;
+
+    public Comments(String content, Reviews reviews, Boolean isDelete) {
         this.content = content;
         this.reviews = reviews;
+        this.isDelete = isDelete;
     }
 
+    public void updateComment(String content) {
+        this.content = content;
+    }
+
+    public void updateIsDelete(Boolean isDelete) {this.isDelete = isDelete; }
 }

@@ -49,9 +49,10 @@ public class ReviewAdminResDto {
         private Boolean isMakersComment;
         private Boolean isAdminComment;
         private Boolean isReport;
+        private Boolean isDelete;
 
         @Builder
-        public ReviewList(BigInteger reviewId, String serviceDate, BigInteger orderItemId, String itemName, String makersName, Integer satisfaction, String createdDate, String content, Boolean isMakersComment, Boolean isAdminComment, Boolean isReport) {
+        public ReviewList(BigInteger reviewId, String serviceDate, BigInteger orderItemId, String itemName, String makersName, Integer satisfaction, String createdDate, String content, Boolean isMakersComment, Boolean isAdminComment, Boolean isReport, Boolean isDelete) {
             this.reviewId = reviewId;
             this.serviceDate = serviceDate;
             this.orderItemId = orderItemId;
@@ -63,6 +64,7 @@ public class ReviewAdminResDto {
             this.isMakersComment = isMakersComment;
             this.isAdminComment = isAdminComment;
             this.isReport = isReport;
+            this.isDelete = isDelete;
         }
     }
 
@@ -73,5 +75,37 @@ public class ReviewAdminResDto {
                 .makersInfoList(makersInfos)
                 .reviewList(reviewList)
                 .build();
+    }
+
+    @Getter
+    @Setter
+    public static class ReviewDetail {
+        private BigInteger reviewId;
+        private List<String> imageLocations;
+        private String content;
+        private Integer satisfaction;
+        private String contentOrigin;
+        private Integer satisfactionOrigin;
+        private Boolean forMakers;
+        private String userName;
+        private String foodName;
+        private MakersComment makersComment;
+        private AdminComment adminComment;
+    }
+
+    @Getter
+    @Setter
+    public static class MakersComment {
+        private String comment;
+        private String makersName;
+        private Boolean isDelete;
+    }
+
+    @Getter
+    @Setter
+    public static class AdminComment {
+        private BigInteger commentId;
+        private String comment;
+        private Boolean isDelete;
     }
 }
