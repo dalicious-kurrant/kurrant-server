@@ -38,7 +38,6 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryMapper deliveryMapper;
     private final GroupRepository groupRepository;
     private final SpotRepository spotRepository;
-    private final QSpotRepository qSpotRepository;
 
     @Override
     @Transactional(readOnly = true)
