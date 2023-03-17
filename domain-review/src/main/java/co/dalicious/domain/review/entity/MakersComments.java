@@ -12,7 +12,9 @@ import javax.persistence.Entity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MakersComments extends Comments {
     @Builder
-    public MakersComments(String content, Reviews reviews) {
-        super(content, reviews);
+    public MakersComments(String content, Reviews reviews, Boolean isDelete) {
+        super(content, reviews, isDelete);
     }
+
+    public void updateIsDelete(Boolean isDelete) { super.updateIsDelete(isDelete); }
 }

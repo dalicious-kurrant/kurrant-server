@@ -98,6 +98,7 @@ public class ReviewAdminResDto {
     public static class MakersComment {
         private String comment;
         private String makersName;
+        private Boolean isDelete;
     }
 
     @Getter
@@ -105,5 +106,6 @@ public class ReviewAdminResDto {
     public static class AdminComment {
         private BigInteger commentId;
         private String comment;
+        private Boolean isDelete;
     }
 }

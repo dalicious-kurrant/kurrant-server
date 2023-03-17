@@ -1,7 +1,6 @@
 package co.kurrant.app.makers_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.review.dto.CommentReqDto;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.ReviewService;
@@ -55,12 +54,23 @@ public class ReviewController {
 
     @Operation(summary = "리뷰 상세 조회", description = "리뷰를 상세 조회 합니다.")
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("")
+    @GetMapping("/detail")
     public ResponseMessage getReviewDetail(Authentication authentication, @RequestParam BigInteger reviewId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .message("리뷰 상세 조회를 완료했습니다.")
                 .data(reviewService.getReviewDetail(securityUser, reviewId))
+                .build();
+    }
+
+    @Operation(summary = "상품 평균 리뷰 점수", description = "상품 평균 리뷰 점수를 조회 합니다.")
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/score")
+    public ResponseMessage getAverageReviewScore(Authentication authentication, @RequestParam BigInteger reviewId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .message("리뷰 상세 조회를 완료했습니다.")
+                .data(reviewService.getAverageReviewScore(securityUser, reviewId))
                 .build();
     }
 }

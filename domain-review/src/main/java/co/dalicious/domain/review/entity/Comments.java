@@ -2,6 +2,7 @@ package co.dalicious.domain.review.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -49,12 +50,19 @@ public class Comments {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    public Comments(String content, Reviews reviews) {
+    @Column(name = "is_delete")
+    @Comment("삭제 여부")
+    private Boolean isDelete;
+
+    public Comments(String content, Reviews reviews, Boolean isDelete) {
         this.content = content;
         this.reviews = reviews;
+        this.isDelete = isDelete;
     }
 
     public void updateComment(String content) {
         this.content = content;
     }
+
+    public void updateIsDelete(Boolean isDelete) {this.isDelete = isDelete; }
 }

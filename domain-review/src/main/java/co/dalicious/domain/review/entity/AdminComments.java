@@ -12,11 +12,12 @@ import javax.persistence.Entity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdminComments extends Comments{
     @Builder
-    public AdminComments(String content, Reviews reviews) {
-        super(content, reviews);
+    public AdminComments(String content, Reviews reviews, Boolean isDelete) {
+        super(content, reviews, isDelete);
     }
 
     public void updateAdminComment(String content) {
         super.updateComment(content);
     }
+    public void updateIsDelete(Boolean isDelete) { super.updateIsDelete(isDelete); }
 }
