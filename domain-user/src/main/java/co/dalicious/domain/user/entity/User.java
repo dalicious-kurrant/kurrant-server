@@ -311,6 +311,22 @@ public class User {
                 .orElse(null);
     }
 
+    public void withdrawUser() {
+        // 이메일 개인정보 수정
+        if (email != null && email.contains("@") && email.indexOf("@") >= 2) {
+            // extract the email prefix and domain
+            String prefix = email.substring(0, email.indexOf("@") - 2);
+            String domain = email.substring(email.indexOf("@") + 1);
+            // replace the prefix with asterisks
+            String maskedPrefix = prefix.replaceAll(".", "*");
+            // set the modified email address
+            this.email = maskedPrefix + "@@" + domain;
+        } else {
+            this.email = email; // use the original email if it doesn't meet the criteria
+        }
+        this.userStatus = UserStatus.INACTIVE;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
