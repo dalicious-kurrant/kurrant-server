@@ -2,7 +2,6 @@ package co.dalicious.domain.review.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -16,7 +15,8 @@ import java.sql.Timestamp;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn
 @Table(name = "review__comment")
 public class Comments {
 
@@ -49,10 +49,12 @@ public class Comments {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    @Builder
     public Comments(String content, Reviews reviews) {
         this.content = content;
         this.reviews = reviews;
     }
 
+    public void updateComment(String content) {
+        this.content = content;
+    }
 }
