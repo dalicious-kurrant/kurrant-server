@@ -97,13 +97,4 @@ public class QPresetMakersDailyFoodRepository {
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
-
-    public static StringTemplate getStringTemplate() {
-        StringTemplate formattedDate = Expressions.stringTemplate(
-                "DATE_FORMAT({0}, {1})"
-                , presetMakersDailyFood.createdDateTime
-                , ConstantImpl.create("%Y-%m-%d"));
-        return formattedDate;
-    }
-
 }

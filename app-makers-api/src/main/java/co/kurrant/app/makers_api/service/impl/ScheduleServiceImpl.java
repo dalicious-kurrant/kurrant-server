@@ -42,7 +42,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Transactional(readOnly = true)
     public ListItemResponseDto<PresetScheduleResponseDto> getMostRecentPresets(Integer limit, Integer page, OffsetBasedPageRequest pageable, SecurityUser securityUser) {
         Makers makers = userUtil.getMakers(securityUser);
-        // 페이지에 해당하는 리스트만 불러옴
+        // 요청된 일정 중 데드라인이 끝나지 않은 일정만 보여줌
         Page<PresetMakersDailyFood> presetMakersDailyFoods = qPresetGroupDailyFoodRepository.getMostRecentPresets(limit, page, makers, pageable);
 
         //PresetScheduleResponseDto 만들기
