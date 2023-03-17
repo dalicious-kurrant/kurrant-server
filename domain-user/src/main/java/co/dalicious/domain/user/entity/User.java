@@ -313,18 +313,39 @@ public class User {
 
     public void withdrawUser() {
         // 이메일 개인정보 수정
-        if (email != null && email.contains("@") && email.indexOf("@") >= 2) {
+        if (this.email != null && email.contains("@") && email.indexOf("@") >= 2) {
             // extract the email prefix and domain
-            String prefix = email.substring(0, email.indexOf("@") - 2);
-            String domain = email.substring(email.indexOf("@") + 1);
+            String prefix = this.email.substring(0, 2);
+            String domain = this.email.substring(this.email.indexOf("@"));
             // replace the prefix with asterisks
             String maskedPrefix = prefix.replaceAll(".", "*");
             // set the modified email address
-            this.email = maskedPrefix + "@@" + domain;
+            this.email = prefix + maskedPrefix + domain;
         } else {
             this.email = email; // use the original email if it doesn't meet the criteria
         }
+
+        if (this.phone != null && this.phone.length() >= 11) {
+            this.phone = this.phone.substring(0, 7) + "****";
+        }
+
+        // 이름 개인정보 수정
+        if(this.name != null || !this.name.equals("이름없음")) {
+            String prefix = this.name.substring(0, 1);
+            int length = this.name.substring(1).length();
+            String maskedPrefix = "*".repeat(length);
+
+            this.name = prefix + maskedPrefix;
+        }
+
+
         this.userStatus = UserStatus.INACTIVE;
+        this.password = null;
+        this.marketingAlarm = false;
+        this.marketingAgree = false;
+        this.orderAlarm = false;
+        this.point = BigDecimal.ZERO;
+        this.isMembership = false;
     }
 
     @Override
