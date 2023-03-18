@@ -512,8 +512,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 다음주 주문이 없을 때
         // 하루에 한 번만 알림 보내기 - 알림을 읽었으면 그날 하루는 더 이상 보내지 않음.
-        List<NotificationHash> todayAlreadySendNotys = notificationHashRepository.findByUserIdAndTypeAndIsReadAndCreateDate(user.getId(), 5, true, now);
-        if(todayAlreadySendNotys.size() != 0) return;
+        List<NotificationHash> todayAlreadySendNotys = notificationHashRepository.findByUserIdAndTypeAndIsRead(user.getId(), 5, true);
+        System.out.println("todayAlreadySendNotys = " + todayAlreadySendNotys);
+        if(!todayAlreadySendNotys.isEmpty()) return;
 
         // 알림을 보낸적 없으면
         LocalDate startDate = switch (dayOfWeek) {
@@ -528,10 +529,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         };
         LocalDate endDate = startDate.plusDays(7);
         List<OrderItemDailyFood> nextWeekOrderFoods =  qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, startDate, endDate);
-        if(nextWeekOrderFoods.size() == 0) {
-            sseService.send(user.getId(), 5, "다음주 식사 구매하셨나요?");
-            return;
-        }
+        System.out.println("nextWeekOrderFoods = " + nextWeekOrderFoods);
 
         Set<String> nextWeekOrderFoodServiceDays = nextWeekOrderFoods.stream()
                 .map(order -> order.getDailyFood().getServiceDate().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA))
@@ -541,7 +539,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .collect(Collectors.toSet());
 
         //다음주 주문 중 모든 서비스 날이 포함 되었는지 확인
-        if(nextWeekOrderFoodServiceDays.size() < mealInfoServiceDays.size()) {
+        if(nextWeekOrderFoods.isEmpty() || nextWeekOrderFoodServiceDays.size() < mealInfoServiceDays.size()) {
+            System.out.println("mealInfoServiceDays = " + mealInfoServiceDays);
             // 모든 서비스 날이 포함 되지 않았다면
             sseService.send(user.getId(), 5, "다음주 식사 구매하셨나요?");
         }
@@ -565,6 +564,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if(dayOfWeek.equalsIgnoreCase(membershipDayOfWeek) && curranTime.isAfter(membershipTime) && curranTime.isBefore(time)) {
                     String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "까지 해야 멤버십 할인을 받을 수 있어요!";
                     sseService.send(user.getId(), 4, content);
+                    return;
                 }
             }
             if(notyDto.getLastOrderTime() != null) {
@@ -578,6 +578,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if(dayOfWeek.equalsIgnoreCase(lastOrderDayOfWeek) && curranTime.isAfter(lastOrderNoticeTime) && curranTime.isBefore(time)) {
                     String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "에 마감이예요!";
                     sseService.send(user.getId(), 4, content);
+                    return;
                 }
             }
         }
