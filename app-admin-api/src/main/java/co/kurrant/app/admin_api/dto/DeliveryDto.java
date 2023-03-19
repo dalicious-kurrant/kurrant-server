@@ -73,13 +73,15 @@ public class DeliveryDto {
         private BigInteger makersId;
         private String makersName;
         private String pickupTime;
+        private String address;
         private List<DeliveryFood> foods;
 
         @Builder
-        public DeliveryMakers(BigInteger makersId, String makersName, LocalTime pickupTime, List<DeliveryFood> foods) {
+        public DeliveryMakers(BigInteger makersId, String makersName, LocalTime pickupTime, List<DeliveryFood> foods, String address) {
             this.makersId = makersId;
             this.makersName = makersName;
             this.pickupTime = (pickupTime == null) ? null : DateUtils.timeToString(pickupTime);
+            this.address = address;
             this.foods = foods;
         }
     }
