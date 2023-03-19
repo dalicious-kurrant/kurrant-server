@@ -1,4 +1,4 @@
-package co.kurrant.batch.job.batch;
+package co.kurrant.batch.job.batch.job;
 
 import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.user.entity.Membership;
@@ -7,6 +7,7 @@ import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
+import co.kurrant.batch.job.batch.listener.MatchingMembershipIdsListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -20,6 +21,7 @@ import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,12 +44,34 @@ public class MembershipPayJob {
     private final EntityManagerFactory entityManagerFactory;
     private final EntityManager entityManager;
     private final OrderService orderService;
+    private final MatchingMembershipIdsListener matchingMembershipIdsListener;
     private final int CHUNK_SIZE = 100;
+
+    private List<BigInteger> membershipIds = null;
+
+    private List<BigInteger> getMembershipIds() {
+        if (membershipIds == null) {
+            String queryString = "SELECT m.id FROM Membership m " +
+                    "JOIN m.user u " +
+                    "WHERE m.endDate <= NOW() " +
+                    "AND m.autoPayment = true " +
+                    "AND m.createdDateTime = (" +
+                    "   SELECT MAX(m2.createdDateTime) FROM Membership m2 WHERE m2.user = u" +
+                    ")";
+
+            TypedQuery<BigInteger> query = entityManager.createQuery(queryString, BigInteger.class);
+
+            return query.getResultList();
+        }
+
+        return membershipIds;
+    }
 
     @Bean(name = "membershipPayJob1")
     public Job membershipPayJob1() {
         return jobBuilderFactory.get("membershipPayJob1")
                 .start(membershipPayJob_step1())
+                .start(membershipPayJob_step2())
                 .build();
     }
 
@@ -57,37 +81,26 @@ public class MembershipPayJob {
         // 식사 정보를 통해 주문 마감 시간 가져오기
         return stepBuilderFactory.get("membershipPayJob_step1")
                 .<Membership, Membership>chunk(CHUNK_SIZE)
-                .reader(membershipReader(matchingMembershipIds()))
+                .reader(membershipReader())
                 .processor(membershipProcessor())
                 .writer(membershipWriter())
                 .build();
     }
 
-    @Bean(name = "matchingMembershipIds")
-    public List<BigInteger> matchingMembershipIds() {
-        log.info("[Membership 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
-
-        String queryString = "SELECT m.id FROM Membership m " +
-                "JOIN m.user u " +
-                "WHERE m.endDate <= NOW() " +
-                "AND m.autoPayment = true " +
-                "AND m.createdDateTime = (" +
-                "   SELECT MAX(m2.createdDateTime) FROM Membership m2 WHERE m2.user = u" +
-                ")";
-
-        TypedQuery<BigInteger> query = entityManager.createQuery(queryString, BigInteger.class);
-        List<BigInteger> membershipIds = query.getResultList();
-
-        return membershipIds;
-    }
-
     @Bean
     @StepScope
-    public JpaPagingItemReader<Membership> membershipReader(@Qualifier("matchingMembershipIds") List<BigInteger> membershipIds) {
+    public JpaPagingItemReader<Membership> membershipReader() {
         log.info("[Membership 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
+
+        List<BigInteger> membershipIds = getMembershipIds();
 
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("membershipIds", membershipIds);
+
+
+        if (membershipIds.isEmpty()) {
+            return null;
+        }
 
         String queryString = "SELECT m FROM OrderItemMembership om\n" +
                 "INNER JOIN Order o ON om.order = o\n" +
@@ -131,5 +144,37 @@ public class MembershipPayJob {
     public JpaItemWriter<Membership> membershipWriter() {
         log.info("Membership 상태 저장 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
         return new JpaItemWriterBuilder<Membership>().entityManagerFactory(entityManagerFactory).build();
+    }
+
+    @Bean
+    public Step membershipPayJob_step2() {
+        // 탈퇴하는 유저의 OAuth 아이디를 삭제한다.
+        return stepBuilderFactory.get("membershipPayJob_step2")
+                .tasklet((contribution, chunkContext) -> {
+
+                    List<BigInteger> membershipIds = getMembershipIds();
+
+                    Map<String, Object> parameterValues = new HashMap<>();
+                    parameterValues.put("membershipIds", membershipIds);
+
+                    if (membershipIds.isEmpty()) {
+                        return null;
+                    }
+
+                    // Create JPQL query to select ProviderEmail entities
+                    String queryString = "SELECT m FROM OrderItemMembership om " +
+                            "INNER JOIN Order o ON om.order = o " +
+                            "INNER JOIN Membership m ON om.membership = m " +
+                            "WHERE o.orderType = 3 and o.paymentType = 2 AND om.membership.id IN :membershipIds";
+                    TypedQuery<Membership> query = entityManager.createQuery(queryString, Membership.class);
+                    query.setParameter("membershipIds", membershipIds);
+
+                    List<Membership> memberships = query.getResultList();
+
+                    for (Membership membership : memberships) {
+                        membership.getUser().changeMembershipStatus(false);
+                    }
+                    return RepeatStatus.FINISHED;
+                }).build();
     }
 }

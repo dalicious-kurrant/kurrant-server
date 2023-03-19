@@ -275,6 +275,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 Founders founders =  foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber()+1);
                 foundersUtil.saveFounders(founders);
             }
+            user.updateIsMembership(true);
         }
 
         // 결제 금액이 0이 아닐 경우, 토스페이를 통해 결제

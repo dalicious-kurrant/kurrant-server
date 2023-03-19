@@ -1,4 +1,4 @@
-package co.kurrant.batch.job.batch;
+package co.kurrant.batch.job.batch.job;
 
 import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -78,6 +78,18 @@ public class DailyFoodJob {
                 .build();
     }
 
+    @Bean
+    @JobScope
+    public Step dailyFoodJob_step3() {
+        // 식사 정보를 통해 주문 마감 시간 가져오기
+        return stepBuilderFactory.get("dailyFoodJob_step3")
+                .<OrderItemDailyFood, OrderItemDailyFood>chunk(CHUNK_SIZE)
+                .reader(orderItemDailyFoodReader(matchingDailyFoodIds()))
+                .processor(orderItemDailyFoodProcessor())
+                .writer(orderItemDailyFoodWriter())
+                .build();
+    }
+
     @Bean(name = "matchingDailyFoodIds")
     public List<BigInteger> matchingDailyFoodIds() {
         log.info("[DailyFood 읽기 시작] : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
@@ -136,7 +148,7 @@ public class DailyFoodJob {
             @Override
             public DailyFood process(DailyFood dailyFood) throws Exception {
                 log.info("[DailyFood 상태 업데이트 시작] : {}", dailyFood.getId());
-                dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
+                dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
                 return dailyFood;
             }
         };
