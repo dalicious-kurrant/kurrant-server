@@ -197,7 +197,7 @@ public interface OrderDailyFoodByMakersMapper {
         }
 
         foodsList = foodsList.stream()
-                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.Foods::getFoodId)).toList()
+                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.Foods::getFoodId)).toList();
         return foodsList;
     }
 }
