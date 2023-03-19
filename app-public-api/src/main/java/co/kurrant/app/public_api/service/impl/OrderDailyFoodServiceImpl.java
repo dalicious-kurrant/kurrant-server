@@ -3,7 +3,10 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
-import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.CorporationSpot;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -28,9 +31,9 @@ import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
-import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.PriceUtils;
 import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -39,6 +42,7 @@ import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.asm.Advice;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -50,7 +54,9 @@ import org.springframework.util.MultiValueMap;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -513,26 +519,15 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 다음주 주문이 없을 때
         // 하루에 한 번만 알림 보내기 - 알림을 읽었으면 그날 하루는 더 이상 보내지 않음.
-        List<NotificationHash> todayAlreadySendNotys = notificationHashRepository.findByUserIdAndTypeAndIsReadAndCreateDate(user.getId(), 5, true, now);
-        if(todayAlreadySendNotys.size() != 0) return;
+        List<NotificationHash> todayAlreadySendNotys = notificationHashRepository.findByUserIdAndTypeAndIsRead(user.getId(), 5, true);
+        System.out.println("todayAlreadySendNotys = " + todayAlreadySendNotys);
+        if(!todayAlreadySendNotys.isEmpty()) return;
 
         // 알림을 보낸적 없으면
-        LocalDate startDate = switch (dayOfWeek) {
-            case "월" -> now.plusDays(7);
-            case "화" -> now.plusDays(6);
-            case "수" -> now.plusDays(5);
-            case "목" -> now.plusDays(4);
-            case "금" -> now.plusDays(3);
-            case "토" -> now.plusDays(2);
-            case "일" -> now.plusDays(1);
-            default -> now;
-        };
-        LocalDate endDate = startDate.plusDays(7);
+        Map<String, LocalDate> weekOfDay = DateUtils.getWeekOfDay(now);
+        LocalDate startDate = weekOfDay.get("startDate").plusDays(7);
+        LocalDate endDate = weekOfDay.get("endDate").plusDays(7);
         List<OrderItemDailyFood> nextWeekOrderFoods =  qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, startDate, endDate);
-        if(nextWeekOrderFoods.size() == 0) {
-            sseService.send(user.getId(), 5, "다음주 식사 구매하셨나요?");
-            return;
-        }
 
         Set<String> nextWeekOrderFoodServiceDays = nextWeekOrderFoods.stream()
                 .map(order -> order.getDailyFood().getServiceDate().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA))
@@ -542,7 +537,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .collect(Collectors.toSet());
 
         //다음주 주문 중 모든 서비스 날이 포함 되었는지 확인
-        if(nextWeekOrderFoodServiceDays.size() < mealInfoServiceDays.size()) {
+        if(nextWeekOrderFoods.isEmpty() || nextWeekOrderFoodServiceDays.size() < mealInfoServiceDays.size()) {
             // 모든 서비스 날이 포함 되지 않았다면
             sseService.send(user.getId(), 5, "다음주 식사 구매하셨나요?");
         }
@@ -566,6 +561,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if(dayOfWeek.equalsIgnoreCase(membershipDayOfWeek) && curranTime.isAfter(membershipTime) && curranTime.isBefore(time)) {
                     String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "까지 해야 멤버십 할인을 받을 수 있어요!";
                     sseService.send(user.getId(), 4, content);
+                    return;
                 }
             }
             if(notyDto.getLastOrderTime() != null) {
@@ -579,6 +575,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if(dayOfWeek.equalsIgnoreCase(lastOrderDayOfWeek) && curranTime.isAfter(lastOrderNoticeTime) && curranTime.isBefore(time)) {
                     String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "에 마감이예요!";
                     sseService.send(user.getId(), 4, content);
+                    return;
                 }
             }
         }
