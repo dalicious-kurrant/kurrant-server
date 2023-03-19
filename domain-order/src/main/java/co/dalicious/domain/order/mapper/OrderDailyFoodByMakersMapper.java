@@ -195,6 +195,9 @@ public interface OrderDailyFoodByMakersMapper {
             foods.setTotalFoodCount(count);
             foodsList.add(foods);
         }
+
+        foodsList = foodsList.stream()
+                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.Foods::getFoodId)).toList()
         return foodsList;
     }
 }
