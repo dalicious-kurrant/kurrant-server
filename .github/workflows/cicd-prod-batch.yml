@@ -114,10 +114,10 @@ jobs:
     - name: Docker 빌드
       run: |
         docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-        cd app-public-api
-        docker build -t kurrant_v1 .
-        docker tag kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
-        docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
+        cd batch
+        docker build -t kurrant_batch .
+        docker tag kurrant_batch ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
+        docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
 
 
     - name: 배포
@@ -128,8 +128,8 @@ jobs:
         key: ${{ secrets.PROD_PRIVATE_KEY }}
         envs: GITHUB_SHA
         script: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
-          docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
-          docker stop kurrant_v1
+          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7} kurrant_batch
+          docker stop kurrant_batch
           sleep 5
-          docker run -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
+          docker run -d --rm --name kurrant_batch -p 8890:8890 kurrant_batch
