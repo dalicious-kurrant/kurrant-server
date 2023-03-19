@@ -20,8 +20,10 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.order.mapper.FoodMapper;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
+import co.dalicious.system.util.DaysUtil;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -73,9 +75,6 @@ public class FoodServiceImpl implements FoodService {
         List<DailyFood> dailyFoodList;
         List<DailyFoodDto> dailyFoodDtos = new ArrayList<>();
 
-        // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
-        List<MealInfo> mealInfoList = spot.getMealInfos();
-
         if(diningTypeCode != null) {
             DiningType diningType = DiningType.ofCode(diningTypeCode);
             dailyFoodList = qDailyFoodRepository.findAllByGroupAndSelectedDateAndDiningType(group, selectedDate, diningType);
@@ -125,21 +124,27 @@ public class FoodServiceImpl implements FoodService {
         else {
             // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
             List<Integer> diningTypes = new ArrayList<>();
+            RetrieveDailyFoodDto.ServiceDays serviceDays = new RetrieveDailyFoodDto.ServiceDays();
             for (DiningType diningType : spot.getDiningTypes()) {
                 diningTypes.add(diningType.getCode());
+
+                // 이용가능 날짜
+                switch (diningType) {
+                    case MORNING -> serviceDays.setMorningServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                    case LUNCH -> serviceDays.setLunchServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                    case DINNER -> serviceDays.setDinnerServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                }
             }
             // 결과값을 담아줄 LIST 생성
             // 조건에 맞는 DailyFood 조회
             dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(group, selectedDate);
             // 값이 있다면 결과값으로 담아준다.
             for (DailyFood dailyFood : dailyFoodList) {
-                // TODO: Spring Batch 서버 구현 완료시 스케쥴러로 변경하기
                 MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
                 LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
                 if((LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate())) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
                     dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
                 }
-
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
                 dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
@@ -186,6 +191,7 @@ public class FoodServiceImpl implements FoodService {
                     .diningTypes(diningTypes)
                     .supportPrice(supportPriceDto)
                     .dailyFoodDtos(dailyFoodDtos)
+                    .serviceDays(serviceDays)
                     .build();
         }
     }
