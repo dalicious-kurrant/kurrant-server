@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
@@ -40,7 +38,6 @@ public class SseService {
         // 503 에러를 방지하기 위한 더미 이벤트 전송. 연결 중 한 번도 이벤트를 보낸 적이 없다면 다음 연결 때 503에러를 낸다.
         sendToClient(emitter, id, "EventStream Created. [userId=" + userId + "]");
 
-
         // 클라이언트가 미수신한 Event 목록이 존재할 경우 전송하여 Event 유실을 예방
         if (!lastEventId.isEmpty()) {
             Map<String, Object> events = emitterRepository.findAllEventCacheStartWithId(String.valueOf(userId));
@@ -58,8 +55,6 @@ public class SseService {
         NotificationHash notification = createNotification(receiver, type, content, today);
         String id = String.valueOf(receiver);
 
-        notificationHashRepository.save(notification);
-
         // 로그인 한 유저의 SseEmitter 모두 가져오기
         Map<String, SseEmitter> sseEmitters = emitterRepository.findAllStartWithById(id);
         sseEmitters.forEach(
@@ -70,6 +65,7 @@ public class SseService {
                     sendToClient(emitter, key, notification);
                 }
         );
+        notificationHashRepository.save(notification);
     }
 
     //notification 생성

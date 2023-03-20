@@ -124,3 +124,4 @@ system-core/.settings/org.eclipse.buildship.core.prefs
 
 **/src/main/resources/**.properties
 **/src/main/resources/**.yaml
+data-redis/src/main/java/co/dalicious/data/redis/RedisConfig.java

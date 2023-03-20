@@ -6,12 +6,13 @@ import java.util.Arrays;
 
 @Getter
 public enum DailyFoodStatus {
-    SOLD_OUT("판매종료", 0),
+    WAITING_SALE("판매대기", 0),
     SALES("판매중", 1),
-    PASS_LAST_ORDER_TIME("주문마감", 2),
-    REQUEST("일정요청", 3),
-    APPROVAL("일정승인", 4),
-    WAITING("등록대기", 5);
+    SOLD_OUT("품절", 2),
+    NOT_ALLOW_CANCEL("취소불가품", 3),
+    STOP_SALE("판매중지", 4),
+    WAITING_REGISTER("등록대기", 5),
+    PASS_LAST_ORDER_TIME("주문마감", 6);
 
     private final String status;
     private final Integer code;
