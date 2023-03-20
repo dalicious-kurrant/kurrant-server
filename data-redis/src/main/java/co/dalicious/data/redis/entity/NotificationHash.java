@@ -3,6 +3,7 @@ package co.dalicious.data.redis.entity;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
 
 import javax.persistence.*;
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 
 @Getter
-@RedisHash(value = "notificationHash")
+@RedisHash(value = "notificationHash", timeToLive = 12 * 60 * 60 ) // 만료시간 12시간
 public class NotificationHash {
     @Id
     String id;
