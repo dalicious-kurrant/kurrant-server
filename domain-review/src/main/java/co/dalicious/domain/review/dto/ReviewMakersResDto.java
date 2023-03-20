@@ -5,12 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
 @Setter
 public class ReviewMakersResDto {
-
+    private Integer count;
     @Getter
     @Setter
     public static class ReviewListDto {
@@ -24,8 +25,6 @@ public class ReviewMakersResDto {
         private String writer;
         private BigInteger foodId;
         private String orderItemName;
-        private Integer count;
-
     }
 
     @Getter
@@ -41,6 +40,7 @@ public class ReviewMakersResDto {
         private String writer;
         private String itemName;
         private MakersComment makersComment;
+        private List<AverageReviewScore> reviewScoreList;
     }
 
     @Getter
@@ -48,5 +48,12 @@ public class ReviewMakersResDto {
     public static class MakersComment {
         private BigInteger commentId;
         private String content;
+    }
+
+    @Getter
+    @Setter
+    public static class AverageReviewScore {
+        private LocalDate date;
+        private Double score;
     }
 }

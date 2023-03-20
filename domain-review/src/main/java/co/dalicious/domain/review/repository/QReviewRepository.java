@@ -1,6 +1,9 @@
 package co.dalicious.domain.review.repository;
 
+import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItem;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.Reviews;
@@ -13,9 +16,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
@@ -107,5 +113,59 @@ public class QReviewRepository {
         return queryFactory.selectFrom(reviews)
                 .where(reviews.id.eq(id))
                 .fetchOne();
+    }
+
+    public Page<Reviews> findAllByMakersExceptMakersComment(Makers makers, Integer limit, Integer page, Pageable pageable) {
+
+        int offset = limit * (page - 1);
+
+        QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
+                .leftJoin(reviews.comments, comments)
+                .where(reviews.food.makers.eq(makers),
+                        reviews.comments.isEmpty().or(comments.instanceOf(AdminComments.class)),
+                        reviews.isDelete.ne(true))
+                .limit(limit)
+                .offset(offset)
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public Page<Reviews> findAllByMakers(Makers makers, Integer limit, Integer page, Pageable pageable) {
+
+        int offset = limit * (page - 1);
+
+        QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
+                .leftJoin(reviews.comments, comments)
+                .where(reviews.food.makers.eq(makers), reviews.isDelete.ne(true))
+                .limit(limit)
+                .offset(offset)
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public MultiValueMap<LocalDate, Integer> getReviewScoreMap(Food food) {
+        LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
+
+        List<Reviews> reviewsList = queryFactory.selectFrom(reviews)
+                .leftJoin(orderItemDailyFood)
+                .on(orderItem.id.eq(orderItemDailyFood.id))
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .where(reviews.food.eq(food), dailyFood.serviceDate.between(now, now.minusDays(20)))
+                .fetch();
+
+        MultiValueMap<LocalDate, Integer> scoreMap = new LinkedMultiValueMap<>();
+
+        for(Reviews r : reviewsList) {
+            OrderItem item = r.getOrderItem();
+            if(item instanceof OrderItemDailyFood o) {
+                LocalDate serviceDate = o.getDailyFood().getServiceDate();
+                Integer satisfaction = r.getSatisfaction();
+                scoreMap.add(serviceDate, satisfaction);
+            }
+        }
+
+        return scoreMap;
     }
 }
