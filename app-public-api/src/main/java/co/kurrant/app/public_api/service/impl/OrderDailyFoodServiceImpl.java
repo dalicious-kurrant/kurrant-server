@@ -309,7 +309,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     // 주문서 내용 업데이트 및 사용 포인트 차감
                     orderDailyFood.updateDefaultPrice(defaultPrice);
                     orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
-                    orderDailyFood.updateTotalPrice(payPrice);
+                    orderDailyFood.updateTotalPrice(BigDecimal.valueOf(orderItemDailyFoodReqDto.getAmount()));
                     orderDailyFood.updateTotalDeliveryFee(totalDeliveryFee);
                     for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                         orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
