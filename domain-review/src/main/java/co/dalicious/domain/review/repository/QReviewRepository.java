@@ -1,5 +1,6 @@
 package co.dalicious.domain.review.repository;
 
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.MakersComments;
@@ -108,4 +109,11 @@ public class QReviewRepository {
                 .where(reviews.id.eq(id))
                 .fetchOne();
     }
+//
+//    public List<Reviews> findAllByMakers(Makers makers) {
+//        return queryFactory.selectFrom(reviews)
+//                .leftJoin(reviews.comments, comments)
+//                .where(reviews.food.makers.eq(makers), reviews.comments.comments.instanceOf(MakersComments.class))
+//                .fetch();
+//    }
 }

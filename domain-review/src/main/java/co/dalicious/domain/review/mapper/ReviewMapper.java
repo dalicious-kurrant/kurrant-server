@@ -149,4 +149,8 @@ public interface ReviewMapper {
     @Mapping(source = "reqDto.content", target = "content")
     @Mapping(source = "reviews", target = "reviews")
     AdminComments toAdminComment(CommentReqDto reqDto, Reviews reviews);
+
+    @Mapping(source = "reqDto.content", target = "content")
+    @Mapping(source = "reviews", target = "reviews")
+    MakersComments toMakersComment(CommentReqDto reqDto, Reviews reviews);
 }

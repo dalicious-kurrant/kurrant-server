@@ -18,12 +18,12 @@ import java.math.BigInteger;
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/makers/reviews")
 @RestController
-public class ReviewController {
+public class ReviewsController {
     private final ReviewService reviewService;
 
     @Operation(summary = "댓글 작성", description = "메이커스 댓글을 작성합니다.")
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("")
+    @PostMapping("/comment")
     public ResponseMessage createMakersComment(@RequestParam BigInteger reviewId, @RequestBody CommentReqDto reqDto) {
         reviewService.createMakersComment(reviewId, reqDto);
         return ResponseMessage.builder()
@@ -73,4 +73,36 @@ public class ReviewController {
                 .data(reviewService.getAverageReviewScore(securityUser, reviewId))
                 .build();
     }
+
+
+    @Operation(summary = "댓글 수정", description = "메이커스 댓글을 수정합니다.")
+    @ResponseStatus(HttpStatus.OK)
+    @PatchMapping("/comment/update")
+    public ResponseMessage updateMakersComment(@RequestParam BigInteger commentId, @RequestBody CommentReqDto reqDto) {
+        reviewService.updateMakersComment(commentId, reqDto);
+        return ResponseMessage.builder()
+                .message("댓글 수정을 완료했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "댓글 삭제", description = "메이커스 댓글을 삭제합니다.")
+    @ResponseStatus(HttpStatus.OK)
+    @PatchMapping("/comment/delete")
+    public ResponseMessage deleteMakersComment(@RequestParam BigInteger commentId) {
+        reviewService.deleteMakersComment(commentId);
+        return ResponseMessage.builder()
+                .message("댓글 삭제를 완료했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "리뷰 신고", description = "리뷰를 신고합니다.")
+    @ResponseStatus(HttpStatus.OK)
+    @PatchMapping("/report")
+    public ResponseMessage reportReviews(@RequestParam BigInteger reviewId) {
+        reviewService.reportReviews(reviewId);
+        return ResponseMessage.builder()
+                .message("신고를 완료했습니다.")
+                .build();
+    }
+
 }
