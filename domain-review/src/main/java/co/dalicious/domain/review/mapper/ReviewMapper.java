@@ -147,10 +147,9 @@ public interface ReviewMapper {
                 score += s;
             }
             Double average = Math.ceil(score / scoreList.size());
-
             ReviewMakersResDto.AverageReviewScore averageReviewScore = new ReviewMakersResDto.AverageReviewScore();
 
-            averageReviewScore.setDate(serviceDate);
+            averageReviewScore.setDate(DateUtils.localDateToString(serviceDate));
             averageReviewScore.setScore(average);
 
             averageReviewScoreList.add(averageReviewScore);

@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 public class ReviewMakersResDto {
     private Integer count;
+    private List<ReviewListDto> reviewListDtoList;
     @Getter
     @Setter
     public static class ReviewListDto {
@@ -53,7 +54,7 @@ public class ReviewMakersResDto {
     @Getter
     @Setter
     public static class AverageReviewScore {
-        private LocalDate date;
+        private String date;
         private Double score;
     }
 }
