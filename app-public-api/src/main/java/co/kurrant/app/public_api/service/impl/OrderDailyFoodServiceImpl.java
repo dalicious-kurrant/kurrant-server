@@ -879,16 +879,33 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         String cardCompany = (String) jsonObject.get("card_name");
         String niceCustomerKey = (String) jsonObject.get("customer_id");
 
-        CreditCardInfo creditCardInfo = creditCardInfoRepository.findByUserId(user.getId());
-        System.out.println(creditCardInfo);
-        if (creditCardInfo != null){
-            qCreditCardInfoRepository.updateNiceBillingKey(billingKey, user.getId(), cardNumberPart);
-        } else{
-            Integer defaultType = 1;    //기본카드로 셋팅
-            CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType);
-            creditCardInfoRepository.save(cardInfo);
+        Integer defaultType = orderCreateBillingKeyReqDto.getDefaultType();
+
+        //중복 카드확인
+        List<CreditCardInfo> creditCardInfos = creditCardInfoRepository.findAllByUserId(user.getId());
+
+        if (creditCardInfos.size() != 0){
+            if (defaultType == null){
+                defaultType = 0;
+            }
+            for (CreditCardInfo card : creditCardInfos){
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0 && card.getNiceBillingKey() != null){
+                    return "이미 같은 카드가 등록되어 있습니다.";
+                }
+                //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1){
+                    qCreditCardInfoRepository.updateStatusCardNice(card.getId(), billingKey);
+                }
+            }
         }
 
+        if (creditCardInfos.size() == 0 && defaultType == null){
+            defaultType = 1;    //기본카드로 셋팅
+            // qCreditCardInfoRepository.updateNiceBillingKey(billingKey, user.getId(), cardNumberPart);
+        }
+        Integer status =1;
+        CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType, status);
+        creditCardInfoRepository.save(cardInfo);
 
         return billingKey;
     }

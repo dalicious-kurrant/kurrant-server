@@ -167,4 +167,12 @@ public class QCreditCardInfoRepository {
                         creditCardInfo.cardNumber.substring(0,8).eq(cardNumberPart))
                 .execute();
     }
+
+    public void updateStatusCardNice(BigInteger id, String billingKey) {
+        queryFactory.update(creditCardInfo)
+                .set(creditCardInfo.status, 1)
+                .set(creditCardInfo.niceBillingKey, billingKey)
+                .where(creditCardInfo.id.eq(id))
+                .execute();
+    }
 }
