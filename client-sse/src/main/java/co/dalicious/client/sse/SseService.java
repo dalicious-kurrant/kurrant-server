@@ -55,8 +55,6 @@ public class SseService {
         NotificationHash notification = createNotification(receiver, type, content, today);
         String id = String.valueOf(receiver);
 
-        notificationHashRepository.save(notification);
-
         // 로그인 한 유저의 SseEmitter 모두 가져오기
         Map<String, SseEmitter> sseEmitters = emitterRepository.findAllStartWithById(id);
         sseEmitters.forEach(
@@ -67,6 +65,7 @@ public class SseService {
                     sendToClient(emitter, key, notification);
                 }
         );
+        notificationHashRepository.save(notification);
     }
 
     //notification 생성
