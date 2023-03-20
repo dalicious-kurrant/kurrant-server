@@ -1,6 +1,9 @@
 package co.kurrant.app.makers_api.service.impl;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.review.dto.CommentReqDto;
 import co.dalicious.domain.review.dto.ReviewMakersResDto;
@@ -17,10 +20,16 @@ import co.kurrant.app.makers_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -42,42 +51,97 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    public ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getUnansweredReview(SecurityUser securityUser) {
+    public ItemPageableResponseDto<ReviewMakersResDto> getUnansweredReview(SecurityUser securityUser, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         Makers makers = userUtil.getMakers(securityUser);
 
-        List<Reviews> reviewsList = qReviewRepository.findAllByMakers(makers);
+        // 메이커스 댓글이 없는 리뷰만 조회 - 삭제 제외
+        Page<Reviews> reviewsList = qReviewRepository.findAllByMakersExceptMakersComment(makers, limit, page, pageable);
+        ReviewMakersResDto reviewMakersResDto = new ReviewMakersResDto();
+        List<ReviewMakersResDto.ReviewListDto> reviewListDtoList = new ArrayList<>();
+        if(reviewsList.isEmpty()) {
+            return ItemPageableResponseDto.<ReviewMakersResDto>builder()
+                    .items(reviewMakersResDto).limit(pageable.getPageSize())
+                    .total(reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
+                    .build();
+        }
 
+        for(Reviews reviews : reviewsList) {
+            ReviewMakersResDto.ReviewListDto reviewListDto = reviewMapper.toMakersReviewListDto(reviews);
+            reviewListDtoList.add(reviewListDto);
+        }
 
-        return null;
+        reviewMakersResDto.setCount(reviewListDtoList.size());
+
+        return ItemPageableResponseDto.<ReviewMakersResDto>builder()
+                .items(reviewMakersResDto).limit(pageable.getPageSize())
+                .total(reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
+                .build();
     }
 
     @Override
-    public ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview() {
-        return null;
+    @Transactional(readOnly = true)
+    public ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview(SecurityUser securityUser, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+        Makers makers = userUtil.getMakers(securityUser);
+
+        // 메이커스 댓글이 없는 리뷰만 조회 - 삭제 제외
+        Page<Reviews> reviewsList = qReviewRepository.findAllByMakers(makers, limit, page, pageable);
+
+        List<ReviewMakersResDto.ReviewListDto> reviewListDtoList = new ArrayList<>();
+        if(reviewsList.isEmpty()) {
+            return ListItemResponseDto.<ReviewMakersResDto.ReviewListDto>builder()
+                    .items(reviewListDtoList).limit(pageable.getPageSize())
+                    .total((long) reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
+                    .build();
+        }
+
+        for(Reviews reviews : reviewsList) {
+            ReviewMakersResDto.ReviewListDto reviewListDto = reviewMapper.toMakersReviewListDto(reviews);
+            reviewListDtoList.add(reviewListDto);
+        }
+
+        return ListItemResponseDto.<ReviewMakersResDto.ReviewListDto>builder()
+                .items(reviewListDtoList).limit(pageable.getPageSize())
+                .total((long) reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
+                .build();
     }
 
     @Override
-    public ReviewMakersResDto.ReviewListDto getReviewDetail(SecurityUser securityUser, BigInteger reviewId) {
-        return null;
+    @Transactional(readOnly = true)
+    public ReviewMakersResDto.ReviewDetail getReviewDetail(BigInteger reviewId) {
+        Reviews reviews = qReviewRepository.findById(reviewId);
+        if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
+
+        MultiValueMap<LocalDate, Integer> dateAndScore = qReviewRepository.getReviewScoreMap(reviews.getFood());
+
+        return reviewMapper.toMakersReviewDetails(reviews, dateAndScore);
     }
 
     @Override
-    public ReviewMakersResDto getAverageReviewScore(SecurityUser securityUser, BigInteger reviewId) {
-        return null;
-    }
-
-    @Override
+    @Transactional
     public void updateMakersComment(BigInteger commentId, CommentReqDto reqDto) {
+        Comments comments = commentsRepository.findById(commentId).orElseThrow(() -> new ApiException(ExceptionEnum.MAKERS_COMMENT_NOT_FOUND));
 
+        if(comments instanceof MakersComments makersComments) {
+            makersComments.updateComment(reqDto.getContent());
+        }
     }
 
     @Override
+    @Transactional
     public void deleteMakersComment(BigInteger commentId) {
+        Comments comments = commentsRepository.findById(commentId).orElseThrow(() -> new ApiException(ExceptionEnum.MAKERS_COMMENT_NOT_FOUND));
 
+        if(comments instanceof MakersComments makersComments) {
+            makersComments.updateIsDelete(true);
+        }
     }
 
     @Override
+    @Transactional
     public void reportReviews(BigInteger reviewId) {
+        Reviews reviews = qReviewRepository.findById(reviewId);
+        if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
 
+        reviews.updateIsReport(true);
     }
 }
