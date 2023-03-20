@@ -13,4 +13,6 @@ public interface CreditCardInfoRepository  extends JpaRepository<CreditCardInfo,
     Optional<CreditCardInfo> findOneByUserAndDefaultType(User user, Integer defaultType);
 
     CreditCardInfo findByUserId(BigInteger id);
+
+    List<CreditCardInfo> findAllByUserId(BigInteger id);
 }
