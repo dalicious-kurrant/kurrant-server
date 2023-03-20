@@ -225,7 +225,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
 
         String customerKey = creditCardInfo.get().getCustomerKey();
-        String billingKey = creditCardInfo.get().getBillingKey();
+        String billingKey = creditCardInfo.get().getTossBillingKey();
 
         try {
             JSONObject payResult = tossUtil.payToCard(customerKey, price.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType(), billingKey);
