@@ -18,13 +18,14 @@ public interface CreditCardInfoMapper {
     @Mapping(source = "creditCardInfo.defaultType", target = "defaultType")
     CreditCardResponseDto toDto(CreditCardInfo creditCardInfo);
 
+    @Mapping(source = "status", target = "status")
     @Mapping(source = "defaultType", target = "defaultType")
     @Mapping(source = "cardNumber", target = "cardNumber")
     @Mapping(source = "cardCompany", target = "cardCompany")
     @Mapping(source = "niceCustomerKey", target = "customerKey")
     @Mapping(source = "billingKey", target = "niceBillingKey")
     @Mapping(source = "id", target = "user.id")
-    CreditCardInfo toEntity(String cardNumber, String cardCompany, String niceCustomerKey, String billingKey, BigInteger id, Integer defaultType);
+    CreditCardInfo toEntity(String cardNumber, String cardCompany, String niceCustomerKey, String billingKey, BigInteger id, Integer defaultType, Integer status);
 
 
 }
