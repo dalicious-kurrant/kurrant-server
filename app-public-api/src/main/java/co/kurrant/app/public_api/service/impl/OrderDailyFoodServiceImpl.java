@@ -903,8 +903,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             defaultType = 1;    //기본카드로 셋팅
             // qCreditCardInfoRepository.updateNiceBillingKey(billingKey, user.getId(), cardNumberPart);
         }
-
-        CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType);
+        Integer status =1;
+        CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType, status);
         creditCardInfoRepository.save(cardInfo);
 
         return billingKey;
