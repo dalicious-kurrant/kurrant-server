@@ -94,7 +94,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
-        saveUserListRequestDtoList.forEach(dto -> dto.setEmail(dto.getEmail().trim()));
+        saveUserListRequestDtoList = saveUserListRequestDtoList.stream()
+                .peek(dto -> dto.setEmail(dto.getEmail().trim()))
+                .filter(dto -> dto.getStatus() != null && dto.getStatus() != 0)
+                .collect(Collectors.toList());
 
         List<String> emails = saveUserListRequestDtoList.stream()
                 .map(SaveUserListRequestDto::getEmail)

@@ -34,7 +34,7 @@ public class SseController {
     }
 
     @Description(value = "sse 알림 조회")
-    @GetMapping("/v1/notification/read")
+    @GetMapping("/v1/notification")
     public ResponseMessage getAllNotification(Authentication authentication, @RequestParam Integer type) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);

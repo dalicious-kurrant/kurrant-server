@@ -1,4 +1,4 @@
-package co.kurrant.batch.job.batch;
+package co.kurrant.batch.job.batch.job;
 
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
@@ -6,9 +6,9 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.system.util.DateUtils;
+import co.kurrant.batch.job.batch.listener.UpdatedUserIdsListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecutionListener;
@@ -31,7 +31,9 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -41,6 +43,7 @@ public class UserWithdrawalJob {
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory entityManagerFactory;
     private final EntityManager entityManager;
+    private final UpdatedUserIdsListener listener;
     private final int CHUNK_SIZE = 100;
 
     @Bean(name = "userWithdrawalJob1")
@@ -54,13 +57,11 @@ public class UserWithdrawalJob {
     @Bean
     @JobScope
     public Step userWithdrawalJob_step1() {
-        UpdatedUserIdsListener listener = new UpdatedUserIdsListener();
         return stepBuilderFactory.get("userWithdrawalJob_step1")
                 .<User, User>chunk(CHUNK_SIZE)
                 .reader(userReader())
-                .processor(userProcessor())
+                .processor(createUserProcessor(listener))
                 .writer(userWriter())
-                .listener((ItemWriteListener<User>) listener)
                 .listener((StepExecutionListener) listener)
                 .build();
     }
@@ -81,16 +82,12 @@ public class UserWithdrawalJob {
                 .build();
     }
 
-    @Bean
-    @JobScope
-    public ItemProcessor<User, User> userProcessor() {
-        return new ItemProcessor<User, User>() {
-            @Override
-            public User process(User user) throws Exception {
-                log.info("[User 탈퇴 시작] : {} ", user.getId());
-                user.withdrawUser();
-                return user;
-            }
+    public ItemProcessor<User, User> createUserProcessor(UpdatedUserIdsListener listener) {
+        return user -> {
+            log.info("[User 탈퇴 시작] : {} ", user.getId());
+            user.withdrawUser();
+            listener.addUser(user);
+            return user;
         };
     }
 
@@ -110,17 +107,23 @@ public class UserWithdrawalJob {
                     ExecutionContext jobExecutionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
                     List<BigInteger> updatedUserIds = (List<BigInteger>) jobExecutionContext.get("updatedUserIds");
 
+                    Map<String, Object> parameterValues = new HashMap<>();
+                    parameterValues.put("updatedUserIds", updatedUserIds);
+
                     // Create JPQL query to select ProviderEmail entities
                     String queryString = "SELECT pe FROM ProviderEmail pe WHERE pe.user.id IN :updatedUserIds";
                     TypedQuery<ProviderEmail> query = entityManager.createQuery(queryString, ProviderEmail.class);
+                    query.setParameter("updatedUserIds", updatedUserIds);
 
                     String queryString2 = "SELECT ug from UserGroup ug\n" +
                             "WHERE ug.user.id IN :updatedUserIds";
                     TypedQuery<UserGroup> query2 = entityManager.createQuery(queryString2, UserGroup.class);
+                    query2.setParameter("updatedUserIds", updatedUserIds);
 
                     String queryString3 = "SELECT us from UserSpot us\n" +
                             "WHERE us.user.id IN :updatedUserIds";
                     TypedQuery<UserSpot> query3 = entityManager.createQuery(queryString3, UserSpot.class);
+                    query3.setParameter("updatedUserIds", updatedUserIds);
 
                     // Retrieve matching ProviderEmail entities
                     List<ProviderEmail> result = query.getResultList();
