@@ -7,6 +7,7 @@ import co.dalicious.domain.food.entity.FoodDiscountPolicy;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
 import co.dalicious.system.enums.DiscountType;
+import co.dalicious.system.enums.FoodCategory;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.domain.food.entity.enums.Origin;
 import co.dalicious.domain.food.util.FoodUtil;
@@ -38,6 +39,7 @@ public interface FoodMapper {
     @Mapping(source = "dailyFood.food.name", target = "name")
     @Mapping(source = "dailyFood.food.description", target = "description")
     @Mapping(source = "dailyFood.food.makers.origins", target = "origins", qualifiedByName = "originsToDto")
+    @Mapping(source = "dailyFood.food.foodTags", target = "allergies", qualifiedByName = "allergiesFromFoodTags")
     FoodDetailDto toDto(DailyFood dailyFood, DiscountDto discountDto);
 
     @Mapping(source = "foodListDto.foodName", target = "name")
@@ -85,5 +87,13 @@ public interface FoodMapper {
             return foodStatus = FoodStatus.ofString(foodStatusStr);
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD_STATUS);
+    }
+
+    @Named("allergiesFromFoodTags")
+    default List<String> allergiesFromFoodTags(List<FoodTag> foodTags) {
+        return foodTags.stream()
+                .filter(v -> FoodTag.ofCategory(FoodCategory.CATEGORY_ALLERGY).contains(v))
+                .map(FoodTag::getTag)
+                .toList();
     }
 }
