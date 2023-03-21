@@ -89,6 +89,24 @@ public class OrderDailyFoodController {
                 .message("부분 주문 취소를 성공했습니다.")
                 .build();
     }
+
+    @PostMapping("/cancel/nice")
+    public ResponseMessage cancelOrderNice(@RequestBody OrderDto.Id id) throws IOException, ParseException {
+        orderDailyFoodService.cancelOrderNice(id.getId());
+        return ResponseMessage.builder()
+                .message("주문 전체 취소를 성공했습니다.")
+                .build();
+    }
+
+    @PostMapping("/orderItems/cancel/nice")
+    public ResponseMessage cancelOrderItemNice(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
+        orderDailyFoodService.cancelOrderItemsNice(idList.getIdList());
+        return ResponseMessage.builder()
+                .message("부분 주문 취소를 성공했습니다.")
+                .build();
+    }
+
+
 }
 
 

@@ -77,4 +77,16 @@ public class MembershipController {
     public void saveMembershipAutoPayment(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
     }
+
+    @Operation(summary = "멤버십 구매 나이스", description = "유저가 멤버십에 가입한다")
+    @PostMapping("/nice")
+    public ResponseMessage joinMembershipNice(Authentication authentication, @RequestBody OrderMembershipReqDto orderMembershipReqDto) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        membershipService.joinMembershipNice(securityUser, orderMembershipReqDto);
+        return ResponseMessage.builder()
+                .message("멤버십 구매에 성공하였습니다.")
+                .build();
+    }
+
+
 }
