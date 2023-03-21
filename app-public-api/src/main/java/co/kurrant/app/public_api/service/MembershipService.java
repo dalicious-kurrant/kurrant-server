@@ -41,4 +41,6 @@ public interface MembershipService {
     DailyFoodMembershipDiscountDto getDailyFoodPriceBenefits(List<OrderItemDailyFood> orderItemDailyFoods);
 
     BigDecimal getRefundableMembershipPrice(List<OrderItemDailyFood> orderItemDailyFoods, OrderItemMembership orderItemMembership);
+
+    void joinMembershipNice(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto) throws IOException, ParseException;
 }

@@ -903,5 +903,27 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         return billingKey;
     }
+
+    @Override
+    public void cancelOrderDailyFoodNice(SecurityUser securityUser, BigInteger orderId) throws IOException, ParseException {
+        User user = userUtil.getUser(securityUser);
+
+        Order order = orderRepository.findOneByIdAndUser(orderId, user).orElseThrow(
+                () -> new ApiException(ExceptionEnum.NOT_FOUND)
+        );
+
+        orderService.cancelOrderDailyFoodNice((OrderDailyFood) order, user);
+    }
+
+    @Override
+    public void cancelOrderItemDailyFoodNice(SecurityUser securityUser, BigInteger orderItemId) throws IOException, ParseException {
+        User user = userUtil.getUser(securityUser);
+
+        OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(orderItemId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND)
+        );
+
+        orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
+    }
 }
 
