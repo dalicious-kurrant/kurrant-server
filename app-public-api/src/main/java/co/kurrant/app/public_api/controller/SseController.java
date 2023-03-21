@@ -27,7 +27,6 @@ public class SseController {
     @GetMapping(value = "/v1/notification/subscribe", produces = "text/event-stream")
     public SseEmitter subscribe(Authentication authentication,
                                      @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
-        System.out.println("authentication = " + authentication);
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);
         return sseService.subscribe(userId, lastEventId);
