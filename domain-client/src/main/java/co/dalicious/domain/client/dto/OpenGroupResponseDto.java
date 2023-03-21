@@ -14,11 +14,13 @@ public class OpenGroupResponseDto {
     private BigInteger id;
     private String name;
     private String address;
+    private Integer spotType;
 
     @Builder
-    public OpenGroupResponseDto(BigInteger id, String name, String address) {
+    public OpenGroupResponseDto(BigInteger id, String name, String address, Integer spotType) {
         this.id = id;
         this.name = name;
         this.address = address;
+        this.spotType = spotType;
     }
 }
