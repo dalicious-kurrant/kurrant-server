@@ -391,7 +391,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginTokenDto reissue(TokenDto reissueTokenDto) {
         String userId;
-        boolean accessTokenValid = jwtTokenProvider.validateToken(reissueTokenDto.getAccessToken());
+        boolean accessTokenValid = jwtTokenProvider.validateAccessToken(reissueTokenDto.getAccessToken());
         // 엑세스 토큰이 유효할 경우
         if (accessTokenValid) {
             userId = jwtTokenProvider.getUserPk(reissueTokenDto.getAccessToken());
@@ -459,7 +459,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void logout(TokenDto tokenDto) {
         // 1. Refresh Token 검증
-        if (!jwtTokenProvider.validateToken(tokenDto.getRefreshToken())) {
+        if (!jwtTokenProvider.validateRefreshToken(tokenDto.getRefreshToken())) {
             throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
         }
         // 2. Access Token 에서 UserId 를 가져오기.

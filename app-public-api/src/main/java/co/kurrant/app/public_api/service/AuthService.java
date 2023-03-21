@@ -29,7 +29,7 @@ public interface AuthService {
     // Access Token 재발급
     LoginTokenDto reissue(TokenDto reissueTokenDto);
     // 로그아웃
-    void logout(TokenDto tokenDto);
+    void  logout(TokenDto tokenDto);
     // 아이디 찾기
     FindIdResponseDto findUserEmail(FindIdRequestDto findIdRequestDto);
     // 비밀번호 찾기시 회원 정보 확인
