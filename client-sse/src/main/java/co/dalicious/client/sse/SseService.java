@@ -5,6 +5,7 @@ import co.dalicious.data.redis.repository.NotificationHashRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -18,10 +19,11 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class SseService {
 
-    private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 60;
+    private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 30;
     private final EmitterRepository emitterRepository;
     private final NotificationHashRepository notificationHashRepository;
 
@@ -96,21 +98,19 @@ public class SseService {
     }
 
     @Transactional
-    public Boolean readNotification(BigInteger userId, Integer type) {
+    public void readNotification(BigInteger userId, Integer type) {
         List<NotificationHash> notificationList =
                 notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
 
         //읽을 알림이 있는지 확인
-        if(notificationList.size() == 0) { throw new ApiException(ExceptionEnum.ALREADY_READ); }
+        if(notificationList.size() == 0) { log.info("읽을 알림이 없습니다."); }
 
         // 알림 읽기
         for(NotificationHash noty : notificationList) {
             noty.updateRead(true);
             notificationHashRepository.save(noty);
         }
-
-        //알림을 읽음
-        return true;
+        log.info("알림 읽기 성공");
     }
 
     @Transactional(readOnly = true)

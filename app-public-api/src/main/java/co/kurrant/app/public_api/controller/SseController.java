@@ -45,11 +45,9 @@ public class SseController {
 
     @Description(value = "sse 알림 읽기(읽은 알림 삭제)")
     @PutMapping("/v1/notification/read")
-    public ResponseMessage readNotification(Authentication authentication, @RequestParam Integer type) {
+    public void readNotification(Authentication authentication, @RequestParam Integer type) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);
-        return ResponseMessage.builder()
-                .data(sseService.readNotification(userId, type))
-                .message("알림을 읽으셨습니다.").build();
+        sseService.readNotification(userId, type);
     }
 }
