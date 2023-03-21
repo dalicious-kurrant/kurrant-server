@@ -4,6 +4,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -14,7 +16,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@PropertySource("classpath:application-alimtalk.properties")
 public class KakaoUtil {
+
+    private String apiKey;
+
+    KakaoUtil(@Value("${lunasoft.api-key}")String apiKey){
+        this.apiKey = apiKey;
+    }
 
     public JSONObject sendAlimTalk(String phoneNumber, String content, String templateId) throws IOException, ParseException {
         URL url = new URL("https://jupiter.lunasoft.co.kr/api/AlimTalk/message/send");
@@ -36,7 +45,7 @@ public class KakaoUtil {
 
         JSONObject obj = new JSONObject();
         obj.put("userid", "dalicious");
-        obj.put("api_key", "vdbmow6r5beyyyv4d58mb0fxaid8eh2uiqzpains");
+        obj.put("api_key", apiKey);
         obj.put("template_id", templateId);
         obj.put("messages", jsonArray);
         System.out.println(obj.toJSONString());

@@ -212,7 +212,7 @@ public class UserClientServiceImpl implements UserClientService {
     @Override
     @Transactional
     public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser) {
-        List<? extends Group> groups = qGroupRepository.findAllOpenGroupAndApartment();
+        List<Group> groups = groupRepository.findAll();
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
         for (Group group : groups) {
             openGroupResponseDtos.add(groupResponseMapper.toOpenGroupDto(group));

@@ -9,7 +9,9 @@ import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.parser.ParseException;
+import org.springframework.security.core.Authentication;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -57,4 +59,5 @@ public interface UserService {
     void changeName(SecurityUser securityUser, ChangeNameDto changeNameDto);
     void withdrawal(SecurityUser securityUser);
     void withdrawalCancel(SecurityUser securityUser);
+    LoginResponseDto autoLogin(HttpServletRequest httpServletRequest);
 }

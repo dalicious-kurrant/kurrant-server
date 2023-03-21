@@ -1,9 +1,6 @@
 package co.kurrant.app.public_api.service;
 
-import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
-import co.dalicious.domain.order.dto.OrderHistoryDto;
-import co.dalicious.domain.order.dto.OrderDetailDto;
-import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
+import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.payment.dto.PaymentConfirmDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import org.json.simple.JSONObject;
@@ -27,4 +24,8 @@ public interface OrderDailyFoodService {
     void cancelOrderDailyFood(SecurityUser securityUser, BigInteger orderId) throws IOException, ParseException;
     // 주문 상품을 환불한다
     void cancelOrderItemDailyFood(SecurityUser securityUser, BigInteger orderItemId) throws IOException, ParseException;
+
+    Object orderDailyFoodsNice(SecurityUser securityUser, OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException;
+
+    Object createNiceBillingKey(SecurityUser securityUser, OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException;
 }
