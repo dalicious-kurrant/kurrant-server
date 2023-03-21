@@ -8,17 +8,26 @@ import org.springframework.data.redis.core.index.Indexed;
 import javax.persistence.Id;
 
 @Getter
-@RedisHash(value = "tempRefreshTokenHash", timeToLive = 10 * 1000L)
+@RedisHash(value = "tempRefreshTokenHash", timeToLive = 10L)
 public class TempRefreshTokenHash {
     @Id
     String id;
 
     @Indexed
-    String refreshToken;
+    String userId;
+
+    String oldRefreshToken;
+
+    String newRefreshToken;
+
+    String newAccessToken;
 
     @Builder
-    public TempRefreshTokenHash(String id, String refreshToken) {
+    public TempRefreshTokenHash(String id, String userId, String oldRefreshToken, String newRefreshToken, String newAccessToken) {
         this.id = id;
-        this.refreshToken = refreshToken;
+        this.userId = userId;
+        this.oldRefreshToken = oldRefreshToken;
+        this.newRefreshToken = newRefreshToken;
+        this.newAccessToken = newAccessToken;
     }
 }
