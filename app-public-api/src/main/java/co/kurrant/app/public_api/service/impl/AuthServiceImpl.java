@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
-import co.dalicious.data.redis.RedisConfig;
 import co.dalicious.data.redis.entity.BlackListTokenHash;
 import co.dalicious.data.redis.entity.RefreshTokenHash;
 import co.dalicious.data.redis.entity.TempRefreshTokenHash;
