@@ -38,7 +38,6 @@ public interface ReviewMapper {
 
     @Mapping(source = "orderItemDailyFood.id", target = "orderItemId")
     @Mapping(source = "orderItemDailyFood.dailyFood.diningType.diningType", target = "diningType")
-    @Mapping(source = "orderItemDailyFood.dailyFood.serviceDate", target = "serviceDate")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.images", target = "imageLocation", qualifiedByName = "getLocation")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.makers.name", target = "makersName")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.name", target = "foodName")

@@ -2,7 +2,8 @@ bootJar.enabled = false
 jar.enabled = true
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis:3.0.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.data:spring-data-redis'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
