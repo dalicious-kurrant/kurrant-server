@@ -391,7 +391,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginTokenDto reissue(TokenDto reissueTokenDto) {
         String userId;
-        boolean accessTokenValid = jwtTokenProvider.validateAccessToken(reissueTokenDto.getAccessToken());
+        boolean accessTokenValid = jwtTokenProvider.validateToken(reissueTokenDto.getAccessToken());
         // 엑세스 토큰이 유효할 경우
         if (accessTokenValid) {
             userId = jwtTokenProvider.getUserPk(reissueTokenDto.getAccessToken());
