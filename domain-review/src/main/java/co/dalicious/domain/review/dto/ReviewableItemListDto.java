@@ -11,17 +11,15 @@ import java.math.BigInteger;
 public class ReviewableItemListDto {
     private BigInteger orderItemId;
     private String diningType;
-    private String serviceDate;
     private String imageLocation;
     private String makersName;
     private String foodName;
     private long reviewDDay;
 
     @Builder
-    public ReviewableItemListDto(BigInteger orderItemId, String diningType, String serviceDate, String imageLocation, String makersName, String foodName, long reviewDDAy) {
+    public ReviewableItemListDto(BigInteger orderItemId, String diningType, String imageLocation, String makersName, String foodName, long reviewDDAy) {
         this.orderItemId = orderItemId;
         this.diningType = diningType;
-        this.serviceDate = serviceDate;
         this.imageLocation = imageLocation;
         this.makersName = makersName;
         this.foodName = foodName;
