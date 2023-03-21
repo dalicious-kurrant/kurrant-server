@@ -424,13 +424,22 @@ public class AuthServiceImpl implements AuthService {
                         .orElseThrow(() -> new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR));
 
                 // 7. 새로운 토큰 생성
-                Authentication authentication = jwtTokenProvider.getAuthentication(reissueTokenDto.getAccessToken());
-                Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-                List<String> strAuthorities = new ArrayList<>();
-                for (GrantedAuthority authority : authorities) {
-                    strAuthorities.add(authority.getAuthority());
+                List<String> roles = new ArrayList<>();
+
+                if(accessTokenValid) {
+                    Authentication authentication = jwtTokenProvider.getAuthentication(reissueTokenDto.getAccessToken());
+                    Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+                    for (GrantedAuthority authority : authorities) {
+                        roles.add(authority.getAuthority());
+                    }
+                } else {
+                    User user = userRepository.findById(BigInteger.valueOf(Integer.parseInt(userId))).orElseThrow(
+                            () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
+                    );
+                    roles.add(user.getRole().getAuthority());
                 }
-                LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(userId, strAuthorities);
+
+                LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(userId, roles);
 
                 // 8. RefreshToken Redis 업데이트
                 refreshTokenRepository.deleteAll(refreshTokenHashs);
