@@ -64,9 +64,13 @@ public class ReviewServiceImpl implements ReviewService {
         // 찾은 주문 상품이 dailyfood이면
         DailyFood dailyFood;
         Food food = null;
+        Integer membershipDiscountRate = 0;
+        Integer count = 0;
         if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
             dailyFood = orderItemDailyFood.getDailyFood();
             food = dailyFood.getFood();
+            membershipDiscountRate = orderItemDailyFood.getMembershipDiscountRate();
+            count = orderItemDailyFood.getCount();
         }
 
         // 이미 review를 작성한 건인지 검증
@@ -85,11 +89,17 @@ public class ReviewServiceImpl implements ReviewService {
         // review 저장
         reviewRepository.save(reviews);
 
-        // 포인트 적립
-        // image 있으면 150
-        if(fileList != null && !fileList.isEmpty()) qUserRepository.updateUserPoint(user.getId(), BigDecimal.valueOf(100), BigDecimal.valueOf(50));
-        // 없으면 50
-        qUserRepository.updateUserPoint(user.getId(), null, BigDecimal.valueOf(50));
+        // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
+        if(user.getIsMembership() || membershipDiscountRate != 0) {
+            //음식 수량 많큼 포인트 지급
+            BigDecimal imagePoint = BigDecimal.valueOf(100).multiply(BigDecimal.valueOf(count));
+            BigDecimal contentPoint = BigDecimal.valueOf(50).multiply(BigDecimal.valueOf(count));
+
+            // image 있으면 150
+            if(fileList != null && !fileList.isEmpty()) qUserRepository.updateUserPoint(user.getId(), imagePoint, contentPoint);
+            // 없으면 50
+            qUserRepository.updateUserPoint(user.getId(), null, contentPoint);
+        }
     }
 
     @Override

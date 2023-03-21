@@ -15,12 +15,14 @@ public class SpotListResponseDto {
     private BigInteger clientId;
     private String clientName;
     private List<Spot> spots;
+    private Integer spotType;
 
     @Builder
-    public SpotListResponseDto(BigInteger clientId, String clientName, List<Spot> spots) {
+    public SpotListResponseDto(BigInteger clientId, String clientName, List<Spot> spots, Integer spotType) {
         this.clientId = clientId;
         this.clientName = clientName;
         this.spots = spots;
+        this.spotType = spotType;
     }
 
     @Getter
