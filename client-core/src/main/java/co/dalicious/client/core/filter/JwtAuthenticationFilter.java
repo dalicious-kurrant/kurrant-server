@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import co.dalicious.data.redis.entity.BlackListTokenHash;
 import co.dalicious.data.redis.repository.BlackListTokenRepository;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -68,7 +70,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
         // 2. 토큰을 가져오면 유효성 검사를 한다, null인 경우는 안들어온 것
-        if (jwtToken != null && jwtTokenProvider.validateAccessToken(jwtToken)) {
+        if (jwtToken != null && jwtTokenProvider.validateToken(jwtToken)) {
             log.info("AccessToken >>>> " + jwtToken);
             // Redis에서 해당 accessToken logout 여부 확인
             BlackListTokenHash blackListTokenHash = blackListTokenRepository.findByAccessToken(jwtToken);
@@ -76,6 +78,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Authentication auth = jwtTokenProvider.getAuthentication(jwtToken);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
+        } else {
+            throw new ApiException(ExceptionEnum.ACCESS_TOKEN_ERROR);
         }
         filterChain.doFilter(request, response);
     }
