@@ -125,8 +125,7 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1_prod_test:${GITHUB_SHA::7}
             docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1_prod_test:${GITHUB_SHA::7} kurrant_v1_prod_test
             docker stop kurrant_v1_prod_test
-
             sleep 5
-            docker run -d --rm --net redis_redis_cluster --name kurrant_v1_prod_test -p 8080:8080 kurrant_v1_prod_test
+            docker run -d --rm --net redis_redis_cluster --name kurrant_v1_prod_test -p 8880:8880 kurrant_v1_prod_test
 
 
