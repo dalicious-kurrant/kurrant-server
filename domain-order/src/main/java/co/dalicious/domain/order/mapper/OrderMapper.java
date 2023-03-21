@@ -37,6 +37,7 @@ public interface OrderMapper {
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getOrderItemTotalPrice())")
     @Mapping(source = "count", target = "count")
     @Mapping(source = "order.user.name", target = "userName")
+    @Mapping(source = "order.user.email", target = "userEmail")
     @Mapping(source = "order.user.phone", target = "phone")
     @Mapping(source = "order.code", target = "orderCode")
     @Mapping(source = "dailyFood.group.name", target = "groupName")
