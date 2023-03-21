@@ -24,6 +24,8 @@ import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Tag(name = "2. User")
 @RequestMapping(value = "/v1/users/me")
 @RestController
@@ -31,11 +33,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
 
-    @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보 를 불러온다.")
+    @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보를 불러온다.")
     @GetMapping("")
     public UserInfoDto getUserInfo(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return userService.getUserInfo(securityUser);
+    }
+
+    @Operation(summary = "자동 로그인", description = "자동 로그인을 한다.")
+    @GetMapping("/autoLogin")
+    public LoginResponseDto autoLogin(HttpServletRequest httpServletRequest) {
+        return userService.autoLogin(httpServletRequest);
     }
 
     @Operation(summary = "마이페이지의 개인 정보 페이지에서 유저 정보 가져오기", description = "개인 정보 페이지에서 로그인 한 유저의 개인 정보를 불러온다.")

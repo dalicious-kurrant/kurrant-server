@@ -1,7 +1,10 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
+import co.dalicious.data.redis.entity.RefreshTokenHash;
+import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -23,12 +26,11 @@ import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
-import co.dalicious.domain.user.entity.enums.Provider;
-import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
+import co.dalicious.domain.user.repository.UserRepository;
+import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
@@ -48,9 +50,11 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -58,6 +62,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -85,6 +90,10 @@ public class UserServiceImpl implements UserService {
     private final CreditCardInfoMapper creditCardInfoMapper;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final FoundersUtil foundersUtil;
+    private final ClientUtil clientUtil;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -613,5 +622,45 @@ public class UserServiceImpl implements UserService {
     public void withdrawalCancel(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
         user.updateUserStatus(UserStatus.ACTIVE);
+    }
+
+    @Override
+    @Transactional
+    public LoginResponseDto autoLogin(HttpServletRequest httpServletRequest) {
+        String token = jwtTokenProvider.resolveToken(httpServletRequest);
+
+        if(!jwtTokenProvider.validateToken(token)) {
+            throw new ApiException(ExceptionEnum.ACCESS_TOKEN_ERROR);
+        }
+
+        String userId = jwtTokenProvider.getUserPk(token);
+
+        User user = userRepository.findById(BigInteger.valueOf(Integer.parseInt(userId)))
+                .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+
+        List<RefreshTokenHash> refreshTokenHashes = refreshTokenRepository.findAllByUserId(userId);
+
+        if(refreshTokenHashes.isEmpty()) {
+            throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
+        }
+        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
+        user.updateRecentLoginDateTime(timestamp);
+
+        Integer leftWithdrawDays = null;
+
+        if (user.getUserStatus().equals(UserStatus.REQUEST_WITHDRAWAL)) {
+            LocalDateTime withdrawRequestDateTime = user.getUpdatedDateTime().toLocalDateTime();
+            Duration interval = Duration.between(withdrawRequestDateTime, LocalDateTime.now());
+            leftWithdrawDays = (int) interval.toDays();
+        }
+
+        return LoginResponseDto.builder()
+                .accessToken(token)
+                .refreshToken(refreshTokenHashes.get(0).getRefreshToken())
+                .isActive(user.getUserStatus().equals(UserStatus.ACTIVE))
+                .expiresIn(jwtTokenProvider.getExpiredIn(token))
+                .leftWithdrawDays(leftWithdrawDays)
+                .spotStatus(clientUtil.getSpotStatus(user).getCode())
+                .build();
     }
 }
