@@ -594,7 +594,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public BigInteger orderDailyFoodsNice(SecurityUser securityUser, OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) {
+    public BigInteger orderDailyFoodsNice(SecurityUser securityUser, OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
@@ -779,16 +779,29 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 결제 금액이 0이 아닐 경우, 나이스페이를 통해 결제
         if(orderItemDailyFoodReqDto.getAmount() != 0) {
-            try {
-                JSONObject jsonObject = niceUtil.niceBilling(orderItemDailyFoodReqDto.getBillingKey() ,orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId());
+
+
+                CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(orderItemDailyFoodReqDto.getCardId()).orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
+
+                if (creditCardInfo.getUser().getId() != user.getId()){
+                    throw new ApiException(ExceptionEnum.NOT_MATCH_USER_CARD);
+                }
+
+                if (creditCardInfo.getNiceBillingKey() == null){
+                    throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
+                }
+
+                String token = niceUtil.getToken();
+                JSONObject jsonObject = niceUtil.niceBilling(creditCardInfo.getNiceBillingKey() ,orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId(), token, orderItemDailyFoodReqDto.getOrderName());
                 System.out.println(jsonObject + "결제 Response값");
 
-                String status = (String) jsonObject.get("status");
-                System.out.println(status);
+                Long code = (Long) jsonObject.get("code");
+                JSONObject response = (JSONObject) jsonObject.get("response");
 
                 // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-                if (status.equals("DONE")) {
+                if (code == 0) {
                     // 주문서 내용 업데이트 및 사용 포인트 차감
+                    System.out.println(code+ " code");
                     orderDailyFood.updateDefaultPrice(defaultPrice);
                     orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
                     orderDailyFood.updateTotalPrice(payPrice);
@@ -799,24 +812,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
 
                     //Order 테이블에 paymentKey와 receiptUrl 업데이트
-                    JSONObject receipt = (JSONObject) jsonObject.get("receipt");
-                    String receiptUrl = receipt.get("url").toString();
+                    String receiptUrl = response.get("receipt_url").toString();
 
-                    String paymentKey = (String) jsonObject.get("paymentKey");
-                    JSONObject card = (JSONObject) jsonObject.get("card");
-                    String paymentCompanyCode;
-                    if(card == null) {
-                        JSONObject easyPay = (JSONObject) jsonObject.get("easyPay");
-                        if(easyPay == null) {
-                            throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-                        }
-                        paymentCompanyCode = (String) easyPay.get("provider");
-                    } else {
-                        paymentCompanyCode = (String) card.get("issuerCode");
-                    }
-                    System.out.println("jsonObject = " + jsonObject);
-                    PaymentCompany paymentCompany = PaymentCompany.ofCode(paymentCompanyCode);
-                    orderDailyFood.updateOrderDailyFoodAfterPayment(receiptUrl, paymentKey, orderItemDailyFoodReqDto.getOrderId(), paymentCompany);
+                    String impUid = (String) response.get("imp_uid");
+                    String paymentCompanyCode = response.get("card_name").toString();
+                    PaymentCompany paymentCompany = PaymentCompany.ofValue(paymentCompanyCode);
+                    orderDailyFood.updateOrderDailyFoodAfterPayment(receiptUrl, impUid, orderItemDailyFoodReqDto.getOrderId(), paymentCompany);
                 }
                 // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
                 else {
@@ -825,19 +826,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     }
                     throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
                 }
-            } catch (ApiException e) {
-                for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-                    orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
-                    if(payPrice.compareTo(BigDecimal.ZERO) > 0) {
-                        throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
-                    }
-                }
-                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-            } catch (IOException e) {
-                throw new ApiException(ExceptionEnum.BAD_REQUEST);
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
         }
         else {
             // 주문서 내용 업데이트 및 사용 포인트 차감
