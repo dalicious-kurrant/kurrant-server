@@ -149,11 +149,13 @@ public class ReviewServiceImpl implements ReviewService {
                 ReviewableItemListDto responseDto = reviewMapper.toDailyFoodResDto(item, leftDay);
                 reviewableItemListDtoList.add(responseDto);
             }
+            reviewableItemListDtoList = reviewableItemListDtoList.stream().sorted(Comparator.comparing(ReviewableItemListDto::getDiningType).reversed()).toList();
+
             ReviewableItemResDto.OrderFood orderFood = ReviewableItemResDto.OrderFood.create(reviewableItemListDtoList, serviceDate);
             orderFoodList.add(orderFood);
             count += reviewableItemListDtoList.size();
         }
-        orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate)).collect(Collectors.toList());
+        orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
 
         return ReviewableItemResDto.create(orderFoodList, count);
     }

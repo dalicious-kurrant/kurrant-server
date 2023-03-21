@@ -26,6 +26,7 @@ import org.springframework.util.MultiValueMap;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -110,6 +111,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 DailyFoodDto.DailyFoodDining dailyFoodDining = dailyFoodMapper.toDailyFoodDining(diningType, groupCapacity, dtoDailyFoodList);
                 dailyFoodDiningList.add(dailyFoodDining);
             }
+            dailyFoodDiningList = dailyFoodDiningList.stream().sorted(Comparator.comparing(DailyFoodDto.DailyFoodDining::getDiningType)).collect(Collectors.toList());
 
             DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(serviceDate, dailyFoodDiningList);
             dailyFoodDtoList.add(dailyFoodDto);

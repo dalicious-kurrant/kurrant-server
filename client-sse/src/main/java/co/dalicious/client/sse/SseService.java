@@ -5,6 +5,7 @@ import co.dalicious.data.redis.repository.NotificationHashRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -18,28 +19,24 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class SseService {
 
-    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
+    private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 30;
     private final EmitterRepository emitterRepository;
     private final NotificationHashRepository notificationHashRepository;
 
     public SseEmitter subscribe(BigInteger userId, String lastEventId) {
         //구독한 유저를 특정하기 위한 id.
         String id = userId + "_" + System.currentTimeMillis();
-        System.out.println("id = " + id);
 
         //생성한 emitter를 저장한다. emitter는 HTTP/2기준 브라우저 당 100개 만들 수 있다.
         SseEmitter emitter = emitterRepository.save(id, new SseEmitter(DEFAULT_TIMEOUT));
-        System.out.println("emitter = " + emitter);
 
         //기존 emitter 중 완료 되거나 시간이 초과되어 연결이 끊긴 emitter를 삭제한다.
-        emitter.onCompletion(() -> emitterRepository.deleteAllEmitterStartWithId(id));
-        emitter.onTimeout(() -> emitterRepository.deleteAllEventCacheStartWithId(id));
-
-        Map<String, SseEmitter> emitterList = emitterRepository.findAllStartWithById(id);
-        System.out.println("emitterList = " + emitterList);
+        emitter.onCompletion(() -> emitterRepository.deleteById(id));
+        emitter.onTimeout(() -> emitterRepository.deleteById(id));
 
         // 503 에러를 방지하기 위한 더미 이벤트 전송. 연결 중 한 번도 이벤트를 보낸 적이 없다면 다음 연결 때 503에러를 낸다.
         sendToClient(emitter, id, "EventStream Created. [userId=" + userId + "]");
@@ -63,6 +60,7 @@ public class SseService {
 
         // 로그인 한 유저의 SseEmitter 모두 가져오기
         Map<String, SseEmitter> sseEmitters = emitterRepository.findAllStartWithById(id);
+        if(sseEmitters.isEmpty()) return;
         System.out.println("sseEmitters = " + sseEmitters);
         sseEmitters.forEach(
                 (key, emitter) -> {
@@ -95,26 +93,24 @@ public class SseService {
                     .data(data));
         } catch (IOException exception) {
             emitterRepository.deleteAllEmitterStartWithId(id);
-            throw new RuntimeException("연결 오류!");
+            throw new ApiException(ExceptionEnum.CONNECTION_ERROR);
         }
     }
 
     @Transactional
-    public Boolean readNotification(BigInteger userId, Integer type) {
+    public void readNotification(BigInteger userId, Integer type) {
         List<NotificationHash> notificationList =
                 notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
 
         //읽을 알림이 있는지 확인
-        if(notificationList.size() == 0) { throw new ApiException(ExceptionEnum.ALREADY_READ); }
+        if(notificationList.size() == 0) { log.info("읽을 알림이 없습니다."); }
 
         // 알림 읽기
         for(NotificationHash noty : notificationList) {
             noty.updateRead(true);
             notificationHashRepository.save(noty);
         }
-
-        //알림을 읽음
-        return true;
+        log.info("알림 읽기 성공");
     }
 
     @Transactional(readOnly = true)
