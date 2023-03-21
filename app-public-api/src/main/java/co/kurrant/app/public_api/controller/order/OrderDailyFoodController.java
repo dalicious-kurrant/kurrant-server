@@ -104,7 +104,7 @@ public class OrderDailyFoodController {
 
     @Operation(summary = "정기 식사 주문하기(나이스빌링)", description = "정기 식사를 구매한다.")
     @PostMapping("/nice")
-    public ResponseMessage userOrderByDateNice(Authentication authentication, @RequestBody OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) {
+    public ResponseMessage userOrderByDateNice(Authentication authentication, @RequestBody OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.orderDailyFoodsNice(securityUser, orderItemDailyFoodReqDto))
