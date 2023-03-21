@@ -409,6 +409,7 @@ public class AuthServiceImpl implements AuthService {
         synchronized (userTokenLock) {
             // 기존에 reissue 요청이 왔는지 검증
             Optional<TempRefreshTokenHash> tempRefreshTokenHash = tempRefreshTokenRepository.findOneByUserId(userId);
+            List<TempRefreshTokenHash> tempRefreshTokenHashs = tempRefreshTokenRepository.findAllByUserId(userId);
 
             // reissue 요청이 온 적이 없는 경우
             if (tempRefreshTokenHash.isEmpty()) {
@@ -443,6 +444,7 @@ public class AuthServiceImpl implements AuthService {
 
                 // 8. RefreshToken Redis 업데이트
                 refreshTokenRepository.deleteAll(refreshTokenHashs);
+                tempRefreshTokenRepository.deleteAll(tempRefreshTokenHashs);
 
                 TempRefreshTokenHash tempRefreshTokenHash1 = TempRefreshTokenHash.builder()
                         .userId(userId)
