@@ -68,8 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
         // 2. 토큰을 가져오면 유효성 검사를 한다, null인 경우는 안들어온 것
-
-        if (jwtToken != null && jwtTokenProvider.validateToken(jwtToken)) {
+        if (jwtToken != null && jwtTokenProvider.validateAccessToken(jwtToken)) {
             log.info("AccessToken >>>> " + jwtToken);
             // Redis에서 해당 accessToken logout 여부 확인
             BlackListTokenHash blackListTokenHash = blackListTokenRepository.findByAccessToken(jwtToken);
