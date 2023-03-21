@@ -43,9 +43,11 @@ public enum ExceptionEnum {
 	REQUEST_OVER_IMAGE_FILE(HttpStatus.BAD_REQUEST, "E4000031", "등록 가능한 이미지의 개수를 초과 하였습니다."),
 	CANNOT_UPDATE_REVIEW(HttpStatus.BAD_REQUEST, "E4000032", "리뷰 수정 기한이 지났습니다."),
 	BAD_REQUEST_TOPIC(HttpStatus.BAD_REQUEST, "E4000033", "존재하지 않는 주제입니다."),
-
+	NOT_MATCH_USER_CARD(HttpStatus.BAD_REQUEST, "E4000034", "유저 카드정보와 일치하지 않습니다."),
 	EXCEL_EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "E4000100", "중복된 이메일 입력이 존재합니다."),
 	EXCEL_INTEGRITY_ERROR(HttpStatus.BAD_REQUEST, "E4000101", "정합성에 위반된 데이터가 존재합니다. 올바른 데이터를 입력해주세요."),
+	CONNECTION_ERROR(HttpStatus.BAD_REQUEST, "E4000102", "연결 오류!!!"),
+
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
 	PASSWORD_DOES_NOT_MATCH(HttpStatus.UNAUTHORIZED, "E4010001", "비밀번호가 일치하지 않습니다."),

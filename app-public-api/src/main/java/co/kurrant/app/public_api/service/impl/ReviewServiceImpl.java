@@ -25,6 +25,8 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -34,7 +36,10 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -109,34 +114,50 @@ public class ReviewServiceImpl implements ReviewService {
 
         //리뷰 가능한 상품이 있는 지 확인 - 유저 구매했고, 이미 수령을 완료한 식단
         List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatus(user, OrderStatus.RECEIPT_COMPLETE);
-        List<ReviewableItemListDto> itemsForReview = new ArrayList<>();
+        List<ReviewableItemResDto.OrderFood> orderFoodList = new ArrayList<>();
         if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) {
-            return ReviewableItemResDto.create(itemsForReview); }
+            return ReviewableItemResDto.create(orderFoodList, null); }
 
-        //리뷰가 가능한 상품인지 확인
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        MultiValueMap<LocalDate, OrderItemDailyFood> orderItemDailyFoodByServiceDateMap = new LinkedMultiValueMap<>();
         for(OrderItem item : receiptCompleteItem) {
-            //리뷰 가능일 구하기
-            LocalDate completeDate = item.getUpdatedDateTime().toLocalDateTime().toLocalDate();
-            LocalDate reviewableDate = completeDate.plusDays(7);
-
-            //리뷰 작성 가능일이 이미 지났으면 패스
-            if(reviewableDate.isBefore(today)) continue;
-
-            // d-day 구하기
-            String reviewableString = DateUtils.localDateToString(reviewableDate);
-            String todayString = DateUtils.localDateToString(today);
-            long leftDay = DateUtils.calculatedDDay(reviewableString, todayString);
-
-            ReviewableItemListDto responseDto = null;
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
-                responseDto = reviewMapper.toDailyFoodResDto(orderItemDailyFood, leftDay);
+                LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
+                orderItemDailyFoodByServiceDateMap.add(serviceDate, orderItemDailyFood);
             }
-
-            itemsForReview.add(responseDto);
         }
 
-        return ReviewableItemResDto.create(itemsForReview);
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        Integer count = 0;
+
+        //리뷰가 가능한 상품인지 확인
+        for(LocalDate serviceDate : orderItemDailyFoodByServiceDateMap.keySet()) {
+            List<OrderItemDailyFood> orderItemList = orderItemDailyFoodByServiceDateMap.get(serviceDate);
+
+            List<ReviewableItemListDto> reviewableItemListDtoList = new ArrayList<>();
+            for(OrderItemDailyFood item : Objects.requireNonNull(orderItemList)) {
+                //리뷰 가능일 구하기
+                LocalDate reviewableDate = serviceDate.plusDays(7);
+
+                //리뷰 작성 가능일이 이미 지났으면 패스
+                if(reviewableDate.isBefore(today)) continue;
+
+                // d-day 구하기
+                String reviewableString = DateUtils.localDateToString(reviewableDate);
+                String todayString = DateUtils.localDateToString(today);
+                long leftDay = DateUtils.calculatedDDay(reviewableString, todayString);
+
+                ReviewableItemListDto responseDto = reviewMapper.toDailyFoodResDto(item, leftDay);
+                reviewableItemListDtoList.add(responseDto);
+            }
+            reviewableItemListDtoList = reviewableItemListDtoList.stream().sorted(Comparator.comparing(ReviewableItemListDto::getDiningType).reversed()).toList();
+
+            ReviewableItemResDto.OrderFood orderFood = ReviewableItemResDto.OrderFood.create(reviewableItemListDtoList, serviceDate);
+            orderFoodList.add(orderFood);
+            count += reviewableItemListDtoList.size();
+        }
+        orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
+
+        return ReviewableItemResDto.create(orderFoodList, count);
     }
 
     @Override

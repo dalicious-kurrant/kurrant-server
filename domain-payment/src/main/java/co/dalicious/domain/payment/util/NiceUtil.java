@@ -129,7 +129,7 @@ public class NiceUtil {
         return response;
     }
 
-    public JSONObject niceBilling(String billingKey, Integer amount, String orderId) throws IOException, ParseException {
+    public JSONObject niceBilling(String billingKey, Integer amount, String orderId, String token, String orderName) throws IOException, ParseException {
         Base64.Encoder encode = Base64.getEncoder();
         byte[] encodeByte = encode.encode(secretKey.getBytes("UTF-8"));
         String authorizations = "Basic "+ new String(encodeByte, 0, encodeByte.length);
@@ -137,7 +137,7 @@ public class NiceUtil {
         URL url = new URL("https://api.iamport.kr/subscribe/payments/again");
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestProperty("Authorization", authorizations);
+        connection.setRequestProperty("Authorization", token);
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
@@ -145,7 +145,7 @@ public class NiceUtil {
         obj.put("customer_uid", billingKey);
         obj.put("amount", amount);
         obj.put("merchant_uid", orderId);
-        obj.put("name", "test");
+        obj.put("name", orderName);
 
         OutputStream outputStream = connection.getOutputStream();
         outputStream.write(obj.toString().getBytes("UTF-8"));
@@ -161,5 +161,4 @@ public class NiceUtil {
         responseStream.close();
         return jsonObject;
     }
-
 }

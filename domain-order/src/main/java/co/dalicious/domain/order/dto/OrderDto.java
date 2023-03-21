@@ -38,6 +38,7 @@ public class OrderDto {
         private String groupName;
         private String spotName;
         private String userName;
+        private String userEmail;
         private String phone;
         private String diningType;
         private String deliveryTime;
