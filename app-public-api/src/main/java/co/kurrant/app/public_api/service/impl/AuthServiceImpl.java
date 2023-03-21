@@ -1,8 +1,10 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
+import co.dalicious.data.redis.RedisConfig;
 import co.dalicious.data.redis.entity.BlackListTokenHash;
 import co.dalicious.data.redis.entity.RefreshTokenHash;
+import co.dalicious.data.redis.entity.TempRefreshTokenHash;
 import co.dalicious.data.redis.repository.BlackListTokenRepository;
 import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import co.dalicious.client.external.sms.SmsService;
@@ -11,6 +13,7 @@ import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.data.redis.entity.CertificationHash;
 import co.dalicious.data.redis.repository.CertificationHashRepository;
+import co.dalicious.data.redis.repository.TempRefreshTokenRepository;
 import co.dalicious.domain.client.entity.Employee;
 import co.dalicious.domain.client.repository.EmployeeRepository;
 import co.dalicious.domain.user.dto.ProviderEmailDto;
@@ -54,6 +57,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @Service
@@ -61,6 +65,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @Transactional
 public class AuthServiceImpl implements AuthService {
+    private final TempRefreshTokenRepository tempRefreshTokenRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -76,6 +81,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserValidator userValidator;
     private final UserMapper userMapper;
     private final EmployeeRepository employeeRepository;
+    private static final ConcurrentHashMap<String, Object> tokenLocks = new ConcurrentHashMap<>();
 
     // 이메일 인증
     @Override
@@ -217,7 +223,7 @@ public class AuthServiceImpl implements AuthService {
         providerEmailRepository.save(providerEmail);
 
         //가입가능리스트에서 삭제
-        if (employeeList.size() >= 1){
+        if (employeeList.size() >= 1) {
             employeeRepository.deleteAllByEmail(employeeList.get(0).getEmail());
         }
 
@@ -237,7 +243,7 @@ public class AuthServiceImpl implements AuthService {
 
         Integer leftWithdrawDays = null;
 
-        if(user.getUserStatus().equals(UserStatus.REQUEST_WITHDRAWAL)) {
+        if (user.getUserStatus().equals(UserStatus.REQUEST_WITHDRAWAL)) {
             LocalDateTime withdrawRequestDateTime = user.getUpdatedDateTime().toLocalDateTime();
             Duration interval = Duration.between(withdrawRequestDateTime, LocalDateTime.now());
             leftWithdrawDays = (int) interval.toDays();
@@ -384,90 +390,87 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginTokenDto reissue(TokenDto reissueTokenDto) {
-        // Access Token이 유효한 경우
-        if (jwtTokenProvider.validateToken(reissueTokenDto.getAccessToken())) {
-            // 1. Refresh Token 검증
-            if (!jwtTokenProvider.validateToken(reissueTokenDto.getRefreshToken())) {
-                throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
-            }
-
-            // 2. Access Token 에서 UserId 를 가져오기.
-            String userId = jwtTokenProvider.getUserPk(reissueTokenDto.getAccessToken());
-
-            // 3. UserId를 통해 Redis에서 Refresh Token 값 꺼내기
-            List<RefreshTokenHash> refreshTokenHashs = refreshTokenRepository.findAllByUserId(userId);
-
-            // 4. 로그아웃 되어 Refresh Token이 존재하지 않는 경우 처리
-            if (refreshTokenHashs == null) {
-                throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
-            }
-            // 5. 잘못된 Refresh Token일 경우 예외 처리
-            refreshTokenHashs.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
-                    .findAny()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR));
-
-            // 6. 새로운 토큰 생성
-            Authentication authentication = jwtTokenProvider.getAuthentication(reissueTokenDto.getAccessToken());
-            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            List<String> strAuthorities = new ArrayList<>();
-            for (GrantedAuthority authority : authorities) {
-                strAuthorities.add(authority.getAuthority());
-            }
-            LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(userId, strAuthorities);
-
-            // 7. RefreshToken Redis 업데이트
-            refreshTokenRepository.deleteAll(refreshTokenHashs);
-            RefreshTokenHash newRefreshTokenHash = RefreshTokenHash.builder()
-                    .refreshToken(loginResponseDto.getRefreshToken())
-                    .userId(userId)
-                    .build();
-            refreshTokenRepository.save(newRefreshTokenHash);
-            return loginResponseDto;
+        String userId;
+        boolean accessTokenValid = jwtTokenProvider.validateToken(reissueTokenDto.getAccessToken());
+        // 엑세스 토큰이 유효할 경우
+        if (accessTokenValid) {
+            userId = jwtTokenProvider.getUserPk(reissueTokenDto.getAccessToken());
         }
-        // Access Token이 유효하지 않은 경우
+        // 엑세스 토큰이 유효하지 않을 경우
         else {
-            String refreshToken = reissueTokenDto.getRefreshToken();
-            // 1. Refresh Token 검증
-            if (!jwtTokenProvider.validateToken(refreshToken)) {
-                throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
-            }
-
-            // 2. Refresh Token 값를 통해 Redis에서 Refresh Token 값 꺼내기
-            Optional<RefreshTokenHash> refreshTokenHash = refreshTokenRepository.findOneByRefreshToken(refreshToken);
-
-            // 3. 로그아웃 되어 Refresh Token이 존재하지 않는 경우 처리
+            Optional<RefreshTokenHash> refreshTokenHash = refreshTokenRepository.findOneByRefreshToken(reissueTokenDto.getRefreshToken());
             if (refreshTokenHash.isEmpty()) {
                 throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
             }
-            // 4. Refresh Token을 통해 유저 정보 가져오기
-            String strUserId = refreshTokenHash.get().getUserId();
-            BigInteger userId = BigInteger.valueOf(Integer.parseInt(strUserId));
-            User user = userRepository.findById(userId).orElseThrow(
-                    () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
-            );
-            List<String> roles = new ArrayList<>();
-            roles.add(user.getRole().getAuthority());
+            userId = refreshTokenHash.get().getUserId();
+        }
 
-            // 6. 새로운 토큰 생성
-            LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(strUserId, roles);
+        Object userTokenLock = tokenLocks.computeIfAbsent(userId, k -> new Object());
+        synchronized (userTokenLock) {
+            // 기존에 reissue 요청이 왔는지 검증
+            Optional<TempRefreshTokenHash> tempRefreshTokenHash = tempRefreshTokenRepository.findOneByUserId(userId);
+            List<TempRefreshTokenHash> tempRefreshTokenHashs = tempRefreshTokenRepository.findAllByUserId(userId);
 
-            // 7. RefreshToken Redis 업데이트
-            List<RefreshTokenHash> refreshTokenHashs = refreshTokenRepository.findAllByUserId(strUserId);
-            refreshTokenRepository.deleteAll(refreshTokenHashs);
-            RefreshTokenHash newRefreshTokenHash = RefreshTokenHash.builder()
-                    .refreshToken(loginResponseDto.getRefreshToken())
-                    .userId(strUserId)
-                    .build();
-            refreshTokenRepository.save(newRefreshTokenHash);
-            return loginResponseDto;
+            // reissue 요청이 온 적이 없는 경우
+            if (tempRefreshTokenHash.isEmpty()) {
+                List<RefreshTokenHash> refreshTokenHashs = refreshTokenRepository.findAllByUserId(userId);
 
+                // 5. 로그아웃 되어 Refresh Token이 존재하지 않는 경우 처리
+                if (refreshTokenHashs == null) {
+                    throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
+                }
+                // 6. 잘못된 Refresh Token일 경우 예외 처리
+                refreshTokenHashs.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
+                        .findAny()
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR));
+
+                // 7. 새로운 토큰 생성
+                List<String> roles = new ArrayList<>();
+
+                if(accessTokenValid) {
+                    Authentication authentication = jwtTokenProvider.getAuthentication(reissueTokenDto.getAccessToken());
+                    Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+                    for (GrantedAuthority authority : authorities) {
+                        roles.add(authority.getAuthority());
+                    }
+                } else {
+                    User user = userRepository.findById(BigInteger.valueOf(Integer.parseInt(userId))).orElseThrow(
+                            () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
+                    );
+                    roles.add(user.getRole().getAuthority());
+                }
+
+                LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(userId, roles);
+
+                // 8. RefreshToken Redis 업데이트
+                refreshTokenRepository.deleteAll(refreshTokenHashs);
+                tempRefreshTokenRepository.deleteAll(tempRefreshTokenHashs);
+
+                TempRefreshTokenHash tempRefreshTokenHash1 = TempRefreshTokenHash.builder()
+                        .userId(userId)
+                        .oldRefreshToken(reissueTokenDto.getRefreshToken())
+                        .newRefreshToken(loginResponseDto.getRefreshToken())
+                        .newAccessToken(loginResponseDto.getAccessToken())
+                        .build();
+
+                tempRefreshTokenRepository.save(tempRefreshTokenHash1);
+                return loginResponseDto;
+            }
+            // reissue 요청이 온 적이 있는 경우
+            else if (tempRefreshTokenHash.get().getOldRefreshToken().equals(reissueTokenDto.getRefreshToken())) {
+                return LoginTokenDto.builder()
+                        .refreshToken(tempRefreshTokenHash.get().getNewRefreshToken())
+                        .accessToken(tempRefreshTokenHash.get().getNewAccessToken())
+                        .build();
+            }
+            throw new ApiException(ExceptionEnum.TOKEN_CREATE_FAILED);
         }
     }
 
     @Override
     public void logout(TokenDto tokenDto) {
         // 1. Refresh Token 검증
-        if (!jwtTokenProvider.validateToken(tokenDto.getRefreshToken())) {
+        if (!jwtTokenProvider.validateRefreshToken(tokenDto.getRefreshToken())) {
             throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
         }
         // 2. Access Token 에서 UserId 를 가져오기.

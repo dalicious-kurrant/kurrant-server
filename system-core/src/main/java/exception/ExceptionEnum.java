@@ -91,6 +91,7 @@ public enum ExceptionEnum {
 	GROUP_PRESET_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040026", "그룹 식사 일정이 없습니다."),
 	REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040027", "찾으시는 리뷰가 없습니다."),
 	ADMIN_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040028", "작성된 관리자 댓글이 없습니다."),
+	MAKERS_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040028", "작성된 메이커스 댓글이 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
@@ -111,6 +112,8 @@ public enum ExceptionEnum {
   	MAKERS_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000011", "메이커스 정보 저장 실패"),
   	MAKERS_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000012", "메이커스 정보 수정 실패"),
   	ALIMTALK_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000013", "알림톡 발송 실패"),
+  	TOKEN_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000014", "토큰 생성 실패"),
+	BILLING_KEY_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000015", "빌링키 발급 실패"),
 
 
   	/* E422 */

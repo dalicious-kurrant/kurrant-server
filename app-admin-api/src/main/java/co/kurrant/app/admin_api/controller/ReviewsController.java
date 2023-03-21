@@ -40,7 +40,7 @@ public class ReviewsController {
     }
 
     @Operation(summary = "관리자 댓글 생성", description = "리뷰에 관리자 댓글을 작성합니다.")
-    @PostMapping("")
+    @PostMapping("/comment")
     public ResponseMessage createAdminComment(@RequestBody CommentReqDto reqDto, @RequestParam BigInteger reviewId) {
         reviewService.createAdminComment(reqDto, reviewId);
         return ResponseMessage.builder()
@@ -49,7 +49,7 @@ public class ReviewsController {
     }
 
     @Operation(summary = "관리자 댓글 수정", description = "리뷰에 관리자 댓글을 수정합니다.")
-    @PatchMapping("")
+    @PatchMapping("/comment")
     public ResponseMessage updateAdminComment(@RequestBody CommentReqDto reqDto, @RequestParam BigInteger commentId) {
         reviewService.updateAdminComment(reqDto, commentId);
         return ResponseMessage.builder()
