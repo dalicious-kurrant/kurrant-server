@@ -43,6 +43,7 @@ public enum ExceptionEnum {
 	REQUEST_OVER_IMAGE_FILE(HttpStatus.BAD_REQUEST, "E4000031", "등록 가능한 이미지의 개수를 초과 하였습니다."),
 	CANNOT_UPDATE_REVIEW(HttpStatus.BAD_REQUEST, "E4000032", "리뷰 수정 기한이 지났습니다."),
 	BAD_REQUEST_TOPIC(HttpStatus.BAD_REQUEST, "E4000033", "존재하지 않는 주제입니다."),
+	NOT_MATCH_USER_CARD(HttpStatus.BAD_REQUEST, "E4000034", "유저 카드정보와 일치하지 않습니다."),
 	EXCEL_EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "E4000100", "중복된 이메일 입력이 존재합니다."),
 	EXCEL_INTEGRITY_ERROR(HttpStatus.BAD_REQUEST, "E4000101", "정합성에 위반된 데이터가 존재합니다. 올바른 데이터를 입력해주세요."),
 	CONNECTION_ERROR(HttpStatus.BAD_REQUEST, "E4000102", "연결 오류!!!"),
@@ -112,6 +113,9 @@ public enum ExceptionEnum {
   	SPOT_PATCH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000010", "스팟 비활성 처리 실패"),
   	MAKERS_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000011", "메이커스 정보 저장 실패"),
   	MAKERS_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000012", "메이커스 정보 수정 실패"),
+  	ALIMTALK_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000013", "알림톡 발송 실패"),
+  	TOKEN_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000014", "토큰 생성 실패"),
+	BILLING_KEY_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000015", "빌링키 발급 실패"),
 
 
   	/* E422 */

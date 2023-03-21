@@ -2,7 +2,9 @@ package co.dalicious.system.util;
 
 import co.dalicious.system.enums.Days;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class DaysUtil {
@@ -23,5 +25,14 @@ public class DaysUtil {
             serviceDays.append(day).append(", ");
         }
         return serviceDays.substring(0, serviceDays.length() - 2);
+    }
+    public static List<String> serviceDaysToStringList(String dbData) {
+        List<String> daysList = new ArrayList<>();
+        String[] parts = dbData.split(", ");
+        for (String part : parts) {
+            String day = Days.ofString(part).getDays();
+            daysList.add(day);
+        }
+        return daysList;
     }
 }

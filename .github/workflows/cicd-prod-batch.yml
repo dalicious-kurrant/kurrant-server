@@ -9,7 +9,7 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "release" ]
+    branches: [ "release-batch" ]
 
 permissions:
   contents: read
@@ -25,16 +25,21 @@ jobs:
         java-version: '17'
         distribution: 'adopt'
 
-    # app-public-api의 설정파일(.yaml) 생성
-    - name: app-public-api application.yaml(prod) 생성
+      # batch의 설정파일(.yaml) 생성
+    - name: batch application.yaml 생성
       run: |
-        cd ./app-public-api/src/main
+        cd ./batch/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application.yaml
-        echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application.yaml
-        touch ./application-prod.yaml
-        echo "${{ secrets.APP_PUBLIC_API_PROD_PROD_YAML }}" > ./application-prod.yaml
+        echo "$BATCH_PROD_YAML" > ./application.yaml
+        touch ./application-quartz.properties
+        echo "$BATCH_QUARTZ_PROD_PROPERTIES" > ./application-quartz.properties
+      env:
+        BATCH_PROD_YAML: ${{ secrets.BATCH_PROD_YAML }}
+        BATCH_QUARTZ_PROD_PROPERTIES: ${{ secrets.BATCH_QUARTZ_PROD_PROPERTIES }}
       shell: bash
 
     - name: client-core application-jwt.properties 생성
@@ -109,10 +114,10 @@ jobs:
     - name: Docker 빌드
       run: |
         docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-        cd app-public-api
-        docker build -t kurrant_v1 .
-        docker tag kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
-        docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
+        cd batch
+        docker build -t kurrant_batch .
+        docker tag kurrant_batch ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
+        docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
 
 
     - name: 배포
@@ -123,8 +128,8 @@ jobs:
         key: ${{ secrets.PROD_PRIVATE_KEY }}
         envs: GITHUB_SHA
         script: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
-          docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
-          docker stop kurrant_v1
+          docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7} kurrant_batch
+          docker stop kurrant_batch
           sleep 5
-          docker run -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
+          docker run -d --rm --name kurrant_batch -p 8890:8890 kurrant_batch

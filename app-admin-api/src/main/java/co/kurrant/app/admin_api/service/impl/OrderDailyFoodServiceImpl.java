@@ -34,6 +34,7 @@ import co.kurrant.app.admin_api.service.OrderDailyFoodService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 
@@ -180,7 +181,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
 
         for (OrderItem orderItem : orderItems) {
-            User user = orderItem.getOrder().getUser();
+            User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
 
             if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                 orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);

@@ -35,7 +35,7 @@ public class QCreditCardInfoRepository {
                 .set(creditCardInfo.cardNumber, cardNumber)
                 .set(creditCardInfo.cardType, cardType)
                 .set(creditCardInfo.user, userId)
-                .set(creditCardInfo.billingKey, billingKey)
+                .set(creditCardInfo.tossBillingKey, billingKey)
                 .set(creditCardInfo.cardCompany, cardCompany)
                 .set(creditCardInfo.customerKey, customerKey)
                 .set(creditCardInfo.ownerType, ownerType)
@@ -67,7 +67,7 @@ public class QCreditCardInfoRepository {
     public void deleteCard(BigInteger cardId) {
         queryFactory.update(creditCardInfo)
                 .set(creditCardInfo.status, 0)
-                .set(creditCardInfo.billingKey, "삭제된 카드입니다.")
+                .set(creditCardInfo.tossBillingKey, "삭제된 카드입니다.")
                 .where(creditCardInfo.id.eq(cardId))
                 .execute();
     }
@@ -155,7 +155,23 @@ public class QCreditCardInfoRepository {
     public void updateStatusCard(BigInteger id, String billingKey) {
         queryFactory.update(creditCardInfo)
                 .set(creditCardInfo.status, 1)
-                .set(creditCardInfo.billingKey, billingKey)
+                .set(creditCardInfo.tossBillingKey, billingKey)
+                .where(creditCardInfo.id.eq(id))
+                .execute();
+    }
+
+    public void updateNiceBillingKey(String billingKey, BigInteger id, String cardNumberPart) {
+        queryFactory.update(creditCardInfo)
+                .set(creditCardInfo.niceBillingKey, billingKey)
+                .where(creditCardInfo.user.id.eq(id),
+                        creditCardInfo.cardNumber.substring(0,8).eq(cardNumberPart))
+                .execute();
+    }
+
+    public void updateStatusCardNice(BigInteger id, String billingKey) {
+        queryFactory.update(creditCardInfo)
+                .set(creditCardInfo.status, 1)
+                .set(creditCardInfo.niceBillingKey, billingKey)
                 .where(creditCardInfo.id.eq(id))
                 .execute();
     }

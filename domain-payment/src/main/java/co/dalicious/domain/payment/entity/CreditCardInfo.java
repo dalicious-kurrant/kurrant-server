@@ -52,20 +52,25 @@ public class CreditCardInfo {
     @Column(name="customer_key", columnDefinition = "VARCHAR(64)")
     private String customerKey;
 
-    @Column(name="billing_key", columnDefinition = "VARCHAR(64)")
-    private String billingKey;
+    @Column(name="toss_billing_key", columnDefinition = "VARCHAR(64)")
+    private String tossBillingKey;
+
+    @Column(name="nice_billing_key", columnDefinition = "VARCHAR(64)")
+    private String niceBillingKey;
 
 
     @Builder
     CreditCardInfo(String cardNumber, User user, String ownerType,
-                   String cardType, String customerKey, String billingKey,
+                   String cardType, String customerKey, String tossBillingKey,
+                   String niceBillingKey,
                    String cardCompany, Integer defaultType, Integer status){
         this.cardNumber = cardNumber;
         this.user = user;
         this.ownerType = ownerType;
         this.cardType = cardType;
         this.customerKey = customerKey;
-        this.billingKey = billingKey;
+        this.tossBillingKey = tossBillingKey;
+        this.niceBillingKey = niceBillingKey;
         this.cardCompany = cardCompany;
         this.defaultType = defaultType;
         this.status = status;

@@ -46,6 +46,6 @@ public interface UserSupportPriceHistoryReqMapper {
 
     @Named("getMedTronicPrice")
     default BigDecimal getMedTronicPrice(BigDecimal orderItemGroupTotalPrice) {
-        return PriceUtils.roundToOneDigit(orderItemGroupTotalPrice.multiply(BigDecimal.valueOf(0.5)));
+        return orderItemGroupTotalPrice.multiply(BigDecimal.valueOf(0.5));
     }
 }

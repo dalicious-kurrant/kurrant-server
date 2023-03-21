@@ -1,4 +1,4 @@
-package co.kurrant.batch.job.batch;
+package co.kurrant.batch.job.batch.job;
 
 import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -71,6 +71,18 @@ public class DailyFoodJob {
     public Step dailyFoodJob_step2() {
         // 식사 정보를 통해 주문 마감 시간 가져오기
         return stepBuilderFactory.get("dailyFoodJob_step2")
+                .<OrderItemDailyFood, OrderItemDailyFood>chunk(CHUNK_SIZE)
+                .reader(orderItemDailyFoodReader(matchingDailyFoodIds()))
+                .processor(orderItemDailyFoodProcessor())
+                .writer(orderItemDailyFoodWriter())
+                .build();
+    }
+
+    @Bean
+    @JobScope
+    public Step dailyFoodJob_step3() {
+        // 식사 정보를 통해 주문 마감 시간 가져오기
+        return stepBuilderFactory.get("dailyFoodJob_step3")
                 .<OrderItemDailyFood, OrderItemDailyFood>chunk(CHUNK_SIZE)
                 .reader(orderItemDailyFoodReader(matchingDailyFoodIds()))
                 .processor(orderItemDailyFoodProcessor())

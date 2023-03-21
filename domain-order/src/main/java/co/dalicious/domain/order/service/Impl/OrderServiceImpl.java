@@ -80,7 +80,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
             }
 
-            if(orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+            if(orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT)|| orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
                 throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
             }
 
@@ -125,8 +125,9 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void cancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException {
         Order order = orderItemDailyFood.getOrder();
+        User orderUser = (User) Hibernate.unproxy(order.getUser());
 
-        if(!order.getUser().equals(user)) {
+        if(!orderUser.equals(user)) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
 
@@ -135,7 +136,7 @@ public class OrderServiceImpl implements OrderService {
             throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
         }
 
-        if(orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+        if(orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT)|| orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
             throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
         }
 
@@ -224,7 +225,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
 
         String customerKey = creditCardInfo.get().getCustomerKey();
-        String billingKey = creditCardInfo.get().getBillingKey();
+        String billingKey = creditCardInfo.get().getTossBillingKey();
 
         try {
             JSONObject payResult = tossUtil.payToCard(customerKey, price.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType(), billingKey);

@@ -8,6 +8,7 @@ import co.dalicious.domain.order.entity.UserSupportPriceHistory;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.PriceUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,8 @@ public class UserSupportPriceUtil {
                 usedSupportPrice = usedSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
             }
         }
-        return usedSupportPrice;
+        // 추후 수정
+        return PriceUtils.roundToOneDigit(usedSupportPrice);
     }
 
     public static PeriodDto getEarliestAndLatestServiceDate(Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos) {

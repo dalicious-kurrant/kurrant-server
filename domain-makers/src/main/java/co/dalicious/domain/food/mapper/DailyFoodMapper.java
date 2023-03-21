@@ -35,7 +35,7 @@ public interface DailyFoodMapper {
       default DailyFood toDailyFood(PresetDailyFood presetDailyFood, DailyFoodGroup dailyFoodGroup) {
             return DailyFood.builder()
                     .diningType(presetDailyFood.getPresetGroupDailyFood().getPresetMakersDailyFood().getDiningType())
-                    .dailyFoodStatus(DailyFoodStatus.WAITING)
+                    .dailyFoodStatus(DailyFoodStatus.WAITING_SALE)
                     .serviceDate(presetDailyFood.getPresetGroupDailyFood().getPresetMakersDailyFood().getServiceDate())
                     .food(presetDailyFood.getFood())
                     .group(presetDailyFood.getPresetGroupDailyFood().getGroup())
@@ -75,7 +75,7 @@ public interface DailyFoodMapper {
             }
             return DailyFood.builder()
                     .dailyFoodGroup(dailyFoodGroup)
-                    .dailyFoodStatus(DailyFoodStatus.WAITING)
+                    .dailyFoodStatus(DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()))
                     .diningType(DiningType.ofCode(dailyFoodDto.getDiningType()))
                     .serviceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()))
                     .food(food)

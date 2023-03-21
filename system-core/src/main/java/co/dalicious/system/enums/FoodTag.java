@@ -193,4 +193,10 @@ public enum FoodTag {
         }
         return foodTags;
     }
+
+    public static List<FoodTag> ofCategory(FoodCategory foodCategory) {
+        return Arrays.stream(FoodTag.values())
+                .filter(v -> v.getCategory().equals(foodCategory.getFoodCategory()))
+                .toList();
+    }
 }
