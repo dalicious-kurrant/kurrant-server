@@ -110,7 +110,7 @@ jobs:
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           cd app-public-api
-          docker build -t kurrant_v1_prod_test_prod_test .
+          docker build -t kurrant_v1_prod_test .
           docker tag kurrant_v1_prod_test ${{ secrets.DOCKER_USERNAME }}/kurrant_v1_prod_test:${GITHUB_SHA::7}
           docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1_prod_test:${GITHUB_SHA::7}
 
