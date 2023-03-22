@@ -188,4 +188,30 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
         }
     }
+
+    @Override
+    public void cancelOrderNice(BigInteger orderId) throws IOException, ParseException {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
+        User user = order.getUser();
+
+        if(order instanceof OrderDailyFood orderDailyFood) {
+            orderService.cancelOrderDailyFoodNice(orderDailyFood, user);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
+        List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
+
+        for (OrderItem orderItem : orderItems) {
+            User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
+
+            if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+                orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
+            }
+        }
+    }
+
+
 }

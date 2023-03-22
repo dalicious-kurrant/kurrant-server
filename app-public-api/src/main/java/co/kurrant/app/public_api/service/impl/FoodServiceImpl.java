@@ -84,7 +84,7 @@ public class FoodServiceImpl implements FoodService {
                 MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
                 LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
                 if(LocalDate.now().equals(dailyFood.getServiceDate()) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
-                    dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
+                    dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
                 }
 
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
@@ -143,7 +143,7 @@ public class FoodServiceImpl implements FoodService {
                 MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
                 LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
                 if((LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate())) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
-                    dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
+                    dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
                 }
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);

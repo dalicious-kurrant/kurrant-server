@@ -13,6 +13,7 @@ import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.PaymentCancleHistoryMapper;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.util.NiceUtil;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderUtil {
     private final TossUtil tossUtil;
+    private final NiceUtil niceUtil;
     private final PaymentCancleHistoryMapper paymentCancleHistoryMapper;
 
     // 주문 코드 생성
@@ -357,4 +359,26 @@ public class OrderUtil {
         return paymentCancleHistoryMapper.orderDailyItemFoodToEntity("주문 전체 취소", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundablePrice);
 
     }
+
+    public PaymentCancelHistory cancelOrderItemDailyFoodNice(String impUid, String cancelReason, OrderItemDailyFood orderItem, RefundPriceDto refundPriceDto) throws IOException, ParseException {
+        //결제 취소 요청
+        String token = niceUtil.getToken();
+
+        JSONObject response = niceUtil.cardCancelOne(impUid, cancelReason, refundPriceDto.getPrice().intValue(), token);
+
+        String orderCode = response.get("merchant_uid").toString();
+
+        JSONArray checkout = (JSONArray) response.get("cancel_historys");
+        String checkOutUrl = (String) checkout.get(0);
+        Integer refundablePrice = (Integer) response.get("amount") - (Integer) response.get("cancel_amount");
+
+        //결제 취소 후 기록을 저장한다.
+        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity(cancelReason, refundPriceDto, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice));
+
+    }
+
+
+
+
+
 }

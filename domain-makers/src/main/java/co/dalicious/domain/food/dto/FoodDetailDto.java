@@ -25,4 +25,5 @@ public class FoodDetailDto {
     private String spicy;
     private String description;
     private List<OriginDto> origins;
+    private List<String> allergies;
 }

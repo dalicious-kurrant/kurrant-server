@@ -223,19 +223,4 @@ public class TossUtil {
         return jsonObject;
     }
 
-
-        /*
-        * HttpRequest request = HttpRequest.newBuilder()
-    .uri(URI.create("https://api.tosspayments.com/v1/payments/confirm"))
-    .header("Authorization", "Basic dGVzdF9za196WExrS0V5cE5BcldtbzUwblgzbG1lYXhZRzVSOg==")
-    .header("Content-Type", "application/json")
-    .method("POST", HttpRequest.BodyPublishers.ofString("{\"paymentKey\":\"3R6B0i8FCb4myEgVQSDK0\",\"amount\":15000,\"orderId\":\"x5Qmqd0sA2RR1WQT1sUd_\"}"))
-    .build();
-HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-System.out.println(response.body());
-        * */
-
-
-
-
 }

@@ -1,6 +1,5 @@
 package co.dalicious.domain.order.entity.enums;
 
-import co.dalicious.domain.order.entity.Order;
 import lombok.Getter;
 import org.hibernate.boot.model.naming.IllegalIdentifierException;
 

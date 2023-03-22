@@ -98,6 +98,15 @@ jobs:
         touch ./application-s3.properties
         echo "${{ secrets.DOMAIN_FILE_S3_PROPERTIES }}" > ./application-s3.properties
       shell: bash
+      
+    - name: system-core application-alimtalk.properties 생성
+      run: |
+        cd ./system-core/src/main
+        mkdir resources
+        cd resources
+        touch ./application-alimtalk.properties
+        echo "${{ secrets.SYSTEM_CORE_ALIMTALK }}" > ./application-alimtalk.properties
+      shell: bash
 
     - name: gradlew 실행 권한 추가
       run: chmod +x gradlew
