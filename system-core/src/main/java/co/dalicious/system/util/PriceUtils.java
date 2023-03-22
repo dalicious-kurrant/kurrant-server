@@ -18,6 +18,18 @@ public class PriceUtils {
         return BigDecimal.valueOf(integer);
     }
 
+    public static BigDecimal roundToTenDigit(BigDecimal bigDecimal) {
+        int integer = bigDecimal.intValue();
+        integer = (integer + 50) / 100 * 100;
+        return BigDecimal.valueOf(integer);
+    }
+
+    public static BigDecimal floorToTenDigit(BigDecimal bigDecimal) {
+        int integer = bigDecimal.intValue();
+        integer = integer / 100 * 100;
+        return BigDecimal.valueOf(integer);
+    }
+
     public static BigDecimal getPercent(Integer totalCount, Integer count) {
         if (totalCount == null || totalCount == 0) {
             return BigDecimal.ZERO;

@@ -84,13 +84,11 @@ public class DiscountDto {
         // 1. 메이커스 할인
         if(makersDiscountedRate != 0) {
             makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
-            makersDiscountedPrice = PriceUtils.roundToOneDigit(makersDiscountedPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 2. 기간 할인
         if(periodDiscountedRate != 0) {
             periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            periodDiscountedPrice = PriceUtils.roundToOneDigit(periodDiscountedPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
@@ -113,6 +111,6 @@ public class DiscountDto {
         if(this.periodDiscountPrice != null && this.periodDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
             totalPrice = totalPrice.subtract(this.periodDiscountPrice);
         }
-        return totalPrice;
+        return PriceUtils.roundToTenDigit(totalPrice);
     }
 }
