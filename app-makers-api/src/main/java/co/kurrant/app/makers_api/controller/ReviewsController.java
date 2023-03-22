@@ -75,15 +75,15 @@ public class ReviewsController {
                 .build();
     }
 
-    @Operation(summary = "댓글 삭제", description = "메이커스 댓글을 삭제합니다.")
-    @ResponseStatus(HttpStatus.OK)
-    @PatchMapping("/comment/delete")
-    public ResponseMessage deleteMakersComment(@RequestParam BigInteger commentId) {
-        reviewService.deleteMakersComment(commentId);
-        return ResponseMessage.builder()
-                .message("댓글 삭제를 완료했습니다.")
-                .build();
-    }
+//    @Operation(summary = "댓글 삭제", description = "메이커스 댓글을 삭제합니다.")
+//    @ResponseStatus(HttpStatus.OK)
+//    @PatchMapping("/comment/delete")
+//    public ResponseMessage deleteMakersComment(@RequestParam BigInteger commentId) {
+//        reviewService.deleteMakersComment(commentId);
+//        return ResponseMessage.builder()
+//                .message("댓글 삭제를 완료했습니다.")
+//                .build();
+//    }
 
     @Operation(summary = "리뷰 신고", description = "리뷰를 신고합니다.")
     @ResponseStatus(HttpStatus.OK)

@@ -106,7 +106,8 @@ public class QReviewRepository {
 
     public List<Reviews> findAllByUser(User user) {
         return queryFactory.selectFrom(reviews)
-                .where(reviews.isDelete.ne(true), reviews.user.eq(user))
+                .leftJoin(reviews.comments, comments)
+                .where(reviews.isDelete.ne(true), reviews.user.eq(user), comments.isDelete.ne(true))
                 .orderBy(reviews.createdDateTime.desc())
                 .fetch();
     }
