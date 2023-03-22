@@ -77,11 +77,11 @@ public class OrderUtil {
     }
 
     public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
-        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100)));
+        return price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100));
     }
 
     public static BigDecimal discountPriceByRate(BigDecimal price, Integer discountRate) {
-        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf(discountRate / 100.0)));
+        return price.multiply(BigDecimal.valueOf(discountRate / 100.0));
     }
 
     public static Boolean isMembership(User user, Group group) {

@@ -70,7 +70,7 @@ public interface OrderDailyFoodDetailMapper {
                 }
             }
         }
-        return PriceUtils.roundToOneDigit(supportPrice);
+        return supportPrice;
     }
 
     @Named("getMembershipDiscountPrice")

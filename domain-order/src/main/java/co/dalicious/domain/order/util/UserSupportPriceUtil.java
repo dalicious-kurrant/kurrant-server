@@ -51,7 +51,7 @@ public class UserSupportPriceUtil {
             }
         }
         // 추후 수정
-        return PriceUtils.roundToOneDigit(usedSupportPrice);
+        return usedSupportPrice;
     }
 
     public static PeriodDto getEarliestAndLatestServiceDate(Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos) {
