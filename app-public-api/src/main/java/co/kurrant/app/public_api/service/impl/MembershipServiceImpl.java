@@ -47,6 +47,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class MembershipServiceImpl implements MembershipService {
     private final UserUtil userUtil;
     private final MembershipRepository membershipRepository;
@@ -320,5 +321,60 @@ public class MembershipServiceImpl implements MembershipService {
             }
             paidPrice = paidPrice.subtract(DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH.multiply(BigDecimal.valueOf(period)));
         }
+    }
+
+    @Override
+    public void joinMembershipNice(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto) throws IOException, ParseException {
+        User user = userUtil.getUser(securityUser);
+        // 금액 정보가 일치하는지 확인
+        MembershipSubscriptionType membershipSubscriptionType = MembershipSubscriptionType.ofCode(orderMembershipReqDto.getSubscriptionType());
+        // 1. 기본 가격이 일치하는지 확인
+        BigDecimal defaultPrice = membershipSubscriptionType.getPrice();
+        if (!(orderMembershipReqDto.getDefaultPrice().compareTo(defaultPrice) == 0)) {
+            throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+        }
+        // 2. 연간 구독 할인 가격이 일치하는지 확인
+        BigDecimal yearDescriptionDiscountPrice = OrderUtil.discountPriceByRate(membershipSubscriptionType.getPrice(), membershipSubscriptionType.getDiscountRate());
+        if (!(orderMembershipReqDto.getYearDescriptionDiscountPrice().compareTo(yearDescriptionDiscountPrice) == 0)) {
+            throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+        }
+        // 3. 기간 할인 가격이 일치하는지 확인
+        // TODO: 기간할인 추가시 기간할인 조회 로직 추가 필요
+        BigDecimal periodDiscountPrice = BigDecimal.ZERO;
+        if (!(orderMembershipReqDto.getPeriodDiscountPrice().compareTo(periodDiscountPrice) == 0)) {
+            throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+        }
+        // 4. 총 가격이 일치하는지 확인
+        BigDecimal totalPrice = defaultPrice.subtract(yearDescriptionDiscountPrice).subtract(periodDiscountPrice);
+        if(!(orderMembershipReqDto.getTotalPrice().compareTo(totalPrice) == 0)) {
+            throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+        }
+
+        // 5. 이 사람이 기존에 멤버십을 가입했는 지 확인 후 멤버십 기간 저장
+        PeriodDto periodDto = null;
+        if (user.getIsMembership()) {
+            Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
+            if (membership != null) {
+                LocalDate currantEndDate = membership.getEndDate();
+                if(LocalDate.now().isBefore(currantEndDate)) {
+                    throw new ApiException(ExceptionEnum.ALREADY_EXISTING_MEMBERSHIP);
+                }
+                // 구독 타입에 따라 기간 정하기
+                periodDto = (membershipSubscriptionType.equals(MembershipSubscriptionType.MONTH)) ?
+                        MembershipUtil.getStartAndEndDateMonthly(currantEndDate) :
+                        MembershipUtil.getStartAndEndDateYearly(currantEndDate);
+            }
+        } else {
+            LocalDate now = LocalDate.now();
+            // 구독 타입에 따라 기간 정하기
+            periodDto = (membershipSubscriptionType.equals(MembershipSubscriptionType.MONTH)) ?
+                    MembershipUtil.getStartAndEndDateMonthly(now) :
+                    MembershipUtil.getStartAndEndDateYearly(now);
+        }
+
+        assert periodDto != null;
+        // 멤버십 등록
+        orderService.payMembershipNice(user, membershipSubscriptionType, periodDto, PaymentType.ofCode(orderMembershipReqDto.getPaymentType()));
+
     }
 }
