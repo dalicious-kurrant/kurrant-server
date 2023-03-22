@@ -7,6 +7,7 @@ import co.kurrant.app.admin_api.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
@@ -74,4 +75,15 @@ public class ReviewsController {
                 .message("리뷰 신고에 성공했습니다.")
                 .build();
     }
+
+    @Operation(summary = "댓글 삭제", description = "댓글을 삭제합니다.")
+    @ResponseStatus(HttpStatus.OK)
+    @PatchMapping("/comment/delete")
+    public ResponseMessage deleteComment(@RequestParam BigInteger commentId) {
+        reviewService.deleteComment(commentId);
+        return ResponseMessage.builder()
+                .message("댓글 삭제를 완료했습니다.")
+                .build();
+    }
+
 }

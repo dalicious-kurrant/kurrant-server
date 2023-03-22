@@ -89,8 +89,9 @@ public class QReviewRepository {
                 .leftJoin(reviews.orderItem, orderItem)
                 .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
-                .leftJoin(comments).on(reviews.comments.contains(comments))
+                .leftJoin(reviews.comments, comments)
                 .where(filter)
+                .distinct()
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -106,8 +107,10 @@ public class QReviewRepository {
 
     public List<Reviews> findAllByUser(User user) {
         return queryFactory.selectFrom(reviews)
+                .leftJoin(reviews.comments, comments)
                 .where(reviews.isDelete.ne(true), reviews.user.eq(user))
                 .orderBy(reviews.createdDateTime.desc())
+                .distinct()
                 .fetch();
     }
 
