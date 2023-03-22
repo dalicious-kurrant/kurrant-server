@@ -107,6 +107,7 @@ public class QReviewRepository {
     public List<Reviews> findAllByUser(User user) {
         return queryFactory.selectFrom(reviews)
                 .where(reviews.isDelete.ne(true), reviews.user.eq(user))
+                .orderBy(reviews.createdDateTime.desc())
                 .fetch();
     }
 
@@ -169,5 +170,14 @@ public class QReviewRepository {
         }
 
         return scoreMap;
+    }
+
+    public void updateDefault(Reviews r) {
+        queryFactory.update(reviews)
+                .set(reviews.isDelete, false)
+                .set(reviews.isReports, false)
+                .where(reviews.eq(r))
+                .execute();
+
     }
 }

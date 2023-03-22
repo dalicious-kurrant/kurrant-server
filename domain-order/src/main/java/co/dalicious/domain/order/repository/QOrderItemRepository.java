@@ -39,7 +39,7 @@ public class QOrderItemRepository {
 
     public OrderItem findByUserAndOrderId(User user, BigInteger orderItemId) {
         return queryFactory.selectFrom(orderItem)
-                .where(orderItem.id.eq(orderItemId), orderItem.order.user.eq(user))
+                .where(orderItem.id.eq(orderItemId), orderItem.order.user.eq(user), orderItem.orderStatus.eq(OrderStatus.RECEIPT_COMPLETE))
                 .fetchOne();
     }
 }
