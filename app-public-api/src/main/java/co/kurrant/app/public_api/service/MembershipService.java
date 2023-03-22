@@ -30,6 +30,7 @@ public interface MembershipService {
 
     // 유저가 멤버십을 환불한다
     void refundMembership(User user, Order order, Membership membership, OrderMembership orderMembership) throws IOException, ParseException;
+    void refundMembershipNice(User user, Order order, Membership membership, OrderMembership orderMembership) throws IOException, ParseException;
 
     // 유저가 멤버십을 해지 또는 환불한다
     void unsubscribeMembership(SecurityUser securityUser) throws IOException, ParseException;
@@ -43,4 +44,6 @@ public interface MembershipService {
     BigDecimal getRefundableMembershipPrice(List<OrderItemDailyFood> orderItemDailyFoods, OrderItemMembership orderItemMembership);
 
     void joinMembershipNice(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto) throws IOException, ParseException;
+
+    void unsubscribeMembershipNice(SecurityUser securityUser) throws IOException, ParseException;
 }
