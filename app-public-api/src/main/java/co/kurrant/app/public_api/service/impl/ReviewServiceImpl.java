@@ -67,7 +67,7 @@ public class ReviewServiceImpl implements ReviewService {
         validate(reviewDto.getSatisfaction(), reviewDto.getContent());
 
         // 찾은 주문 상품이 dailyfood이면
-        DailyFood dailyFood;
+        DailyFood dailyFood = null;
         Food food = null;
         Integer membershipDiscountRate = 0;
         Integer count = 0;
@@ -82,6 +82,13 @@ public class ReviewServiceImpl implements ReviewService {
         if(qReviewRepository.findByUserAndOrderItem(user, orderItem) != null) {
             throw new ApiException(ExceptionEnum.ALREADY_WRITING_REVIEW);
         }
+        // 리뷰 가능 일이 맞는지 검증
+        LocalDate reviewableDate = Objects.requireNonNull(dailyFood).getServiceDate().plusDays(7);
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        if(reviewableDate.isBefore(today)) {
+            throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
+        }
+
 
         List<Image> images = new ArrayList<>();
         if(fileList != null && !fileList.isEmpty()) {
@@ -93,6 +100,7 @@ public class ReviewServiceImpl implements ReviewService {
         Reviews reviews = reviewMapper.toEntity(reviewDto, user, orderItem, food, images);
         // review 저장
         reviewRepository.save(reviews);
+        qReviewRepository.updateDefault(reviews);
 
         // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
         if(user.getIsMembership() || membershipDiscountRate != 0) {
@@ -164,12 +172,9 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional(readOnly = true)
     public ReviewsForUserResDto getReviewsForUser(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
-        System.out.println("user.getId() = " + user.getId());
-
 
         // user가 작성한 리뷰 찾기 - 삭제 제외
         List<Reviews> reviews = qReviewRepository.findAllByUser(user);
-        System.out.println("reviews = " + reviews);
 
         List<ReviewListDto> reviewListDtos = new ArrayList<>();
         if(reviews == null || reviews.isEmpty()) {
