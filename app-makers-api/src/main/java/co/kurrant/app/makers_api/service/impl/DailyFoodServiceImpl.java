@@ -7,6 +7,7 @@ import co.dalicious.domain.food.entity.FoodSchedule;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.food.repository.QFoodScheduleRepository;
+import co.dalicious.domain.order.dto.OrderDetailDto;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -26,6 +27,7 @@ import org.springframework.util.MultiValueMap;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -110,10 +112,10 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 DailyFoodDto.DailyFoodDining dailyFoodDining = dailyFoodMapper.toDailyFoodDining(diningType, groupCapacity, dtoDailyFoodList);
                 dailyFoodDiningList.add(dailyFoodDining);
             }
-
             DailyFoodDto dailyFoodDto = dailyFoodMapper.toDailyFoodDto(serviceDate, dailyFoodDiningList);
             dailyFoodDtoList.add(dailyFoodDto);
         }
+
 
         return dailyFoodDtoList;
     }

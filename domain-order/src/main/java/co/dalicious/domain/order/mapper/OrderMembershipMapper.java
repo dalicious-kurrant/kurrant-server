@@ -48,6 +48,7 @@ public interface OrderMembershipMapper {
     @Mapping(source = "membership.membershipSubscriptionType.price", target = "price")
     @Mapping(target = "discountPrice", expression = "java(order.getDiscountPrice())")
     @Mapping(target = "periodDiscountedRate", constant = "0")
+    @Mapping(target = "orderStatus", constant = "COMPLETED")
     OrderItemMembership toOrderItemMembership(Order order, Membership membership);
 
     // TODO: 기간 할인시, 변경 필요

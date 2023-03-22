@@ -12,6 +12,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -147,19 +148,20 @@ public class QReviewRepository {
 
     public MultiValueMap<LocalDate, Integer> getReviewScoreMap(Food food) {
         LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate end = now.minusDays(20);
 
         List<Reviews> reviewsList = queryFactory.selectFrom(reviews)
-                .leftJoin(orderItemDailyFood)
-                .on(orderItem.id.eq(orderItemDailyFood.id))
+                .leftJoin(reviews.orderItem, orderItem)
+                .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
-                .where(reviews.food.eq(food), dailyFood.serviceDate.between(now, now.minusDays(20)))
+                .where(dailyFood.serviceDate.between(end, now), reviews.food.eq(food))
                 .fetch();
 
         MultiValueMap<LocalDate, Integer> scoreMap = new LinkedMultiValueMap<>();
 
         for(Reviews r : reviewsList) {
             OrderItem item = r.getOrderItem();
-            if(item instanceof OrderItemDailyFood o) {
+            if(Hibernate.unproxy(item) instanceof OrderItemDailyFood o) {
                 LocalDate serviceDate = o.getDailyFood().getServiceDate();
                 Integer satisfaction = r.getSatisfaction();
                 scoreMap.add(serviceDate, satisfaction);

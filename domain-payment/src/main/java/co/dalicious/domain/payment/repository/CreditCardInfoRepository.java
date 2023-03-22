@@ -11,4 +11,8 @@ import java.util.Optional;
 
 public interface CreditCardInfoRepository  extends JpaRepository<CreditCardInfo, BigInteger> {
     Optional<CreditCardInfo> findOneByUserAndDefaultType(User user, Integer defaultType);
+
+    CreditCardInfo findByUserId(BigInteger id);
+
+    List<CreditCardInfo> findAllByUserId(BigInteger id);
 }

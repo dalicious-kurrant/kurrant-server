@@ -20,6 +20,7 @@ import co.kurrant.app.makers_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -71,6 +72,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         reviewMakersResDto.setCount(reviewListDtoList.size());
+        reviewMakersResDto.setReviewListDtoList(reviewListDtoList);
 
         return ItemPageableResponseDto.<ReviewMakersResDto>builder()
                 .items(reviewMakersResDto).limit(pageable.getPageSize())
@@ -89,7 +91,7 @@ public class ReviewServiceImpl implements ReviewService {
         List<ReviewMakersResDto.ReviewListDto> reviewListDtoList = new ArrayList<>();
         if(reviewsList.isEmpty()) {
             return ListItemResponseDto.<ReviewMakersResDto.ReviewListDto>builder()
-                    .items(reviewListDtoList).limit(pageable.getPageSize())
+                    .items(reviewListDtoList).limit(pageable.getPageSize()).offset(pageable.getOffset())
                     .total((long) reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
                     .build();
         }
@@ -100,7 +102,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         return ListItemResponseDto.<ReviewMakersResDto.ReviewListDto>builder()
-                .items(reviewListDtoList).limit(pageable.getPageSize())
+                .items(reviewListDtoList).limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .total((long) reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
                 .build();
     }
@@ -111,7 +113,7 @@ public class ReviewServiceImpl implements ReviewService {
         Reviews reviews = qReviewRepository.findById(reviewId);
         if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
 
-        MultiValueMap<LocalDate, Integer> dateAndScore = qReviewRepository.getReviewScoreMap(reviews.getFood());
+        MultiValueMap<LocalDate, Integer> dateAndScore = qReviewRepository.getReviewScoreMap((Food) Hibernate.unproxy(reviews.getFood()));
 
         return reviewMapper.toMakersReviewDetails(reviews, dateAndScore);
     }
