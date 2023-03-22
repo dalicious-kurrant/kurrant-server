@@ -23,4 +23,6 @@ public interface ReviewService {
     void deleteReview(BigInteger reviewId);
     // 리뷰 신고 - 삭제 제외
     void reportReview(BigInteger reviewId);
+    // 댓글 삭제
+    void deleteComment(BigInteger commentId);
 }
