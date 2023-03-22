@@ -164,9 +164,13 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional(readOnly = true)
     public ReviewsForUserResDto getReviewsForUser(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
+        System.out.println("user.getId() = " + user.getId());
+
 
         // user가 작성한 리뷰 찾기 - 삭제 제외
         List<Reviews> reviews = qReviewRepository.findAllByUser(user);
+        System.out.println("reviews = " + reviews);
+
         List<ReviewListDto> reviewListDtos = new ArrayList<>();
         if(reviews == null || reviews.isEmpty()) {
             return ReviewsForUserResDto.create(reviewListDtos);
