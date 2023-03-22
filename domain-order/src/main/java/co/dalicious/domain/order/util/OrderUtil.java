@@ -368,7 +368,7 @@ public class OrderUtil {
 
         String orderCode = response.get("merchant_uid").toString();
 
-        JSONArray checkout = (JSONArray) response.get("cancel_historys");
+        JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
         String checkOutUrl = (String) checkout.get(0);
         Integer refundablePrice = (Integer) response.get("amount") - (Integer) response.get("cancel_amount");
 
@@ -378,7 +378,22 @@ public class OrderUtil {
     }
 
 
+    public PaymentCancelHistory cancelOrderItemMembershipNice(String paymentKey, CreditCardInfo creditCardInfo, String cancelReason, OrderItemMembership orderItem, BigDecimal refundPrice) throws IOException, ParseException {
+        //결제 취소 요청
+        String token = niceUtil.getToken();
+        JSONObject response = niceUtil.cardCancelOne(paymentKey, cancelReason, refundPrice.intValue(), token);
+        System.out.println(response);
 
+        String orderCode = response.get("merchant_uid").toString();
+
+        JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
+        String checkOutUrl = (String) checkout.get(0);
+        Integer refundablePrice = (Integer) response.get("amount") - (Integer) response.get("cancel_amount");
+
+        //결제 취소 후 기록을 저장한다.
+        return paymentCancleHistoryMapper.orderItemMembershipToEntity(cancelReason, refundPrice, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice), creditCardInfo);
+
+    }
 
 
 }
