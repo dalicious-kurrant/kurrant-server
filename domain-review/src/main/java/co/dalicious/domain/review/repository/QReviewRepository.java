@@ -89,8 +89,9 @@ public class QReviewRepository {
                 .leftJoin(reviews.orderItem, orderItem)
                 .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
-                .leftJoin(comments).on(reviews.comments.contains(comments))
+                .leftJoin(reviews.comments, comments)
                 .where(filter)
+                .distinct()
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
