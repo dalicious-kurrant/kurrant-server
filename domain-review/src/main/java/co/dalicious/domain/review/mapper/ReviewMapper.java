@@ -136,7 +136,6 @@ public interface ReviewMapper {
         reviewListDto.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
         reviewListDto.setForMakers(reviews.getForMakers());
         reviewListDto.setWriter(reviews.getUser().getName());
-        reviewListDto.setFoodId(reviews.getFood().getId());
         reviewListDto.setOrderItemName(getItemName(reviews.getOrderItem()));
 
         return  reviewListDto;
@@ -157,15 +156,15 @@ public interface ReviewMapper {
         reviewDetail.setItemName(getItemName(reviews.getOrderItem()));
 
         List<Comments> commentList = reviews.getComments();
-        Comments comments = commentList.stream()
-                .filter(comment -> comment instanceof MakersComments)
-                .findFirst().orElse(null);
-        if(commentList.isEmpty() || comments == null) reviewDetail.setMakersComment(null);
+        if(commentList.isEmpty()) reviewDetail.setMakersComment(null);
         else {
             ReviewMakersResDto.MakersComment makersComment = new ReviewMakersResDto.MakersComment();
-            makersComment.setCommentId(comments.getId());
-            makersComment.setContent(comments.getContent());
-
+            for(Comments comments : commentList) {
+                if(comments instanceof MakersComments makersComments) {
+                    makersComment.setCommentId(makersComments.getId());
+                    makersComment.setContent(makersComments.getContent());
+                }
+            }
             reviewDetail.setMakersComment(makersComment);
         }
         reviewDetail.setReviewScoreList(getAverageReviewScore(dateAndScore));
