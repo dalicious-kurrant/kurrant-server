@@ -62,7 +62,7 @@ public interface ReviewMapper {
 
         if(commentsList.isEmpty()) return null;
         for(Comments comments : commentsList) {
-            if(comments instanceof MakersComments makersComments) {
+            if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
                 makersComment.setContent(makersComments.getContent());
                 makersComment.setCreateDate(DateUtils.toISOLocalDate(makersComments.getCreatedDateTime()));
                 makersComment.setUpdateDate(DateUtils.toISOLocalDate(makersComments.getUpdatedDateTime()));
@@ -76,7 +76,7 @@ public interface ReviewMapper {
 
         if(commentsList.isEmpty()) return null;
         for(Comments comments : commentsList) {
-            if(comments instanceof AdminComments adminComments) {
+            if(comments instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
                 adminComment.setContent(adminComments.getContent());
                 adminComment.setCreateDate(DateUtils.toISOLocalDate(adminComments.getCreatedDateTime()));
                 adminComment.setUpdateDate(DateUtils.toISOLocalDate(adminComments.getUpdatedDateTime()));
