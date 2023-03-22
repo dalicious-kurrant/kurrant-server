@@ -370,7 +370,7 @@ public class OrderUtil {
 
         JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
         String checkOutUrl = (String) checkout.get(0);
-        Integer refundablePrice = (Integer) response.get("amount") - (Integer) response.get("cancel_amount");
+        long refundablePrice = (long) response.get("amount") - (long) response.get("cancel_amount");
 
         //결제 취소 후 기록을 저장한다.
         return paymentCancleHistoryMapper.orderDailyItemFoodToEntity(cancelReason, refundPriceDto, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice));
@@ -388,7 +388,7 @@ public class OrderUtil {
 
         JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
         String checkOutUrl = (String) checkout.get(0);
-        Integer refundablePrice = (Integer) response.get("amount") - (Integer) response.get("cancel_amount");
+        long refundablePrice = (Long) response.get("amount") - (Long) response.get("cancel_amount");
 
         //결제 취소 후 기록을 저장한다.
         return paymentCancleHistoryMapper.orderItemMembershipToEntity(cancelReason, refundPrice, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice), creditCardInfo);
