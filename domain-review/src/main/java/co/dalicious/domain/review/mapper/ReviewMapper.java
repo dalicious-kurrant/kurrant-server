@@ -253,7 +253,7 @@ public interface ReviewMapper {
             if(comment instanceof AdminComments adminComments) {
                 adminComment.setCommentId(adminComments.getId());
                 adminComment.setComment(adminComments.getContent());
-                adminComment.setIsDelete(adminComment.getIsDelete());
+                adminComment.setIsDelete(adminComments.getIsDelete());
             }
         }
         return adminComment;
