@@ -8,6 +8,7 @@ import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
@@ -393,9 +394,9 @@ public class UserServiceImpl implements UserService {
         List<UserGroup> userGroups =  user.getGroups();
 
         // TODO: 그룹 슬롯 증가의 경우 반영 필요
-        // 그룹의 개수가 2개 이상일 떄
+        // 오픈 스팟 그룹의 개수가 2개 이상일 떄
         long userGroupCount = userGroups.stream().
-                filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
+                filter(v -> v.getClientStatus().equals(ClientStatus.BELONG) && v.getGroup() instanceof OpenGroup)
                 .count();
         if(userGroupCount >= 2) {
             throw new ApiException(ExceptionEnum.REQUEST_OVER_GROUP);

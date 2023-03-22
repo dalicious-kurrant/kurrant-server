@@ -417,6 +417,7 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
+    @Transactional
     public void unsubscribeMembershipNice(SecurityUser securityUser) throws IOException, ParseException {
         // 유저 가져오기
         User user = userUtil.getUser(securityUser);

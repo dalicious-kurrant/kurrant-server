@@ -47,10 +47,6 @@ public class FoundersUtil {
         return foundersRepository.getMaxFoundersNumber() > FOUNDERS_LIMIT;
     }
 
-    public Founders saveFounders(Founders founders) {
-        return foundersRepository.save(founders);
-    }
-
     public void cancelFounders(User user) {
         if(isFounders(user)) {
             Optional<Founders> founders = foundersRepository.findOneByUserAndIsActive(user, true);
