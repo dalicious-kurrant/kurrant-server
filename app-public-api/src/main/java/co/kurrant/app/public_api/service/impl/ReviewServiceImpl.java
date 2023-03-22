@@ -35,10 +35,7 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -119,23 +116,35 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional(readOnly = true)
     public ReviewableItemResDto getOrderItemForReview(SecurityUser securityUser) throws ParseException {
         User user = userUtil.getUser(securityUser);
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         //리뷰 가능한 상품이 있는 지 확인 - 유저 구매했고, 이미 수령을 완료한 식단
-        List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatus(user, OrderStatus.RECEIPT_COMPLETE);
+        List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatusBeforeToday(user, OrderStatus.RECEIPT_COMPLETE, today);
         List<ReviewableItemResDto.OrderFood> orderFoodList = new ArrayList<>();
         if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) {
             return ReviewableItemResDto.create(orderFoodList, null); }
 
+        Map<LocalDate, Long> leftDayMap = new HashMap<>();
         MultiValueMap<LocalDate, OrderItemDailyFood> orderItemDailyFoodByServiceDateMap = new LinkedMultiValueMap<>();
         for(OrderItem item : receiptCompleteItem) {
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
                 LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
+                //리뷰 가능일 구하기
+                LocalDate reviewableDate = serviceDate.plusDays(7);
+                //리뷰 작성 가능일이 이미 지났으면 패스
+                if(reviewableDate.isBefore(today)) continue;
+
                 orderItemDailyFoodByServiceDateMap.add(serviceDate, orderItemDailyFood);
+
+                // d-day 구하기
+                String reviewableString = DateUtils.localDateToString(reviewableDate);
+                String todayString = DateUtils.localDateToString(today);
+                long leftDay = DateUtils.calculatedDDay(reviewableString, todayString);
+                leftDayMap.put(serviceDate, leftDay);
             }
         }
 
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        Integer count = 0;
+        int count = 0;
 
         //리뷰가 가능한 상품인지 확인
         for(LocalDate serviceDate : orderItemDailyFoodByServiceDateMap.keySet()) {
@@ -143,16 +152,7 @@ public class ReviewServiceImpl implements ReviewService {
 
             List<ReviewableItemListDto> reviewableItemListDtoList = new ArrayList<>();
             for(OrderItemDailyFood item : Objects.requireNonNull(orderItemList)) {
-                //리뷰 가능일 구하기
-                LocalDate reviewableDate = serviceDate.plusDays(7);
-
-                //리뷰 작성 가능일이 이미 지났으면 패스
-                if(reviewableDate.isBefore(today)) continue;
-
-                // d-day 구하기
-                String reviewableString = DateUtils.localDateToString(reviewableDate);
-                String todayString = DateUtils.localDateToString(today);
-                long leftDay = DateUtils.calculatedDDay(reviewableString, todayString);
+                Long leftDay = leftDayMap.get(serviceDate);
 
                 ReviewableItemListDto responseDto = reviewMapper.toDailyFoodResDto(item, leftDay);
                 reviewableItemListDtoList.add(responseDto);
@@ -163,6 +163,7 @@ public class ReviewServiceImpl implements ReviewService {
             orderFoodList.add(orderFood);
             count += reviewableItemListDtoList.size();
         }
+
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
 
         return ReviewableItemResDto.create(orderFoodList, count);
