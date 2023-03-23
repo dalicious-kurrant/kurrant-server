@@ -60,4 +60,6 @@ public interface UserService {
     void withdrawal(SecurityUser securityUser);
     void withdrawalCancel(SecurityUser securityUser);
     LoginResponseDto autoLogin(HttpServletRequest httpServletRequest);
+
+    void saveToken(FcmTokenSaveReqDto fcmTokenSaveReqDto, SecurityUser securityUser);
 }
