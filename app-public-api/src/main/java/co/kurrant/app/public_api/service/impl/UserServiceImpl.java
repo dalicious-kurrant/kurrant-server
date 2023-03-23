@@ -668,6 +668,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void saveToken(FcmTokenSaveReqDto fcmTokenSaveReqDto, SecurityUser securityUser) {
         //유저ID로 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
