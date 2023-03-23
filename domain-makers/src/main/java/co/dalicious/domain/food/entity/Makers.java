@@ -107,6 +107,9 @@ public class Makers {
     @Comment("영업 종료 시간")
     private LocalTime closeTime;
 
+    @Comment("시스템 사용료")
+    private String fee;
+
     @Comment("은행")
     private String bank;
 

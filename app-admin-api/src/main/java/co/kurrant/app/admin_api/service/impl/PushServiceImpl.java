@@ -1,9 +1,13 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.repository.QUserRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.util.KakaoUtil;
 import co.kurrant.app.admin_api.dto.push.AlimtalkRequestDto;
 import co.kurrant.app.admin_api.dto.push.PushByTopicRequestDto;
 import co.kurrant.app.admin_api.dto.push.PushRequestDto;
+import co.kurrant.app.admin_api.dto.push.PushTokenSaveReqDto;
 import co.kurrant.app.admin_api.service.PushService;
 import com.google.firebase.messaging.*;
 import exception.ApiException;
@@ -13,10 +17,12 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +30,8 @@ import java.util.stream.Collectors;
 public class PushServiceImpl implements PushService {
 
     private final KakaoUtil kakaoUtil;
+    private final UserRepository userRepository;
+    private final QUserRepository qUserRepository;
 
     @Override
     public void sendToPush(PushRequestDto pushRequestDto) {
@@ -115,5 +123,18 @@ public class PushServiceImpl implements PushService {
         }
         System.out.println(jsonObject + "jsonResult");
 
+    }
+
+    @Override
+    @Transactional
+    public void saveToken(PushTokenSaveReqDto pushTokenSaveReqDto) {
+        //유저ID로 유저 정보 가져오기
+        User user = userRepository.findById(pushTokenSaveReqDto.getUserId())
+                .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+
+        long result = qUserRepository.saveFcmToken(pushTokenSaveReqDto.getToken(), user.getId());
+        if (result != 1){
+            throw new ApiException(ExceptionEnum.TOKEN_SAVE_FAILED);
+        }
     }
 }
