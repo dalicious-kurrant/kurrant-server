@@ -341,6 +341,10 @@ public class AuthServiceImpl implements AuthService {
             return getLoginAccessToken(user, SpotStatus.NO_SPOT_BUT_HAS_CLIENT);
 
         }
+
+        //fcm 토큰 저장
+        qUserRepository.saveFcmToken(snsAccessToken.getFcmToken(), user.getId());
+
         return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
     }
 
