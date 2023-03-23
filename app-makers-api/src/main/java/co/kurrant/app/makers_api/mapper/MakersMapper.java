@@ -1,7 +1,9 @@
 package co.kurrant.app.makers_api.mapper;
 
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
+import co.dalicious.domain.food.dto.OriginDto;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.enums.Origin;
 import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.system.enums.DiningType;
@@ -48,6 +50,17 @@ public interface MakersMapper {
     @Mapping(source = "makers.code", target = "code")
     @Mapping(source = "makers.id", target = "id")
     MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<String> diningTypes);
+
+    OriginDto.WithId originToDto(Origin origin);
+    default Origin dtoToOrigin(OriginDto originDto, Makers makers) {
+        return new Origin(originDto.getName(), originDto.getFrom(), makers);
+    };
+
+    default List<OriginDto.WithId> originToDtos(List<Origin> origins) {
+        return origins.stream()
+                .map(this::originToDto)
+                .toList();
+    }
 
     @Named("generatedServiceForm")
     default String generatedServiceForm(ServiceForm serviceForm){
