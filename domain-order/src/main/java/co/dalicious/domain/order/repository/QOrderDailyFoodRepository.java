@@ -293,7 +293,8 @@ public class QOrderDailyFoodRepository {
                 .leftJoin(dailyFood.group, group)
                 .leftJoin(orderDailyFood)
                 .on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
-                .where(whereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED))
+                .where(whereClause, orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED)
+                                .or(orderItemDailyFood.orderStatus.eq(OrderStatus.WAIT_DELIVERY)))
                 .fetch();
     }
 
