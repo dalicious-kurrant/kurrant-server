@@ -7,9 +7,11 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 
 @Service
+@Resource(name = "FcmUtil")
 public class FcmUtil {
 
     private static final String FIREBASE_CONFIG_PATH = "firebase.json";
