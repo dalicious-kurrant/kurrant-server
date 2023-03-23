@@ -29,6 +29,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.ClientUtil;
@@ -95,6 +96,7 @@ public class UserServiceImpl implements UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
+    private final QUserRepository qUserRepository;
 
     @Override
     @Transactional
@@ -663,5 +665,16 @@ public class UserServiceImpl implements UserService {
                 .leftWithdrawDays(leftWithdrawDays)
                 .spotStatus(clientUtil.getSpotStatus(user).getCode())
                 .build();
+    }
+
+    @Override
+    public void saveToken(FcmTokenSaveReqDto fcmTokenSaveReqDto, SecurityUser securityUser) {
+        //유저ID로 유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        long result = qUserRepository.saveFcmToken(fcmTokenSaveReqDto.getToken(), user.getId());
+        if (result != 1){
+            throw new ApiException(ExceptionEnum.TOKEN_SAVE_FAILED);
+        }
     }
 }

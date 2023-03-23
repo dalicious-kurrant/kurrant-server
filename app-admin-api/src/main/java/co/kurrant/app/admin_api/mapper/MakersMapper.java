@@ -46,6 +46,7 @@ public interface MakersMapper {
     @Mapping(source = "makers.accountNumber", target = "accountNumber")
     @Mapping(source = "makers.depositHolder", target = "depositHolder")
     @Mapping(source = "makers.bank", target = "bank")
+    @Mapping(source = "makers.fee", target = "fee")
     @Mapping(source = "makers.closeTime", target = "closeTime")
     @Mapping(source = "makers.openTime", target = "openTime")
     @Mapping(source = "makers.isNutritionInformation", target = "isNutritionInformation")

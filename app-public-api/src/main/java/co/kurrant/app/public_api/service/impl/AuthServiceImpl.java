@@ -20,6 +20,7 @@ import co.dalicious.domain.user.entity.enums.Provider;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
@@ -80,6 +81,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserValidator userValidator;
     private final UserMapper userMapper;
     private final EmployeeRepository employeeRepository;
+    private final QUserRepository qUserRepository;
     private static final ConcurrentHashMap<String, Object> tokenLocks = new ConcurrentHashMap<>();
 
     // 이메일 인증
@@ -271,6 +273,10 @@ public class AuthServiceImpl implements AuthService {
         }
 
         SpotStatus spotStatus = clientUtil.getSpotStatus(user);
+
+        //fcm토큰 저장 로직 추가
+        qUserRepository.saveFcmToken(dto.getFcmToken(), user.getId());
+
         return getLoginAccessToken(user, spotStatus);
     }
 

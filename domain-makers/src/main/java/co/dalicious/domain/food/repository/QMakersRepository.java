@@ -49,7 +49,7 @@ public class QMakersRepository {
                              String serviceForm, Boolean isParentCompany, BigInteger parentCompanyId,
                              Address address, String companyRegistrationNumber, String contractStartDate,
                              String contractEndDate, Boolean isNutritionInformation, String openTime,
-                             String closeTime, String bank, String depositHolder, String accountNumber) {
+                             String closeTime, String bank, String depositHolder, String accountNumber, String fee) {
         //코드수정
         if (code != null && !code.isEmpty()){
             queryFactory.update(makers)
@@ -200,6 +200,14 @@ public class QMakersRepository {
         if (accountNumber != null && !accountNumber.isEmpty()){
             queryFactory.update(makers)
                     .set(makers.accountNumber, accountNumber)
+                    .where(makers.id.eq(id))
+                    .execute();
+        }
+
+        //시스템 사용료 수정
+        if (fee != null){
+            queryFactory.update(makers)
+                    .set(makers.fee, fee)
                     .where(makers.id.eq(id))
                     .execute();
         }
