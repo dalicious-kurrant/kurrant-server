@@ -77,11 +77,11 @@ public class OrderUtil {
     }
 
     public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
-        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100)));
+        return price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100));
     }
 
     public static BigDecimal discountPriceByRate(BigDecimal price, Integer discountRate) {
-        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf(discountRate / 100.0)));
+        return price.multiply(BigDecimal.valueOf(discountRate / 100.0));
     }
 
     public static Boolean isMembership(User user, Group group) {
@@ -368,9 +368,9 @@ public class OrderUtil {
 
         String orderCode = response.get("merchant_uid").toString();
 
-        JSONArray checkout = (JSONArray) response.get("cancel_historys");
+        JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
         String checkOutUrl = (String) checkout.get(0);
-        Integer refundablePrice = (Integer) response.get("amount") - (Integer) response.get("cancel_amount");
+        long refundablePrice = (long) response.get("amount") - (long) response.get("cancel_amount");
 
         //결제 취소 후 기록을 저장한다.
         return paymentCancleHistoryMapper.orderDailyItemFoodToEntity(cancelReason, refundPriceDto, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice));
@@ -378,7 +378,22 @@ public class OrderUtil {
     }
 
 
+    public PaymentCancelHistory cancelOrderItemMembershipNice(String paymentKey, CreditCardInfo creditCardInfo, String cancelReason, OrderItemMembership orderItem, BigDecimal refundPrice) throws IOException, ParseException {
+        //결제 취소 요청
+        String token = niceUtil.getToken();
+        JSONObject response = niceUtil.cardCancelOne(paymentKey, cancelReason, refundPrice.intValue(), token);
+        System.out.println(response);
 
+        String orderCode = response.get("merchant_uid").toString();
+
+        JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
+        String checkOutUrl = (String) checkout.get(0);
+        long refundablePrice = (Long) response.get("amount") - (Long) response.get("cancel_amount");
+
+        //결제 취소 후 기록을 저장한다.
+        return paymentCancleHistoryMapper.orderItemMembershipToEntity(cancelReason, refundPrice, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice), creditCardInfo);
+
+    }
 
 
 }

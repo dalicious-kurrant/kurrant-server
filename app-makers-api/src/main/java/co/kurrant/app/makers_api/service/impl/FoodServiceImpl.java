@@ -6,7 +6,6 @@ import co.dalicious.domain.food.mapper.CapacityMapper;
 import co.dalicious.domain.food.mapper.FoodDiscountPolicyMapper;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
 import co.dalicious.domain.food.repository.*;
-import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.domain.order.mapper.FoodMapper;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.DiscountType;
@@ -54,7 +53,7 @@ public class FoodServiceImpl implements FoodService {
 
         for (Food food : foodListByMakers) {
             DiscountDto discountDto = DiscountDto.getDiscount(food);
-            BigDecimal resultPrice = FoodUtil.getFoodTotalDiscountedPrice(food, discountDto);
+            BigDecimal resultPrice = discountDto.getDiscountedPrice();
             FoodListDto.FoodList dto = makersFoodMapper.toAllFoodListByMakersDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }

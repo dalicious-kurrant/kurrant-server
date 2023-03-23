@@ -24,7 +24,6 @@ public class ReviewMakersResDto {
         private String updateDate;
         private Boolean forMakers;
         private String writer;
-        private BigInteger foodId;
         private String orderItemName;
     }
 

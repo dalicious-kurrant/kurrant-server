@@ -52,7 +52,38 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.forMakers", target = "forMakers")
     @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
     @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
+    @Mapping(source = "reviews.comments", target = "makersComment", qualifiedByName = "setMakersComment")
+    @Mapping(source = "reviews.comments", target = "adminComment", qualifiedByName = "setAdminComment")
     ReviewListDto toReviewListDto(Reviews reviews);
+
+    @Named("setMakersComment")
+    default ReviewListDto.MakersComment setMakersComment(List<Comments> commentsList) {
+        ReviewListDto.MakersComment makersComment = new ReviewListDto.MakersComment();
+
+        if(commentsList.isEmpty()) return null;
+        for(Comments comments : commentsList) {
+            if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
+                makersComment.setContent(makersComments.getContent());
+                makersComment.setCreateDate(DateUtils.toISOLocalDate(makersComments.getCreatedDateTime()));
+                makersComment.setUpdateDate(DateUtils.toISOLocalDate(makersComments.getUpdatedDateTime()));
+            }
+        }
+        return makersComment;
+    }
+    @Named("setAdminComment")
+    default ReviewListDto.AdminComment setAdminComment(List<Comments> commentsList) {
+        ReviewListDto.AdminComment adminComment = new ReviewListDto.AdminComment();
+
+        if(commentsList.isEmpty()) return null;
+        for(Comments comments : commentsList) {
+            if(comments instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
+                adminComment.setContent(adminComments.getContent());
+                adminComment.setCreateDate(DateUtils.toISOLocalDate(adminComments.getCreatedDateTime()));
+                adminComment.setUpdateDate(DateUtils.toISOLocalDate(adminComments.getUpdatedDateTime()));
+            }
+        }
+        return adminComment;
+    }
 
     @Mapping(source = "reviews.id", target = "reviewId")
     @Mapping(source = "reviews.orderItem", target = "serviceDate", qualifiedByName = "getServiceDate")
@@ -65,25 +96,32 @@ public interface ReviewMapper {
     @Mapping(target = "isReport", expression = "java(reviews.getIsReports() == null || !reviews.getIsReports() ? false : true)")
     ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
 
-    @Mapping(source = "reviews.id", target = "reviewId")
-    @Mapping(source = "reviews.images", target = "imageLocations", qualifiedByName = "getImagesLocations")
-    @Mapping(source = "reviews.content", target = "content")
-    @Mapping(source = "reviews.satisfaction", target = "satisfaction")
-    @Mapping(source = "reviews.contentOrigin", target = "contentOrigin")
-    @Mapping(source = "reviews.satisfactionOrigin", target = "satisfactionOrigin")
-    @Mapping(source = "reviews.forMakers", target = "forMakers")
-    @Mapping(source = "reviews.user.name", target = "userName")
-    @Mapping(source = "reviews.food.name", target = "foodName")
-    @Mapping(source = "reviews.comments", target = "makersComment", qualifiedByName = "getMakersComment")
-    @Mapping(source = "reviews.comments", target = "adminComment", qualifiedByName = "getAdminComment")
-    ReviewAdminResDto.ReviewDetail toReviewDetails(Reviews reviews);
+    default ReviewAdminResDto.ReviewDetail toReviewDetails(Reviews reviews) {
+        ReviewAdminResDto.ReviewDetail reviewDetail = new ReviewAdminResDto.ReviewDetail();
+
+        reviewDetail.setReviewId(reviews.getId());
+        reviewDetail.setImageLocations(getImagesLocations(reviews.getImages()));
+        reviewDetail.setContent(reviews.getContent());
+        reviewDetail.setSatisfaction(reviews.getSatisfaction());
+        reviewDetail.setContentOrigin(reviews.getContentOrigin());
+        reviewDetail.setSatisfactionOrigin(reviews.getSatisfactionOrigin());
+        reviewDetail.setForMakers(reviews.getForMakers());
+        reviewDetail.setUserName(reviews.getUser().getName());
+        reviewDetail.setFoodName(reviews.getFood().getName());
+        reviewDetail.setMakersComment(getMakersComment(reviews.getComments()));
+        reviewDetail.setAdminComment(getAdminComment(reviews.getComments()));
+
+        return reviewDetail;
+    };
 
     @Mapping(source = "reqDto.content", target = "content")
     @Mapping(source = "reviews", target = "reviews")
+    @Mapping(target = "isDelete", defaultValue = "false")
     AdminComments toAdminComment(CommentReqDto reqDto, Reviews reviews);
 
     @Mapping(source = "reqDto.content", target = "content")
     @Mapping(source = "reviews", target = "reviews")
+    @Mapping(target = "isDelete", defaultValue = "false")
     MakersComments toMakersComment(CommentReqDto reqDto, Reviews reviews);
 
     default ReviewMakersResDto.ReviewListDto toMakersReviewListDto(Reviews reviews) {
@@ -98,7 +136,6 @@ public interface ReviewMapper {
         reviewListDto.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
         reviewListDto.setForMakers(reviews.getForMakers());
         reviewListDto.setWriter(reviews.getUser().getName());
-        reviewListDto.setFoodId(reviews.getFood().getId());
         reviewListDto.setOrderItemName(getItemName(reviews.getOrderItem()));
 
         return  reviewListDto;
@@ -119,15 +156,15 @@ public interface ReviewMapper {
         reviewDetail.setItemName(getItemName(reviews.getOrderItem()));
 
         List<Comments> commentList = reviews.getComments();
-        Comments comments = commentList.stream()
-                .filter(comment -> comment instanceof MakersComments)
-                .findFirst().orElse(null);
-        if(commentList.isEmpty() || comments == null) reviewDetail.setMakersComment(null);
+        if(commentList.isEmpty()) reviewDetail.setMakersComment(null);
         else {
             ReviewMakersResDto.MakersComment makersComment = new ReviewMakersResDto.MakersComment();
-            makersComment.setCommentId(comments.getId());
-            makersComment.setContent(comments.getContent());
-
+            for(Comments comments : commentList) {
+                if(comments instanceof MakersComments makersComments) {
+                    makersComment.setCommentId(makersComments.getId());
+                    makersComment.setContent(makersComments.getContent());
+                }
+            }
             reviewDetail.setMakersComment(makersComment);
         }
         reviewDetail.setReviewScoreList(getAverageReviewScore(dateAndScore));
@@ -198,8 +235,10 @@ public interface ReviewMapper {
         ReviewAdminResDto.MakersComment makersComment = new ReviewAdminResDto.MakersComment();
         for(Comments comment : comments) {
             if(comment instanceof MakersComments makersComments) {
+                makersComment.setCommentId(makersComments.getId());
                 makersComment.setMakersName(makersComments.getReviews().getFood().getMakers().getName());
                 makersComment.setComment(makersComments.getContent());
+                makersComment.setIsDelete(makersComments.getIsDelete());
             }
         }
         return makersComment;
@@ -213,6 +252,7 @@ public interface ReviewMapper {
             if(comment instanceof AdminComments adminComments) {
                 adminComment.setCommentId(adminComments.getId());
                 adminComment.setComment(adminComments.getContent());
+                adminComment.setIsDelete(adminComments.getIsDelete());
             }
         }
         return adminComment;

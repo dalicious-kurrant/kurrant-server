@@ -377,4 +377,78 @@ public class MembershipServiceImpl implements MembershipService {
         orderService.payMembershipNice(user, membershipSubscriptionType, periodDto, PaymentType.ofCode(orderMembershipReqDto.getPaymentType()));
 
     }
+
+    @Override
+    @Transactional
+    public void refundMembershipNice(User user, Order order, Membership membership, OrderMembership orderMembership) throws IOException, ParseException {
+        // TODO: 연간구독 해지시, membership endDate update.
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, membership.getStartDate(), membership.getEndDate());
+
+        // 멤버십 결제금액 가져오기
+        BigDecimal paidPrice = order.getTotalPrice();
+
+        // 멤버십 결제 가져오기
+        List<OrderItem> orderItems = order.getOrderItems();
+        OrderItemMembership orderItemMembership = null;
+        for (OrderItem orderItem : orderItems) {
+            if(orderItem.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+                orderItemMembership = (OrderItemMembership) orderItem;
+            }
+        }
+        if(orderItemMembership == null) {
+            throw new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND);
+        }
+
+        // 환불 가능 금액 계산하기
+        BigDecimal refundPrice = getRefundableMembershipPrice(orderItemDailyFoods, orderItemMembership);
+
+        // 자동 환불 설정
+        orderItemMembership.updateOrderStatus(OrderStatus.AUTO_REFUND);
+        OrderUtil.orderMembershipStatusUpdate(user, orderItemMembership);
+
+        // 주문 상태 변경
+        if(paidPrice.compareTo(refundPrice) < 0) {
+            throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+        }
+
+        // 취소 내역 저장
+        PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemMembershipNice(order.getPaymentKey(), orderMembership.getCreditCardInfo(), "멤버십 환불", orderItemMembership, refundPrice);
+        paymentCancelHistoryRepository.save(paymentCancelHistory);
+    }
+
+    @Override
+    @Transactional
+    public void unsubscribeMembershipNice(SecurityUser securityUser) throws IOException, ParseException {
+        // 유저 가져오기
+        User user = userUtil.getUser(securityUser);
+        // 멤버십 사용중인 유저인지 가져오기
+        if (!user.getIsMembership()) {
+            throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
+        }
+        // 현재 사용중인 멤버십 가져오기
+        Membership userCurrentMembership = QmembershipRepository.findUserCurrentMembership(user, LocalDate.now());
+
+        if (userCurrentMembership == null) {
+            throw new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND);
+        }
+        // 멤버십 주문 가져오기
+        OrderItemMembership orderItemMembership = orderItemMembershipRepository.findOneByMembership(userCurrentMembership).orElseThrow(
+                () -> new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND)
+        );
+        OrderMembership orderMembership = orderMembershipRepository.findOneByMembership(userCurrentMembership).orElseThrow(
+                () -> new ApiException(ExceptionEnum.MEMBERSHIP_NOT_FOUND)
+        );
+
+        // 사용한 날짜 계산하기
+        int membershipUsingDays = userCurrentMembership.getStartDate().until(LocalDate.now()).getDays();
+
+        // 7일 이하일 경우 멤버십 환불
+        if (membershipUsingDays <= 7) {
+            refundMembershipNice(user, orderItemMembership.getOrder(), userCurrentMembership, orderMembership);
+        }
+
+        // 파운더스 멤버일 경우 해지
+        foundersUtil.cancelFounders(user);
+        userCurrentMembership.changeAutoPaymentStatus(false);
+    }
 }
