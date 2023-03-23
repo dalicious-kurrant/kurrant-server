@@ -9,6 +9,7 @@ import co.kurrant.app.admin_api.dto.push.PushByTopicRequestDto;
 import co.kurrant.app.admin_api.dto.push.PushRequestDto;
 import co.kurrant.app.admin_api.dto.push.PushTokenSaveReqDto;
 import co.kurrant.app.admin_api.service.PushService;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.*;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -39,9 +40,11 @@ public class PushServiceImpl implements PushService {
         List<String> tokenList = pushRequestDto.getTokenList();
         String title = pushRequestDto.getTitle();
         String content = pushRequestDto.getContent();
+        String page = pushRequestDto.getPage();
 
         List<Message> messages = tokenList.stream().map(token -> Message.builder()
                 .putData("time", LocalDateTime.now().toString())
+                .putData("page", page)
                 .setNotification(Notification.builder()
                         .setTitle(title)
                         .setBody(content)
@@ -53,7 +56,7 @@ public class PushServiceImpl implements PushService {
         BatchResponse response;
         try {
 
-            response = FirebaseMessaging.getInstance().sendAll(messages);
+            response = FirebaseMessaging.getInstance(FirebaseApp.getInstance("dalicious-v1")).sendAll(messages);
 
             //응답처리
             if(response.getFailureCount() > 0) {
