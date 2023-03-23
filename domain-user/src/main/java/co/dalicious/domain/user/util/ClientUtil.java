@@ -10,6 +10,7 @@ import co.dalicious.domain.user.repository.UserSpotRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +65,7 @@ public class ClientUtil {
                 .findAny();
         if(userSpot.isPresent()) {
             Spot spot = userSpot.get().getSpot();
-            Group group = spot.getGroup();
+            Group group = (Group) Hibernate.unproxy(spot.getGroup());
             // 유저가 그 그룹에 속해있는지 조회한다.
             Optional<UserGroup> userGroup = userGroupRepository.findOneByUserAndGroupAndClientStatus(user, group, ClientStatus.BELONG);
             if (userGroup.isEmpty()) {
