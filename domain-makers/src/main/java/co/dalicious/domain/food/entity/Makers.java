@@ -27,6 +27,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @DynamicInsert
@@ -119,9 +120,11 @@ public class Makers {
     @Comment("계좌번호")
     private String accountNumber;
 
-    @Embedded
-    @Comment("사업자 등록증 사진")
-    private Image image;
+    @ElementCollection
+    @Comment("이미지 경로")
+    @CollectionTable(
+            name = "makers_images")
+    private List<Image> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "makers")
     @JsonManagedReference(value = "makers_fk")
