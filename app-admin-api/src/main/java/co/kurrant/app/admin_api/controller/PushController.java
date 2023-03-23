@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.admin_api.dto.push.AlimtalkRequestDto;
 import co.kurrant.app.admin_api.dto.push.PushByTopicRequestDto;
 import co.kurrant.app.admin_api.dto.push.PushRequestDto;
+import co.kurrant.app.admin_api.dto.push.PushTokenSaveReqDto;
 import co.kurrant.app.admin_api.service.PushService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +27,7 @@ public class PushController {
 
     @PostMapping("")
     @Operation(summary = "토큰으로 푸쉬 알림 보내기", description = "FCM 토큰으로 푸쉬 알림을 보낸다.")
-    public ResponseMessage sendToPush(PushRequestDto pushRequestDto) {
+    public ResponseMessage sendToPush(@RequestBody PushRequestDto pushRequestDto) {
         pushService.sendToPush(pushRequestDto);
         return ResponseMessage.builder()
                 .message("메시지를 발송했습니다.")
@@ -35,7 +36,7 @@ public class PushController {
 
     @PostMapping("/topics")
     @Operation(summary = "주제별로 push 보내기", description = "주제별로 푸쉬 알림을 보낸다.")
-    public ResponseMessage sendByTopic(PushByTopicRequestDto pushByTopicRequestDto){
+    public ResponseMessage sendByTopic(@RequestBody PushByTopicRequestDto pushByTopicRequestDto){
         pushService.sendByTopic(pushByTopicRequestDto);
         return ResponseMessage.builder()
                 .message("주제별 메시지보내기에 성공하였습니다.")
@@ -50,5 +51,16 @@ public class PushController {
                 .message("알림톡 발송 성공!")
                 .build();
     }
+
+    @PostMapping("/save/token")
+    @Operation(summary = "FCM 토큰 저장하기", description = "유저정보에 FCM토큰을 저장한다")
+    public ResponseMessage tokenSave(@RequestBody PushTokenSaveReqDto pushTokenSaveReqDto){
+        pushService.saveToken(pushTokenSaveReqDto);
+        return ResponseMessage.builder()
+                .message("토큰 저장 성공!")
+                .build();
+    }
+
+
 
 }
