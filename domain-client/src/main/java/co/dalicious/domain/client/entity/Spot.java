@@ -81,17 +81,19 @@ public class Spot {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    @Column(name = "memo", columnDefinition = "TEXT")
-    private String memo;
-
     @Comment("스팟 상태 ( 0: 비활성, 1: 활성 )")
     private SpotStatus status = SpotStatus.ACTIVE;
 
-    public Spot(String name, Address address, List<DiningType> diningTypes, Group group) {
+    @Column(name = "memo", columnDefinition = "TEXT")
+    private String memo;
+
+
+    public Spot(String name, Address address, List<DiningType> diningTypes, Group group, String memo) {
         this.name = name;
         this.address = address;
         this.diningTypes = diningTypes;
         this.group = group;
+        this.memo = memo;
     }
 
     public List<MealInfo> getMealInfos() {
