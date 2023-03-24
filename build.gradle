@@ -189,6 +189,7 @@ project(':app-public-api') {
         implementation project(':data-redis')
         implementation project(':client-sse')
         implementation project(':domain-recommend')
+        implementation project(':domain-event')
     }
 }
 
@@ -297,6 +298,7 @@ project(':domain-order') {
         implementation project(':domain-address')
         implementation project(':domain-client')
         implementation project(':domain-payment')
+        implementation project(':domain-event')
     }
 }
 
@@ -384,5 +386,12 @@ project(':domain-recommend') {
     dependencies {
         implementation project(':system-core')
         implementation project(':client-core')
+    }
+}
+
+project(':domain-event') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-user')
     }
 }
