@@ -31,8 +31,8 @@ public class Apartment extends Group{
 
 
     @Builder
-    public Apartment(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer familyCount) {
-        super(address, diningTypes, name, managerId);
+    public Apartment(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer familyCount, String memo) {
+        super(address, diningTypes, name, managerId, memo);
         this.familyCount = familyCount;
     }
 

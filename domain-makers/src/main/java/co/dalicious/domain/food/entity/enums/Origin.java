@@ -1,5 +1,6 @@
 package co.dalicious.domain.food.entity.enums;
 
+import co.dalicious.domain.food.dto.OriginDto;
 import co.dalicious.domain.food.entity.Makers;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -16,7 +17,7 @@ import java.sql.Timestamp;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "makers__origin")
+@Table(name = "makers__origin", uniqueConstraints={@UniqueConstraint(columnNames={"origin_name", "makers_id"})})
 public class Origin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,4 +47,15 @@ public class Origin {
     @Column(name = "updated_datetime", nullable = false, insertable = false, updatable = false,
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) ON UPDATE NOW(6) COMMENT '수정일'")
     private Timestamp updatedDateTime;
+
+    public Origin(String name, String from, Makers makers) {
+        this.name = name;
+        this.from = from;
+        this.makers = makers;
+    }
+
+    public void updateOrigin(OriginDto.WithId originDto) {
+        this.name = originDto.getName();
+        this.from = originDto.getFrom();
+    }
 }

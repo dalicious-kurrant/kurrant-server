@@ -21,4 +21,8 @@ public interface OrderDailyFoodService {
     void cancelOrder(BigInteger orderId) throws IOException, ParseException;
     void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList);
     void cancelOrderItems(List<BigInteger> orderItemIdList) throws IOException, ParseException;
+
+    void cancelOrderNice(BigInteger orderId) throws IOException, ParseException;
+
+    void cancelOrderItemsNice(List<BigInteger> idList) throws IOException, ParseException;
 }

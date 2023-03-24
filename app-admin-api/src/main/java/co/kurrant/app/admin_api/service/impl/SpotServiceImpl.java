@@ -6,12 +6,15 @@ import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.mapper.MealInfoMapper;
 import co.dalicious.domain.client.repository.*;
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.client.DeleteSpotRequestDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
+import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.SpotService;
@@ -40,6 +43,8 @@ public class SpotServiceImpl implements SpotService {
     private final QGroupRepository qGroupRepository;
     private final GroupMapper groupMapper;
     private final GroupRepository groupRepository;
+    private final UserRepository userRepository;
+
 
     @Override
     public List<SpotResponseDto> getAllSpotList(Integer status) {
@@ -196,5 +201,19 @@ public class SpotServiceImpl implements SpotService {
         createAddressRequestDto.setZipCode(zipCode);
         return createAddressRequestDto;
 
+    }
+
+    @Override
+    public Object getSpotDetail(Integer spotId) {
+
+        //spotId로 spot 조회
+        Spot spot = spotRepository.findById(BigInteger.valueOf(spotId))
+                .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+
+        if (spot.getGroup().getManagerId() != null) {
+            Optional<User> manager = userRepository.findById(spot.getGroup().getManagerId());
+            return spotMapper.toDetailDto(spot, manager.get());
+        }
+        return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build());
     }
 }

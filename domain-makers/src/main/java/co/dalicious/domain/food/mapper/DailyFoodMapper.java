@@ -1,13 +1,11 @@
 package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.food.dto.DailyFoodGroupDto;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodDto;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.FoodTag;
-import co.dalicious.domain.food.util.FoodUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.enums.DiscountType;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
@@ -16,15 +14,13 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
 import org.mapstruct.*;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.*;
 
-@Mapper(componentModel = "spring", imports = {FoodUtil.class, DateUtils.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class})
 public interface DailyFoodMapper {
       @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.diningType", target = "diningType")
       @Mapping(target = "dailyFoodStatus", constant = "WAITING")

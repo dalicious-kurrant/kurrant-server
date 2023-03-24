@@ -134,4 +134,12 @@ public class QUserRepository {
                 .where(user.id.in(ids))
                 .fetch();
     }
+
+    public long saveFcmToken(String token, BigInteger userId) {
+        return queryFactory.update(user)
+                .set(user.firebaseToken, token)
+                .where(user.id.eq(userId))
+                .execute();
+
+    }
 }

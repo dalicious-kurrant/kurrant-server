@@ -13,6 +13,7 @@ import java.util.List;
 
 public interface ImageService {
     List<ImageResponseDto> upload(List<MultipartFile> multipartFiles, String dirName) throws IOException;
+    ImageResponseDto upload(MultipartFile multipartFile, String dirName) throws IOException;
     void delete(String key);
 //  Image createImage(ImageCreateRequestDto imageRequestDto);
 //

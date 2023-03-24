@@ -22,12 +22,7 @@ public class FoundersUtil {
 
     public Integer getFoundersNumber(User user) {
         Optional<Founders> founders = foundersRepository.findOneByUserAndIsActive(user, true);
-        if(founders.isPresent()) {
-            return founders.get().getFoundersNumber();
-        }
-        else {
-            return 0;
-        }
+        return founders.map(Founders::getFoundersNumber).orElse(null);
     }
 
     public Membership getFoundersMembership(User user) {
@@ -47,8 +42,8 @@ public class FoundersUtil {
         return foundersRepository.getMaxFoundersNumber() > FOUNDERS_LIMIT;
     }
 
-    public Founders saveFounders(Founders founders) {
-        return foundersRepository.save(founders);
+    public void saveFounders(Founders founders) {
+        foundersRepository.save(founders);
     }
 
     public void cancelFounders(User user) {

@@ -48,6 +48,7 @@ public class OrderDto {
         private BigDecimal price;
         private String orderCode;
         private String orderStatus;
+        private String orderDateTime;
     }
 
     @Getter

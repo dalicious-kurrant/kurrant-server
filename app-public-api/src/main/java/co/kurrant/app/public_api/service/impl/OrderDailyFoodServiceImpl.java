@@ -252,15 +252,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
         BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
-        // TODO: 추후 수정 -> 프론트에서 주는 값이 1의 자리로 줌으로 추가 로직 생성.
-        if(spot.getGroup().getName().contains("메드트로닉")) {
-            BigDecimal medTronicTotalPrice = PriceUtils.floorToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice());
-            BigDecimal medTronicSupportPrice = PriceUtils.roundToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice());
-            if (PriceUtils.floorToOneDigit(payPrice).compareTo(medTronicTotalPrice) != 0 ||  PriceUtils.roundToOneDigit(totalSupportPrice).compareTo(medTronicSupportPrice) != 0) {
-                throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
-            }
-        }
-        else if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
+
+        if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
@@ -741,15 +734,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
         BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
-        // TODO: 추후 수정 -> 프론트에서 주는 값이 1의 자리로 줌으로 추가 로직 생성.
-        if(spot.getGroup().getName().contains("메드트로닉")) {
-            BigDecimal medTronicTotalPrice = PriceUtils.floorToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice());
-            BigDecimal medTronicSupportPrice = PriceUtils.roundToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice());
-            if (payPrice.compareTo(medTronicTotalPrice) != 0 || totalSupportPrice.compareTo(medTronicSupportPrice) != 0) {
-                throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
-            }
-        }
-        else if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
+        if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
@@ -902,6 +887,28 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         creditCardInfoRepository.save(cardInfo);
 
         return billingKey;
+    }
+
+    @Override
+    public void cancelOrderDailyFoodNice(SecurityUser securityUser, BigInteger orderId) throws IOException, ParseException {
+        User user = userUtil.getUser(securityUser);
+
+        Order order = orderRepository.findOneByIdAndUser(orderId, user).orElseThrow(
+                () -> new ApiException(ExceptionEnum.NOT_FOUND)
+        );
+
+        orderService.cancelOrderDailyFoodNice((OrderDailyFood) order, user);
+    }
+
+    @Override
+    public void cancelOrderItemDailyFoodNice(SecurityUser securityUser, BigInteger orderItemId) throws IOException, ParseException {
+        User user = userUtil.getUser(securityUser);
+
+        OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(orderItemId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND)
+        );
+
+        orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
     }
 }
 

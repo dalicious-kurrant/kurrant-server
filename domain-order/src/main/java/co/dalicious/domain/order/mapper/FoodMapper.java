@@ -11,12 +11,10 @@ import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.enums.FoodCategory;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.domain.food.entity.enums.Origin;
-import co.dalicious.domain.food.util.FoodUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 
 import java.math.BigDecimal;

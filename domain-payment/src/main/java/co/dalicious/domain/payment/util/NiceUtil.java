@@ -161,4 +161,41 @@ public class NiceUtil {
         responseStream.close();
         return jsonObject;
     }
+
+    //결제 취소
+    public JSONObject cardCancelOne(String impUid, String cancelReason, int amount, String token) throws IOException, ParseException {
+        URL url = new URL("https://api.iamport.kr/payments/cancel");
+
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestProperty("Authorization", token);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        JSONObject obj = new JSONObject();
+        obj.put("imp_uid", impUid);
+        obj.put("amount", amount);
+        obj.put("reason", cancelReason);
+
+        OutputStream outputStream = connection.getOutputStream();
+        outputStream.write(obj.toString().getBytes(StandardCharsets.UTF_8));
+
+        int code = connection.getResponseCode();
+        boolean isSuccess = code == 200 ? true : false;
+
+        InputStream responseStream = isSuccess ? connection.getInputStream() : connection.getErrorStream();
+
+        Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8);
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) parser.parse(reader);
+        System.out.println(jsonObject + "jsonObject");
+        Long resultCode = (Long) jsonObject.get("code");
+        if (resultCode != 0){
+            throw new ApiException(ExceptionEnum.PAYMENT_CANCELLATION_FAILED);
+        }
+        responseStream.close();
+        JSONObject response = (JSONObject) jsonObject.get("response");
+        return response;
+
+    }
+
 }
