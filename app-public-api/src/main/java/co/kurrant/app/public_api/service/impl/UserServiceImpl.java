@@ -420,23 +420,6 @@ public class UserServiceImpl implements UserService {
                 .build();
         userGroupRepository.save(userCorporation);
     }
-    @Override
-    public List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo() {
-        List<MembershipSubscriptionTypeDto> membershipSubscriptionTypeDtos = new ArrayList<>();
-
-        MembershipSubscriptionTypeDto monthSubscription = MembershipSubscriptionTypeDto.builder()
-                .membershipSubscriptionType(MembershipSubscriptionType.MONTH)
-                .build();
-
-        MembershipSubscriptionTypeDto yearSubscription = MembershipSubscriptionTypeDto.builder()
-                .membershipSubscriptionType(MembershipSubscriptionType.YEAR)
-                .build();
-
-        membershipSubscriptionTypeDtos.add(monthSubscription);
-        membershipSubscriptionTypeDtos.add(yearSubscription);
-
-        return membershipSubscriptionTypeDtos;
-    }
 
     @Override
     @Transactional

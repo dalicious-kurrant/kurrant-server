@@ -13,6 +13,7 @@ import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.user.dto.DailyFoodMembershipDiscountDto;
 import co.dalicious.domain.user.dto.MembershipBenefitDto;
 import co.dalicious.domain.user.dto.MembershipDto;
+import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
@@ -472,5 +473,44 @@ public class MembershipServiceImpl implements MembershipService {
         // 파운더스 멤버일 경우 해지
         foundersUtil.cancelFounders(user);
         userCurrentMembership.changeAutoPaymentStatus(false);
+    }
+
+    @Override
+    @Transactional
+    public List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo(SecurityUser securityUser) {
+        // 베스핀 글로벌
+        List<MembershipSubscriptionTypeDto> membershipSubscriptionTypeDtos = new ArrayList<>();
+
+        User user = userUtil.getUser(securityUser);
+
+        if(membershipDiscountEvent.isBespinGlobal(user)) {
+            MembershipSubscriptionTypeDto monthSubscription = MembershipSubscriptionTypeDto.builder()
+                    .membershipSubscriptionType(MembershipSubscriptionType.MONTH.getMembershipSubscriptionType())
+                    .price(MembershipSubscriptionType.MONTH.getPrice())
+                    .discountRate(50)
+                    .discountedPrice(MembershipSubscriptionType.MONTH.getPrice().multiply(BigDecimal.valueOf(0.5)))
+                    .build();
+
+            MembershipSubscriptionTypeDto yearSubscription = MembershipSubscriptionTypeDto.builder()
+                    .membershipSubscriptionType(MembershipSubscriptionType.YEAR.getMembershipSubscriptionType())
+                    .price(MembershipSubscriptionType.YEAR.getPrice())
+                    .discountRate(50)
+                    .discountedPrice(MembershipSubscriptionType.YEAR.getPrice().multiply(BigDecimal.valueOf(0.5)))
+                    .build();
+
+            membershipSubscriptionTypeDtos.add(monthSubscription);
+            membershipSubscriptionTypeDtos.add(yearSubscription);
+
+            return membershipSubscriptionTypeDtos;
+        }
+
+        MembershipSubscriptionTypeDto monthSubscription =  new MembershipSubscriptionTypeDto(MembershipSubscriptionType.MONTH);
+
+        MembershipSubscriptionTypeDto yearSubscription =  new MembershipSubscriptionTypeDto(MembershipSubscriptionType.YEAR);
+
+        membershipSubscriptionTypeDtos.add(monthSubscription);
+        membershipSubscriptionTypeDtos.add(yearSubscription);
+
+        return membershipSubscriptionTypeDtos;
     }
 }

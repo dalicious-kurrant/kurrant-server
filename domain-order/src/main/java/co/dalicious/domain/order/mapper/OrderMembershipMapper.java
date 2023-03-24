@@ -52,10 +52,10 @@ public interface OrderMembershipMapper {
     OrderItemMembership toOrderItemMembership(Order order, Membership membership);
 
     // TODO: 기간 할인시, 변경 필요
-    @Mapping(target = "discountType", constant = "YEAR_DESCRIPTION_DISCOUNT")
-    @Mapping(source = "membership.membershipSubscriptionType.discountRate", target = "discountRate")
+    @Mapping(source = "discountType", target = "discountType")
     @Mapping(source = "membership", target = "membership")
-    MembershipDiscountPolicy toMembershipDiscountPolicy(Membership membership, DiscountType discountType);
+    @Mapping(source = "discountRate", target = "discountRate")
+    MembershipDiscountPolicy toMembershipDiscountPolicy(Membership membership, DiscountType discountType, Integer discountRate);
 
     @Mapping(source = "user", target = "user")
     @Mapping(source = "group", target = "group")
