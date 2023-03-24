@@ -61,7 +61,7 @@ public class OrderItemJob {
         // pickup time 지나면 order status -> OrderStatus.DELIVERING
         return stepBuilderFactory.get("orderStatusToDeliveringJob_step")
                 .<OrderItem, OrderItem>chunk(CHUNK_SIZE)
-                .reader(forChangingStatusInOrderItemReader(findMatchedDailyFoodIdsForDelivering(), null))
+                .reader(forChangingStatusInOrderItemReader(matchingOrderStatusByWaitDelivery()))
                 .processor(OrderStatusToDeliveringProcessor())
                 .writer(forChangingStatusInOrderItemWriter())
                 .build();
@@ -73,14 +73,14 @@ public class OrderItemJob {
         // pickup time 지나면 order status -> OrderStatus.DELIVERED
         return stepBuilderFactory.get("orderStatusToDeliveredJob_step")
                 .<OrderItem, OrderItem>chunk(CHUNK_SIZE)
-                .reader(forChangingStatusInOrderItemReader(null, findMatchedDailyFoodIdsForDelivered()))
+                .reader(forChangingStatusInOrderItemReader(matchingOrderStatusByWaitDelivering()))
                 .processor(OrderStatusToDeliveredProcessor())
                 .writer(forChangingStatusInOrderItemWriter())
                 .build();
     }
 
-    @Bean(name = "findMatchedDailyFoodIdsForDelivering")
-    List<BigInteger> findMatchedDailyFoodIdsForDelivering() {
+    @Bean(name = "findMatchedDailyFoodIds")
+    List<BigInteger> matchingOrderStatusByWaitDelivery() {
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         // list up order item daily food by order status = delivering
@@ -109,12 +109,12 @@ public class OrderItemJob {
         return dailyFoodIds;
     }
 
-    @Bean(name = "findMatchedDailyFoodIdsForDelivered")
-    List<BigInteger> findMatchedDailyFoodIdsForDelivered() {
+    @Bean(name = "findMatchedDailyFoodIds")
+    List<BigInteger> matchingOrderStatusByWaitDelivering() {
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         // list up order item daily food by order status = delivering
-        String queryString = "SELECT df, mi.deliveryTime " +
+        String queryString = "SELECT df.id, df.serviceDate, mi.deliveryTime " +
                 "FROM OrderItem oi " +
                 "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
                 "JOIN oidf.dailyFood df " +
@@ -130,10 +130,11 @@ public class OrderItemJob {
 
         List<BigInteger> dailyFoodIds = new ArrayList<>();
         for(Object[] objects : results) {
-            DailyFood dailyFood = (DailyFood) objects[0];
-            LocalTime deliveryTime = (LocalTime) objects[1];
-            if(dailyFood.getServiceDate().equals(today) && now.isAfter(deliveryTime)) {
-                dailyFoodIds.add(dailyFood.getId());
+            BigInteger dailyFoodId = (BigInteger) objects[0];
+            LocalDate serviceDate = (LocalDate) objects[1];
+            LocalTime deliveryTime = (LocalTime) objects[2];
+            if(serviceDate.equals(today) && now.isAfter(deliveryTime)) {
+                dailyFoodIds.add(dailyFoodId);
             }
         }
 
@@ -142,16 +143,10 @@ public class OrderItemJob {
 
     @Bean
     @JobScope
-    public JpaPagingItemReader<OrderItem> forChangingStatusInOrderItemReader(@Qualifier("findMatchedDailyFoodIdsForDelivering") List<BigInteger> forDeliveringIds,
-                                                                             @Qualifier("findMatchedDailyFoodIdsForDelivered") List<BigInteger> forDeliveredIds) {
+    public JpaPagingItemReader<OrderItem> forChangingStatusInOrderItemReader(@Qualifier("findMatchedDailyFoodIds") List<BigInteger> dailyFoodIds) {
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
         Map<String, Object> parameterValues = new HashMap<>();
-        if(forDeliveredIds != null && !forDeliveredIds.isEmpty()) {
-            parameterValues.put("dailyFoodIds", forDeliveredIds);
-        }
-        if(forDeliveringIds != null && !forDeliveringIds.isEmpty()) {
-            parameterValues.put("dailyFoodIds", forDeliveringIds);
-        }
+        parameterValues.put("dailyFoodIds", dailyFoodIds);
 
         String queryString = "SELECT oi " +
                 "FROM OrderItem oi " +
