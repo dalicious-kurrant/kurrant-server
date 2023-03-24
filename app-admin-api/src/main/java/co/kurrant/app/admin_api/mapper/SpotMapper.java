@@ -64,6 +64,8 @@ public interface SpotMapper {
 
         spotResponseDto.setCreatedDateTime(DateUtils.format(spot.getCreatedDateTime().toLocalDateTime().toLocalDate()));
         spotResponseDto.setUpdatedDateTime(DateUtils.format(spot.getUpdatedDateTime().toLocalDateTime().toLocalDate()));
+        spotResponseDto.setMemo(spot.getMemo());
+
 
         StringJoiner diningTypes = new StringJoiner(", ");
         // 상세 스팟에 식사 정보가 없기 때문에 다이닝 타입만 찾아서 다이닝 타입 보내기

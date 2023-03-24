@@ -79,6 +79,10 @@ public class Group {
     @Comment("스팟 리스트")
     List<Spot> spots;
 
+    @Comment("메모")
+    @Column(name="memo", columnDefinition = "text")
+    private String memo;
+
     public Group(Address address, List<DiningType> diningTypes, String name, BigInteger managerId) {
         this.address = address;
         this.diningTypes = diningTypes;
