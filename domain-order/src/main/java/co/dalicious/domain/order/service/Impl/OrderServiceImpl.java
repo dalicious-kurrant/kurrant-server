@@ -405,14 +405,11 @@ public class OrderServiceImpl implements OrderService {
         }
 
 
-        /* TODO: 할인 혜택을 가지고 있는 유저인지 확인 후 할인 정책 저장.
-        MembershipDiscountPolicy periodDiscountPolicy = MembershipDiscountPolicy.builder()
-                .membership(membership)
-                .discountRate(membershipSubscriptionType.getDiscountRate())
-                .discountType(DiscountType.PERIOD_DISCOUNT)
-                .build();
-        membershipDiscountPolicyRepository.save(periodDiscountPolicy);
-         */
+        // TODO: 할인 혜택을 가지고 있는 유저인지 확인 후 할인 정책 저장.
+        if(membershipDiscountEvent.isBespinGlobal(user)) {
+            MembershipDiscountPolicy periodDiscountPolicy = membershipDiscountEvent.bespinGlobalEvent(user, membership);
+            membershipDiscountPolicyRepository.save(periodDiscountPolicy);
+        }
 
         //카드정보 가져오기
         Optional<CreditCardInfo> creditCardInfo = creditCardInfoRepository.findOneByUserAndDefaultType(user, 2);

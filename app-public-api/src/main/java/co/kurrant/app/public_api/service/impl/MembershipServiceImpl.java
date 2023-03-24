@@ -356,8 +356,13 @@ public class MembershipServiceImpl implements MembershipService {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
         // 3. 기간 할인 가격이 일치하는지 확인
-        // TODO: 기간할인 추가시 기간할인 조회 로직 추가 필요
         BigDecimal periodDiscountPrice = BigDecimal.ZERO;
+        // 베스핀글로벌 멤버십 첫 결제 할인
+        if (membershipDiscountEvent.isBespinGlobal(user) && membershipSubscriptionType.equals(MembershipSubscriptionType.MONTH)) {
+            periodDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, 50);
+        } else if (membershipDiscountEvent.isBespinGlobal(user) && membershipSubscriptionType.equals(MembershipSubscriptionType.YEAR)) {
+            periodDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, 30);
+        }
         if (!(orderMembershipReqDto.getPeriodDiscountPrice().compareTo(periodDiscountPrice) == 0)) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
