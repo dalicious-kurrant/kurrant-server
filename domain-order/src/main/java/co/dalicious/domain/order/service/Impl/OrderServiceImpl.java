@@ -230,7 +230,7 @@ public class OrderServiceImpl implements OrderService {
         OrderMembership order = orderMembershipRepository.save(orderMembershipMapper.toOrderMembership(orderUserInfoDto, creditCardInfo.get(), membershipSubscriptionType, BigDecimal.ZERO, totalPrice, paymentType, membership));
 
         // 멤버십 결제 내역 등록(진행중 상태)
-        OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership));
+        OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership, periodDiscountRate));
 
         // 파운더스 확인
         if (!foundersUtil.isFounders(user) && !foundersUtil.isOverFoundersLimit()) {
@@ -245,12 +245,10 @@ public class OrderServiceImpl implements OrderService {
         String billingKey = creditCardInfo.get().getTossBillingKey();
 
         try {
-            JSONObject payResult = tossUtil.payToCard(customerKey, price.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType(), billingKey);
+            JSONObject payResult = tossUtil.payToCard(customerKey, totalPrice.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType(), billingKey);
 
             // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
             if (payResult.get("status").equals("DONE")) {
-                order.updateDefaultPrice(defaultPrice);
-                order.updateTotalPrice(price);
                 orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(price));
                 orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
 
@@ -438,7 +436,7 @@ public class OrderServiceImpl implements OrderService {
         OrderMembership order = orderMembershipRepository.save(orderMembershipMapper.toOrderMembership(orderUserInfoDto, creditCardInfo.get(), membershipSubscriptionType, BigDecimal.ZERO, totalPrice, paymentType, membership));
 
         // 멤버십 결제 내역 등록(진행중 상태)
-        OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership));
+        OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership, periodDiscountRate));
 
         // 파운더스 확인
         if (!foundersUtil.isFounders(user) && !foundersUtil.isOverFoundersLimit()) {
@@ -453,7 +451,7 @@ public class OrderServiceImpl implements OrderService {
 
         //String billingKey, Integer amount, String orderId, String token, String orderName
         String token = niceUtil.getToken();
-        JSONObject payResult = niceUtil.niceBilling(billingKey, price.intValue(), orderItemMembership.getOrder().getCode(), token, orderItemMembership.getMembershipSubscriptionType());
+        JSONObject payResult = niceUtil.niceBilling(billingKey, totalPrice.intValue(), orderItemMembership.getOrder().getCode(), token, orderItemMembership.getMembershipSubscriptionType());
 
         Long code = (Long) payResult.get("code");
         JSONObject JSONResult = (JSONObject) payResult.get("response");
@@ -461,9 +459,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
         if (code == 0) {
-            order.updateDefaultPrice(defaultPrice);
-            order.updateTotalPrice(price);
-            orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(price));
+            orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(totalPrice));
             orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
 
             //Order 테이블에 paymentKey와 receiptUrl 업데이트
