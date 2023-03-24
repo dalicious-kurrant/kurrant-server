@@ -2,6 +2,8 @@ package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.file.entity.embeddable.ImageWithEnum;
+import co.dalicious.domain.file.entity.embeddable.enums.ImageType;
 import co.dalicious.domain.food.converter.ServiceFormConverter;
 import co.dalicious.domain.food.converter.ServiceTypeConverter;
 import co.dalicious.domain.food.entity.enums.Origin;
@@ -122,9 +124,8 @@ public class Makers {
 
     @ElementCollection
     @Comment("이미지 경로")
-    @CollectionTable(
-            name = "makers_images")
-    private List<Image> images = new ArrayList<>();
+    @CollectionTable(name = "makers__images")
+    private List<ImageWithEnum> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "makers")
     @JsonManagedReference(value = "makers_fk")
@@ -159,7 +160,7 @@ public class Makers {
            BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate,
            Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String bank, String depositHolder,
            String accountNumber, Timestamp createdDateTime, Timestamp updatedDateTime, String password, Role role
-           ){
+    ) {
         this.code = code;
         this.name = name;
         this.companyName = companyName;
@@ -193,5 +194,14 @@ public class Makers {
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElse(null);
+    }
+
+    public ImageWithEnum getImageFromType(ImageType imageType) {
+        return this.getImages()
+                .stream().filter(v -> v.getImageType().equals(imageType)).findAny().orElse(null);
+    }
+
+    public void updateImages(List<ImageWithEnum> images) {
+        this.images = images;
     }
 }

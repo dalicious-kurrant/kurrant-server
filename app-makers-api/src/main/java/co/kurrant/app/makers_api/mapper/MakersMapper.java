@@ -1,5 +1,7 @@
 package co.kurrant.app.makers_api.mapper;
 
+import co.dalicious.domain.file.dto.ImageWithEnumResponseDto;
+import co.dalicious.domain.file.entity.embeddable.ImageWithEnum;
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
 import co.dalicious.domain.food.dto.OriginDto;
 import co.dalicious.domain.food.entity.Makers;
@@ -59,6 +61,15 @@ public interface MakersMapper {
     default List<OriginDto.WithId> originToDtos(List<Origin> origins) {
         return origins.stream()
                 .map(this::originToDto)
+                .toList();
+    }
+
+    @Mapping(source = "imageType.code", target = "imageType")
+    ImageWithEnumResponseDto imageWithEnumToDto(ImageWithEnum imageWithEnum);
+
+    default List<ImageWithEnumResponseDto> imageWithEnumToDtos(List<ImageWithEnum> imageWithEnums) {
+        return imageWithEnums.stream()
+                .map(this::imageWithEnumToDto)
                 .toList();
     }
 

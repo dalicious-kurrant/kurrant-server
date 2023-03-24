@@ -88,6 +88,20 @@ public class ImageServiceImpl implements ImageService {
         return imageResponseDtos;
     }
 
+    @Override
+    public ImageResponseDto upload(MultipartFile multipartFile, String dirName) throws IOException {
+        AmazonS3 amazonS3 = amazonS3Client();
+        if (multipartFile.isEmpty()) {
+            throw new ApiException(ExceptionEnum.FILE_NOT_FOUND);
+        }
+
+        String fileName = multipartFile.getOriginalFilename();
+        String key = dirName + "/" + createKey(fileName);
+        amazonS3.putObject(new PutObjectRequest(bucketName, key, multipartFile.getInputStream(), null));
+        String location = String.valueOf(amazonS3.getUrl(bucketName, key));
+        return new ImageResponseDto(location, key, fileName);
+    }
+
 //    @Override
 //    public void delete(String key) {
 //        AmazonS3 amazonS3 = amazonS3Client();
