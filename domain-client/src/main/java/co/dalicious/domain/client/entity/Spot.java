@@ -81,6 +81,9 @@ public class Spot {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
+    @Column(name = "memo", columnDefinition = "TEXT")
+    private String memo;
+
     @Comment("스팟 상태 ( 0: 비활성, 1: 활성 )")
     private SpotStatus status = SpotStatus.ACTIVE;
 
