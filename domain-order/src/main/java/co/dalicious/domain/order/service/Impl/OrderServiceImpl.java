@@ -16,6 +16,7 @@ import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
+import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.CreditCardValidator;
 import co.dalicious.domain.payment.util.NiceUtil;
 import co.dalicious.domain.payment.util.TossUtil;
@@ -67,6 +68,7 @@ public class OrderServiceImpl implements OrderService {
     private final DiscountPolicy discountPolicy;
     private final CreditCardInfoRepository creditCardInfoRepository;
     private final MembershipDiscountEvent membershipDiscountEvent;
+    private final QCreditCardInfoRepository qCreditCardInfoRepository;
 
     @Override
     @Transactional
@@ -219,7 +221,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         //카드정보 가져오기
-        Optional<CreditCardInfo> creditCardInfo = creditCardInfoRepository.findOneByUserAndDefaultType(user, 2);
+        Optional<CreditCardInfo> creditCardInfo = qCreditCardInfoRepository.findOneByUser(user);
         if (creditCardInfo.isEmpty()) {
             throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
         }
@@ -425,7 +427,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         //카드정보 가져오기
-        Optional<CreditCardInfo> creditCardInfo = creditCardInfoRepository.findOneByUserAndDefaultType(user, 2);
+        Optional<CreditCardInfo> creditCardInfo = qCreditCardInfoRepository.findOneByUser(user);
         if (creditCardInfo.isEmpty()) {
             throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
         }
