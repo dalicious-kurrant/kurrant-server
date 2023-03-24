@@ -146,7 +146,6 @@ public class ReviewServiceImpl implements ReviewService {
 
         int count = 0;
 
-        //리뷰가 가능한 상품인지 확인
         for(LocalDate serviceDate : orderItemDailyFoodByServiceDateMap.keySet()) {
             List<OrderItemDailyFood> orderItemList = orderItemDailyFoodByServiceDateMap.get(serviceDate);
 
