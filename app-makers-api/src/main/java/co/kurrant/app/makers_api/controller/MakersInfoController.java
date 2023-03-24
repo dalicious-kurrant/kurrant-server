@@ -62,7 +62,7 @@ public class MakersInfoController {
     }
 
     @DeleteMapping("/origins")
-    public ResponseMessage updateMakersOrigin(Authentication authentication, @RequestBody OrderDto.IdList idList) {
+    public ResponseMessage deleteMakersOrigin(Authentication authentication, @RequestBody OrderDto.IdList idList) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         makersInfoService.deleteMakersOrigins(securityUser, idList);
         return ResponseMessage.builder()
