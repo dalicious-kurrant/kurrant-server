@@ -39,8 +39,10 @@ public class QuartzService {
             addJob(QuartzBatchJob.class, "dailyFoodJob1", "DailyFood 상태 업데이트 Job", jobParameters, "0 0/10 7-10,15-19,21-23,0-1 * * ?");
             addJob(QuartzBatchJob.class, "membershipPayJob1", "Membership 결제 Job", jobParameters, "0 0 4 * * ?");
             addJob(QuartzBatchJob.class, "userWithdrawalJob1", "User 탈퇴 Job", jobParameters, "0 0 4 * * ?");
-            addJob(QuartzBatchJob.class, "orderStatusToDeliveringJob", "배송중으로 상태 업테이트 Job", jobParameters, "0 0/10 5-8,10-12,18-20 * * ??");
-            addJob(QuartzBatchJob.class, "orderStatusToDeliveredJob", "배송완료로 상태 업테이트 Job", jobParameters, "0 0/10 7-9,12-14,19-21 * * ??");
+//            addJob(QuartzBatchJob.class, "orderStatusToDeliveringJob", "배송중으로 상태 업테이트 Job", jobParameters, "0 0/10 5-8,10-12,18-20 * * ??");
+            addJob(QuartzBatchJob.class, "orderStatusToDeliveringJob", "배송중으로 상태 업테이트 Job", jobParameters, "0/10 * * * * ??");
+//            addJob(QuartzBatchJob.class, "orderStatusToDeliveredJob", "배송완료로 상태 업테이트 Job", jobParameters, "0 0/10 7-9,12-14,19-21 * * ??");
+            addJob(QuartzBatchJob.class, "orderStatusToDeliveredJob", "배송완료로 상태 업테이트 Job", jobParameters, "0/10 * * * * ??");
         } catch (SchedulerException e) {
             log.error("addJob error : {}", e);
         }

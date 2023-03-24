@@ -1,7 +1,5 @@
 package co.kurrant.batch.job.batch.job;
 
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -63,9 +61,9 @@ public class OrderItemJob {
         // pickup time 지나면 order status -> OrderStatus.DELIVERING
         return stepBuilderFactory.get("orderStatusToDeliveringJob_step")
                 .<OrderItem, OrderItem>chunk(CHUNK_SIZE)
-                .reader(orderItemDailyFoodReader(matchingOrderStatusByWaitDelivery()))
+                .reader(forChangingStatusInOrderItemReader(findMatchedDailyFoodIdsForDelivering(), null))
                 .processor(OrderStatusToDeliveringProcessor())
-                .writer(orderItemDailyFoodWriter())
+                .writer(forChangingStatusInOrderItemWriter())
                 .build();
     }
 
@@ -75,20 +73,23 @@ public class OrderItemJob {
         // pickup time 지나면 order status -> OrderStatus.DELIVERED
         return stepBuilderFactory.get("orderStatusToDeliveredJob_step")
                 .<OrderItem, OrderItem>chunk(CHUNK_SIZE)
-                .reader(orderItemDailyFoodReader(matchingOrderStatusByWaitDelivering()))
+                .reader(forChangingStatusInOrderItemReader(null, findMatchedDailyFoodIdsForDelivered()))
                 .processor(OrderStatusToDeliveredProcessor())
-                .writer(orderItemDailyFoodWriter())
+                .writer(forChangingStatusInOrderItemWriter())
                 .build();
     }
 
-    @Bean(name = "matchingDailyFoodIds")
-    List<BigInteger> matchingOrderStatusByWaitDelivery() {
+    @Bean(name = "findMatchedDailyFoodIdsForDelivering")
+    List<BigInteger> findMatchedDailyFoodIdsForDelivering() {
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         // list up order item daily food by order status = delivering
-        String queryString = "SELECT oidf.dailyFood " +
-                "FROM OrderItemDailyFood oidf " +
-                "WHERE oidf.orderStatus = 6";
+        String queryString = "SELECT oidf.dailyFood, dfg.pickupTime " +
+                "FROM OrderItem oi " +
+                "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
+                "JOIN oidf.dailyFood df " +
+                "JOIN df.dailyFoodGroup dfg " +
+                "WHERE oi.orderStatus = 6L";
 
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
         List<Object[]> results = query.getResultList();
@@ -99,7 +100,8 @@ public class OrderItemJob {
         List<BigInteger> dailyFoodIds = new ArrayList<>();
         for(Object[] objects : results) {
             DailyFood dailyFood = (DailyFood) objects[0];
-            if(dailyFood.getServiceDate().equals(today) && dailyFood.getDailyFoodGroup().getPickupTime().isAfter(now)) {
+            LocalTime pickupTime = (LocalTime) objects[1];
+            if(dailyFood.getServiceDate().equals(today) && pickupTime.isBefore(now)) {
                 dailyFoodIds.add(dailyFood.getId());
             }
         }
@@ -107,18 +109,18 @@ public class OrderItemJob {
         return dailyFoodIds;
     }
 
-    @Bean(name = "matchingDailyFoodIds")
-    List<BigInteger> matchingOrderStatusByWaitDelivering() {
+    @Bean(name = "findMatchedDailyFoodIdsForDelivered")
+    List<BigInteger> findMatchedDailyFoodIdsForDelivered() {
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         // list up order item daily food by order status = delivering
-        String queryString = "SELECT oidf.dailyFood, mi.deliveryTime " +
-                "FROM OrderItemDailyFood oidf " +
+        String queryString = "SELECT df, mi.deliveryTime " +
+                "FROM OrderItem oi " +
+                "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
                 "JOIN oidf.dailyFood df " +
                 "JOIN df.group g " +
-                "JOIN MealInfo mi ON mi.group.id = g.id " +
-                "WHERE oidf.orderStatus = 9" +
-                " AND mi.diningType = df.diningType";
+                "JOIN MealInfo mi ON g.id = mi.group.id AND df.diningType = mi.diningType " +
+                "WHERE oi.orderStatus = 9L";
 
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
         List<Object[]> results = query.getResultList();
@@ -130,7 +132,7 @@ public class OrderItemJob {
         for(Object[] objects : results) {
             DailyFood dailyFood = (DailyFood) objects[0];
             LocalTime deliveryTime = (LocalTime) objects[1];
-            if(dailyFood.getServiceDate().equals(today) && deliveryTime.isAfter(now)) {
+            if(dailyFood.getServiceDate().equals(today) && now.isAfter(deliveryTime)) {
                 dailyFoodIds.add(dailyFood.getId());
             }
         }
@@ -140,14 +142,20 @@ public class OrderItemJob {
 
     @Bean
     @JobScope
-    public JpaPagingItemReader<OrderItem> orderItemDailyFoodReader(@Qualifier("matchingDailyFoodIds") List<BigInteger> dailyFoodIds) {
+    public JpaPagingItemReader<OrderItem> forChangingStatusInOrderItemReader(@Qualifier("findMatchedDailyFoodIdsForDelivering") List<BigInteger> forDeliveringIds,
+                                                                             @Qualifier("findMatchedDailyFoodIdsForDelivered") List<BigInteger> forDeliveredIds) {
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
         Map<String, Object> parameterValues = new HashMap<>();
-        parameterValues.put("dailyFoodIds", dailyFoodIds);
+        if(forDeliveredIds != null && !forDeliveredIds.isEmpty()) {
+            parameterValues.put("dailyFoodIds", forDeliveredIds);
+        }
+        if(forDeliveringIds != null && !forDeliveringIds.isEmpty()) {
+            parameterValues.put("dailyFoodIds", forDeliveringIds);
+        }
 
         String queryString = "SELECT oi " +
-                "FROM OrderItemDailyFood oidf " +
-                "JOIN OrderItem oi ON oidf.id = oi.id " +
+                "FROM OrderItem oi " +
+                "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
                 "WHERE oidf.dailyFood.id IN :dailyFoodIds";
 
         return new JpaPagingItemReaderBuilder<OrderItem>()
@@ -187,7 +195,7 @@ public class OrderItemJob {
 
     @Bean
     @JobScope
-    public JpaItemWriter<OrderItem> orderItemDailyFoodWriter() {
+    public JpaItemWriter<OrderItem> forChangingStatusInOrderItemWriter() {
         log.info("orderItem 상태 저장 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
         return new JpaItemWriterBuilder<OrderItem>().entityManagerFactory(entityManagerFactory).build();
     }
