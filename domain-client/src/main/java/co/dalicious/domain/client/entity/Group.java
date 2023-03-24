@@ -83,11 +83,12 @@ public class Group {
     @Column(name="memo", columnDefinition = "text")
     private String memo;
 
-    public Group(Address address, List<DiningType> diningTypes, String name, BigInteger managerId) {
+    public Group(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, String memo) {
         this.address = address;
         this.diningTypes = diningTypes;
         this.name = name;
         this.managerId = managerId;
+        this.memo = memo;
     }
 
     public Group(BigInteger id){

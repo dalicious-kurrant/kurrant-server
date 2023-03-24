@@ -61,6 +61,15 @@ public class SpotController {
     }
 
 
+    @Operation(summary = "스팟정보 상세 조회", description = "스팟의 상세정보를 조회합니다.")
+    @GetMapping("/spot/detail")
+    public ResponseMessage getSpotDetail(@RequestParam(required = true) Integer spotId) {
+        return ResponseMessage.builder()
+                .message("스팟 상세 정보를 조회했습니다.")
+                .data(spotService.getSpotDetail(spotId))
+                .build();
+    }
+
 
 
 }
