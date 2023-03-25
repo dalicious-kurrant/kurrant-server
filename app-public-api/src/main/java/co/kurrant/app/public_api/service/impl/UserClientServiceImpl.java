@@ -32,7 +32,6 @@ import java.util.Optional;
 public class UserClientServiceImpl implements UserClientService {
     private final GroupResponseMapper groupResponseMapper;
     private final UserUtil userUtil;
-    private final QGroupRepository qGroupRepository;
     private final UserGroupRepository userGroupRepository;
     private final SpotRepository spotRepository;
     private final UserSpotRepository userSpotRepository;

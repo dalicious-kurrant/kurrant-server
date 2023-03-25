@@ -132,5 +132,16 @@ public class ReviewServiceImpl implements ReviewService {
         reviews.updateIsReport(true);
     }
 
+    @Override
+    @Transactional
+    public void deleteComment(BigInteger commentId) {
+        Comments comments = commentsRepository.findById(commentId).orElseThrow(() -> new ApiException(ExceptionEnum.MAKERS_COMMENT_NOT_FOUND));
 
+        if(comments instanceof MakersComments makersComments) {
+            makersComments.updateIsDelete(true);
+        }
+        else if(comments instanceof AdminComments adminComments) {
+            adminComments.updateIsDelete(true);
+        }
+    }
 }

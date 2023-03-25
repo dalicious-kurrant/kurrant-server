@@ -96,6 +96,7 @@ public class ReviewAdminResDto {
     @Getter
     @Setter
     public static class MakersComment {
+        private BigInteger commentId;
         private String comment;
         private String makersName;
         private Boolean isDelete;

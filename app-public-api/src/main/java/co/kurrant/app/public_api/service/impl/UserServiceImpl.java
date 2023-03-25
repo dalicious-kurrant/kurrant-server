@@ -8,6 +8,7 @@ import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
@@ -28,6 +29,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.ClientUtil;
@@ -94,6 +96,7 @@ public class UserServiceImpl implements UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
+    private final QUserRepository qUserRepository;
 
     @Override
     @Transactional
@@ -393,9 +396,9 @@ public class UserServiceImpl implements UserService {
         List<UserGroup> userGroups =  user.getGroups();
 
         // TODO: 그룹 슬롯 증가의 경우 반영 필요
-        // 그룹의 개수가 2개 이상일 떄
+        // 오픈 스팟 그룹의 개수가 2개 이상일 떄
         long userGroupCount = userGroups.stream().
-                filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
+                filter(v -> v.getClientStatus().equals(ClientStatus.BELONG) && v.getGroup() instanceof OpenGroup)
                 .count();
         if(userGroupCount >= 2) {
             throw new ApiException(ExceptionEnum.REQUEST_OVER_GROUP);
@@ -416,23 +419,6 @@ public class UserServiceImpl implements UserService {
                 .group(group)
                 .build();
         userGroupRepository.save(userCorporation);
-    }
-    @Override
-    public List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo() {
-        List<MembershipSubscriptionTypeDto> membershipSubscriptionTypeDtos = new ArrayList<>();
-
-        MembershipSubscriptionTypeDto monthSubscription = MembershipSubscriptionTypeDto.builder()
-                .membershipSubscriptionType(MembershipSubscriptionType.MONTH)
-                .build();
-
-        MembershipSubscriptionTypeDto yearSubscription = MembershipSubscriptionTypeDto.builder()
-                .membershipSubscriptionType(MembershipSubscriptionType.YEAR)
-                .build();
-
-        membershipSubscriptionTypeDtos.add(monthSubscription);
-        membershipSubscriptionTypeDtos.add(yearSubscription);
-
-        return membershipSubscriptionTypeDtos;
     }
 
     @Override
@@ -662,5 +648,17 @@ public class UserServiceImpl implements UserService {
                 .leftWithdrawDays(leftWithdrawDays)
                 .spotStatus(clientUtil.getSpotStatus(user).getCode())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void saveToken(FcmTokenSaveReqDto fcmTokenSaveReqDto, SecurityUser securityUser) {
+        //유저ID로 유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        long result = qUserRepository.saveFcmToken(fcmTokenSaveReqDto.getToken(), user.getId());
+        if (result != 1){
+            throw new ApiException(ExceptionEnum.TOKEN_SAVE_FAILED);
+        }
     }
 }

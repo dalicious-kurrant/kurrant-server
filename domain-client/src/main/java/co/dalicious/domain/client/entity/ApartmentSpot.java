@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ApartmentSpot extends Spot {
     @Builder
-    public ApartmentSpot(String name, Address address, List<DiningType> diningTypes, Group group) {
-        super(name, address, diningTypes, group);
+    public ApartmentSpot(String name, Address address, List<DiningType> diningTypes, Group group, String memo) {
+        super(name, address, diningTypes, group, memo);
     }
 }

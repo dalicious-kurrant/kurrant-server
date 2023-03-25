@@ -135,6 +135,10 @@ public class User {
             columnDefinition = "VARCHAR(16)")
     private String phone;
 
+    @Comment("FCM 토큰")
+    @Column(name = "firebase_token", columnDefinition = "VARCHAR(255)")
+    private String firebaseToken;
+
     @Column(name = "is_membership", columnDefinition = "BIT(1) DEFAULT 0")
     @ColumnDefault("false")
     private Boolean isMembership;
