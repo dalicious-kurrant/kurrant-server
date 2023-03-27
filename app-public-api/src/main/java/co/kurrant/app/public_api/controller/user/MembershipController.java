@@ -88,5 +88,15 @@ public class MembershipController {
                 .build();
     }
 
+    @Operation(summary = "멤버십 해지/환불 (나이스)", description = "유저가 멤버십을 해지 또는 환불한다")
+    @GetMapping("/unsubscribing/nice")
+    public ResponseMessage unsubscribingMembershipNice(Authentication authentication) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        membershipService.unsubscribeMembershipNice(securityUser);
+        return ResponseMessage.builder()
+                .message("멤버십 해지/환불에 성공하였습니다.")
+                .build();
+    }
+
 
 }

@@ -75,7 +75,7 @@ public class OrderItemDailyFood extends OrderItem {
     }
 
     public BigDecimal getMembershipDiscountPrice() {
-        return PriceUtils.roundToOneDigit(this.price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
+        return this.price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count));
     }
 
     public BigDecimal getMakersDiscountPrice() {
@@ -85,7 +85,7 @@ public class OrderItemDailyFood extends OrderItem {
             membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0)));;
             price = price.subtract(membershipDiscountedPrice);
         }
-        return  PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
+        return price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count));
     }
 
     public BigDecimal getPeriodDiscountPrice() {
@@ -100,7 +100,7 @@ public class OrderItemDailyFood extends OrderItem {
             makersDiscountPrice = price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0)));;
             price = price.subtract(makersDiscountPrice);
         }
-        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf((this.periodDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
+        return price.multiply(BigDecimal.valueOf((this.periodDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count));
     }
 
     public BigDecimal getOrderItemTotalPrice() {
