@@ -1,11 +1,11 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
+import co.dalicious.client.core.entity.RefreshToken;
+import co.dalicious.client.core.repository.RefreshTokenRepository;
 import co.dalicious.data.redis.entity.BlackListTokenHash;
-import co.dalicious.data.redis.entity.RefreshTokenHash;
 import co.dalicious.data.redis.entity.TempRefreshTokenHash;
 import co.dalicious.data.redis.repository.BlackListTokenRepository;
-import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import co.dalicious.client.external.sms.SmsService;
 import co.dalicious.client.external.sms.dto.SmsMessageRequestDto;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
@@ -82,7 +82,6 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapper userMapper;
     private final EmployeeRepository employeeRepository;
     private final QUserRepository qUserRepository;
-    private static final ConcurrentHashMap<String, Object> tokenLocks = new ConcurrentHashMap<>();
 
     // 이메일 인증
     @Override
@@ -407,26 +406,25 @@ public class AuthServiceImpl implements AuthService {
         }
         // 엑세스 토큰이 유효하지 않을 경우
         else {
-            Optional<RefreshTokenHash> refreshTokenHash = refreshTokenRepository.findOneByRefreshToken(reissueTokenDto.getRefreshToken());
-            if (refreshTokenHash.isEmpty()) {
+            Optional<RefreshToken> refreshToken = refreshTokenRepository.findOneByRefreshToken(reissueTokenDto.getRefreshToken());
+            if (refreshToken.isEmpty()) {
                 throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
             }
-            userId = refreshTokenHash.get().getUserId();
+            userId = refreshToken.get().getUserId().toString();
         }
         // 기존에 reissue 요청이 왔는지 검증
         Optional<TempRefreshTokenHash> tempRefreshTokenHash = tempRefreshTokenRepository.findOneByUserId(userId);
-        List<TempRefreshTokenHash> tempRefreshTokenHashs = tempRefreshTokenRepository.findAllByUserId(userId);
 
         // reissue 요청이 온 적이 없는 경우
         if (tempRefreshTokenHash.isEmpty()) {
-            List<RefreshTokenHash> refreshTokenHashs = refreshTokenRepository.findAllByUserId(userId);
+            List<RefreshToken> refreshTokens = refreshTokenRepository.findAllByUserId(BigInteger.valueOf(Integer.parseInt(userId)));
 
             // 5. 로그아웃 되어 Refresh Token이 존재하지 않는 경우 처리
-            if (refreshTokenHashs == null) {
+            if (refreshTokens == null) {
                 throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
             }
             // 6. 잘못된 Refresh Token일 경우 예외 처리
-            refreshTokenHashs.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
+            refreshTokens.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
                     .findAny()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR));
 
@@ -449,7 +447,9 @@ public class AuthServiceImpl implements AuthService {
             LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(userId, roles);
 
             // 8. RefreshToken Redis 업데이트
-            refreshTokenRepository.deleteAll(refreshTokenHashs);
+            refreshTokenRepository.deleteAll(refreshTokens);
+
+            List<TempRefreshTokenHash> tempRefreshTokenHashs = tempRefreshTokenRepository.findAllByUserId(userId);
             tempRefreshTokenRepository.deleteAll(tempRefreshTokenHashs);
 
             TempRefreshTokenHash tempRefreshTokenHash1 = TempRefreshTokenHash.builder()
@@ -484,7 +484,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 3. Redis 에서 해당 UserId로 저장된 Refresh Token 이 있는지 여부를 확인 후 존재할 경우 삭제.
         // TODO: 다른 기기에서 로그인 한 유저들을 구분하기 위해서 특정 토큰만 받아와서 삭제하기
-        List<RefreshTokenHash> refreshTokenHashes = refreshTokenRepository.findAllByUserId(userId);
+        List<RefreshToken> refreshTokenHashes = refreshTokenRepository.findAllByUserId(BigInteger.valueOf(Integer.parseInt(userId)));
         if (refreshTokenHashes != null) {
             refreshTokenRepository.deleteAll(refreshTokenHashes);
         }

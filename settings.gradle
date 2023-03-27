@@ -37,6 +37,6 @@ include 'app-client-api'
 
 include 'data-redis'
 include 'batch'
-include 'domain-settlement'
+include 'domain-paycheck'
 include 'domain-event'
 
