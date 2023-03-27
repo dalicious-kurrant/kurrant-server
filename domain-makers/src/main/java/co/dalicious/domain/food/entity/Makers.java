@@ -2,6 +2,8 @@ package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.file.entity.embeddable.ImageWithEnum;
+import co.dalicious.domain.file.entity.embeddable.enums.ImageType;
 import co.dalicious.domain.food.converter.ServiceFormConverter;
 import co.dalicious.domain.food.converter.ServiceTypeConverter;
 import co.dalicious.domain.food.entity.enums.Origin;
@@ -27,6 +29,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @DynamicInsert
@@ -107,6 +110,9 @@ public class Makers {
     @Comment("영업 종료 시간")
     private LocalTime closeTime;
 
+    @Comment("시스템 사용료")
+    private String fee;
+
     @Comment("은행")
     private String bank;
 
@@ -116,9 +122,10 @@ public class Makers {
     @Comment("계좌번호")
     private String accountNumber;
 
-    @Embedded
-    @Comment("사업자 등록증 사진")
-    private Image image;
+    @ElementCollection
+    @Comment("이미지 경로")
+    @CollectionTable(name = "makers__images")
+    private List<ImageWithEnum> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "makers")
     @JsonManagedReference(value = "makers_fk")
@@ -153,7 +160,7 @@ public class Makers {
            BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate,
            Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String bank, String depositHolder,
            String accountNumber, Timestamp createdDateTime, Timestamp updatedDateTime, String password, Role role
-           ){
+    ) {
         this.code = code;
         this.name = name;
         this.companyName = companyName;
@@ -187,5 +194,14 @@ public class Makers {
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElse(null);
+    }
+
+    public ImageWithEnum getImageFromType(ImageType imageType) {
+        return this.getImages()
+                .stream().filter(v -> v.getImageType().equals(imageType)).findAny().orElse(null);
+    }
+
+    public void updateImages(List<ImageWithEnum> images) {
+        this.images = images;
     }
 }

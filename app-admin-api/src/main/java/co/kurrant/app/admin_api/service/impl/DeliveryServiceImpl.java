@@ -7,9 +7,12 @@ import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QSpotRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderDailyFood;
+import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.system.enums.DiningType;
@@ -17,6 +20,8 @@ import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.DeliveryDto;
 import co.kurrant.app.admin_api.mapper.DeliveryMapper;
 import co.kurrant.app.admin_api.service.DeliveryService;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
@@ -38,10 +43,11 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryMapper deliveryMapper;
     private final GroupRepository groupRepository;
     private final SpotRepository spotRepository;
+    private final QDailyFoodRepository qDailyFoodRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds) {
+    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, String isDefault) {
         List<Group> groupAllList = groupRepository.findAll();
         // 그룹과 연관된 스팟만 보여주기
         List<Spot> spotAllList = spotRepository.findAll();;
@@ -50,7 +56,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
         List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
+        List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
 
         List<OrderDailyFood> orderList = new ArrayList<>();
         for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -60,38 +67,77 @@ public class DeliveryServiceImpl implements DeliveryService {
             }
         }
 
+        Map<DailyFood, Integer> dailyFoodIntegerMap = new HashMap<>();
+        for(DailyFood dailyFood : dailyFoodList) {
+            int count = 0;
+            for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                if(orderItemDailyFood.getDailyFood().equals(dailyFood)) {
+                    count += orderItemDailyFood.getCount();
+                }
+            }
+            dailyFoodIntegerMap.put(dailyFood, count);
+        }
+
         // service date 묶기
-        MultiValueMap<LocalDate, OrderItemDailyFood> serviceDateMap = new LinkedMultiValueMap<>();
-        for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
-            serviceDateMap.add(serviceDate, orderItemDailyFood);
+        MultiValueMap<LocalDate, DailyFood> serviceDateMap = new LinkedMultiValueMap<>();
+        for(DailyFood dailyFood : dailyFoodList) {
+            LocalDate serviceDate = dailyFood.getServiceDate();
+            serviceDateMap.add(serviceDate, dailyFood);
         }
 
         List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
         for(LocalDate serviceDate : serviceDateMap.keySet()) {
-            List<OrderItemDailyFood> orderItemDailyFoodList = serviceDateMap.get(serviceDate);
+            List<DailyFood> serviceDateDailyFoodList = serviceDateMap.get(serviceDate);
 
             // spot 묶기
-            MultiValueMap<Spot, OrderItemDailyFood> spotMap = new LinkedMultiValueMap<>();
-            for(OrderItemDailyFood orderItemDailyFood : Objects.requireNonNull(orderItemDailyFoodList)) {
-                Spot spot = orderList.stream()
-                                .filter(orderDailyFood -> orderDailyFood.getId().equals(orderItemDailyFood.getOrder().getId()))
-                                .map(OrderDailyFood::getSpot)
-                                .findFirst().orElse(null);
+            MultiValueMap<Spot, DailyFood> spotDailyFoodMap = new LinkedMultiValueMap<>();
+            if(isDefault == null) {
+                for(DailyFood dailyFood : Objects.requireNonNull(serviceDateDailyFoodList)) {
+                    OrderItemDailyFood orderItemDailyFood = orderItemDailyFoods.stream()
+                            .filter(oidf -> oidf.getDailyFood().equals(dailyFood))
+                            .findFirst().orElse(null);
+                    if(orderItemDailyFood == null) continue;
+                    Spot spot = orderList.stream()
+                            .filter(orderDailyFood -> orderDailyFood.getId().equals(orderItemDailyFood.getOrder().getId()))
+                            .map(OrderDailyFood::getSpot)
+                            .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
 
-                spotMap.add(Objects.requireNonNull(spot), orderItemDailyFood);
+                    spotDailyFoodMap.add(spot, dailyFood);
+                }
+            }
+            else {
+                for(DailyFood dailyFood : Objects.requireNonNull(serviceDateDailyFoodList)) {
+                    Spot spot = spotAllList.stream()
+                            .filter(s -> s.getGroup().equals(dailyFood.getGroup()))
+                            .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+
+                    spotDailyFoodMap.add(spot, dailyFood);
+                }
             }
 
             List<DeliveryDto.DeliveryGroup> deliveryGroupList = new ArrayList<>();
-            for(Spot spot : spotMap.keySet()) {
-                List<OrderItemDailyFood> spotOrderItemDailyFoodList = spotMap.get(spot);
-
+            for(Spot spot : spotDailyFoodMap.keySet()) {
+                List<DailyFood> spotDailyFoodList = spotDailyFoodMap.get(spot);
 
                 // makers 묶기
-                MultiValueMap<Makers, OrderItemDailyFood> makersMap = new LinkedMultiValueMap<>();
-                for(OrderItemDailyFood orderItemDailyFood : Objects.requireNonNull(spotOrderItemDailyFoodList)) {
-                    Makers makers = orderItemDailyFood.getDailyFood().getFood().getMakers();
-                    makersMap.add(makers, orderItemDailyFood);
+                MultiValueMap<Makers, DailyFood> makersMap = new LinkedMultiValueMap<>();
+                if(isDefault == null) {
+                    for(DailyFood dailyFood : Objects.requireNonNull(spotDailyFoodList)) {
+                        Makers makers = orderItemDailyFoods.stream()
+                                .map(OrderItemDailyFood::getDailyFood)
+                                .filter(df -> df.equals(dailyFood))
+                                .map(DailyFood::getFood)
+                                .map(Food::getMakers)
+                                .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+
+                        makersMap.add(makers, dailyFood);
+                    }
+                }
+                else {
+                    for(DailyFood dailyFood : Objects.requireNonNull(spotDailyFoodList)) {
+                        Makers makers = dailyFood.getFood().getMakers();
+                        makersMap.add(makers, dailyFood);
+                    }
                 }
 
                 DiningType diningType = null;
@@ -99,29 +145,14 @@ public class DeliveryServiceImpl implements DeliveryService {
 
                 List<DeliveryDto.DeliveryMakers> deliveryMakersList = new ArrayList<>();
                 for(Makers makers : makersMap.keySet()) {
-                    List<OrderItemDailyFood> makersOrderItemDailyFoodList = makersMap.get(makers);
-
-                    MultiValueMap<DailyFood, OrderItemDailyFood> dailyFoodMap = new LinkedMultiValueMap<>();
-                    for(OrderItemDailyFood orderItemDailyFood : Objects.requireNonNull(makersOrderItemDailyFoodList)) {
-                        DailyFood dailyFood = orderItemDailyFood.getDailyFood();
-                        dailyFoodMap.add(dailyFood, orderItemDailyFood);
-                    }
+                    List<DailyFood> makersDailyFoodList = makersMap.get(makers);
 
                     LocalTime pickupTime = null;
                     List<DeliveryDto.DeliveryFood> deliveryFoodList = new ArrayList<>();
-                    for(DailyFood dailyFood : dailyFoodMap.keySet()) {
-                        List<OrderItemDailyFood> itemDailyFoodList = dailyFoodMap.get(dailyFood);
+                    for(DailyFood dailyFood : Objects.requireNonNull(makersDailyFoodList)) {
 
                         // count 구하기
-                        int count = 0;
-                        for(OrderItemDailyFood orderItemDailyFood : Objects.requireNonNull(itemDailyFoodList)) {
-                            count += orderItemDailyFood.getCount();
-                        }
-
-                        // delivery food 만들기
-                        DeliveryDto.DeliveryFood deliveryFood = deliveryMapper.toDeliveryFood(dailyFood, count);
-
-                        deliveryFoodList.add(deliveryFood);
+                        int count = dailyFoodIntegerMap.get(dailyFood);
 
                         // pickup time
                         if(pickupTime == null) {
@@ -131,6 +162,12 @@ public class DeliveryServiceImpl implements DeliveryService {
                         if(diningType == null) {
                             diningType = dailyFood.getDiningType();
                         }
+
+                        // 주문한 delivery food 만 dto 만들기
+                        if(count == 0) continue;
+                        DeliveryDto.DeliveryFood deliveryFood = deliveryMapper.toDeliveryFood(dailyFood, count);
+
+                        deliveryFoodList.add(deliveryFood);
 
                     }
 

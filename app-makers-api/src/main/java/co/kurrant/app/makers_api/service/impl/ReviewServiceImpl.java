@@ -128,15 +128,15 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
 
-    @Override
-    @Transactional
-    public void deleteMakersComment(BigInteger commentId) {
-        Comments comments = commentsRepository.findById(commentId).orElseThrow(() -> new ApiException(ExceptionEnum.MAKERS_COMMENT_NOT_FOUND));
-
-        if(comments instanceof MakersComments makersComments) {
-            makersComments.updateIsDelete(true);
-        }
-    }
+//    @Override
+//    @Transactional
+//    public void deleteMakersComment(BigInteger commentId) {
+//        Comments comments = commentsRepository.findById(commentId).orElseThrow(() -> new ApiException(ExceptionEnum.MAKERS_COMMENT_NOT_FOUND));
+//
+//        if(comments instanceof MakersComments makersComments) {
+//            makersComments.updateIsDelete(true);
+//        }
+//    }
 
     @Override
     @Transactional

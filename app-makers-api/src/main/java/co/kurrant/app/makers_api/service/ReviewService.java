@@ -22,7 +22,7 @@ public interface ReviewService {
     // 댓글 수정
     void updateMakersComment(BigInteger commentId, CommentReqDto reqDto);
     // 댓글 삭제
-    void deleteMakersComment(BigInteger commentId);
+//    void deleteMakersComment(BigInteger commentId);
     // 리뷰 신고
     void reportReviews(BigInteger reviewId);
 }

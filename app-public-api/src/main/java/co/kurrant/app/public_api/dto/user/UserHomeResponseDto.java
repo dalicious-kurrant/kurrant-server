@@ -23,6 +23,6 @@ public class UserHomeResponseDto {
     private String spot;
     private BigDecimal point;
     private int membershipUsingPeriod;
-    private int foundersNumber;
+    private Integer foundersNumber;
     private int leftFoundersNumber;
 }

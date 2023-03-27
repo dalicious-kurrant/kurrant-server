@@ -220,5 +220,15 @@ public class UserController {
                 .build();
     }
 
+    @PostMapping("/save/token")
+    @Operation(summary = "FCM 토큰 저장하기", description = "유저정보에 FCM토큰을 저장한다")
+    public ResponseMessage tokenSave(Authentication authentication, @RequestBody FcmTokenSaveReqDto fcmTokenSaveReqDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.saveToken(fcmTokenSaveReqDto, securityUser);
+        return ResponseMessage.builder()
+                .message("토큰 저장 성공!")
+                .build();
+    }
+
 
 }

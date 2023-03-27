@@ -37,6 +37,7 @@ public class MakersInfoResponseDto {
     private Boolean isNutritionInformation;
     private String openTime;
     private String closeTime;
+    private String fee;
     private String bank;
     private String depositHolder;
     private String accountNumber;

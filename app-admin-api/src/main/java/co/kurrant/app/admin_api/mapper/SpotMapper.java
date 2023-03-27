@@ -4,9 +4,11 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 
+import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.apache.commons.math3.analysis.function.Add;
@@ -64,6 +66,7 @@ public interface SpotMapper {
 
         spotResponseDto.setCreatedDateTime(DateUtils.format(spot.getCreatedDateTime().toLocalDateTime().toLocalDate()));
         spotResponseDto.setUpdatedDateTime(DateUtils.format(spot.getUpdatedDateTime().toLocalDateTime().toLocalDate()));
+
 
         StringJoiner diningTypes = new StringJoiner(", ");
         // 상세 스팟에 식사 정보가 없기 때문에 다이닝 타입만 찾아서 다이닝 타입 보내기
@@ -139,6 +142,7 @@ public interface SpotMapper {
     @Mapping(source = "spotInfo.groupId", target = "group", qualifiedByName = "generatedGroup")
     @Mapping(source = "spotInfo.spotName", target = "name")
     @Mapping(source = "diningTypes", target = "diningTypes")
+    @Mapping(source = "spotInfo.memo", target = "memo")
     Spot toEntity(SpotResponseDto spotInfo, Address address, List<DiningType> diningTypes);
 
 
@@ -153,8 +157,8 @@ public interface SpotMapper {
         //TODO: Location 생성
         String location = spotInfo.getLocation();
         Address address = new Address(spotInfo.getZipCode(), spotInfo.getAddress1(), spotInfo.getAddress2(), location);
-        if(group instanceof Apartment) return new ApartmentSpot(spotInfo.getSpotName(), address, diningTypes, group);
-        if(group instanceof Corporation) return new CorporationSpot(spotInfo.getSpotName(), address, diningTypes, group);
+        if(group instanceof Apartment) return new ApartmentSpot(spotInfo.getSpotName(), address, diningTypes, group, spotInfo.getMemo());
+        if(group instanceof Corporation) return new CorporationSpot(spotInfo.getSpotName(), address, diningTypes, group, spotInfo.getMemo());
         return null;
     }
 
@@ -178,5 +182,25 @@ public interface SpotMapper {
     @Mapping(source = "group.diningTypes", target = "diningTypes")
     @Mapping(source = "group", target = "group")
     OpenGroupSpot toOpenGroupSpotEntity(Group group);
+
+
+
+     default SpotDetailResDto toDetailDto(Spot spot, User manager){
+        SpotDetailResDto spotDetailResDto = new SpotDetailResDto();
+
+        spotDetailResDto.setGroupId(spot.getGroup().getId());
+        spotDetailResDto.setSpotName(spot.getName());
+        spotDetailResDto.setManagerId(manager.getId());
+        spotDetailResDto.setManagerName(manager.getName());
+        spotDetailResDto.setManagerPhone(manager.getPhone());
+        spotDetailResDto.setSpotName(spot.getName());
+        spotDetailResDto.setZipCode(spot.getAddress().getZipCode());
+        spotDetailResDto.setAddress1(spot.getAddress().getAddress1());
+        spotDetailResDto.setAddress2(spot.getAddress().getAddress2());
+//        spotDetailResDto.setLocation(spot.getAddress().getLocation().toString());
+        spotDetailResDto.setMemo(spot.getMemo());
+
+        return spotDetailResDto;
+    };
 }
 
