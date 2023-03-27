@@ -265,35 +265,9 @@ public class QOrderDailyFoodRepository {
                 .where(orderItemDailyFood.id.in(ids))
                 .fetch();
     }
-
-    public List<OrderItemDailyFood> findAllByServiceDateBetweenStartAndEnd(LocalDate start, LocalDate end) {
+    public List<OrderItemDailyFood> findByDailyFoodAndOrderStatus(List<DailyFood> dailyFoodList) {
         return queryFactory.selectFrom(orderItemDailyFood)
-                .where(orderItemDailyFood.dailyFood.serviceDate.between(start, end))
-                .fetch();
-    }
-
-    public List<OrderItemDailyFood> findAllFilterGroupAndSpot(LocalDate start, LocalDate end, List<Group> groups, List<Spot> spotList) {
-        BooleanBuilder whereClause = new BooleanBuilder();
-
-        if (start != null) {
-            whereClause.and(dailyFood.serviceDate.goe(start));
-        }
-        if (end != null) {
-            whereClause.and(dailyFood.serviceDate.loe(end));
-        }
-        if(groups != null && !groups.isEmpty()) {
-            whereClause.and(group.in(groups));
-        }
-        if(spotList != null && !spotList.isEmpty()) {
-            whereClause.and(orderDailyFood.spot.in(spotList));
-        }
-
-        return queryFactory.selectFrom(orderItemDailyFood)
-                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
-                .leftJoin(dailyFood.group, group)
-                .leftJoin(orderDailyFood)
-                .on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
-                .where(whereClause, orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .where(orderItemDailyFood.dailyFood.in(dailyFoodList), orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
                 .fetch();
     }
 

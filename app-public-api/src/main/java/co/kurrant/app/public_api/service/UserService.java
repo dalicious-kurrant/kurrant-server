@@ -44,8 +44,6 @@ public interface UserService {
     UserPersonalInfoDto getPersonalUserInfo(SecurityUser securityUser);
     // 오픈스팟 그룹 설정
     void settingGroup(SecurityUser securityUser, BigInteger groupId);
-    // 멤버십 구독 정보를 가져온다.
-    List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo();
     // 유저가 속한 그룹 정보 리스트
     List<SpotListResponseDto> getClients(SecurityUser securityUser);
 
@@ -60,4 +58,6 @@ public interface UserService {
     void withdrawal(SecurityUser securityUser);
     void withdrawalCancel(SecurityUser securityUser);
     LoginResponseDto autoLogin(HttpServletRequest httpServletRequest);
+
+    void saveToken(FcmTokenSaveReqDto fcmTokenSaveReqDto, SecurityUser securityUser);
 }

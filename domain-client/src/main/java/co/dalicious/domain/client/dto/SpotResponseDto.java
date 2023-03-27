@@ -66,4 +66,6 @@ public class SpotResponseDto {
     private String createdDateTime;
     @Schema(description = "수정일")
     private String updatedDateTime;
+    @Schema(description = "메모")
+    private String memo;
 }

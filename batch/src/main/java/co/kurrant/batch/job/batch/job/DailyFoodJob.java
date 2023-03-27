@@ -3,7 +3,6 @@ package co.kurrant.batch.job.batch.job;
 import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
-import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.DateUtils;
@@ -21,7 +20,6 @@ import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -148,7 +146,7 @@ public class DailyFoodJob {
             @Override
             public DailyFood process(DailyFood dailyFood) throws Exception {
                 log.info("[DailyFood 상태 업데이트 시작] : {}", dailyFood.getId());
-                dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
+                dailyFood.updateFoodStatus(DailyFoodStatus.PASS_LAST_ORDER_TIME);
                 return dailyFood;
             }
         };

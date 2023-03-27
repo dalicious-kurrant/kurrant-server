@@ -12,9 +12,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, BigDecimal.class, DailyFoodStatus.class, PriceUtils.class})
 public interface OrderDailyFoodDetailMapper {
@@ -64,10 +66,14 @@ public interface OrderDailyFoodDetailMapper {
         }
 
         for (OrderItemDailyFoodGroup orderItemDailyFoodGroup : orderItemDailyFoodGroups) {
-            for (UserSupportPriceHistory userSupportPriceHistory : orderItemDailyFoodGroup.getUserSupportPriceHistories()) {
-                if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
-                    supportPrice = supportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
-                }
+            List<UserSupportPriceHistory> userSupportPriceHistories = orderItemDailyFoodGroup.getUserSupportPriceHistories();
+
+            List<UserSupportPriceHistory> sortedList = userSupportPriceHistories.stream()
+                    .sorted(Comparator.comparing(UserSupportPriceHistory::getCreatedDateTime))
+                    .toList();
+            UserSupportPriceHistory oldest = sortedList.isEmpty() ? null : sortedList.get(0);
+            if(oldest != null) {
+                supportPrice = supportPrice.add(oldest.getUsingSupportPrice());
             }
         }
         return supportPrice;
