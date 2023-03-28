@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
 import co.kurrant.app.admin_api.service.SpotService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,6 +68,15 @@ public class SpotController {
         return ResponseMessage.builder()
                 .message("스팟 상세 정보를 조회했습니다.")
                 .data(spotService.getSpotDetail(spotId))
+                .build();
+    }
+
+    @Operation(summary = "스팟정보 상세 수정", description = "스팟의 상세정보를 수정합니다.")
+    @PatchMapping("/spot/detail")
+    public ResponseMessage updateSpotDetail(@RequestBody UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
+        spotService.updateSpotDetail(updateSpotDetailRequestDto);
+        return ResponseMessage.builder()
+                .message("스팟 상세 정보를 수정했습니다.")
                 .build();
     }
 

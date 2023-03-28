@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
@@ -67,4 +68,13 @@ public class QGroupRepository {
                 .fetch();
     }
 
+    public void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto, BigInteger groupId) {
+        //담당자 수정
+        if (updateSpotDetailRequestDto.getManagerId() != null){
+            queryFactory.update(group)
+                    .set(group.managerId, updateSpotDetailRequestDto.getManagerId())
+                    .where(group.id.eq(groupId))
+                    .execute();
+        }
+    }
 }

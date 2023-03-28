@@ -93,7 +93,8 @@ public enum ExceptionEnum {
 	GROUP_PRESET_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040026", "그룹 식사 일정이 없습니다."),
 	REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040027", "찾으시는 리뷰가 없습니다."),
 	ADMIN_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040028", "작성된 관리자 댓글이 없습니다."),
-	MAKERS_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040028", "작성된 메이커스 댓글이 없습니다."),
+	MAKERS_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040029", "작성된 메이커스 댓글이 없습니다."),
+	NOT_FOUND_MANAGER(HttpStatus.NOT_FOUND,"E4040030", "매니저를 찾을 수 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
