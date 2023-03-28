@@ -30,9 +30,9 @@ public class ReviewableItemResDto {
         }
     }
 
-    public static ReviewableItemResDto create(List<OrderFood> orderFoodList, Integer count) {
+    public static ReviewableItemResDto create(List<OrderFood> orderFoodList) {
         return ReviewableItemResDto.builder()
-                .count(count)
+                .count(orderFoodList.size())
                 .orderFoodList(orderFoodList)
                 .build();
     }
