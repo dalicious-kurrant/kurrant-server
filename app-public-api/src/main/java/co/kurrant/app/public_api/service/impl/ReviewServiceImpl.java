@@ -136,7 +136,7 @@ public class ReviewServiceImpl implements ReviewService {
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
                 LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
                 //리뷰 가능일 구하기
-                LocalDate reviewableDate = serviceDate.plusDays(7);
+                LocalDate reviewableDate = serviceDate.plusDays(5);
                 //리뷰 작성 가능일이 이미 지났으면 패스
                 if(reviewableDate.isBefore(today)) continue;
 
