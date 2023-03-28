@@ -173,7 +173,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
         if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
-            PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFoodNice(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
+            PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
             paymentCancelHistoryRepository.save(paymentCancelHistory);
         }
 
