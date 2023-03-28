@@ -9,7 +9,7 @@ import java.math.BigInteger;
 
 @Getter
 @Setter
-@Schema(description = "스팟 셍세조회 응답 DTO")
+@Schema(description = "스팟 상세조회 응답 DTO")
 public class SpotDetailResDto {
 
     @Schema(description = "스팟 이름")
@@ -21,7 +21,7 @@ public class SpotDetailResDto {
     private BigInteger managerId;
     private String managerPhone;
     private String spotType;
-    private String mealType;
+    private String diningTypes;
     private String mealDay;
     private String zipCode;
     private Boolean isMembershipSupport;

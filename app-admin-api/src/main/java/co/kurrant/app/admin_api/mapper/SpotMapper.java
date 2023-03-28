@@ -4,6 +4,7 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -11,7 +12,9 @@ import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.math3.analysis.function.Add;
+import org.aspectj.weaver.ast.Instanceof;
 import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
@@ -24,10 +27,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.prefs.AbstractPreferences;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class, MealInfo.class})
@@ -185,7 +185,7 @@ public interface SpotMapper {
 
 
 
-     default SpotDetailResDto toDetailDto(Spot spot, User manager){
+     default SpotDetailResDto toDetailDto(Spot spot, User manager, Corporation corporation, List<CorporationMealInfo> corporationMealInfo){
         SpotDetailResDto spotDetailResDto = new SpotDetailResDto();
 
         spotDetailResDto.setGroupId(spot.getGroup().getId());
@@ -197,10 +197,56 @@ public interface SpotMapper {
         spotDetailResDto.setZipCode(spot.getAddress().getZipCode());
         spotDetailResDto.setAddress1(spot.getAddress().getAddress1());
         spotDetailResDto.setAddress2(spot.getAddress().getAddress2());
-//        spotDetailResDto.setLocation(spot.getAddress().getLocation().toString());
+        if (spot.getAddress().getLocation() == null){
+            spotDetailResDto.setLocation("없음");
+        } else{
+            spotDetailResDto.setLocation(spot.getAddress().getLocation().toString().substring(7, (spot.getAddress().getLocation().toString().length()-1)));
+        }
         spotDetailResDto.setMemo(spot.getMemo());
 
-        return spotDetailResDto;
+         List<Integer> types = new ArrayList<>();
+         for (DiningType type : spot.getDiningTypes()){
+            types.add( type.getCode());
+        }
+        spotDetailResDto.setDiningTypes(types.toString().substring(1, types.toString().length()-1));
+
+         if (spot instanceof CorporationSpot){
+             spotDetailResDto.setSpotType("Corporation");
+         } else if (spot instanceof OpenGroupSpot) {
+             spotDetailResDto.setSpotType("OpenGroup");
+         } else if (spot instanceof ApartmentSpot){
+             spotDetailResDto.setSpotType("Apartment");
+         } else {
+             spotDetailResDto.setSpotType("없음");
+         }
+
+         spotDetailResDto.setMemo(spot.getMemo());
+
+         if (corporation != null) {
+             spotDetailResDto.setIsSetting(corporation.getIsSetting());
+             spotDetailResDto.setIsHotStorage(corporation.getIsHotStorage());
+             spotDetailResDto.setIsGarbage(corporation.getIsGarbage());
+             spotDetailResDto.setIsMembershipSupport(corporation.getIsMembershipSupport());
+             if (corporation.getMinimumSpend() != null)spotDetailResDto.setMinPrice(corporation.getMinimumSpend().intValue());
+             if (corporation.getMaximumSpend() != null)spotDetailResDto.setMaxPrice(corporation.getMaximumSpend().intValue());
+         }
+
+
+         if (corporationMealInfo != null){
+             for (CorporationMealInfo mealInfo : corporationMealInfo){
+                 if (mealInfo.getDiningType().getCode() == 1){
+                     spotDetailResDto.setBreakfastSupportPrice(mealInfo.getSupportPrice());
+                 } else if(mealInfo.getDiningType().getCode() == 2){
+                     spotDetailResDto.setLunchSupportPrice(mealInfo.getSupportPrice());
+                     spotDetailResDto.setMealDay(mealInfo.getServiceDays());
+                 } else if (mealInfo.getDiningType().getCode() ==3) {
+                     spotDetailResDto.setDinnerSupportPrice(mealInfo.getSupportPrice());
+                 }
+             }
+         }
+
+
+         return spotDetailResDto;
     };
 }
 
