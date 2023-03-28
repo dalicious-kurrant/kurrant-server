@@ -250,7 +250,7 @@ public class ReviewServiceImpl implements ReviewService {
         if (satisfaction == null || satisfaction < 1) {
             throw new ApiException(ExceptionEnum.ENTER_SATISFACTION_LEVEL);
         }
-        if (content == null || content.length() < 11 || content.length() >= 500) {
+        if (content == null || content.length() < 10 || content.length() >= 500) {
             throw new ApiException(ExceptionEnum.FILL_OUT_THE_REVIEW);
         }
     }
