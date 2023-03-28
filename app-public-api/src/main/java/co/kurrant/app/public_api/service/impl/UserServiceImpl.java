@@ -1,10 +1,10 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.core.entity.RefreshToken;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
+import co.dalicious.client.core.repository.RefreshTokenRepository;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
-import co.dalicious.data.redis.entity.RefreshTokenHash;
-import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -23,7 +23,6 @@ import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
-import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
@@ -52,7 +51,6 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -624,7 +622,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(BigInteger.valueOf(Integer.parseInt(userId)))
                 .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
 
-        List<RefreshTokenHash> refreshTokenHashes = refreshTokenRepository.findAllByUserId(userId);
+        List<RefreshToken> refreshTokenHashes = refreshTokenRepository.findAllByUserId(BigInteger.valueOf(Integer.parseInt(userId)));
 
         if(refreshTokenHashes.isEmpty()) {
             throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
