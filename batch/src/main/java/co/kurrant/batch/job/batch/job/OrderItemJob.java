@@ -48,6 +48,13 @@ public class OrderItemJob {
                 .build();
     }
 
+    @Bean("orderStatusToDeliveredJob")
+    public Job orderStatusToDeliveredJob() {
+        return jobBuilderFactory.get("orderStatusToDeliveredJob")
+                .start(orderStatusToDeliveredJob_step())
+                .build();
+    }
+
     @Bean
     @JobScope
     public Step orderStatusToDeliveringJob_step() {
@@ -61,12 +68,7 @@ public class OrderItemJob {
     }
 
 
-    @Bean("orderStatusToDeliveredJob")
-    public Job orderStatusToDeliveredJob() {
-        return jobBuilderFactory.get("orderStatusToDeliveredJob")
-                .start(orderStatusToDeliveredJob_step())
-                .build();
-    }
+
 
     @Bean
     @JobScope

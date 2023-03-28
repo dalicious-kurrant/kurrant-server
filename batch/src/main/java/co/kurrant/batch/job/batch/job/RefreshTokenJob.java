@@ -1,7 +1,7 @@
 package co.kurrant.batch.job.batch.job;
 
 import co.dalicious.client.core.entity.RefreshToken;
-import co.dalicious.domain.user.entity.ProviderEmail;
+import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -9,14 +9,16 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -25,13 +27,11 @@ import java.util.Map;
 public class RefreshTokenJob {
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
-    private final EntityManagerFactory entityManagerFactory;
     private final EntityManager entityManager;
-    private final int CHUNK_SIZE = 100;
 
-    @Bean("refreshTokenJob")
-    public Job refreshTokenJob() {
-        return jobBuilderFactory.get("refreshTokenJob")
+    @Bean("refreshTokenJob1")
+    public Job refreshTokenJob1() {
+        return jobBuilderFactory.get("refreshTokenJob1")
                 .start(refreshTokenJob_step())
                 .build();
     }
@@ -39,17 +39,22 @@ public class RefreshTokenJob {
     @Bean
     @JobScope
     public Step refreshTokenJob_step() {
-//        return stepBuilderFactory.get("refreshTokenJob_step")
-//                .tasklet(((contribution, chunkContext) -> {
-//                    Map<String, Object> parameterValues = new HashMap<>();
-//                    LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7L);
-//                    parameterValues.put("sevenDaysAgo", sevenDaysAgo);
-//
-//                    String queryString = "SELECT rt FROM RefreshToken rt \n" +
-//                            "WHERE rt.createdDateTime <= :sevenDaysAgo";
-//                    TypedQuery<RefreshToken> query = entityManager.createQuery(queryString, RefreshToken.class);
-//                    query.setParameter()
-//                }))
-        return null;
+        return stepBuilderFactory.get("refreshTokenJob_step")
+                .tasklet(((contribution, chunkContext) -> {
+                    log.info("[Refresh Token 삭제 시작] : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
+
+                    final String queryString = "SELECT rt FROM RefreshToken rt WHERE rt.createdDateTime <= :sevenDaysAgo";
+                    final Date sevenDaysAgo = new Date(System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L));
+                    final TypedQuery<RefreshToken> query = entityManager.createQuery(queryString, RefreshToken.class);
+                    query.setParameter("sevenDaysAgo", sevenDaysAgo);
+
+                    final List<RefreshToken> refreshTokens = query.getResultList();
+
+                    for (RefreshToken refreshToken : refreshTokens) {
+                        entityManager.remove(refreshToken);
+                    };
+                    return RepeatStatus.FINISHED;
+
+                })).build();
     }
 }

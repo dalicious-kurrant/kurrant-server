@@ -121,12 +121,18 @@ public class ReviewServiceImpl implements ReviewService {
         //리뷰 가능한 상품이 있는 지 확인 - 유저 구매했고, 이미 수령을 완료한 식단
         List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatusBeforeToday(user, OrderStatus.RECEIPT_COMPLETE, today);
         List<ReviewableItemResDto.OrderFood> orderFoodList = new ArrayList<>();
-        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) {
-            return ReviewableItemResDto.create(orderFoodList, null); }
+        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList); }
+
+        // 이미 리뷰가 작성된 아이템 예외
+        List<Reviews> reviewsList = qReviewRepository.findAllByUserAndOrderItem(user, receiptCompleteItem);
+        List<OrderItem> reviewOrderItem = reviewsList.stream().map(Reviews::getOrderItem).filter(receiptCompleteItem::contains).toList();
 
         Map<LocalDate, Long> leftDayMap = new HashMap<>();
         MultiValueMap<LocalDate, OrderItemDailyFood> orderItemDailyFoodByServiceDateMap = new LinkedMultiValueMap<>();
         for(OrderItem item : receiptCompleteItem) {
+
+            if(reviewOrderItem.contains(item)) continue;
+
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
                 LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
                 //리뷰 가능일 구하기
@@ -140,11 +146,10 @@ public class ReviewServiceImpl implements ReviewService {
                 String reviewableString = DateUtils.localDateToString(reviewableDate);
                 String todayString = DateUtils.localDateToString(today);
                 long leftDay = DateUtils.calculatedDDay(reviewableString, todayString);
+
                 leftDayMap.put(serviceDate, leftDay);
             }
         }
-
-        int count = 0;
 
         for(LocalDate serviceDate : orderItemDailyFoodByServiceDateMap.keySet()) {
             List<OrderItemDailyFood> orderItemList = orderItemDailyFoodByServiceDateMap.get(serviceDate);
@@ -160,12 +165,11 @@ public class ReviewServiceImpl implements ReviewService {
 
             ReviewableItemResDto.OrderFood orderFood = ReviewableItemResDto.OrderFood.create(reviewableItemListDtoList, serviceDate);
             orderFoodList.add(orderFood);
-            count += reviewableItemListDtoList.size();
         }
 
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
 
-        return ReviewableItemResDto.create(orderFoodList, count);
+        return ReviewableItemResDto.create(orderFoodList);
     }
 
     @Override
