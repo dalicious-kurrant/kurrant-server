@@ -89,16 +89,16 @@ public class AuthServiceImpl implements AuthService {
         // 인증을 요청하는 위치 파악하기
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
         switch (requiredAuth) {
-            case SIGNUP:
+            case SIGNUP -> {
                 // 기존에 가입된 사용자인지 확인
                 Provider provider = Provider.GENERAL;
                 String mail = mailMessageDto.getReceivers().get(0);
                 userValidator.isEmailValid(provider, mail);
-                break;
-            case FIND_PASSWORD:
+            }
+            case FIND_PASSWORD -> {
                 // 존재하는 유저인지 확인
                 User user = userRepository.findOneByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
-                break;
+            }
         }
 
         // 이메일 폼 작성
@@ -154,14 +154,13 @@ public class AuthServiceImpl implements AuthService {
         // 인증을 요청하는 위치 파악하기
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
         switch (requiredAuth) {
-            case SIGNUP:
+            case SIGNUP ->
                 // 기존에 등록된 휴대폰 번호인지 확인
                 userValidator.isPhoneValid(smsMessageRequestDto.getTo());
-                break;
-            case FIND_ID, FIND_PASSWORD:
+            case FIND_ID, FIND_PASSWORD -> {
                 // 유저가 존재하는지 확인
                 User user = userRepository.findOneByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
-                break;
+            }
         }
 
         // 인증번호 발송
