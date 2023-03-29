@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
+
 @Tag(name = "8. Board")
 @RestController
 @RequiredArgsConstructor
@@ -20,9 +22,9 @@ public class BoardController {
 
     @Operation(summary = "공지사항 조회", description = "공지사항을 불러온다.")
     @GetMapping("notices")
-    public ResponseMessage noticeList(@RequestParam Integer type){
+    public ResponseMessage noticeList(@RequestParam Integer status, @RequestParam (required = false) BigInteger spotId){
         return ResponseMessage.builder()
-                .data(boardService.noticeList(type))
+                .data(boardService.noticeList(status, spotId))
                 .message("공지사항을 불러오는데 성공했습니다.")
                 .build();
     }
