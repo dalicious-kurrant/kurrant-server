@@ -1,6 +1,6 @@
-package co.dalicious.domain.payment.converter;
+package co.dalicious.domain.user.converter;
 
-import co.dalicious.domain.payment.entity.enums.PointCondition;
+import co.dalicious.domain.user.entity.enums.PointCondition;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

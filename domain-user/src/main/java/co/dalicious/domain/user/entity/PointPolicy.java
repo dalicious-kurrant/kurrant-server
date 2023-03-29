@@ -1,9 +1,8 @@
-package co.dalicious.domain.payment.entity;
+package co.dalicious.domain.user.entity;
 
-import co.dalicious.domain.payment.converter.PointConditionConverter;
-import co.dalicious.domain.payment.entity.enums.PointCondition;
+import co.dalicious.domain.user.converter.PointConditionConverter;
+import co.dalicious.domain.user.entity.enums.PointCondition;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,17 +15,19 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+
 
 @Getter
 @Entity
-@Table(name = "payment__point_history")
+@Table(name = "payment__point_policy")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PointHistory {
+public class PointPolicy {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
-    @Comment("포인트 로그 PK")
+    @Comment("포인트 정책 PK")
     private BigInteger id;
 
     @Convert(converter = PointConditionConverter.class)
@@ -34,27 +35,26 @@ public class PointHistory {
     @Comment("포인트 적립 조건")
     private PointCondition pointCondition;
 
-    @Column(name = "pint")
-    @Comment("적립 포인트")
-    private BigDecimal point;
+    @Column(name = "completed_condition_count")
+    @Comment("조건 완료 횟수")
+    private Integer completedConditionCount;
 
-    @Column(name = "review_id")
-    @Comment("리뷰 PK")
-    private BigInteger reviewId;
+    @Column(name = "account_completion_limit")
+    @Comment("계정 당 횟수")
+    private Integer accountCompletionLimit;
 
-    @Column(name = "order_id")
-    @Comment("주문 PK")
-    private BigInteger orderId;
+    @Column(name = "reward_point")
+    @Comment("보상 포인트")
+    private BigDecimal rewardPoint;
 
-    @Column(name = "board_id")
-    @Comment("이벤트 공지 PK")
-    private BigInteger boardId;
+    @Column(name = "event_start_date")
+    @Comment("시작일")
+    private LocalDate eventStartDate;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn
-    @JsonManagedReference(value = "point_policy_fk")
-    @Comment("포인트 정책 FK")
-    private PointPolicy pointPolicy;
+    @Column(name = "event_end_date")
+    @Comment("종료일")
+    private LocalDate eventEndDate;
+
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -71,13 +71,13 @@ public class PointHistory {
     private Timestamp updatedDateTime;
 
     @Builder
-    public PointHistory(BigInteger id, PointCondition pointCondition, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, PointPolicy pointPolicy) {
+    public PointPolicy(BigInteger id, PointCondition pointCondition, Integer completedConditionCount, Integer accountCompletionLimit, BigDecimal rewardPoint, LocalDate eventStartDate, LocalDate eventEndDate) {
         this.id = id;
         this.pointCondition = pointCondition;
-        this.point = point;
-        this.reviewId = reviewId;
-        this.orderId = orderId;
-        this.boardId = boardId;
-        this.pointPolicy = pointPolicy;
+        this.completedConditionCount = completedConditionCount;
+        this.accountCompletionLimit = accountCompletionLimit;
+        this.rewardPoint = rewardPoint;
+        this.eventStartDate = eventStartDate;
+        this.eventEndDate = eventEndDate;
     }
 }

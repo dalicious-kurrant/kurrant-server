@@ -1,4 +1,4 @@
-package co.dalicious.domain.payment.entity.enums;
+package co.dalicious.domain.user.entity.enums;
 
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -8,17 +8,6 @@ import java.util.Arrays;
 
 @Getter
 public enum PointCondition {
-    /* review */
-    PHOTO_REVIEW_RANGE_1("5000 ~ 7999", 1),
-    PHOTO_REVIEW_RANGE_2("8000 ~ 12999", 2),
-    PHOTO_REVIEW_RANGE_3("13000 ~ 19999", 3),
-    PHOTO_REVIEW_RANGE_4("20000 ~ ", 4),
-    CONTENT_REVIEW_RANGE_1("5000 ~ 7999", 5),
-    CONTENT_REVIEW_RANGE_2("8000 ~ 12999", 6),
-    CONTENT_REVIEW_RANGE_3("13000 ~ 19999", 7),
-    CONTENT_REVIEW_RANGE_4("20000 ~ ", 8),
-
-
     /* event */;
 
     private final String condition;
