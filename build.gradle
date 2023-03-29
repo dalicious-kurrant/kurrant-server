@@ -206,6 +206,7 @@ project(':app-admin-api') {
         implementation project(':domain-client')
         implementation project(':domain-recommend')
         implementation project(':domain-review')
+        implementation project(':domain-paycheck')
     }
 }
 
@@ -221,6 +222,40 @@ project(':app-client-api') {
         implementation project(':domain-address')
         implementation project(':domain-order')
         implementation project(':domain-makers')
+        implementation project(':domain-paycheck')
+    }
+}
+
+project(':app-makers-api') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':client-core')
+        implementation project(':domain-user')
+        implementation project(':domain-application-form')
+        implementation project(':domain-address')
+        implementation project(':domain-makers')
+        implementation project(':domain-client')
+        implementation project(':domain-order')
+        implementation project(':domain-board')
+        implementation project(':domain-file')
+        implementation project(':domain-payment')
+        implementation project(':domain-review')
+        implementation project(':data-redis')
+        implementation project(':client-sse')
+        implementation project(':domain-recommend')
+        implementation project(':domain-paycheck')
+    }
+}
+
+project(':batch') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':client-core')
+        implementation project(':domain-user')
+        implementation project(':domain-order')
+        implementation project(':domain-makers')
+        implementation project(':domain-client')
+        implementation project(':domain-payment')
     }
 }
 
@@ -350,38 +385,6 @@ project(':domain-review') {
     }
 }
 
-project(':app-makers-api') {
-    dependencies {
-        implementation project(':system-core')
-        implementation project(':client-core')
-        implementation project(':domain-user')
-        implementation project(':domain-application-form')
-        implementation project(':domain-address')
-        implementation project(':domain-makers')
-        implementation project(':domain-client')
-        implementation project(':domain-order')
-        implementation project(':domain-board')
-        implementation project(':domain-file')
-        implementation project(':domain-payment')
-        implementation project(':domain-review')
-        implementation project(':data-redis')
-        implementation project(':client-sse')
-        implementation project(':domain-recommend')
-    }
-}
-
-project(':batch') {
-    dependencies {
-        implementation project(':system-core')
-        implementation project(':client-core')
-        implementation project(':domain-user')
-        implementation project(':domain-order')
-        implementation project(':domain-makers')
-        implementation project(':domain-client')
-        implementation project(':domain-payment')
-    }
-}
-
 project(':domain-recommend') {
     dependencies {
         implementation project(':system-core')
@@ -393,5 +396,14 @@ project(':domain-event') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
+    }
+}
+
+project(':domain-paycheck') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-client')
+        implementation project(':domain-file')
+        implementation project(':domain-makers')
     }
 }
