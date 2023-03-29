@@ -142,4 +142,21 @@ public class QUserRepository {
                 .execute();
 
     }
+
+    public void updatePaymentPassword(String password, BigInteger userId) {
+        queryFactory.update(user)
+                .set(user.paymentPassword, password)
+                .where(user.id.eq(userId))
+                .execute();
+    }
+
+    public boolean getPaymentPassword(BigInteger id) {
+          String password = queryFactory.select(user.paymentPassword)
+                .from(user)
+                .where(user.id.eq(id))
+                 .fetchOne();
+
+          if (password == null) return false;
+          return true;
+    }
 }
