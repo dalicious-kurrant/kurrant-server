@@ -27,4 +27,11 @@ public enum PaycheckStatus {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
     }
 
+    public static PaycheckStatus ofString(String paycheckStatus) {
+        return Arrays.stream(PaycheckStatus.values())
+                .filter(v -> v.getPaycheckStatus().equals(paycheckStatus))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+    }
+
 }
