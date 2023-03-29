@@ -66,7 +66,6 @@ public class OrderServiceImpl implements OrderService {
     private final FoundersUtil foundersUtil;
     private final FoundersMapper foundersMapper;
     private final DiscountPolicy discountPolicy;
-    private final CreditCardInfoRepository creditCardInfoRepository;
     private final MembershipDiscountEvent membershipDiscountEvent;
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
 
@@ -84,10 +83,10 @@ public class OrderServiceImpl implements OrderService {
             OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) Hibernate.unproxy(orderItem);
             // 상태값이 이미 7L(취소)인지 확인
             if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
-                throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
+                continue;
             }
 
-            if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+            if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
                 throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
             }
 
@@ -143,7 +142,7 @@ public class OrderServiceImpl implements OrderService {
             throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
         }
 
-        if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+        if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
             throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
         }
 
@@ -174,7 +173,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
         if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
-            PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFoodNice(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
+            PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
             paymentCancelHistoryRepository.save(paymentCancelHistory);
         }
 
@@ -291,10 +290,10 @@ public class OrderServiceImpl implements OrderService {
             OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) Hibernate.unproxy(orderItem);
             // 상태값이 이미 7L(취소)인지 확인
             if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
-                throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
+                continue;
             }
 
-            if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+            if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
                 throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
             }
 
@@ -351,7 +350,7 @@ public class OrderServiceImpl implements OrderService {
             throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
         }
 
-        if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+        if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
             throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
         }
 
