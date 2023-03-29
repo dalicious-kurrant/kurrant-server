@@ -44,6 +44,8 @@ public enum ExceptionEnum {
 	CANNOT_UPDATE_REVIEW(HttpStatus.BAD_REQUEST, "E4000032", "리뷰 수정 기한이 지났습니다."),
 	BAD_REQUEST_TOPIC(HttpStatus.BAD_REQUEST, "E4000033", "존재하지 않는 주제입니다."),
 	NOT_MATCH_USER_CARD(HttpStatus.BAD_REQUEST, "E4000034", "유저 카드정보와 일치하지 않습니다."),
+	NOT_MATCHED_GROUP(HttpStatus.BAD_REQUEST, "E4000035", "그룹이 일치하지 않습니다."),
+	NOT_MATCHED_MAKERS(HttpStatus.BAD_REQUEST, "E4000036", "메이커스가 일치하지 않습니다."),
 	EXCEL_EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "E4000100", "중복된 이메일 입력이 존재합니다."),
 	EXCEL_INTEGRITY_ERROR(HttpStatus.BAD_REQUEST, "E4000101", "정합성에 위반된 데이터가 존재합니다. 올바른 데이터를 입력해주세요."),
 	CONNECTION_ERROR(HttpStatus.BAD_REQUEST, "E4000102", "연결 오류!!!"),

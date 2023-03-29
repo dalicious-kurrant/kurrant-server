@@ -40,7 +40,7 @@ public class MakersPaycheck {
     @Comment("엑셀 파일")
     @AttributeOverrides({
             @AttributeOverride(name = "key", column = @Column(name = "excel_s3_key", length = 1024)),
-            @AttributeOverride(name = "location", column = @Column(name = "excel_file_location")),
+            @AttributeOverride(name = "location", column = @Column(name = "excel_file_location", length = 2048)),
             @AttributeOverride(name = "filename", column = @Column(name = "excel_filename", length = 1024))
     })
     private Image excelFile;
@@ -48,7 +48,7 @@ public class MakersPaycheck {
     @Comment("PDF 파일")
     @AttributeOverrides({
             @AttributeOverride(name = "key", column = @Column(name = "pdf_s3_key", length = 1024)),
-            @AttributeOverride(name = "location", column = @Column(name = "pdf_file_location")),
+            @AttributeOverride(name = "location", column = @Column(name = "pdf_file_location", length = 2048)),
             @AttributeOverride(name = "filename", column = @Column(name = "pdf_filename", length = 1024))
     })
     private Image pdfFile;

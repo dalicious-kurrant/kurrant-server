@@ -9,6 +9,8 @@ import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.PaycheckService;
 import co.kurrant.app.makers_api.util.UserUtil;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,9 +21,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PaycheckServiceImpl implements PaycheckService {
-    private MakersPaycheckMapper makersPaycheckMapper;
-    private MakersPaycheckRepository makersPaycheckRepository;
-    private UserUtil userUtil;
+    private final MakersPaycheckMapper makersPaycheckMapper;
+    private final MakersPaycheckRepository makersPaycheckRepository;
+    private final UserUtil userUtil;
 
     @Override
     @Transactional
@@ -39,6 +41,9 @@ public class PaycheckServiceImpl implements PaycheckService {
         PaycheckStatus paycheckStatus = PaycheckStatus.ofCode(integer);
 
         for (MakersPaycheck makersPaycheck : makersPaychecks) {
+            if(!makersPaycheck.getMakers().equals(makers)) {
+                throw new ApiException(ExceptionEnum.NOT_MATCHED_MAKERS);
+            }
             makersPaycheck.updatePaycheckStatus(paycheckStatus);
         }
     }

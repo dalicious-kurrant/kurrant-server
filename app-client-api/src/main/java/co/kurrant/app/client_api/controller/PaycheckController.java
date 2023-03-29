@@ -16,9 +16,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/paycheck")
 public class PaycheckController {
-    private PaycheckService paycheckService;
+    private final PaycheckService paycheckService;
     @Operation(summary = "기업 정산 조회", description = "기업 정산 조회")
-    @GetMapping("/corporations")
+    @GetMapping("")
     public ResponseMessage getCorporationPaychecks(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
@@ -28,7 +28,7 @@ public class PaycheckController {
     }
 
     @Operation(summary = "기업 정산 상태 변경", description = "기업 정산 상태 변경")
-    @PutMapping("/corporations/status/{status}")
+    @PutMapping("/status/{status}")
     public ResponseMessage updateCorporationPaycheckStatus(Authentication authentication, @PathVariable Integer status, @RequestBody List<BigInteger> ids) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         paycheckService.updateCorporationPaycheckStatus(securityUser, status, ids);
