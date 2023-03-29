@@ -16,8 +16,8 @@ public class PointPolicyReqDto {
         private Integer pointCondition;
         private Integer completedConditionCount;
         private Integer accountCompletionLimit;
-        private BigDecimal rewardPoint;
-        private LocalDate eventStartDate;
-        private LocalDate eventEndDate;
+        private Integer rewardPoint;
+        private String eventStartDate;
+        private String eventEndDate;
     }
 }

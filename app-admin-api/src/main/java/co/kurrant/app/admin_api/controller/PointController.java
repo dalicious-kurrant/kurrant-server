@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
-import java.util.Map;
 
 @Tag(name = "Point")
 @RequiredArgsConstructor
@@ -17,7 +16,7 @@ import java.util.Map;
 @RestController
 public class PointController {
 
-    private PointService pointService;
+    private final PointService pointService;
 
     @Operation(summary = "포인트 정책 조회", description = "리뷰 포인트 정책을 조회합니다.")
     @GetMapping("/policy/review")
@@ -53,6 +52,15 @@ public class PointController {
         pointService.updateEventPointPolicy(policyId, requestDto);
         return ResponseMessage.builder()
                 .message("이벤트 포인트 정책 수정에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "포인트 정책 삭제", description = "이벤트 포인트 정책을 삭제합니다..")
+    @DeleteMapping("/policy/event")
+    public ResponseMessage deleteEventPointPolicy(@RequestParam BigInteger policyId) {
+        pointService.deleteEventPointPolicy(policyId);
+        return ResponseMessage.builder()
+                .message("이벤트 포인트 정책 삭제에 성공하였습니다.")
                 .build();
     }
 }

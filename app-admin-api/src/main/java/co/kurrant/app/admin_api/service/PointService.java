@@ -11,4 +11,5 @@ public interface PointService {
     List<PointPolicyResDto.EventPointPolicy> findEventPointPolicy();
     void createReviewPointPolicy(PointPolicyReqDto.EventPointPolicy reviewPointPolicy);
     void updateEventPointPolicy(BigInteger policyId, PointPolicyReqDto.EventPointPolicy reviewPointPolicy);
+    void deleteEventPointPolicy(BigInteger policyId);
 }

@@ -1,17 +1,19 @@
 package co.dalicious.domain.user.util;
 
 import co.dalicious.domain.user.dto.PointPolicyResDto;
+import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
-import co.dalicious.domain.user.entity.enums.PointCondition;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.domain.user.mapper.PointMapper;
+import co.dalicious.domain.user.repository.PointHistoryRepository;
+import co.dalicious.domain.user.repository.QPointHistoryRepository;
 import co.dalicious.domain.user.repository.QPointPolicyRepository;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,6 +23,8 @@ import java.util.stream.Collectors;
 public class PointUtil {
 
     private final QPointPolicyRepository qPointPolicyRepository;
+    private final QPointHistoryRepository qPointHistoryRepository;
+    private final PointHistoryRepository pointHistoryRepository;
     private final PointMapper pointMapper;
 
     public BigDecimal findReviewPoint(Boolean isReviewImage, BigDecimal itemPrice) {
@@ -45,7 +49,7 @@ public class PointUtil {
                 rewardPointForImage = rewardPointForImage.add(reviewPointPolicy.getImagePoint());
                 rewardPointForContent = rewardPointForContent.add(reviewPointPolicy.getContentPoint());
             }
-            else {
+            else if(min != null && max != null && min < price && max > price) {
                 rewardPointForImage = rewardPointForImage.add(reviewPointPolicy.getImagePoint());
                 rewardPointForContent = rewardPointForContent.add(reviewPointPolicy.getContentPoint());
             }
@@ -68,5 +72,32 @@ public class PointUtil {
         reviewPointPolicyList.add(ReviewPointPolicy.REVIEW_RANGE_4);
 
         return reviewPointPolicyList.stream().map(pointMapper::toReviewPointPolicyResponseDto).collect(Collectors.toList());
+    }
+
+    public void deletePointHistoryByPointPolicy(PointPolicy pointPolicy) {
+        // point 가 0 인 로그만 가져와서 다 지움
+        List<PointHistory> pointHistoryList = qPointHistoryRepository.findAllByPointPolicy(pointPolicy);
+        pointHistoryRepository.deleteAll(pointHistoryList);
+    }
+
+    public void createPointHistoryByPointPolicy(User user, PointPolicy pointPolicy, Map<String, BigInteger> ids) {
+        Integer completeCount = pointPolicy.getCompletedConditionCount();
+        Integer accountLimit = pointPolicy.getAccountCompletionLimit();
+
+        List<PointHistory> pointHistoryList = qPointHistoryRepository.findAllByUserAndPointPolicy(user, pointPolicy);
+        if(pointHistoryList.isEmpty()) {
+            PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, ids, 0);
+            pointHistoryRepository.save(pointHistory);
+            return;
+        }
+
+        List<PointHistory> rewardPointHistoryCount = pointHistoryList.stream().filter(pointHistory -> pointHistory.getPoint().equals(BigDecimal.valueOf(0))).toList();
+        PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, ids, rewardPointHistoryCount.size());
+
+        pointHistoryRepository.save(pointHistory);
+    }
+
+    public void createPointHistoryByReview(User user, BigInteger id, BigDecimal point) {
+        pointHistoryRepository.save(pointMapper.createPointHistoryForReview(user, id, point));
     }
 }

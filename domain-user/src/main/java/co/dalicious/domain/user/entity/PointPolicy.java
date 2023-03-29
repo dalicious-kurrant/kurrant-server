@@ -1,7 +1,9 @@
 package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.converter.PointConditionConverter;
+import co.dalicious.domain.user.dto.PointPolicyReqDto;
 import co.dalicious.domain.user.entity.enums.PointCondition;
+import co.dalicious.system.util.DateUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,7 +22,7 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "payment__point_policy")
+@Table(name = "user__point_policy")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PointPolicy {
 
@@ -79,5 +81,14 @@ public class PointPolicy {
         this.rewardPoint = rewardPoint;
         this.eventStartDate = eventStartDate;
         this.eventEndDate = eventEndDate;
+    }
+
+    public void updatePointPolicy(PointPolicyReqDto.EventPointPolicy eventPointPolicy) {
+        this.pointCondition = PointCondition.ofCode(eventPointPolicy.getPointCondition());
+        this.completedConditionCount = eventPointPolicy.getCompletedConditionCount();
+        this.accountCompletionLimit = eventPointPolicy.getAccountCompletionLimit();
+        this.rewardPoint = BigDecimal.valueOf(eventPointPolicy.getRewardPoint());
+        this.eventStartDate = eventPointPolicy.getEventStartDate() == null ? null : DateUtils.stringToDate(eventPointPolicy.getEventStartDate());
+        this.eventEndDate = eventPointPolicy.getEventEndDate() == null ? null : DateUtils.stringToDate(eventPointPolicy.getEventEndDate());
     }
 }

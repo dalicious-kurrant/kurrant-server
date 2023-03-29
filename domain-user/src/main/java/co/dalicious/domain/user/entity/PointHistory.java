@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 
 @Getter
 @Entity
-@Table(name = "payment__point_history")
+@Table(name = "user__point_history")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PointHistory {
 
@@ -34,7 +34,7 @@ public class PointHistory {
     @Comment("포인트 적립 조건")
     private PointCondition pointCondition;
 
-    @Column(name = "pint")
+    @Column(name = "point")
     @Comment("적립 포인트")
     private BigDecimal point;
 
@@ -52,9 +52,13 @@ public class PointHistory {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
-    @JsonManagedReference(value = "point_policy_fk")
-    @Comment("포인트 정책 FK")
-    private PointPolicy pointPolicy;
+    @JsonManagedReference(value = "user_fk")
+    @Comment("사용자 FK")
+    private User user;
+
+    @Column(name = "point_policy_id")
+    @Comment("포인트 정책 PK")
+    private BigInteger pointPolicyId;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -71,13 +75,14 @@ public class PointHistory {
     private Timestamp updatedDateTime;
 
     @Builder
-    public PointHistory(BigInteger id, PointCondition pointCondition, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, PointPolicy pointPolicy) {
+    public PointHistory(BigInteger id, PointCondition pointCondition, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, User user, BigInteger pointPolicyId) {
         this.id = id;
         this.pointCondition = pointCondition;
         this.point = point;
         this.reviewId = reviewId;
         this.orderId = orderId;
         this.boardId = boardId;
-        this.pointPolicy = pointPolicy;
+        this.user = user;
+        this.pointPolicyId = pointPolicyId;
     }
 }

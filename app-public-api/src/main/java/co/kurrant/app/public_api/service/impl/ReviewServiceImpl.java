@@ -106,6 +106,7 @@ public class ReviewServiceImpl implements ReviewService {
             //음식 수량 많큼 포인트 지급
             BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice()).multiply(BigDecimal.valueOf(count));
             qUserRepository.updateUserPoint(user.getId(), rewardPoint);
+            if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByReview(user, reviews.getId(), rewardPoint);
         }
     }
 

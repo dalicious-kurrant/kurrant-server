@@ -8,7 +8,11 @@ import java.util.Arrays;
 
 @Getter
 public enum PointCondition {
-    /* event */;
+    /* event - user */
+    USER_ATTENDANCE("출석 체크", 1),
+
+    /* event - order */
+    ORDER_FIRST_ORDER("첫구매 이벤트",101);
 
     private final String condition;
     private final Integer code;
