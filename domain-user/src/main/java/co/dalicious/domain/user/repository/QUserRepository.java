@@ -108,15 +108,7 @@ public class QUserRepository {
                 .fetch();
     }
     
-    public void updateUserPoint(BigInteger userId, BigDecimal imagePoint, BigDecimal contentPoint) {
-        BigDecimal point = BigDecimal.ZERO;
-        if(imagePoint != null) {
-            point = point.add(imagePoint);
-        }
-        if(contentPoint != null) {
-            point = point.add(contentPoint);
-        }
-
+    public void updateUserPoint(BigInteger userId, BigDecimal point) {
         queryFactory.update(user)
                 .where(user.id.eq(userId))
                 .set(user.point, user.point.add(point))
