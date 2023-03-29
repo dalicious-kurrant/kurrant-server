@@ -47,6 +47,7 @@ public enum ExceptionEnum {
 	EXCEL_EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "E4000100", "중복된 이메일 입력이 존재합니다."),
 	EXCEL_INTEGRITY_ERROR(HttpStatus.BAD_REQUEST, "E4000101", "정합성에 위반된 데이터가 존재합니다. 올바른 데이터를 입력해주세요."),
 	CONNECTION_ERROR(HttpStatus.BAD_REQUEST, "E4000102", "연결 오류!!!"),
+	EVENT_END_DATE_IS_OVER(HttpStatus.BAD_REQUEST, "E4000103", "이미 끝난 이벤트입니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),

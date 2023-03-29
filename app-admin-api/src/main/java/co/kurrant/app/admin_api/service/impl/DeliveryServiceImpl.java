@@ -195,8 +195,6 @@ public class DeliveryServiceImpl implements DeliveryService {
                 deliveryGroupList.add(deliveryGroup);
             }
 
-            deliveryGroupList = deliveryGroupList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryGroup::getSpotId)).toList();
-
             // delivery info 만들기
             DeliveryDto.DeliveryInfo deliveryInfo = deliveryMapper.toDeliveryInfo(serviceDate, deliveryGroupList);
             deliveryInfoList.add(deliveryInfo);
