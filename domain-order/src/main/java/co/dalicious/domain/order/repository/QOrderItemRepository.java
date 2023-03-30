@@ -37,13 +37,15 @@ public class QOrderItemRepository {
                 .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
                 .where(orderItem.orderStatus.eq(orderStatus),
                         orderItem.order.user.eq(user),
-                        orderItemDailyFood.dailyFood.serviceDate.before(today))
+                        orderItemDailyFood.dailyFood.serviceDate.before(today).or(orderItemDailyFood.dailyFood.serviceDate.eq(today)))
                 .fetch();
     }
 
     public OrderItem findByUserAndOrderId(User user, BigInteger orderItemId) {
         return queryFactory.selectFrom(orderItem)
-                .where(orderItem.id.eq(orderItemId), orderItem.order.user.eq(user), orderItem.orderStatus.eq(OrderStatus.RECEIPT_COMPLETE))
+                .where(orderItem.id.eq(orderItemId),
+                        orderItem.order.user.eq(user),
+                        orderItem.orderStatus.eq(OrderStatus.RECEIPT_COMPLETE))
                 .fetchOne();
     }
 }

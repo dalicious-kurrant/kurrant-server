@@ -58,21 +58,12 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
 
-        List<OrderDailyFood> orderList = new ArrayList<>();
+        MultiValueMap<Spot, OrderItemDailyFood> spotOrderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
         for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             Order order = (Order) Hibernate.unproxy(orderItemDailyFood.getOrder());
             if(order instanceof OrderDailyFood orderDailyFood) {
-                orderList.add(orderDailyFood);
-            }
-        }
-
-        MultiValueMap<Spot, OrderItemDailyFood> spotOrderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
-        for(OrderDailyFood orderDailyFood : orderList) {
-            for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-                if(orderItemDailyFood.getOrder().getId().equals(orderDailyFood.getId())) {
-                    Spot spot = orderDailyFood.getSpot();
-                    spotOrderItemDailyFoodMultiValueMap.add(spot, orderItemDailyFood);
-                }
+                Spot spot = orderDailyFood.getSpot();
+                spotOrderItemDailyFoodMultiValueMap.add(spot, orderItemDailyFood);
             }
         }
 

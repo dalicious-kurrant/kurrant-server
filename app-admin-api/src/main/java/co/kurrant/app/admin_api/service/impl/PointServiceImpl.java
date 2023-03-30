@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.domain.user.dto.PointPolicyReqDto;
 import co.dalicious.domain.user.dto.PointPolicyResDto;
 import co.dalicious.domain.user.entity.PointPolicy;
+import co.dalicious.domain.user.entity.enums.PointCondition;
 import co.dalicious.domain.user.mapper.PointMapper;
 import co.dalicious.domain.user.repository.PointPolicyRepository;
 import co.dalicious.domain.user.repository.QPointPolicyRepository;
@@ -35,14 +36,20 @@ public class PointServiceImpl implements PointService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PointPolicyResDto.EventPointPolicy> findEventPointPolicy() {
+    public PointPolicyResDto findEventPointPolicy() {
         List<PointPolicy> pointPolicyList = pointPolicyRepository.findAll();
+        List<PointCondition> pointConditionList = List.of(PointCondition.class.getEnumConstants());
+
         List<PointPolicyResDto.EventPointPolicy> eventPointPolicyList = new ArrayList<>();
-        if(pointPolicyList.isEmpty()) return eventPointPolicyList;
+        List<PointPolicyResDto.PointConditionSelectBox> pointConditionSelectBoxList = new ArrayList<>();
+        if(pointPolicyList.isEmpty() && pointConditionList.isEmpty()) return PointPolicyResDto.create(eventPointPolicyList, pointConditionSelectBoxList);
+
+        pointConditionSelectBoxList = pointConditionList.stream().map(PointPolicyResDto.PointConditionSelectBox::create).toList();
+        if(pointPolicyList.isEmpty()) return PointPolicyResDto.create(eventPointPolicyList, pointConditionSelectBoxList);
 
         eventPointPolicyList = pointPolicyList.stream().map(pointMapper::toEventPointPolicyResponseDto).collect(Collectors.toList());
 
-        return eventPointPolicyList;
+        return PointPolicyResDto.create(eventPointPolicyList, pointConditionSelectBoxList);
     }
 
     @Override
