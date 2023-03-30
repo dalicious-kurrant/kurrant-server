@@ -10,6 +10,7 @@ import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.dto.PresetScheduleResponseDto;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
+import co.dalicious.domain.food.entity.enums.FoodStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
 import co.dalicious.domain.food.mapper.PresetDailyFoodMapper;
 import co.dalicious.domain.food.repository.*;
@@ -207,9 +208,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Transactional(readOnly = true)
-    public ItemPageableResponseDto<ScheduleResponseDto> getRecommendPresetSchedule(String startDate, String endDate, OffsetBasedPageRequest pageable, Integer size, Integer page) {
+    public ItemPageableResponseDto<ScheduleResponseDto> getRecommendPresetSchedule(String startDate, String endDate, OffsetBasedPageRequest pageable, Integer limit, Integer page) {
         // start date 기준으로 2주 추천 테이블에서 데이터 가져오기
-        Page<GroupRecommends> recommendsList = qGroupRecommendRepository.getRecommendPresetSchedule(pageable, size, page, startDate, endDate);
+        Page<GroupRecommends> recommendsList = qGroupRecommendRepository.getRecommendPresetSchedule(pageable, limit, page, startDate, endDate);
         Set<BigInteger> makersIdList = new HashSet<>();
         Set<BigInteger> groupIdList = new HashSet<>();
         for(GroupRecommends recommends : recommendsList) {
@@ -218,6 +219,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
         List<Makers> makersList = qMakersRepository.findMakersListById(makersIdList);
         List<Group> groupsList = qGroupRepository.findAllByIds(groupIdList);
+        List<Food> foodList = qFoodRepository.findByMakers(makersList);
 
         MultiValueMap<RecommendScheduleDto, BigInteger> groupingByMakers = new LinkedMultiValueMap<>();
         // 서비스 날, 다이닝 타입, 메이커스로 묶기
@@ -234,7 +236,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                     () -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)
             );
             // 메이커스 푸드 가져오기
-            List<Food> foodList = qFoodRepository.findByMakersAndFoodStatus(makers);
+            List<Food> foodListByMakers = foodList.stream().filter(food -> food.getMakers().equals(makers) && food.getFoodStatus().equals(FoodStatus.SALES)).toList();
+            if(foodListByMakers.isEmpty()) continue;
             // 그룹 찾기
             List<BigInteger> groupingGroupIdList = groupingByMakers.get(recommendScheduleDto);
             // preset group schedule dto 과 preset food schedule dto 만들기
@@ -244,10 +247,11 @@ public class ScheduleServiceImpl implements ScheduleService {
 
                     //preset food schedule dto 만들기
                     List<PresetScheduleResponseDto.foodSchedule> foodScheduleList = new ArrayList<>();
-                    for(Food food : foodList) {
+                    for(Food food : foodListByMakers) {
                         PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.recommendToFoodScheduleDto(food,recommendScheduleDto);
                         foodScheduleList.add(foodSchedule);
                     }
+
 
                     // group id로 group 찾길
                     Group group = groupsList.stream().filter(match -> match.getId().equals(groupId)).findFirst().orElseThrow(

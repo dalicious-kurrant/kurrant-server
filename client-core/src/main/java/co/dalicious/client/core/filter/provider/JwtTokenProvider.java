@@ -1,5 +1,6 @@
 package co.dalicious.client.core.filter.provider;
 
+import java.math.BigInteger;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
@@ -7,8 +8,10 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
-import co.dalicious.data.redis.entity.RefreshTokenHash;
-import co.dalicious.data.redis.repository.RefreshTokenRepository;
+import co.dalicious.client.core.entity.RefreshToken;
+import co.dalicious.client.core.repository.RefreshTokenRepository;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -28,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @PropertySource("classpath:application-jwt.properties")
 public class JwtTokenProvider {
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private Key key;
 
@@ -35,9 +39,9 @@ public class JwtTokenProvider {
     private String secretKey;
 
     private final UserDetailsService userDetailsService;
-    private final RefreshTokenRepository refreshTokenRepository;
 
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 2 * 60 * 60 * 1000L; // 2시간
+//    private static final long ACCESS_TOKEN_EXPIRE_TIME = 3 * 60 * 1000L; // 5초
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
 
     @PostConstruct
@@ -67,8 +71,8 @@ public class JwtTokenProvider {
                 .compact();
 
         // Refresh Token 저장
-        RefreshTokenHash refreshTokenHash = RefreshTokenHash.builder()
-                .userId(userPk)
+        RefreshToken refreshTokenHash = RefreshToken.builder()
+                .userId(BigInteger.valueOf(Integer.parseInt(userPk)))
                 .refreshToken(refreshToken)
                 .build();
         refreshTokenRepository.save(refreshTokenHash);
@@ -118,6 +122,24 @@ public class JwtTokenProvider {
             return false;
         }
         return false;
+    }
+
+    public boolean validateAccessToken(String jwtToken) {
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken);
+            return !claims.getBody().getExpiration().before(new Date());
+        } catch (Exception e) {
+            throw new ApiException(ExceptionEnum.ACCESS_TOKEN_ERROR);
+        }
+    }
+
+    public boolean validateRefreshToken(String jwtToken) {
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken);
+            return !claims.getBody().getExpiration().before(new Date());
+        } catch (Exception e) {
+            throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
+        }
     }
 
     // Token의 유효시간 가져오기

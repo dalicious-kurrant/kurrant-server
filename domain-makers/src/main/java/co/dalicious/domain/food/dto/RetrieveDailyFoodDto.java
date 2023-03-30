@@ -15,14 +15,15 @@ import java.util.List;
 public class RetrieveDailyFoodDto {
     List<Integer> diningTypes;
     SupportPrice supportPrice;
-
+    ServiceDays serviceDays;
     List<DailyFoodDto> dailyFoodDtos;
 
     @Builder
-    public RetrieveDailyFoodDto(List<Integer> diningTypes, List<DailyFoodDto> dailyFoodDtos, SupportPrice supportPrice) {
+    public RetrieveDailyFoodDto(List<Integer> diningTypes, List<DailyFoodDto> dailyFoodDtos, SupportPrice supportPrice, ServiceDays serviceDays) {
         this.diningTypes = diningTypes;
         this.supportPrice = supportPrice;
         this.dailyFoodDtos = dailyFoodDtos;
+        this.serviceDays = serviceDays;
     }
 
     @Getter
@@ -75,5 +76,13 @@ public class RetrieveDailyFoodDto {
             }
             this.dinnerSupportPrice = formattedPrice;
         }
+    }
+
+    @Getter
+    @Setter
+    public static class ServiceDays {
+        private List<String> morningServiceDays;
+        private List<String> lunchServiceDays;
+        private List<String> dinnerServiceDays;
     }
 }

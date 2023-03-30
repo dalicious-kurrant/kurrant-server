@@ -34,21 +34,16 @@ public interface DeliveryMapper {
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(source = "spot.name", target = "spotName")
     @Mapping(source = "spot.id", target = "spotId")
-    @Mapping(source = "spot.address", target = "address")
+    @Mapping(source = "spot.address", target = "address", qualifiedByName = "getAddress")
     @Mapping(source = "deliveryMakersList", target = "makers")
     DeliveryDto.DeliveryGroup toDeliveryGroup(Spot spot, Integer diningType, LocalTime deliveryTime, List<DeliveryDto.DeliveryMakers> deliveryMakersList);
 
+    @Named("getAddress")
     default String getAddress(Address address) {
         if(address == null) return null;
         StringBuilder addressBuider = new StringBuilder();
         addressBuider.append(address.getAddress1()).append(", ").append(address.getAddress2());
         return String.valueOf(addressBuider);
-    }
-
-    @Named("getDeliveryTime")
-    default LocalTime getDeliveryTime(List<MealInfo> mealInfos) {
-        if(mealInfos.isEmpty()) return null;
-        return mealInfos.stream().map(MealInfo::getDeliveryTime).min(LocalTime::compareTo).orElse(null);
     }
 
     @Mapping(source = "dailyFood.food.name", target = "foodName")
@@ -60,6 +55,7 @@ public interface DeliveryMapper {
     @Mapping(source = "makers.name", target = "makersName")
     @Mapping(source = "pickupTime", target = "pickupTime")
     @Mapping(source = "deliveryFoodList", target = "foods")
+    @Mapping(source = "makers.address", target = "address", qualifiedByName = "getAddress")
     DeliveryDto.DeliveryMakers toDeliveryMakers(Makers makers, List<DeliveryDto.DeliveryFood> deliveryFoodList, LocalTime pickupTime);
 
 }

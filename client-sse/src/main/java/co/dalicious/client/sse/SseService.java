@@ -5,24 +5,25 @@ import co.dalicious.data.redis.repository.NotificationHashRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.yaml.snakeyaml.emitter.Emitter;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class SseService {
 
-    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
+    private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 30;
     private final EmitterRepository emitterRepository;
     private final NotificationHashRepository notificationHashRepository;
 
@@ -39,7 +40,6 @@ public class SseService {
 
         // 503 에러를 방지하기 위한 더미 이벤트 전송. 연결 중 한 번도 이벤트를 보낸 적이 없다면 다음 연결 때 503에러를 낸다.
         sendToClient(emitter, id, "EventStream Created. [userId=" + userId + "]");
-
 
         // 클라이언트가 미수신한 Event 목록이 존재할 경우 전송하여 Event 유실을 예방
         if (!lastEventId.isEmpty()) {
@@ -58,10 +58,10 @@ public class SseService {
         NotificationHash notification = createNotification(receiver, type, content, today);
         String id = String.valueOf(receiver);
 
-        notificationHashRepository.save(notification);
-
         // 로그인 한 유저의 SseEmitter 모두 가져오기
         Map<String, SseEmitter> sseEmitters = emitterRepository.findAllStartWithById(id);
+        if(sseEmitters.isEmpty()) return;
+        System.out.println("sseEmitters = " + sseEmitters);
         sseEmitters.forEach(
                 (key, emitter) -> {
                     // 데이터 캐시 저장(유실된 데이터 처리하기 위함)
@@ -70,6 +70,7 @@ public class SseService {
                     sendToClient(emitter, key, notification);
                 }
         );
+        notificationHashRepository.save(notification);
     }
 
     //notification 생성
@@ -91,27 +92,25 @@ public class SseService {
                     .name("message")
                     .data(data));
         } catch (IOException exception) {
-            emitterRepository.deleteById(id);
-            throw new RuntimeException("연결 오류!");
+            emitterRepository.deleteAllEmitterStartWithId(id);
+            throw new ApiException(ExceptionEnum.CONNECTION_ERROR);
         }
     }
 
     @Transactional
-    public Boolean readNotification(BigInteger userId, Integer type) {
+    public void readNotification(BigInteger userId, Integer type) {
         List<NotificationHash> notificationList =
                 notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
 
         //읽을 알림이 있는지 확인
-        if(notificationList.size() == 0) { throw new ApiException(ExceptionEnum.ALREADY_READ); }
+        if(notificationList.size() == 0) { log.info("읽을 알림이 없습니다."); }
 
         // 알림 읽기
         for(NotificationHash noty : notificationList) {
             noty.updateRead(true);
             notificationHashRepository.save(noty);
         }
-
-        //알림을 읽음
-        return true;
+        log.info("알림 읽기 성공");
     }
 
     @Transactional(readOnly = true)

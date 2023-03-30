@@ -28,4 +28,11 @@ public enum Days {
                 .findAny()
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 요일입니다."));
     }
+
+    public static Days ofString(String dbData) {
+        return Arrays.stream(Days.values())
+                .filter(v -> v.getDays().equals(dbData))
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 요일입니다."));
+    }
 }

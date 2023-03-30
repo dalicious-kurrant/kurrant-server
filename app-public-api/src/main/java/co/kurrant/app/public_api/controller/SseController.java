@@ -27,14 +27,13 @@ public class SseController {
     @GetMapping(value = "/v1/notification/subscribe", produces = "text/event-stream")
     public SseEmitter subscribe(Authentication authentication,
                                      @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
-        System.out.println("authentication = " + authentication);
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);
         return sseService.subscribe(userId, lastEventId);
     }
 
     @Description(value = "sse 알림 조회")
-    @GetMapping("/v1/notification/read")
+    @GetMapping("/v1/notification")
     public ResponseMessage getAllNotification(Authentication authentication, @RequestParam Integer type) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);
@@ -46,11 +45,9 @@ public class SseController {
 
     @Description(value = "sse 알림 읽기(읽은 알림 삭제)")
     @PutMapping("/v1/notification/read")
-    public ResponseMessage readNotification(Authentication authentication, @RequestParam Integer type) {
+    public void readNotification(Authentication authentication, @RequestParam Integer type) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);
-        return ResponseMessage.builder()
-                .data(sseService.readNotification(userId, type))
-                .message("알림을 읽으셨습니다.").build();
+        sseService.readNotification(userId, type);
     }
 }

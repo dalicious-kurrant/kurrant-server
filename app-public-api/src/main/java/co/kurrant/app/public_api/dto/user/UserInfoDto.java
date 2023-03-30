@@ -23,7 +23,7 @@ public class UserInfoDto {
     @Builder
     public UserInfoDto(User user, Integer membershipPeriod, Integer dailyMealCount) {
         this.gourmetType = user.getGourmetType().getGourmetType();
-        this.avatar = user.getAvatar().getLocation();
+        this.avatar = (user.getAvatar() == null) ? null : user.getAvatar().getLocation();
         this.name = user.getName();
         this.isMembership = user.getIsMembership();
         this.point = user.getPoint();

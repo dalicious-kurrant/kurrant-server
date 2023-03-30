@@ -9,7 +9,9 @@ import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.parser.ParseException;
+import org.springframework.security.core.Authentication;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -42,8 +44,6 @@ public interface UserService {
     UserPersonalInfoDto getPersonalUserInfo(SecurityUser securityUser);
     // 오픈스팟 그룹 설정
     void settingGroup(SecurityUser securityUser, BigInteger groupId);
-    // 멤버십 구독 정보를 가져온다.
-    List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo();
     // 유저가 속한 그룹 정보 리스트
     List<SpotListResponseDto> getClients(SecurityUser securityUser);
 
@@ -57,4 +57,11 @@ public interface UserService {
     void changeName(SecurityUser securityUser, ChangeNameDto changeNameDto);
     void withdrawal(SecurityUser securityUser);
     void withdrawalCancel(SecurityUser securityUser);
+    LoginResponseDto autoLogin(HttpServletRequest httpServletRequest);
+
+    void saveToken(FcmTokenSaveReqDto fcmTokenSaveReqDto, SecurityUser securityUser);
+
+    String savePaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto);
+
+    String checkPaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto);
 }

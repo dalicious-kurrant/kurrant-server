@@ -30,7 +30,7 @@ public class ReviewController {
     @PostMapping("")
     public ResponseMessage createReview(Authentication authentication,
                                         @RequestPart(required = false) List<MultipartFile> fileList,
-                                       @Valid @RequestPart ReviewReqDto reviewDto) throws IOException {
+                                        @RequestPart ReviewReqDto reviewDto) throws IOException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         reviewService.createReview(securityUser, reviewDto, fileList);
         return ResponseMessage.builder()

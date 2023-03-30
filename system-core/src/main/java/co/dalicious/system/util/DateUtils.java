@@ -6,8 +6,10 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
+import java.time.format.TextStyle;
+import java.util.*;
 
 public class DateUtils {
     public static String toISO(Date date) {
@@ -97,5 +99,29 @@ public class DateUtils {
     public static LocalTime stringToLocalTime(String time) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
         return (time == null) ? null : LocalTime.parse(time.trim(), formatter);
+    }
+
+    public static Map<String, LocalDate> getWeekOfDay(LocalDate today) {
+        Map<String, LocalDate> weekOfDay = new HashMap<>();
+        String dayOfWeek = today.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA);
+        LocalDate startDate = switch (dayOfWeek) {
+            case "화" -> today.minusDays(1);
+            case "수" -> today.minusDays(2);
+            case "목" -> today.minusDays(3);
+            case "금" -> today.minusDays(4);
+            case "토" -> today.minusDays(5);
+            case "일" -> today.minusDays(6);
+            default -> today;
+        };
+        LocalDate endDate = startDate.plusDays(7);
+
+        weekOfDay.put("startDate", startDate);
+        weekOfDay.put("endDate", endDate);
+
+        return weekOfDay;
+    }
+
+    public static YearMonth toYearMonth(Integer year, Integer month) {
+        return YearMonth.of(year, month);
     }
 }

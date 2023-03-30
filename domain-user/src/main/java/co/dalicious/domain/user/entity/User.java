@@ -135,6 +135,10 @@ public class User {
             columnDefinition = "VARCHAR(16)")
     private String phone;
 
+    @Comment("FCM 토큰")
+    @Column(name = "firebase_token", columnDefinition = "VARCHAR(255)")
+    private String firebaseToken;
+
     @Column(name = "is_membership", columnDefinition = "BIT(1) DEFAULT 0")
     @ColumnDefault("false")
     private Boolean isMembership;
@@ -147,6 +151,11 @@ public class User {
     @JsonBackReference(value = "user_fk")
     @Comment("스팟 기업 정보")
     private List<UserGroup> groups;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Comment("결제 비밀번호")
+    @Column(name="payment_password", columnDefinition = "VARCHAR(255)")
+    private String paymentPassword;
 
     @Builder
     public User(BigInteger id, String password, String name, Role role, String email, String phone) {
@@ -309,6 +318,43 @@ public class User {
                 .map(ProviderEmail::getEmail)
                 .findFirst()
                 .orElse(null);
+    }
+
+    public void withdrawUser() {
+        // 이메일 개인정보 수정
+        if (this.email != null && email.contains("@") && email.indexOf("@") >= 2) {
+            // extract the email prefix and domain
+            String prefix = this.email.substring(0, 2);
+            String domain = this.email.substring(this.email.indexOf("@"));
+            // replace the prefix with asterisks
+            String maskedPrefix = prefix.replaceAll(".", "*");
+            // set the modified email address
+            this.email = prefix + maskedPrefix + domain;
+        } else {
+            this.email = email; // use the original email if it doesn't meet the criteria
+        }
+
+        if (this.phone != null && this.phone.length() >= 11) {
+            this.phone = this.phone.substring(0, 7) + "****";
+        }
+
+        // 이름 개인정보 수정
+        if(this.name != null || !this.name.equals("이름없음")) {
+            String prefix = this.name.substring(0, 1);
+            int length = this.name.substring(1).length();
+            String maskedPrefix = "*".repeat(length);
+
+            this.name = prefix + maskedPrefix;
+        }
+
+
+        this.userStatus = UserStatus.INACTIVE;
+        this.password = null;
+        this.marketingAlarm = false;
+        this.marketingAgree = false;
+        this.orderAlarm = false;
+        this.point = BigDecimal.ZERO;
+        this.isMembership = false;
     }
 
     @Override

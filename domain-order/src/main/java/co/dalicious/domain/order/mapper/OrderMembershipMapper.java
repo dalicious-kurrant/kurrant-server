@@ -47,14 +47,22 @@ public interface OrderMembershipMapper {
     @Mapping(source = "membership.membershipSubscriptionType.membershipSubscriptionType", target = "membershipSubscriptionType")
     @Mapping(source = "membership.membershipSubscriptionType.price", target = "price")
     @Mapping(target = "discountPrice", expression = "java(order.getDiscountPrice())")
-    @Mapping(target = "periodDiscountedRate", constant = "0")
+    @Mapping(target = "orderStatus", constant = "COMPLETED")
     OrderItemMembership toOrderItemMembership(Order order, Membership membership);
 
-    // TODO: 기간 할인시, 변경 필요
-    @Mapping(target = "discountType", constant = "YEAR_DESCRIPTION_DISCOUNT")
-    @Mapping(source = "membership.membershipSubscriptionType.discountRate", target = "discountRate")
     @Mapping(source = "membership", target = "membership")
-    MembershipDiscountPolicy toMembershipDiscountPolicy(Membership membership, DiscountType discountType);
+    @Mapping(source = "membership.membershipSubscriptionType.membershipSubscriptionType", target = "membershipSubscriptionType")
+    @Mapping(source = "membership.membershipSubscriptionType.price", target = "price")
+    @Mapping(target = "discountPrice", expression = "java(order.getDiscountPrice())")
+    @Mapping(source = "periodDiscountedRate", target = "periodDiscountedRate")
+    @Mapping(target = "orderStatus", constant = "COMPLETED")
+    OrderItemMembership toOrderItemMembership(Order order, Membership membership, Integer periodDiscountedRate);
+
+    // TODO: 기간 할인시, 변경 필요
+    @Mapping(source = "discountType", target = "discountType")
+    @Mapping(source = "membership", target = "membership")
+    @Mapping(source = "discountRate", target = "discountRate")
+    MembershipDiscountPolicy toMembershipDiscountPolicy(Membership membership, DiscountType discountType, Integer discountRate);
 
     @Mapping(source = "user", target = "user")
     @Mapping(source = "group", target = "group")

@@ -38,6 +38,7 @@ public class OrderDto {
         private String groupName;
         private String spotName;
         private String userName;
+        private String userEmail;
         private String phone;
         private String diningType;
         private String deliveryTime;
@@ -47,6 +48,7 @@ public class OrderDto {
         private BigDecimal price;
         private String orderCode;
         private String orderStatus;
+        private String orderDateTime;
     }
 
     @Getter

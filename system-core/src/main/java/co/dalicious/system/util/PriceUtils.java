@@ -2,7 +2,6 @@ package co.dalicious.system.util;
 
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.RoundingMode;
 
 public class PriceUtils {
@@ -15,6 +14,18 @@ public class PriceUtils {
     public static BigDecimal floorToOneDigit(BigDecimal bigDecimal) {
         int integer = bigDecimal.intValue();
         integer = integer / 10 * 10;
+        return BigDecimal.valueOf(integer);
+    }
+
+    public static BigDecimal roundToTenDigit(BigDecimal bigDecimal) {
+        int integer = bigDecimal.intValue();
+        integer = (integer + 50) / 100 * 100;
+        return BigDecimal.valueOf(integer);
+    }
+
+    public static BigDecimal floorToTenDigit(BigDecimal bigDecimal) {
+        int integer = bigDecimal.intValue();
+        integer = integer / 100 * 100;
         return BigDecimal.valueOf(integer);
     }
 

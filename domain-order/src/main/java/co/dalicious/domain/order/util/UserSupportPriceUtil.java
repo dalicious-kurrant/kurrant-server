@@ -8,6 +8,7 @@ import co.dalicious.domain.order.entity.UserSupportPriceHistory;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.PriceUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class UserSupportPriceUtil {
     }
 
     public static BigDecimal getUsedSupportPrice(Spot spot, List<UserSupportPriceHistory> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
+        // TODO: 정기식사 결제 상품만 계산
         BigDecimal usedSupportPrice = BigDecimal.ZERO;
         for (UserSupportPriceHistory userSupportPriceHistory : userSupportPriceHistories) {
             if (userSupportPriceHistory.getGroup().equals(spot.getGroup()) && userSupportPriceHistory.getServiceDate().equals(serviceDate) && userSupportPriceHistory.getDiningType().equals(diningType)) {
@@ -49,6 +51,7 @@ public class UserSupportPriceUtil {
                 usedSupportPrice = usedSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
             }
         }
+        // 추후 수정
         return usedSupportPrice;
     }
 

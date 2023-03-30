@@ -1,15 +1,13 @@
 package co.dalicious.domain.review.mapper;
 
 import co.dalicious.domain.file.entity.embeddable.Image;
-import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.review.dto.ReviewAdminResDto;
-import co.dalicious.domain.review.dto.ReviewListDto;
-import co.dalicious.domain.review.dto.ReviewReqDto;
-import co.dalicious.domain.review.dto.ReviewableItemListDto;
+import co.dalicious.domain.review.dto.*;
+import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.Comments;
+import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
@@ -19,11 +17,15 @@ import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.springframework.util.MultiValueMap;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = DateUtils.class)
+@Mapper(componentModel = "spring", imports = {DateUtils.class, Math.class})
 public interface ReviewMapper {
 
     @Mapping(source = "imageList", target = "images")
@@ -36,14 +38,13 @@ public interface ReviewMapper {
 
     @Mapping(source = "orderItemDailyFood.id", target = "orderItemId")
     @Mapping(source = "orderItemDailyFood.dailyFood.diningType.diningType", target = "diningType")
-    @Mapping(source = "orderItemDailyFood.dailyFood.serviceDate", target = "serviceDate")
-    @Mapping(target = "imageLocation", expression = "java(orderItemDailyFood.getDailyFood().getFood().getImages() == null || orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty() ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")
+    @Mapping(source = "orderItemDailyFood.dailyFood.food.images", target = "imageLocation", qualifiedByName = "getLocation")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.makers.name", target = "makersName")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.name", target = "foodName")
     ReviewableItemListDto toDailyFoodResDto(OrderItemDailyFood orderItemDailyFood, long reviewDDAy);
 
     @Mapping(source = "reviews.id", target = "reviewId")
-    @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocation")
+    @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocations")
     @Mapping(source = "reviews.content", target = "content")
     @Mapping(source = "reviews.satisfaction", target = "satisfaction")
     @Mapping(source = "reviews.createdDateTime", target = "createDate")
@@ -51,10 +52,150 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.forMakers", target = "forMakers")
     @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
     @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
+    @Mapping(source = "reviews.comments", target = "makersComment", qualifiedByName = "setMakersComment")
+    @Mapping(source = "reviews.comments", target = "adminComment", qualifiedByName = "setAdminComment")
     ReviewListDto toReviewListDto(Reviews reviews);
 
-    @Named("getImagesLocation")
-    default List<String>  getImagesLocation(List<Image> imageList) {
+    @Named("setMakersComment")
+    default ReviewListDto.MakersComment setMakersComment(List<Comments> commentsList) {
+        ReviewListDto.MakersComment makersComment = new ReviewListDto.MakersComment();
+
+        if(commentsList.isEmpty()) return null;
+        for(Comments comments : commentsList) {
+            if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
+                makersComment.setContent(makersComments.getContent());
+                makersComment.setCreateDate(DateUtils.toISOLocalDate(makersComments.getCreatedDateTime()));
+                makersComment.setUpdateDate(DateUtils.toISOLocalDate(makersComments.getUpdatedDateTime()));
+            }
+        }
+        return makersComment;
+    }
+    @Named("setAdminComment")
+    default ReviewListDto.AdminComment setAdminComment(List<Comments> commentsList) {
+        ReviewListDto.AdminComment adminComment = new ReviewListDto.AdminComment();
+
+        if(commentsList.isEmpty()) return null;
+        for(Comments comments : commentsList) {
+            if(comments instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
+                adminComment.setContent(adminComments.getContent());
+                adminComment.setCreateDate(DateUtils.toISOLocalDate(adminComments.getCreatedDateTime()));
+                adminComment.setUpdateDate(DateUtils.toISOLocalDate(adminComments.getUpdatedDateTime()));
+            }
+        }
+        return adminComment;
+    }
+
+    @Mapping(source = "reviews.id", target = "reviewId")
+    @Mapping(source = "reviews.orderItem", target = "serviceDate", qualifiedByName = "getServiceDate")
+    @Mapping(source = "reviews.orderItem.id", target = "orderItemId")
+    @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
+    @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
+    @Mapping(source = "reviews.satisfaction", target = "satisfaction")
+    @Mapping(target = "createdDate", expression = "java(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()))")
+    @Mapping(source = "reviews.content", target = "content")
+    @Mapping(target = "isReport", expression = "java(reviews.getIsReports() == null || !reviews.getIsReports() ? false : true)")
+    ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
+
+    default ReviewAdminResDto.ReviewDetail toReviewDetails(Reviews reviews) {
+        ReviewAdminResDto.ReviewDetail reviewDetail = new ReviewAdminResDto.ReviewDetail();
+
+        reviewDetail.setReviewId(reviews.getId());
+        reviewDetail.setImageLocations(getImagesLocations(reviews.getImages()));
+        reviewDetail.setContent(reviews.getContent());
+        reviewDetail.setSatisfaction(reviews.getSatisfaction());
+        reviewDetail.setContentOrigin(reviews.getContentOrigin());
+        reviewDetail.setSatisfactionOrigin(reviews.getSatisfactionOrigin());
+        reviewDetail.setForMakers(reviews.getForMakers());
+        reviewDetail.setUserName(reviews.getUser().getName());
+        reviewDetail.setFoodName(reviews.getFood().getName());
+        reviewDetail.setMakersComment(getMakersComment(reviews.getComments()));
+        reviewDetail.setAdminComment(getAdminComment(reviews.getComments()));
+
+        return reviewDetail;
+    };
+
+    @Mapping(source = "reqDto.content", target = "content")
+    @Mapping(source = "reviews", target = "reviews")
+    @Mapping(target = "isDelete", defaultValue = "false")
+    AdminComments toAdminComment(CommentReqDto reqDto, Reviews reviews);
+
+    @Mapping(source = "reqDto.content", target = "content")
+    @Mapping(source = "reviews", target = "reviews")
+    @Mapping(target = "isDelete", defaultValue = "false")
+    MakersComments toMakersComment(CommentReqDto reqDto, Reviews reviews);
+
+    default ReviewMakersResDto.ReviewListDto toMakersReviewListDto(Reviews reviews) {
+        ReviewMakersResDto.ReviewListDto reviewListDto = new ReviewMakersResDto.ReviewListDto();
+
+        reviewListDto.setReviewId(reviews.getId());
+        reviewListDto.setImageLocation(getLocation(reviews.getImages()));
+        reviewListDto.setContent(reviews.getContent());
+        reviewListDto.setSatisfaction(reviews.getSatisfaction());
+        reviewListDto.setContent(reviews.getContent());
+        reviewListDto.setUpdateDate(DateUtils.toISOLocalDate(reviews.getUpdatedDateTime()));
+        reviewListDto.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
+        reviewListDto.setForMakers(reviews.getForMakers());
+        reviewListDto.setWriter(reviews.getUser().getName());
+        reviewListDto.setOrderItemName(getItemName(reviews.getOrderItem()));
+
+        return  reviewListDto;
+    };
+
+
+    default ReviewMakersResDto.ReviewDetail toMakersReviewDetails(Reviews reviews, MultiValueMap<LocalDate, Integer> dateAndScore) {
+        ReviewMakersResDto.ReviewDetail reviewDetail = new ReviewMakersResDto.ReviewDetail();
+
+        reviewDetail.setReviewId(reviews.getId());
+        reviewDetail.setImageLocation(getImagesLocations(reviews.getImages()));
+        reviewDetail.setContent(reviews.getContent());
+        reviewDetail.setSatisfaction(reviews.getSatisfaction());
+        reviewDetail.setUpdateDate(DateUtils.toISOLocalDate(reviews.getUpdatedDateTime()));
+        reviewDetail.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
+        reviewDetail.setForMakers(reviews.getForMakers());
+        reviewDetail.setWriter(reviews.getUser().getName());
+        reviewDetail.setItemName(getItemName(reviews.getOrderItem()));
+
+        List<Comments> commentList = reviews.getComments();
+        if(commentList.isEmpty()) reviewDetail.setMakersComment(null);
+        else {
+            ReviewMakersResDto.MakersComment makersComment = new ReviewMakersResDto.MakersComment();
+            for(Comments comments : commentList) {
+                if(comments instanceof MakersComments makersComments) {
+                    makersComment.setCommentId(makersComments.getId());
+                    makersComment.setContent(makersComments.getContent());
+                }
+            }
+            reviewDetail.setMakersComment(makersComment);
+        }
+        reviewDetail.setReviewScoreList(getAverageReviewScore(dateAndScore));
+
+        return reviewDetail;
+    };
+
+    default List<ReviewMakersResDto.AverageReviewScore> getAverageReviewScore(MultiValueMap<LocalDate, Integer> dateAndScore) {
+        if(dateAndScore == null) return null;
+        List<ReviewMakersResDto.AverageReviewScore> averageReviewScoreList = new ArrayList<>();
+        for(LocalDate serviceDate : dateAndScore.keySet()) {
+            List<Integer> scoreList = dateAndScore.get(serviceDate);
+
+            Integer score = 0;
+            for(Integer s : scoreList) {
+                score += s;
+            }
+            Double average = Math.ceil(score / scoreList.size());
+            ReviewMakersResDto.AverageReviewScore averageReviewScore = new ReviewMakersResDto.AverageReviewScore();
+
+            averageReviewScore.setDate(DateUtils.localDateToString(serviceDate));
+            averageReviewScore.setScore(average);
+
+            averageReviewScoreList.add(averageReviewScore);
+        }
+
+        return averageReviewScoreList;
+    }
+
+    @Named("getImagesLocations")
+    default List<String>  getImagesLocations(List<Image> imageList) {
         if(imageList != null && !imageList.isEmpty()) {
             return imageList.stream().map(Image::getLocation).toList();
         }
@@ -79,23 +220,47 @@ public interface ReviewMapper {
         throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM);
     }
 
-    @Mapping(source = "reviews.id", target = "reviewId")
-    @Mapping(source = "reviews.orderItem", target = "serviceDate", qualifiedByName = "getServiceDate")
-    @Mapping(source = "reviews.orderItem.id", target = "orderItemId")
-    @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
-    @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
-    @Mapping(source = "reviews.satisfaction", target = "satisfaction")
-    @Mapping(source = "reviews.createdDateTime", target = "createdDate")
-    @Mapping(source = "reviews.content", target = "content")
-    @Mapping(source = "reviews.isReports", target = "isReport")
-    ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
-
     @Named("getServiceDate")
     default String getServiceDate(OrderItem orderItem) {
-        if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
-            return DateUtils.localDateToString(orderItemDailyFood.getDailyFood().getServiceDate());
+        String serviceDate = null;
+        if(Hibernate.unproxy(orderItem) instanceof OrderItemDailyFood orderItemDailyFood) {
+            serviceDate = DateUtils.localDateToString(orderItemDailyFood.getDailyFood().getServiceDate());
         }
-        return null;
+        return serviceDate;
+    }
+
+    @Named("getMakersComment")
+    default ReviewAdminResDto.MakersComment getMakersComment(List<Comments> comments) {
+        if(comments.isEmpty()) return null;
+        ReviewAdminResDto.MakersComment makersComment = new ReviewAdminResDto.MakersComment();
+        for(Comments comment : comments) {
+            if(comment instanceof MakersComments makersComments) {
+                makersComment.setCommentId(makersComments.getId());
+                makersComment.setMakersName(makersComments.getReviews().getFood().getMakers().getName());
+                makersComment.setComment(makersComments.getContent());
+                makersComment.setIsDelete(makersComments.getIsDelete());
+            }
+        }
+        return makersComment;
+    }
+
+    @Named("getAdminComment")
+    default ReviewAdminResDto.AdminComment getAdminComment(List<Comments> comments) {
+        if(comments.isEmpty()) return null;
+        ReviewAdminResDto.AdminComment adminComment = new ReviewAdminResDto.AdminComment();
+        for(Comments comment : comments) {
+            if(comment instanceof AdminComments adminComments) {
+                adminComment.setCommentId(adminComments.getId());
+                adminComment.setComment(adminComments.getContent());
+                adminComment.setIsDelete(adminComments.getIsDelete());
+            }
+        }
+        return adminComment;
+    }
+
+    @Named("getLocation")
+    default String getLocation(List<Image> imageList) {
+        return imageList.isEmpty() ? null : imageList.get(0).getLocation();
     }
 
 }

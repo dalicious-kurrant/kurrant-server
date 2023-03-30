@@ -24,6 +24,8 @@ import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Tag(name = "2. User")
 @RequestMapping(value = "/v1/users/me")
 @RestController
@@ -31,11 +33,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
 
-    @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보 를 불러온다.")
+    @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보를 불러온다.")
     @GetMapping("")
     public UserInfoDto getUserInfo(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return userService.getUserInfo(securityUser);
+    }
+
+    @Operation(summary = "자동 로그인", description = "자동 로그인을 한다.")
+    @GetMapping("/autoLogin")
+    public LoginResponseDto autoLogin(HttpServletRequest httpServletRequest) {
+        return userService.autoLogin(httpServletRequest);
     }
 
     @Operation(summary = "마이페이지의 개인 정보 페이지에서 유저 정보 가져오기", description = "개인 정보 페이지에서 로그인 한 유저의 개인 정보를 불러온다.")
@@ -209,6 +217,36 @@ public class UserController {
         userService.withdrawalCancel(securityUser);
         return ResponseMessage.builder()
                 .message("회원 탈퇴 요청을 취소하였습니다.")
+                .build();
+    }
+
+    @PostMapping("/save/token")
+    @Operation(summary = "FCM 토큰 저장하기", description = "유저정보에 FCM토큰을 저장한다")
+    public ResponseMessage tokenSave(Authentication authentication, @RequestBody FcmTokenSaveReqDto fcmTokenSaveReqDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.saveToken(fcmTokenSaveReqDto, securityUser);
+        return ResponseMessage.builder()
+                .message("토큰 저장 성공!")
+                .build();
+    }
+
+    @PostMapping("/payment/password")
+    @Operation(summary = "결제 비밀번호 등록하기", description = "결제 비밀번호 등록")
+    public ResponseMessage savePaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String result = userService.savePaymentPassword(securityUser, savePaymentPasswordDto);
+        return ResponseMessage.builder()
+                .message(result)
+                .build();
+    }
+
+    @PostMapping("/payment/password/check")
+    @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
+    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
+        return ResponseMessage.builder()
+                .message(result)
                 .build();
     }
 

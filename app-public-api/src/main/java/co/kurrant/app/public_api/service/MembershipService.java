@@ -8,6 +8,7 @@ import co.dalicious.domain.order.entity.OrderItemMembership;
 import co.dalicious.domain.order.entity.OrderMembership;
 import co.dalicious.domain.user.dto.DailyFoodMembershipDiscountDto;
 import co.dalicious.domain.user.dto.MembershipBenefitDto;
+import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.dto.MembershipDto;
@@ -30,6 +31,7 @@ public interface MembershipService {
 
     // 유저가 멤버십을 환불한다
     void refundMembership(User user, Order order, Membership membership, OrderMembership orderMembership) throws IOException, ParseException;
+    void refundMembershipNice(User user, Order order, Membership membership, OrderMembership orderMembership) throws IOException, ParseException;
 
     // 유저가 멤버십을 해지 또는 환불한다
     void unsubscribeMembership(SecurityUser securityUser) throws IOException, ParseException;
@@ -41,4 +43,9 @@ public interface MembershipService {
     DailyFoodMembershipDiscountDto getDailyFoodPriceBenefits(List<OrderItemDailyFood> orderItemDailyFoods);
 
     BigDecimal getRefundableMembershipPrice(List<OrderItemDailyFood> orderItemDailyFoods, OrderItemMembership orderItemMembership);
+
+    void joinMembershipNice(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto) throws IOException, ParseException;
+
+    void unsubscribeMembershipNice(SecurityUser securityUser) throws IOException, ParseException;
+    List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo(SecurityUser securityUser);
 }

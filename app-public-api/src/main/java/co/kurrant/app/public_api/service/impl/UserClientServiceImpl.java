@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +33,6 @@ import java.util.Optional;
 public class UserClientServiceImpl implements UserClientService {
     private final GroupResponseMapper groupResponseMapper;
     private final UserUtil userUtil;
-    private final QGroupRepository qGroupRepository;
     private final UserGroupRepository userGroupRepository;
     private final SpotRepository spotRepository;
     private final UserSpotRepository userSpotRepository;
@@ -212,11 +212,12 @@ public class UserClientServiceImpl implements UserClientService {
     @Override
     @Transactional
     public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser) {
-        List<? extends Group> groups = qGroupRepository.findAllOpenGroupAndApartment();
+        List<Group> groups = groupRepository.findAll();
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
         for (Group group : groups) {
             openGroupResponseDtos.add(groupResponseMapper.toOpenGroupDto(group));
         }
+        openGroupResponseDtos = openGroupResponseDtos.stream().sorted(Comparator.comparing(OpenGroupResponseDto::getName)).toList();
         return openGroupResponseDtos;
     }
 }
