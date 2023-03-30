@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @Builder
 public class ReviewableItemResDto {
     private Integer count;
+    private BigDecimal redeemablePoints;
     private List<OrderFood> orderFoodList;
 
     @Getter
@@ -30,9 +32,10 @@ public class ReviewableItemResDto {
         }
     }
 
-    public static ReviewableItemResDto create(List<OrderFood> orderFoodList, Integer count) {
+    public static ReviewableItemResDto create(List<OrderFood> orderFoodList, BigDecimal redeemablePoints) {
         return ReviewableItemResDto.builder()
-                .count(count)
+                .count(orderFoodList.size())
+                .redeemablePoints(redeemablePoints)
                 .orderFoodList(orderFoodList)
                 .build();
     }

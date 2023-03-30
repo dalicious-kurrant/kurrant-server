@@ -1,13 +1,12 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.ConstantImpl;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
@@ -20,7 +19,6 @@ import static co.dalicious.domain.client.entity.QSpot.spot;
 public class QSpotRepository {
 
     private final JPAQueryFactory queryFactory;
-
 
     public List<BigInteger> findAllByGroupId(BigInteger corporationId) {
         return queryFactory
@@ -66,4 +64,63 @@ public class QSpotRepository {
                 .fetch();
     }
 
+    public void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
+
+        //스팟이름
+        if (updateSpotDetailRequestDto.getSpotName() != null && !updateSpotDetailRequestDto.getSpotName().equals("")){
+            queryFactory.update(spot)
+                    .set(spot.name, updateSpotDetailRequestDto.getSpotName())
+                    .where(spot.id.eq(updateSpotDetailRequestDto.getSpotId()))
+                    .execute();
+        }
+
+        //우편번호
+        if (updateSpotDetailRequestDto.getZipCode() != null && !updateSpotDetailRequestDto.getZipCode().equals("")){
+            queryFactory.update(spot)
+                    .set(spot.address.zipCode, updateSpotDetailRequestDto.getZipCode())
+                    .where(spot.id.eq(updateSpotDetailRequestDto.getSpotId()))
+                    .execute();
+        }
+
+        //기본주소
+        if (updateSpotDetailRequestDto.getAddress1() != null && !updateSpotDetailRequestDto.getAddress1().equals("")){
+            queryFactory.update(spot)
+                    .set(spot.address.address1, updateSpotDetailRequestDto.getAddress1())
+                    .where(spot.id.eq(updateSpotDetailRequestDto.getSpotId()))
+                    .execute();
+        }
+
+        //상세주소
+        if (updateSpotDetailRequestDto.getAddress2() != null && !updateSpotDetailRequestDto.getAddress2().equals("")){
+            queryFactory.update(spot)
+                    .set(spot.address.address2, updateSpotDetailRequestDto.getAddress2())
+                    .where(spot.id.eq(updateSpotDetailRequestDto.getSpotId()))
+                    .execute();
+        }
+
+        //위치
+        if (updateSpotDetailRequestDto.getLocation() != null && !updateSpotDetailRequestDto.getLocation().equals("")){
+            queryFactory.update(spot)
+                    .set(spot.address.location, Address.createPoint(updateSpotDetailRequestDto.getLocation()))
+                    .where(spot.id.eq(updateSpotDetailRequestDto.getSpotId()))
+                    .execute();
+        }
+
+        //메모
+        if (updateSpotDetailRequestDto.getMemo() != null && !updateSpotDetailRequestDto.getMemo().equals("")){
+            queryFactory.update(spot)
+                    .set(spot.memo, updateSpotDetailRequestDto.getMemo())
+                    .where(spot.id.eq(updateSpotDetailRequestDto.getSpotId()))
+                    .execute();
+        }
+
+
+    }
+
+    public BigInteger getGroupId(BigInteger spotId) {
+        return queryFactory.select(spot.group.id)
+                .from(spot)
+                .where(spot.id.eq(spotId))
+                .fetchOne();
+    }
 }

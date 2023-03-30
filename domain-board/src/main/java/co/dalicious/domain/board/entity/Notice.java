@@ -1,10 +1,12 @@
 package co.dalicious.domain.board.entity;
 
+import co.dalicious.domain.board.entity.enums.BoardStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -36,7 +38,7 @@ public class Notice {
 
     @UpdateTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Column(columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
     
@@ -47,15 +49,22 @@ public class Notice {
     @Comment("공지 내용")
     private String content;
 
-    @Column(name="type")
-    @Comment("0:전체공지/ 1:스팟공지")
-    private Integer type;
+    @Comment("스팟 공지일 경우 스팟ID")
+    @Column(name="spotId", columnDefinition = "BIGINT UNSIGNED")
+    private BigInteger spotId;
+
+    @ColumnDefault(value = "1")
+    @Comment("상태 0:비활성/1:활성/2:팝업/3:스팟공지")
+    @Column(name="status", columnDefinition = "INT")
+    private BoardStatus status;
+
 
     @Builder
-    public Notice(BigInteger id, String title, String content, Integer type){
+    public Notice(BigInteger id, String title, String content, BigInteger spotId, Integer status){
         this.id = id;
         this.title = title;
         this.content = content;
-        this.type = type;
+        this.spotId = spotId;
+        this.status = BoardStatus.ofCode(status);
     }
 }

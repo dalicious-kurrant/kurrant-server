@@ -183,4 +183,10 @@ public class QReviewRepository {
                 .execute();
 
     }
+
+    public List<Reviews> findAllByUserAndOrderItem(User user, List<OrderItem> orderItemList) {
+        return  queryFactory.selectFrom(reviews)
+                .where(reviews.user.eq(user), reviews.orderItem.in(orderItemList))
+                .fetch();
+    }
 }

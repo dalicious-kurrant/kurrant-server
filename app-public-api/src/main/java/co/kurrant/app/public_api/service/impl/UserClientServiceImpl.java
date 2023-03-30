@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -216,6 +217,7 @@ public class UserClientServiceImpl implements UserClientService {
         for (Group group : groups) {
             openGroupResponseDtos.add(groupResponseMapper.toOpenGroupDto(group));
         }
+        openGroupResponseDtos = openGroupResponseDtos.stream().sorted(Comparator.comparing(OpenGroupResponseDto::getName)).toList();
         return openGroupResponseDtos;
     }
 }

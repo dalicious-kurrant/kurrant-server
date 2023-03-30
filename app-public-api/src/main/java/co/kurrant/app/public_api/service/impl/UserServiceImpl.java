@@ -1,10 +1,10 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.core.entity.RefreshToken;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
+import co.dalicious.client.core.repository.RefreshTokenRepository;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
-import co.dalicious.data.redis.entity.RefreshTokenHash;
-import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -23,7 +23,6 @@ import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
-import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
@@ -52,7 +51,6 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -624,7 +622,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(BigInteger.valueOf(Integer.parseInt(userId)))
                 .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
 
-        List<RefreshTokenHash> refreshTokenHashes = refreshTokenRepository.findAllByUserId(userId);
+        List<RefreshToken> refreshTokenHashes = refreshTokenRepository.findAllByUserId(BigInteger.valueOf(Integer.parseInt(userId)));
 
         if(refreshTokenHashes.isEmpty()) {
             throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
@@ -660,5 +658,50 @@ public class UserServiceImpl implements UserService {
         if (result != 1){
             throw new ApiException(ExceptionEnum.TOKEN_SAVE_FAILED);
         }
+    }
+
+    @Override
+    @Transactional
+    public String savePaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto) {
+        //유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        //결제 비밀번호가 등록이 안된 유저라면
+        if (user.getPaymentPassword() == null && savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")) {
+            //결제 비밀번호 등록
+            if (savePaymentPasswordDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(savePaymentPasswordDto.getPayNumber());
+                qUserRepository.updatePaymentPassword(password, user.getId());
+            } else {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
+        }
+        if (user.getPaymentPassword() != null){
+            return "이미 결제 비밀번호가 등록되어 있습니다.";
+        }
+
+        return "결제 비밀번호 등록 성공!";
+    }
+
+    @Override
+    public String checkPaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto) {
+        User user = userUtil.getUser(securityUser);
+
+        if (user.getPaymentPassword() == null){
+            throw new ApiException(ExceptionEnum.NOT_FOUND_PAYMENT_PASSWORD);
+        }
+
+        if (user.getPaymentPassword() != null && savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")){
+            //결제 비밀번호 확인
+            if (savePaymentPasswordDto.getPayNumber().length() == 6) {
+                if (!passwordEncoder.matches(savePaymentPasswordDto.getPayNumber(), user.getPaymentPassword())){
+                    throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
+                }
+            } else {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            };
+        }
+
+        return "결제 비밀번호 확인 성공!";
     }
 }

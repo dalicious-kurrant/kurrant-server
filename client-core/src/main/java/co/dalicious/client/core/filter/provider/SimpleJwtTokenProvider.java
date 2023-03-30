@@ -1,8 +1,6 @@
 package co.dalicious.client.core.filter.provider;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
-import co.dalicious.data.redis.entity.RefreshTokenHash;
-import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
