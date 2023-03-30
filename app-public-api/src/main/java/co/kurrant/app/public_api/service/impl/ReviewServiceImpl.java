@@ -104,7 +104,7 @@ public class ReviewServiceImpl implements ReviewService {
         // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
         if(user.getIsMembership() || membershipDiscountRate != 0) {
             //음식 수량 많큼 포인트 지급
-            BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice()).multiply(BigDecimal.valueOf(count));
+            BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice(), count);
             qUserRepository.updateUserPoint(user.getId(), rewardPoint);
             if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByReview(user, reviews.getId(), rewardPoint);
         }
@@ -119,7 +119,8 @@ public class ReviewServiceImpl implements ReviewService {
         //리뷰 가능한 상품이 있는 지 확인 - 유저 구매했고, 이미 수령을 완료한 식단
         List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatusBeforeToday(user, OrderStatus.RECEIPT_COMPLETE, today);
         List<ReviewableItemResDto.OrderFood> orderFoodList = new ArrayList<>();
-        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList); }
+        BigDecimal redeemablePoints = BigDecimal.ZERO;
+        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList, redeemablePoints); }
 
         // 이미 리뷰가 작성된 아이템 예외
         List<Reviews> reviewsList = qReviewRepository.findAllByUserAndOrderItem(user, receiptCompleteItem);
@@ -145,6 +146,10 @@ public class ReviewServiceImpl implements ReviewService {
                 String todayString = DateUtils.localDateToString(today);
                 long leftDay = DateUtils.calculatedDDay(reviewableString, todayString);
 
+                BigDecimal itemPrice = orderItemDailyFood.getDailyFood().getFood().getPrice();
+                int count = orderItemDailyFood.getCount();
+                redeemablePoints = redeemablePoints.add(pointUtil.findReviewPoint(true, itemPrice, count));
+
                 leftDayMap.put(serviceDate, leftDay);
             }
         }
@@ -167,7 +172,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
 
-        return ReviewableItemResDto.create(orderFoodList);
+        return ReviewableItemResDto.create(orderFoodList, redeemablePoints);
     }
 
     @Override

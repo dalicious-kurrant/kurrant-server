@@ -21,13 +21,11 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class PointUtil {
-
-    private final QPointPolicyRepository qPointPolicyRepository;
     private final QPointHistoryRepository qPointHistoryRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final PointMapper pointMapper;
 
-    public BigDecimal findReviewPoint(Boolean isReviewImage, BigDecimal itemPrice) {
+    public BigDecimal findReviewPoint(Boolean isReviewImage, BigDecimal itemPrice, int count) {
         BigDecimal reviewPoint = BigDecimal.ZERO;
 
         // 어떤 조건에 부합하는지 찾기
@@ -49,28 +47,23 @@ public class PointUtil {
                 rewardPointForImage = rewardPointForImage.add(reviewPointPolicy.getImagePoint());
                 rewardPointForContent = rewardPointForContent.add(reviewPointPolicy.getContentPoint());
             }
-            else if(min != null && max != null && min < price && max > price) {
+            else {
                 rewardPointForImage = rewardPointForImage.add(reviewPointPolicy.getImagePoint());
                 rewardPointForContent = rewardPointForContent.add(reviewPointPolicy.getContentPoint());
             }
         }
         if(isReviewImage) {
-            reviewPoint = reviewPoint.add(rewardPointForImage).add(rewardPointForContent);
+            reviewPoint = reviewPoint.add(rewardPointForImage).add(rewardPointForContent).multiply(BigDecimal.valueOf(count));
         }
         else {
-            reviewPoint = reviewPoint.add(rewardPointForContent);
+            reviewPoint = reviewPoint.add(rewardPointForContent).multiply(BigDecimal.valueOf(count));
         }
 
         return reviewPoint;
     }
 
     public List<PointPolicyResDto.ReviewPointPolicy> findReviewPointRange() {
-        List<ReviewPointPolicy> reviewPointPolicyList = new ArrayList<>();
-        reviewPointPolicyList.add(ReviewPointPolicy.REVIEW_RANGE_1);
-        reviewPointPolicyList.add(ReviewPointPolicy.REVIEW_RANGE_2);
-        reviewPointPolicyList.add(ReviewPointPolicy.REVIEW_RANGE_3);
-        reviewPointPolicyList.add(ReviewPointPolicy.REVIEW_RANGE_4);
-
+        List<ReviewPointPolicy> reviewPointPolicyList = List.of(ReviewPointPolicy.class.getEnumConstants());
         return reviewPointPolicyList.stream().map(pointMapper::toReviewPointPolicyResponseDto).collect(Collectors.toList());
     }
 
