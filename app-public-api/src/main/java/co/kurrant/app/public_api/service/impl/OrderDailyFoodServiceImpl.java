@@ -136,10 +136,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         if (orderItemDailyFoodReqDto.getOrderItems().getUserPoint().compareTo(user.getPoint()) > 0) {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
-        // 주문하려는 상품의 가격 총 합이 포인트보다 큰지 검증
-        if (BigDecimal.valueOf(orderItemDailyFoodReqDto.getAmount()).compareTo(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()) < 0) {
-            throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
-        }
 
         Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
         List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
@@ -257,6 +253,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     totalSupportPrice = totalSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
                 }
             }
+        }
+
+        // 주문하려는 상품의 가격 총 합이 포인트보다 큰지 검증
+        if (totalDailyFoodPrice.subtract(totalSupportPrice).compareTo(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()) < 0) {
+            throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
 
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
@@ -937,6 +938,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         );
 
         orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
+    }
+
+    @Override
+    @Transactional
+    public void changingOrderItemOrderStatus(SecurityUser securityUser, BigInteger orderItemId) {
+        User user = userUtil.getUser(securityUser);
+
+        OrderItemDailyFood orderItemDailyFood = qOrderDailyFoodRepository.findByUserAndId(user, orderItemId);
+        if(orderItemDailyFood == null) throw new ApiException(ExceptionEnum.ORDER_NOT_FOUND);
+
+        orderItemDailyFood.updateOrderStatus(OrderStatus.RECEIPT_COMPLETE);
     }
 }
 

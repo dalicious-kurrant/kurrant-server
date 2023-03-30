@@ -32,4 +32,6 @@ public interface OrderDailyFoodService {
     void cancelOrderDailyFoodNice(SecurityUser securityUser, BigInteger id) throws IOException, ParseException;
 
     void cancelOrderItemDailyFoodNice(SecurityUser securityUser, BigInteger id) throws IOException, ParseException;
+
+    void changingOrderItemOrderStatus(SecurityUser securityUser, BigInteger orderItemId);
 }
