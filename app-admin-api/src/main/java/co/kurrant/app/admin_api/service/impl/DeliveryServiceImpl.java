@@ -21,7 +21,6 @@ import co.kurrant.app.admin_api.service.DeliveryService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.weaver.ast.Or;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +45,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     @Transactional(readOnly = true)
-    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, String isDefault) {
+    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
         List<Group> groupAllList = groupRepository.findAll();
         // 그룹과 연관된 스팟만 보여주기
         List<Spot> spotAllList = spotRepository.findAll();;
@@ -80,7 +79,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
             // spot 묶기
             MultiValueMap<Spot, DailyFood> spotDailyFoodMap = new LinkedMultiValueMap<>();
-            if(isDefault == null) {
+            if(isAll == null) {
                 for(Spot spot : spotOrderItemDailyFoodMultiValueMap.keySet()) {
                     List<OrderItemDailyFood> orderItemDailyFoodList = spotOrderItemDailyFoodMultiValueMap.get(spot);
 
@@ -107,7 +106,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
                 // makers 묶기
                 MultiValueMap<Makers, DailyFood> makersMap = new LinkedMultiValueMap<>();
-                if(isDefault == null) {
+                if(isAll == null) {
                     for(DailyFood dailyFood : Objects.requireNonNull(spotDailyFoodList)) {
                         Makers makers = orderItemDailyFoods.stream()
                                 .map(OrderItemDailyFood::getDailyFood)

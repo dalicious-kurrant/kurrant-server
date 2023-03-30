@@ -939,5 +939,16 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
     }
+
+    @Override
+    @Transactional
+    public void changingOrderItemOrderStatus(SecurityUser securityUser, BigInteger orderItemId) {
+        User user = userUtil.getUser(securityUser);
+
+        OrderItemDailyFood orderItemDailyFood = qOrderDailyFoodRepository.findByUserAndId(user, orderItemId);
+        if(orderItemDailyFood == null) throw new ApiException(ExceptionEnum.ORDER_NOT_FOUND);
+
+        orderItemDailyFood.updateOrderStatus(OrderStatus.RECEIPT_COMPLETE);
+    }
 }
 
