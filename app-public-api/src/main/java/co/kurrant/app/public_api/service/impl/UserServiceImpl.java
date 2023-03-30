@@ -666,8 +666,11 @@ public class UserServiceImpl implements UserService {
         //유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
+        //이메일 인증 검증
+        verifyUtil.verifyCertificationNumber(savePaymentPasswordDto.getKey(), RequiredAuth.PAYMENT_PASSWORD_CREATE);
+
         //결제 비밀번호가 등록이 안된 유저라면
-        if (user.getPaymentPassword() == null && savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")) {
+        if (savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")) {
             //결제 비밀번호 등록
             if (savePaymentPasswordDto.getPayNumber().length() == 6) {
                 String password = passwordEncoder.encode(savePaymentPasswordDto.getPayNumber());
@@ -676,9 +679,7 @@ public class UserServiceImpl implements UserService {
                 throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
             }
         }
-        if (user.getPaymentPassword() != null){
-            return "이미 결제 비밀번호가 등록되어 있습니다.";
-        }
+
 
         return "결제 비밀번호 등록 성공!";
     }
@@ -703,5 +704,11 @@ public class UserServiceImpl implements UserService {
         }
 
         return "결제 비밀번호 확인 성공!";
+    }
+
+    @Override
+    public Boolean isPaymentPassword(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        return user.getPaymentPassword() != null;
     }
 }

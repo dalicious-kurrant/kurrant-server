@@ -132,4 +132,14 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @Operation(summary = "첫번째 빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
+    @PostMapping("/nice/create/billing/first")
+    public ResponseMessage createBillingKeyFirst(Authentication authentication, @RequestBody OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.createNiceBillingKeyFirst(securityUser, orderCreateBillingKeyReqDto))
+                .message("빌링키 발급에 성공하였습니다.")
+                .build();
+    }
+
 }
