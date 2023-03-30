@@ -48,19 +48,6 @@ public class OrderItemJob {
                 .build();
     }
 
-    @Bean
-    @JobScope
-    public Step orderStatusToDeliveringJob_step() {
-        // pickup time 지나면 order status -> OrderStatus.DELIVERING
-        return stepBuilderFactory.get("orderStatusToDeliveringJob_step")
-                .<OrderItem, OrderItem>chunk(CHUNK_SIZE)
-                .reader(forChangingStatusInOrderItemReader(matchingOrderStatusByWaitDelivery(), null))
-                .processor(OrderStatusToDeliveringProcessor())
-                .writer(forChangingStatusInOrderItemWriter())
-                .build();
-    }
-
-
     @Bean("orderStatusToDeliveredJob")
     public Job orderStatusToDeliveredJob() {
         return jobBuilderFactory.get("orderStatusToDeliveredJob")
@@ -70,11 +57,23 @@ public class OrderItemJob {
 
     @Bean
     @JobScope
+    public Step orderStatusToDeliveringJob_step() {
+        // pickup time 지나면 order status -> OrderStatus.DELIVERING
+        return stepBuilderFactory.get("orderStatusToDeliveringJob_step")
+                .<OrderItem, OrderItem>chunk(CHUNK_SIZE)
+                .reader(forChangingStatusToDeliveringInOrderItemReader(matchingOrderStatusByWaitDelivery()))
+                .processor(OrderStatusToDeliveringProcessor())
+                .writer(forChangingStatusInOrderItemWriter())
+                .build();
+    }
+
+    @Bean
+    @JobScope
     public Step orderStatusToDeliveredJob_step() {
         // pickup time 지나면 order status -> OrderStatus.DELIVERED
         return stepBuilderFactory.get("orderStatusToDeliveredJob_step")
                 .<OrderItem, OrderItem>chunk(CHUNK_SIZE)
-                .reader(forChangingStatusInOrderItemReader(null, matchingOrderStatusByWaitDelivering()))
+                .reader(forChangingStatusToDeliveredInOrderItemReader(matchingOrderStatusByWaitDelivering()))
                 .processor(OrderStatusToDeliveredProcessor())
                 .writer(forChangingStatusInOrderItemWriter())
                 .build();
@@ -145,16 +144,30 @@ public class OrderItemJob {
 
     @Bean
     @JobScope
-    public JpaPagingItemReader<OrderItem> forChangingStatusInOrderItemReader(@Qualifier("matchingOrderItemIdsByWaitDelivery") List<BigInteger> orderItemIdsByWaitDelivery,
-                                                                             @Qualifier("matchingOrderItemIdsByDelivering") List<BigInteger> orderItemIdsByDelivering) {
+    public JpaPagingItemReader<OrderItem> forChangingStatusToDeliveringInOrderItemReader(@Qualifier("matchingOrderItemIdsByWaitDelivery") List<BigInteger> orderItemIds) {
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
         Map<String, Object> parameterValues = new HashMap<>();
-        if(orderItemIdsByWaitDelivery != null && !orderItemIdsByWaitDelivery.isEmpty()) {
-            parameterValues.put("orderItemIds", orderItemIdsByWaitDelivery);
-        }
-        if(orderItemIdsByDelivering != null && !orderItemIdsByDelivering.isEmpty()) {
-            parameterValues.put("orderItemIds", orderItemIdsByDelivering);
-        }
+        parameterValues.put("orderItemIds", orderItemIds);
+
+        String queryString = "SELECT oi " +
+                "FROM OrderItem oi " +
+                "WHERE oi.id IN :orderItemIds";
+
+        return new JpaPagingItemReaderBuilder<OrderItem>()
+                .entityManagerFactory(entityManagerFactory)
+                .pageSize(100)
+                .parameterValues(parameterValues)
+                .queryString(queryString)
+                .name("JpaPagingItemReader")
+                .build();
+    }
+
+    @Bean
+    @JobScope
+    public JpaPagingItemReader<OrderItem> forChangingStatusToDeliveredInOrderItemReader(@Qualifier("matchingOrderItemIdsByDelivering") List<BigInteger> orderItemIds) {
+        log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
+        Map<String, Object> parameterValues = new HashMap<>();
+        parameterValues.put("orderItemIds", orderItemIds);
 
         String queryString = "SELECT oi " +
                 "FROM OrderItem oi " +

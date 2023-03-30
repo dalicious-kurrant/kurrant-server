@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
@@ -67,4 +69,20 @@ public class QGroupRepository {
                 .fetch();
     }
 
+    public void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto, BigInteger groupId) {
+        //담당자 수정
+        if (updateSpotDetailRequestDto.getManagerId() != null){
+            queryFactory.update(group)
+                    .set(group.managerId, updateSpotDetailRequestDto.getManagerId())
+                    .where(group.id.eq(groupId))
+                    .execute();
+        }
+    }
+
+    public BigInteger findById(BigInteger groupId) {
+        return queryFactory.select(group.id)
+                .from(group)
+                .where(group.id.eq(groupId))
+                .fetchOne();
+    }
 }

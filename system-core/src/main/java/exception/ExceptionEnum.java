@@ -44,6 +44,8 @@ public enum ExceptionEnum {
 	CANNOT_UPDATE_REVIEW(HttpStatus.BAD_REQUEST, "E4000032", "리뷰 수정 기한이 지났습니다."),
 	BAD_REQUEST_TOPIC(HttpStatus.BAD_REQUEST, "E4000033", "존재하지 않는 주제입니다."),
 	NOT_MATCH_USER_CARD(HttpStatus.BAD_REQUEST, "E4000034", "유저 카드정보와 일치하지 않습니다."),
+	NOT_MATCHED_GROUP(HttpStatus.BAD_REQUEST, "E4000035", "그룹이 일치하지 않습니다."),
+	NOT_MATCHED_MAKERS(HttpStatus.BAD_REQUEST, "E4000036", "메이커스가 일치하지 않습니다."),
 	EXCEL_EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "E4000100", "중복된 이메일 입력이 존재합니다."),
 	EXCEL_INTEGRITY_ERROR(HttpStatus.BAD_REQUEST, "E4000101", "정합성에 위반된 데이터가 존재합니다. 올바른 데이터를 입력해주세요."),
 	CONNECTION_ERROR(HttpStatus.BAD_REQUEST, "E4000102", "연결 오류!!!"),
@@ -94,7 +96,9 @@ public enum ExceptionEnum {
 	GROUP_PRESET_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040026", "그룹 식사 일정이 없습니다."),
 	REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040027", "찾으시는 리뷰가 없습니다."),
 	ADMIN_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040028", "작성된 관리자 댓글이 없습니다."),
-	MAKERS_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040028", "작성된 메이커스 댓글이 없습니다."),
+	MAKERS_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040029", "작성된 메이커스 댓글이 없습니다."),
+	NOT_FOUND_MANAGER(HttpStatus.NOT_FOUND,"E4040030", "매니저를 찾을 수 없습니다."),
+	NOT_FOUND_PAYMENT_PASSWORD(HttpStatus.INTERNAL_SERVER_ERROR, "E4040031", "결제 비밀번호가 등록되지 않았습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
@@ -118,6 +122,9 @@ public enum ExceptionEnum {
   	TOKEN_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000014", "토큰 생성 실패"),
 	BILLING_KEY_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000015", "빌링키 발급 실패"),
 	TOKEN_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000016", "토큰 저장 실패"),
+	PAYMENT_PASSWORD_LENGTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000017", "결제 비밀번호는 6자리로 입력해주세요."),
+	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "결제 비밀번호가 일치하지 않습니다."),
+
 
 
   	/* E422 */

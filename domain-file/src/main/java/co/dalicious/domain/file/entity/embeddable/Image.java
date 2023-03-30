@@ -21,10 +21,6 @@ import org.hibernate.annotations.CreationTimestamp;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
 public class Image {
-    @Column(name = "img_created_datetime", columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
-    @Comment("생성일")
-    private Timestamp createdDateTime;
-
     @Column(name = "s3_key", length = 1024,
             columnDefinition = "VARCHAR(1024)")
     @Comment("S3 업로드 키")

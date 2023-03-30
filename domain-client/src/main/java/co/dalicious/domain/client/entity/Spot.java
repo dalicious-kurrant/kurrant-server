@@ -84,7 +84,8 @@ public class Spot {
     @Comment("스팟 상태 ( 0: 비활성, 1: 활성 )")
     private SpotStatus status = SpotStatus.ACTIVE;
 
-    @Column(name = "memo", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "memo")
     private String memo;
 
 

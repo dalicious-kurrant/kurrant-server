@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.controller.delivery;
+package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.system.util.DateUtils;
