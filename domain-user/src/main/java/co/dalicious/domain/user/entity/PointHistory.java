@@ -1,7 +1,9 @@
 package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.converter.PointConditionConverter;
+import co.dalicious.domain.user.converter.PointStatusConverter;
 import co.dalicious.domain.user.entity.enums.PointCondition;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -34,6 +36,11 @@ public class PointHistory {
     @Comment("포인트 적립 조건")
     private PointCondition pointCondition;
 
+    @Convert(converter = PointStatusConverter.class)
+    @Column(name = "e_point_status")
+    @Comment("포인트 적립 조건")
+    private PointStatus pointStatus;
+
     @Column(name = "point")
     @Comment("적립 포인트")
     private BigDecimal point;
@@ -49,6 +56,10 @@ public class PointHistory {
     @Column(name = "board_id")
     @Comment("이벤트 공지 PK")
     private BigInteger boardId;
+
+    @Column(name = "payment_cancel_history_id")
+    @Comment("환불내역 PK")
+    private BigInteger paymentCancelHistoryId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
@@ -75,13 +86,15 @@ public class PointHistory {
     private Timestamp updatedDateTime;
 
     @Builder
-    public PointHistory(BigInteger id, PointCondition pointCondition, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, User user, BigInteger pointPolicyId) {
+    public PointHistory(BigInteger id, PointCondition pointCondition, PointStatus pointStatus, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, BigInteger paymentCancelHistoryId, User user, BigInteger pointPolicyId) {
         this.id = id;
         this.pointCondition = pointCondition;
+        this.pointStatus = pointStatus;
         this.point = point;
         this.reviewId = reviewId;
         this.orderId = orderId;
         this.boardId = boardId;
+        this.paymentCancelHistoryId = paymentCancelHistoryId;
         this.user = user;
         this.pointPolicyId = pointPolicyId;
     }

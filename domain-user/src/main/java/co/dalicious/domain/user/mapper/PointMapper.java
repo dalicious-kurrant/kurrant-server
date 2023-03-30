@@ -6,6 +6,7 @@ import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointCondition;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.system.util.DateUtils;
 import org.mapstruct.Mapper;
@@ -54,9 +55,10 @@ public interface PointMapper {
                 .build();
     }
 
-    default PointHistory createPointHistoryForCount(User user, PointPolicy pointPolicy, Map<String, BigInteger> ids, Integer count) {
+    default PointHistory createPointHistoryForCount(User user, PointPolicy pointPolicy, Map<String, BigInteger> ids, Integer count, PointStatus pointStatus) {
         BigInteger orderId = !ids.containsKey("order") || ids.get("order") == null ? null : ids.get("order");
         BigInteger boardId = !ids.containsKey("board") || ids.get("board") == null ? null : ids.get("board");
+        BigInteger cancelId = !ids.containsKey("cancel") || ids.get("cancel") == null ? null : ids.get("cancel");
 
         BigDecimal point = BigDecimal.ZERO;
         if((count / pointPolicy.getCompletedConditionCount()) > pointPolicy.getAccountCompletionLimit()) {
@@ -69,9 +71,11 @@ public interface PointMapper {
                 .point(point)
                 .pointCondition(pointPolicy.getPointCondition())
                 .user(user)
+                .pointStatus(pointStatus)
                 .orderId(orderId)
                 .boardId(boardId)
                 .pointPolicyId(pointPolicy.getId())
+                .paymentCancelHistoryId(cancelId)
                 .build();
     }
 
@@ -79,6 +83,7 @@ public interface PointMapper {
         return PointHistory.builder()
                 .point(point)
                 .user(user)
+                .pointStatus(PointStatus.REWARD)
                 .reviewId(reviewId)
                 .build();
     }
