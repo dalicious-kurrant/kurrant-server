@@ -9,6 +9,7 @@ import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.QOrderItemRepository;
+import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.review.dto.*;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.review.mapper.ReviewMapper;
@@ -49,6 +50,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final QOrderItemRepository qOrderItemRepository;
     private final ImageService imageService;
     private final QUserRepository qUserRepository;
+    private final PointUtil pointUtil;
 
     @Override
     @Transactional
@@ -102,13 +104,9 @@ public class ReviewServiceImpl implements ReviewService {
         // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
         if(user.getIsMembership() || membershipDiscountRate != 0) {
             //음식 수량 많큼 포인트 지급
-            BigDecimal imagePoint = BigDecimal.valueOf(100).multiply(BigDecimal.valueOf(count));
-            BigDecimal contentPoint = BigDecimal.valueOf(50).multiply(BigDecimal.valueOf(count));
-
-            // image 있으면 150
-            if(fileList != null && !fileList.isEmpty()) qUserRepository.updateUserPoint(user.getId(), imagePoint, contentPoint);
-            // 없으면 50
-            qUserRepository.updateUserPoint(user.getId(), null, contentPoint);
+            BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice()).multiply(BigDecimal.valueOf(count));
+            qUserRepository.updateUserPoint(user.getId(), rewardPoint);
+            if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByReview(user, reviews.getId(), rewardPoint);
         }
     }
 
@@ -121,16 +119,22 @@ public class ReviewServiceImpl implements ReviewService {
         //리뷰 가능한 상품이 있는 지 확인 - 유저 구매했고, 이미 수령을 완료한 식단
         List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatusBeforeToday(user, OrderStatus.RECEIPT_COMPLETE, today);
         List<ReviewableItemResDto.OrderFood> orderFoodList = new ArrayList<>();
-        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) {
-            return ReviewableItemResDto.create(orderFoodList, null); }
+        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList); }
+
+        // 이미 리뷰가 작성된 아이템 예외
+        List<Reviews> reviewsList = qReviewRepository.findAllByUserAndOrderItem(user, receiptCompleteItem);
+        List<OrderItem> reviewOrderItem = reviewsList.stream().map(Reviews::getOrderItem).filter(receiptCompleteItem::contains).toList();
 
         Map<LocalDate, Long> leftDayMap = new HashMap<>();
         MultiValueMap<LocalDate, OrderItemDailyFood> orderItemDailyFoodByServiceDateMap = new LinkedMultiValueMap<>();
         for(OrderItem item : receiptCompleteItem) {
+
+            if(reviewOrderItem.contains(item)) continue;
+
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
                 LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
                 //리뷰 가능일 구하기
-                LocalDate reviewableDate = serviceDate.plusDays(7);
+                LocalDate reviewableDate = serviceDate.plusDays(5);
                 //리뷰 작성 가능일이 이미 지났으면 패스
                 if(reviewableDate.isBefore(today)) continue;
 
@@ -140,11 +144,10 @@ public class ReviewServiceImpl implements ReviewService {
                 String reviewableString = DateUtils.localDateToString(reviewableDate);
                 String todayString = DateUtils.localDateToString(today);
                 long leftDay = DateUtils.calculatedDDay(reviewableString, todayString);
+
                 leftDayMap.put(serviceDate, leftDay);
             }
         }
-
-        int count = 0;
 
         for(LocalDate serviceDate : orderItemDailyFoodByServiceDateMap.keySet()) {
             List<OrderItemDailyFood> orderItemList = orderItemDailyFoodByServiceDateMap.get(serviceDate);
@@ -160,12 +163,11 @@ public class ReviewServiceImpl implements ReviewService {
 
             ReviewableItemResDto.OrderFood orderFood = ReviewableItemResDto.OrderFood.create(reviewableItemListDtoList, serviceDate);
             orderFoodList.add(orderFood);
-            count += reviewableItemListDtoList.size();
         }
 
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
 
-        return ReviewableItemResDto.create(orderFoodList, count);
+        return ReviewableItemResDto.create(orderFoodList);
     }
 
     @Override
@@ -246,7 +248,7 @@ public class ReviewServiceImpl implements ReviewService {
         if (satisfaction == null || satisfaction < 1) {
             throw new ApiException(ExceptionEnum.ENTER_SATISFACTION_LEVEL);
         }
-        if (content == null || content.length() < 11 || content.length() >= 500) {
+        if (content == null || content.length() < 10 || content.length() >= 500) {
             throw new ApiException(ExceptionEnum.FILL_OUT_THE_REVIEW);
         }
     }

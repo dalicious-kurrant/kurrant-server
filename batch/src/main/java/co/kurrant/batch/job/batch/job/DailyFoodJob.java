@@ -97,7 +97,7 @@ public class DailyFoodJob {
                 "JOIN df.group g " +
                 "JOIN MealInfo mi ON mi.group.id = g.id " +
                 "WHERE mi.diningType = df.diningType " +
-                "  AND df.dailyFoodStatus = 1";
+                "  AND df.dailyFoodStatus = 1 OR df.dailyFoodStatus = 2";
 
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
         List<Object[]> results = query.getResultList();

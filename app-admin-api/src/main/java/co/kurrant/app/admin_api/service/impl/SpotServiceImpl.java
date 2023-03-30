@@ -1,23 +1,20 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
-import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.SpotResponseDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.mapper.MealInfoMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DiningTypesUtils;
-import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
-import co.kurrant.app.admin_api.dto.client.DeleteSpotRequestDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
-import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.SpotService;
+import com.sun.xml.bind.v2.TODO;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +23,7 @@ import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,6 +39,9 @@ public class SpotServiceImpl implements SpotService {
     private final GroupMapper groupMapper;
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
+    private final CorporationRepository corporationRepository;
+    private final MealInfoRepository mealInfoRepository;
+    private final CorporaionMealInfoRepository corporaionMealInfoRepository;
 
 
     @Override
@@ -210,10 +208,40 @@ public class SpotServiceImpl implements SpotService {
         Spot spot = spotRepository.findById(BigInteger.valueOf(spotId))
                 .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
 
-        if (spot.getGroup().getManagerId() != null) {
-            Optional<User> manager = userRepository.findById(spot.getGroup().getManagerId());
-            return spotMapper.toDetailDto(spot, manager.get());
+
+        if (spot instanceof CorporationSpot){
+            Optional<Corporation> corporation = corporationRepository.findById(spot.getGroup().getId());
+            List<CorporationMealInfo> corporationMealInfo = corporaionMealInfoRepository.findAllByGroupId(spot.getGroup().getId());
+
+
+            if (spot.getGroup().getManagerId() != null) {
+                User manager = userRepository.findById(spot.getGroup().getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MANAGER));
+                return spotMapper.toDetailDto(spot, manager, corporation.get(), corporationMealInfo);
+            }
+            return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), corporation.get(), corporationMealInfo);
         }
-        return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build());
+
+        return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), null, null);
+    }
+
+    @Override
+    public void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
+
+        //manager가 존재하는 user인지 체크
+        User manager = null;
+        if (updateSpotDetailRequestDto.getManagerId() != null){
+            manager = userRepository.findById(updateSpotDetailRequestDto.getManagerId())
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        }
+        //groupId 가져오기
+        BigInteger groupId = qSpotRepository.getGroupId(updateSpotDetailRequestDto.getSpotId());
+
+        qGroupRepository.updateSpotDetail(updateSpotDetailRequestDto, groupId);
+
+        System.out.println(updateSpotDetailRequestDto.getMemo() + " 메모확인");
+        qSpotRepository.updateSpotDetail(updateSpotDetailRequestDto);
+
+
+
     }
 }

@@ -32,6 +32,7 @@ public class UserSupportPriceUtil {
     }
 
     public static BigDecimal getUsedSupportPrice(Spot spot, List<UserSupportPriceHistory> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
+        // TODO: 정기식사 결제 상품만 계산
         BigDecimal usedSupportPrice = BigDecimal.ZERO;
         for (UserSupportPriceHistory userSupportPriceHistory : userSupportPriceHistories) {
             if (userSupportPriceHistory.getGroup().equals(spot.getGroup()) && userSupportPriceHistory.getServiceDate().equals(serviceDate) && userSupportPriceHistory.getDiningType().equals(diningType)) {

@@ -15,5 +15,5 @@ public class NoticeDto {
     private String updated;
     private String title;
     private String content;
-    private Integer type;
+    private Integer status;
 }

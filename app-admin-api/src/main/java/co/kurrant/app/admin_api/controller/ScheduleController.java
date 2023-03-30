@@ -37,7 +37,8 @@ public class ScheduleController {
 
     @Operation(summary = "Preset 추천 식단 생성", description = "추천 데이터를 기반으로 식단을 생성합니다.")
     @GetMapping("/recommends")
-    public ResponseMessage getRecommendPresetSchedule(@RequestParam String startDate, @RequestParam String endDate, @RequestParam(required = false) Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+    public ResponseMessage getRecommendPresetSchedule(@RequestParam String startDate, @RequestParam String endDate,
+                                                      @RequestParam(required = false) Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("모든 식단을 요청했습니다.")
                 .data(scheduleService.getRecommendPresetSchedule(startDate, endDate, pageable, limit, page))
