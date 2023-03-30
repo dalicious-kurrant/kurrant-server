@@ -10,7 +10,7 @@ import java.time.LocalTime;
 
 public class DailyFoodJobTest {
     @Test
-    void 테스트_1() {
+    void test_1() {
         DayAndTime lastOrderDayAndTime = new DayAndTime(0, LocalTime.of(10, 0));
         LocalDate serviceDate = LocalDate.of(2023, 3, 30); // Fetch the serviceDate from the DailyFood entity
         LocalDate lastOrderDate = serviceDate.minusDays(lastOrderDayAndTime.getDay());
