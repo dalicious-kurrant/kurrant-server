@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.List;
 
 import static co.dalicious.domain.recommend.entity.QGroupRecommends.groupRecommends;
 
@@ -22,19 +21,18 @@ import static co.dalicious.domain.recommend.entity.QGroupRecommends.groupRecomme
 public class QGroupRecommendRepository {
     private final JPAQueryFactory queryFactory;
 
-    public Page<GroupRecommends> getRecommendPresetSchedule(Pageable pageable, Integer size, Integer page, String startDate, String endDate){
+    public Page<GroupRecommends> getRecommendPresetSchedule(Pageable pageable, Integer limit, Integer page, String startDate, String endDate){
         // start date 기준으로 14일
         LocalDate start = DateUtils.stringToDate(startDate);
         LocalDate end = DateUtils.stringToDate(endDate);
 
         // page
-        int itemLimit = size * page;
-        int itemOffset = size * (page - 1);
+        int itemOffset = limit * (page - 1);
 
         QueryResults<GroupRecommends> results = queryFactory.selectFrom(groupRecommends)
                 .where(groupRecommends.serviceDate.between(start, end),
                         groupRecommends.isReject.ne(1))
-                .limit(itemLimit)
+                .limit(limit)
                 .offset(itemOffset)
                 .fetchResults();
 

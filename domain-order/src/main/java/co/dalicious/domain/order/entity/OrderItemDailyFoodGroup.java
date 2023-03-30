@@ -100,7 +100,7 @@ public class OrderItemDailyFoodGroup {
 
         // 2. 할인된 상품 가격 추가
         for (OrderItemDailyFood orderItemDailyFood : this.getOrderDailyFoods()) {
-            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+            if (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
                 totalPrice = totalPrice.add(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())));
             }
         }

@@ -6,10 +6,11 @@ import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
 import co.kurrant.app.public_api.dto.board.NoticeDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 
+import java.math.BigInteger;
 import java.util.List;
 
 public interface BoardService {
-    List<NoticeDto> noticeList(Integer type);
+    List<NoticeDto> noticeList(Integer status, BigInteger spotId);
 
     List<CustomerServiceDto> customerBoardList();
 
