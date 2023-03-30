@@ -38,6 +38,7 @@ import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.enums.RequiredAuth;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.PriceUtils;
@@ -45,6 +46,7 @@ import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import io.swagger.v3.core.util.Json;
@@ -113,6 +115,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final FoundersUtil foundersUtil;
     private final OrderService orderService;
     private final PasswordEncoder passwordEncoder;
+
+    private final VerifyUtil verifyUtil;
 
 
     @Override
@@ -846,11 +850,16 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    public String createNiceBillingKey(SecurityUser securityUser, OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
+    public String createNiceBillingKeyFirst(SecurityUser securityUser, OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
         //유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
-        //결제 비밀번호가 등록이 안된 유저라면
+        //이메일 인증 검증
+        if (orderCreateBillingKeyReqDto.getKey() != null && orderCreateBillingKeyReqDto.getKey().equals("")){
+            verifyUtil.verifyCertificationNumber(orderCreateBillingKeyReqDto.getKey(), RequiredAuth.PAYMENT_PASSWORD_CREATE);
+        }
+
+        //결제 비밀번호가 등록이 안된 유저
         if (user.getPaymentPassword() == null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")) {
             //결제 비밀번호 등록
             if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
@@ -868,6 +877,69 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                if (!Objects.equals(password, user.getPaymentPassword())){
                    throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
                }
+            }
+        }
+
+        String token = niceUtil.getToken();
+
+        String customerKey = niceUtil.createCustomerKey();
+
+        //String cardNumber, String expirationYear, String expirationMonth,
+        //                                          String cardPassword, String identityNumber
+        JSONObject jsonObject = niceUtil.cardRegisterRequest(orderCreateBillingKeyReqDto.getCardNumber(), orderCreateBillingKeyReqDto.getExpirationYear(), orderCreateBillingKeyReqDto.getExpirationMonth(),
+                orderCreateBillingKeyReqDto.getCardPassword(), orderCreateBillingKeyReqDto.getIdentityNumber(),customerKey,token);
+        String billingKey = (String) jsonObject.get("customer_uid");
+        System.out.println(jsonObject + " jsonObject");
+        String cardNumberPart = orderCreateBillingKeyReqDto.getCardNumber().substring(0, 8);
+        System.out.println(cardNumberPart + " cardPart");
+        String cardNumber = (String) jsonObject.get("card_number");
+        String cardCompany = (String) jsonObject.get("card_name");
+        String niceCustomerKey = (String) jsonObject.get("customer_id");
+
+        Integer defaultType = orderCreateBillingKeyReqDto.getDefaultType();
+
+        //중복 카드확인
+        List<CreditCardInfo> creditCardInfos = creditCardInfoRepository.findAllByUserId(user.getId());
+
+        if (creditCardInfos.size() != 0){
+            if (defaultType == null){
+                defaultType = 0;
+            }
+            for (CreditCardInfo card : creditCardInfos){
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0 && card.getNiceBillingKey() != null){
+                    return "이미 같은 카드가 등록되어 있습니다.";
+                }
+                //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1){
+                    qCreditCardInfoRepository.updateStatusCardNice(card.getId(), billingKey);
+                }
+            }
+        }
+
+        if (creditCardInfos.size() == 0 && defaultType == null){
+            defaultType = 1;    //기본카드로 셋팅
+            // qCreditCardInfoRepository.updateNiceBillingKey(billingKey, user.getId(), cardNumberPart);
+        }
+        Integer status =1;
+        CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType, status);
+        creditCardInfoRepository.save(cardInfo);
+
+        return billingKey;
+    }
+
+    @Override
+    public Object createNiceBillingKey(SecurityUser securityUser, OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
+        //유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        //결제 비밀번호가 등록되어있는 유저
+        if (user.getPaymentPassword() != null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")){
+            //결제 비밀번호 확인
+            if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
+                if (!passwordEncoder.matches(orderCreateBillingKeyReqDto.getPayNumber(), user.getPaymentPassword())){
+                    throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
+                }
             }
         }
 

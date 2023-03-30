@@ -33,5 +33,7 @@ public interface OrderDailyFoodService {
 
     void cancelOrderItemDailyFoodNice(SecurityUser securityUser, BigInteger id) throws IOException, ParseException;
 
+    Object createNiceBillingKeyFirst(SecurityUser securityUser, OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException;
+
     void changingOrderItemOrderStatus(SecurityUser securityUser, BigInteger orderItemId);
 }
