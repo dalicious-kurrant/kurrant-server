@@ -5,6 +5,7 @@ import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.entity.enums.SpotStatus;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -25,10 +26,12 @@ public interface GroupResponseMapper {
     default List<SpotListResponseDto.Spot> spotToDto(List<Spot> spots) {
         List<SpotListResponseDto.Spot> spotDtoList = new ArrayList<>();
         for (Spot spot : spots) {
-            spotDtoList.add(SpotListResponseDto.Spot.builder()
-                    .spotName(spot.getName())
-                    .spotId(spot.getId())
-                    .build());
+            if(spot.getStatus().equals(SpotStatus.ACTIVE)) {
+                spotDtoList.add(SpotListResponseDto.Spot.builder()
+                        .spotName(spot.getName())
+                        .spotId(spot.getId())
+                        .build());
+            }
         }
         return spotDtoList;
     }

@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.controller.user;
+package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;

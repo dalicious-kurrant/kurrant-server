@@ -108,15 +108,7 @@ public class QUserRepository {
                 .fetch();
     }
     
-    public void updateUserPoint(BigInteger userId, BigDecimal imagePoint, BigDecimal contentPoint) {
-        BigDecimal point = BigDecimal.ZERO;
-        if(imagePoint != null) {
-            point = point.add(imagePoint);
-        }
-        if(contentPoint != null) {
-            point = point.add(contentPoint);
-        }
-
+    public void updateUserPoint(BigInteger userId, BigDecimal point) {
         queryFactory.update(user)
                 .where(user.id.eq(userId))
                 .set(user.point, user.point.add(point))
@@ -141,5 +133,22 @@ public class QUserRepository {
                 .where(user.id.eq(userId))
                 .execute();
 
+    }
+
+    public void updatePaymentPassword(String password, BigInteger userId) {
+        queryFactory.update(user)
+                .set(user.paymentPassword, password)
+                .where(user.id.eq(userId))
+                .execute();
+    }
+
+    public boolean getPaymentPassword(BigInteger id) {
+          String password = queryFactory.select(user.paymentPassword)
+                .from(user)
+                .where(user.id.eq(id))
+                 .fetchOne();
+
+          if (password == null) return false;
+          return true;
     }
 }

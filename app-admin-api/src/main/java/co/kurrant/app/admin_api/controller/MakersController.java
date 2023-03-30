@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.controller.makers;
+package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.food.dto.LocationTestDto;

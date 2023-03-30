@@ -233,7 +233,7 @@ public class OrderUtil {
         // 사용한 지원금
         BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
         // 환불 요청 금액
-        BigDecimal requestRefundPrice = orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5));
+        BigDecimal requestRefundPrice = PriceUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5)));
         // 배송비
         BigDecimal deliveryFee = BigDecimal.ZERO;
         // 업데이트 되어야할 지원금

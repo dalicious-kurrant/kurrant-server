@@ -35,6 +35,7 @@ import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipRepository;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -52,6 +53,7 @@ import net.bytebuddy.asm.Advice;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -105,10 +107,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final MembershipSupportPriceRepository membershipSupportPriceRepository;
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
+    private final QUserRepository qUserRepository;
     private final CreditCardInfoMapper creditCardInfoMapper;
     private final FoundersMapper foundersMapper;
     private final FoundersUtil foundersUtil;
     private final OrderService orderService;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Override
     @Transactional
@@ -129,6 +134,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 사용 요청 포인트가 유저가 현재 가지고 있는 포인트보다 적은지 검증
         if (orderItemDailyFoodReqDto.getOrderItems().getUserPoint().compareTo(user.getPoint()) > 0) {
+            throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
+        }
+        // 주문하려는 상품의 가격 총 합이 포인트보다 큰지 검증
+        if (BigDecimal.valueOf(orderItemDailyFoodReqDto.getAmount()).compareTo(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()) < 0) {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
 
@@ -191,7 +200,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
                 // 멤버십에 가입하지 않은 경우 멤버십 할인이 적용되지 않은 가격으로 보임
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, spot, selectedCartDailyFood.getDailyFood());
-                // 금액 일치 확인 TODO: 금액 일치 오류 확인(NOT_MATCHED_PRICE) -> 반올림 문제
+                // 금액 일치 확인
                 if (cartDailyFood.getDiscountedPrice().intValue() != discountDto.getDiscountedPrice().intValue()) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }
@@ -840,7 +849,26 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         //유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
-        System.out.println(user.getId() + " user Id");
+        //결제 비밀번호가 등록이 안된 유저라면
+        if (user.getPaymentPassword() == null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")) {
+            //결제 비밀번호 등록
+            if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
+                qUserRepository.updatePaymentPassword(password, user.getId());
+            } else {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
+        }
+        //결제 비밀번호가 등록되어있는 유저라면
+        if (user.getPaymentPassword() != null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")){
+            //결제 비밀번호 확인
+            if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
+               if (!Objects.equals(password, user.getPaymentPassword())){
+                   throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
+               }
+            }
+        }
 
         String token = niceUtil.getToken();
 

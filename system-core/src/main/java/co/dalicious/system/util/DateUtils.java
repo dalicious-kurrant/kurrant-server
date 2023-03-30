@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.*;
@@ -118,5 +119,9 @@ public class DateUtils {
         weekOfDay.put("endDate", endDate);
 
         return weekOfDay;
+    }
+
+    public static YearMonth toYearMonth(Integer year, Integer month) {
+        return YearMonth.of(year, month);
     }
 }
