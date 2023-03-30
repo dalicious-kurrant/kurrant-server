@@ -8,7 +8,6 @@ import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.domain.user.mapper.PointMapper;
 import co.dalicious.domain.user.repository.PointHistoryRepository;
 import co.dalicious.domain.user.repository.QPointHistoryRepository;
-import co.dalicious.domain.user.repository.QPointPolicyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -70,6 +69,7 @@ public class PointUtil {
     public void deletePointHistoryByPointPolicy(PointPolicy pointPolicy) {
         // point 가 0 인 로그만 가져와서 다 지움
         List<PointHistory> pointHistoryList = qPointHistoryRepository.findAllByPointPolicy(pointPolicy);
+        if(pointHistoryList.isEmpty()) return;
         pointHistoryRepository.deleteAll(pointHistoryList);
     }
 

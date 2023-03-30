@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface PointService {
     List<PointPolicyResDto.ReviewPointPolicy> findReviewPointPolicy();
-    List<PointPolicyResDto.EventPointPolicy> findEventPointPolicy();
+    PointPolicyResDto findEventPointPolicy();
     void createReviewPointPolicy(PointPolicyReqDto.EventPointPolicy reviewPointPolicy);
     void updateEventPointPolicy(BigInteger policyId, PointPolicyReqDto.EventPointPolicy reviewPointPolicy);
     void deleteEventPointPolicy(BigInteger policyId);

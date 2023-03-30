@@ -32,7 +32,8 @@ public interface PointMapper {
         PointPolicyResDto.EventPointPolicy dto = new PointPolicyResDto.EventPointPolicy();
 
         dto.setPointPolicyId(pointPolicy.getId());
-        dto.setPointCondition(pointPolicy.getPointCondition().getCode());
+        dto.setPointConditionCode(pointPolicy.getPointCondition().getCode());
+        dto.setPointConditionValue(pointPolicy.getPointCondition().getCondition());
         dto.setRewardPoint(pointPolicy.getRewardPoint());
         dto.setEventStartDate(pointPolicy.getEventStartDate() == null ? null : DateUtils.localDateToString(pointPolicy.getEventStartDate()));
         dto.setEventEndDate(pointPolicy.getEventEndDate() == null ? null : DateUtils.localDateToString(pointPolicy.getEventEndDate()));
