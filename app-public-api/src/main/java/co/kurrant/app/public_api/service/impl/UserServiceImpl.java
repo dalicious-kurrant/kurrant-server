@@ -659,4 +659,49 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ExceptionEnum.TOKEN_SAVE_FAILED);
         }
     }
+
+    @Override
+    @Transactional
+    public String savePaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto) {
+        //유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        //결제 비밀번호가 등록이 안된 유저라면
+        if (user.getPaymentPassword() == null && savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")) {
+            //결제 비밀번호 등록
+            if (savePaymentPasswordDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(savePaymentPasswordDto.getPayNumber());
+                qUserRepository.updatePaymentPassword(password, user.getId());
+            } else {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
+        }
+        if (user.getPaymentPassword() != null){
+            return "이미 결제 비밀번호가 등록되어 있습니다.";
+        }
+
+        return "결제 비밀번호 등록 성공!";
+    }
+
+    @Override
+    public String checkPaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto) {
+        User user = userUtil.getUser(securityUser);
+
+        if (user.getPaymentPassword() == null){
+            throw new ApiException(ExceptionEnum.NOT_FOUND_PAYMENT_PASSWORD);
+        }
+
+        if (user.getPaymentPassword() != null && savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")){
+            //결제 비밀번호 확인
+            if (savePaymentPasswordDto.getPayNumber().length() == 6) {
+                if (!passwordEncoder.matches(savePaymentPasswordDto.getPayNumber(), user.getPaymentPassword())){
+                    throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
+                }
+            } else {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            };
+        }
+
+        return "결제 비밀번호 확인 성공!";
+    }
 }
