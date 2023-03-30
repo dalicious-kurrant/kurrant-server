@@ -136,6 +136,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         if (orderItemDailyFoodReqDto.getOrderItems().getUserPoint().compareTo(user.getPoint()) > 0) {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
+        // 주문하려는 상품의 가격 총 합이 포인트보다 큰지 검증
+        if (BigDecimal.valueOf(orderItemDailyFoodReqDto.getAmount()).compareTo(user.getPoint()) < 0) {
+            throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
+        }
 
         Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
         List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();

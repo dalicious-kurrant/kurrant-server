@@ -16,7 +16,7 @@ import static co.dalicious.domain.user.entity.QPointHistory.pointHistory;
 @RequiredArgsConstructor
 public class QPointHistoryRepository {
 
-    private JPAQueryFactory jpaQueryFactory;
+    private final JPAQueryFactory jpaQueryFactory;
 
     public List<PointHistory> findAllByPointPolicy(PointPolicy policy) {
         return jpaQueryFactory.selectFrom(pointHistory)

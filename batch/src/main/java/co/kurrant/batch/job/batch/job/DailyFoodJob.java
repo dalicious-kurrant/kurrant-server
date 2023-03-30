@@ -90,14 +90,14 @@ public class DailyFoodJob {
 
     @Bean(name = "matchingDailyFoodIds")
     public List<BigInteger> matchingDailyFoodIds() {
-        log.info("[DailyFood 읽기 시작] : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
+        log.info("[판매중/품절 DailyFood 읽기 시작] : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         String queryString = "SELECT df.id, mi.lastOrderTime, df.serviceDate " +
                 "FROM DailyFood df " +
                 "JOIN df.group g " +
                 "JOIN MealInfo mi ON mi.group.id = g.id " +
                 "WHERE mi.diningType = df.diningType " +
-                "  AND df.dailyFoodStatus = 1 OR df.dailyFoodStatus = 2";
+                "  AND (df.dailyFoodStatus = 1 OR df.dailyFoodStatus = 2)";
 
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
         List<Object[]> results = query.getResultList();

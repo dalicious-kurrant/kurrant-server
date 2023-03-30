@@ -412,10 +412,14 @@ public class AuthServiceImpl implements AuthService {
             userId = refreshToken.get().getUserId().toString();
         }
         // 기존에 reissue 요청이 왔는지 검증
-        Optional<TempRefreshTokenHash> tempRefreshTokenHash = tempRefreshTokenRepository.findOneByUserId(userId);
+        List<TempRefreshTokenHash> tempRefreshTokenHashes = tempRefreshTokenRepository.findAllByUserId(userId);
+
+        Optional<TempRefreshTokenHash> matchingHash = tempRefreshTokenHashes.stream()
+                .filter(hash -> hash.getOldRefreshToken().equals(reissueTokenDto.getRefreshToken()))
+                .findFirst();
 
         // reissue 요청이 온 적이 없는 경우
-        if (tempRefreshTokenHash.isEmpty()) {
+        if (matchingHash.isEmpty()) {
             List<RefreshToken> refreshTokens = refreshTokenRepository.findAllByUserId(BigInteger.valueOf(Integer.parseInt(userId)));
 
             // 5. 로그아웃 되어 Refresh Token이 존재하지 않는 경우 처리
@@ -448,27 +452,25 @@ public class AuthServiceImpl implements AuthService {
             // 8. RefreshToken Redis 업데이트
             refreshTokenRepository.deleteAll(refreshTokens);
 
-            List<TempRefreshTokenHash> tempRefreshTokenHashs = tempRefreshTokenRepository.findAllByUserId(userId);
-            tempRefreshTokenRepository.deleteAll(tempRefreshTokenHashs);
+            tempRefreshTokenRepository.deleteAll(tempRefreshTokenHashes);
 
-            TempRefreshTokenHash tempRefreshTokenHash1 = TempRefreshTokenHash.builder()
+            TempRefreshTokenHash tempRefreshTokenHash = TempRefreshTokenHash.builder()
                     .userId(userId)
                     .oldRefreshToken(reissueTokenDto.getRefreshToken())
                     .newRefreshToken(loginResponseDto.getRefreshToken())
                     .newAccessToken(loginResponseDto.getAccessToken())
                     .build();
 
-            tempRefreshTokenRepository.save(tempRefreshTokenHash1);
+            tempRefreshTokenRepository.save(tempRefreshTokenHash);
             return loginResponseDto;
         }
         // reissue 요청이 온 적이 있는 경우
-        else if (tempRefreshTokenHash.get().getOldRefreshToken().equals(reissueTokenDto.getRefreshToken())) {
+        else {
             return LoginTokenDto.builder()
-                    .refreshToken(tempRefreshTokenHash.get().getNewRefreshToken())
-                    .accessToken(tempRefreshTokenHash.get().getNewAccessToken())
+                    .refreshToken(matchingHash.get().getNewRefreshToken())
+                    .accessToken(matchingHash.get().getNewAccessToken())
                     .build();
         }
-        throw new ApiException(ExceptionEnum.TOKEN_CREATE_FAILED);
 
     }
 
