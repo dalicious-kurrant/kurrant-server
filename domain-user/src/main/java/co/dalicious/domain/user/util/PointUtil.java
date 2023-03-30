@@ -38,15 +38,15 @@ public class PointUtil {
             Integer max = reviewPointPolicy.getMaxPrice() == null ? null : reviewPointPolicy.getMaxPrice();
             int price = itemPrice.intValue();
 
-            if(min == null && max != null && price < max) {
+            if(min == null && max != null && price <= max) {
                 rewardPointForImage = rewardPointForImage.add(reviewPointPolicy.getImagePoint());
                 rewardPointForContent = rewardPointForContent.add(reviewPointPolicy.getContentPoint());
             }
-            else if(min != null && max == null && min < price) {
+            else if(min != null && max == null && min <= price) {
                 rewardPointForImage = rewardPointForImage.add(reviewPointPolicy.getImagePoint());
                 rewardPointForContent = rewardPointForContent.add(reviewPointPolicy.getContentPoint());
             }
-            else {
+            else if(min != null && max != null && min <= price && max >= price){
                 rewardPointForImage = rewardPointForImage.add(reviewPointPolicy.getImagePoint());
                 rewardPointForContent = rewardPointForContent.add(reviewPointPolicy.getContentPoint());
             }
