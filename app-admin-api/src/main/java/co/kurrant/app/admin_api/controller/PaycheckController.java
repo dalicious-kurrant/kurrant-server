@@ -50,6 +50,15 @@ public class PaycheckController {
                 .build();
     }
 
+    @Operation(summary = "메이커스 정산 삭제", description = "메이커스 정산 삭제")
+    @DeleteMapping("/makers")
+    public ResponseMessage deleteMakersPaycheck(@RequestBody List<BigInteger> ids) {
+        paycheckService.deleteMakersPaycheck(ids);
+        return ResponseMessage.builder()
+                .message("메이커스 정산 상태 변경에 성공하였습니다.")
+                .build();
+    }
+
     @Operation(summary = "메이커스 정산 상태 변경", description = "메이커스 정산 상태 변경")
     @PutMapping("/makers/status/{status}")
     public ResponseMessage updateMakersPaycheckStatus(@PathVariable Integer status, @RequestBody List<BigInteger> ids) {
@@ -87,6 +96,15 @@ public class PaycheckController {
         paycheckService.updateCorporationPaycheck(corporationXlsx, corporationPdf, paycheckDto);
         return ResponseMessage.builder()
                 .message("기업 정산 수정에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "기업 정산 삭제", description = "기업 정산 삭제")
+    @DeleteMapping("/corporations")
+    public ResponseMessage deleteCorporationPaycheck(@RequestBody List<BigInteger> ids) {
+        paycheckService.deleteCorporationPaycheck(ids);
+        return ResponseMessage.builder()
+                .message("기업 정산 상태 변경에 성공하였습니다.")
                 .build();
     }
 
