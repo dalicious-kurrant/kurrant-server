@@ -850,14 +850,23 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         User user = userUtil.getUser(securityUser);
 
         //결제 비밀번호가 등록이 안된 유저라면
-        if (user.getPaymentPassword() == null && orderCreateBillingKeyReqDto.getPaymentPassword() != null && !orderCreateBillingKeyReqDto.getPaymentPassword().equals("")) {
-            System.out.println("카드비번 등록");
+        if (user.getPaymentPassword() == null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")) {
             //결제 비밀번호 등록
-            if (orderCreateBillingKeyReqDto.getPaymentPassword().length() == 6) {
-                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPaymentPassword());
+            if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
                 qUserRepository.updatePaymentPassword(password, user.getId());
             } else {
                 throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
+        }
+        //결제 비밀번호가 등록되어있는 유저라면
+        if (user.getPaymentPassword() != null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")){
+            //결제 비밀번호 확인
+            if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
+               if (!Objects.equals(password, user.getPaymentPassword())){
+                   throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
+               }
             }
         }
 
