@@ -118,6 +118,12 @@ public class PaycheckServiceImpl implements PaycheckService {
     }
 
     @Override
+    public void deleteMakersPaycheck(List<BigInteger> ids) {
+        List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByIdIn(ids);
+        makersPaycheckRepository.deleteAll(makersPaychecks);
+    }
+
+    @Override
     @Transactional
     public void updateMakersPaycheckStatus(Integer status, List<BigInteger> ids) {
         PaycheckStatus paycheckStatus = PaycheckStatus.ofCode(status);
@@ -192,6 +198,12 @@ public class PaycheckServiceImpl implements PaycheckService {
                 PaycheckStatus.ofString(paycheckDto.getPaycheckStatus()),
                 paycheckDto.getManagerName(),
                 paycheckDto.getPhone());
+    }
+
+    @Override
+    public void deleteCorporationPaycheck(List<BigInteger> ids) {
+        List<CorporationPaycheck> corporationPaychecks = corporationPaycheckRepository.findAllByIdIn(ids);
+        corporationPaycheckRepository.deleteAll(corporationPaychecks);
     }
 
     @Override

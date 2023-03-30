@@ -137,7 +137,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
         // 주문하려는 상품의 가격 총 합이 포인트보다 큰지 검증
-        if (BigDecimal.valueOf(orderItemDailyFoodReqDto.getAmount()).compareTo(user.getPoint()) < 0) {
+        if (BigDecimal.valueOf(orderItemDailyFoodReqDto.getAmount()).compareTo(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()) < 0) {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
 
