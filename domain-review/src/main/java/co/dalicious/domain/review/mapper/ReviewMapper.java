@@ -37,6 +37,7 @@ public interface ReviewMapper {
     Reviews toEntity(ReviewReqDto reviewDto, User user, OrderItem orderItem, Food food, List<Image> imageList);
 
     @Mapping(source = "orderItemDailyFood.id", target = "orderItemId")
+    @Mapping(source = "orderItemDailyFood.dailyFood.id", target = "dailyFoodId")
     @Mapping(source = "orderItemDailyFood.dailyFood.diningType.diningType", target = "diningType")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.images", target = "imageLocation", qualifiedByName = "getLocation")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.makers.name", target = "makersName")
@@ -233,8 +234,8 @@ public interface ReviewMapper {
     default List<ReviewAdminResDto.MakersComment> getMakersComment(List<Comments> comments) {
         if(comments.isEmpty()) return null;
         List<ReviewAdminResDto.MakersComment> makersCommentList = new ArrayList<>();
-        ReviewAdminResDto.MakersComment makersComment = new ReviewAdminResDto.MakersComment();
         for(Comments comment : comments) {
+            ReviewAdminResDto.MakersComment makersComment = new ReviewAdminResDto.MakersComment();
             if(comment instanceof MakersComments makersComments) {
                 makersComment.setCommentId(makersComments.getId());
                 makersComment.setMakersName(makersComments.getReviews().getFood().getMakers().getName());
@@ -250,8 +251,8 @@ public interface ReviewMapper {
     default List<ReviewAdminResDto.AdminComment> getAdminComment(List<Comments> comments) {
         if(comments.isEmpty()) return null;
         List<ReviewAdminResDto.AdminComment> adminCommentList = new ArrayList<>();
-        ReviewAdminResDto.AdminComment adminComment = new ReviewAdminResDto.AdminComment();
         for(Comments comment : comments) {
+            ReviewAdminResDto.AdminComment adminComment = new ReviewAdminResDto.AdminComment();
             if(comment instanceof AdminComments adminComments) {
                 adminComment.setCommentId(adminComments.getId());
                 adminComment.setComment(adminComments.getContent());
