@@ -860,6 +860,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         if (user.getPaymentPassword() == null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")) {
             //결제 비밀번호 등록
             if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
+
                 String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
                 qUserRepository.updatePaymentPassword(password, user.getId());
             } else {
@@ -895,6 +896,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         Integer defaultType = orderCreateBillingKeyReqDto.getDefaultType();
 
+        //중복카드라서 상태를 0에서 1로 바꿨을때 중복 저장을방지하기 위한 카운트변수
+        Integer sameCardCount = 0;
+
         //중복 카드확인
         List<CreditCardInfo> creditCardInfos = creditCardInfoRepository.findAllByUserId(user.getId());
 
@@ -902,13 +906,15 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if (defaultType == null){
                 defaultType = 0;
             }
+
             for (CreditCardInfo card : creditCardInfos){
                 if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0 && card.getNiceBillingKey() != null){
                     return "이미 같은 카드가 등록되어 있습니다.";
                 }
                 //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
-                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1){
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1 && card.getNiceBillingKey().equals(billingKey)){
                     qCreditCardInfoRepository.updateStatusCardNice(card.getId(), billingKey);
+                    sameCardCount = 1;
                 }
             }
         }
@@ -919,7 +925,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
         Integer status =1;
         CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType, status);
-        creditCardInfoRepository.save(cardInfo);
+        if (sameCardCount != 1){
+            creditCardInfoRepository.save(cardInfo);
+        }
 
         return billingKey;
     }
@@ -958,6 +966,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         Integer defaultType = orderCreateBillingKeyReqDto.getDefaultType();
 
+        //중복카드라서 상태를 0에서 1로 바꿨을때 중복 저장을방지하기 위한 카운트변수
+        Integer sameCardCount = 0;
+
         //중복 카드확인
         List<CreditCardInfo> creditCardInfos = creditCardInfoRepository.findAllByUserId(user.getId());
 
@@ -970,8 +981,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     return "이미 같은 카드가 등록되어 있습니다.";
                 }
                 //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
-                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1){
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1 && card.getNiceBillingKey().equals(billingKey)){
                     qCreditCardInfoRepository.updateStatusCardNice(card.getId(), billingKey);
+                    sameCardCount =1;
                 }
             }
         }
@@ -982,7 +994,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
         Integer status =1;
         CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType, status);
-        creditCardInfoRepository.save(cardInfo);
+        if (sameCardCount != 1){
+            creditCardInfoRepository.save(cardInfo);
+        }
 
         return billingKey;
     }
