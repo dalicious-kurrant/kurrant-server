@@ -925,7 +925,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    public Object createNiceBillingKey(SecurityUser securityUser, OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
+    public Object createNiceBillingKey(SecurityUser securityUser, OrderCreateBillingKeySecondReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
         //유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
