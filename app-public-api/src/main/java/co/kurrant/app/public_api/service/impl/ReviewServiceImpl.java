@@ -61,6 +61,7 @@ public class ReviewServiceImpl implements ReviewService {
         // 필요한 정보 가져오기 - 유저, 상품
         User user = userUtil.getUser(securityUser);
         OrderItem orderItem = qOrderItemRepository.findByUserAndOrderId(user, reviewDto.getOrderItemId());
+        List<Reviews> reviewsList = qReviewRepository.findByUserAndOrderItem(user, orderItem);
         if(orderItem == null) throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
 
         validate(reviewDto.getSatisfaction(), reviewDto.getContent());
@@ -78,8 +79,10 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         // 이미 review를 작성한 건인지 검증
-        if(qReviewRepository.findByUserAndOrderItem(user, orderItem) != null) {
-            throw new ApiException(ExceptionEnum.ALREADY_WRITING_REVIEW);
+        if(reviewsList != null && !reviewsList.isEmpty()) {
+            reviewsList.stream().filter(r -> r.getIsDelete().equals(false))
+                    .findFirst()
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_WRITING_REVIEW));
         }
         // 리뷰 가능 일이 맞는지 검증
         LocalDate reviewableDate = Objects.requireNonNull(dailyFood).getServiceDate().plusDays(7);
@@ -102,7 +105,7 @@ public class ReviewServiceImpl implements ReviewService {
         qReviewRepository.updateDefault(reviews);
 
         // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
-        if(user.getIsMembership() || membershipDiscountRate != 0) {
+        if(reviewsList != null && !reviewsList.isEmpty() && (user.getIsMembership() || membershipDiscountRate != 0)) {
             //음식 수량 많큼 포인트 지급
             BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice(), count);
             qUserRepository.updateUserPoint(user.getId(), rewardPoint);

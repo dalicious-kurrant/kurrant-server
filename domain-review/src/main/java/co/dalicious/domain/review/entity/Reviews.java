@@ -32,11 +32,11 @@ public class Reviews{
     @Comment("리뷰 PK")
     private BigInteger id;
 
-    @Column(name = "content" ,nullable = false, columnDefinition = "VARCHAR(500)")
+    @Column(name = "content" ,nullable = false, columnDefinition = "VARCHAR(501)")
     @Comment("리뷰 내용-최소 10자 이상")
     private String content;
 
-    @Column(name = "content_origin", columnDefinition = "VARCHAR(500)")
+    @Column(name = "content_origin", columnDefinition = "VARCHAR(501)")
     @Comment("원본 리뷰 내용")
     private String contentOrigin;
 
