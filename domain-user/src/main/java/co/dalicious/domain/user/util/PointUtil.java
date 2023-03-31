@@ -4,6 +4,7 @@ import co.dalicious.domain.user.dto.PointPolicyResDto;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.domain.user.mapper.PointMapper;
 import co.dalicious.domain.user.repository.PointHistoryRepository;
@@ -73,24 +74,29 @@ public class PointUtil {
         pointHistoryRepository.deleteAll(pointHistoryList);
     }
 
-    public void createPointHistoryByPointPolicy(User user, PointPolicy pointPolicy, Map<String, BigInteger> ids) {
+    public void createPointHistoryByPointPolicy(User user, PointPolicy pointPolicy, BigInteger noticeId, PointStatus pointStatus) {
         Integer completeCount = pointPolicy.getCompletedConditionCount();
         Integer accountLimit = pointPolicy.getAccountCompletionLimit();
 
         List<PointHistory> pointHistoryList = qPointHistoryRepository.findAllByUserAndPointPolicy(user, pointPolicy);
         if(pointHistoryList.isEmpty()) {
-            PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, ids, 0);
+            PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, noticeId, 0, pointStatus);
             pointHistoryRepository.save(pointHistory);
             return;
         }
 
         List<PointHistory> rewardPointHistoryCount = pointHistoryList.stream().filter(pointHistory -> pointHistory.getPoint().equals(BigDecimal.valueOf(0))).toList();
-        PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, ids, rewardPointHistoryCount.size());
+        PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, noticeId, rewardPointHistoryCount.size(), pointStatus);
 
         pointHistoryRepository.save(pointHistory);
     }
 
     public void createPointHistoryByReview(User user, BigInteger id, BigDecimal point) {
         pointHistoryRepository.save(pointMapper.createPointHistoryForReview(user, id, point));
+    }
+
+    public void createPointHistoryByOrder(User user, BigInteger orderId, BigInteger cancelId, PointStatus pointStatus, BigDecimal point) {
+        PointHistory pointHistory = pointMapper.createPointHistoryForOrder(user, orderId, cancelId, pointStatus, point);
+        pointHistoryRepository.save(pointHistory);
     }
 }

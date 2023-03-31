@@ -37,6 +37,7 @@ public interface ReviewMapper {
     Reviews toEntity(ReviewReqDto reviewDto, User user, OrderItem orderItem, Food food, List<Image> imageList);
 
     @Mapping(source = "orderItemDailyFood.id", target = "orderItemId")
+    @Mapping(source = "orderItemDailyFood.dailyFood.id", target = "dailyFoodId")
     @Mapping(source = "orderItemDailyFood.dailyFood.diningType.diningType", target = "diningType")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.images", target = "imageLocation", qualifiedByName = "getLocation")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.makers.name", target = "makersName")
@@ -230,32 +231,36 @@ public interface ReviewMapper {
     }
 
     @Named("getMakersComment")
-    default ReviewAdminResDto.MakersComment getMakersComment(List<Comments> comments) {
+    default List<ReviewAdminResDto.MakersComment> getMakersComment(List<Comments> comments) {
         if(comments.isEmpty()) return null;
-        ReviewAdminResDto.MakersComment makersComment = new ReviewAdminResDto.MakersComment();
+        List<ReviewAdminResDto.MakersComment> makersCommentList = new ArrayList<>();
         for(Comments comment : comments) {
+            ReviewAdminResDto.MakersComment makersComment = new ReviewAdminResDto.MakersComment();
             if(comment instanceof MakersComments makersComments) {
                 makersComment.setCommentId(makersComments.getId());
                 makersComment.setMakersName(makersComments.getReviews().getFood().getMakers().getName());
                 makersComment.setComment(makersComments.getContent());
                 makersComment.setIsDelete(makersComments.getIsDelete());
+                makersCommentList.add(makersComment);
             }
         }
-        return makersComment;
+        return makersCommentList;
     }
 
     @Named("getAdminComment")
-    default ReviewAdminResDto.AdminComment getAdminComment(List<Comments> comments) {
+    default List<ReviewAdminResDto.AdminComment> getAdminComment(List<Comments> comments) {
         if(comments.isEmpty()) return null;
-        ReviewAdminResDto.AdminComment adminComment = new ReviewAdminResDto.AdminComment();
+        List<ReviewAdminResDto.AdminComment> adminCommentList = new ArrayList<>();
         for(Comments comment : comments) {
+            ReviewAdminResDto.AdminComment adminComment = new ReviewAdminResDto.AdminComment();
             if(comment instanceof AdminComments adminComments) {
                 adminComment.setCommentId(adminComments.getId());
                 adminComment.setComment(adminComments.getContent());
                 adminComment.setIsDelete(adminComments.getIsDelete());
+                adminCommentList.add(adminComment);
             }
         }
-        return adminComment;
+        return adminCommentList;
     }
 
     @Named("getLocation")
