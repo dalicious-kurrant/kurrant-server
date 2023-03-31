@@ -96,9 +96,8 @@ public interface PointHistoryMapper {
 
                 name.append(foodName);
             }
-            id = cancelHistory.getId();
+            id = cancelHistory.getOrder().getId();
         }
-
         pointRequestDto.setName(String.valueOf(name));
         pointRequestDto.setContentId(id);
         pointRequestDto.setMakersName(makersName);

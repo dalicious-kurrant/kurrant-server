@@ -74,24 +74,29 @@ public class PointUtil {
         pointHistoryRepository.deleteAll(pointHistoryList);
     }
 
-    public void createPointHistoryByPointPolicy(User user, PointPolicy pointPolicy, Map<String, BigInteger> ids, PointStatus pointStatus) {
+    public void createPointHistoryByPointPolicy(User user, PointPolicy pointPolicy, BigInteger noticeId, PointStatus pointStatus) {
         Integer completeCount = pointPolicy.getCompletedConditionCount();
         Integer accountLimit = pointPolicy.getAccountCompletionLimit();
 
         List<PointHistory> pointHistoryList = qPointHistoryRepository.findAllByUserAndPointPolicy(user, pointPolicy);
         if(pointHistoryList.isEmpty()) {
-            PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, ids, 0, pointStatus);
+            PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, noticeId, 0, pointStatus);
             pointHistoryRepository.save(pointHistory);
             return;
         }
 
         List<PointHistory> rewardPointHistoryCount = pointHistoryList.stream().filter(pointHistory -> pointHistory.getPoint().equals(BigDecimal.valueOf(0))).toList();
-        PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, ids, rewardPointHistoryCount.size(), pointStatus);
+        PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, noticeId, rewardPointHistoryCount.size(), pointStatus);
 
         pointHistoryRepository.save(pointHistory);
     }
 
     public void createPointHistoryByReview(User user, BigInteger id, BigDecimal point) {
         pointHistoryRepository.save(pointMapper.createPointHistoryForReview(user, id, point));
+    }
+
+    public void createPointHistoryByOrder(User user, BigInteger orderId, BigInteger cancelId, PointStatus pointStatus, BigDecimal point) {
+        PointHistory pointHistory = pointMapper.createPointHistoryForOrder(user, orderId, cancelId, pointStatus, point);
+        pointHistoryRepository.save(pointHistory);
     }
 }

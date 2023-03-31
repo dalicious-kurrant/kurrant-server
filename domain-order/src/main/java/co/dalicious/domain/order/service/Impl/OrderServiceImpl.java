@@ -27,10 +27,12 @@ import co.dalicious.domain.user.entity.MembershipDiscountPolicy;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
+import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.util.PeriodDto;
 import exception.ApiException;
@@ -68,6 +70,7 @@ public class OrderServiceImpl implements OrderService {
     private final DiscountPolicy discountPolicy;
     private final MembershipDiscountEvent membershipDiscountEvent;
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
+    private final PointUtil pointUtil;
 
     @Override
     @Transactional
@@ -112,6 +115,8 @@ public class OrderServiceImpl implements OrderService {
             if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0 || refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
                 PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
                 paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
+                // 환불 포인트 내역 남기기
+                pointUtil.createPointHistoryByOrder(user, order.getId(), paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
             }
             orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
 

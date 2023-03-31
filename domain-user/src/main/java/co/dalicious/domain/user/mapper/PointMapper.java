@@ -55,10 +55,7 @@ public interface PointMapper {
                 .build();
     }
 
-    default PointHistory createPointHistoryForCount(User user, PointPolicy pointPolicy, Map<String, BigInteger> ids, Integer count, PointStatus pointStatus) {
-        BigInteger orderId = !ids.containsKey("order") || ids.get("order") == null ? null : ids.get("order");
-        BigInteger boardId = !ids.containsKey("board") || ids.get("board") == null ? null : ids.get("board");
-        BigInteger cancelId = !ids.containsKey("cancel") || ids.get("cancel") == null ? null : ids.get("cancel");
+    default PointHistory createPointHistoryForCount(User user, PointPolicy pointPolicy, BigInteger noticeId, Integer count, PointStatus pointStatus) {
 
         BigDecimal point = BigDecimal.ZERO;
         if((count / pointPolicy.getCompletedConditionCount()) > pointPolicy.getAccountCompletionLimit()) {
@@ -72,10 +69,8 @@ public interface PointMapper {
                 .pointCondition(pointPolicy.getPointCondition())
                 .user(user)
                 .pointStatus(pointStatus)
-                .orderId(orderId)
-                .boardId(boardId)
+                .boardId(noticeId)
                 .pointPolicyId(pointPolicy.getId())
-                .paymentCancelHistoryId(cancelId)
                 .build();
     }
 
@@ -83,8 +78,18 @@ public interface PointMapper {
         return PointHistory.builder()
                 .point(point)
                 .user(user)
-                .pointStatus(PointStatus.REWARD)
+                .pointStatus(PointStatus.REVIEW_REWARD)
                 .reviewId(reviewId)
+                .build();
+    }
+
+    default PointHistory createPointHistoryForOrder(User user, BigInteger orderId,  BigInteger cancelId, PointStatus pointStatus, BigDecimal point) {
+        return PointHistory.builder()
+                .point(point)
+                .user(user)
+                .pointStatus(pointStatus)
+                .orderId(orderId)
+                .paymentCancelHistoryId(cancelId)
                 .build();
     }
 }
