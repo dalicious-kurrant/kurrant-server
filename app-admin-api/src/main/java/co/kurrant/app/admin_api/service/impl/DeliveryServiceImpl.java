@@ -136,15 +136,6 @@ public class DeliveryServiceImpl implements DeliveryService {
                     List<DeliveryDto.DeliveryFood> deliveryFoodList = new ArrayList<>();
                     for(DailyFood dailyFood : Objects.requireNonNull(makersDailyFoodList)) {
 
-                        // count 구하기
-                        int count = 0;
-                        List<OrderItemDailyFood> spotOrderItemDailyFood = spotOrderItemDailyFoodMultiValueMap.get(spot);
-                        for(OrderItemDailyFood orderItemDailyFood : Objects.requireNonNull(spotOrderItemDailyFood)) {
-                            if(orderItemDailyFood.getDailyFood().equals(dailyFood)) {
-                                count += orderItemDailyFood.getCount();
-                            }
-                        }
-
                         // pickup time
                         if(pickupTime == null) {
                             pickupTime = dailyFood.getDailyFoodGroup().getPickupTime();
@@ -152,6 +143,16 @@ public class DeliveryServiceImpl implements DeliveryService {
                         // dining type
                         if(diningType == null) {
                             diningType = dailyFood.getDiningType();
+                        }
+
+                        // count 구하기
+                        int count = 0;
+                        List<OrderItemDailyFood> spotOrderItemDailyFood = spotOrderItemDailyFoodMultiValueMap.get(spot);
+                        if(spotOrderItemDailyFood == null || spotOrderItemDailyFood.isEmpty()) continue;
+                        for(OrderItemDailyFood orderItemDailyFood : spotOrderItemDailyFood) {
+                            if(orderItemDailyFood.getDailyFood().equals(dailyFood)) {
+                                count += orderItemDailyFood.getCount();
+                            }
                         }
 
                         // 주문한 delivery food 만 dto 만들기

@@ -50,6 +50,7 @@ public enum ExceptionEnum {
 	EXCEL_INTEGRITY_ERROR(HttpStatus.BAD_REQUEST, "E4000101", "정합성에 위반된 데이터가 존재합니다. 올바른 데이터를 입력해주세요."),
 	CONNECTION_ERROR(HttpStatus.BAD_REQUEST, "E4000102", "연결 오류!!!"),
 	EVENT_END_DATE_IS_OVER(HttpStatus.BAD_REQUEST, "E4000103", "이미 끝난 이벤트입니다."),
+	ALREADY_WRITING_COMMENT(HttpStatus.BAD_REQUEST, "E4000103", "이미 댓글을 작성한 리뷰입니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
@@ -98,6 +99,8 @@ public enum ExceptionEnum {
 	ADMIN_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040028", "작성된 관리자 댓글이 없습니다."),
 	MAKERS_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040029", "작성된 메이커스 댓글이 없습니다."),
 	NOT_FOUND_MANAGER(HttpStatus.NOT_FOUND,"E4040030", "매니저를 찾을 수 없습니다."),
+	NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040032", "공지를 찾을 수 없습니다."),
+	CANCLE_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040033", "취소 내역을 찾을 수 없습니다."),
 	NOT_FOUND_PAYMENT_PASSWORD(HttpStatus.INTERNAL_SERVER_ERROR, "E4040031", "결제 비밀번호가 등록되지 않았습니다."),
 
 	/* E409 */
