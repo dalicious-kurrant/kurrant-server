@@ -38,7 +38,7 @@ public class PointHistory {
 
     @Convert(converter = PointStatusConverter.class)
     @Column(name = "e_point_status")
-    @Comment("포인트 적립 조건")
+    @Comment("포인트 상태")
     private PointStatus pointStatus;
 
     @Column(name = "point")

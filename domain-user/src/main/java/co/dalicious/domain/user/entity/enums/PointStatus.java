@@ -8,8 +8,10 @@ import java.util.Arrays;
 
 @Getter
 public enum PointStatus {
-    REWARD("적립", 0),
-    USED("사용", 1);
+    REVIEW_REWARD("리뷰 적립", 0),
+    EVENT_REWARD("이벤트 적립", 1),
+    CANCEL("환불", 2),
+    USED("사용", 3);
 
     private final String type;
     private final Integer code;

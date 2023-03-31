@@ -98,6 +98,8 @@ public enum ExceptionEnum {
 	ADMIN_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040028", "작성된 관리자 댓글이 없습니다."),
 	MAKERS_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040029", "작성된 메이커스 댓글이 없습니다."),
 	NOT_FOUND_MANAGER(HttpStatus.NOT_FOUND,"E4040030", "매니저를 찾을 수 없습니다."),
+	NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040032", "공지를 찾을 수 없습니다."),
+	CANCLE_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040033", "취소 내역을 찾을 수 없습니다."),
 	NOT_FOUND_PAYMENT_PASSWORD(HttpStatus.INTERNAL_SERVER_ERROR, "E4040031", "결제 비밀번호가 등록되지 않았습니다."),
 
 	/* E409 */
