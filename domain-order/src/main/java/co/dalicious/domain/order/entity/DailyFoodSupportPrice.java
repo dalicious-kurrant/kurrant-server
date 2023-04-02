@@ -26,7 +26,7 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "user__support_price_history")
-public class UserSupportPriceHistory {
+public class DailyFoodSupportPrice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
@@ -80,7 +80,7 @@ public class UserSupportPriceHistory {
     private Timestamp updatedDateTime;
 
     @Builder
-    public UserSupportPriceHistory(User user, Group group, BigDecimal usingSupportPrice, LocalDate serviceDate, DiningType diningType, OrderItemDailyFoodGroup orderItemDailyFoodGroup, MonetaryStatus monetaryStatus) {
+    public DailyFoodSupportPrice(User user, Group group, BigDecimal usingSupportPrice, LocalDate serviceDate, DiningType diningType, OrderItemDailyFoodGroup orderItemDailyFoodGroup, MonetaryStatus monetaryStatus) {
         this.user = user;
         this.group = group;
         this.usingSupportPrice = usingSupportPrice;

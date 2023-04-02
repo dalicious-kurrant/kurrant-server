@@ -6,6 +6,7 @@ import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointCondition;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.system.util.DateUtils;
 import org.mapstruct.Mapper;
@@ -54,9 +55,7 @@ public interface PointMapper {
                 .build();
     }
 
-    default PointHistory createPointHistoryForCount(User user, PointPolicy pointPolicy, Map<String, BigInteger> ids, Integer count) {
-        BigInteger orderId = !ids.containsKey("order") || ids.get("order") == null ? null : ids.get("order");
-        BigInteger boardId = !ids.containsKey("board") || ids.get("board") == null ? null : ids.get("board");
+    default PointHistory createPointHistoryForCount(User user, PointPolicy pointPolicy, BigInteger noticeId, Integer count, PointStatus pointStatus) {
 
         BigDecimal point = BigDecimal.ZERO;
         if((count / pointPolicy.getCompletedConditionCount()) > pointPolicy.getAccountCompletionLimit()) {
@@ -69,8 +68,8 @@ public interface PointMapper {
                 .point(point)
                 .pointCondition(pointPolicy.getPointCondition())
                 .user(user)
-                .orderId(orderId)
-                .boardId(boardId)
+                .pointStatus(pointStatus)
+                .boardId(noticeId)
                 .pointPolicyId(pointPolicy.getId())
                 .build();
     }
@@ -79,7 +78,18 @@ public interface PointMapper {
         return PointHistory.builder()
                 .point(point)
                 .user(user)
+                .pointStatus(PointStatus.REVIEW_REWARD)
                 .reviewId(reviewId)
+                .build();
+    }
+
+    default PointHistory createPointHistoryForOrder(User user, BigInteger orderId,  BigInteger cancelId, PointStatus pointStatus, BigDecimal point) {
+        return PointHistory.builder()
+                .point(point)
+                .user(user)
+                .pointStatus(pointStatus)
+                .orderId(orderId)
+                .paymentCancelHistoryId(cancelId)
                 .build();
     }
 }

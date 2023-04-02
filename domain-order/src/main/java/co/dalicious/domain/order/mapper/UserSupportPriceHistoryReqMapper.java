@@ -4,7 +4,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.order.entity.UserSupportPriceHistory;
+import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.system.util.PriceUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -24,7 +24,7 @@ public interface UserSupportPriceHistoryReqMapper {
     @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup.diningType", target = "diningType")
     @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
     @Mapping(target = "monetaryStatus", constant = "DEDUCTION")
-    UserSupportPriceHistory toEntity(OrderItemDailyFood orderItemDailyFood, BigDecimal supportPrice);
+    DailyFoodSupportPrice toEntity(OrderItemDailyFood orderItemDailyFood, BigDecimal supportPrice);
 
     @Mapping(source = "orderItemDailyFood.order.user", target = "user")
     @Mapping(source = "orderItemDailyFood.order", target = "group", qualifiedByName = "getGroup")
@@ -33,7 +33,7 @@ public interface UserSupportPriceHistoryReqMapper {
     @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup.diningType", target = "diningType")
     @Mapping(source = "orderItemDailyFood.orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
     @Mapping(target = "monetaryStatus", constant = "DEDUCTION")
-    UserSupportPriceHistory toMedTronicSupportPrice(OrderItemDailyFood orderItemDailyFood, BigDecimal orderItemGroupTotalPrice);
+    DailyFoodSupportPrice toMedTronicSupportPrice(OrderItemDailyFood orderItemDailyFood, BigDecimal orderItemGroupTotalPrice);
 
     @Named("getGroup")
     default Group getGroup(Order order) {

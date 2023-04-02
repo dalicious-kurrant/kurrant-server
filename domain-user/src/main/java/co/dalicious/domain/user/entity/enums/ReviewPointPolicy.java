@@ -9,10 +9,11 @@ import java.util.Arrays;
 @Getter
 public enum ReviewPointPolicy {
 
-    REVIEW_RANGE_1("5000", "7999", "65", "165", 1),
-    REVIEW_RANGE_2("8000", "12999", "110", "210", 2),
-    REVIEW_RANGE_3("13000", "19999", "165", "265", 3),
-    REVIEW_RANGE_4("20000","~", "300", "400", 4);
+    REVIEW_RANGE_1("0", "~", "50", "100", 1)
+//    REVIEW_RANGE_2("8000", "12999", "110", "210", 2),
+//    REVIEW_RANGE_3("13000", "19999", "165", "265", 3),
+//    REVIEW_RANGE_4("20000","~", "300", "400", 4)
+    ;
 
     private final String minPrice;
     private final String maxPrice;

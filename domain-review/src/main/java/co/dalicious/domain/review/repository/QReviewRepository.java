@@ -24,6 +24,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
@@ -37,12 +38,12 @@ public class QReviewRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public Reviews findByUserAndOrderItem(User user, OrderItem orderItem) {
+    public List<Reviews> findByUserAndOrderItem(User user, OrderItem orderItem) {
         return queryFactory
                 .selectFrom(reviews)
                 .where(reviews.user.eq(user),
                         reviews.orderItem.eq(orderItem))
-                .fetchOne();
+                .fetch();
     }
 
     public Reviews findByUserAndId(User user, BigInteger reviewId) {
@@ -187,6 +188,12 @@ public class QReviewRepository {
     public List<Reviews> findAllByUserAndOrderItem(User user, List<OrderItem> orderItemList) {
         return  queryFactory.selectFrom(reviews)
                 .where(reviews.user.eq(user), reviews.orderItem.in(orderItemList))
+                .fetch();
+    }
+
+    public List<Reviews> findAllByIds(Set<BigInteger> ids) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.id.in(ids))
                 .fetch();
     }
 }

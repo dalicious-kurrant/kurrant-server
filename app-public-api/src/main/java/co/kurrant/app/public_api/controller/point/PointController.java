@@ -28,7 +28,7 @@ public class PointController {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .message("포인트 내역 조회를 완료했습니다.")
-                .data(pointService.findAllPointLogs(condition, limit, page, pageable))
+                .data(pointService.findAllPointLogs(securityUser, condition, limit, page, pageable))
                 .build();
     }
 }

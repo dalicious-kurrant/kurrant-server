@@ -9,7 +9,7 @@ import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.Cart;
 import co.dalicious.domain.order.entity.CartDailyFood;
-import co.dalicious.domain.order.entity.UserSupportPriceHistory;
+import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.mapper.CartDailyFoodMapper;
 import co.dalicious.domain.order.mapper.CartDailyFoodsResMapper;
 import co.dalicious.domain.order.repository.*;
@@ -48,7 +48,7 @@ public class CartServiceImpl implements CartService {
     private final CartDailyFoodRepository cartDailyFoodRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
     private final QCartItemRepository qOrderCartItemRepository;
-    private final QUserSupportPriceHistoryRepository qUserSupportPriceHistoryRepository;
+    private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
     private final UserUtil userUtil;
     private final CartDailyFoodMapper orderCartDailyFoodMapper;
     private final CartDailyFoodsResMapper cartDailyFoodsResMapper;
@@ -174,7 +174,7 @@ public class CartServiceImpl implements CartService {
             // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
             PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
             // ServiceDate에 해당하는 사용 지원금 리스트 받아오기
-            List<UserSupportPriceHistory> userSupportPriceHistories = qUserSupportPriceHistoryRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
+            List<DailyFoodSupportPrice> userSupportPriceHistories = qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
             // 배송비 및 지원금 계산
             for (DiningTypeServiceDateDto diningTypeServiceDateDto : diningTypeServiceDateDtos) {
                 BigDecimal supportPrice = BigDecimal.ZERO;
