@@ -4,11 +4,15 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.ApartmentRepository;
 import co.dalicious.domain.client.repository.CorporationRepository;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
+import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.order.mapper.ExtraOrderMapper;
 import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
 import co.dalicious.domain.order.repository.OrderItemRepository;
 import co.dalicious.domain.order.repository.OrderRepository;
@@ -64,6 +68,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderDailyFoodByMakersMapper orderDailyFoodByMakersMapper;
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
     private final UserRepository userRepository;
+    private final QDailyFoodRepository qDailyFoodRepository;
+    private final ExtraOrderMapper extraOrderMapper;
 
     @Override
     @Transactional
@@ -211,6 +217,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
             }
         }
+    }
+
+    @Override
+    public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate, List<ExtraOrderDto.Request> orderDtos) {
+        List<DailyFood> dailyFoods = qDailyFoodRepository.getSellingDailyFoodsBetweenServiceDate(startDate, endDate);
+        return extraOrderMapper.toDailyFoodList(dailyFoods);
+    }
+
+    @Override
+    public void postExtraOrderItems(LocalDate startDate, LocalDate endDate, List<ExtraOrderDto.Request> orderDtos) {
+
     }
 
 

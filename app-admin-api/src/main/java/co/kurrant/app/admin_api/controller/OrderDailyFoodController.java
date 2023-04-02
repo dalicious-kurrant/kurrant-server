@@ -1,15 +1,19 @@
 package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.admin_api.service.OrderDailyFoodService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.ParseException;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "2. Order")
@@ -18,6 +22,7 @@ import java.util.Map;
 @RestController
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
+
     @GetMapping("")
     public ResponseMessage retrieveOrder(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
@@ -59,7 +64,7 @@ public class OrderDailyFoodController {
     }
 
     @GetMapping("/groupInfo")
-    public ResponseMessage getGroupInfo(@RequestParam (required = false) BigInteger groupId) {
+    public ResponseMessage getGroupInfo(@RequestParam(required = false) BigInteger groupId) {
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getGroupInfo(groupId))
                 .message("고객사 정보 조회에 성공하였습니다.")
@@ -106,7 +111,25 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @GetMapping("/extra")
+    public ResponseMessage getExtraDailyFoods(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                               @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+                                               @RequestBody List<ExtraOrderDto.Request> orderDtos) {
+        orderDailyFoodService.getExtraDailyFoods(startDate, endDate, orderDtos);
+        return ResponseMessage.builder()
+                .message("추가 주문에 성공하였습니다.")
+                .build();
+    }
 
+    @PostMapping("/extra")
+    public ResponseMessage postExtraOrderItems(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                               @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+                                               @RequestBody List<ExtraOrderDto.Request> orderDtos) {
+        orderDailyFoodService.postExtraOrderItems(startDate, endDate, orderDtos);
+        return ResponseMessage.builder()
+                .message("추가 주문에 성공하였습니다.")
+                .build();
+    }
 }
 
 

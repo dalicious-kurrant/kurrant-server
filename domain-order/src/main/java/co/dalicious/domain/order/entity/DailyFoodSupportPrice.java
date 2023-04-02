@@ -65,6 +65,7 @@ public class DailyFoodSupportPrice {
     private MonetaryStatus monetaryStatus;
 
     @Comment("지원금 사용처")
+    @Column(columnDefinition = "VARCHAR(40)")
     private String SupportPriceUsage;
 
     @CreationTimestamp
