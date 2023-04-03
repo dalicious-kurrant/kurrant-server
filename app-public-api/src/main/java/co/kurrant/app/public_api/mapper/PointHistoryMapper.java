@@ -8,10 +8,8 @@ import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.PaymentCancelHistory;
 import co.dalicious.domain.review.entity.Reviews;
-import co.dalicious.domain.review.repository.ReviewRepository;
-import co.dalicious.domain.user.dto.PointRequestDto;
+import co.dalicious.domain.user.dto.PointResponseDto;
 import co.dalicious.domain.user.entity.PointHistory;
-import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
@@ -21,19 +19,15 @@ import org.mapstruct.Mapper;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Mapper(componentModel = "spring")
 public interface PointHistoryMapper {
 
-    default PointRequestDto toPointRequestDto(PointHistory pointHistory, List<Reviews> reviewsList, List<Order> orderList, List<Notice> noticeList,
-                                              List<PaymentCancelHistory> cancelHistoryList, BigDecimal leftPoint) {
-        PointRequestDto pointRequestDto = new PointRequestDto();
+    default PointResponseDto.PointHistoryDto toPointRequestDto(PointHistory pointHistory, List<Reviews> reviewsList, List<Order> orderList, List<Notice> noticeList,
+                                                               List<PaymentCancelHistory> cancelHistoryList, BigDecimal leftPoint) {
+        PointResponseDto.PointHistoryDto pointRequestDto = new PointResponseDto.PointHistoryDto();
 
         pointRequestDto.setRewardDate(DateUtils.toISOLocalDate(pointHistory.getCreatedDateTime()));
         pointRequestDto.setPoint(pointHistory.getPoint());
@@ -45,7 +39,7 @@ public interface PointHistoryMapper {
     }
 
     default void getNameAndSetIdsAndMakersName(List<Reviews> reviewsList, List<Order> orderList, List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList,
-                                         PointRequestDto pointRequestDto, PointHistory pointHistory) {
+                                               PointResponseDto.PointHistoryDto pointRequestDto, PointHistory pointHistory) {
 
         StringBuilder name = new StringBuilder();
         BigInteger id = null;
@@ -75,7 +69,10 @@ public interface PointHistoryMapper {
                     .orElseThrow(() -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND));
 
             makersName = firstOrder.getFood().getMakers().getName();
-            name.append(firstOrder.getFood().getName()).append("외 ").append(orderItems.size() - 1).append("건");
+            name.append(firstOrder.getFood().getName());
+            if(orderItems.size() > 1) {
+                name.append("외 ").append(orderItems.size() - 1).append("건");
+            }
             id = order.getId();
         }
 
@@ -92,7 +89,7 @@ public interface PointHistoryMapper {
             PaymentCancelHistory cancelHistory = cancelHistoryList.stream()
                     .filter(c -> pointHistory.getPaymentCancelHistoryId().equals(c.getId())).findFirst()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.CANCLE_HISTORY_NOT_FOUND));
-            OrderItem orderItem = cancelHistory.getOrderItem();
+            OrderItem orderItem = (OrderItem) Hibernate.unproxy(cancelHistory.getOrderItem());
             if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                 makersName = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
                 String foodName = orderItemDailyFood.getName();
