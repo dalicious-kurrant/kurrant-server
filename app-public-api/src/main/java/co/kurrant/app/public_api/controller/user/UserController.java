@@ -260,6 +260,16 @@ public class UserController {
                 .build();
     }
 
+    @PatchMapping("/payment/password/reset")
+    @Operation(summary = "결제 비밀번호 재설정", description = "결제 비밀번호 재설정")
+    public ResponseMessage paymentPasswordReset(Authentication authentication, @RequestBody PaymentResetReqDto resetDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.paymentPasswordReset(securityUser, resetDto);
+        return ResponseMessage.builder()
+                .message("결제 비밀번호 재설정 성공!")
+                .build();
+    }
+
 
 
 

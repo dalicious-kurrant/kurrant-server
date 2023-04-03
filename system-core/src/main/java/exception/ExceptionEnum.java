@@ -128,6 +128,7 @@ public enum ExceptionEnum {
 	TOKEN_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000016", "토큰 저장 실패"),
 	PAYMENT_PASSWORD_LENGTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000017", "결제 비밀번호는 6자리로 입력해주세요."),
 	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "결제 비밀번호가 일치하지 않습니다."),
+	PAYMENT_PASSWORD_RESET_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000019", "결제 비밀번호 재설정에 실패했습니다."),
 
 
 
