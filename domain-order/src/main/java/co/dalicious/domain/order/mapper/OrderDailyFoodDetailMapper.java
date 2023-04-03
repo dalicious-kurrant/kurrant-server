@@ -3,10 +3,8 @@ package co.dalicious.domain.order.mapper;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
 import co.dalicious.domain.order.entity.*;
-import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PriceUtils;
-import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -16,7 +14,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, BigDecimal.class, DailyFoodStatus.class, PriceUtils.class})
 public interface OrderDailyFoodDetailMapper {
@@ -66,12 +63,12 @@ public interface OrderDailyFoodDetailMapper {
         }
 
         for (OrderItemDailyFoodGroup orderItemDailyFoodGroup : orderItemDailyFoodGroups) {
-            List<UserSupportPriceHistory> userSupportPriceHistories = orderItemDailyFoodGroup.getUserSupportPriceHistories();
+            List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFoodGroup.getUserSupportPriceHistories();
 
-            List<UserSupportPriceHistory> sortedList = userSupportPriceHistories.stream()
-                    .sorted(Comparator.comparing(UserSupportPriceHistory::getCreatedDateTime))
+            List<DailyFoodSupportPrice> sortedList = userSupportPriceHistories.stream()
+                    .sorted(Comparator.comparing(DailyFoodSupportPrice::getCreatedDateTime))
                     .toList();
-            UserSupportPriceHistory oldest = sortedList.isEmpty() ? null : sortedList.get(0);
+            DailyFoodSupportPrice oldest = sortedList.isEmpty() ? null : sortedList.get(0);
             if(oldest != null) {
                 supportPrice = supportPrice.add(oldest.getUsingSupportPrice());
             }

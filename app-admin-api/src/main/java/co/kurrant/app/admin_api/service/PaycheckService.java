@@ -17,10 +17,12 @@ public interface PaycheckService {
     void postMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersRequest paycheckDto) throws IOException;
     List<PaycheckDto.MakersResponse> getMakersPaychecks();
     void updateMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersResponse paycheckDto) throws IOException;
+    void deleteMakersPaycheck(List<BigInteger> ids);
     void updateMakersPaycheckStatus(Integer status, List<BigInteger> ids);
 
     void postCorporationPaycheck(MultipartFile corporationXlsx, MultipartFile corporationPdf, PaycheckDto.CorporationRequest paycheckDto) throws IOException;
     List<PaycheckDto.CorporationResponse> getCorporationPaychecks();
     void updateCorporationPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.CorporationResponse paycheckDto) throws IOException;
+    void deleteCorporationPaycheck(List<BigInteger> ids);
     void updateCorporationPaycheckStatus(Integer status, List<BigInteger> ids);
 }

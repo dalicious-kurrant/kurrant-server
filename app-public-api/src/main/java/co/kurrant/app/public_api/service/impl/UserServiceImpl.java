@@ -70,6 +70,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
     private final UserUtil userUtil;
     private final TossUtil tossUtil;
@@ -657,6 +658,72 @@ public class UserServiceImpl implements UserService {
         long result = qUserRepository.saveFcmToken(fcmTokenSaveReqDto.getToken(), user.getId());
         if (result != 1){
             throw new ApiException(ExceptionEnum.TOKEN_SAVE_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional
+    public String savePaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto) {
+        //유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        //이메일 인증 검증
+        verifyUtil.verifyCertificationNumber(savePaymentPasswordDto.getKey(), RequiredAuth.PAYMENT_PASSWORD_CREATE);
+
+        //결제 비밀번호가 등록이 안된 유저라면
+        if (savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")) {
+            //결제 비밀번호 등록
+            if (savePaymentPasswordDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(savePaymentPasswordDto.getPayNumber());
+                qUserRepository.updatePaymentPassword(password, user.getId());
+            } else {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
+        }
+
+
+        return "결제 비밀번호 등록 성공!";
+    }
+
+    @Override
+    public String checkPaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto) {
+        User user = userUtil.getUser(securityUser);
+
+        if (user.getPaymentPassword() == null){
+            throw new ApiException(ExceptionEnum.NOT_FOUND_PAYMENT_PASSWORD);
+        }
+
+        if (user.getPaymentPassword() != null && savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")){
+            //결제 비밀번호 확인
+            if (savePaymentPasswordDto.getPayNumber().length() == 6) {
+                if (!passwordEncoder.matches(savePaymentPasswordDto.getPayNumber(), user.getPaymentPassword())){
+                    throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
+                }
+            } else {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            };
+        }
+
+        return "결제 비밀번호 확인 성공!";
+    }
+
+    @Override
+    public Boolean isPaymentPassword(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        return user.getPaymentPassword() != null;
+    }
+
+    @Override
+    public void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto) {
+        User user = userUtil.getUser(securityUser);
+        String paymentPassword = passwordEncoder.encode(resetDto.getPayNumber());
+        if (resetDto.getPayNumber().equals("") || resetDto.getPayNumber() == null){
+            throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_RESET_FAILED);
+        }
+        if (resetDto.getPayNumber().length() == 6){
+            qUserRepository.resetPaymentPassword(user.getId(), paymentPassword);
+        } else {
+            throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
         }
     }
 }

@@ -6,13 +6,16 @@ import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointCondition;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.system.util.DateUtils;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Map;
 
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface PointMapper {
@@ -32,7 +35,8 @@ public interface PointMapper {
         PointPolicyResDto.EventPointPolicy dto = new PointPolicyResDto.EventPointPolicy();
 
         dto.setPointPolicyId(pointPolicy.getId());
-        dto.setPointCondition(pointPolicy.getPointCondition().getCode());
+        dto.setPointConditionCode(pointPolicy.getPointCondition().getCode());
+        dto.setPointConditionValue(pointPolicy.getPointCondition().getCondition());
         dto.setRewardPoint(pointPolicy.getRewardPoint());
         dto.setEventStartDate(pointPolicy.getEventStartDate() == null ? null : DateUtils.localDateToString(pointPolicy.getEventStartDate()));
         dto.setEventEndDate(pointPolicy.getEventEndDate() == null ? null : DateUtils.localDateToString(pointPolicy.getEventEndDate()));
@@ -53,32 +57,34 @@ public interface PointMapper {
                 .build();
     }
 
-    default PointHistory createPointHistoryForCount(User user, PointPolicy pointPolicy, Map<String, BigInteger> ids, Integer count) {
-        BigInteger orderId = !ids.containsKey("order") || ids.get("order") == null ? null : ids.get("order");
-        BigInteger boardId = !ids.containsKey("board") || ids.get("board") == null ? null : ids.get("board");
-
+    default PointHistory createPointHistoryForCount(User user, PointPolicy pointPolicy, BigInteger noticeId, Integer count, PointStatus pointStatus) {
+        count = count + 1;
         BigDecimal point = BigDecimal.ZERO;
+        // 이미 이벤트 적립을 받지 않았고, 적립 횟수에 도달했으면 포인트 지급.
         if((count / pointPolicy.getCompletedConditionCount()) > pointPolicy.getAccountCompletionLimit()) {
-            return null;
+            throw new ApiException(ExceptionEnum.EVENT_COUNT_OVER);
         } else if(count.equals(pointPolicy.getCompletedConditionCount())) {
             point = point.add(pointPolicy.getRewardPoint());
         }
 
+        // 아니면 0 포인트로 로그 생성
         return PointHistory.builder()
                 .point(point)
-                .pointCondition(pointPolicy.getPointCondition())
                 .user(user)
-                .orderId(orderId)
-                .boardId(boardId)
+                .leftPoint(user.getPoint())
+                .pointStatus(pointStatus)
+                .boardId(noticeId)
                 .pointPolicyId(pointPolicy.getId())
                 .build();
     }
 
-    default PointHistory createPointHistoryForReview(User user, BigInteger reviewId, BigDecimal point) {
-        return PointHistory.builder()
-                .point(point)
-                .user(user)
-                .reviewId(reviewId)
-                .build();
-    }
+    @Mapping(source = "user", target = "user")
+    @Mapping(target = "reviewId", expression = "java(pointStatus.equals(PointStatus.REVIEW_REWARD) ? id : null)")
+    @Mapping(target = "orderId", expression = "java(pointStatus.equals(PointStatus.USED) ? id : null)")
+    @Mapping(target = "boardId", expression = "java(pointStatus.equals(PointStatus.EVENT_REWARD) ? id : null)")
+    @Mapping(target = "paymentCancelHistoryId", expression = "java(pointStatus.equals(PointStatus.CANCEL) ? id : null)")
+    @Mapping(source = "point", target = "point")
+    @Mapping(source = "pointStatus", target = "pointStatus")
+    @Mapping(target = "leftPoint", expression = "java(!PointStatus.rewardStatus().contains(pointStatus) ? user.getPoint().add(point) : user.getPoint().subtract(point))")
+    PointHistory createPointHistoryByOthers(User user, BigInteger id, PointStatus pointStatus, BigDecimal point);
 }

@@ -15,6 +15,7 @@ public class OrderCreateBillingKeyReqDto {
     private String identityNumber;
     @Schema(description = "디폴트타입(0:아무것도아님, 1:기본결제카드, 2:멤버십 기본 결제 카드)")
     private Integer defaultType;
-    private String paymentPassword;
+    private String payNumber;
+    private String key;
 
 }

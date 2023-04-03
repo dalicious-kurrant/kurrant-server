@@ -60,4 +60,12 @@ public interface UserService {
     LoginResponseDto autoLogin(HttpServletRequest httpServletRequest);
 
     void saveToken(FcmTokenSaveReqDto fcmTokenSaveReqDto, SecurityUser securityUser);
+
+    String savePaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto);
+
+    String checkPaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto);
+
+    Boolean isPaymentPassword(SecurityUser securityUser);
+
+    void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto);
 }

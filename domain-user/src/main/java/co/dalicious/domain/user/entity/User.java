@@ -197,6 +197,10 @@ public class User {
         this.password = password;
     }
 
+    public void changePaymentPassword(String paymentPassword){
+        this.paymentPassword = paymentPassword;
+    }
+
     public void changePhoneNumber(String phone) {
         this.phone = phone;
     }

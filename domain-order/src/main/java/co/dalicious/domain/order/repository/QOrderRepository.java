@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
@@ -57,5 +58,11 @@ public class QOrderRepository {
         return queryFactory.delete(order)
                 .where(order.user.id.eq(deleteUser.getId()))
                 .execute();
+    }
+
+    public List<Order> findAllByIds(Set<BigInteger> ids) {
+        return queryFactory.selectFrom(order)
+                .where(order.id.in(ids))
+                .fetch();
     }
 }

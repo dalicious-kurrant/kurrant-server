@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.controller.order;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.dto.OrderCreateBillingKeyReqDto;
+import co.dalicious.domain.order.dto.OrderCreateBillingKeySecondReqDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodByNiceReqDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
 import co.kurrant.app.public_api.dto.order.IdDto;
@@ -94,7 +95,7 @@ public class OrderDailyFoodController {
 
     @Operation(summary = "빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
     @PostMapping("/nice/create/billing")
-    public ResponseMessage createBillingKey(Authentication authentication, @RequestBody OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
+    public ResponseMessage createBillingKey(Authentication authentication, @RequestBody OrderCreateBillingKeySecondReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.createNiceBillingKey(securityUser, orderCreateBillingKeyReqDto))
@@ -129,6 +130,25 @@ public class OrderDailyFoodController {
         orderDailyFoodService.cancelOrderItemDailyFoodNice(securityUser, idDto.getId());
         return ResponseMessage.builder()
                 .message("정기식사 부분 환불에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "수령 완료 상태 변경", description = "주문의 상태를 수령 완료 상태로 변경한다.")
+    @PatchMapping("/update/status")
+    public ResponseMessage changingOrderItemOrderStatus(Authentication authentication, @RequestParam BigInteger orderItemId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        orderDailyFoodService.changingOrderItemOrderStatus(securityUser, orderItemId);
+        return ResponseMessage.builder()
+                .message("주문의 상태를 수령 완료로 변경했습니다.")
+                .build();
+    }
+    @Operation(summary = "첫번째 빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
+    @PostMapping("/nice/create/billing/first")
+    public ResponseMessage createBillingKeyFirst(Authentication authentication, @RequestBody OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.createNiceBillingKeyFirst(securityUser, orderCreateBillingKeyReqDto))
+                .message("빌링키 발급에 성공하였습니다.")
                 .build();
     }
 

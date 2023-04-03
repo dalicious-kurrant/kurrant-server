@@ -21,7 +21,6 @@ import co.kurrant.app.admin_api.service.DeliveryService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.weaver.ast.Or;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +45,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     @Transactional(readOnly = true)
-    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, String isDefault) {
+    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
         List<Group> groupAllList = groupRepository.findAll();
         // 그룹과 연관된 스팟만 보여주기
         List<Spot> spotAllList = spotRepository.findAll();;
@@ -58,21 +57,12 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
 
-        List<OrderDailyFood> orderList = new ArrayList<>();
+        MultiValueMap<Spot, OrderItemDailyFood> spotOrderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
         for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             Order order = (Order) Hibernate.unproxy(orderItemDailyFood.getOrder());
             if(order instanceof OrderDailyFood orderDailyFood) {
-                orderList.add(orderDailyFood);
-            }
-        }
-
-        MultiValueMap<Spot, OrderItemDailyFood> spotOrderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
-        for(OrderDailyFood orderDailyFood : orderList) {
-            for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-                if(orderItemDailyFood.getOrder().getId().equals(orderDailyFood.getId())) {
-                    Spot spot = orderDailyFood.getSpot();
-                    spotOrderItemDailyFoodMultiValueMap.add(spot, orderItemDailyFood);
-                }
+                Spot spot = orderDailyFood.getSpot();
+                spotOrderItemDailyFoodMultiValueMap.add(spot, orderItemDailyFood);
             }
         }
 
@@ -89,7 +79,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
             // spot 묶기
             MultiValueMap<Spot, DailyFood> spotDailyFoodMap = new LinkedMultiValueMap<>();
-            if(isDefault == null) {
+            if(isAll == null) {
                 for(Spot spot : spotOrderItemDailyFoodMultiValueMap.keySet()) {
                     List<OrderItemDailyFood> orderItemDailyFoodList = spotOrderItemDailyFoodMultiValueMap.get(spot);
 
@@ -116,7 +106,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
                 // makers 묶기
                 MultiValueMap<Makers, DailyFood> makersMap = new LinkedMultiValueMap<>();
-                if(isDefault == null) {
+                if(isAll == null) {
                     for(DailyFood dailyFood : Objects.requireNonNull(spotDailyFoodList)) {
                         Makers makers = orderItemDailyFoods.stream()
                                 .map(OrderItemDailyFood::getDailyFood)
@@ -146,15 +136,6 @@ public class DeliveryServiceImpl implements DeliveryService {
                     List<DeliveryDto.DeliveryFood> deliveryFoodList = new ArrayList<>();
                     for(DailyFood dailyFood : Objects.requireNonNull(makersDailyFoodList)) {
 
-                        // count 구하기
-                        int count = 0;
-                        List<OrderItemDailyFood> spotOrderItemDailyFood = spotOrderItemDailyFoodMultiValueMap.get(spot);
-                        for(OrderItemDailyFood orderItemDailyFood : Objects.requireNonNull(spotOrderItemDailyFood)) {
-                            if(orderItemDailyFood.getDailyFood().equals(dailyFood)) {
-                                count += orderItemDailyFood.getCount();
-                            }
-                        }
-
                         // pickup time
                         if(pickupTime == null) {
                             pickupTime = dailyFood.getDailyFoodGroup().getPickupTime();
@@ -162,6 +143,16 @@ public class DeliveryServiceImpl implements DeliveryService {
                         // dining type
                         if(diningType == null) {
                             diningType = dailyFood.getDiningType();
+                        }
+
+                        // count 구하기
+                        int count = 0;
+                        List<OrderItemDailyFood> spotOrderItemDailyFood = spotOrderItemDailyFoodMultiValueMap.get(spot);
+                        if(spotOrderItemDailyFood == null || spotOrderItemDailyFood.isEmpty()) continue;
+                        for(OrderItemDailyFood orderItemDailyFood : spotOrderItemDailyFood) {
+                            if(orderItemDailyFood.getDailyFood().equals(dailyFood)) {
+                                count += orderItemDailyFood.getCount();
+                            }
                         }
 
                         // 주문한 delivery food 만 dto 만들기
