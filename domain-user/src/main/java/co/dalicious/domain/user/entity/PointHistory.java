@@ -40,19 +40,19 @@ public class PointHistory {
     @Comment("적립 포인트")
     private BigDecimal point;
 
-    @Column(name = "review_id")
+    @Column(name = "review_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("리뷰 PK")
     private BigInteger reviewId;
 
-    @Column(name = "order_id")
+    @Column(name = "order_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("주문 PK")
     private BigInteger orderId;
 
-    @Column(name = "board_id")
+    @Column(name = "board_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("이벤트 공지 PK")
     private BigInteger boardId;
 
-    @Column(name = "payment_cancel_history_id")
+    @Column(name = "payment_cancel_history_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("환불내역 PK")
     private BigInteger paymentCancelHistoryId;
 
@@ -66,7 +66,7 @@ public class PointHistory {
     @Comment("잔액 포인트")
     private BigDecimal leftPoint;
 
-    @Column(name = "point_policy_id")
+    @Column(name = "point_policy_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("포인트 정책 PK")
     private BigInteger pointPolicyId;
 
