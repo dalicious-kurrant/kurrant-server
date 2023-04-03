@@ -40,7 +40,7 @@ public class QPointHistoryRepository {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
-                .orderBy(pointHistory.createdDateTime.desc())
+                .orderBy(pointHistory.id.desc())
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -53,7 +53,7 @@ public class QPointHistoryRepository {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.rewardStatus()))
-                .orderBy(pointHistory.createdDateTime.desc())
+                .orderBy(pointHistory.id.desc())
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -66,7 +66,7 @@ public class QPointHistoryRepository {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.eq(PointStatus.USED))
-                .orderBy(pointHistory.createdDateTime.desc())
+                .orderBy(pointHistory.id.desc())
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
