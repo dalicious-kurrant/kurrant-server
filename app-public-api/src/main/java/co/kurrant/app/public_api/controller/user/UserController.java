@@ -269,9 +269,4 @@ public class UserController {
                 .message("결제 비밀번호 재설정 성공!")
                 .build();
     }
-
-
-
-
-
 }
