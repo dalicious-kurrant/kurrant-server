@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.mapper;
 
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -15,6 +16,7 @@ import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 
 import java.math.BigDecimal;
@@ -53,12 +55,11 @@ public interface PointHistoryMapper {
             Reviews reviews = reviewsList.stream()
                     .filter(r -> pointHistory.getReviewId().equals(r.getId())).findFirst()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.REVIEW_NOT_FOUND));
-            OrderItem orderItem = reviews.getOrderItem();
+            OrderItem orderItem = (OrderItem) Hibernate.unproxy(reviews.getOrderItem());
             if(orderItem instanceof  OrderItemDailyFood orderItemDailyFood) {
-                makersName = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
-
-                String foodName = orderItemDailyFood.getName();
-                name.append(foodName);
+                Food food = orderItemDailyFood.getDailyFood().getFood();
+                makersName = food.getMakers().getName();
+                name.append(food.getName());
             }
             id = reviews.getId();
         }

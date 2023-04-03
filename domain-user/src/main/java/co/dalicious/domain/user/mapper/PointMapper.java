@@ -79,10 +79,10 @@ public interface PointMapper {
     }
 
     @Mapping(source = "user", target = "user")
-    @Mapping(target = "reviewId", expression = "java(pointStatus.equals(PointStatus.REVIEW_REWARD)) ? id : null")
-    @Mapping(target = "orderId", expression = "java(pointStatus.equals(PointStatus.USED)) ? id : null")
-    @Mapping(target = "boardId", expression = "java(pointStatus.equals(PointStatus.EVENT_REWARD)) ? id : null")
-    @Mapping(target = "paymentCancelHistoryId", expression = "java(pointStatus.equals(PointStatus.CANCEL)) ? id : null")
+    @Mapping(target = "reviewId", expression = "java(pointStatus.equals(PointStatus.REVIEW_REWARD) ? id : null)")
+    @Mapping(target = "orderId", expression = "java(pointStatus.equals(PointStatus.USED) ? id : null)")
+    @Mapping(target = "boardId", expression = "java(pointStatus.equals(PointStatus.EVENT_REWARD) ? id : null)")
+    @Mapping(target = "paymentCancelHistoryId", expression = "java(pointStatus.equals(PointStatus.CANCEL) ? id : null)")
     @Mapping(source = "point", target = "point")
     @Mapping(source = "pointStatus", target = "pointStatus")
     PointHistory createPointHistoryByOthers(User user, BigInteger id,  PointStatus pointStatus, BigDecimal point);

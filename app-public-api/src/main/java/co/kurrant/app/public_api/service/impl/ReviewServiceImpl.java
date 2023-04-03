@@ -106,7 +106,7 @@ public class ReviewServiceImpl implements ReviewService {
         qReviewRepository.updateDefault(reviews);
 
         // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
-        if(reviewsList != null && !reviewsList.isEmpty() && (user.getIsMembership() || membershipDiscountRate != 0)) {
+        if(user.getIsMembership() || membershipDiscountRate != 0) {
             //음식 수량 많큼 포인트 지급
             BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice(), count);
             qUserRepository.updateUserPoint(user.getId(), rewardPoint);
