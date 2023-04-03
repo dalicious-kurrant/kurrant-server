@@ -17,7 +17,6 @@ import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
@@ -25,13 +24,13 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface PointHistoryMapper {
 
-    default PointResponseDto.PointHistoryDto toPointRequestDto(PointHistory pointHistory, List<Reviews> reviewsList, List<Order> orderList, List<Notice> noticeList,
-                                                               List<PaymentCancelHistory> cancelHistoryList, BigDecimal leftPoint) {
+    default PointResponseDto.PointHistoryDto toPointRequestDto(PointHistory pointHistory, List<Reviews> reviewsList, List<Order> orderList,
+                                                               List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList) {
         PointResponseDto.PointHistoryDto pointRequestDto = new PointResponseDto.PointHistoryDto();
 
         pointRequestDto.setRewardDate(DateUtils.toISOLocalDate(pointHistory.getCreatedDateTime()));
         pointRequestDto.setPoint(pointHistory.getPoint());
-        pointRequestDto.setLeftPoint(leftPoint);
+        pointRequestDto.setLeftPoint(pointHistory.getLeftPoint());
         pointRequestDto.setPointStatus(pointHistory.getPointStatus().getCode());
         getNameAndSetIdsAndMakersName(reviewsList, orderList, noticeList, cancelHistoryList, pointRequestDto, pointHistory);
 

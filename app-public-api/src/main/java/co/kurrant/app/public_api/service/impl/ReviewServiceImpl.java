@@ -175,6 +175,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
+        //TODO: sse 보내기
 
         return ReviewableItemResDto.create(orderFoodList, redeemablePoints);
     }
