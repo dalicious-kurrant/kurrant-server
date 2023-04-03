@@ -66,6 +66,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
     private final DailyFoodGroupRepository dailyFoodGroupRepository;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
+    private final OrderDailyFoodRepository orderDailyFoodRepository;
 
     @Override
     @Transactional
@@ -170,7 +171,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
 
             // 주문서 저장
             String code = OrderUtil.generateOrderCode(OrderType.DAILYFOOD, users.get(0).getId());
-            OrderDailyFood order = orderMapper.toExtraOrderEntity(users.get(0), spot, code);
+            OrderDailyFood order = orderDailyFoodRepository.save(orderMapper.toExtraOrderEntity(users.get(0), spot, code));
 
             BigDecimal defaultPrice = BigDecimal.ZERO;
 
@@ -187,7 +188,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
                 OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.save(orderMapper.toOrderItemDailyFoodGroup(diningTypeServiceDateDto));
 
                 List<ExtraOrderDto.Request> requests = orderDailyFoodGroupMap.get(diningTypeServiceDateDto);
-
+                List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
                 assert requests != null;
                 BigDecimal supportPrice = BigDecimal.ZERO;
                 for (ExtraOrderDto.Request request : requests) {
@@ -202,10 +203,11 @@ public class ClientOrderServiceImpl implements ClientOrderService {
                     DiscountDto discountDto = DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
 
                     OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
+                    orderItemDailyFoods.add(orderItemDailyFood);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
                     supportPrice = supportPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
                 }
-                DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFoodGroup.getOrderDailyFoods().get(0), supportPrice);
+                DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFoods.get(0), supportPrice);
                 dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
             }
 
