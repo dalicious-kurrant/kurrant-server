@@ -72,6 +72,8 @@ public class PointPolicy {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
+
+
     @Builder
     public PointPolicy(BigInteger id, PointCondition pointCondition, Integer completedConditionCount, Integer accountCompletionLimit, BigDecimal rewardPoint, LocalDate eventStartDate, LocalDate eventEndDate) {
         this.id = id;

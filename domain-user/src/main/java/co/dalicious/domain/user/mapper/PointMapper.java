@@ -9,7 +9,10 @@ import co.dalicious.domain.user.entity.enums.PointCondition;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.system.util.DateUtils;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -56,14 +59,16 @@ public interface PointMapper {
     }
 
     default PointHistory createPointHistoryForCount(User user, PointPolicy pointPolicy, BigInteger noticeId, Integer count, PointStatus pointStatus) {
-
+        count = count + 1;
         BigDecimal point = BigDecimal.ZERO;
+        // 이미 이벤트 적립을 받지 않았고, 적립 횟수에 도달했으면 포인트 지급.
         if((count / pointPolicy.getCompletedConditionCount()) > pointPolicy.getAccountCompletionLimit()) {
-            return null;
+            throw new ApiException(ExceptionEnum.EVENT_COUNT_OVER);
         } else if(count.equals(pointPolicy.getCompletedConditionCount())) {
             point = point.add(pointPolicy.getRewardPoint());
         }
 
+        // 아니면 0 포인트로 로그 생성
         return PointHistory.builder()
                 .point(point)
                 .user(user)
@@ -73,22 +78,12 @@ public interface PointMapper {
                 .build();
     }
 
-    default PointHistory createPointHistoryForReview(User user, BigInteger reviewId, BigDecimal point) {
-        return PointHistory.builder()
-                .point(point)
-                .user(user)
-                .pointStatus(PointStatus.REVIEW_REWARD)
-                .reviewId(reviewId)
-                .build();
-    }
-
-    default PointHistory createPointHistoryForOrder(User user, BigInteger orderId,  BigInteger cancelId, PointStatus pointStatus, BigDecimal point) {
-        return PointHistory.builder()
-                .point(point)
-                .user(user)
-                .pointStatus(pointStatus)
-                .orderId(orderId)
-                .paymentCancelHistoryId(cancelId)
-                .build();
-    }
+    @Mapping(source = "user", target = "user")
+    @Mapping(target = "reviewId", expression = "java(pointStatus.equals(PointStatus.REVIEW_REWARD)) ? id : null")
+    @Mapping(target = "orderId", expression = "java(pointStatus.equals(PointStatus.USED)) ? id : null")
+    @Mapping(target = "boardId", expression = "java(pointStatus.equals(PointStatus.EVENT_REWARD)) ? id : null")
+    @Mapping(target = "paymentCancelHistoryId", expression = "java(pointStatus.equals(PointStatus.CANCEL)) ? id : null")
+    @Mapping(source = "point", target = "point")
+    @Mapping(source = "pointStatus", target = "pointStatus")
+    PointHistory createPointHistoryByOthers(User user, BigInteger id,  PointStatus pointStatus, BigDecimal point);
 }
