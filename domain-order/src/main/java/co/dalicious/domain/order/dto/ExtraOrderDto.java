@@ -16,10 +16,12 @@ public class ExtraOrderDto {
     @Setter
     public static class Request {
         private String serviceDate;
-        private Integer diningType;
-        private BigInteger dailyFoodId;
-        private BigInteger corporationId;
+        private String diningType;
+        private BigInteger foodId;
+        private BigInteger groupId;
         private BigInteger spotId;
+        private BigDecimal price;
+        private BigDecimal totalPrice;
         private String usage;
         private Integer count;
     }
@@ -38,6 +40,7 @@ public class ExtraOrderDto {
         private BigInteger foodId;
         private String foodName;
         private BigDecimal price;
+        private String dailyFoodStatus;
         private Integer foodCapacity;
         private List<Group> groupList;
 

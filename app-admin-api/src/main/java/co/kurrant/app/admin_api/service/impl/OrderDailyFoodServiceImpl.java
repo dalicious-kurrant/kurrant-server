@@ -5,6 +5,7 @@ import co.dalicious.domain.client.repository.ApartmentRepository;
 import co.dalicious.domain.client.repository.CorporationRepository;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
@@ -24,6 +25,7 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.util.DateUtils;
@@ -49,6 +51,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -70,6 +74,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final UserRepository userRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
     private final ExtraOrderMapper extraOrderMapper;
+    private final QUserRepository qUserRepository;
 
     @Override
     @Transactional
@@ -228,8 +233,18 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public void postExtraOrderItems(LocalDate startDate, LocalDate endDate, List<ExtraOrderDto.Request> orderDtos) {
+    public void postExtraOrderItems(List<ExtraOrderDto.Request> orderDtos) {
+        Set<BigInteger> groupIds = orderDtos.stream()
+                .map(ExtraOrderDto.Request::getGroupId)
+                .collect(Collectors.toSet());
 
+        // 1. 식단 추가하는 그룹의 매니저 구하기
+        List<User> users = qUserRepository.findManagerByGroupIds(groupIds);
+
+        Set<BigInteger> foodIds = orderDtos.stream()
+                .map(ExtraOrderDto.Request::getFoodId)
+                .collect(Collectors.toSet());
+        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByFoodIds(foodIds);
     }
 
 

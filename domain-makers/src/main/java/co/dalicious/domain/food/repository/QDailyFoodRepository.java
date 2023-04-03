@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QSpot.spot;
@@ -48,6 +49,13 @@ public class QDailyFoodRepository {
         return queryFactory
                 .selectFrom(dailyFood)
                 .where(dailyFood.id.in(dailyFoodIds))
+                .fetch();
+    }
+
+    public List<DailyFood> findAllByFoodIds(Set<BigInteger> foodIds) {
+        return queryFactory
+                .selectFrom(dailyFood)
+                .where(dailyFood.food.id.in(foodIds))
                 .fetch();
     }
 

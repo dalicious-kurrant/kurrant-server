@@ -2,8 +2,10 @@ package co.dalicious.domain.user.repository;
 
 
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.user.entity.QUser.user;
@@ -23,6 +26,15 @@ import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
 public class QUserRepository {
 
     private final JPAQueryFactory queryFactory;
+
+    public List<User> findManagerByGroupIds(Set<BigInteger> groupIds) {
+        BooleanExpression hasManagerRole = userGroup.user.role.eq(Role.MANAGER);
+        BooleanExpression groupInGroupIds = userGroup.group.id.in(groupIds);
+        return queryFactory.select(userGroup.user)
+                .from(userGroup)
+                .where(hasManagerRole, groupInGroupIds)
+                .fetch();
+    }
 
 
     public User findByUserId(BigInteger userId) {

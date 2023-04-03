@@ -121,10 +121,8 @@ public class OrderDailyFoodController {
     }
 
     @PostMapping("/extra")
-    public ResponseMessage postExtraOrderItems(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                               @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
-                                               @RequestBody List<ExtraOrderDto.Request> orderDtos) {
-        orderDailyFoodService.postExtraOrderItems(startDate, endDate, orderDtos);
+    public ResponseMessage postExtraOrderItems(@RequestBody List<ExtraOrderDto.Request> orderDtos) {
+        orderDailyFoodService.postExtraOrderItems(orderDtos);
         return ResponseMessage.builder()
                 .message("추가 주문에 성공하였습니다.")
                 .build();

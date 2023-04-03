@@ -57,6 +57,7 @@ public interface ExtraOrderMapper {
                 dailyFood.setFoodId(food.getId());
                 dailyFood.setFoodName(food.getName());
                 dailyFood.setPrice(food.getPrice()); //TODO: 할인된 가격인지, 할인이 되지 않은 가격인지 확인 필요
+                dailyFood.setDailyFoodStatus(dailyFoodByGroup.get(0).getDailyFoodStatus().getStatus());
                 dailyFood.setFoodCapacity(0);
                 dailyFood.setGroupList(groupDtos);
                 dailyFoodDtos.add(dailyFood);

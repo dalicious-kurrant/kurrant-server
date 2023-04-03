@@ -8,7 +8,7 @@ import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.mapper.OrderMembershipMapper;
 import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
-import co.dalicious.domain.order.mapper.UserSupportPriceHistoryReqMapper;
+import co.dalicious.domain.order.mapper.DailyFoodSupportPriceMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.service.OrderService;
@@ -51,8 +51,8 @@ import java.util.Optional;
 @Transactional
 public class OrderServiceImpl implements OrderService {
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
-    private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
-    private final UserSupportPriceHistoryReqMapper userSupportPriceHistoryReqMapper;
+    private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
+    private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
     private final MembershipRepository membershipRepository;
     private final OrderMembershipMapper orderMembershipMapper;
     private final OrderMembershipRepository orderMembershipRepository;
@@ -101,9 +101,9 @@ public class OrderServiceImpl implements OrderService {
                 for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
                     dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
                 }
-                DailyFoodSupportPrice dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+                DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
                 if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                    userSupportPriceHistoryRepository.save(dailyFoodSupportPrice);
+                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
                 }
             }
 
@@ -164,9 +164,9 @@ public class OrderServiceImpl implements OrderService {
             for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
                 dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
             }
-            DailyFoodSupportPrice dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+            DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
             if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                userSupportPriceHistoryRepository.save(dailyFoodSupportPrice);
+                dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
             }
         }
 
@@ -308,9 +308,9 @@ public class OrderServiceImpl implements OrderService {
                 for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
                     dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
                 }
-                DailyFoodSupportPrice dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+                DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
                 if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                    userSupportPriceHistoryRepository.save(dailyFoodSupportPrice);
+                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
                 }
             }
 
@@ -372,9 +372,9 @@ public class OrderServiceImpl implements OrderService {
             for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
                 dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
             }
-            DailyFoodSupportPrice dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+            DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
             if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                userSupportPriceHistoryRepository.save(dailyFoodSupportPrice);
+                dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
             }
         }
 
