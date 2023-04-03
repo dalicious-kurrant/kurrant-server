@@ -22,4 +22,5 @@ public class UserTasteInfoDto {
     private Integer proteinBarFrequency;
     private Integer proteinDrinkFrequency;
 
+
 }
