@@ -8,7 +8,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
-import co.dalicious.domain.order.repository.UserSupportPriceHistoryRepository;
+import co.dalicious.domain.order.repository.DailyFoodSupportPriceRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
@@ -50,7 +50,7 @@ public class FoodServiceImpl implements FoodService {
     private final DailyFoodRepository dailyFoodRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QUserRecommendRepository qUserRecommendRepository;
-    private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
+    private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
 
 
     @Override
@@ -178,7 +178,7 @@ public class FoodServiceImpl implements FoodService {
             // 대상이 기업이라면 일일 지원금 필요
             RetrieveDailyFoodDto.SupportPrice supportPriceDto = new RetrieveDailyFoodDto.SupportPrice();
             if (Hibernate.unproxy(group) instanceof Corporation) {
-                List<DailyFoodSupportPrice> userSupportPriceHistories = userSupportPriceHistoryRepository.findAllByUserAndGroupAndServiceDate(user, group, selectedDate);
+                List<DailyFoodSupportPrice> userSupportPriceHistories = dailyFoodSupportPriceRepository.findAllByUserAndGroupAndServiceDate(user, group, selectedDate);
                 for (Integer diningType : diningTypes) {
                     switch (DiningType.ofCode(diningType)) {
                         case MORNING ->
