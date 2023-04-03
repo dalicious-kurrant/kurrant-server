@@ -72,10 +72,13 @@ public class PointPolicy {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
+    @Column(name = "board_id")
+    @Comment("이벤트 공지 PK")
+    private BigInteger boardId;
 
 
     @Builder
-    public PointPolicy(BigInteger id, PointCondition pointCondition, Integer completedConditionCount, Integer accountCompletionLimit, BigDecimal rewardPoint, LocalDate eventStartDate, LocalDate eventEndDate) {
+    public PointPolicy(BigInteger id, PointCondition pointCondition, Integer completedConditionCount, Integer accountCompletionLimit, BigDecimal rewardPoint, LocalDate eventStartDate, LocalDate eventEndDate, BigInteger boardId) {
         this.id = id;
         this.pointCondition = pointCondition;
         this.completedConditionCount = completedConditionCount;
@@ -83,6 +86,7 @@ public class PointPolicy {
         this.rewardPoint = rewardPoint;
         this.eventStartDate = eventStartDate;
         this.eventEndDate = eventEndDate;
+        this.boardId = boardId;
     }
 
     public void updatePointPolicy(PointPolicyReqDto.EventPointPolicy eventPointPolicy) {
@@ -92,5 +96,9 @@ public class PointPolicy {
         this.rewardPoint = BigDecimal.valueOf(eventPointPolicy.getRewardPoint());
         this.eventStartDate = eventPointPolicy.getEventStartDate() == null ? null : DateUtils.stringToDate(eventPointPolicy.getEventStartDate());
         this.eventEndDate = eventPointPolicy.getEventEndDate() == null ? null : DateUtils.stringToDate(eventPointPolicy.getEventEndDate());
+    }
+
+    public void updateBoardId(BigInteger boardId) {
+        this.boardId = boardId;
     }
 }

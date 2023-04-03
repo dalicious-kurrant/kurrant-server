@@ -9,7 +9,8 @@ public enum BoardStatus {
     INACTIVE("비활성", 0),
     ACTIVE("활성", 1),
     POPUP("팝업", 2),
-    SPOT("스팟공지", 3);
+    SPOT("스팟공지", 3),
+    EVENT("이벤트 공지", 4);
 
 
     private final String status;

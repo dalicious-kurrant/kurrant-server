@@ -16,7 +16,6 @@ import org.mapstruct.Mapping;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Map;
 
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface PointMapper {
