@@ -38,8 +38,7 @@ public class QDailyFoodRepository {
     public List<DailyFood> getSellingDailyFoodsBetweenServiceDate(LocalDate startDate, LocalDate endDate) {
         return queryFactory
                 .selectFrom(dailyFood)
-                .where(dailyFood.group.eq(group),
-                        dailyFood.serviceDate.goe(startDate),
+                .where(dailyFood.serviceDate.goe(startDate),
                         dailyFood.serviceDate.loe(endDate),
                         dailyFood.dailyFoodStatus.eq(DailyFoodStatus.SALES))
                 .fetch();
@@ -120,10 +119,10 @@ public class QDailyFoodRepository {
         if (end != null) {
             whereClause.and(dailyFood.serviceDate.loe(end));
         }
-        if(groups != null && !groups.isEmpty()) {
+        if (groups != null && !groups.isEmpty()) {
             whereClause.and(group.in(groups));
         }
-        if(spotList != null && !spotList.isEmpty()) {
+        if (spotList != null && !spotList.isEmpty()) {
             whereClause.and(spot.in(spotList));
         }
 

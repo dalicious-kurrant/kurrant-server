@@ -220,12 +220,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate, List<ExtraOrderDto.Request> orderDtos) {
+    @Transactional
+    public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate) {
         List<DailyFood> dailyFoods = qDailyFoodRepository.getSellingDailyFoodsBetweenServiceDate(startDate, endDate);
         return extraOrderMapper.toDailyFoodList(dailyFoods);
     }
 
     @Override
+    @Transactional
     public void postExtraOrderItems(LocalDate startDate, LocalDate endDate, List<ExtraOrderDto.Request> orderDtos) {
 
     }

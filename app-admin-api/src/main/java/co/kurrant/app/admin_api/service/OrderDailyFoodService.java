@@ -28,6 +28,6 @@ public interface OrderDailyFoodService {
 
     void cancelOrderItemsNice(List<BigInteger> idList) throws IOException, ParseException;
 
-    List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate, List<ExtraOrderDto.Request> orderDtos);
+    List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate);
     void postExtraOrderItems(LocalDate startDate, LocalDate endDate, List<ExtraOrderDto.Request> orderDtos);
 }
