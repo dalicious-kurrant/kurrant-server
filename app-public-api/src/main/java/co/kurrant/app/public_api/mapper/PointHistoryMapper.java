@@ -37,13 +37,14 @@ public interface PointHistoryMapper {
         pointRequestDto.setPoint(pointHistory.getPoint());
         pointRequestDto.setLeftPoint(leftPoint);
         pointRequestDto.setPointStatus(pointHistory.getPointStatus().getCode());
-        getNameAndSetIdsAndDate(reviewsList, orderList, noticeList, cancelHistoryList, pointRequestDto, pointHistory);
+        getNameAndSetIdsAndMakersName(reviewsList, orderList, noticeList, cancelHistoryList, pointRequestDto, pointHistory);
 
         return pointRequestDto;
     }
 
-    default void getNameAndSetIdsAndDate(List<Reviews> reviewsList, List<Order> orderList, List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList,
+    default void getNameAndSetIdsAndMakersName(List<Reviews> reviewsList, List<Order> orderList, List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList,
                                          PointRequestDto pointRequestDto, PointHistory pointHistory) {
+
         StringBuilder name = new StringBuilder();
         BigInteger id = null;
         String makersName = null;
@@ -62,7 +63,7 @@ public interface PointHistoryMapper {
             id = reviews.getId();
         }
 
-        if(pointHistory.getPointStatus().equals(PointStatus.USED)) {
+        else if(pointHistory.getPointStatus().equals(PointStatus.USED)) {
             Order order = orderList.stream()
                     .filter(o -> pointHistory.getOrderId().equals(o.getId())).findFirst()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
@@ -76,7 +77,8 @@ public interface PointHistoryMapper {
             name.append(firstOrder.getFood().getName()).append("외 ").append(orderItems.size() - 1).append("건");
             id = order.getId();
         }
-        if(pointHistory.getPointStatus().equals(PointStatus.EVENT_REWARD)) {
+
+        else if(pointHistory.getPointStatus().equals(PointStatus.EVENT_REWARD)) {
             Notice notice = noticeList.stream()
                     .filter(n -> pointHistory.getBoardId().equals(n.getId())).findFirst()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
@@ -85,7 +87,7 @@ public interface PointHistoryMapper {
             id = notice.getId();
         }
 
-        if(pointHistory.getPointStatus().equals(PointStatus.CANCEL)) {
+        else if(pointHistory.getPointStatus().equals(PointStatus.CANCEL)) {
             PaymentCancelHistory cancelHistory = cancelHistoryList.stream()
                     .filter(c -> pointHistory.getPaymentCancelHistoryId().equals(c.getId())).findFirst()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.CANCLE_HISTORY_NOT_FOUND));
@@ -98,6 +100,7 @@ public interface PointHistoryMapper {
             }
             id = cancelHistory.getOrder().getId();
         }
+
         pointRequestDto.setName(String.valueOf(name));
         pointRequestDto.setContentId(id);
         pointRequestDto.setMakersName(makersName);

@@ -66,7 +66,6 @@ public interface PointMapper {
 
         return PointHistory.builder()
                 .point(point)
-                .pointCondition(pointPolicy.getPointCondition())
                 .user(user)
                 .pointStatus(pointStatus)
                 .boardId(noticeId)
