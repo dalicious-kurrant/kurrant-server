@@ -1,6 +1,5 @@
 package co.dalicious.domain.user.entity;
 
-import co.dalicious.domain.user.converter.PointConditionConverter;
 import co.dalicious.domain.user.converter.PointStatusConverter;
 import co.dalicious.domain.user.entity.enums.PointCondition;
 import co.dalicious.domain.user.entity.enums.PointStatus;
@@ -30,11 +29,6 @@ public class PointHistory {
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
     @Comment("포인트 로그 PK")
     private BigInteger id;
-
-    @Convert(converter = PointConditionConverter.class)
-    @Column(name = "e_point_condition")
-    @Comment("포인트 적립 조건")
-    private PointCondition pointCondition;
 
     @Convert(converter = PointStatusConverter.class)
     @Column(name = "e_point_status")
@@ -86,9 +80,8 @@ public class PointHistory {
     private Timestamp updatedDateTime;
 
     @Builder
-    public PointHistory(BigInteger id, PointCondition pointCondition, PointStatus pointStatus, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, BigInteger paymentCancelHistoryId, User user, BigInteger pointPolicyId) {
+    public PointHistory(BigInteger id, PointStatus pointStatus, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, BigInteger paymentCancelHistoryId, User user, BigInteger pointPolicyId) {
         this.id = id;
-        this.pointCondition = pointCondition;
         this.pointStatus = pointStatus;
         this.point = point;
         this.reviewId = reviewId;

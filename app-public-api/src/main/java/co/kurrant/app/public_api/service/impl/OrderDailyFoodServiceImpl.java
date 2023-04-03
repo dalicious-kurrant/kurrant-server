@@ -33,10 +33,12 @@ import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
+import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.RequiredAuth;
 import co.dalicious.system.util.DateUtils;
@@ -112,6 +114,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final FoundersUtil foundersUtil;
     private final OrderService orderService;
     private final PasswordEncoder passwordEncoder;
+    private final PointUtil pointUtil;
 
     private final VerifyUtil verifyUtil;
 
@@ -319,6 +322,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                         orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                     }
                     user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
+                    pointUtil.createPointHistoryByOthers(user, orderDailyFood.getId(), PointStatus.USED, orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
 
                     //Order 테이블에 paymentKey와 receiptUrl 업데이트
                     JSONObject receipt = (JSONObject) jsonObject.get("receipt");

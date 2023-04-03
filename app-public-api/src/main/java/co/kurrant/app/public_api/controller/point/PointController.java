@@ -23,8 +23,7 @@ public class PointController {
     @GetMapping("")
     public ResponseMessage findAllPointLogs(Authentication authentication, @RequestParam Integer condition,
                                         @RequestParam(required = false) Integer limit,
-                                        @RequestParam Integer page,
-                                        OffsetBasedPageRequest pageable) throws IOException {
+                                        @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .message("포인트 내역 조회를 완료했습니다.")

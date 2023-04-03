@@ -9,6 +9,7 @@ import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.QOrderItemRepository;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.review.dto.*;
 import co.dalicious.domain.review.entity.Reviews;
@@ -105,11 +106,11 @@ public class ReviewServiceImpl implements ReviewService {
         qReviewRepository.updateDefault(reviews);
 
         // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
-        if(reviewsList != null && !reviewsList.isEmpty() && (user.getIsMembership() || membershipDiscountRate != 0)) {
+        if(user.getIsMembership() || membershipDiscountRate != 0) {
             //음식 수량 많큼 포인트 지급
             BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice(), count);
             qUserRepository.updateUserPoint(user.getId(), rewardPoint);
-            if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByReview(user, reviews.getId(), rewardPoint);
+            if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByOthers(user, reviews.getId(), PointStatus.REVIEW_REWARD, rewardPoint);
         }
     }
 
