@@ -85,8 +85,7 @@ public class PointHistory {
     private Timestamp updatedDateTime;
 
     @Builder
-    public PointHistory(BigInteger id, PointStatus pointStatus, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, BigInteger paymentCancelHistoryId, User user, BigDecimal leftPoint, BigInteger pointPolicyId) {
-        this.id = id;
+    public PointHistory(PointStatus pointStatus, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, BigInteger paymentCancelHistoryId, User user, BigDecimal leftPoint, BigInteger pointPolicyId) {
         this.pointStatus = pointStatus;
         this.point = point;
         this.reviewId = reviewId;

@@ -27,10 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -62,10 +59,10 @@ public class PointServiceImpl implements PointService {
         else if (condition == 2) {
             pointHistoryPage = qPointHistoryRepository.findAllPointHistoryByUseStatus(user, limit, page, pageable);
         }
-        List<PointResponseDto.PointHistoryDto> pointRequestDtoList = new ArrayList<>();
+        List<PointResponseDto.PointHistoryDto> pointHistoryDtoList = new ArrayList<>();
         PointResponseDto pointResponseDto;
         if(pointHistoryPage == null || pointHistoryPage.isEmpty()) {
-            pointResponseDto = PointResponseDto.create(user.getPoint(), pointRequestDtoList);
+            pointResponseDto = PointResponseDto.create(user.getPoint(), pointHistoryDtoList);
             return ItemPageableResponseDto.<PointResponseDto>builder().items(pointResponseDto).count((pointHistoryPage == null) ? 0 : pointHistoryPage.getNumberOfElements())
                     .total((pointHistoryPage == null) ? 0 : pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).build();
         }
@@ -91,10 +88,10 @@ public class PointServiceImpl implements PointService {
         for(PointHistory pointHistory : pointHistoryPage) {
             PointResponseDto.PointHistoryDto pointRequestDto = pointMapper.toPointRequestDto(pointHistory, reviewsList, orderList, noticeList, cancelList);
 
-            pointRequestDtoList.add(pointRequestDto);
+            pointHistoryDtoList.add(pointRequestDto);
         }
 
-        pointResponseDto = PointResponseDto.create(user.getPoint(), pointRequestDtoList);
+        pointResponseDto = PointResponseDto.create(user.getPoint(), pointHistoryDtoList);
 
         return ItemPageableResponseDto.<PointResponseDto>builder().items(pointResponseDto).count(pointHistoryPage.getNumberOfElements())
                 .total(pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).build();
