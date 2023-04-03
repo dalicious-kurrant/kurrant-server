@@ -4,7 +4,9 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Getter
 public enum PointStatus {
@@ -26,5 +28,14 @@ public enum PointStatus {
                 .filter(v -> v.getCode().equals(dbData))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+    }
+
+    public static List<PointStatus> rewardStatus() {
+        List<PointStatus> pointStatusList = new ArrayList<>();
+        pointStatusList.add(PointStatus.EVENT_REWARD);
+        pointStatusList.add(PointStatus.EVENT_REWARD);
+        pointStatusList.add(PointStatus.CANCEL);
+
+        return pointStatusList;
     }
 }
