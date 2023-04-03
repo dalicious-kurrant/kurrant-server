@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
-import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.repository.QNoticeRepository;
 import co.dalicious.domain.order.entity.Order;
@@ -10,7 +10,7 @@ import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.order.repository.QPaymentCancelHistoryRepository;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.review.repository.QReviewRepository;
-import co.dalicious.domain.user.dto.PointRequestDto;
+import co.dalicious.domain.user.dto.PointResponseDto;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointStatus;
@@ -44,14 +44,18 @@ public class PointServiceImpl implements PointService {
 
     @Override
     @Transactional(readOnly = true)
-    public ListItemResponseDto<PointRequestDto> findAllPointLogs(SecurityUser securityUser, Integer condition, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+    public ItemPageableResponseDto<PointResponseDto> findAllPointLogs(SecurityUser securityUser, Integer condition, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         User user = userUtil.getUser(securityUser);
 
         //포인트 히스토리를 찾는다. - 유저가 같고 포인트가 영이 아닌 것.
         Page<PointHistory> pointHistoryPage = qPointHistoryRepository.findAllPointHistory(user, limit, page, pageable);
-        List<PointRequestDto> pointRequestDtoList = new ArrayList<>();
-        if(pointHistoryPage.isEmpty()) return ListItemResponseDto.<PointRequestDto>builder().items(pointRequestDtoList).offset(pageable.getOffset())
-                .count(pointHistoryPage.getNumberOfElements()).total((long) pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).build();
+        List<PointResponseDto.PointHistoryDto> pointRequestDtoList = new ArrayList<>();
+        PointResponseDto pointResponseDto;
+        if(pointHistoryPage.isEmpty()) {
+            pointResponseDto = PointResponseDto.create(user.getPoint(), pointRequestDtoList);
+            return ItemPageableResponseDto.<PointResponseDto>builder().items(pointResponseDto).count(pointHistoryPage.getNumberOfElements())
+                    .total(pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).build();
+        }
 
         // 히스토리 내역에서 각각 상세페이지로 갈 아이디를 찾는다.
         Set<BigInteger> reviewIds = new HashSet<>();
@@ -75,7 +79,7 @@ public class PointServiceImpl implements PointService {
         BigDecimal historyPoint;
 
         for(PointHistory pointHistory : pointHistoryPage) {
-            PointRequestDto pointRequestDto = pointMapper.toPointRequestDto(pointHistory, reviewsList, orderList, noticeList, cancelList, leftPoint);
+            PointResponseDto.PointHistoryDto pointRequestDto = pointMapper.toPointRequestDto(pointHistory, reviewsList, orderList, noticeList, cancelList, leftPoint);
             historyPoint = pointHistory.getPoint();
             if(pointHistory.getPointStatus().equals(PointStatus.REVIEW_REWARD) && pointHistory.getPointStatus().equals(PointStatus.EVENT_REWARD) && pointHistory.getPointStatus().equals(PointStatus.CANCEL)) {
                 leftPoint = leftPoint.subtract(historyPoint);
@@ -87,8 +91,9 @@ public class PointServiceImpl implements PointService {
             pointRequestDtoList.add(pointRequestDto);
         }
 
-        return  ListItemResponseDto.<PointRequestDto>builder().items(pointRequestDtoList)
-                .offset(pageable.getOffset()).count(pointHistoryPage.getNumberOfElements())
-                .total((long) pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).build();
+        pointResponseDto = PointResponseDto.create(user.getPoint(), pointRequestDtoList);
+
+        return ItemPageableResponseDto.<PointResponseDto>builder().items(pointResponseDto).count(pointHistoryPage.getNumberOfElements())
+                .total(pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).build();
     }
 }
