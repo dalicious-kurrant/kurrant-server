@@ -35,10 +35,10 @@ public class QPointHistoryRepository {
     }
 
     public Page<PointHistory> findAllPointHistory(User user, Integer limit, Integer page, Pageable pageable) {
-        int offset = limit - (page -1);
+        int offset = limit * (page -1);
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.valueOf(0)))
+                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
                 .orderBy(pointHistory.createdDateTime.desc())
                 .limit(limit)
                 .offset(offset)

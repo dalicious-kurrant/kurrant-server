@@ -115,7 +115,7 @@ public class OrderServiceImpl implements OrderService {
                 PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
                 paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
                 // 환불 포인트 내역 남기기
-                pointUtil.createPointHistoryByOrder(user, order.getId(), paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
+                pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
             }
             orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
 
@@ -180,7 +180,7 @@ public class OrderServiceImpl implements OrderService {
             PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
             paymentCancelHistoryRepository.save(paymentCancelHistory);
             // 환불 포인트 내역 남기기
-            pointUtil.createPointHistoryByOrder(user, order.getId(), paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
+            pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
         }
 
         user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
@@ -326,7 +326,7 @@ public class OrderServiceImpl implements OrderService {
                 PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
                 paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
                 // 환불 포인트 내역 남기기
-                pointUtil.createPointHistoryByOrder(user, order.getId(), paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
+                pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
             }
             orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
 
@@ -392,7 +392,7 @@ public class OrderServiceImpl implements OrderService {
             PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFoodNice(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
             paymentCancelHistoryRepository.save(paymentCancelHistory);
             // 환불 포인트 내역 남기기
-            pointUtil.createPointHistoryByOrder(user, order.getId(), paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
+            pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
         }
 
         user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
