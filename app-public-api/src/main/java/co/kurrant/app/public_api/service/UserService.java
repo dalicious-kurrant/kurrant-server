@@ -66,4 +66,6 @@ public interface UserService {
     String checkPaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto);
 
     Boolean isPaymentPassword(SecurityUser securityUser);
+
+    void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto);
 }

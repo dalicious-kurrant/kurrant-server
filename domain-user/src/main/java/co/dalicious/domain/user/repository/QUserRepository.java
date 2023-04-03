@@ -151,4 +151,11 @@ public class QUserRepository {
           if (password == null) return false;
           return true;
     }
+
+    public void resetPaymentPassword(BigInteger id, String payNumber) {
+        queryFactory.update(user)
+                .set(user.paymentPassword, payNumber)
+                .where(user.id.eq(id))
+                .execute();
+    }
 }

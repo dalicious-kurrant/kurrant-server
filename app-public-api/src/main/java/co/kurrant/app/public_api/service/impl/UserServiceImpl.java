@@ -70,6 +70,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
     private final UserUtil userUtil;
     private final TossUtil tossUtil;
@@ -710,5 +711,19 @@ public class UserServiceImpl implements UserService {
     public Boolean isPaymentPassword(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
         return user.getPaymentPassword() != null;
+    }
+
+    @Override
+    public void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto) {
+        User user = userUtil.getUser(securityUser);
+        String paymentPassword = passwordEncoder.encode(resetDto.getPayNumber());
+        if (resetDto.getPayNumber().equals("") || resetDto.getPayNumber() == null){
+            throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_RESET_FAILED);
+        }
+        if (resetDto.getPayNumber().length() == 6){
+            qUserRepository.resetPaymentPassword(user.getId(), paymentPassword);
+        } else {
+            throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+        }
     }
 }
