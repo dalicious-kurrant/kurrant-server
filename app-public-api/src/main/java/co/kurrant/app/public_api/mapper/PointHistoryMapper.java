@@ -89,7 +89,7 @@ public interface PointHistoryMapper {
             PaymentCancelHistory cancelHistory = cancelHistoryList.stream()
                     .filter(c -> pointHistory.getPaymentCancelHistoryId().equals(c.getId())).findFirst()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.CANCLE_HISTORY_NOT_FOUND));
-            OrderItem orderItem = cancelHistory.getOrderItem();
+            OrderItem orderItem = (OrderItem) Hibernate.unproxy(cancelHistory.getOrderItem());
             if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                 makersName = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
                 String foodName = orderItemDailyFood.getName();
