@@ -9,7 +9,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface UserSupportPriceHistoryRepository extends JpaRepository<DailyFoodSupportPrice, BigInteger> {
+public interface DailyFoodSupportPriceRepository extends JpaRepository<DailyFoodSupportPrice, BigInteger> {
     List<DailyFoodSupportPrice> findAllByUser(User user);
 
     List<DailyFoodSupportPrice> findAllByUserAndGroupAndServiceDate(User user, Group group, LocalDate serviceDate);

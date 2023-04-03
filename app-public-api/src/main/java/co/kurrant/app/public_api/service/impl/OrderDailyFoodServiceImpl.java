@@ -80,13 +80,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final SpotRepository spotRepository;
     private final QCartDailyFoodRepository qCartDailyFoodRepository;
     private final DeliveryFeePolicy deliveryFeePolicy;
-    private final OrderDailyFoodMapper orderDailyFoodMapper;
+    private final OrderMapper orderMapper;
     private final OrderDailyFoodItemMapper orderDailyFoodItemMapper;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
     private final QOrderRepository qOrderRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
-    private final UserSupportPriceHistoryReqMapper userSupportPriceHistoryReqMapper;
-    private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
+    private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
+    private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final OrderItemDailyFoodListMapper orderItemDailyFoodListMapper;
@@ -172,7 +172,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
         // 1. 주문서 저장하기
-        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
+        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 2. 유저 사용 지원금 가져오기
@@ -248,12 +248,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
                     DailyFoodSupportPrice dailyFoodSupportPrice;
                     if(spot.getGroup().getName().contains("메드트로닉")) {
-                        dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
+                        dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
                     }
                     else {
-                        dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                        dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, usableSupportPrice);
                     }
-                    userSupportPriceHistoryRepository.save(dailyFoodSupportPrice);
+                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
                     totalSupportPrice = totalSupportPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
                 }
             }
@@ -659,7 +659,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
         // 1. 주문서 저장하기
-        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
+        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 2. 유저 사용 지원금 가져오기
@@ -736,12 +736,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
                     DailyFoodSupportPrice dailyFoodSupportPrice;
                     if(spot.getGroup().getName().contains("메드트로닉")) {
-                        dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
+                        dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
                     }
                     else {
-                        dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                        dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, usableSupportPrice);
                     }
-                    userSupportPriceHistoryRepository.save(dailyFoodSupportPrice);
+                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
                     totalSupportPrice = totalSupportPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
                 }
             }

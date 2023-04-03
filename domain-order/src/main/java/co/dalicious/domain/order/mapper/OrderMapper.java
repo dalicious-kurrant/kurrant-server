@@ -2,9 +2,12 @@ package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.GroupDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -31,6 +34,43 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, OrderDailyFood.class, Hibernate.class, OrderUtil.class, UserSupportPriceUtil.class, PriceUtils.class})
 public interface OrderMapper {
+    @Mapping(source = "orderCode", target = "code")
+    @Mapping(source = "spot.address", target = "address")
+    @Mapping(target = "paymentType", constant = "SUPPORT_PRICE")
+    @Mapping(source = "user", target = "user")
+    @Mapping(source = "spot.group.name", target = "groupName")
+    @Mapping(source = "spot.name", target = "spotName")
+    @Mapping(source = "spot", target = "spot")
+    @Mapping(target = "orderType", constant = "DAILYFOOD")
+    OrderDailyFood toExtraOrderEntity(User user, Spot spot, String orderCode);
+
+    @Mapping(target = "orderStatus", constant = "COMPLETED")
+    @Mapping(target = "deliveryFee", constant = "0") // TODO: 배송비 추가가 필요한 경우 수정 필요
+    OrderItemDailyFoodGroup toOrderItemDailyFoodGroup(DiningTypeServiceDateDto diningTypeServiceDateDto);
+
+    @Mapping(source = "order", target = "order")
+    @Mapping(target = "orderStatus", constant = "COMPLETED")
+    @Mapping(source = "dailyFood", target = "dailyFood")
+    @Mapping(source = "dailyFood.food.name", target = "name")
+    @Mapping(source = "discountDto.price", target = "price")
+    @Mapping(source = "extraOrderDto.count", target = "count")
+    @Mapping(target = "discountedPrice", expression = "java(discountDto.getDiscountedPrice())")
+    @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")
+    @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
+    @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
+    @Mapping(source = "orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
+    OrderItemDailyFood toExtraOrderItemEntity(Order order, DailyFood dailyFood, ExtraOrderDto.Request extraOrderDto, DiscountDto discountDto, OrderItemDailyFoodGroup orderItemDailyFoodGroup);
+
+    @Mapping(source = "orderCode", target = "code")
+    @Mapping(source = "spot.address", target = "address")
+    @Mapping(target = "paymentType", constant = "CREDIT_CARD") // TODO: 결제타입 넣기 로직 필요
+    @Mapping(source = "user", target = "user")
+    @Mapping(source = "spot.group.name", target = "groupName")
+    @Mapping(source = "spot.name", target = "spotName")
+    @Mapping(source = "spot", target = "spot")
+    @Mapping(target = "orderType", constant = "DAILYFOOD")
+    OrderDailyFood toEntity(User user, Spot spot, String orderCode);
+
     @Mapping(source = "id", target = "orderItemDailyFoodId")
     @Mapping(source = "dailyFood.food.makers.name", target = "makers")
     @Mapping(source = "orderStatus.orderStatus", target = "orderStatus")
