@@ -21,6 +21,7 @@ import co.kurrant.app.public_api.service.PointService;
 import co.kurrant.app.public_api.service.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,13 +49,25 @@ public class PointServiceImpl implements PointService {
         User user = userUtil.getUser(securityUser);
 
         //포인트 히스토리를 찾는다. - 유저가 같고 포인트가 영이 아닌 것.
-        Page<PointHistory> pointHistoryPage = qPointHistoryRepository.findAllPointHistory(user, limit, page, pageable);
+        Page<PointHistory> pointHistoryPage = null;
+        // 전체 내역
+        if(condition == 0) {
+            pointHistoryPage = qPointHistoryRepository.findAllPointHistory(user, limit, page, pageable);
+        }
+        // 적립 내역
+        else if (condition == 1) {
+            pointHistoryPage = qPointHistoryRepository.findAllPointHistoryByRewardStatus(user, limit, page, pageable);
+        }
+        // 사용 내역
+        else if (condition == 2) {
+            pointHistoryPage = qPointHistoryRepository.findAllPointHistoryByUseStatus(user, limit, page, pageable);
+        }
         List<PointResponseDto.PointHistoryDto> pointRequestDtoList = new ArrayList<>();
         PointResponseDto pointResponseDto;
-        if(pointHistoryPage.isEmpty()) {
+        if(pointHistoryPage == null || pointHistoryPage.isEmpty()) {
             pointResponseDto = PointResponseDto.create(user.getPoint(), pointRequestDtoList);
-            return ItemPageableResponseDto.<PointResponseDto>builder().items(pointResponseDto).count(pointHistoryPage.getNumberOfElements())
-                    .total(pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).build();
+            return ItemPageableResponseDto.<PointResponseDto>builder().items(pointResponseDto).count((pointHistoryPage == null) ? 0 : pointHistoryPage.getNumberOfElements())
+                    .total((pointHistoryPage == null) ? 0 : pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).build();
         }
 
         // 히스토리 내역에서 각각 상세페이지로 갈 아이디를 찾는다.
@@ -75,18 +88,8 @@ public class PointServiceImpl implements PointService {
         List<Notice> noticeList = boardIds.isEmpty() ? null : qNoticeRepository.findAllByIds(boardIds);
         List<PaymentCancelHistory> cancelList = cancelIds.isEmpty() ? null : qPaymentCancelHistoryRepository.findAllByIds(cancelIds);
 
-        BigDecimal leftPoint = user.getPoint();
-        BigDecimal historyPoint;
-
         for(PointHistory pointHistory : pointHistoryPage) {
-            PointResponseDto.PointHistoryDto pointRequestDto = pointMapper.toPointRequestDto(pointHistory, reviewsList, orderList, noticeList, cancelList, leftPoint);
-            historyPoint = pointHistory.getPoint();
-            if(pointHistory.getPointStatus().equals(PointStatus.REVIEW_REWARD) && pointHistory.getPointStatus().equals(PointStatus.EVENT_REWARD) && pointHistory.getPointStatus().equals(PointStatus.CANCEL)) {
-                leftPoint = leftPoint.subtract(historyPoint);
-            }
-            else if(pointHistory.getPointStatus().equals(PointStatus.USED)) {
-                leftPoint = leftPoint.add(historyPoint);
-            }
+            PointResponseDto.PointHistoryDto pointRequestDto = pointMapper.toPointRequestDto(pointHistory, reviewsList, orderList, noticeList, cancelList);
 
             pointRequestDtoList.add(pointRequestDto);
         }

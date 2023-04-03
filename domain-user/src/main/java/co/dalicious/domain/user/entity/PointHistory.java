@@ -1,7 +1,6 @@
 package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.user.converter.PointStatusConverter;
-import co.dalicious.domain.user.entity.enums.PointCondition;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -9,17 +8,19 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 
 @Getter
 @Entity
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "user__point_history")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PointHistory {
@@ -39,19 +40,19 @@ public class PointHistory {
     @Comment("적립 포인트")
     private BigDecimal point;
 
-    @Column(name = "review_id")
+    @Column(name = "review_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("리뷰 PK")
     private BigInteger reviewId;
 
-    @Column(name = "order_id")
+    @Column(name = "order_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("주문 PK")
     private BigInteger orderId;
 
-    @Column(name = "board_id")
+    @Column(name = "board_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("이벤트 공지 PK")
     private BigInteger boardId;
 
-    @Column(name = "payment_cancel_history_id")
+    @Column(name = "payment_cancel_history_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("환불내역 PK")
     private BigInteger paymentCancelHistoryId;
 
@@ -61,26 +62,30 @@ public class PointHistory {
     @Comment("사용자 FK")
     private User user;
 
-    @Column(name = "point_policy_id")
+    @Column(name = "left_point")
+    @Comment("잔액 포인트")
+    private BigDecimal leftPoint;
+
+    @Column(name = "point_policy_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("포인트 정책 PK")
     private BigInteger pointPolicyId;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "created_datetime", nullable = false,
+    @Column(name = "created_date_time", nullable = false,
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("생성일")
     private Timestamp createdDateTime;
 
     @UpdateTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "updated_datetime",
+    @Column(name = "updated_date_time",
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
     @Builder
-    public PointHistory(BigInteger id, PointStatus pointStatus, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, BigInteger paymentCancelHistoryId, User user, BigInteger pointPolicyId) {
+    public PointHistory(BigInteger id, PointStatus pointStatus, BigDecimal point, BigInteger reviewId, BigInteger orderId, BigInteger boardId, BigInteger paymentCancelHistoryId, User user, BigDecimal leftPoint, BigInteger pointPolicyId) {
         this.id = id;
         this.pointStatus = pointStatus;
         this.point = point;
@@ -89,6 +94,7 @@ public class PointHistory {
         this.boardId = boardId;
         this.paymentCancelHistoryId = paymentCancelHistoryId;
         this.user = user;
+        this.leftPoint = leftPoint;
         this.pointPolicyId = pointPolicyId;
     }
 }
