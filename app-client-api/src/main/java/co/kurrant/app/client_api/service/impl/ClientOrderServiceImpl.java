@@ -64,7 +64,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     private final OrderItemDailyFoodGroupRepository orderItemDailyFoodGroupRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
-    private final DailyFoodGroupRepository dailyFoodGroupRepository;
+    private final QOrderRepository qOrderRepository;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
 
@@ -216,5 +216,18 @@ public class ClientOrderServiceImpl implements ClientOrderService {
             order.updateTotalDeliveryFee(BigDecimal.ZERO);
             order.updatePoint(BigDecimal.ZERO);
         }
+    }
+
+    @Override
+    @Transactional
+    public List<ExtraOrderDto.Response> getExtraOrders(SecurityUser securityUser) {
+        Corporation corporation = userUtil.getCorporation(securityUser);
+        List<User> users = qUserRepository.findManagerByGroupIds(Collections.singleton(corporation.getId()));
+        List<BigInteger> userIds = users.stream()
+                .map(User::getId)
+                .toList();
+        List<OrderDailyFood> orderDailyFoods =  qOrderRepository.findExtraOrdersByManagerId(userIds);
+
+        return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
     }
 }

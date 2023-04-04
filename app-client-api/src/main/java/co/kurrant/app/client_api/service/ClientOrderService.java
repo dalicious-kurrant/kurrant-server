@@ -17,4 +17,5 @@ public interface ClientOrderService {
     List<OrderDto.OrderItemStatic> getOrderStatistic(SecurityUser securityUser, @RequestParam Map<String, Object> parameters);
     List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(SecurityUser securityUser, LocalDate startDate, LocalDate endDate);
     void postExtraOrderItems(SecurityUser securityUser, List<ExtraOrderDto.Request> orderDtos);
+    List<ExtraOrderDto.Response> getExtraOrders(SecurityUser securityUser);
 }

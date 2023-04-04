@@ -30,9 +30,24 @@ public class QUserRepository {
     public List<User> findManagerByGroupIds(Set<BigInteger> groupIds) {
         BooleanExpression hasManagerRole = userGroup.user.role.eq(Role.MANAGER);
         BooleanExpression groupInGroupIds = userGroup.group.id.in(groupIds);
+        BooleanExpression hasAdminRole = userGroup.user.role.eq(Role.ADMIN);
+
+        BooleanExpression managerInGroupIds = hasManagerRole.and(groupInGroupIds);
+        BooleanExpression condition = managerInGroupIds.or(hasAdminRole);
+
         return queryFactory.select(userGroup.user)
                 .from(userGroup)
-                .where(hasManagerRole, groupInGroupIds)
+                .where(condition)
+                .fetch();
+    }
+
+    public List<User> findAllManager() {
+        BooleanExpression hasManagerRole = user.role.eq(Role.MANAGER);
+        BooleanExpression hasAdminRole = user.role.eq(Role.ADMIN);
+        BooleanExpression condition = hasManagerRole.or(hasAdminRole);
+
+        return queryFactory.selectFrom(user)
+                .where(condition)
                 .fetch();
     }
 
