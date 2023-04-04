@@ -111,6 +111,14 @@ public class AuthServiceImpl implements AuthService {
 
         String subject = ("[커런트] 회원가입 인증 코드: "); //메일 제목
 
+        if (requiredAuth == RequiredAuth.PAYMENT_PASSWORD_CREATE || type.equals("7")){
+            subject = ("[커런트] 결제 비밀번호 등록 인증 코드: ");
+        }
+
+        if (requiredAuth == RequiredAuth.PAYMENT_PASSWORD_CHECK || type.equals("6")){
+            subject = ("[커런트] 결제 비밀번호 확인 인증 코드: ");
+        }
+
         // 메일 내용 메일의 subtype을 html로 지정하여 html문법 사용 가능
         String content = "";
         content += """
@@ -156,7 +164,7 @@ public class AuthServiceImpl implements AuthService {
         switch (requiredAuth) {
             case SIGNUP ->
                 // 기존에 등록된 휴대폰 번호인지 확인
-                userValidator.isPhoneValid(smsMessageRequestDto.getTo());
+                    userValidator.isPhoneValid(smsMessageRequestDto.getTo());
             case FIND_ID, FIND_PASSWORD -> {
                 // 유저가 존재하는지 확인
                 User user = userRepository.findOneByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
