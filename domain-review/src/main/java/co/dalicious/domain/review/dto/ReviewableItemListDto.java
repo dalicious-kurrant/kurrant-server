@@ -15,17 +15,6 @@ public class ReviewableItemListDto {
     private String imageLocation;
     private String makersName;
     private String foodName;
-    private long reviewDDay;
-
-    @Builder
-    public ReviewableItemListDto(BigInteger orderItemId, BigInteger dailyFoodId, String diningType, String imageLocation, String makersName, String foodName, long reviewDDAy) {
-        this.orderItemId = orderItemId;
-        this.dailyFoodId = dailyFoodId;
-        this.diningType = diningType;
-        this.imageLocation = imageLocation;
-        this.makersName = makersName;
-        this.foodName = foodName;
-        this.reviewDDay = reviewDDAy;
-    }
+    private String reviewDDay;
 
 }
