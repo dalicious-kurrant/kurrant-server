@@ -36,6 +36,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -124,7 +125,7 @@ public class ReviewServiceImpl implements ReviewService {
         List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatusBeforeToday(user, OrderStatus.RECEIPT_COMPLETE, today);
         List<ReviewableItemResDto.OrderFood> orderFoodList = new ArrayList<>();
         BigDecimal redeemablePoints = BigDecimal.ZERO;
-        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList, redeemablePoints); }
+        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList, redeemablePoints, 0); }
 
         // 이미 리뷰가 작성된 아이템 예외
         List<Reviews> reviewsList = qReviewRepository.findAllByUserAndOrderItem(user, receiptCompleteItem);
@@ -158,6 +159,7 @@ public class ReviewServiceImpl implements ReviewService {
             }
         }
 
+        int size = 0;
         for(LocalDate serviceDate : orderItemDailyFoodByServiceDateMap.keySet()) {
             List<OrderItemDailyFood> orderItemList = orderItemDailyFoodByServiceDateMap.get(serviceDate);
 
@@ -167,6 +169,7 @@ public class ReviewServiceImpl implements ReviewService {
 
                 ReviewableItemListDto responseDto = reviewMapper.toDailyFoodResDto(item, leftDay);
                 reviewableItemListDtoList.add(responseDto);
+                size++;
             }
             reviewableItemListDtoList = reviewableItemListDtoList.stream().sorted(Comparator.comparing(ReviewableItemListDto::getDiningType).reversed()).toList();
 
@@ -177,7 +180,7 @@ public class ReviewServiceImpl implements ReviewService {
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
         //TODO: sse 보내기
 
-        return ReviewableItemResDto.create(orderFoodList, redeemablePoints);
+        return ReviewableItemResDto.create(orderFoodList, redeemablePoints, size);
     }
 
     @Override

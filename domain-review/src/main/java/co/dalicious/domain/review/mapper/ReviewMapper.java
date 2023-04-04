@@ -37,13 +37,24 @@ public interface ReviewMapper {
     @Mapping(source = "reviewDto.forMakers", target = "forMakers")
     Reviews toEntity(ReviewReqDto reviewDto, User user, OrderItem orderItem, Food food, List<Image> imageList);
 
-    @Mapping(source = "orderItemDailyFood.id", target = "orderItemId")
-    @Mapping(source = "orderItemDailyFood.dailyFood.id", target = "dailyFoodId")
-    @Mapping(source = "orderItemDailyFood.dailyFood.diningType.diningType", target = "diningType")
-    @Mapping(source = "orderItemDailyFood.dailyFood.food.images", target = "imageLocation", qualifiedByName = "getLocation")
-    @Mapping(source = "orderItemDailyFood.dailyFood.food.makers.name", target = "makersName")
-    @Mapping(source = "orderItemDailyFood.dailyFood.food.name", target = "foodName")
-    ReviewableItemListDto toDailyFoodResDto(OrderItemDailyFood orderItemDailyFood, long reviewDDAy);
+    default ReviewableItemListDto toDailyFoodResDto(OrderItemDailyFood orderItemDailyFood, long reviewDDAy) {
+        ReviewableItemListDto reviewableItemListDto = new ReviewableItemListDto();
+
+        reviewableItemListDto.setOrderItemId(orderItemDailyFood.getId());
+        reviewableItemListDto.setDailyFoodId(orderItemDailyFood.getDailyFood().getId());
+        reviewableItemListDto.setDiningType(orderItemDailyFood.getDailyFood().getDiningType().getDiningType());
+        reviewableItemListDto.setImageLocation(getLocation(orderItemDailyFood.getDailyFood().getFood().getImages()));
+        reviewableItemListDto.setMakersName(orderItemDailyFood.getDailyFood().getFood().getMakers().getName());
+        reviewableItemListDto.setFoodName(orderItemDailyFood.getDailyFood().getFood().getName());
+
+        if(reviewDDAy > 0 ) {
+            reviewableItemListDto.setReviewDDay(String.valueOf(reviewDDAy));
+        }
+        if(reviewDDAy == 0) {
+            reviewableItemListDto.setReviewDDay(DateUtils.calculatedDDayTime());
+        }
+        return reviewableItemListDto;
+    }
 
     @Mapping(source = "reviews.id", target = "reviewId")
     @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocations")
