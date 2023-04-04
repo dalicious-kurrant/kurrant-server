@@ -22,8 +22,8 @@ public class UserTasteInfoDto {
     private Integer proteinScoop;
     private Integer proteinBarFrequency;
     private Integer proteinDrinkFrequency;
-
-
-
+    private UserDefaultInfo userDefaultInfo;
+    private String selectedFoodId;
+    private String unselectedFoodId;
 
 }
