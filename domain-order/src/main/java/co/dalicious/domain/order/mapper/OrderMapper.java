@@ -76,6 +76,7 @@ public interface OrderMapper {
     @Mapping(source = "orderStatus.orderStatus", target = "orderStatus")
     @Mapping(source = "name", target = "foodName")
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getOrderItemTotalPrice())")
+    @Mapping(target = "supplyPrice", expression = "java(orderItemDailyFood.getOrderItemSupplyPrice())")
     @Mapping(source = "count", target = "count")
     @Mapping(target = "deliveryTime", expression = "java(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getMealInfo(orderItemDailyFood.getDailyFood().getDiningType()) == null ? null : DateUtils.timeToString(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getMealInfo(orderItemDailyFood.getDailyFood().getDiningType()).getDeliveryTime()))")
     OrderDto.OrderItemDailyFood orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);

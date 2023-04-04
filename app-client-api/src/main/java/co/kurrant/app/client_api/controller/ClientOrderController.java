@@ -62,10 +62,10 @@ public class ClientOrderController {
     }
 
     @GetMapping("/extra")
-    public ResponseMessage getExtraOrders(Authentication authentication) {
+    public ResponseMessage getExtraOrders(Authentication authentication, @RequestParam Map<String, Object> parameters) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(clientOrderService.getExtraOrders(securityUser))
+                .data(clientOrderService.getExtraOrders(securityUser, parameters))
                 .message("추가 주문 조회에 성공하였습니다.")
                 .build();
     }
