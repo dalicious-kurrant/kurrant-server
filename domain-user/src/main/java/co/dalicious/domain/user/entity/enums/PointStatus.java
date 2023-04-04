@@ -32,7 +32,7 @@ public enum PointStatus {
 
     public static List<PointStatus> rewardStatus() {
         List<PointStatus> pointStatusList = new ArrayList<>();
-        pointStatusList.add(PointStatus.EVENT_REWARD);
+        pointStatusList.add(PointStatus.REVIEW_REWARD);
         pointStatusList.add(PointStatus.EVENT_REWARD);
         pointStatusList.add(PointStatus.CANCEL);
 
