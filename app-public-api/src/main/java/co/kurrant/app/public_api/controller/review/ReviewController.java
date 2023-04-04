@@ -73,7 +73,7 @@ public class ReviewController {
 
     @Operation(summary = "리뷰 삭제", description = "작성한 리뷰 삭제")
     @PatchMapping("/delete")
-    public ResponseMessage deleteReviews(Authentication authentication, @RequestParam IdDto idDto) {
+    public ResponseMessage deleteReviews(Authentication authentication, @RequestBody IdDto idDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         reviewService.deleteReviews(securityUser, idDto.getId());
         return ResponseMessage.builder()
