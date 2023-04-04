@@ -37,7 +37,7 @@ public interface ReviewMapper {
     @Mapping(source = "reviewDto.forMakers", target = "forMakers")
     Reviews toEntity(ReviewReqDto reviewDto, User user, OrderItem orderItem, Food food, List<Image> imageList);
 
-    default ReviewableItemListDto toDailyFoodResDto(OrderItemDailyFood orderItemDailyFood, long reviewDDAy) {
+    default ReviewableItemListDto toDailyFoodResDto(OrderItemDailyFood orderItemDailyFood, String reviewDDAy) {
         ReviewableItemListDto reviewableItemListDto = new ReviewableItemListDto();
 
         reviewableItemListDto.setOrderItemId(orderItemDailyFood.getId());
@@ -46,13 +46,7 @@ public interface ReviewMapper {
         reviewableItemListDto.setImageLocation(getLocation(orderItemDailyFood.getDailyFood().getFood().getImages()));
         reviewableItemListDto.setMakersName(orderItemDailyFood.getDailyFood().getFood().getMakers().getName());
         reviewableItemListDto.setFoodName(orderItemDailyFood.getDailyFood().getFood().getName());
-
-        if(reviewDDAy > 0 ) {
-            reviewableItemListDto.setReviewDDay(String.valueOf(reviewDDAy));
-        }
-        if(reviewDDAy == 0) {
-            reviewableItemListDto.setReviewDDay(DateUtils.calculatedDDayTime());
-        }
+        reviewableItemListDto.setReviewDDay(reviewDDAy);
         return reviewableItemListDto;
     }
 
