@@ -135,6 +135,7 @@ public interface ReviewMapper {
         reviewListDto.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
         reviewListDto.setForMakers(reviews.getForMakers());
         reviewListDto.setWriter(reviews.getUser().getName());
+        reviewListDto.setIsReport(reviews.getIsReports());
         reviewListDto.setOrderItemName(getItemName(reviews.getOrderItem()));
 
         return  reviewListDto;
@@ -153,6 +154,7 @@ public interface ReviewMapper {
         reviewDetail.setForMakers(reviews.getForMakers());
         reviewDetail.setWriter(reviews.getUser().getName());
         reviewDetail.setItemName(getItemName(reviews.getOrderItem()));
+        reviewDetail.setIsReport(reviews.getIsReports());
 
         List<Comments> commentList = reviews.getComments();
         if(commentList.isEmpty()) reviewDetail.setMakersComment(null);

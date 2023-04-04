@@ -52,6 +52,7 @@ public enum ExceptionEnum {
 	EVENT_END_DATE_IS_OVER(HttpStatus.BAD_REQUEST, "E4000103", "이미 끝난 이벤트입니다."),
 	ALREADY_WRITING_COMMENT(HttpStatus.BAD_REQUEST, "E4000103", "이미 댓글을 작성한 리뷰입니다."),
 	EVENT_COUNT_OVER(HttpStatus.BAD_REQUEST, "E4000103", "이미 참여한 이벤트입니다."),
+	ALREADY_REPORTED_REVIEW(HttpStatus.BAD_REQUEST, "E4000104", "이미 신고한 리뷰입니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),

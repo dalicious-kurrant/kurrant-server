@@ -129,7 +129,8 @@ public class QReviewRepository {
                 .leftJoin(reviews.comments, comments)
                 .where(reviews.food.makers.eq(makers),
                         reviews.comments.isEmpty().or(comments.instanceOf(AdminComments.class)),
-                        reviews.isDelete.ne(true))
+                        reviews.isDelete.ne(true),
+                        reviews.isReports.ne(true))
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -144,6 +145,7 @@ public class QReviewRepository {
         QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
                 .leftJoin(reviews.comments, comments)
                 .where(reviews.food.makers.eq(makers), reviews.isDelete.ne(true))
+                .distinct()
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
