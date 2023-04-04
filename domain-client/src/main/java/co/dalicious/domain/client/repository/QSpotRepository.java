@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QSpot.spot;
 
@@ -53,6 +54,12 @@ public class QSpotRepository {
     }
 
     public List<Spot> findAllByIds(List<BigInteger> ids) {
+        return queryFactory.selectFrom(spot)
+                .where(spot.id.in(ids))
+                .fetch();
+    }
+
+    public List<Spot> findAllByIds(Set<BigInteger> ids) {
         return queryFactory.selectFrom(spot)
                 .where(spot.id.in(ids))
                 .fetch();
