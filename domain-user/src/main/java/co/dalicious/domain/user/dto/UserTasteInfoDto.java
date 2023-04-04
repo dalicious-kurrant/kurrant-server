@@ -1,5 +1,6 @@
 package co.dalicious.domain.user.dto;
 
+import co.dalicious.domain.user.entity.enums.Nation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,8 @@ public class UserTasteInfoDto {
     private Integer proteinScoop;
     private Integer proteinBarFrequency;
     private Integer proteinDrinkFrequency;
+
+
 
 
 }
