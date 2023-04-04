@@ -254,10 +254,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Override
     @Transactional
     public void postExtraOrderItems(List<ExtraOrderDto.Request> orderDtos) {
-        Set<BigInteger> groupIds = orderDtos.stream()
-                .map(ExtraOrderDto.Request::getGroupId)
-                .collect(Collectors.toSet());
-
         // 1. 식단 추가하는 달리셔스 매니저 가져오기
         User user = userRepository.findOneByRole(Role.ADMIN)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
@@ -346,12 +342,15 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public List<ExtraOrderDto.Response> getExtraOrders() {
+    public List<ExtraOrderDto.Response> getExtraOrders(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+
         List<User> users = qUserRepository.findAllManager();
         List<BigInteger> userIds = users.stream()
                 .map(User::getId)
                 .toList();
-        List<OrderDailyFood> orderDailyFoods = qOrderRepository.findExtraOrdersByManagerId(userIds);
+        List<OrderItemDailyFood> orderDailyFoods = qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate);
 
         return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
     }

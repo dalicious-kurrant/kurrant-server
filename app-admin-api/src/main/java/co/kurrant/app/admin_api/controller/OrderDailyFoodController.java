@@ -122,9 +122,9 @@ public class OrderDailyFoodController {
     }
 
     @GetMapping("/extra")
-    public ResponseMessage getExtraOrders() {
+    public ResponseMessage getExtraOrders(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.getExtraOrders())
+                .data(orderDailyFoodService.getExtraOrders(parameters))
                 .message("추가 주문 조회에 성공하였습니다.")
                 .build();
     }

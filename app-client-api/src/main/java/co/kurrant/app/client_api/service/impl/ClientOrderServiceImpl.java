@@ -6,7 +6,6 @@ import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
-import co.dalicious.domain.food.repository.DailyFoodGroupRepository;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
@@ -25,7 +24,6 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.system.enums.DiningType;
@@ -33,7 +31,6 @@ import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.StringUtils;
 import co.dalicious.domain.order.dto.GroupDto;
-import co.kurrant.app.client_api.mapper.GroupMapper;
 import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.ClientOrderService;
 import co.kurrant.app.client_api.util.UserUtil;
@@ -224,13 +221,16 @@ public class ClientOrderServiceImpl implements ClientOrderService {
 
     @Override
     @Transactional
-    public List<ExtraOrderDto.Response> getExtraOrders(SecurityUser securityUser) {
+    public List<ExtraOrderDto.Response> getExtraOrders(SecurityUser securityUser, Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+
         Corporation corporation = userUtil.getCorporation(securityUser);
         List<User> users = qUserRepository.findManagerByGroupIds(Collections.singleton(corporation.getId()));
         List<BigInteger> userIds = users.stream()
                 .map(User::getId)
                 .toList();
-        List<OrderDailyFood> orderDailyFoods =  qOrderRepository.findExtraOrdersByManagerId(userIds);
+        List<OrderItemDailyFood> orderDailyFoods =  qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate);
 
         return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
     }

@@ -1,6 +1,5 @@
 package co.dalicious.domain.food.entity;
 
-import co.dalicious.domain.file.dto.ImageCreateRequestDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
@@ -107,10 +106,11 @@ public class Food {
     private BigDecimal customPrice;
 
     @Builder
-    public Food(FoodStatus foodStatus, String name, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
+    public Food(FoodStatus foodStatus, String name, BigDecimal supplyPrice,BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
         this.foodStatus = foodStatus;
         this.name = name;
         this.price = price;
+        this.supplyPrice = supplyPrice;
         this.foodTags = foodTags;
         this.makers = makers;
         this.description = description;
@@ -121,6 +121,7 @@ public class Food {
         this.foodStatus = FoodStatus.ofString(foodListDto.getFoodStatus());
         this.name = foodListDto.getFoodName();
         this.price = foodListDto.getDefaultPrice();
+        this.supplyPrice = foodListDto.getSupplyPrice();
         this.foodTags = foodTags;
         this.description = foodListDto.getDescription();
         this.makers = makers;
@@ -134,6 +135,7 @@ public class Food {
         if (!this.getId().equals(makersFoodDetailReqDto.getFoodId())) {
             throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
         }
+        this.supplyPrice = makersFoodDetailReqDto.getSupplyPrice();
         this.price = makersFoodDetailReqDto.getDefaultPrice();
         this.foodTags = FoodTag.ofCodes(makersFoodDetailReqDto.getFoodTags());
         this.customPrice = makersFoodDetailReqDto.getCustomPrice();

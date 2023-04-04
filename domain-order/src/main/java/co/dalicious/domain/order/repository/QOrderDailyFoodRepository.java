@@ -4,9 +4,12 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
+import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -37,6 +40,27 @@ public class QOrderDailyFoodRepository {
 
     private final JPAQueryFactory queryFactory;
     private final EntityManager entityManager;
+
+    public List<OrderItemDailyFood> findExtraOrdersByManagerId(List<BigInteger> userIds, LocalDate startDate, LocalDate endDate) {
+        BooleanExpression whereClause = orderDailyFood.user.id.in(userIds);
+        if (startDate != null) {
+            whereClause = whereClause.and(orderItemDailyFood.dailyFood.serviceDate.goe(startDate));
+        }
+
+        if (endDate != null) {
+            whereClause = whereClause.and(orderItemDailyFood.dailyFood.serviceDate.loe(endDate));
+        }
+
+        whereClause = whereClause.and(orderDailyFood.orderType.eq(OrderType.DAILYFOOD));
+        whereClause = whereClause.and(orderDailyFood.paymentType.eq(PaymentType.SUPPORT_PRICE));
+
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .innerJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .where(whereClause)
+                .orderBy(orderItemDailyFood.dailyFood.serviceDate.desc())
+                .fetch();
+    }
     public List<OrderItemDailyFood> findByUserAndServiceDateBetween(User user, LocalDate startDate, LocalDate endDate) {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
