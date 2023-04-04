@@ -17,8 +17,8 @@ import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Comparator;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -62,13 +62,15 @@ public interface PointHistoryMapper {
                     .filter(o -> pointHistory.getOrderId().equals(o.getId())).findFirst()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
             List<OrderItem> orderItems = order.getOrderItems();
-            DailyFood firstOrder = orderItems.stream().filter(orderItem -> orderItem instanceof OrderItemDailyFood)
-                    .map(orderItem -> ((OrderItemDailyFood) orderItem).getDailyFood())
-                    .min(Comparator.comparing(DailyFood::getServiceDate))
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND));
+            for(OrderItem orderItem : orderItems) {
+                if(Hibernate.unproxy(orderItem) instanceof OrderItemDailyFood orderItemDailyFood) {
+                    DailyFood dailyFood = orderItemDailyFood.getDailyFood();
+                    makersName = dailyFood.getFood().getMakers().getName();
+                    name.append(dailyFood.getFood().getName());
+                }
+                break;
+            }
 
-            makersName = firstOrder.getFood().getMakers().getName();
-            name.append(firstOrder.getFood().getName());
             if(orderItems.size() > 1) {
                 name.append("외 ").append(orderItems.size() - 1).append("건");
             }

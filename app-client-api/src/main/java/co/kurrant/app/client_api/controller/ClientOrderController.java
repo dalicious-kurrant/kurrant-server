@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.ClientOrderService;
+import co.kurrant.app.client_api.service.GroupService;
 import co.kurrant.app.client_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +60,15 @@ public class ClientOrderController {
     }
 
     @GetMapping("/extra")
+    public ResponseMessage getExtraOrders(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(clientOrderService.getExtraOrders(securityUser))
+                .message("추가 주문 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @GetMapping("/extra/dailyFoods")
     public ResponseMessage getExtraDailyFoods(Authentication authentication,
                                               @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
                                               @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {

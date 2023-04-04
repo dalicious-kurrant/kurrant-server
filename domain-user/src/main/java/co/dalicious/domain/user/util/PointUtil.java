@@ -101,6 +101,7 @@ public class PointUtil {
         pointHistoryRepository.save(pointHistory);
     }
 
+    @Transactional
     public void createPointHistoryByOthers(User user, BigInteger id, PointStatus pointStatus, BigDecimal point) {
         PointHistory pointHistory = pointMapper.createPointHistoryByOthers(user, id, pointStatus, point);
         pointHistoryRepository.save(pointHistory);

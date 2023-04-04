@@ -361,6 +361,10 @@ public class User {
         this.isMembership = false;
     }
 
+    public boolean isAdmin() {
+        return Role.ADMIN.equals(this.role);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

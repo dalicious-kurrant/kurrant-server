@@ -220,6 +220,9 @@ public class AuthServiceImpl implements AuthService {
             user = userMapper.toEntity(userDto);
 
             // User 저장
+            if (user.isAdmin() && userValidator.adminExists()) {
+                throw new ApiException(ExceptionEnum.ADMIN_USER_SHOULD_BE_UNIQUE);
+            }
             user = userRepository.save(user);
 
             // 등록된 사원인지 검증
@@ -337,6 +340,10 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.save(userMapper.toEntity(userDto));
 
+        if (user.isAdmin() && userValidator.adminExists()) {
+            throw new ApiException(ExceptionEnum.ADMIN_USER_SHOULD_BE_UNIQUE);
+        }
+
         // 등록된 사원인지 검증
         Boolean isRegisteredUser = clientUtil.isRegisteredUser(user);
 
@@ -389,6 +396,9 @@ public class AuthServiceImpl implements AuthService {
         UserDto userDto = UserDto.builder().role(Role.USER).email(email.trim()).name(name).build();
 
         User user = userRepository.save(userMapper.toEntity(userDto));
+        if (user.isAdmin() && userValidator.adminExists()) {
+            throw new ApiException(ExceptionEnum.ADMIN_USER_SHOULD_BE_UNIQUE);
+        }
 
         // 등록된 사원인지 검증
         Boolean isRegisteredUser = clientUtil.isRegisteredUser(user);

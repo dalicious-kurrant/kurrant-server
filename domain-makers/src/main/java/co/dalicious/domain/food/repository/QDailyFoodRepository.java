@@ -103,6 +103,26 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
+    public List<DailyFood> findAllByFoodsBetweenServiceDate(LocalDate startDate, LocalDate endDate, Set<BigInteger> foodIds) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if (startDate != null) {
+            whereClause.and(dailyFood.serviceDate.goe(startDate));
+        }
+
+        if (endDate != null) {
+            whereClause.and(dailyFood.serviceDate.loe(endDate));
+        }
+
+        if (foodIds != null && !foodIds.isEmpty()) {
+            whereClause.and(dailyFood.food.id.in(foodIds));
+        }
+
+        return queryFactory.selectFrom(dailyFood)
+                .where(whereClause)
+                .orderBy(dailyFood.serviceDate.asc())
+                .fetch();
+    }
+
     public List<DailyFood> findAllDailyFoodByMakersBetweenServiceDate(LocalDate startDate, LocalDate endDate, Makers makers) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
