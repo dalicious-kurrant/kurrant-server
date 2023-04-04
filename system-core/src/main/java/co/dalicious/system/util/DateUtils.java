@@ -79,13 +79,6 @@ public class DateUtils {
 
     public static String localDateToString(LocalDate date) { return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); }
 
-    public static long calculatedDDay(String limitDay, String today) throws ParseException {
-        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date limit = new Date(parseFormat.parse(limitDay).getTime());
-        Date present = new Date(parseFormat.parse(today).getTime());
-        return (limit.getTime() - present.getTime()) / (24 * 60 * 60 * 1000);
-    }
-
     public static String localDateTimeToString(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
@@ -123,14 +116,17 @@ public class DateUtils {
         return YearMonth.of(year, month);
     }
 
-    public static String calculatedDDayTime() {
+    public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime midnight = LocalDateTime.of(now.toLocalDate(), LocalTime.MAX);
 
+        long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
         long hoursLeft = now.until(midnight, ChronoUnit.HOURS);
         now = now.plusHours(hoursLeft);
         long minutesLeft = now.until(midnight, ChronoUnit.MINUTES);
 
-        return String.format("%02d:%02d", hoursLeft, minutesLeft);
+        return String.format("%01d %02d:%02d", leftDay, hoursLeft, minutesLeft);
     }
 }
