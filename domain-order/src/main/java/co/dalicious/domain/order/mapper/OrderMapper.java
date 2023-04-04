@@ -2,9 +2,12 @@ package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.food.dto.DiscountDto;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.GroupDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -31,21 +34,49 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, OrderDailyFood.class, Hibernate.class, OrderUtil.class, UserSupportPriceUtil.class, PriceUtils.class})
 public interface OrderMapper {
+    @Mapping(source = "orderCode", target = "code")
+    @Mapping(source = "spot.address", target = "address")
+    @Mapping(target = "paymentType", constant = "SUPPORT_PRICE")
+    @Mapping(source = "user", target = "user")
+    @Mapping(source = "spot.group.name", target = "groupName")
+    @Mapping(source = "spot.name", target = "spotName")
+    @Mapping(source = "spot", target = "spot")
+    @Mapping(target = "orderType", constant = "DAILYFOOD")
+    OrderDailyFood toExtraOrderEntity(User user, Spot spot, String orderCode);
+
+    @Mapping(target = "orderStatus", constant = "COMPLETED")
+    @Mapping(target = "deliveryFee", constant = "0") // TODO: 배송비 추가가 필요한 경우 수정 필요
+    OrderItemDailyFoodGroup toOrderItemDailyFoodGroup(DiningTypeServiceDateDto diningTypeServiceDateDto);
+
+    @Mapping(source = "order", target = "order")
+    @Mapping(target = "orderStatus", constant = "COMPLETED")
+    @Mapping(source = "dailyFood", target = "dailyFood")
+    @Mapping(source = "dailyFood.food.name", target = "name")
+    @Mapping(source = "discountDto.price", target = "price")
+    @Mapping(source = "extraOrderDto.count", target = "count")
+    @Mapping(target = "discountedPrice", expression = "java(discountDto.getDiscountedPrice())")
+    @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")
+    @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
+    @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
+    @Mapping(source = "orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
+    OrderItemDailyFood toExtraOrderItemEntity(Order order, DailyFood dailyFood, ExtraOrderDto.Request extraOrderDto, DiscountDto discountDto, OrderItemDailyFoodGroup orderItemDailyFoodGroup);
+
+    @Mapping(source = "orderCode", target = "code")
+    @Mapping(source = "spot.address", target = "address")
+    @Mapping(target = "paymentType", constant = "CREDIT_CARD") // TODO: 결제타입 넣기 로직 필요
+    @Mapping(source = "user", target = "user")
+    @Mapping(source = "spot.group.name", target = "groupName")
+    @Mapping(source = "spot.name", target = "spotName")
+    @Mapping(source = "spot", target = "spot")
+    @Mapping(target = "orderType", constant = "DAILYFOOD")
+    OrderDailyFood toEntity(User user, Spot spot, String orderCode);
+
     @Mapping(source = "id", target = "orderItemDailyFoodId")
-    @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getDailyFood().getServiceDate()))")
     @Mapping(source = "dailyFood.food.makers.name", target = "makers")
     @Mapping(source = "orderStatus.orderStatus", target = "orderStatus")
     @Mapping(source = "name", target = "foodName")
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getOrderItemTotalPrice())")
     @Mapping(source = "count", target = "count")
-    @Mapping(source = "order.user.name", target = "userName")
-    @Mapping(source = "order.user.email", target = "userEmail")
-    @Mapping(source = "order.user.phone", target = "phone")
-    @Mapping(source = "order.code", target = "orderCode")
-    @Mapping(source = "dailyFood.group.name", target = "groupName")
-    @Mapping(target = "spotName", expression = "java(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpotName())")
-    @Mapping(source = "dailyFood.diningType.diningType", target = "diningType")
-    @Mapping(source = "createdDateTime", target = "orderDateTime", qualifiedByName = "timeStampToString")
     @Mapping(target = "deliveryTime", expression = "java(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getMealInfo(orderItemDailyFood.getDailyFood().getDiningType()) == null ? null : DateUtils.timeToString(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getMealInfo(orderItemDailyFood.getDailyFood().getDiningType()).getDeliveryTime()))")
     OrderDto.OrderItemDailyFood orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
@@ -90,8 +121,35 @@ public interface OrderMapper {
         orderItemDailyFoodList.setSpotName(spot.getName());
         orderItemDailyFoodList.setDiningType(diningType.getDiningType());
         orderItemDailyFoodList.setFoodMap(toFoodMap(orderItemDailyFoods));
-        orderItemDailyFoodList.setOrderItemDailyFoods(orderItemDailyFoodsToDtos(orderItemDailyFoods));
+        orderItemDailyFoodList.setOrderItemDailyFoodGroupList(toOrderItemDailyFoodGroupList(orderItemDailyFoods));
         return orderItemDailyFoodList;
+    }
+
+    default List<OrderDto.OrderItemDailyFoodGroupList> toOrderItemDailyFoodGroupList(List<OrderItemDailyFood> orderItemDailyFoods) {
+        List<OrderDto.OrderItemDailyFoodGroupList> orderItemDailyFoodGroupList = new ArrayList<>();
+        Set<OrderItemDailyFoodGroup> orderItemDailyFoodGroupSet = orderItemDailyFoods.stream()
+                .map(OrderItemDailyFood::getOrderItemDailyFoodGroup)
+                .collect(Collectors.toSet());
+        for (OrderItemDailyFoodGroup orderItemDailyFoodGroup : orderItemDailyFoodGroupSet) {
+            OrderDto.OrderItemDailyFoodGroupList orderItemDailyFoodGroupDto = new OrderDto.OrderItemDailyFoodGroupList();
+            orderItemDailyFoodGroupDto.setServiceDate(DateUtils.format(orderItemDailyFoodGroup.getServiceDate()));
+            orderItemDailyFoodGroupDto.setDiningType(orderItemDailyFoodGroup.getDiningType().getDiningType());
+            orderItemDailyFoodGroupDto.setGroupName(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getGroupName());
+            orderItemDailyFoodGroupDto.setSpotName(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getSpotName());
+            orderItemDailyFoodGroupDto.setUserName(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getName());
+            orderItemDailyFoodGroupDto.setUserEmail(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getEmail());
+            orderItemDailyFoodGroupDto.setPhone(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getPhone());
+            orderItemDailyFoodGroupDto.setOrderCode(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getCode());
+            orderItemDailyFoodGroupDto.setOrderDateTime(timeStampToString(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getCreatedDateTime()));
+            orderItemDailyFoodGroupDto.setTotalPrice(orderItemDailyFoodGroup.getTotalPriceByGroup());
+            orderItemDailyFoodGroupDto.setSupportPrice(orderItemDailyFoodGroup.getUsingSupportPrice());
+            orderItemDailyFoodGroupDto.setPayPrice(orderItemDailyFoodGroup.getPayPrice());
+            orderItemDailyFoodGroupDto.setDeliveryPrice((orderItemDailyFoodGroup.getOrderStatus() != OrderStatus.CANCELED) ? orderItemDailyFoodGroup.getDeliveryFee() : BigDecimal.ZERO);
+            orderItemDailyFoodGroupDto.setOrderItemDailyFoods(orderItemDailyFoodsToDtos(orderItemDailyFoodGroup.getOrderDailyFoods()));
+
+            orderItemDailyFoodGroupList.add(orderItemDailyFoodGroupDto);
+        }
+        return orderItemDailyFoodGroupList;
     }
 
     default Integer getFoodCount(List<OrderItemDailyFood> orderItemDailyFoods) {
@@ -105,9 +163,6 @@ public interface OrderMapper {
     default List<OrderDto.OrderItemDailyFood> orderItemDailyFoodsToDtos(List<OrderItemDailyFood> orderItemDailyFoods) {
         return orderItemDailyFoods.stream()
                 .map(this::orderItemDailyFoodToDto)
-                .sorted(Comparator.comparing((OrderDto.OrderItemDailyFood v) -> DateUtils.stringToDate(v.getServiceDate()))
-                        .thenComparing(v -> DiningType.ofString(v.getDiningType()))
-                )
                 .collect(Collectors.toList());
     }
 
@@ -241,7 +296,7 @@ public interface OrderMapper {
             Integer foodCount = 0;
             BigDecimal totalPrice = BigDecimal.ZERO;
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
-                if(OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
+                if (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
                     foodCount += orderItemDailyFood.getCount();
                     totalPrice = totalPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
                 }
@@ -292,7 +347,7 @@ public interface OrderMapper {
 
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(source = "code", target = "code")
-    GroupDto.DiningType diningTypeToDto (DiningType diningType);
+    GroupDto.DiningType diningTypeToDto(DiningType diningType);
 
     @Mapping(source = "id", target = "userId")
     @Mapping(source = "name", target = "userName")

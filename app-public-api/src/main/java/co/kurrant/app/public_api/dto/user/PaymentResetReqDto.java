@@ -6,10 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Schema(description = "결제 비밀번호 등록 요청 DTO")
-public class SavePaymentPasswordDto {
-
+@Schema(description = "결제 비밀번호 재설정 요청 Dto")
+public class PaymentResetReqDto {
     private String payNumber;
-    private String key;
-
 }

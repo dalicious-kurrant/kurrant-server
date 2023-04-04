@@ -21,7 +21,7 @@ public class OrderDto {
         private String spotName;
         private String diningType;
         private List<SpotFoodMap> foodMap;
-        private List<OrderItemDailyFood> orderItemDailyFoods;
+        private List<OrderItemDailyFoodGroupList> orderItemDailyFoodGroupList;
 
     }
     @Getter
@@ -30,25 +30,36 @@ public class OrderDto {
         private String foodName;
         private Integer count;
     }
+
     @Getter
     @Setter
-    public static class OrderItemDailyFood {
-        private BigInteger orderItemDailyFoodId;
+    public static class OrderItemDailyFoodGroupList {
         private String serviceDate;
+        private String diningType;
         private String groupName;
         private String spotName;
         private String userName;
         private String userEmail;
         private String phone;
-        private String diningType;
+        private String orderCode;
+        private String orderDateTime;
+        private BigDecimal totalPrice;
+        private BigDecimal supportPrice;
+        private BigDecimal payPrice;
+        private BigDecimal deliveryPrice;
+        private List<OrderItemDailyFood> orderItemDailyFoods;
+    }
+
+    @Getter
+    @Setter
+    public static class OrderItemDailyFood {
+        private BigInteger orderItemDailyFoodId;
         private String deliveryTime;
         private String makers;
         private String foodName;
         private Integer count;
         private BigDecimal price;
-        private String orderCode;
         private String orderStatus;
-        private String orderDateTime;
     }
 
     @Getter

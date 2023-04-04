@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.service;
 
+import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
@@ -8,6 +9,7 @@ import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -25,4 +27,8 @@ public interface OrderDailyFoodService {
     void cancelOrderNice(BigInteger orderId) throws IOException, ParseException;
 
     void cancelOrderItemsNice(List<BigInteger> idList) throws IOException, ParseException;
+
+    List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate);
+    void postExtraOrderItems(List<ExtraOrderDto.Request> orderDtos);
+    List<ExtraOrderDto.Response> getExtraOrders();
 }

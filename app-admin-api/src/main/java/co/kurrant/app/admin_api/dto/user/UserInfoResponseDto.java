@@ -57,5 +57,7 @@ public class UserInfoResponseDto {
     private String facebookEmail;
     @Schema(description = "애플 이메일")
     private String appleEmail;
+    @Schema(description = "결제 비밀번호")
+    private String paymentPassword;
 
 }

@@ -53,6 +53,7 @@ public enum ExceptionEnum {
 	ALREADY_WRITING_COMMENT(HttpStatus.BAD_REQUEST, "E4000103", "이미 댓글을 작성한 리뷰입니다."),
 	EVENT_COUNT_OVER(HttpStatus.BAD_REQUEST, "E4000103", "이미 참여한 이벤트입니다."),
 	ALREADY_REPORTED_REVIEW(HttpStatus.BAD_REQUEST, "E4000104", "이미 신고한 리뷰입니다."),
+	ADMIN_USER_SHOULD_BE_UNIQUE(HttpStatus.BAD_REQUEST, "E4000104", "관리자 계정은 유일해야 합니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
@@ -129,6 +130,7 @@ public enum ExceptionEnum {
 	TOKEN_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000016", "토큰 저장 실패"),
 	PAYMENT_PASSWORD_LENGTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000017", "결제 비밀번호는 6자리로 입력해주세요."),
 	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "결제 비밀번호가 일치하지 않습니다."),
+	PAYMENT_PASSWORD_RESET_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000019", "결제 비밀번호 재설정에 실패했습니다."),
 
 
 

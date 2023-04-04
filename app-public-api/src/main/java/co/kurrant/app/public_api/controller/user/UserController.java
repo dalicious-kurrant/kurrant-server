@@ -250,5 +250,23 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/payment/password")
+    @Operation(summary = "결제 비밀번호 등록 되어 있는지 확인", description = "결제 비밀번호 등록 유무 확인")
+    public ResponseMessage isPaymentPassword(Authentication authentication){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.isPaymentPassword(securityUser))
+                .message("조회 성공!")
+                .build();
+    }
 
+    @PatchMapping("/payment/password/reset")
+    @Operation(summary = "결제 비밀번호 재설정", description = "결제 비밀번호 재설정")
+    public ResponseMessage paymentPasswordReset(Authentication authentication, @RequestBody PaymentResetReqDto resetDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.paymentPasswordReset(securityUser, resetDto);
+        return ResponseMessage.builder()
+                .message("결제 비밀번호 재설정 성공!")
+                .build();
+    }
 }

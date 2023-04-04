@@ -197,6 +197,10 @@ public class User {
         this.password = password;
     }
 
+    public void changePaymentPassword(String paymentPassword){
+        this.paymentPassword = paymentPassword;
+    }
+
     public void changePhoneNumber(String phone) {
         this.phone = phone;
     }
@@ -355,6 +359,10 @@ public class User {
         this.orderAlarm = false;
         this.point = BigDecimal.ZERO;
         this.isMembership = false;
+    }
+
+    public boolean isAdmin() {
+        return Role.ADMIN.equals(this.role);
     }
 
     @Override
