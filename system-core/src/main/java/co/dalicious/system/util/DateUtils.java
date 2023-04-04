@@ -3,12 +3,10 @@ package co.dalicious.system.util;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.YearMonth;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class DateUtils {
@@ -123,5 +121,16 @@ public class DateUtils {
 
     public static YearMonth toYearMonth(Integer year, Integer month) {
         return YearMonth.of(year, month);
+    }
+
+    public static String calculatedDDayTime() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime midnight = LocalDateTime.of(now.toLocalDate(), LocalTime.MAX);
+
+        long hoursLeft = now.until(midnight, ChronoUnit.HOURS);
+        now = now.plusHours(hoursLeft);
+        long minutesLeft = now.until(midnight, ChronoUnit.MINUTES);
+
+        return String.format("%02d:%02d", hoursLeft, minutesLeft);
     }
 }

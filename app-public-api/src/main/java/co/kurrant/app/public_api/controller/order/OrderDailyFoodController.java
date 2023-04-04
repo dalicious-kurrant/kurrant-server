@@ -135,9 +135,9 @@ public class OrderDailyFoodController {
 
     @Operation(summary = "수령 완료 상태 변경", description = "주문의 상태를 수령 완료 상태로 변경한다.")
     @PatchMapping("/update/status")
-    public ResponseMessage changingOrderItemOrderStatus(Authentication authentication, @RequestParam BigInteger orderItemId) {
+    public ResponseMessage changingOrderItemOrderStatus(Authentication authentication, @RequestBody IdDto orderItemId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        orderDailyFoodService.changingOrderItemOrderStatus(securityUser, orderItemId);
+        orderDailyFoodService.changingOrderItemOrderStatus(securityUser, orderItemId.getId());
         return ResponseMessage.builder()
                 .message("주문의 상태를 수령 완료로 변경했습니다.")
                 .build();

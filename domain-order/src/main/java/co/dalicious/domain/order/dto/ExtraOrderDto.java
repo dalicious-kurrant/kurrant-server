@@ -30,6 +30,7 @@ public class ExtraOrderDto {
     @Getter
     @Setter
     public static class Response {
+        private BigInteger orderItemDailyFoodId;
         private String serviceDate;
         private String diningType;
         private String createdDateTime;
@@ -45,7 +46,9 @@ public class ExtraOrderDto {
         private String orderStatus;
 
         @Builder
-        public Response(String serviceDate, String diningType, String createdDateTime, String usage, BigInteger spotId, String spotName, BigInteger groupId, String groupName, BigDecimal price, Integer count, BigDecimal totalPrice, String dailyFoodStatus, String orderStatus) {
+
+        public Response(BigInteger orderItemDailyFoodId, String serviceDate, String diningType, String createdDateTime, String usage, BigInteger spotId, String spotName, BigInteger groupId, String groupName, BigDecimal price, Integer count, BigDecimal totalPrice, String dailyFoodStatus, String orderStatus) {
+            this.orderItemDailyFoodId = orderItemDailyFoodId;
             this.serviceDate = serviceDate;
             this.diningType = diningType;
             this.createdDateTime = createdDateTime;

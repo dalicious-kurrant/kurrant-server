@@ -250,6 +250,31 @@ public interface OrderMapper {
                 .collect(Collectors.toList());
     }
 
+    @Mapping(source = "id", target = "orderItemDailyFoodId")
+    @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getDailyFood().getServiceDate()))")
+    @Mapping(source = "dailyFood.food.makers.name", target = "makers")
+    @Mapping(source = "orderStatus.orderStatus", target = "orderStatus")
+    @Mapping(source = "name", target = "foodName")
+    @Mapping(target = "price", expression = "java(orderItemDailyFood.getOrderItemTotalPrice())")
+    @Mapping(source = "count", target = "count")
+    @Mapping(source = "order.user.name", target = "userName")
+    @Mapping(source = "order.user.email", target = "userEmail")
+    @Mapping(source = "order.user.phone", target = "phone")
+    @Mapping(source = "order.code", target = "orderCode")
+    @Mapping(source = "dailyFood.group.name", target = "groupName")
+    @Mapping(target = "spotName", expression = "java(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpotName())")
+    @Mapping(source = "dailyFood.diningType.diningType", target = "diningType")
+    @Mapping(source = "createdDateTime", target = "orderDateTime", qualifiedByName = "timeStampToString")
+    @Mapping(target = "deliveryTime", expression = "java(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getMealInfo(orderItemDailyFood.getDailyFood().getDiningType()) == null ? null : DateUtils.timeToString(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getMealInfo(orderItemDailyFood.getDailyFood().getDiningType()).getDeliveryTime()))")
+    OrderDto.ClientOrderItemDailyFood orderItemDailyFoodToClientDto(OrderItemDailyFood orderItemDailyFood);
+
+    default List<OrderDto.ClientOrderItemDailyFood> orderItemDailyFoodToClientDtos(List<OrderItemDailyFood> orderItemDailyFoods) {
+        return orderItemDailyFoods.stream()
+                .map(this::orderItemDailyFoodToClientDto)
+                .toList();
+    }
+
+
     default OrderDto.GroupOrderItemDailyFoodList toGroupOrderDto(List<OrderItemDailyFood> orderItemDailyFoods) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         Integer foodCount = 0;
@@ -262,7 +287,7 @@ public interface OrderMapper {
                 buyingUser.add(orderItemDailyFood.getOrder().getUser());
             }
         }
-        List<OrderDto.OrderItemDailyFood> orderItemDailyFoodDtos = orderItemDailyFoodsToDtos(orderItemDailyFoods);
+        List<OrderDto.ClientOrderItemDailyFood> orderItemDailyFoodDtos = orderItemDailyFoodToClientDtos(orderItemDailyFoods);
 
         OrderDto.GroupOrderItemDailyFoodList orderItemDailyFoodList = new OrderDto.GroupOrderItemDailyFoodList();
         orderItemDailyFoodList.setTotalPrice(totalPrice);

@@ -52,6 +52,10 @@ public class Food {
     @Comment("식품 이름")
     private String name;
 
+    @Column(name = "supply_price", columnDefinition = "DECIMAL(15, 2)")
+    @Comment("메이커스 공급 가격")
+    private BigDecimal supplyPrice;
+
     @Column(name = "price", columnDefinition = "DECIMAL(15, 2)")
     @Comment("가격")
     private BigDecimal price;

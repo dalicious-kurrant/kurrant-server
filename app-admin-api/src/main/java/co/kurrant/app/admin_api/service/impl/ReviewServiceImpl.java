@@ -128,6 +128,7 @@ public class ReviewServiceImpl implements ReviewService {
         // 삭제된 리뷰 제외하기
         Reviews reviews = qReviewRepository.findByIdExceptedDelete(reviewId);
         if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
+        if(reviews.getIsReports()) throw new ApiException(ExceptionEnum.ALREADY_REPORTED_REVIEW);
 
         reviews.updateIsReport(true);
     }

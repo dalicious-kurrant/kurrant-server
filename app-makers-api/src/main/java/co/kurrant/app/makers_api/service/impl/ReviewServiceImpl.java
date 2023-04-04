@@ -55,11 +55,13 @@ public class ReviewServiceImpl implements ReviewService {
     public ItemPageableResponseDto<ReviewMakersResDto> getUnansweredReview(SecurityUser securityUser, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         Makers makers = userUtil.getMakers(securityUser);
 
-        // 메이커스 댓글이 없는 리뷰만 조회 - 삭제 제외
+        // 메이커스 댓글이 없는 리뷰만 조회 - 삭제 제외, 신고 제외
         Page<Reviews> reviewsList = qReviewRepository.findAllByMakersExceptMakersComment(makers, limit, page, pageable);
         ReviewMakersResDto reviewMakersResDto = new ReviewMakersResDto();
         List<ReviewMakersResDto.ReviewListDto> reviewListDtoList = new ArrayList<>();
         if(reviewsList.isEmpty()) {
+            reviewMakersResDto.setCount(0);
+            reviewMakersResDto.setReviewListDtoList(reviewListDtoList);
             return ItemPageableResponseDto.<ReviewMakersResDto>builder()
                     .items(reviewMakersResDto).limit(pageable.getPageSize())
                     .total(reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
@@ -85,7 +87,7 @@ public class ReviewServiceImpl implements ReviewService {
     public ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview(SecurityUser securityUser, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         Makers makers = userUtil.getMakers(securityUser);
 
-        // 메이커스 댓글이 없는 리뷰만 조회 - 삭제 제외
+        // 메이커스 댓글이 없는 리뷰만 조회 - 삭제, 신고 제외
         Page<Reviews> reviewsList = qReviewRepository.findAllByMakers(makers, limit, page, pageable);
 
         List<ReviewMakersResDto.ReviewListDto> reviewListDtoList = new ArrayList<>();
@@ -143,6 +145,7 @@ public class ReviewServiceImpl implements ReviewService {
     public void reportReviews(BigInteger reviewId) {
         Reviews reviews = qReviewRepository.findById(reviewId);
         if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
+        if(reviews.getIsReports()) throw new ApiException(ExceptionEnum.ALREADY_REPORTED_REVIEW);
 
         reviews.updateIsReport(true);
     }
