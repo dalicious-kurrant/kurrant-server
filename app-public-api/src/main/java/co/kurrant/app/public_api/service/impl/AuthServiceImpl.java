@@ -111,11 +111,11 @@ public class AuthServiceImpl implements AuthService {
 
         String subject = ("[커런트] 회원가입 인증 코드: "); //메일 제목
 
-        if (type.equals("7")){
+        if (requiredAuth == RequiredAuth.PAYMENT_PASSWORD_CREATE || type.equals("7")){
             subject = ("[커런트] 결제 비밀번호 등록 인증 코드: ");
         }
 
-        if (type.equals("6")){
+        if (requiredAuth == RequiredAuth.PAYMENT_PASSWORD_CHECK || type.equals("6")){
             subject = ("[커런트] 결제 비밀번호 확인 인증 코드: ");
         }
 
