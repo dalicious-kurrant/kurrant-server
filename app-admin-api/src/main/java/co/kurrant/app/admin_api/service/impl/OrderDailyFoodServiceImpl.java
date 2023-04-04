@@ -17,6 +17,7 @@ import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.*;
+import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.DailyFoodSupportPriceMapper;
@@ -26,6 +27,7 @@ import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
+import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
@@ -352,6 +354,33 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<OrderDailyFood> orderDailyFoods = qOrderRepository.findExtraOrdersByManagerId(userIds);
 
         return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
+    }
+
+    @Override
+    @Transactional
+    public void refundExtraOrderItems(BigInteger id) {
+        OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
+
+        RefundPriceDto refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, null, null);
+
+        BigDecimal usedSupportPrice = orderItemDailyFood.getOrderItemDailyFoodGroup().getUsingSupportPrice();
+
+        if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
+            List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
+            for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
+                dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
+            }
+            DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+            if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
+                dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
+            }
+        }
+
+        orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
+        if (refundPriceDto.getIsLastItemOfGroup()) {
+            orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
+        }
     }
 
 }

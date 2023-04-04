@@ -95,6 +95,7 @@ public interface ExtraOrderMapper {
     default ExtraOrderDto.Response toExtraOrderDto(OrderItemDailyFood orderItemDailyFood) {
         DiscountDto discountDto = DiscountDto.getDiscountWithoutMembership(orderItemDailyFood.getDailyFood().getFood());
         return ExtraOrderDto.Response.builder()
+                .orderItemDailyFoodId(orderItemDailyFood.getId())
                 .serviceDate(DateUtils.format(orderItemDailyFood.getDailyFood().getServiceDate()))
                 .diningType(orderItemDailyFood.getDailyFood().getDiningType().getDiningType())
                 .createdDateTime(DateUtils.toISOLocalDate(orderItemDailyFood.getCreatedDateTime()))
