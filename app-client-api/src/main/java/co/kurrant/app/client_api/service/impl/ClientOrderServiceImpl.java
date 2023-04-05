@@ -226,7 +226,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
 
         Corporation corporation = userUtil.getCorporation(securityUser);
-        List<User> users = qUserRepository.findManagerByGroupIds(Collections.singleton(corporation.getId()));
+        List<User> users = qUserRepository.findAdminAndManagerByGroupIds(Collections.singleton(corporation.getId()));
         List<BigInteger> userIds = users.stream()
                 .map(User::getId)
                 .toList();
@@ -238,7 +238,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     @Override
     @Transactional
     public void refundExtraOrderItems(SecurityUser securityUser, BigInteger id) {
-        List<User> users = qUserRepository.findManagerByGroupIds(Collections.singleton(securityUser.getId()));
+        List<User> users = qUserRepository.findAdminAndManagerByGroupIds(Collections.singleton(securityUser.getId()));
 
         OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
