@@ -65,14 +65,12 @@ public class QReviewRepository {
         if(makersId != null) {
             filter.and(reviews.food.makers.id.eq(makersId));
         }
-        if(orderCode != null) {
-            filter.and(orderItem.order.code.containsIgnoreCase(orderCode));
+        if(orderCode != null && orderItemName != null) {
+            filter.and(orderItem.order.code.containsIgnoreCase(orderCode))
+                    .or(reviews.food.name.containsIgnoreCase(orderItemName));
         }
         if(userName != null) {
             filter.and(reviews.user.name.containsIgnoreCase(userName));
-        }
-        if(orderItemName != null) {
-            filter.and(reviews.food.name.containsIgnoreCase(orderItemName));
         }
         if(isReport != null) {
             filter.and(reviews.isReports.eq(isReport));
