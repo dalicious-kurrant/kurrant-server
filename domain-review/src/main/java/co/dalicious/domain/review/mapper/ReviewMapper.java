@@ -91,7 +91,7 @@ public interface ReviewMapper {
 
     @Mapping(source = "reviews.id", target = "reviewId")
     @Mapping(source = "reviews.orderItem", target = "serviceDate", qualifiedByName = "getServiceDate")
-    @Mapping(source = "reviews.orderItem.id", target = "orderItemId")
+    @Mapping(source = "reviews.orderItem.order.code", target = "orderCode")
     @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
     @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
     @Mapping(source = "reviews.satisfaction", target = "satisfaction")
