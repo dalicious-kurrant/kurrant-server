@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -138,6 +139,22 @@ public class ApiExceptionAdvice {
                 ErrorItemResponseDto.builder()
                         .code(ExceptionEnum.BAD_REQUEST.getCode())
                         .message(cause.getMessage())
+                        .build();
+
+        return ResponseEntity.status(ExceptionEnum.BAD_REQUEST.getStatus())
+                .body(List.of(errors));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<List<ErrorItemResponseDto>> exceptionHandler(HttpServletRequest request,
+                                                                       final MaxUploadSizeExceededException e) {
+
+        e.printStackTrace();
+
+        ErrorItemResponseDto errors =
+                ErrorItemResponseDto.builder()
+                        .code(ExceptionEnum.BAD_REQUEST.getCode())
+                        .message(e.getMessage())
                         .build();
 
         return ResponseEntity.status(ExceptionEnum.BAD_REQUEST.getStatus())

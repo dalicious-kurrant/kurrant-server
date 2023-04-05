@@ -42,7 +42,7 @@ public class DailyFoodJob {
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory entityManagerFactory;
     private final EntityManager entityManager;
-    private final int CHUNK_SIZE = 100;
+    private final int CHUNK_SIZE = 500;
 
     @Bean(name = "dailyFoodJob1")
     public Job dailyFoodJob1() {

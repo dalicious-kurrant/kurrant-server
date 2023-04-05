@@ -1,5 +1,6 @@
 package co.dalicious.domain.user.validator;
 
+import co.dalicious.domain.user.entity.enums.Role;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import co.dalicious.domain.user.entity.enums.Provider;
@@ -69,5 +70,9 @@ public class UserValidator {
         } else {
             return  Provider.valueOf(provider);
         }
+    }
+
+    public boolean adminExists() {
+        return userRepository.existsByRole(Role.ADMIN);
     }
 }

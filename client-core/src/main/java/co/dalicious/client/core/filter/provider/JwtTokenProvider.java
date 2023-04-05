@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
@@ -62,11 +63,13 @@ public class JwtTokenProvider {
         String accessToken = Jwts.builder().setClaims(claims) // 데이터
                 .setIssuedAt(now) // 토큰 발행일자
                 .setExpiration(accessTokenExpiredIn) // set Expire Time
+                .setId(UUID.randomUUID().toString())
                 .signWith(key, SignatureAlgorithm.HS256) // 암호화 알고리즘, secret값 세팅
                 .compact();
 
         String refreshToken = Jwts.builder()
                 .setExpiration(refreshTokenExpiredIn)
+                .setId(UUID.randomUUID().toString())
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -76,6 +79,7 @@ public class JwtTokenProvider {
                 .refreshToken(refreshToken)
                 .build();
         refreshTokenRepository.save(refreshTokenHash);
+
         return LoginTokenDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

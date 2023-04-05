@@ -25,6 +25,7 @@ public class ReviewMakersResDto {
         private Boolean forMakers;
         private String writer;
         private String orderItemName;
+        private Boolean isReport;
     }
 
     @Getter
@@ -39,6 +40,7 @@ public class ReviewMakersResDto {
         private Boolean forMakers;
         private String writer;
         private String itemName;
+        private Boolean isReport;
         private MakersComment makersComment;
         private List<AverageReviewScore> reviewScoreList;
     }

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.ParseException;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -111,18 +112,34 @@ public class OrderDailyFoodController {
                 .build();
     }
 
-    @GetMapping("/extra")
+    @GetMapping("/extra/dailyFoods")
     public ResponseMessage getExtraDailyFoods(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                               @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+                                              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.getExtraDailyFoods(startDate, endDate))
-                .message("추가 주문 목록 조회에 성공하였습니다.")
+                .message("추가 주문 식단 목록 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @GetMapping("/extra")
+    public ResponseMessage getExtraOrders(@RequestParam Map<String, Object> parameters) {
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.getExtraOrders(parameters))
+                .message("추가 주문 조회에 성공하였습니다.")
                 .build();
     }
 
     @PostMapping("/extra")
     public ResponseMessage postExtraOrderItems(@RequestBody List<ExtraOrderDto.Request> orderDtos) {
         orderDailyFoodService.postExtraOrderItems(orderDtos);
+        return ResponseMessage.builder()
+                .message("추가 주문에 성공하였습니다.")
+                .build();
+    }
+
+    @PostMapping("/extra/refund")
+    public ResponseMessage refundExtraOrderItems(@RequestBody BigInteger orderItemId) {
+        orderDailyFoodService.refundExtraOrderItems(orderItemId);
         return ResponseMessage.builder()
                 .message("추가 주문에 성공하였습니다.")
                 .build();

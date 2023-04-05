@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,6 +25,44 @@ public class ExtraOrderDto {
         private BigDecimal totalPrice;
         private String usage;
         private Integer count;
+    }
+
+    @Getter
+    @Setter
+    public static class Response {
+        private BigInteger orderItemDailyFoodId;
+        private String serviceDate;
+        private String diningType;
+        private String createdDateTime;
+        private String usage;
+        private BigInteger spotId;
+        private String spotName;
+        private BigInteger groupId;
+        private String groupName;
+        private BigDecimal price;
+        private Integer count;
+        private BigDecimal totalPrice;
+        private String dailyFoodStatus;
+        private String orderStatus;
+
+        @Builder
+
+        public Response(BigInteger orderItemDailyFoodId, String serviceDate, String diningType, String createdDateTime, String usage, BigInteger spotId, String spotName, BigInteger groupId, String groupName, BigDecimal price, Integer count, BigDecimal totalPrice, String dailyFoodStatus, String orderStatus) {
+            this.orderItemDailyFoodId = orderItemDailyFoodId;
+            this.serviceDate = serviceDate;
+            this.diningType = diningType;
+            this.createdDateTime = createdDateTime;
+            this.usage = usage;
+            this.spotId = spotId;
+            this.spotName = spotName;
+            this.groupId = groupId;
+            this.groupName = groupName;
+            this.price = price;
+            this.count = count;
+            this.totalPrice = totalPrice;
+            this.dailyFoodStatus = dailyFoodStatus;
+            this.orderStatus = orderStatus;
+        }
     }
 
     @Getter

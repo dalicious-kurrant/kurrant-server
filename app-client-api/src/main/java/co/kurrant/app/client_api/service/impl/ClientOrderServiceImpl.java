@@ -5,13 +5,15 @@ import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.food.repository.DailyFoodGroupRepository;
+import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.order.entity.*;
+import co.dalicious.domain.order.entity.enums.MonetaryStatus;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.DailyFoodSupportPriceMapper;
 import co.dalicious.domain.order.mapper.ExtraOrderMapper;
@@ -19,9 +21,9 @@ import co.dalicious.domain.order.mapper.OrderMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
+import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.system.enums.DiningType;
@@ -29,7 +31,6 @@ import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.StringUtils;
 import co.dalicious.domain.order.dto.GroupDto;
-import co.kurrant.app.client_api.mapper.GroupMapper;
 import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.ClientOrderService;
 import co.kurrant.app.client_api.util.UserUtil;
@@ -64,7 +65,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     private final OrderItemDailyFoodGroupRepository orderItemDailyFoodGroupRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
-    private final DailyFoodGroupRepository dailyFoodGroupRepository;
+    private final QOrderRepository qOrderRepository;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
 
@@ -215,6 +216,63 @@ public class ClientOrderServiceImpl implements ClientOrderService {
             order.updateTotalPrice(BigDecimal.ZERO);
             order.updateTotalDeliveryFee(BigDecimal.ZERO);
             order.updatePoint(BigDecimal.ZERO);
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<ExtraOrderDto.Response> getExtraOrders(SecurityUser securityUser, Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+
+        Corporation corporation = userUtil.getCorporation(securityUser);
+        List<User> users = qUserRepository.findManagerByGroupIds(Collections.singleton(corporation.getId()));
+        List<BigInteger> userIds = users.stream()
+                .map(User::getId)
+                .toList();
+        List<OrderItemDailyFood> orderDailyFoods =  qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate);
+
+        return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
+    }
+
+    @Override
+    @Transactional
+    public void refundExtraOrderItems(SecurityUser securityUser, BigInteger id) {
+        List<User> users = qUserRepository.findManagerByGroupIds(Collections.singleton(securityUser.getId()));
+
+        OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
+
+        if (!users.contains(orderItemDailyFood.getOrder().getUser())) {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
+
+        if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
+            throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
+        }
+
+        if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+            throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
+        }
+
+        RefundPriceDto refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, null, null);
+
+        BigDecimal usedSupportPrice = orderItemDailyFood.getOrderItemDailyFoodGroup().getUsingSupportPrice();
+
+        if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
+            List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
+            for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
+                dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
+            }
+            DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+            if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
+                dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
+            }
+        }
+
+        orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
+        if (refundPriceDto.getIsLastItemOfGroup()) {
+            orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
         }
     }
 }

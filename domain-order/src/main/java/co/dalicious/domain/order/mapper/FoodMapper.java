@@ -55,6 +55,7 @@ public interface FoodMapper {
     @Mapping(source = "makers", target = "makers")
     @Mapping(source = "foodListDto.foodStatus", target = "foodStatus", qualifiedByName = "getFoodStatus")
     @Mapping(source = "foodListDto.defaultPrice", target = "price")
+    @Mapping(source = "foodListDto.supplyPrice", target = "supplyPrice")
     @Mapping(source = "foodListDto.description", target = "description")
     @Mapping(source = "foodTags", target = "foodTags")
     @Mapping(source = "customPrice", target = "customPrice")

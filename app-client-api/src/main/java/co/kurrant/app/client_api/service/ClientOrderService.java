@@ -6,6 +6,7 @@ import co.dalicious.domain.order.dto.GroupDto;
 import co.kurrant.app.client_api.model.SecurityUser;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -17,4 +18,6 @@ public interface ClientOrderService {
     List<OrderDto.OrderItemStatic> getOrderStatistic(SecurityUser securityUser, @RequestParam Map<String, Object> parameters);
     List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(SecurityUser securityUser, LocalDate startDate, LocalDate endDate);
     void postExtraOrderItems(SecurityUser securityUser, List<ExtraOrderDto.Request> orderDtos);
+    List<ExtraOrderDto.Response> getExtraOrders(SecurityUser securityUser, Map<String, Object> parameters);
+    void refundExtraOrderItems(SecurityUser securityUser, BigInteger id);
 }

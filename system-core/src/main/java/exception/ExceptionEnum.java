@@ -50,8 +50,9 @@ public enum ExceptionEnum {
 	EXCEL_INTEGRITY_ERROR(HttpStatus.BAD_REQUEST, "E4000101", "정합성에 위반된 데이터가 존재합니다. 올바른 데이터를 입력해주세요."),
 	CONNECTION_ERROR(HttpStatus.BAD_REQUEST, "E4000102", "연결 오류!!!"),
 	EVENT_END_DATE_IS_OVER(HttpStatus.BAD_REQUEST, "E4000103", "이미 끝난 이벤트입니다."),
-	ALREADY_WRITING_COMMENT(HttpStatus.BAD_REQUEST, "E4000103", "이미 댓글을 작성한 리뷰입니다."),
 	EVENT_COUNT_OVER(HttpStatus.BAD_REQUEST, "E4000103", "이미 참여한 이벤트입니다."),
+	ALREADY_REPORTED_REVIEW(HttpStatus.BAD_REQUEST, "E4000104", "이미 신고한 리뷰입니다."),
+	ADMIN_USER_SHOULD_BE_UNIQUE(HttpStatus.BAD_REQUEST, "E4000104", "관리자 계정은 유일해야 합니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
@@ -124,7 +125,7 @@ public enum ExceptionEnum {
   	MAKERS_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000012", "메이커스 정보 수정 실패"),
   	ALIMTALK_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000013", "알림톡 발송 실패"),
   	TOKEN_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000014", "토큰 생성 실패"),
-	BILLING_KEY_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000015", "빌링키 발급 실패"),
+	BILLING_KEY_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000015", "잘못된 카드정보를 입력하셨습니다."),
 	TOKEN_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000016", "토큰 저장 실패"),
 	PAYMENT_PASSWORD_LENGTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000017", "결제 비밀번호는 6자리로 입력해주세요."),
 	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "결제 비밀번호가 일치하지 않습니다."),

@@ -33,6 +33,27 @@ public class OrderDto {
 
     @Getter
     @Setter
+    public static class ClientOrderItemDailyFood {
+        private BigInteger orderItemDailyFoodId;
+        private String serviceDate;
+        private String groupName;
+        private String spotName;
+        private String userName;
+        private String userEmail;
+        private String phone;
+        private String diningType;
+        private String deliveryTime;
+        private String makers;
+        private String foodName;
+        private Integer count;
+        private BigDecimal price;
+        private String orderCode;
+        private String orderStatus;
+        private String orderDateTime;
+    }
+
+    @Getter
+    @Setter
     public static class OrderItemDailyFoodGroupList {
         private String serviceDate;
         private String diningType;
@@ -59,6 +80,7 @@ public class OrderDto {
         private String foodName;
         private Integer count;
         private BigDecimal price;
+        private BigDecimal supplyPrice;
         private String orderStatus;
     }
 
@@ -69,7 +91,7 @@ public class OrderDto {
         private BigDecimal totalPrice;
         private Integer totalFoodCount;
         private Integer buyingUserCount;
-        private List<OrderItemDailyFood> orderItemDailyFoods;
+        private List<ClientOrderItemDailyFood> orderItemDailyFoods;
 
     }
 

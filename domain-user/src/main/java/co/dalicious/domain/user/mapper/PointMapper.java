@@ -85,6 +85,6 @@ public interface PointMapper {
     @Mapping(target = "paymentCancelHistoryId", expression = "java(pointStatus.equals(PointStatus.CANCEL) ? id : null)")
     @Mapping(source = "point", target = "point")
     @Mapping(source = "pointStatus", target = "pointStatus")
-    @Mapping(target = "leftPoint", expression = "java(!PointStatus.rewardStatus().contains(pointStatus) ? user.getPoint().add(point) : user.getPoint().subtract(point))")
+    @Mapping(target = "leftPoint", expression = "java(PointStatus.rewardStatus().contains(pointStatus) ? user.getPoint().add(point) : user.getPoint().subtract(point))")
     PointHistory createPointHistoryByOthers(User user, BigInteger id, PointStatus pointStatus, BigDecimal point);
 }
