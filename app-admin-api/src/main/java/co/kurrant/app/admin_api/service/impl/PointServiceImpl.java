@@ -2,11 +2,15 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.user.dto.PointPolicyReqDto;
 import co.dalicious.domain.user.dto.PointPolicyResDto;
+import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointCondition;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.PointMapper;
 import co.dalicious.domain.user.repository.PointPolicyRepository;
 import co.dalicious.domain.user.repository.QPointPolicyRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.PointUtil;
 import co.kurrant.app.admin_api.service.PointService;
 import exception.ApiException;
@@ -15,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -28,7 +33,7 @@ public class PointServiceImpl implements PointService {
     private final PointUtil pointUtil;
     private final PointPolicyRepository pointPolicyRepository;
     private final PointMapper pointMapper;
-    private final QPointPolicyRepository qPointPolicyRepository;
+    private final UserRepository userRepository;
     @Override
     public List<PointPolicyResDto.ReviewPointPolicy> findReviewPointPolicy() {
         return pointUtil.findReviewPointRange();
@@ -76,5 +81,15 @@ public class PointServiceImpl implements PointService {
         PointPolicy pointPolicy = pointPolicyRepository.findById(policyId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         pointUtil.deletePointHistoryByPointPolicy(pointPolicy);
         pointPolicyRepository.delete(pointPolicy);
+    }
+
+    @Override
+    @Transactional
+    public void addPointsToUser(PointPolicyReqDto.AddPointToUser requestDto) {
+        User user = userRepository.findById(requestDto.getUserId())
+                .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+
+        user.updatePoint(BigDecimal.valueOf(requestDto.getRewardPoint()));
+        pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_REWARD, BigDecimal.valueOf(requestDto.getRewardPoint()));
     }
 }
