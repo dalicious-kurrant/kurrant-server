@@ -24,8 +24,8 @@ public class ReviewMakersResDto {
         private String updateDate;
         private Boolean forMakers;
         private String writer;
-        private BigInteger foodId;
         private String orderItemName;
+        private Boolean isReport;
     }
 
     @Getter
@@ -40,6 +40,7 @@ public class ReviewMakersResDto {
         private Boolean forMakers;
         private String writer;
         private String itemName;
+        private Boolean isReport;
         private MakersComment makersComment;
         private List<AverageReviewScore> reviewScoreList;
     }

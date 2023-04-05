@@ -84,11 +84,17 @@ public class Spot {
     @Comment("스팟 상태 ( 0: 비활성, 1: 활성 )")
     private SpotStatus status = SpotStatus.ACTIVE;
 
-    public Spot(String name, Address address, List<DiningType> diningTypes, Group group) {
+    @Lob
+    @Column(name = "memo")
+    private String memo;
+
+
+    public Spot(String name, Address address, List<DiningType> diningTypes, Group group, String memo) {
         this.name = name;
         this.address = address;
         this.diningTypes = diningTypes;
         this.group = group;
+        this.memo = memo;
     }
 
     public List<MealInfo> getMealInfos() {

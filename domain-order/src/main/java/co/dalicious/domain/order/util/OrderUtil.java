@@ -5,7 +5,6 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
@@ -18,7 +17,6 @@ import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.PriceUtils;
 import exception.ApiException;
@@ -77,11 +75,11 @@ public class OrderUtil {
     }
 
     public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
-        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100)));
+        return price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100));
     }
 
     public static BigDecimal discountPriceByRate(BigDecimal price, Integer discountRate) {
-        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf(discountRate / 100.0)));
+        return price.multiply(BigDecimal.valueOf(discountRate / 100.0));
     }
 
     public static Boolean isMembership(User user, Group group) {
@@ -100,7 +98,7 @@ public class OrderUtil {
         if (isMembership(user, group)) {
             // 멤버십 혜택 마감 시간 (서비스 날짜 전일 + 마감시간)
             LocalDateTime membershipBenefitTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(spot.getMembershipBenefitTime(dailyFood.getDiningType()).getDay()), spot.getMembershipBenefitTime(dailyFood.getDiningType()).getTime());
-            if(spot.getDeliveryTime(dailyFood.getDiningType()) == null || LocalDateTime.now().isBefore(membershipBenefitTime)) {
+            if (spot.getDeliveryTime(dailyFood.getDiningType()) == null || LocalDateTime.now().isBefore(membershipBenefitTime)) {
                 return DiscountDto.getDiscount(dailyFood.getFood());
             }
         }
@@ -135,7 +133,7 @@ public class OrderUtil {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
             if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)) {
-                totalPrice = totalPrice.add(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())));
+                totalPrice = totalPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
             }
         }
         return totalPrice;
@@ -224,6 +222,56 @@ public class OrderUtil {
         throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
     }
 
+    public static RefundPriceDto getMedtronicRefundPrice(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
+        OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
+        // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
+        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
+        // 식사 일정에 따른 총 결제 금액
+        BigDecimal itemsPrice = getItemPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
+        // 사용한 지원금
+        BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
+        // 환불 요청 금액
+        BigDecimal requestRefundPrice = PriceUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5)));
+        // 배송비
+        BigDecimal deliveryFee = BigDecimal.ZERO;
+        // 업데이트 되어야할 지원금
+        BigDecimal renewSupportPrice = usedSupportPrice;
+        Boolean isLastOrderItemOfGroup = isLastOrderItemOfGroup(orderItemDailyFood);
+
+
+        // 배송비 환불이 필요할 경우에는, 지원금만 계산하기 위해 요청환불 금액에서 배송비는 제외하기
+        renewSupportPrice = itemsPrice.multiply(BigDecimal.valueOf(0.5)).subtract(requestRefundPrice).add(deliveryFee);
+
+        // 3. 환불 가능 금액 > 환불 요청 금액
+        if (refundablePrice.compareTo(requestRefundPrice) >= 0) {
+            if (!paymentCancelHistories.isEmpty()) {
+                paymentCancelHistories = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).collect(Collectors.toList());
+                BigDecimal refundPoint = BigDecimal.ZERO;
+                Optional<PaymentCancelHistory> tempPaymentCancelHistory = paymentCancelHistories.stream().filter(v -> v.getRefundPointPrice().compareTo(BigDecimal.ZERO) > 0).findAny();
+                if (tempPaymentCancelHistory.isPresent()) {
+                    refundPoint = refundPoint.add(tempPaymentCancelHistory.get().getRefundPointPrice());
+                }
+                PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.get(0);
+                BigDecimal tossRefundablePrice = paymentCancelHistory.getRefundablePrice();
+                if (tossRefundablePrice.compareTo(requestRefundPrice) < 0) {
+                    if (tossRefundablePrice.add(usingPoint.subtract(refundPoint)).compareTo(requestRefundPrice) < 0) {
+                        throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+                    }
+                    return new RefundPriceDto(tossRefundablePrice, renewSupportPrice, requestRefundPrice.subtract(tossRefundablePrice), deliveryFee, isLastOrderItemOfGroup);
+                }
+            }
+            return new RefundPriceDto(requestRefundPrice, renewSupportPrice, BigDecimal.ZERO, deliveryFee, isLastOrderItemOfGroup);
+        }
+        // 4. 환불 가능 금액 < 환불 요청 금액
+        if (refundablePrice.compareTo(requestRefundPrice) < 0) {
+            if (requestRefundPrice.subtract(refundablePrice).compareTo(usingPoint) > 0) {
+                throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+            }
+            return new RefundPriceDto(refundablePrice, renewSupportPrice, requestRefundPrice.subtract(refundablePrice), deliveryFee, isLastOrderItemOfGroup);
+        }
+        throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+    }
+
     public OrderDailyFoodDetailDto.RefundDto getRefundReceipt(List<OrderItem> refundItems, List<PaymentCancelHistory> paymentCancelHistories) {
         // TODO: 백오피스 환불 차감 금액 추후 계산
         Set<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = new HashSet<>();
@@ -253,7 +301,7 @@ public class OrderUtil {
         return new OrderDailyFoodDetailDto.RefundDto(refundPayPrice, refundItemPrice, refundSupportPrice, refundDeliveryFee, refundDeduction, refundTotalPrice, refundCardPrice, refundTotalPoint);
     }
 
-    public static BigDecimal getRefundSupportPrice(List<UserSupportPriceHistory> userSupportPriceHistories) {
+    public static BigDecimal getRefundSupportPrice(List<DailyFoodSupportPrice> userSupportPriceHistories) {
         // 환불된 지원금이 존재하지 않을 때.
         if (userSupportPriceHistories.stream().allMatch(v -> v.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION))) {
             return BigDecimal.ZERO;
@@ -265,7 +313,7 @@ public class OrderUtil {
         // 지원금 환불이 여러개 일 경우
         if (userSupportPriceHistories.size() > 1) {
             userSupportPriceHistories = userSupportPriceHistories.stream()
-                    .sorted(Comparator.comparing(UserSupportPriceHistory::getCreatedDateTime).reversed()).toList();
+                    .sorted(Comparator.comparing(DailyFoodSupportPrice::getCreatedDateTime).reversed()).toList();
             return OrderUtil.getDeductedSupportPrice(userSupportPriceHistories.get(userSupportPriceHistories.size() - 1).getUsingSupportPrice(), userSupportPriceHistories.get(0).getUsingSupportPrice());
         }
         throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
@@ -368,9 +416,9 @@ public class OrderUtil {
 
         String orderCode = response.get("merchant_uid").toString();
 
-        JSONArray checkout = (JSONArray) response.get("cancel_historys");
+        JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
         String checkOutUrl = (String) checkout.get(0);
-        Integer refundablePrice = (Integer) response.get("amount") - (Integer) response.get("cancel_amount");
+        long refundablePrice = (long) response.get("amount") - (long) response.get("cancel_amount");
 
         //결제 취소 후 기록을 저장한다.
         return paymentCancleHistoryMapper.orderDailyItemFoodToEntity(cancelReason, refundPriceDto, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice));
@@ -378,7 +426,22 @@ public class OrderUtil {
     }
 
 
+    public PaymentCancelHistory cancelOrderItemMembershipNice(String paymentKey, CreditCardInfo creditCardInfo, String cancelReason, OrderItemMembership orderItem, BigDecimal refundPrice) throws IOException, ParseException {
+        //결제 취소 요청
+        String token = niceUtil.getToken();
+        JSONObject response = niceUtil.cardCancelOne(paymentKey, cancelReason, refundPrice.intValue(), token);
+        System.out.println(response);
 
+        String orderCode = response.get("merchant_uid").toString();
+
+        JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
+        String checkOutUrl = (String) checkout.get(0);
+        long refundablePrice = (Long) response.get("amount") - (Long) response.get("cancel_amount");
+
+        //결제 취소 후 기록을 저장한다.
+        return paymentCancleHistoryMapper.orderItemMembershipToEntity(cancelReason, refundPrice, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice), creditCardInfo);
+
+    }
 
 
 }

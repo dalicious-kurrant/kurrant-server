@@ -3,11 +3,10 @@ package co.dalicious.system.util;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class DateUtils {
@@ -80,13 +79,6 @@ public class DateUtils {
 
     public static String localDateToString(LocalDate date) { return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); }
 
-    public static long calculatedDDay(String limitDay, String today) throws ParseException {
-        SimpleDateFormat parseFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date limit = new Date(parseFormat.parse(limitDay).getTime());
-        Date present = new Date(parseFormat.parse(today).getTime());
-        return (limit.getTime() - present.getTime()) / (24 * 60 * 60 * 1000);
-    }
-
     public static String localDateTimeToString(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
@@ -118,5 +110,23 @@ public class DateUtils {
         weekOfDay.put("endDate", endDate);
 
         return weekOfDay;
+    }
+
+    public static YearMonth toYearMonth(Integer year, Integer month) {
+        return YearMonth.of(year, month);
+    }
+
+    public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime midnight = LocalDateTime.of(now.toLocalDate(), LocalTime.MAX);
+
+        long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
+        long hoursLeft = now.until(midnight, ChronoUnit.HOURS);
+        now = now.plusHours(hoursLeft);
+        long minutesLeft = now.until(midnight, ChronoUnit.MINUTES);
+
+        return String.format("%01d %02d:%02d", leftDay, hoursLeft, minutesLeft);
     }
 }

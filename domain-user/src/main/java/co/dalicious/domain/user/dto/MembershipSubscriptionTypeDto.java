@@ -18,11 +18,18 @@ public class MembershipSubscriptionTypeDto {
     private int discountRate;
     private BigDecimal discountedPrice;
 
-    @Builder
     public MembershipSubscriptionTypeDto(MembershipSubscriptionType membershipSubscriptionType) {
         this.membershipSubscriptionType = membershipSubscriptionType.getMembershipSubscriptionType();
         this.price = membershipSubscriptionType.getPrice();
         this.discountRate = membershipSubscriptionType.getDiscountRate();
         this.discountedPrice = membershipSubscriptionType.getPrice().multiply(BigDecimal.valueOf((100 - membershipSubscriptionType.getDiscountRate()) / 100.0));
+    }
+
+    @Builder
+    public MembershipSubscriptionTypeDto(String membershipSubscriptionType, BigDecimal price, int discountRate, BigDecimal discountedPrice) {
+        this.membershipSubscriptionType = membershipSubscriptionType;
+        this.price = price;
+        this.discountRate = discountRate;
+        this.discountedPrice = discountedPrice;
     }
 }

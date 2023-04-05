@@ -1,13 +1,14 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.core.entity.RefreshToken;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
+import co.dalicious.client.core.repository.RefreshTokenRepository;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
-import co.dalicious.data.redis.entity.RefreshTokenHash;
-import co.dalicious.data.redis.repository.RefreshTokenRepository;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
@@ -22,12 +23,12 @@ import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.TossUtil;
-import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.repository.ProviderEmailRepository;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.ClientUtil;
@@ -50,7 +51,6 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -70,6 +70,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
     private final UserUtil userUtil;
     private final TossUtil tossUtil;
@@ -94,6 +95,7 @@ public class UserServiceImpl implements UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
+    private final QUserRepository qUserRepository;
 
     @Override
     @Transactional
@@ -393,9 +395,9 @@ public class UserServiceImpl implements UserService {
         List<UserGroup> userGroups =  user.getGroups();
 
         // TODO: 그룹 슬롯 증가의 경우 반영 필요
-        // 그룹의 개수가 2개 이상일 떄
+        // 오픈 스팟 그룹의 개수가 2개 이상일 떄
         long userGroupCount = userGroups.stream().
-                filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
+                filter(v -> v.getClientStatus().equals(ClientStatus.BELONG) && v.getGroup() instanceof OpenGroup)
                 .count();
         if(userGroupCount >= 2) {
             throw new ApiException(ExceptionEnum.REQUEST_OVER_GROUP);
@@ -416,23 +418,6 @@ public class UserServiceImpl implements UserService {
                 .group(group)
                 .build();
         userGroupRepository.save(userCorporation);
-    }
-    @Override
-    public List<MembershipSubscriptionTypeDto> getMembershipSubscriptionInfo() {
-        List<MembershipSubscriptionTypeDto> membershipSubscriptionTypeDtos = new ArrayList<>();
-
-        MembershipSubscriptionTypeDto monthSubscription = MembershipSubscriptionTypeDto.builder()
-                .membershipSubscriptionType(MembershipSubscriptionType.MONTH)
-                .build();
-
-        MembershipSubscriptionTypeDto yearSubscription = MembershipSubscriptionTypeDto.builder()
-                .membershipSubscriptionType(MembershipSubscriptionType.YEAR)
-                .build();
-
-        membershipSubscriptionTypeDtos.add(monthSubscription);
-        membershipSubscriptionTypeDtos.add(yearSubscription);
-
-        return membershipSubscriptionTypeDtos;
     }
 
     @Override
@@ -638,7 +623,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(BigInteger.valueOf(Integer.parseInt(userId)))
                 .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
 
-        List<RefreshTokenHash> refreshTokenHashes = refreshTokenRepository.findAllByUserId(userId);
+        List<RefreshToken> refreshTokenHashes = refreshTokenRepository.findAllByUserId(BigInteger.valueOf(Integer.parseInt(userId)));
 
         if(refreshTokenHashes.isEmpty()) {
             throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
@@ -662,5 +647,83 @@ public class UserServiceImpl implements UserService {
                 .leftWithdrawDays(leftWithdrawDays)
                 .spotStatus(clientUtil.getSpotStatus(user).getCode())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void saveToken(FcmTokenSaveReqDto fcmTokenSaveReqDto, SecurityUser securityUser) {
+        //유저ID로 유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        long result = qUserRepository.saveFcmToken(fcmTokenSaveReqDto.getToken(), user.getId());
+        if (result != 1){
+            throw new ApiException(ExceptionEnum.TOKEN_SAVE_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional
+    public String savePaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto) {
+        //유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        //이메일 인증 검증
+        verifyUtil.verifyCertificationNumber(savePaymentPasswordDto.getKey(), RequiredAuth.PAYMENT_PASSWORD_CREATE);
+
+        //결제 비밀번호가 등록이 안된 유저라면
+        if (savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")) {
+            //결제 비밀번호 등록
+            if (savePaymentPasswordDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(savePaymentPasswordDto.getPayNumber());
+                qUserRepository.updatePaymentPassword(password, user.getId());
+            } else {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
+        }
+
+
+        return "결제 비밀번호 등록 성공!";
+    }
+
+    @Override
+    public String checkPaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto) {
+        User user = userUtil.getUser(securityUser);
+
+        if (user.getPaymentPassword() == null){
+            throw new ApiException(ExceptionEnum.NOT_FOUND_PAYMENT_PASSWORD);
+        }
+
+        if (user.getPaymentPassword() != null && savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")){
+            //결제 비밀번호 확인
+            if (savePaymentPasswordDto.getPayNumber().length() == 6) {
+                if (!passwordEncoder.matches(savePaymentPasswordDto.getPayNumber(), user.getPaymentPassword())){
+                    throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
+                }
+            } else {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            };
+        }
+
+        return "결제 비밀번호 확인 성공!";
+    }
+
+    @Override
+    public Boolean isPaymentPassword(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        return user.getPaymentPassword() != null;
+    }
+
+    @Override
+    public void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto) {
+        User user = userUtil.getUser(securityUser);
+        String paymentPassword = passwordEncoder.encode(resetDto.getPayNumber());
+        if (resetDto.getPayNumber().equals("") || resetDto.getPayNumber() == null){
+            throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_RESET_FAILED);
+        }
+        if (resetDto.getPayNumber().length() == 6){
+            qUserRepository.resetPaymentPassword(user.getId(), paymentPassword);
+        } else {
+            throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+        }
     }
 }

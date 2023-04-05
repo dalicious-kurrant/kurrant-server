@@ -3,6 +3,7 @@ package co.kurrant.app.makers_api.controller;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.review.dto.CommentReqDto;
+import co.kurrant.app.makers_api.dto.IdDto;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.ReviewService;
 import co.kurrant.app.makers_api.util.UserUtil;
@@ -75,21 +76,21 @@ public class ReviewsController {
                 .build();
     }
 
-    @Operation(summary = "댓글 삭제", description = "메이커스 댓글을 삭제합니다.")
-    @ResponseStatus(HttpStatus.OK)
-    @PatchMapping("/comment/delete")
-    public ResponseMessage deleteMakersComment(@RequestParam BigInteger commentId) {
-        reviewService.deleteMakersComment(commentId);
-        return ResponseMessage.builder()
-                .message("댓글 삭제를 완료했습니다.")
-                .build();
-    }
+//    @Operation(summary = "댓글 삭제", description = "메이커스 댓글을 삭제합니다.")
+//    @ResponseStatus(HttpStatus.OK)
+//    @PatchMapping("/comment/delete")
+//    public ResponseMessage deleteMakersComment(@RequestParam BigInteger commentId) {
+//        reviewService.deleteMakersComment(commentId);
+//        return ResponseMessage.builder()
+//                .message("댓글 삭제를 완료했습니다.")
+//                .build();
+//    }
 
     @Operation(summary = "리뷰 신고", description = "리뷰를 신고합니다.")
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("/report")
-    public ResponseMessage reportReviews(@RequestParam BigInteger reviewId) {
-        reviewService.reportReviews(reviewId);
+    public ResponseMessage reportReviews(@RequestBody IdDto idDto) {
+        reviewService.reportReviews(idDto.getId());
         return ResponseMessage.builder()
                 .message("신고를 완료했습니다.")
                 .build();

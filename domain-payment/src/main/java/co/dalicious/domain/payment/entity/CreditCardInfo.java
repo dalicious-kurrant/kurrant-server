@@ -41,7 +41,7 @@ public class CreditCardInfo {
     @Column(name = "status", columnDefinition = "INT", nullable = false)
     private Integer status;
 
-    @Comment(value = "디폴트 타입, 1:기본 결제카드, 2:멤버십 결제카드, 0:아무것도 아님")
+    @Comment(value = "디폴트 타입, 1:기본 결제카드, 2:멤버십 결제카드, 0:아무것도 아님, 3:기본과 멤버십 결제 모두")
     @Column(name="default_type", columnDefinition = "VARCHAR(16)")
     private Integer defaultType;
 

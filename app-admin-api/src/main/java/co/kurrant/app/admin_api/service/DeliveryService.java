@@ -6,5 +6,5 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface DeliveryService {
-    DeliveryDto getDeliverySchedule(String startDate, String endDate, List<BigInteger> groupIds, List<BigInteger> spotIds);
+    DeliveryDto getDeliverySchedule(String startDate, String endDate, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll);
 }

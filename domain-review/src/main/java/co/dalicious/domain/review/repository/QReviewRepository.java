@@ -24,6 +24,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
@@ -37,12 +38,12 @@ public class QReviewRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public Reviews findByUserAndOrderItem(User user, OrderItem orderItem) {
+    public List<Reviews> findByUserAndOrderItem(User user, OrderItem orderItem) {
         return queryFactory
                 .selectFrom(reviews)
                 .where(reviews.user.eq(user),
                         reviews.orderItem.eq(orderItem))
-                .fetchOne();
+                .fetch();
     }
 
     public Reviews findByUserAndId(User user, BigInteger reviewId) {
@@ -89,8 +90,10 @@ public class QReviewRepository {
                 .leftJoin(reviews.orderItem, orderItem)
                 .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
-                .leftJoin(comments).on(reviews.comments.contains(comments))
+                .leftJoin(reviews.comments, comments)
                 .where(filter)
+                .orderBy(reviews.createdDateTime.desc())
+                .distinct()
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -106,7 +109,10 @@ public class QReviewRepository {
 
     public List<Reviews> findAllByUser(User user) {
         return queryFactory.selectFrom(reviews)
+                .leftJoin(reviews.comments, comments)
                 .where(reviews.isDelete.ne(true), reviews.user.eq(user))
+                .orderBy(reviews.createdDateTime.desc())
+                .distinct()
                 .fetch();
     }
 
@@ -124,7 +130,8 @@ public class QReviewRepository {
                 .leftJoin(reviews.comments, comments)
                 .where(reviews.food.makers.eq(makers),
                         reviews.comments.isEmpty().or(comments.instanceOf(AdminComments.class)),
-                        reviews.isDelete.ne(true))
+                        reviews.isDelete.ne(true),
+                        reviews.isReports.ne(true))
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -139,6 +146,7 @@ public class QReviewRepository {
         QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
                 .leftJoin(reviews.comments, comments)
                 .where(reviews.food.makers.eq(makers), reviews.isDelete.ne(true))
+                .distinct()
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -169,5 +177,26 @@ public class QReviewRepository {
         }
 
         return scoreMap;
+    }
+
+    public void updateDefault(Reviews r) {
+        queryFactory.update(reviews)
+                .set(reviews.isDelete, false)
+                .set(reviews.isReports, false)
+                .where(reviews.eq(r))
+                .execute();
+
+    }
+
+    public List<Reviews> findAllByUserAndOrderItem(User user, List<OrderItem> orderItemList) {
+        return  queryFactory.selectFrom(reviews)
+                .where(reviews.user.eq(user), reviews.orderItem.in(orderItemList))
+                .fetch();
+    }
+
+    public List<Reviews> findAllByIds(Set<BigInteger> ids) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.id.in(ids))
+                .fetch();
     }
 }
