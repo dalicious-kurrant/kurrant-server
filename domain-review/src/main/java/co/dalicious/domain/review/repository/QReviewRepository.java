@@ -92,6 +92,7 @@ public class QReviewRepository {
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
                 .leftJoin(reviews.comments, comments)
                 .where(filter)
+                .orderBy(reviews.createdDateTime.desc())
                 .distinct()
                 .limit(limit)
                 .offset(offset)

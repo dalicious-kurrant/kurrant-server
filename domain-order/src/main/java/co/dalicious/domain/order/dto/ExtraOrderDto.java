@@ -39,6 +39,7 @@ public class ExtraOrderDto {
         private String spotName;
         private BigInteger groupId;
         private String groupName;
+        private String foodName;
         private BigDecimal price;
         private Integer count;
         private BigDecimal totalPrice;
@@ -46,8 +47,7 @@ public class ExtraOrderDto {
         private String orderStatus;
 
         @Builder
-
-        public Response(BigInteger orderItemDailyFoodId, String serviceDate, String diningType, String createdDateTime, String usage, BigInteger spotId, String spotName, BigInteger groupId, String groupName, BigDecimal price, Integer count, BigDecimal totalPrice, String dailyFoodStatus, String orderStatus) {
+        public Response(BigInteger orderItemDailyFoodId, String serviceDate, String diningType, String createdDateTime, String usage, BigInteger spotId, String spotName, BigInteger groupId, String groupName, String foodName, BigDecimal price, Integer count, BigDecimal totalPrice, String dailyFoodStatus, String orderStatus) {
             this.orderItemDailyFoodId = orderItemDailyFoodId;
             this.serviceDate = serviceDate;
             this.diningType = diningType;
@@ -57,6 +57,7 @@ public class ExtraOrderDto {
             this.spotName = spotName;
             this.groupId = groupId;
             this.groupName = groupName;
+            this.foodName = foodName;
             this.price = price;
             this.count = count;
             this.totalPrice = totalPrice;
