@@ -63,4 +63,13 @@ public class PointController {
                 .message("이벤트 포인트 정책 삭제에 성공하였습니다.")
                 .build();
     }
+
+    @Operation(summary = "포인트 직접 적립", description = "운영자가 유저에게 포인트를 직접 적립합니다.")
+    @PostMapping("/user")
+    public ResponseMessage addPointsToUser(@RequestBody PointPolicyReqDto.AddPointToUser requestDto) {
+        pointService.addPointsToUser(requestDto);
+        return ResponseMessage.builder()
+                .message("유저의 포인트 적립에 성공했습니다.")
+                .build();
+    }
 }
