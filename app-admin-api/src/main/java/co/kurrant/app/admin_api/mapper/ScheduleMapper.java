@@ -6,6 +6,7 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
 import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.ScheduleDto;
@@ -19,7 +20,7 @@ import java.util.*;
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
 public interface ScheduleMapper {
     default List<ScheduleDto.GroupSchedule> toGroupSchedule(List<DailyFood> dailyFoods, Map<DailyFood, Integer> dailyFoodMap,
-                                                            List<CapacityDto.MakersCapacity> makersCapacities, Map<Group, Integer> userGroupCount) {
+                                                            ServiceDateBy.MakersAndFood makersCapacities, Map<Group, Integer> userGroupCount) {
         MultiValueMap<DiningTypeServiceDateDto, DailyFood> dailyFoodByServiceMap = new LinkedMultiValueMap<>();
         // 식사 날짜/식사 일정 별로 식단 묶기
         for (DailyFood dailyFood : dailyFoods) {
@@ -28,8 +29,6 @@ public interface ScheduleMapper {
         }
         List<ScheduleDto.GroupSchedule> groupSchedules = new ArrayList<>();
         for (DiningTypeServiceDateDto diningTypeServiceDateDto : dailyFoodByServiceMap.keySet()) {
-
-
             // 식사 날짜/식사 일정 > 그룹별로 식단 묶기
             MultiValueMap<Group, DailyFood> groupDailyFoodMap = new LinkedMultiValueMap<>();
             List<DailyFood> serviceDailyFoods = dailyFoodByServiceMap.get(diningTypeServiceDateDto);
@@ -49,7 +48,7 @@ public interface ScheduleMapper {
                 for (Makers makers : makersDailyFoodMap.keySet()) {
                     List<ScheduleDto.FoodSchedule> foodSchedules = new ArrayList<>();
                     List<DailyFood> makersDailyFoods = makersDailyFoodMap.get(makers);
-                    Integer makersCount = getMakersCount(makers, makersCapacities);
+                    Integer makersCount = makersCapacities.getMakersCount(makersDailyFoods.get(0));
                     LocalTime makersPickupTime = makersDailyFoods.get(0).getDailyFoodGroup().getPickupTime();
                     for (DailyFood makersDailyFood : makersDailyFoods) {
                         Integer count = dailyFoodMap.get(makersDailyFood);
