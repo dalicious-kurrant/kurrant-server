@@ -109,11 +109,13 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, groupIds, makersIds);
         List<Group> groups = new ArrayList<>();
+        Set<Makers> makers = new HashSet<>();
         for (DailyFood dailyFood : dailyFoods) {
             groups.add(dailyFood.getGroup());
+            makers.add(dailyFood.getFood().getMakers());
         }
         Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
-        List<CapacityDto.MakersCapacity> makersCapacities = qOrderDailyFoodRepository.getMakersCounts(dailyFoods);
+        List<CapacityDto.MakersCapacity> makersCapacities = qOrderDailyFoodRepository.getMakersCounts(dailyFoods, makers);
         Map<Group, Integer> userGroupCount = qUserGroupRepository.userCountsInGroup(groups);
 
         return scheduleMapper.toGroupSchedule(dailyFoods, remainFoodCount, makersCapacities, userGroupCount);

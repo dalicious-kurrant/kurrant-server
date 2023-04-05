@@ -107,6 +107,6 @@ public class OrderItemDailyFood extends OrderItem {
         return this.discountedPrice.multiply(BigDecimal.valueOf(this.count));
     }
     public BigDecimal getOrderItemSupplyPrice() {
-        return this.getDailyFood().getFood().getSupplyPrice().multiply(BigDecimal.valueOf(this.count));
+        return (this.getDailyFood().getFood().getSupplyPrice() == null) ? null : this.getDailyFood().getFood().getSupplyPrice().multiply(BigDecimal.valueOf(this.count));
     }
 }

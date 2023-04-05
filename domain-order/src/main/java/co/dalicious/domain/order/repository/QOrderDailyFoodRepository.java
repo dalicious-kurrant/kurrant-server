@@ -14,6 +14,8 @@ import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -25,6 +27,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
@@ -232,7 +235,7 @@ public class QOrderDailyFoodRepository {
         return count;
     }
 
-    public List<CapacityDto.MakersCapacity> getMakersCounts(List<DailyFood> selectedDailyFoods) {
+    public List<CapacityDto.MakersCapacity> getMakersCounts(List<DailyFood> selectedDailyFoods, Set<Makers> makers) {
         List<CapacityDto.MakersCapacity> makersCapacities = new ArrayList<>();
         List<Makers> selectedMakers = new ArrayList<>();
         List<LocalDate> selectedServiceDate = new ArrayList<>();
@@ -266,9 +269,11 @@ public class QOrderDailyFoodRepository {
         for (Object[] tuple : result) {
             LocalDate serviceDate = ((Date) tuple[0]).toLocalDate();
             DiningType diningType = DiningType.values()[(int) tuple[1]];
-            Makers makers = entityManager.find(Makers.class, tuple[2]);
+            Makers maker = makers.stream()
+                    .filter(v -> v.getId().equals(tuple[2]))
+                    .findAny().orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
             Integer capacity = ((Number) tuple[3]).intValue();
-            makersCapacities.add(new CapacityDto.MakersCapacity(serviceDate, diningType, makers, capacity));
+            makersCapacities.add(new CapacityDto.MakersCapacity(serviceDate, diningType, maker, capacity));
         }
 
         return makersCapacities;

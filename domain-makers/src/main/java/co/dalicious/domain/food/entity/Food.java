@@ -135,6 +135,9 @@ public class Food {
         if (!this.getId().equals(makersFoodDetailReqDto.getFoodId())) {
             throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
         }
+        if(makersFoodDetailReqDto.getDefaultPrice() == null) {
+            throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
+        }
         this.supplyPrice = makersFoodDetailReqDto.getSupplyPrice();
         this.price = makersFoodDetailReqDto.getDefaultPrice();
         this.foodTags = FoodTag.ofCodes(makersFoodDetailReqDto.getFoodTags());

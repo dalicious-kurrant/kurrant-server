@@ -141,7 +141,7 @@ public class OrderDailyFoodController {
     public ResponseMessage refundExtraOrderItems(@RequestBody BigInteger orderItemId) {
         orderDailyFoodService.refundExtraOrderItems(orderItemId);
         return ResponseMessage.builder()
-                .message("추가 주문에 성공하였습니다.")
+                .message("추가 주문을 환불하였습니다.")
                 .build();
     }
 }

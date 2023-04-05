@@ -6,6 +6,7 @@ import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.DateUtils;
+import co.kurrant.batch.service.DailyFoodService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -41,7 +42,7 @@ public class DailyFoodJob {
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory entityManagerFactory;
-    private final EntityManager entityManager;
+    private final DailyFoodService dailyFoodService;
     private final int CHUNK_SIZE = 500;
 
     @Bean(name = "dailyFoodJob1")
@@ -58,7 +59,7 @@ public class DailyFoodJob {
         // 식사 정보를 통해 주문 마감 시간 가져오기
         return stepBuilderFactory.get("dailyFoodJob_step1")
                 .<DailyFood, DailyFood>chunk(CHUNK_SIZE)
-                .reader(dailyFoodReader(matchingDailyFoodIds()))
+                .reader(dailyFoodReader())
                 .processor(dailyFoodProcessor())
                 .writer(dailyFoodWriter())
                 .build();
@@ -70,58 +71,17 @@ public class DailyFoodJob {
         // 식사 정보를 통해 주문 마감 시간 가져오기
         return stepBuilderFactory.get("dailyFoodJob_step2")
                 .<OrderItemDailyFood, OrderItemDailyFood>chunk(CHUNK_SIZE)
-                .reader(orderItemDailyFoodReader(matchingDailyFoodIds()))
+                .reader(orderItemDailyFoodReader())
                 .processor(orderItemDailyFoodProcessor())
                 .writer(orderItemDailyFoodWriter())
                 .build();
-    }
-
-    @Bean
-    @JobScope
-    public Step dailyFoodJob_step3() {
-        // 식사 정보를 통해 주문 마감 시간 가져오기
-        return stepBuilderFactory.get("dailyFoodJob_step3")
-                .<OrderItemDailyFood, OrderItemDailyFood>chunk(CHUNK_SIZE)
-                .reader(orderItemDailyFoodReader(matchingDailyFoodIds()))
-                .processor(orderItemDailyFoodProcessor())
-                .writer(orderItemDailyFoodWriter())
-                .build();
-    }
-
-    @Bean(name = "matchingDailyFoodIds")
-    public List<BigInteger> matchingDailyFoodIds() {
-        log.info("[판매중/품절 DailyFood 읽기 시작] : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
-
-        String queryString = "SELECT df.id, mi.lastOrderTime, df.serviceDate " +
-                "FROM DailyFood df " +
-                "JOIN df.group g " +
-                "JOIN MealInfo mi ON mi.group.id = g.id " +
-                "WHERE mi.diningType = df.diningType " +
-                "  AND (df.dailyFoodStatus = 1 OR df.dailyFoodStatus = 2)";
-
-        TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
-        List<Object[]> results = query.getResultList();
-
-        List<BigInteger> dailyFoodIds = new ArrayList<>();
-        for (Object[] result : results) {
-            BigInteger dailyFoodId = (BigInteger) result[0];
-            DayAndTime lastOrderDayAndTime = (DayAndTime) result[1];
-            LocalDate serviceDate = (LocalDate) result[2]; // Fetch the serviceDate from the DailyFood entity
-            LocalDate lastOrderDate = serviceDate.minusDays(lastOrderDayAndTime.getDay());
-            LocalDateTime lastOrderDateTime = lastOrderDate.atTime(lastOrderDayAndTime.getTime());
-
-            if (LocalDateTime.now().isAfter(lastOrderDateTime) || LocalDateTime.now().isEqual(lastOrderDateTime)) {
-                dailyFoodIds.add(dailyFoodId);
-            }
-        }
-
-        return dailyFoodIds;
     }
 
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<DailyFood> dailyFoodReader(@Qualifier("matchingDailyFoodIds") List<BigInteger> dailyFoodIds) {
+    public JpaPagingItemReader<DailyFood> dailyFoodReader() {
+        List<BigInteger> dailyFoodIds = dailyFoodService.matchingDailyFoodIds();
         log.info("[DailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("dailyFoodIds", dailyFoodIds);
@@ -132,7 +92,7 @@ public class DailyFoodJob {
 
         return new JpaPagingItemReaderBuilder<DailyFood>()
                 .entityManagerFactory(entityManagerFactory)
-                .pageSize(100)
+                .pageSize(CHUNK_SIZE)
                 .parameterValues(parameterValues)
                 .queryString(queryString)
                 .name("JpaPagingItemReader")
@@ -161,7 +121,8 @@ public class DailyFoodJob {
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<OrderItemDailyFood> orderItemDailyFoodReader(@Qualifier("matchingDailyFoodIds") List<BigInteger> dailyFoodIds) {
+    public JpaPagingItemReader<OrderItemDailyFood> orderItemDailyFoodReader() {
+        List<BigInteger> dailyFoodIds = dailyFoodService.overLastOrderTimeDailyFoodIds();
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("dailyFoodIds", dailyFoodIds);
