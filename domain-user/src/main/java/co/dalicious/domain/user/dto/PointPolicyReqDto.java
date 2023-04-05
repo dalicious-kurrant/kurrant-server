@@ -20,6 +20,7 @@ public class PointPolicyReqDto {
         private Integer rewardPoint;
         private String eventStartDate;
         private String eventEndDate;
+        private BigInteger boardId;
     }
 
     @Getter

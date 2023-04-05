@@ -12,10 +12,12 @@ import co.dalicious.domain.user.repository.PointPolicyRepository;
 import co.dalicious.domain.user.repository.QPointPolicyRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.PointUtil;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.service.PointService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,7 +74,27 @@ public class PointServiceImpl implements PointService {
             throw new ApiException(ExceptionEnum.EVENT_END_DATE_IS_OVER);
         }
 
-        pointPolicy.updatePointPolicy(reviewPointPolicy);
+        if(reviewPointPolicy.getPointCondition() != null) {
+            pointPolicy.updatePointCondition(PointCondition.ofCode(reviewPointPolicy.getPointCondition()));
+        }
+        if(reviewPointPolicy.getCompletedConditionCount() != null) {
+            pointPolicy.updateCompletedConditionCount(reviewPointPolicy.getCompletedConditionCount());
+        }
+        if(reviewPointPolicy.getAccountCompletionLimit() != null) {
+            pointPolicy.updateAccountCompletionLimit(reviewPointPolicy.getAccountCompletionLimit());
+        }
+        if(reviewPointPolicy.getRewardPoint() != null) {
+            pointPolicy.updateRewardPoint(BigDecimal.valueOf(reviewPointPolicy.getRewardPoint()));
+        }
+        if(reviewPointPolicy.getEventStartDate() != null) {
+            pointPolicy.updateEventStartDate(DateUtils.stringToDate(reviewPointPolicy.getEventStartDate()));
+        }
+        if(reviewPointPolicy.getEventEndDate() != null) {
+            pointPolicy.updateEventEndDate(DateUtils.stringToDate(reviewPointPolicy.getEventEndDate()));
+        }
+        if(reviewPointPolicy.getBoardId() != null) {
+            pointPolicy.updateBoardId(reviewPointPolicy.getBoardId());
+        }
     }
 
     @Override
