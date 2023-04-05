@@ -247,7 +247,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Override
     @Transactional
     public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate) {
-        List<DailyFood> dailyFoods = qDailyFoodRepository.getSellingDailyFoodsBetweenServiceDate(startDate, endDate);
+        List<DailyFood> dailyFoods = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate);
         Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
         return extraOrderMapper.toDailyFoodList(dailyFoods, remainFoodCount);
     }
