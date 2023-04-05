@@ -7,7 +7,7 @@ import lombok.Getter;
 import java.util.Arrays;
 
 @Getter
-public enum Nation {
+public enum Country {
 
         REPUBLIC_OF_KOREA("대한민국", 1),
         GHANA("가나", 2),
@@ -259,20 +259,20 @@ public enum Nation {
         private final String nationName;
         private final Integer code;
 
-        Nation(String nationName, Integer code){
+        Country(String nationName, Integer code){
                 this.nationName = nationName;
                 this.code = code;
         }
 
-        public static Nation ofCode(Integer code){
-                return Arrays.stream(Nation.values())
+        public static Country ofCode(Integer code){
+                return Arrays.stream(Country.values())
                         .filter(v -> v.getCode().equals(code))
                         .findAny()
                         .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
         }
 
-        public static Nation ofValue(String value){
-                return Arrays.stream(Nation.values())
+        public static Country ofValue(String value){
+                return Arrays.stream(Country.values())
                         .filter(v -> v.getNationName().equals(value))
                         .findAny()
                         .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
