@@ -237,10 +237,10 @@ public class ClientOrderServiceImpl implements ClientOrderService {
 
     @Override
     @Transactional
-    public void refundExtraOrderItems(SecurityUser securityUser, BigInteger id) {
+    public void refundExtraOrderItems(SecurityUser securityUser, OrderDto.Id id) {
         List<User> users = qUserRepository.findAdminAndManagerByGroupIds(Collections.singleton(securityUser.getId()));
 
-        OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(id)
+        OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(id.getId())
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
 
         if (!users.contains(orderItemDailyFood.getOrder().getUser())) {

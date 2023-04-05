@@ -43,7 +43,7 @@ public class DailyFoodJob {
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory entityManagerFactory;
     private final DailyFoodService dailyFoodService;
-    private final int CHUNK_SIZE = 100;
+    private final int CHUNK_SIZE = 500;
 
     @Bean(name = "dailyFoodJob1")
     public Job dailyFoodJob1() {
@@ -92,7 +92,7 @@ public class DailyFoodJob {
 
         return new JpaPagingItemReaderBuilder<DailyFood>()
                 .entityManagerFactory(entityManagerFactory)
-                .pageSize(100)
+                .pageSize(CHUNK_SIZE)
                 .parameterValues(parameterValues)
                 .queryString(queryString)
                 .name("JpaPagingItemReader")
@@ -122,7 +122,7 @@ public class DailyFoodJob {
     @Bean
     @StepScope
     public JpaPagingItemReader<OrderItemDailyFood> orderItemDailyFoodReader() {
-        List<BigInteger> dailyFoodIds = dailyFoodService.matchingDailyFoodIds();
+        List<BigInteger> dailyFoodIds = dailyFoodService.overLastOrderTimeDailyFoodIds();
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("dailyFoodIds", dailyFoodIds);
