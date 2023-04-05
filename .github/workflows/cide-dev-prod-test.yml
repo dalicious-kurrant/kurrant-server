@@ -32,9 +32,9 @@ jobs:
           mkdir resources
           cd resources
           touch ./application.yaml
-          echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application.yaml
+          echo "${{ secrets.APP_PUBLIC_API_PROD_TEST_YML }}" > ./application.yaml
           touch ./application-prod.yaml
-          echo "${{ secrets.APP_PUBLIC_API_PROD_PROD_YAML }}" > ./application-prod.yaml
+          echo "${{ secrets.APP_PUBLIC_API_PROD_TEST_PROD_TEST_YML }}" > ./application-dev.yaml
         shell: bash
 
       - name: client-core application-jwt.properties 생성
