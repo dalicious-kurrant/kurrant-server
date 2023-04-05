@@ -65,14 +65,12 @@ public class QReviewRepository {
         if(makersId != null) {
             filter.and(reviews.food.makers.id.eq(makersId));
         }
-        if(orderCode != null) {
-            filter.and(orderItem.order.code.containsIgnoreCase(orderCode));
+        if(orderCode != null && orderItemName != null) {
+            filter.and(orderItem.order.code.containsIgnoreCase(orderCode))
+                    .or(reviews.food.name.containsIgnoreCase(orderItemName));
         }
         if(userName != null) {
             filter.and(reviews.user.name.containsIgnoreCase(userName));
-        }
-        if(orderItemName != null) {
-            filter.and(reviews.food.name.containsIgnoreCase(orderItemName));
         }
         if(isReport != null) {
             filter.and(reviews.isReports.eq(isReport));
@@ -122,7 +120,11 @@ public class QReviewRepository {
                 .fetchOne();
     }
 
-    public Page<Reviews> findAllByMakersExceptMakersComment(Makers makers, Integer limit, Integer page, Pageable pageable) {
+    public Page<Reviews> findAllByMakersExceptMakersComment(Makers makers, String foodName, Integer limit, Integer page, Pageable pageable) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+        if(foodName != null) {
+            whereCause.and(reviews.food.name.containsIgnoreCase(foodName));
+        }
 
         int offset = limit * (page - 1);
 
@@ -131,7 +133,10 @@ public class QReviewRepository {
                 .where(reviews.food.makers.eq(makers),
                         reviews.comments.isEmpty().or(comments.instanceOf(AdminComments.class)),
                         reviews.isDelete.ne(true),
-                        reviews.isReports.ne(true))
+                        reviews.isReports.ne(true),
+                        whereCause)
+                .orderBy(reviews.createdDateTime.desc())
+                .distinct()
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -139,13 +144,18 @@ public class QReviewRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<Reviews> findAllByMakers(Makers makers, Integer limit, Integer page, Pageable pageable) {
+    public Page<Reviews> findAllByMakers(Makers makers, String foodName, Integer limit, Integer page, Pageable pageable) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+        if(foodName != null) {
+            whereCause.and(reviews.food.name.containsIgnoreCase(foodName));
+        }
 
         int offset = limit * (page - 1);
 
         QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
                 .leftJoin(reviews.comments, comments)
-                .where(reviews.food.makers.eq(makers), reviews.isDelete.ne(true))
+                .where(reviews.food.makers.eq(makers), reviews.isDelete.ne(true), whereCause)
+                .orderBy(reviews.createdDateTime.desc())
                 .distinct()
                 .limit(limit)
                 .offset(offset)

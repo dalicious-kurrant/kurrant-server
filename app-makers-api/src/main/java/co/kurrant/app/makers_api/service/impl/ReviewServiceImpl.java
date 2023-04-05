@@ -52,11 +52,11 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    public ItemPageableResponseDto<ReviewMakersResDto> getUnansweredReview(SecurityUser securityUser, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+    public ItemPageableResponseDto<ReviewMakersResDto> getUnansweredReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         Makers makers = userUtil.getMakers(securityUser);
 
         // 메이커스 댓글이 없는 리뷰만 조회 - 삭제 제외, 신고 제외
-        Page<Reviews> reviewsList = qReviewRepository.findAllByMakersExceptMakersComment(makers, limit, page, pageable);
+        Page<Reviews> reviewsList = qReviewRepository.findAllByMakersExceptMakersComment(makers, foodName, limit, page, pageable);
         ReviewMakersResDto reviewMakersResDto = new ReviewMakersResDto();
         List<ReviewMakersResDto.ReviewListDto> reviewListDtoList = new ArrayList<>();
         if(reviewsList.isEmpty()) {
@@ -84,11 +84,11 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    public ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview(SecurityUser securityUser, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+    public ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         Makers makers = userUtil.getMakers(securityUser);
 
         // 메이커스 댓글이 없는 리뷰만 조회 - 삭제, 신고 제외
-        Page<Reviews> reviewsList = qReviewRepository.findAllByMakers(makers, limit, page, pageable);
+        Page<Reviews> reviewsList = qReviewRepository.findAllByMakers(makers, foodName, limit, page, pageable);
 
         List<ReviewMakersResDto.ReviewListDto> reviewListDtoList = new ArrayList<>();
         if(reviewsList.isEmpty()) {

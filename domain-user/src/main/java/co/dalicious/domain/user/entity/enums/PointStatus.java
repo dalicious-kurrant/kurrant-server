@@ -13,7 +13,8 @@ public enum PointStatus {
     REVIEW_REWARD("리뷰 적립", 0),
     EVENT_REWARD("이벤트 적립", 1),
     CANCEL("환불", 2),
-    USED("사용", 3);
+    USED("사용", 3),
+    ADMIN_REWARD("운영자 적립", 4);
 
     private final String type;
     private final Integer code;
@@ -35,6 +36,7 @@ public enum PointStatus {
         pointStatusList.add(PointStatus.REVIEW_REWARD);
         pointStatusList.add(PointStatus.EVENT_REWARD);
         pointStatusList.add(PointStatus.CANCEL);
+        pointStatusList.add(PointStatus.ADMIN_REWARD);
 
         return pointStatusList;
     }
