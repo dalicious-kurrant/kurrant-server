@@ -14,6 +14,7 @@ public interface CreditCardInfoSaveMapper {
 
 
     @Mapping(source= "id", target = "user", qualifiedByName = "userById")
+    @Mapping(source= "billingKey", target = "tossBillingKey")
     @Mapping(target = "status", constant = "1")
     CreditCardInfo toSaveEntity(String cardNumber, BigInteger id, String ownerType, String cardType,
                                 String customerKey, String billingKey, String cardCompany, Integer defaultType);

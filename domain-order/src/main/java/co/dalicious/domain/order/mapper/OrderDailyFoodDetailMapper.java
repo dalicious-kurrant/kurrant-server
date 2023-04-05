@@ -3,15 +3,14 @@ package co.dalicious.domain.order.mapper;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
 import co.dalicious.domain.order.entity.*;
-import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PriceUtils;
-import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,13 +63,17 @@ public interface OrderDailyFoodDetailMapper {
         }
 
         for (OrderItemDailyFoodGroup orderItemDailyFoodGroup : orderItemDailyFoodGroups) {
-            for (UserSupportPriceHistory userSupportPriceHistory : orderItemDailyFoodGroup.getUserSupportPriceHistories()) {
-                if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
-                    supportPrice = supportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
-                }
+            List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFoodGroup.getUserSupportPriceHistories();
+
+            List<DailyFoodSupportPrice> sortedList = userSupportPriceHistories.stream()
+                    .sorted(Comparator.comparing(DailyFoodSupportPrice::getCreatedDateTime))
+                    .toList();
+            DailyFoodSupportPrice oldest = sortedList.isEmpty() ? null : sortedList.get(0);
+            if(oldest != null) {
+                supportPrice = supportPrice.add(oldest.getUsingSupportPrice());
             }
         }
-        return PriceUtils.roundToOneDigit(supportPrice);
+        return supportPrice;
     }
 
     @Named("getMembershipDiscountPrice")

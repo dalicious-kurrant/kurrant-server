@@ -44,6 +44,7 @@ public class ReviewAdminResDto {
         private String itemName;
         private String makersName;
         private Integer satisfaction;
+        private String writer;
         private String createdDate;
         private String content;
         private Boolean isMakersComment;
@@ -52,13 +53,14 @@ public class ReviewAdminResDto {
         private Boolean isDelete;
 
         @Builder
-        public ReviewList(BigInteger reviewId, String serviceDate, BigInteger orderItemId, String itemName, String makersName, Integer satisfaction, String createdDate, String content, Boolean isMakersComment, Boolean isAdminComment, Boolean isReport, Boolean isDelete) {
+        public ReviewList(BigInteger reviewId, String serviceDate, BigInteger orderItemId, String itemName, String makersName, Integer satisfaction, String writer, String createdDate, String content, Boolean isMakersComment, Boolean isAdminComment, Boolean isReport, Boolean isDelete) {
             this.reviewId = reviewId;
             this.serviceDate = serviceDate;
             this.orderItemId = orderItemId;
             this.itemName = itemName;
             this.makersName = makersName;
             this.satisfaction = satisfaction;
+            this.writer = writer;
             this.createdDate = createdDate;
             this.content = content;
             this.isMakersComment = isMakersComment;
@@ -87,15 +89,16 @@ public class ReviewAdminResDto {
         private String contentOrigin;
         private Integer satisfactionOrigin;
         private Boolean forMakers;
-        private String userName;
+        private String writer;
         private String foodName;
-        private MakersComment makersComment;
-        private AdminComment adminComment;
+        private List<MakersComment> makersComment;
+        private List<AdminComment> adminComment;
     }
 
     @Getter
     @Setter
     public static class MakersComment {
+        private BigInteger commentId;
         private String comment;
         private String makersName;
         private Boolean isDelete;

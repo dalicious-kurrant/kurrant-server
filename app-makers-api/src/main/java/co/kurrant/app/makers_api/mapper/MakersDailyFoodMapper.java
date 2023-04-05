@@ -10,13 +10,17 @@ import co.kurrant.app.makers_api.dto.DailyFoodDto;
 import org.mapstruct.Mapper;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface MakersDailyFoodMapper {
 
     default DailyFoodDto toDailyFoodDto(LocalDate serviceDate, List<DailyFoodDto.DailyFoodDining> dailyFoodDiningList) {
         DailyFoodDto dailyFoodDto = new DailyFoodDto();
+
+        dailyFoodDiningList = dailyFoodDiningList.stream().sorted(Comparator.comparing(v -> DiningType.ofCode(v.getDiningType()))).collect(Collectors.toList());
 
         dailyFoodDto.setServiceDate(DateUtils.localDateToString(serviceDate));
         dailyFoodDto.setDailyFoodDiningList(dailyFoodDiningList);

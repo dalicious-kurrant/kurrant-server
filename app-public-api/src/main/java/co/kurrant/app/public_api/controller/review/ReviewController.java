@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.controller.review;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.review.dto.ReviewReqDto;
 import co.dalicious.domain.review.dto.ReviewUpdateReqDto;
+import co.kurrant.app.public_api.dto.order.IdDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ReviewService;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -30,7 +31,7 @@ public class ReviewController {
     @PostMapping("")
     public ResponseMessage createReview(Authentication authentication,
                                         @RequestPart(required = false) List<MultipartFile> fileList,
-                                       @Valid @RequestPart ReviewReqDto reviewDto) throws IOException {
+                                        @RequestPart ReviewReqDto reviewDto) throws IOException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         reviewService.createReview(securityUser, reviewDto, fileList);
         return ResponseMessage.builder()
@@ -72,9 +73,9 @@ public class ReviewController {
 
     @Operation(summary = "리뷰 삭제", description = "작성한 리뷰 삭제")
     @PatchMapping("/delete")
-    public ResponseMessage deleteReviews(Authentication authentication, @RequestParam BigInteger id) {
+    public ResponseMessage deleteReviews(Authentication authentication, @RequestBody IdDto idDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        reviewService.deleteReviews(securityUser, id);
+        reviewService.deleteReviews(securityUser, idDto.getId());
         return ResponseMessage.builder()
                 .message("리뷰를 삭제했습니다.")
                 .build();

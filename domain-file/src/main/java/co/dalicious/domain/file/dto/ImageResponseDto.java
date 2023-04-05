@@ -1,5 +1,6 @@
 package co.dalicious.domain.file.dto;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,5 +22,11 @@ public class ImageResponseDto {
     this.location = location;
     this.key = key;
     this.filename = filename;
+  }
+
+  public ImageResponseDto(Image image) {
+    this.location = image.getLocation();
+    this.key = image.getKey();
+    this.filename = image.getFilename();
   }
 }

@@ -128,9 +128,21 @@ public class ReviewServiceImpl implements ReviewService {
         // 삭제된 리뷰 제외하기
         Reviews reviews = qReviewRepository.findByIdExceptedDelete(reviewId);
         if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
+        if(reviews.getIsReports()) throw new ApiException(ExceptionEnum.ALREADY_REPORTED_REVIEW);
 
         reviews.updateIsReport(true);
     }
 
+    @Override
+    @Transactional
+    public void deleteComment(BigInteger commentId) {
+        Comments comments = commentsRepository.findById(commentId).orElseThrow(() -> new ApiException(ExceptionEnum.MAKERS_COMMENT_NOT_FOUND));
 
+        if(comments instanceof MakersComments makersComments) {
+            makersComments.updateIsDelete(true);
+        }
+        else if(comments instanceof AdminComments adminComments) {
+            adminComments.updateIsDelete(true);
+        }
+    }
 }

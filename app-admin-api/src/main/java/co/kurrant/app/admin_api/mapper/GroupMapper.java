@@ -70,6 +70,7 @@ public interface GroupMapper {
         return groupDto;
     }
 
+    @Mapping(source = "group.memo", target = "memo")
     @Mapping(source = "group.id", target = "id")
     @Mapping(source = "group", target = "groupType", qualifiedByName = "getGroupDataType")
     @Mapping(source = "group", target = "code", qualifiedByName = "getGroupCode")

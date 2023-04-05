@@ -14,5 +14,6 @@ public class PushRequestDto {
     private List<String> tokenList;
     private String title;
     private String content;
+    private String page;
 
 }

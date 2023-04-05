@@ -28,8 +28,8 @@ public class OpenGroup extends Group{
     private Integer openGroupUserCount;
 
     @Builder
-    public OpenGroup(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer openGroupUserCount) {
-        super(address, diningTypes, name, managerId);
+    public OpenGroup(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer openGroupUserCount, String memo) {
+        super(address, diningTypes, name, managerId, memo);
         this.openGroupUserCount = openGroupUserCount;
     }
 

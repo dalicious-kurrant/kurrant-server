@@ -92,8 +92,8 @@ public class Corporation extends Group{
     private BigDecimal maximumSpend;
 
     @Builder
-    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String code, Boolean isMembershipSupport, BigDecimal minimumSpend, BigDecimal maximumSpend) {
-        super(address, diningTypes, name, managerId);
+    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String code, Boolean isMembershipSupport, BigDecimal minimumSpend, BigDecimal maximumSpend, String memo) {
+        super(address, diningTypes, name, managerId, memo);
         this.code = code;
         this.employeeCount = employeeCount;
         this.isMembershipSupport = isMembershipSupport;

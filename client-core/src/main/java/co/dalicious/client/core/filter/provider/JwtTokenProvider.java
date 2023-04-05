@@ -1,14 +1,16 @@
 package co.dalicious.client.core.filter.provider;
 
+import java.math.BigInteger;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import co.dalicious.client.core.dto.request.LoginTokenDto;
-import co.dalicious.data.redis.entity.RefreshTokenHash;
-import co.dalicious.data.redis.repository.RefreshTokenRepository;
+import co.dalicious.client.core.entity.RefreshToken;
+import co.dalicious.client.core.repository.RefreshTokenRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import io.jsonwebtoken.*;
@@ -30,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @PropertySource("classpath:application-jwt.properties")
 public class JwtTokenProvider {
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private Key key;
 
@@ -37,10 +40,9 @@ public class JwtTokenProvider {
     private String secretKey;
 
     private final UserDetailsService userDetailsService;
-    private final RefreshTokenRepository refreshTokenRepository;
 
-//    private static final long ACCESS_TOKEN_EXPIRE_TIME = 2 * 60 * 60 * 1000L; // 2시간
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 3 * 60 * 1000L; // 5초
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 2 * 60 * 60 * 1000L; // 2시간
+//    private static final long ACCESS_TOKEN_EXPIRE_TIME = 3 * 60 * 1000L; // 3분
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
 
     @PostConstruct
@@ -61,20 +63,23 @@ public class JwtTokenProvider {
         String accessToken = Jwts.builder().setClaims(claims) // 데이터
                 .setIssuedAt(now) // 토큰 발행일자
                 .setExpiration(accessTokenExpiredIn) // set Expire Time
+                .setId(UUID.randomUUID().toString())
                 .signWith(key, SignatureAlgorithm.HS256) // 암호화 알고리즘, secret값 세팅
                 .compact();
 
         String refreshToken = Jwts.builder()
                 .setExpiration(refreshTokenExpiredIn)
+                .setId(UUID.randomUUID().toString())
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
         // Refresh Token 저장
-        RefreshTokenHash refreshTokenHash = RefreshTokenHash.builder()
-                .userId(userPk)
+        RefreshToken refreshTokenHash = RefreshToken.builder()
+                .userId(BigInteger.valueOf(Integer.parseInt(userPk)))
                 .refreshToken(refreshToken)
                 .build();
         refreshTokenRepository.save(refreshTokenHash);
+
         return LoginTokenDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

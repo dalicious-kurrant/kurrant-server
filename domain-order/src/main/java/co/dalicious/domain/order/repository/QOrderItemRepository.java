@@ -2,6 +2,7 @@ package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.OrderItem;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -30,16 +31,21 @@ public class QOrderItemRepository {
                 .execute();
     }
 
-    public List<OrderItem> findByUserAndOrderStatus(User user, OrderStatus orderStatus) {
+    public List<OrderItem> findByUserAndOrderStatusBeforeToday(User user, OrderStatus orderStatus, LocalDate today) {
         return queryFactory
                 .selectFrom(orderItem)
-                .where(orderItem.orderStatus.eq(orderStatus), orderItem.order.user.eq(user))
+                .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
+                .where(orderItem.orderStatus.eq(orderStatus),
+                        orderItem.order.user.eq(user),
+                        orderItemDailyFood.dailyFood.serviceDate.before(today).or(orderItemDailyFood.dailyFood.serviceDate.eq(today)))
                 .fetch();
     }
 
     public OrderItem findByUserAndOrderId(User user, BigInteger orderItemId) {
         return queryFactory.selectFrom(orderItem)
-                .where(orderItem.id.eq(orderItemId), orderItem.order.user.eq(user))
+                .where(orderItem.id.eq(orderItemId),
+                        orderItem.order.user.eq(user),
+                        orderItem.orderStatus.eq(OrderStatus.RECEIPT_COMPLETE))
                 .fetchOne();
     }
 }

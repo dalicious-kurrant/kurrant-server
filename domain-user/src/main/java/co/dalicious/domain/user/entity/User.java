@@ -135,6 +135,10 @@ public class User {
             columnDefinition = "VARCHAR(16)")
     private String phone;
 
+    @Comment("FCM 토큰")
+    @Column(name = "firebase_token", columnDefinition = "VARCHAR(255)")
+    private String firebaseToken;
+
     @Column(name = "is_membership", columnDefinition = "BIT(1) DEFAULT 0")
     @ColumnDefault("false")
     private Boolean isMembership;
@@ -147,6 +151,11 @@ public class User {
     @JsonBackReference(value = "user_fk")
     @Comment("스팟 기업 정보")
     private List<UserGroup> groups;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Comment("결제 비밀번호")
+    @Column(name="payment_password", columnDefinition = "VARCHAR(255)")
+    private String paymentPassword;
 
     @Builder
     public User(BigInteger id, String password, String name, Role role, String email, String phone) {
@@ -186,6 +195,10 @@ public class User {
 
     public void changePassword(String password) {
         this.password = password;
+    }
+
+    public void changePaymentPassword(String paymentPassword){
+        this.paymentPassword = paymentPassword;
     }
 
     public void changePhoneNumber(String phone) {
@@ -346,6 +359,10 @@ public class User {
         this.orderAlarm = false;
         this.point = BigDecimal.ZERO;
         this.isMembership = false;
+    }
+
+    public boolean isAdmin() {
+        return Role.ADMIN.equals(this.role);
     }
 
     @Override

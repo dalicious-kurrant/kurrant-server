@@ -36,22 +36,24 @@ public class DiscountDto {
         BigDecimal makersDiscountedPrice = BigDecimal.ZERO;
         BigDecimal periodDiscountedPrice = BigDecimal.ZERO;
 
+        BigDecimal subtractPrice = BigDecimal.ZERO;
+
         // 1. 멤버십 할인
         if(membershipDiscountedRate != 0) {
-            membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((membershipDiscountedRate / 100.0)));;
-            membershipDiscountedPrice = PriceUtils.roundToOneDigit(membershipDiscountedPrice);
-            price = price.subtract(membershipDiscountedPrice);
+            subtractPrice = price.multiply(BigDecimal.valueOf((membershipDiscountedRate / 100.0)));
+            membershipDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            price = price.subtract(subtractPrice);
         }
         // 2. 메이커스 할인
         if(makersDiscountedRate != 0) {
-            makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
-            makersDiscountedPrice = PriceUtils.roundToOneDigit(makersDiscountedPrice);
+            subtractPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
+            makersDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 3. 기간 할인
         if(periodDiscountedRate != 0) {
-            periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            periodDiscountedPrice = PriceUtils.roundToOneDigit(periodDiscountedPrice);
+            subtractPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
+            periodDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
@@ -87,55 +89,14 @@ public class DiscountDto {
         // 1. 메이커스 할인
         if(makersDiscountedRate != 0) {
             makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
-            makersDiscountedPrice = PriceUtils.roundToOneDigit(makersDiscountedPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 2. 기간 할인
         if(periodDiscountedRate != 0) {
             periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            periodDiscountedPrice = PriceUtils.roundToOneDigit(periodDiscountedPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
-        discountDto.setMakersDiscountRate(makersDiscountedRate);
-        discountDto.setMakersDiscountPrice(makersDiscountedPrice);
-        discountDto.setPeriodDiscountRate(periodDiscountedRate);
-        discountDto.setPeriodDiscountPrice(periodDiscountedPrice);
-
-        return discountDto;
-    }
-
-    public static DiscountDto getDiscountDtoWithoutMembershipDiscount(Food food) {
-        DiscountDto discountDto = new DiscountDto();
-        // 기본 가격
-        BigDecimal price = food.getPrice();
-        discountDto.setPrice(price);
-        // 할인 비율
-        Integer makersDiscountedRate = 0;
-        Integer periodDiscountedRate = 0;
-        // 할인 가격
-        BigDecimal makersDiscountedPrice = BigDecimal.ZERO;
-        BigDecimal periodDiscountedPrice = BigDecimal.ZERO;
-
-        for(FoodDiscountPolicy foodDiscountPolicy : food.getFoodDiscountPolicyList()) {
-            switch (foodDiscountPolicy.getDiscountType()) {
-                case MAKERS_DISCOUNT -> makersDiscountedRate = foodDiscountPolicy.getDiscountRate();
-                case PERIOD_DISCOUNT -> periodDiscountedRate = foodDiscountPolicy.getDiscountRate();
-            }
-        }
-
-        // 1. 메이커스 할인
-        if(makersDiscountedRate != 0) {
-            makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
-            makersDiscountedPrice = PriceUtils.roundToOneDigit(makersDiscountedPrice);
-            price = price.subtract(makersDiscountedPrice);
-        }
-        // 2. 기간 할인
-        if(periodDiscountedRate != 0) {
-            periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            periodDiscountedPrice = PriceUtils.roundToOneDigit(periodDiscountedPrice);
-        }
-
         discountDto.setMakersDiscountRate(makersDiscountedRate);
         discountDto.setMakersDiscountPrice(makersDiscountedPrice);
         discountDto.setPeriodDiscountRate(periodDiscountedRate);

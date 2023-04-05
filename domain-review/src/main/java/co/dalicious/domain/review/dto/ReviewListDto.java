@@ -19,9 +19,19 @@ public class ReviewListDto {
     private Boolean forMakers;
     private String makersName;
     private String itemName;
+    private List<Comment> commentList;
+
+    @Getter
+    @Setter
+    public static class Comment{
+        private String writer;
+        private String content;
+        private String createDate;
+        private String updateDate;
+    }
 
     @Builder
-    public ReviewListDto(BigInteger reviewId, List<String> imageLocation, String content, Integer satisfaction,String createDate, String updateDate,Boolean forMakers, String makersName,String itemName) {
+    public ReviewListDto(BigInteger reviewId, List<String> imageLocation, String content, Integer satisfaction, String createDate, String updateDate, Boolean forMakers, String makersName, String itemName, List<Comment> commentList) {
         this.reviewId = reviewId;
         this.imageLocation = imageLocation;
         this.content = content;
@@ -31,5 +41,6 @@ public class ReviewListDto {
         this.forMakers = forMakers;
         this.makersName = makersName;
         this.itemName = itemName;
+        this.commentList = commentList;
     }
 }

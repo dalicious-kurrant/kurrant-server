@@ -33,25 +33,28 @@ import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipRepository;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
+import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.enums.RequiredAuth;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
-import co.dalicious.system.util.PriceUtils;
 import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import io.swagger.v3.core.util.Json;
 import lombok.RequiredArgsConstructor;
-import net.bytebuddy.asm.Advice;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -77,14 +80,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final SpotRepository spotRepository;
     private final QCartDailyFoodRepository qCartDailyFoodRepository;
     private final DeliveryFeePolicy deliveryFeePolicy;
-    private final OrderDailyFoodMapper orderDailyFoodMapper;
+    private final OrderMapper orderMapper;
     private final OrderDailyFoodItemMapper orderDailyFoodItemMapper;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
     private final QOrderRepository qOrderRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
-    private final UserSupportPriceHistoryReqMapper userSupportPriceHistoryReqMapper;
-    private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
-    private final QUserSupportPriceHistoryRepository qUserSupportPriceHistoryRepository;
+    private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
+    private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
+    private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final OrderItemDailyFoodListMapper orderItemDailyFoodListMapper;
     private final OrderDailyFoodHistoryMapper orderDailyFoodHistoryMapper;
@@ -105,10 +108,16 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final MembershipSupportPriceRepository membershipSupportPriceRepository;
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
+    private final QUserRepository qUserRepository;
     private final CreditCardInfoMapper creditCardInfoMapper;
     private final FoundersMapper foundersMapper;
     private final FoundersUtil foundersUtil;
     private final OrderService orderService;
+    private final PasswordEncoder passwordEncoder;
+    private final PointUtil pointUtil;
+
+    private final VerifyUtil verifyUtil;
+
 
     @Override
     @Transactional
@@ -163,11 +172,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
         // 1. 주문서 저장하기
-        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
+        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 2. 유저 사용 지원금 가져오기
-            List<UserSupportPriceHistory> userSupportPriceHistories = qUserSupportPriceHistoryRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
+            List<DailyFoodSupportPrice> userSupportPriceHistories = qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
 
             BigDecimal supportPrice = BigDecimal.ZERO;
             BigDecimal orderItemGroupTotalPrice = BigDecimal.ZERO;
@@ -191,7 +200,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
                 // 멤버십에 가입하지 않은 경우 멤버십 할인이 적용되지 않은 가격으로 보임
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, spot, selectedCartDailyFood.getDailyFood());
-                // 금액 일치 확인 TODO: 금액 일치 오류 확인(NOT_MATCHED_PRICE) -> 반올림 문제
+                // 금액 일치 확인
                 if (cartDailyFood.getDiscountedPrice().intValue() != discountDto.getDiscountedPrice().intValue()) {
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }
@@ -237,30 +246,28 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if (spot instanceof CorporationSpot) {
                 BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                 if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
-                    UserSupportPriceHistory userSupportPriceHistory;
+                    DailyFoodSupportPrice dailyFoodSupportPrice;
                     if(spot.getGroup().getName().contains("메드트로닉")) {
-                        userSupportPriceHistory = userSupportPriceHistoryReqMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
+                        dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
                     }
                     else {
-                        userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                        dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, usableSupportPrice);
                     }
-                    userSupportPriceHistoryRepository.save(userSupportPriceHistory);
-                    totalSupportPrice = totalSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
+                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
+                    totalSupportPrice = totalSupportPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
                 }
             }
         }
 
+        // 주문하려는 상품의 가격 총 합이 포인트보다 큰지 검증
+        if (totalDailyFoodPrice.subtract(totalSupportPrice).compareTo(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()) < 0) {
+            throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
+        }
+
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
         BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
-        // TODO: 추후 수정 -> 프론트에서 주는 값이 1의 자리로 줌으로 추가 로직 생성.
-        if(spot.getGroup().getName().contains("메드트로닉")) {
-            BigDecimal medTronicTotalPrice = PriceUtils.floorToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice());
-            BigDecimal medTronicSupportPrice = PriceUtils.roundToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice());
-            if (PriceUtils.floorToOneDigit(payPrice).compareTo(medTronicTotalPrice) != 0 ||  PriceUtils.roundToOneDigit(totalSupportPrice).compareTo(medTronicSupportPrice) != 0) {
-                throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
-            }
-        }
-        else if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
+
+        if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
@@ -315,6 +322,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                         orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                     }
                     user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
+                    pointUtil.createPointHistoryByOthers(user, orderDailyFood.getId(), PointStatus.USED, orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
 
                     //Order 테이블에 paymentKey와 receiptUrl 업데이트
                     JSONObject receipt = (JSONObject) jsonObject.get("receipt");
@@ -651,11 +659,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
         // 1. 주문서 저장하기
-        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderDailyFoodMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
+        OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
 
         for (CartDailyFoodDto cartDailyFoodDto : cartDailyFoodDtoList) {
             // 2. 유저 사용 지원금 가져오기
-            List<UserSupportPriceHistory> userSupportPriceHistories = qUserSupportPriceHistoryRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
+            List<DailyFoodSupportPrice> userSupportPriceHistories = qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
 
             BigDecimal supportPrice = BigDecimal.ZERO;
             BigDecimal orderItemGroupTotalPrice = BigDecimal.ZERO;
@@ -726,30 +734,22 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if (spot instanceof CorporationSpot) {
                 BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                 if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
-                    UserSupportPriceHistory userSupportPriceHistory;
+                    DailyFoodSupportPrice dailyFoodSupportPrice;
                     if(spot.getGroup().getName().contains("메드트로닉")) {
-                        userSupportPriceHistory = userSupportPriceHistoryReqMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
+                        dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
                     }
                     else {
-                        userSupportPriceHistory = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                        dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, usableSupportPrice);
                     }
-                    userSupportPriceHistoryRepository.save(userSupportPriceHistory);
-                    totalSupportPrice = totalSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
+                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
+                    totalSupportPrice = totalSupportPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
                 }
             }
         }
 
         // 결제 금액 (배송비 + 할인된 상품 가격의 합) - (회사 지원금 - 포인트 사용)
         BigDecimal payPrice = totalDailyFoodPrice.add(totalDeliveryFee).subtract(totalSupportPrice).subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
-        // TODO: 추후 수정 -> 프론트에서 주는 값이 1의 자리로 줌으로 추가 로직 생성.
-        if(spot.getGroup().getName().contains("메드트로닉")) {
-            BigDecimal medTronicTotalPrice = PriceUtils.floorToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice());
-            BigDecimal medTronicSupportPrice = PriceUtils.roundToOneDigit(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice());
-            if (payPrice.compareTo(medTronicTotalPrice) != 0 || totalSupportPrice.compareTo(medTronicSupportPrice) != 0) {
-                throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
-            }
-        }
-        else if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
+        if (payPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getTotalPrice()) != 0 || totalSupportPrice.compareTo(orderItemDailyFoodReqDto.getOrderItems().getSupportPrice()) != 0) {
             throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
         }
 
@@ -851,11 +851,36 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    public String createNiceBillingKey(SecurityUser securityUser, OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
+    public String createNiceBillingKeyFirst(SecurityUser securityUser, OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
         //유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
-        System.out.println(user.getId() + " user Id");
+        //이메일 인증 검증
+        if (orderCreateBillingKeyReqDto.getKey() != null && orderCreateBillingKeyReqDto.getKey().equals("")){
+            verifyUtil.verifyCertificationNumber(orderCreateBillingKeyReqDto.getKey(), RequiredAuth.PAYMENT_PASSWORD_CREATE);
+        }
+
+        //결제 비밀번호가 등록이 안된 유저
+        if (user.getPaymentPassword() == null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")) {
+            //결제 비밀번호 등록
+            if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
+
+                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
+                qUserRepository.updatePaymentPassword(password, user.getId());
+            } else {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
+        }
+        //결제 비밀번호가 등록되어있는 유저라면
+        if (user.getPaymentPassword() != null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")){
+            //결제 비밀번호 확인
+            if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
+               if (!Objects.equals(password, user.getPaymentPassword())){
+                   throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
+               }
+            }
+        }
 
         String token = niceUtil.getToken();
 
@@ -875,6 +900,79 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         Integer defaultType = orderCreateBillingKeyReqDto.getDefaultType();
 
+        //중복카드라서 상태를 0에서 1로 바꿨을때 중복 저장을방지하기 위한 카운트변수
+        Integer sameCardCount = 0;
+
+        //중복 카드확인
+        List<CreditCardInfo> creditCardInfos = creditCardInfoRepository.findAllByUserId(user.getId());
+
+        if (creditCardInfos.size() != 0){
+            if (defaultType == null){
+                defaultType = 0;
+            }
+
+            for (CreditCardInfo card : creditCardInfos){
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0 && card.getNiceBillingKey() != null){
+                    return "이미 같은 카드가 등록되어 있습니다.";
+                }
+                //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1 && card.getNiceBillingKey().equals(billingKey)){
+                    qCreditCardInfoRepository.updateStatusCardNice(card.getId(), billingKey);
+                    sameCardCount = 1;
+                }
+            }
+        }
+
+        if (creditCardInfos.size() == 0 && defaultType == null){
+            defaultType = 1;    //기본카드로 셋팅
+            // qCreditCardInfoRepository.updateNiceBillingKey(billingKey, user.getId(), cardNumberPart);
+        }
+        Integer status =1;
+        CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType, status);
+        if (sameCardCount != 1){
+            creditCardInfoRepository.save(cardInfo);
+        }
+
+        return billingKey;
+    }
+
+    @Override
+    public Object createNiceBillingKey(SecurityUser securityUser, OrderCreateBillingKeySecondReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
+        //유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        //결제 비밀번호가 등록되어있는 유저
+        if (user.getPaymentPassword() != null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")){
+            //결제 비밀번호 확인
+            if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
+                if (!passwordEncoder.matches(orderCreateBillingKeyReqDto.getPayNumber(), user.getPaymentPassword())){
+                    throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
+                }
+            }
+        }
+
+        String token = niceUtil.getToken();
+
+        String customerKey = niceUtil.createCustomerKey();
+
+        //String cardNumber, String expirationYear, String expirationMonth,
+        //                                          String cardPassword, String identityNumber
+        JSONObject jsonObject = niceUtil.cardRegisterRequest(orderCreateBillingKeyReqDto.getCardNumber(), orderCreateBillingKeyReqDto.getExpirationYear(), orderCreateBillingKeyReqDto.getExpirationMonth(),
+                orderCreateBillingKeyReqDto.getCardPassword(), orderCreateBillingKeyReqDto.getIdentityNumber(),customerKey,token);
+        String billingKey = (String) jsonObject.get("customer_uid");
+        System.out.println(jsonObject + " jsonObject");
+        String cardNumberPart = orderCreateBillingKeyReqDto.getCardNumber().substring(0, 8);
+        System.out.println(cardNumberPart + " cardPart");
+        String cardNumber = (String) jsonObject.get("card_number");
+        String cardCompany = (String) jsonObject.get("card_name");
+        String niceCustomerKey = (String) jsonObject.get("customer_id");
+
+        Integer defaultType = orderCreateBillingKeyReqDto.getDefaultType();
+
+        //중복카드라서 상태를 0에서 1로 바꿨을때 중복 저장을방지하기 위한 카운트변수
+        Integer sameCardCount = 0;
+
         //중복 카드확인
         List<CreditCardInfo> creditCardInfos = creditCardInfoRepository.findAllByUserId(user.getId());
 
@@ -887,8 +985,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     return "이미 같은 카드가 등록되어 있습니다.";
                 }
                 //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
-                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1){
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1 && card.getNiceBillingKey().equals(billingKey)){
                     qCreditCardInfoRepository.updateStatusCardNice(card.getId(), billingKey);
+                    sameCardCount =1;
                 }
             }
         }
@@ -899,7 +998,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
         Integer status =1;
         CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType, status);
-        creditCardInfoRepository.save(cardInfo);
+        if (sameCardCount != 1){
+            creditCardInfoRepository.save(cardInfo);
+        }
 
         return billingKey;
     }
@@ -924,6 +1025,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         );
 
         orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
+    }
+
+    @Override
+    @Transactional
+    public void changingOrderItemOrderStatus(SecurityUser securityUser, BigInteger orderItemId) {
+        User user = userUtil.getUser(securityUser);
+
+        OrderItemDailyFood orderItemDailyFood = qOrderDailyFoodRepository.findByUserAndId(user, orderItemId);
+        if(orderItemDailyFood == null) throw new ApiException(ExceptionEnum.ORDER_NOT_FOUND);
+
+        orderItemDailyFood.updateOrderStatus(OrderStatus.RECEIPT_COMPLETE);
     }
 }
 
