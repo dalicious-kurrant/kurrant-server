@@ -4,13 +4,18 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
+import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
+import co.dalicious.domain.order.util.OrderUtil;
+import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.PeriodDto;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -18,6 +23,8 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import javax.persistence.EntityManager;
 import java.math.BigInteger;
@@ -25,9 +32,7 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
@@ -233,6 +238,71 @@ public class QOrderDailyFoodRepository {
             count += itemDailyFood.getCount();
         }
         return count;
+    }
+
+    public ServiceDateBy.MakersAndFood getMakersCounts(List<DailyFood> dailyFoods) {
+        Map<ServiceDateBy.Makers, Integer> makersIntegerMap = new HashMap<>();
+        Map<ServiceDateBy.Food, Integer> foodIntegerMap = new HashMap<>();
+        Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
+        Set<Makers> makersSet = new HashSet<>();
+
+        for (DailyFood dailyFood : dailyFoods) {
+            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(dailyFood);
+            diningTypeServiceDateDtos.add(diningTypeServiceDateDto);
+            makersSet.add(dailyFood.getFood().getMakers());
+        }
+
+        // 기간 구하기
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+
+        List<OrderItemDailyFood> orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .innerJoin(dailyFood.food, food)
+                .innerJoin(food.makers, makers)
+                .where(makers.in(makersSet),
+                        dailyFood.serviceDate.goe(periodDto.getStartDate()),
+                        dailyFood.serviceDate.loe(periodDto.getEndDate()),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .fetch();
+
+        MultiValueMap<ServiceDateBy.Makers, OrderItemDailyFood> makersOrderMap = new LinkedMultiValueMap<>();
+        MultiValueMap<ServiceDateBy.Food, OrderItemDailyFood> foodOrderMap = new LinkedMultiValueMap<>();
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            ServiceDateBy.Makers makersDto = new ServiceDateBy.Makers();
+            makersDto.setDiningType(orderItemDailyFood.getDailyFood().getDiningType());
+            makersDto.setServiceDate(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate());
+            makersDto.setMakers(orderItemDailyFood.getDailyFood().getFood().getMakers());
+            makersOrderMap.add(makersDto, orderItemDailyFood);
+
+            ServiceDateBy.Food foodDto = new ServiceDateBy.Food();
+            foodDto.setDiningType(orderItemDailyFood.getDailyFood().getDiningType());
+            foodDto.setServiceDate(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate());
+            foodDto.setFood(orderItemDailyFood.getDailyFood().getFood());
+            foodOrderMap.add(foodDto, orderItemDailyFood);
+        }
+
+        for (ServiceDateBy.Makers makers1 : makersOrderMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoodList = makersOrderMap.get(makers1);
+            Integer count = 0;
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
+                count += orderItemDailyFood.getCount();
+            }
+            makersIntegerMap.put(makers1, count);
+        }
+
+        for (ServiceDateBy.Food food1 : foodOrderMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoodList = foodOrderMap.get(food1);
+            Integer count = 0;
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
+                count += orderItemDailyFood.getCount();
+            }
+            foodIntegerMap.put(food1, count);
+        }
+        ServiceDateBy.MakersAndFood makersAndFood = new ServiceDateBy.MakersAndFood();
+        makersAndFood.setMakersCountMap(makersIntegerMap);
+        makersAndFood.setFoodCountMap(foodIntegerMap);
+
+        return makersAndFood;
     }
 
     public List<CapacityDto.MakersCapacity> getMakersCounts(List<DailyFood> selectedDailyFoods, Set<Makers> makers) {

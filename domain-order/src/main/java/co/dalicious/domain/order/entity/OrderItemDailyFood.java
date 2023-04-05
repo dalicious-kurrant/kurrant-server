@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.PriceUtils;
@@ -14,6 +15,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.List;
 
 @DynamicInsert
 @DynamicUpdate
@@ -42,6 +44,10 @@ public class OrderItemDailyFood extends OrderItem {
     @Comment("수량")
     private Integer count;
 
+    @Comment("추가 주문 사용 목적")
+    @Column(name = "usage", columnDefinition = "VARCHAR(40)")
+    private String usage;
+
     @Column(name = "membership_discounted_rate")
     @Comment("멤버십 할인율")
     private Integer membershipDiscountRate;
@@ -61,10 +67,11 @@ public class OrderItemDailyFood extends OrderItem {
     private OrderItemDailyFoodGroup orderItemDailyFoodGroup;
 
     @Builder
-    public OrderItemDailyFood(OrderStatus orderStatus, Order order, DailyFood dailyFood, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountRate, Integer membershipDiscountRate, Integer periodDiscountRate, OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
+    public OrderItemDailyFood(OrderStatus orderStatus, Order order, String usage, DailyFood dailyFood, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountRate, Integer membershipDiscountRate, Integer periodDiscountRate, OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
         super(orderStatus, order);
         this.dailyFood = dailyFood;
         this.name = name;
+        this.usage = usage;
         this.price = price;
         this.discountedPrice = discountedPrice;
         this.count = count;
@@ -81,8 +88,9 @@ public class OrderItemDailyFood extends OrderItem {
     public BigDecimal getMakersDiscountPrice() {
         BigDecimal price = this.price;
         BigDecimal membershipDiscountedPrice = BigDecimal.ZERO;
-        if(this.membershipDiscountRate != 0) {
-            membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0)));;
+        if (this.membershipDiscountRate != 0) {
+            membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0)));
+            ;
             price = price.subtract(membershipDiscountedPrice);
         }
         return PriceUtils.roundToTenDigit(price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
@@ -92,12 +100,14 @@ public class OrderItemDailyFood extends OrderItem {
         BigDecimal price = this.price;
         BigDecimal membershipDiscountedPrice = BigDecimal.ZERO;
         BigDecimal makersDiscountPrice = BigDecimal.ZERO;
-        if(this.membershipDiscountRate != 0) {
-            membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0)));;
+        if (this.membershipDiscountRate != 0) {
+            membershipDiscountedPrice = price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0)));
+            ;
             price = price.subtract(membershipDiscountedPrice);
         }
-        if(this.makersDiscountRate != 0) {
-            makersDiscountPrice = price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0)));;
+        if (this.makersDiscountRate != 0) {
+            makersDiscountPrice = price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0)));
+            ;
             price = price.subtract(makersDiscountPrice);
         }
         return PriceUtils.roundToTenDigit(price.multiply(BigDecimal.valueOf((this.periodDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
@@ -106,6 +116,7 @@ public class OrderItemDailyFood extends OrderItem {
     public BigDecimal getOrderItemTotalPrice() {
         return this.discountedPrice.multiply(BigDecimal.valueOf(this.count));
     }
+
     public BigDecimal getOrderItemSupplyPrice() {
         return (this.getDailyFood().getFood().getSupplyPrice() == null) ? null : this.getDailyFood().getFood().getSupplyPrice().multiply(BigDecimal.valueOf(this.count));
     }

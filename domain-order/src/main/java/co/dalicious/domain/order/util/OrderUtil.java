@@ -17,6 +17,7 @@ import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.PriceUtils;
 import exception.ApiException;
@@ -112,7 +113,7 @@ public class OrderUtil {
 
         // 2. 할인된 상품 가격 추가
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
-            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus()) && orderItemDailyFood.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE))) {
                 totalPrice = totalPrice.add(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())));
             }
         }
@@ -132,7 +133,8 @@ public class OrderUtil {
     public static BigDecimal getItemPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
-            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+            // 주문이 결제 완료(5)인 경우와, 백오피스에서 추가 주문을 취소하기 위한 조건
+            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)  || (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus()) && orderItemDailyFood.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE))) {
                 totalPrice = totalPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
             }
         }

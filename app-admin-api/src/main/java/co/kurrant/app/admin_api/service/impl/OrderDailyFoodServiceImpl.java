@@ -25,6 +25,7 @@ import co.dalicious.domain.order.mapper.ExtraOrderMapper;
 import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.OrderService;
+import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
@@ -93,8 +94,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
     private final QUserRepository qUserRepository;
-    private final QOrderRepository qOrderRepository;
-    private final UserValidator userValidator;
+    private final OrderDailyFoodUtil orderDailyFoodUtil;
 
     @Override
     @Transactional
@@ -248,7 +248,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Transactional
     public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate) {
         List<DailyFood> dailyFoods = qDailyFoodRepository.getSellingDailyFoodsBetweenServiceDate(startDate, endDate);
-        return extraOrderMapper.toDailyFoodList(dailyFoods);
+        Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
+        return extraOrderMapper.toDailyFoodList(dailyFoods, remainFoodCount);
     }
 
     @Override

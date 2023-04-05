@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
@@ -20,10 +21,11 @@ import org.springframework.util.MultiValueMap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface ExtraOrderMapper {
-    default List<ExtraOrderDto.DailyFoodList> toDailyFoodList(List<DailyFood> dailyFoods) {
+    default List<ExtraOrderDto.DailyFoodList> toDailyFoodList(List<DailyFood> dailyFoods, Map<DailyFood, Integer> dailyFoodCountMap) {
         // 1. 식사일정별로 묶는다.
         MultiValueMap<DiningTypeServiceDateDto, DailyFood> dailyFoodMap = new LinkedMultiValueMap<>();
 
@@ -46,6 +48,7 @@ public interface ExtraOrderMapper {
             List<ExtraOrderDto.DailyFood> dailyFoodDtos = new ArrayList<>();
             for (Food food : foodDailyFoodMap.keySet()) {
                 ExtraOrderDto.DailyFood dailyFood = new ExtraOrderDto.DailyFood();
+                DiscountDto discountDto = DiscountDto.getDiscountWithoutMembership(food);
 
                 // 3. 그룹별로 묶는다.
                 List<DailyFood> dailyFoodByGroup = foodDailyFoodMap.get(food);
@@ -63,9 +66,9 @@ public interface ExtraOrderMapper {
                 }
                 dailyFood.setFoodId(food.getId());
                 dailyFood.setFoodName(food.getName());
-                dailyFood.setPrice(food.getPrice()); //TODO: 할인된 가격인지, 할인이 되지 않은 가격인지 확인 필요
+                dailyFood.setPrice(discountDto.getDiscountedPrice());
                 dailyFood.setDailyFoodStatus(dailyFoodByGroup.get(0).getDailyFoodStatus().getStatus());
-                dailyFood.setFoodCapacity(0);
+                dailyFood.setFoodCapacity(dailyFoodCountMap.get(dailyFoodByGroup.get(0))); //TODO: 음식 주문 가능 수량 추가
                 dailyFood.setGroupList(groupDtos);
                 dailyFoodDtos.add(dailyFood);
             }
@@ -83,7 +86,8 @@ public interface ExtraOrderMapper {
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             responses.add(toExtraOrderDto(orderItemDailyFood));
         }
-        return responses.stream().sorted(Comparator.comparing(ExtraOrderDto.Response::getServiceDate).reversed()).toList();
+        return responses.stream().sorted(Comparator.comparing(ExtraOrderDto.Response::getServiceDate)
+                .thenComparing(ExtraOrderDto.Response::getCreatedDateTime).reversed()).toList();
     }
 
 
@@ -95,7 +99,7 @@ public interface ExtraOrderMapper {
                 .serviceDate(DateUtils.format(orderItemDailyFood.getDailyFood().getServiceDate()))
                 .diningType(orderItemDailyFood.getDailyFood().getDiningType().getDiningType())
                 .createdDateTime(DateUtils.localDateTimeToString(orderItemDailyFood.getCreatedDateTime().toLocalDateTime()))
-                .usage(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories().get(0).getSupportPriceUsage())
+                .usage(orderItemDailyFood.getUsage())
                 .spotId(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getId())
                 .spotName(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpotName())
                 .groupId(orderItemDailyFood.getDailyFood().getGroup().getId())

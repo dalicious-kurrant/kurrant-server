@@ -1,6 +1,5 @@
 package co.kurrant.batch.job.batch.job;
 
-import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.DateUtils;
