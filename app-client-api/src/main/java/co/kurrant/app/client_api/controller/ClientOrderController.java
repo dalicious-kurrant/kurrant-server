@@ -2,6 +2,7 @@ package co.kurrant.app.client_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
+import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.ClientOrderService;
 import co.kurrant.app.client_api.service.GroupService;
@@ -12,6 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -60,10 +62,10 @@ public class ClientOrderController {
     }
 
     @GetMapping("/extra")
-    public ResponseMessage getExtraOrders(Authentication authentication) {
+    public ResponseMessage getExtraOrders(Authentication authentication, @RequestParam Map<String, Object> parameters) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(clientOrderService.getExtraOrders(securityUser))
+                .data(clientOrderService.getExtraOrders(securityUser, parameters))
                 .message("추가 주문 조회에 성공하였습니다.")
                 .build();
     }
@@ -84,6 +86,16 @@ public class ClientOrderController {
                                                @RequestBody List<ExtraOrderDto.Request> orderDtos) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         clientOrderService.postExtraOrderItems(securityUser, orderDtos);
+        return ResponseMessage.builder()
+                .message("추가 주문에 성공하였습니다.")
+                .build();
+    }
+
+    @PostMapping("/extra/refund")
+    public ResponseMessage refundExtraOrderItems(Authentication authentication,
+                                               @RequestBody OrderDto.Id id) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        clientOrderService.refundExtraOrderItems(securityUser, id);
         return ResponseMessage.builder()
                 .message("추가 주문에 성공하였습니다.")
                 .build();

@@ -154,7 +154,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void connectAppleAccount(SecurityUser securityUser, Map<String,Object> appleLoginDto) throws JsonProcessingException {
+    public void connectAppleAccount(SecurityUser securityUser, Map<String, Object> appleLoginDto) throws JsonProcessingException {
         String sns = "APPLE";
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
@@ -203,7 +203,7 @@ public class UserServiceImpl implements UserService {
 
         // 현재 로그인 한 아이디가 이메일/비밀번호를 설정했는지 확인
         List<ProviderEmail> providerEmails = providerEmailRepository.findAllByUser(user);
-        if(providerEmails == null) {
+        if (providerEmails == null) {
             throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
         }
         providerEmails.stream()
@@ -244,7 +244,7 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
         }
         // 변경할 비밀번호가 현재 비밀번호와 같을 경우 에러 발생
-        if(passwordEncoder.matches(changePasswordRequestDto.getNewPassword(), user.getPassword())) {
+        if (passwordEncoder.matches(changePasswordRequestDto.getNewPassword(), user.getPassword())) {
             throw new ApiException(ExceptionEnum.CHANGED_PASSWORD_SAME);
         }
 
@@ -268,7 +268,7 @@ public class UserServiceImpl implements UserService {
         userValidator.isEmailValid(Provider.GENERAL, email);
 
         // 다른 계정에서 주요 이메일(아이디)로 사용하는 이메일인지 확인. 소셜로그인 계정과 이메일이 같을 경우 제외.
-        if(!user.getEmail().equals(setEmailAndPasswordDto.getEmail())) {
+        if (!user.getEmail().equals(setEmailAndPasswordDto.getEmail())) {
             userValidator.isExistingMainEmail(email);
         }
         // 인증을 진행한 유저인지 체크
@@ -362,14 +362,14 @@ public class UserServiceImpl implements UserService {
         List<OrderItemDailyFood> selectedOrderDailyDailyFoods = new ArrayList<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             OrderDailyFood orderDailyFood = (OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder());
-            if(orderItemDailyFood.getDailyFood().getServiceDate().equals(LocalDate.now())) {
+            if (orderItemDailyFood.getDailyFood().getServiceDate().equals(LocalDate.now())) {
                 Optional<MealInfo> mealInfo = orderDailyFood.getSpot().getMealInfos().stream()
                         .filter(v -> v.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType())).findAny();
-                if(mealInfo.isEmpty()) {
+                if (mealInfo.isEmpty()) {
                     throw new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO);
                 }
                 LocalTime deliveryTime = mealInfo.get().getDeliveryTime();
-                if(LocalTime.now().isAfter(deliveryTime)) {
+                if (LocalTime.now().isAfter(deliveryTime)) {
                     continue;
                 }
             }
@@ -392,20 +392,20 @@ public class UserServiceImpl implements UserService {
         User user = userUtil.getUser(securityUser);
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-        List<UserGroup> userGroups =  user.getGroups();
+        List<UserGroup> userGroups = user.getGroups();
 
         // TODO: 그룹 슬롯 증가의 경우 반영 필요
         // 오픈 스팟 그룹의 개수가 2개 이상일 떄
         long userGroupCount = userGroups.stream().
                 filter(v -> v.getClientStatus().equals(ClientStatus.BELONG) && v.getGroup() instanceof OpenGroup)
                 .count();
-        if(userGroupCount >= 2) {
+        if (userGroupCount >= 2) {
             throw new ApiException(ExceptionEnum.REQUEST_OVER_GROUP);
         }
 
-        Optional<UserGroup> selectedGroup =  userGroups.stream().filter(g -> g.getGroup().equals(group)).findAny();
-        if(selectedGroup.isPresent()) {
-            if(selectedGroup.get().getClientStatus() == ClientStatus.WITHDRAWAL) {
+        Optional<UserGroup> selectedGroup = userGroups.stream().filter(g -> g.getGroup().equals(group)).findAny();
+        if (selectedGroup.isPresent()) {
+            if (selectedGroup.get().getClientStatus() == ClientStatus.WITHDRAWAL) {
                 selectedGroup.get().updateStatus(ClientStatus.BELONG);
                 return;
             }
@@ -431,7 +431,7 @@ public class UserServiceImpl implements UserService {
         // 그룹 추가
         for (UserGroup userGroup : userGroups) {
             // 현재 활성화된 유저 그룹일 경우만 가져오기
-            if(userGroup.getClientStatus() == ClientStatus.BELONG) {
+            if (userGroup.getClientStatus() == ClientStatus.BELONG) {
                 Group group = userGroup.getGroup();
                 spotListResponseDtoList.add(groupResponseMapper.toDto(group));
             }
@@ -476,22 +476,22 @@ public class UserServiceImpl implements UserService {
 
         //카드 등록하기전에 중복카드가 존재하는지 확인
         List<CreditCardInfo> cardInfoList = qCreditCardInfoRepository.findAllByUserId(user.getId());
-        if (cardInfoList.size() != 0){
-            if (defaultType == null){
+        if (cardInfoList.size() != 0) {
+            if (defaultType == null) {
                 defaultType = 0;
             }
-             for (CreditCardInfo card : cardInfoList){
-                 if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0){
-                     return 2;
-                 }
-                 //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
-                 if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1){
-                     qCreditCardInfoRepository.updateStatusCard(card.getId(), billingKey);
-                 }
-             }
+            for (CreditCardInfo card : cardInfoList) {
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0) {
+                    return 2;
+                }
+                //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1) {
+                    qCreditCardInfoRepository.updateStatusCard(card.getId(), billingKey);
+                }
+            }
         }
         //중복카드가 없고 디폴트타입이 null일 경우는 디폴트 타입으로 설정
-        if (cardInfoList.size() == 0 && defaultType == null){
+        if (cardInfoList.size() == 0 && defaultType == null) {
             defaultType = 1;
         }
 
@@ -510,7 +510,7 @@ public class UserServiceImpl implements UserService {
         //결과값 담아줄 LIST 생성
         List<CreditCardResponseDto> resultList = new ArrayList<>();
 
-        for (CreditCardInfo creditCardInfo : creditCardInfoList){
+        for (CreditCardInfo creditCardInfo : creditCardInfoList) {
             CreditCardResponseDto creditCardResponseDto = creditCardInfoMapper.toDto(creditCardInfo);
             resultList.add(creditCardResponseDto);
 
@@ -529,35 +529,35 @@ public class UserServiceImpl implements UserService {
         //DefaultType을 변경요청하는 경우는 3가지가 있다. 0/1(기본)/2(멤버십)
 
         //0으로 변경 요청한 경우는 그냥 0으로 변경해준다.
-        if (creditCardDefaultSettingDto.getDefaultType() == 0){
+        if (creditCardDefaultSettingDto.getDefaultType() == 0) {
             //해당 카드를 입력받은 디폴트 번호로 수정
             qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), creditCardDefaultSettingDto.getDefaultType());
         }
 
         //1로 변경 요청한 경우, 기존 DefaultType이 1인 카드를 0으로 변경하고, 해당 카드가 DefaultType이 2인 카드라면 3으로 변경해준다.
-        if (creditCardDefaultSettingDto.getDefaultType() == 1){
+        if (creditCardDefaultSettingDto.getDefaultType() == 1) {
             //해당카드가 DefaultType이 2일경우 3으로 변경, 다른 모든카드는 0으로 변경
-           if (updateCardInfo.get().getDefaultType() == 2){
-               Integer defaultType = 3;
-               //해당 카드를 DefaultType 3으로 변경
-               qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), defaultType);
-               //변경한 카드 외에 나머지를 모두 0으로 변경
-               qCreditCardInfoRepository.patchOtherCardAllZero(updateCardInfo.get().getId(), user.getId());
-           }
-           //해당카드가 DefaultType이 1이나 3일 경우는 의미가 없으므로, 0일 경우에 1로 변경하고 기존 1을 0으로, 기존 3을 2로 변경한다.
-            if (updateCardInfo.get().getDefaultType() == 0){
+            if (updateCardInfo.get().getDefaultType() == 2) {
+                Integer defaultType = 3;
+                //해당 카드를 DefaultType 3으로 변경
+                qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), defaultType);
+                //변경한 카드 외에 나머지를 모두 0으로 변경
+                qCreditCardInfoRepository.patchOtherCardAllZero(updateCardInfo.get().getId(), user.getId());
+            }
+            //해당카드가 DefaultType이 1이나 3일 경우는 의미가 없으므로, 0일 경우에 1로 변경하고 기존 1을 0으로, 기존 3을 2로 변경한다.
+            if (updateCardInfo.get().getDefaultType() == 0) {
                 qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), creditCardDefaultSettingDto.getDefaultType());
                 //기존 1을 0으로
                 qCreditCardInfoRepository.patchOneToZero(updateCardInfo.get().getId(), user.getId());
                 //기존 3을 2로
-                qCreditCardInfoRepository.patchThreeToTwo(updateCardInfo.get().getId(),user.getId());
+                qCreditCardInfoRepository.patchThreeToTwo(updateCardInfo.get().getId(), user.getId());
             }
         }
 
         //2로 변경 요청한 경우, 기존 DefaultType이 2인 카드를 0으로 변경하고 해당 카드가 DefaultType이 1인 카드라면 3으로 변경해준다.
-        if (creditCardDefaultSettingDto.getDefaultType() == 2 ){
+        if (creditCardDefaultSettingDto.getDefaultType() == 2) {
             //해당카드가 DefaultType이 1일경우 3으로 변경, 다른 모든카드는 0으로 변경
-            if (updateCardInfo.get().getDefaultType() == 1){
+            if (updateCardInfo.get().getDefaultType() == 1) {
                 Integer defaultType = 3;
                 //해당 카드를 DefaultType 3으로 변경
                 qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), defaultType);
@@ -565,7 +565,7 @@ public class UserServiceImpl implements UserService {
                 qCreditCardInfoRepository.patchOtherCardAllZero(updateCardInfo.get().getId(), user.getId());
             }
             //해당카드가 2나 3이면 변경의 의미가 없으므로 0인 경우에만 2로 바꾸고 기존 2를 0으로 기존 3을 1로 바꾼다.
-            if (updateCardInfo.get().getDefaultType() == 0){
+            if (updateCardInfo.get().getDefaultType() == 0) {
                 qCreditCardInfoRepository.patchDefaultCard(updateCardInfo.get().getId(), creditCardDefaultSettingDto.getDefaultType());
                 //기존 2를 0으로
                 qCreditCardInfoRepository.patchTwoToZero(updateCardInfo.get().getId(), user.getId());
@@ -588,7 +588,7 @@ public class UserServiceImpl implements UserService {
     public void changeName(SecurityUser securityUser, ChangeNameDto changeNameDto) {
         User user = userUtil.getUser(securityUser);
 
-        if(!user.getName().equals("이름없음")) {
+        if (!user.getName().equals("이름없음")) {
             throw new ApiException(ExceptionEnum.ALREADY_EXISTING_NAME);
         }
 
@@ -614,7 +614,7 @@ public class UserServiceImpl implements UserService {
     public LoginResponseDto autoLogin(HttpServletRequest httpServletRequest) {
         String token = jwtTokenProvider.resolveToken(httpServletRequest);
 
-        if(!jwtTokenProvider.validateToken(token)) {
+        if (!jwtTokenProvider.validateToken(token)) {
             throw new ApiException(ExceptionEnum.ACCESS_TOKEN_ERROR);
         }
 
@@ -625,7 +625,7 @@ public class UserServiceImpl implements UserService {
 
         List<RefreshToken> refreshTokenHashes = refreshTokenRepository.findAllByUserId(BigInteger.valueOf(Integer.parseInt(userId)));
 
-        if(refreshTokenHashes.isEmpty()) {
+        if (refreshTokenHashes.isEmpty()) {
             throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
         }
         Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
@@ -656,7 +656,7 @@ public class UserServiceImpl implements UserService {
         User user = userUtil.getUser(securityUser);
 
         long result = qUserRepository.saveFcmToken(fcmTokenSaveReqDto.getToken(), user.getId());
-        if (result != 1){
+        if (result != 1) {
             throw new ApiException(ExceptionEnum.TOKEN_SAVE_FAILED);
         }
     }
@@ -666,6 +666,9 @@ public class UserServiceImpl implements UserService {
     public String savePaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto) {
         //유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
+
+        //이메일이 등록되어 있지 않은 유저라면 예외처리.
+        UserValidator.isAuthorizedUser(user);
 
         //이메일 인증 검증
         verifyUtil.verifyCertificationNumber(savePaymentPasswordDto.getKey(), RequiredAuth.PAYMENT_PASSWORD_CREATE);
@@ -689,19 +692,20 @@ public class UserServiceImpl implements UserService {
     public String checkPaymentPassword(SecurityUser securityUser, SavePaymentPasswordDto savePaymentPasswordDto) {
         User user = userUtil.getUser(securityUser);
 
-        if (user.getPaymentPassword() == null){
+        if (user.getPaymentPassword() == null) {
             throw new ApiException(ExceptionEnum.NOT_FOUND_PAYMENT_PASSWORD);
         }
 
-        if (user.getPaymentPassword() != null && savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")){
+        if (savePaymentPasswordDto.getPayNumber() != null && !savePaymentPasswordDto.getPayNumber().equals("")) {
             //결제 비밀번호 확인
             if (savePaymentPasswordDto.getPayNumber().length() == 6) {
-                if (!passwordEncoder.matches(savePaymentPasswordDto.getPayNumber(), user.getPaymentPassword())){
+                if (!passwordEncoder.matches(savePaymentPasswordDto.getPayNumber(), user.getPaymentPassword())) {
                     throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
                 }
             } else {
                 throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
-            };
+            }
+            ;
         }
 
         return "결제 비밀번호 확인 성공!";
@@ -717,10 +721,10 @@ public class UserServiceImpl implements UserService {
     public void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto) {
         User user = userUtil.getUser(securityUser);
         String paymentPassword = passwordEncoder.encode(resetDto.getPayNumber());
-        if (resetDto.getPayNumber().equals("") || resetDto.getPayNumber() == null){
+        if (resetDto.getPayNumber().equals("") || resetDto.getPayNumber() == null) {
             throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_RESET_FAILED);
         }
-        if (resetDto.getPayNumber().length() == 6){
+        if (resetDto.getPayNumber().length() == 6) {
             qUserRepository.resetPaymentPassword(user.getId(), paymentPassword);
         } else {
             throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);

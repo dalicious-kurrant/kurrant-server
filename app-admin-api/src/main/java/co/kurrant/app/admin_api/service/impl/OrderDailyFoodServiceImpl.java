@@ -17,6 +17,7 @@ import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.*;
+import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.DailyFoodSupportPriceMapper;
@@ -26,6 +27,7 @@ import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
+import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
@@ -252,10 +254,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Override
     @Transactional
     public void postExtraOrderItems(List<ExtraOrderDto.Request> orderDtos) {
-        Set<BigInteger> groupIds = orderDtos.stream()
-                .map(ExtraOrderDto.Request::getGroupId)
-                .collect(Collectors.toSet());
-
         // 1. 식단 추가하는 달리셔스 매니저 가져오기
         User user = userRepository.findOneByRole(Role.ADMIN)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
@@ -344,14 +342,44 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public List<ExtraOrderDto.Response> getExtraOrders() {
+    public List<ExtraOrderDto.Response> getExtraOrders(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+
         List<User> users = qUserRepository.findAllManager();
         List<BigInteger> userIds = users.stream()
                 .map(User::getId)
                 .toList();
-        List<OrderDailyFood> orderDailyFoods = qOrderRepository.findExtraOrdersByManagerId(userIds);
+        List<OrderItemDailyFood> orderDailyFoods = qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate);
 
         return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
+    }
+
+    @Override
+    @Transactional
+    public void refundExtraOrderItems(BigInteger id) {
+        OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
+
+        RefundPriceDto refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, null, null);
+
+        BigDecimal usedSupportPrice = orderItemDailyFood.getOrderItemDailyFoodGroup().getUsingSupportPrice();
+
+        if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
+            List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
+            for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
+                dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
+            }
+            DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+            if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
+                dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
+            }
+        }
+
+        orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
+        if (refundPriceDto.getIsLastItemOfGroup()) {
+            orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
+        }
     }
 
 }

@@ -2,6 +2,7 @@ package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderDailyFood;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.user.entity.User;
@@ -22,6 +23,7 @@ import java.util.Set;
 import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
+import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 
 
 @Repository
@@ -29,13 +31,6 @@ import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 public class QOrderRepository {
 
     private final JPAQueryFactory queryFactory;
-
-    public List<OrderDailyFood> findExtraOrdersByManagerId(List<BigInteger> userIds) {
-        BooleanExpression userInUserIds = orderDailyFood.user.id.in(userIds);
-        return queryFactory.selectFrom(orderDailyFood)
-                .where(userInUserIds, orderDailyFood.orderType.eq(OrderType.DAILYFOOD), orderDailyFood.paymentType.eq(PaymentType.SUPPORT_PRICE))
-                .fetch();
-    }
 
     public String getPaymentKey(BigInteger orderItemId) {
         return queryFactory.select(order.paymentKey)

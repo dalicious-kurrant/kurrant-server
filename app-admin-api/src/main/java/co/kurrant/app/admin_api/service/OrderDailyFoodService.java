@@ -30,5 +30,6 @@ public interface OrderDailyFoodService {
 
     List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate);
     void postExtraOrderItems(List<ExtraOrderDto.Request> orderDtos);
-    List<ExtraOrderDto.Response> getExtraOrders();
+    List<ExtraOrderDto.Response> getExtraOrders(Map<String, Object> parameters);
+    void refundExtraOrderItems(BigInteger id);
 }

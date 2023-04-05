@@ -78,16 +78,11 @@ public interface ExtraOrderMapper {
         return dailyFoodLists;
     }
 
-    default List<ExtraOrderDto.Response> toExtraOrderDtos(List<OrderDailyFood> orders) {
+    default List<ExtraOrderDto.Response> toExtraOrderDtos(List<OrderItemDailyFood> orderItemDailyFoods) {
         List<ExtraOrderDto.Response> responses = new ArrayList<>();
-        for (OrderDailyFood order : orders) {
-            List<OrderItem> orderItems = order.getOrderItems();
-            for (OrderItem orderItem : orderItems) {
-                OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) Hibernate.unproxy(orderItem);
-                responses.add(toExtraOrderDto(orderItemDailyFood));
-            }
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            responses.add(toExtraOrderDto(orderItemDailyFood));
         }
-
         return responses.stream().sorted(Comparator.comparing(ExtraOrderDto.Response::getServiceDate).reversed()).toList();
     }
 
@@ -95,9 +90,11 @@ public interface ExtraOrderMapper {
     default ExtraOrderDto.Response toExtraOrderDto(OrderItemDailyFood orderItemDailyFood) {
         DiscountDto discountDto = DiscountDto.getDiscountWithoutMembership(orderItemDailyFood.getDailyFood().getFood());
         return ExtraOrderDto.Response.builder()
+                .foodName(orderItemDailyFood.getName())
+                .orderItemDailyFoodId(orderItemDailyFood.getId())
                 .serviceDate(DateUtils.format(orderItemDailyFood.getDailyFood().getServiceDate()))
                 .diningType(orderItemDailyFood.getDailyFood().getDiningType().getDiningType())
-                .createdDateTime(DateUtils.toISOLocalDate(orderItemDailyFood.getCreatedDateTime()))
+                .createdDateTime(DateUtils.localDateTimeToString(orderItemDailyFood.getCreatedDateTime().toLocalDateTime()))
                 .usage(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories().get(0).getSupportPriceUsage())
                 .spotId(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getId())
                 .spotName(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpotName())
