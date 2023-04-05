@@ -10,6 +10,7 @@ import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.PointMapper;
 import co.dalicious.domain.user.repository.PointPolicyRepository;
 import co.dalicious.domain.user.repository.QPointPolicyRepository;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.system.util.DateUtils;
@@ -35,7 +36,7 @@ public class PointServiceImpl implements PointService {
     private final PointUtil pointUtil;
     private final PointPolicyRepository pointPolicyRepository;
     private final PointMapper pointMapper;
-    private final UserRepository userRepository;
+    private final QUserRepository qUserRepository;
     @Override
     public List<PointPolicyResDto.ReviewPointPolicy> findReviewPointPolicy() {
         return pointUtil.findReviewPointRange();
@@ -108,10 +109,11 @@ public class PointServiceImpl implements PointService {
     @Override
     @Transactional
     public void addPointsToUser(PointPolicyReqDto.AddPointToUser requestDto) {
-        User user = userRepository.findById(requestDto.getUserId())
-                .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        List<User> userList = qUserRepository.getUserAllById(requestDto.getUserIdList());
 
-        user.updatePoint(BigDecimal.valueOf(requestDto.getRewardPoint()));
-        pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_REWARD, BigDecimal.valueOf(requestDto.getRewardPoint()));
+        for(User user : userList) {
+            qUserRepository.updateUserPoint(user.getId(), BigDecimal.valueOf(requestDto.getRewardPoint()));
+            pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_REWARD, BigDecimal.valueOf(requestDto.getRewardPoint()));
+        }
     }
 }
