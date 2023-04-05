@@ -37,22 +37,24 @@ public class ReviewsController {
     @Operation(summary = "미답변 리뷰 조회", description = "아직 답변하지 않은 리뷰를 조회합니다.")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/pending")
-    public ResponseMessage getUnansweredReview(Authentication authentication, @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+    public ResponseMessage getUnansweredReview(Authentication authentication, @RequestParam(required = false) String foodName,
+                                               @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .message("미답변 리뷰 조회를 완료했습니다.")
-                .data(reviewService.getUnansweredReview(securityUser, limit, page, pageable))
+                .data(reviewService.getUnansweredReview(securityUser, foodName, limit, page, pageable))
                 .build();
     }
 
     @Operation(summary = "리뷰 전체 조회", description = "리뷰를 전체 조회합니다.")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/all")
-    public ResponseMessage getAllReview(Authentication authentication, @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+    public ResponseMessage getAllReview(Authentication authentication, @RequestParam(required = false) String foodName,
+                                        @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .message("리뷰 조회를 완료했습니다.")
-                .data(reviewService.getAllReview(securityUser, limit, page, pageable))
+                .data(reviewService.getAllReview(securityUser, foodName, limit, page, pageable))
                 .build();
     }
 
