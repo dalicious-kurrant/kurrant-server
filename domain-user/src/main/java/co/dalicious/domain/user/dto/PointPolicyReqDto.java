@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Getter
@@ -19,5 +20,13 @@ public class PointPolicyReqDto {
         private Integer rewardPoint;
         private String eventStartDate;
         private String eventEndDate;
+        private BigInteger boardId;
+    }
+
+    @Getter
+    @Setter
+    public static class AddPointToUser{
+        private BigInteger userId;
+        private Integer rewardPoint;
     }
 }

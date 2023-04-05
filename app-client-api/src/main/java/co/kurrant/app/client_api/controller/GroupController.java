@@ -30,4 +30,14 @@ public class GroupController {
                 .build();
     }
 
+    @Operation(summary = "기업 스팟 정보 조회", description = "기업 상세 스팟을 조회한다.")
+    @GetMapping("/{groupId}/spots")
+    public ResponseMessage getSpotList(@PathVariable BigInteger groupId, Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .message("기업 상세 스팟을 조회했습니다.")
+                .data(groupService.getSpots(groupId, securityUser))
+                .build();
+    }
+
 }

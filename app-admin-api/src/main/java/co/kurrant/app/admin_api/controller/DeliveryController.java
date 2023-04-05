@@ -22,10 +22,10 @@ public class DeliveryController {
     @GetMapping("")
     public ResponseMessage getDeliverySchedule(@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate,
                                                @RequestParam(required = false) List<BigInteger> groupIds, @RequestParam(required = false) List<BigInteger> spotIds,
-                                               @RequestParam(required = false) String isDefault) {
+                                               @RequestParam(required = false) Integer isAll) {
         return ResponseMessage.builder()
                 .message(startDate + " ~ " + endDate + "사이의 배송 현황을 조회했습니다.")
-                .data(deliveryService.getDeliverySchedule(startDate, endDate, groupIds, spotIds, isDefault))
+                .data(deliveryService.getDeliverySchedule(startDate, endDate, groupIds, spotIds, isAll))
                 .build();
     }
 }

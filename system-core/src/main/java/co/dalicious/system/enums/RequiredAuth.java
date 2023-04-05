@@ -10,7 +10,9 @@ public enum RequiredAuth {
     FIND_ID("2"),
     FIND_PASSWORD("3"),
     MYPAGE_CHANGE_PHONE_NUMBER("4"),
-    MYPAGE_SETTING_EMAIL_AND_PASSWORD("5");
+    MYPAGE_SETTING_EMAIL_AND_PASSWORD("5"),
+    PAYMENT_PASSWORD_CHECK("6"),
+    PAYMENT_PASSWORD_CREATE("7");
 
     private final String id;
 

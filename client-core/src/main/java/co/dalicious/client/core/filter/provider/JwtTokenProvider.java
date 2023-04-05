@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
@@ -41,7 +42,7 @@ public class JwtTokenProvider {
     private final UserDetailsService userDetailsService;
 
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 2 * 60 * 60 * 1000L; // 2시간
-//    private static final long ACCESS_TOKEN_EXPIRE_TIME = 3 * 60 * 1000L; // 5초
+//    private static final long ACCESS_TOKEN_EXPIRE_TIME = 3 * 60 * 1000L; // 3분
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
 
     @PostConstruct
@@ -62,11 +63,13 @@ public class JwtTokenProvider {
         String accessToken = Jwts.builder().setClaims(claims) // 데이터
                 .setIssuedAt(now) // 토큰 발행일자
                 .setExpiration(accessTokenExpiredIn) // set Expire Time
+                .setId(UUID.randomUUID().toString())
                 .signWith(key, SignatureAlgorithm.HS256) // 암호화 알고리즘, secret값 세팅
                 .compact();
 
         String refreshToken = Jwts.builder()
                 .setExpiration(refreshTokenExpiredIn)
+                .setId(UUID.randomUUID().toString())
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -76,6 +79,7 @@ public class JwtTokenProvider {
                 .refreshToken(refreshToken)
                 .build();
         refreshTokenRepository.save(refreshTokenHash);
+
         return LoginTokenDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.dto;
 
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.system.enums.DiningType;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,11 @@ public class DiningTypeServiceDateDto {
     public DiningTypeServiceDateDto(LocalDate serviceDate, DiningType diningType) {
         this.serviceDate = serviceDate;
         this.diningType = diningType;
+    }
+
+    public DiningTypeServiceDateDto(DailyFood dailyFood) {
+        this.serviceDate = dailyFood.getServiceDate();
+        this.diningType = dailyFood.getDiningType();
     }
 
     public boolean equals(Object obj) {

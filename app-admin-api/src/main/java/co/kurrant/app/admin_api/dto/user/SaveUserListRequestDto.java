@@ -23,5 +23,6 @@ public class SaveUserListRequestDto {
     private Boolean marketingAgree;
     private Boolean marketingAlarm;
     private Boolean orderAlarm;
+    private String paymentPassword;
 
 }
