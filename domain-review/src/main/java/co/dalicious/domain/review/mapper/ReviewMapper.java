@@ -98,6 +98,7 @@ public interface ReviewMapper {
     @Mapping(target = "createdDate", expression = "java(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()))")
     @Mapping(source = "reviews.content", target = "content")
     @Mapping(target = "isReport", expression = "java(reviews.getIsReports() == null || !reviews.getIsReports() ? false : true)")
+    @Mapping(source = "reviews.user.name", target = "writer")
     ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
 
     default ReviewAdminResDto.ReviewDetail toReviewDetails(Reviews reviews) {
@@ -110,7 +111,7 @@ public interface ReviewMapper {
         reviewDetail.setContentOrigin(reviews.getContentOrigin());
         reviewDetail.setSatisfactionOrigin(reviews.getSatisfactionOrigin());
         reviewDetail.setForMakers(reviews.getForMakers());
-        reviewDetail.setUserName(reviews.getUser().getName());
+        reviewDetail.setWriter(reviews.getUser().getName());
         reviewDetail.setFoodName(reviews.getFood().getName());
         reviewDetail.setMakersComment(getMakersComment(reviews.getComments()));
         reviewDetail.setAdminComment(getAdminComment(reviews.getComments()));
