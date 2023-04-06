@@ -365,6 +365,10 @@ public class User {
         return Role.ADMIN.equals(this.role);
     }
 
+    public void updatePaymentPassword(String paymentPassword) {
+        this.paymentPassword = paymentPassword;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

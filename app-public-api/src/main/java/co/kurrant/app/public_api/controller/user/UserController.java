@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
@@ -145,52 +146,6 @@ public class UserController {
                 .build();
     }
 
-    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
-    @PostMapping("/cards")
-    public ResponseMessage saveCreditCard(Authentication authentication,
-                                      @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
-        if (result == 2){
-            return ResponseMessage.builder()
-                    .message("같은 카드가 이미 등록되어 있습니다.")
-                    .build();
-        }
-        return ResponseMessage.builder()
-                .message("결제 카드 등록에 성공하셨습니다.")
-                .build();
-
-    }
-
-    @Operation(summary = "결제 카드 조회", description = "결제 카드를 조회한다.")
-    @GetMapping("/cards")
-    public ResponseMessage getCardList(Authentication authentication){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .message("결제 카드 목록 조회에 성공했습니다.")
-                .data(userService.getCardList(securityUser))
-                .build();
-    }
-
-    @Operation(summary = "디폴트타입 변경", description = "디폴트 타입을 변경한다")
-    @PatchMapping("/cards/setting")
-    public ResponseMessage patchDefaultCard(Authentication authentication, @RequestBody CreditCardDefaultSettingDto creditCardDefaultSettingDto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.patchDefaultCard(securityUser, creditCardDefaultSettingDto);
-        return ResponseMessage.builder()
-                .message("카드 디폴트타입 변경을 완료했습니다.")
-                .build();
-    }
-
-    @Operation(summary = "결제 카드 삭제", description = "결제 카드를 삭제한다.")
-    @PatchMapping("/cards")
-    public ResponseMessage deleteCard(@RequestBody DeleteCreditCardDto deleteCreditCardDto){
-        userService.deleteCard(deleteCreditCardDto);
-        return ResponseMessage.builder()
-                .message("결제 카드를 삭제 했습니다.")
-                .build();
-    }
-
     @Operation(summary = "이름변경", description = "로그인한 유저의 이름이 없을시(애플로그인) 이름을 설정한다.")
     @PostMapping("/setting/name")
     public ResponseMessage changeName(Authentication authentication ,@RequestBody ChangeNameDto changeNameDto){
@@ -228,6 +183,55 @@ public class UserController {
         userService.saveToken(fcmTokenSaveReqDto, securityUser);
         return ResponseMessage.builder()
                 .message("토큰 저장 성공!")
+                .build();
+    }
+
+    @Operation(summary = "이메일 가리기 유저인지 확인", description = "카드 등록시 이메일 가리기 유저인지 확인한다.")
+    @GetMapping("/check/hideEmail")
+    public ResponseMessage isHideEmail(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.isHideEmail(securityUser))
+                .message("이메일 가리기 유저 확인에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "첫번째 빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
+    @PostMapping("/cards/types/{typeId}")
+    public ResponseMessage createBillingKeyFirst(Authentication authentication, @PathVariable Integer typeId, @RequestBody BillingKeyDto billingKeyDto) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.createNiceBillingKeyFirst(securityUser, typeId, billingKeyDto))
+                .message("빌링키 발급에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "결제 카드 조회", description = "결제 카드를 조회한다.")
+    @GetMapping("/cards")
+    public ResponseMessage getCardList(Authentication authentication){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .message("결제 카드 목록 조회에 성공했습니다.")
+                .data(userService.getCardList(securityUser))
+                .build();
+    }
+
+    @Operation(summary = "디폴트타입 변경", description = "디폴트 타입을 변경한다")
+    @PatchMapping("/cards/setting")
+    public ResponseMessage patchDefaultCard(Authentication authentication, @RequestBody CreditCardDefaultSettingDto creditCardDefaultSettingDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.patchDefaultCard(securityUser, creditCardDefaultSettingDto);
+        return ResponseMessage.builder()
+                .message("카드 디폴트타입 변경을 완료했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "결제 카드 삭제", description = "결제 카드를 삭제한다.")
+    @PatchMapping("/cards")
+    public ResponseMessage deleteCard(@RequestBody DeleteCreditCardDto deleteCreditCardDto){
+        userService.deleteCard(deleteCreditCardDto);
+        return ResponseMessage.builder()
+                .message("결제 카드를 삭제 했습니다.")
                 .build();
     }
 
@@ -281,4 +285,22 @@ public class UserController {
                 .build();
     }
 
+
+
+//    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
+//    @PostMapping("/cards")
+//    public ResponseMessage saveCreditCard(Authentication authentication,
+//                                          @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
+//        SecurityUser securityUser = UserUtil.securityUser(authentication);
+//        Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
+//        if (result == 2){
+//            return ResponseMessage.builder()
+//                    .message("같은 카드가 이미 등록되어 있습니다.")
+//                    .build();
+//        }
+//        return ResponseMessage.builder()
+//                .message("결제 카드 등록에 성공하셨습니다.")
+//                .build();
+//
+//    }
 }

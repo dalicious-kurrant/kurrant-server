@@ -28,6 +28,7 @@ public class PointPolicyReqDto {
     @Setter
     public static class AddPointToUser{
         private List<BigInteger> userIdList;
+        private Integer pointStatus;
         private Integer rewardPoint;
     }
 }

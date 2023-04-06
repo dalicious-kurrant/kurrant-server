@@ -113,6 +113,8 @@ public interface ReviewMapper {
         reviewDetail.setForMakers(reviews.getForMakers());
         reviewDetail.setWriter(reviews.getUser().getName());
         reviewDetail.setFoodName(reviews.getFood().getName());
+        reviewDetail.setIsDelete(reviews.getIsDelete());
+        reviewDetail.setIsReport(reviews.getIsReports());
         reviewDetail.setMakersComment(getMakersComment(reviews.getComments()));
         reviewDetail.setAdminComment(getAdminComment(reviews.getComments()));
 
@@ -167,7 +169,7 @@ public interface ReviewMapper {
         else {
             ReviewMakersResDto.MakersComment makersComment = new ReviewMakersResDto.MakersComment();
             for(Comments comments : commentList) {
-                if(comments instanceof MakersComments makersComments) {
+                if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
                     makersComment.setCommentId(makersComments.getId());
                     makersComment.setContent(makersComments.getContent());
                 }

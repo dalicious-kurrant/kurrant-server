@@ -2,6 +2,7 @@ package co.dalicious.domain.user.repository;
 
 
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
@@ -146,11 +147,19 @@ public class QUserRepository {
                 .fetch();
     }
     
-    public void updateUserPoint(BigInteger userId, BigDecimal point) {
-        queryFactory.update(user)
-                .where(user.id.eq(userId))
-                .set(user.point, user.point.add(point))
-                .execute();
+    public void updateUserPoint(BigInteger userId, BigDecimal point, PointStatus pointStatus) {
+        if(PointStatus.rewardStatus().contains(pointStatus)) {
+            queryFactory.update(user)
+                    .where(user.id.eq(userId))
+                    .set(user.point, user.point.add(point))
+                    .execute();
+        }
+        else {
+            queryFactory.update(user)
+                    .where(user.id.eq(userId))
+                    .set(user.point, user.point.subtract(point))
+                    .execute();
+        }
     }
       
     public List<User> getUsersByEmails(List<String> emails) {

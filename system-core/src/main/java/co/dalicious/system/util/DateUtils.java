@@ -129,4 +129,9 @@ public class DateUtils {
 
         return String.format("%01d %02d:%02d", leftDay, hoursLeft, minutesLeft);
     }
+
+    public static String toISOLocalDateAndWeekOfDay(Timestamp ts) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd E", Locale.KOREA);
+        return sdf.format(ts);
+    }
 }
