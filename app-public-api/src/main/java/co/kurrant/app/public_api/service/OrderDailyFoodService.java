@@ -1,9 +1,8 @@
 package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.order.dto.*;
-import co.dalicious.domain.payment.dto.PaymentConfirmDto;
+import co.dalicious.domain.payment.dto.OrderCreateBillingKeySecondReqDto;
 import co.kurrant.app.public_api.model.SecurityUser;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -27,13 +26,9 @@ public interface OrderDailyFoodService {
 
     Object orderDailyFoodsNice(SecurityUser securityUser, OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException;
 
-    Object createNiceBillingKey(SecurityUser securityUser, OrderCreateBillingKeySecondReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException;
-
     void cancelOrderDailyFoodNice(SecurityUser securityUser, BigInteger id) throws IOException, ParseException;
 
     void cancelOrderItemDailyFoodNice(SecurityUser securityUser, BigInteger id) throws IOException, ParseException;
-
-    Object createNiceBillingKeyFirst(SecurityUser securityUser, OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException;
 
     void changingOrderItemOrderStatus(SecurityUser securityUser, BigInteger orderItemId);
 }
