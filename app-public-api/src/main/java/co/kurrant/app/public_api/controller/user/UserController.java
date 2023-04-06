@@ -145,8 +145,48 @@ public class UserController {
                 .build();
     }
 
+    @Operation(summary = "이름변경", description = "로그인한 유저의 이름이 없을시(애플로그인) 이름을 설정한다.")
+    @PostMapping("/setting/name")
+    public ResponseMessage changeName(Authentication authentication ,@RequestBody ChangeNameDto changeNameDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.changeName(securityUser, changeNameDto);
+        return ResponseMessage.builder()
+                .message("유저 이름이 변경되었습니다.")
+                .build();
+    }
+
+    @Operation(summary = "회원탈퇴 요청", description = "회원 탈퇴를 요청한다.")
+    @GetMapping("/withdrawal")
+    public ResponseMessage userWithdrawal(Authentication authentication){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.withdrawal(securityUser);
+        return ResponseMessage.builder()
+                .message("회원 탈퇴 요청이 되었습니다.")
+                .build();
+    }
+
+    @Operation(summary = "회원탈퇴 요청 취소", description = "회원 탈퇴를 요청을 취소한다.")
+    @GetMapping("/withdrawal/cancel")
+    public ResponseMessage userWithdrawalCancel(Authentication authentication){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.withdrawalCancel(securityUser);
+        return ResponseMessage.builder()
+                .message("회원 탈퇴 요청을 취소하였습니다.")
+                .build();
+    }
+
+    @PostMapping("/save/token")
+    @Operation(summary = "FCM 토큰 저장하기", description = "유저정보에 FCM토큰을 저장한다")
+    public ResponseMessage tokenSave(Authentication authentication, @RequestBody FcmTokenSaveReqDto fcmTokenSaveReqDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.saveToken(fcmTokenSaveReqDto, securityUser);
+        return ResponseMessage.builder()
+                .message("토큰 저장 성공!")
+                .build();
+    }
+
     @Operation(summary = "이메일 가리기 유저인지 확인", description = "카드 등록시 이메일 가리기 유저인지 확인한다.")
-    @PostMapping("/check/hideEmail")
+    @GetMapping("/check/hideEmail")
     public ResponseMessage isHideEmail(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
@@ -191,46 +231,6 @@ public class UserController {
         userService.deleteCard(deleteCreditCardDto);
         return ResponseMessage.builder()
                 .message("결제 카드를 삭제 했습니다.")
-                .build();
-    }
-
-    @Operation(summary = "이름변경", description = "로그인한 유저의 이름이 없을시(애플로그인) 이름을 설정한다.")
-    @PostMapping("/setting/name")
-    public ResponseMessage changeName(Authentication authentication ,@RequestBody ChangeNameDto changeNameDto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.changeName(securityUser, changeNameDto);
-        return ResponseMessage.builder()
-                .message("유저 이름이 변경되었습니다.")
-                .build();
-    }
-
-    @Operation(summary = "회원탈퇴 요청", description = "회원 탈퇴를 요청한다.")
-    @GetMapping("/withdrawal")
-    public ResponseMessage userWithdrawal(Authentication authentication){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.withdrawal(securityUser);
-        return ResponseMessage.builder()
-                .message("회원 탈퇴 요청이 되었습니다.")
-                .build();
-    }
-
-    @Operation(summary = "회원탈퇴 요청 취소", description = "회원 탈퇴를 요청을 취소한다.")
-    @GetMapping("/withdrawal/cancel")
-    public ResponseMessage userWithdrawalCancel(Authentication authentication){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.withdrawalCancel(securityUser);
-        return ResponseMessage.builder()
-                .message("회원 탈퇴 요청을 취소하였습니다.")
-                .build();
-    }
-
-    @PostMapping("/save/token")
-    @Operation(summary = "FCM 토큰 저장하기", description = "유저정보에 FCM토큰을 저장한다")
-    public ResponseMessage tokenSave(Authentication authentication, @RequestBody FcmTokenSaveReqDto fcmTokenSaveReqDto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.saveToken(fcmTokenSaveReqDto, securityUser);
-        return ResponseMessage.builder()
-                .message("토큰 저장 성공!")
                 .build();
     }
 

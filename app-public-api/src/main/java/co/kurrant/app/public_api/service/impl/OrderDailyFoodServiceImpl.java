@@ -106,17 +106,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderMembershipRepository orderMembershipRepository;
     private final OrderItemMembershipRepository orderItemMembershipRepository;
     private final MembershipSupportPriceRepository membershipSupportPriceRepository;
-    private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
-    private final QUserRepository qUserRepository;
-    private final CreditCardInfoMapper creditCardInfoMapper;
     private final FoundersMapper foundersMapper;
     private final FoundersUtil foundersUtil;
     private final OrderService orderService;
-    private final PasswordEncoder passwordEncoder;
     private final PointUtil pointUtil;
-
-    private final VerifyUtil verifyUtil;
     private final CartDailyFoodRepository cartDailyFoodRepository;
 
 

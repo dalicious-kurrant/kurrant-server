@@ -1,8 +1,6 @@
 package co.dalicious.domain.payment.service;
 
-import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDto;
-import co.dalicious.domain.user.entity.User;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;

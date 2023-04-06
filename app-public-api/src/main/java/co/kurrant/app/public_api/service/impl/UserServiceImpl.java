@@ -448,7 +448,8 @@ public class UserServiceImpl implements UserService {
         Optional<ProviderEmail> providerEmail = user.getProviderEmails().stream()
                 .filter(v -> v.getProvider().equals(Provider.GENERAL))
                 .findAny();
-        if(user.getEmail().contains("appleid") && providerEmail.isEmpty()) {
+
+        if(user.getEmail().contains("appleid")) {
             return 3;
         }
         else return 2;
@@ -462,13 +463,12 @@ public class UserServiceImpl implements UserService {
 
         PaymentPasswordStatus paymentPasswordStatus = PaymentPasswordStatus.ofCode(typeId);
 
-        // 결제 비밀번호가 6자리인지 확인
-        if (user.getPaymentPassword() == null || billingKeyDto.getPayNumber() == null || billingKeyDto.getPayNumber().equals("") || billingKeyDto.getPayNumber().length() != 6) {
-            throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
-        }
-
         // TYPE1: 결제 비밀번호가 등록이 된 유저
         if (paymentPasswordStatus.equals(PaymentPasswordStatus.HAS_PAYMENT_PASSWORD)) {
+            // 결제 비밀번호가 6자리인지 확인
+            if (user.getPaymentPassword() == null || billingKeyDto.getPayNumber() == null || billingKeyDto.getPayNumber().equals("") || billingKeyDto.getPayNumber().length() != 6) {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
             //결제 비밀번호 일치 확인
             if (!passwordEncoder.matches(billingKeyDto.getPayNumber(), user.getPaymentPassword())) {
                 throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
@@ -477,6 +477,10 @@ public class UserServiceImpl implements UserService {
 
         // TYPE2: 결제 비밀번호가 등록되지 않았으면서, 애플 유저가 아닌 경우
         if (paymentPasswordStatus.equals(PaymentPasswordStatus.NOT_HAVE_PAYMENT_PASSWORD_GENERAL)) {
+            // 결제 비밀번호가 6자리인지 확인
+            if (billingKeyDto.getPayNumber() == null || billingKeyDto.getPayNumber().equals("") || billingKeyDto.getPayNumber().length() != 6) {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
             // 이메일 인증을 하였는지 검증
             verifyUtil.isAuthenticated(user.getEmail(), RequiredAuth.PAYMENT_PASSWORD_CREATE);
 
@@ -487,6 +491,11 @@ public class UserServiceImpl implements UserService {
 
         // TYPE3: 결제 비밀번호가 등록되지 않았으면서, 애플 유저가 아닌 경우
         if (paymentPasswordStatus.equals(PaymentPasswordStatus.NOT_HAVE_PAYMENT_PASSWORD_AND_HIDE_EMAIL)) {
+            // 결제 비밀번호가 6자리인지 확인
+            if (billingKeyDto.getPayNumber() == null || billingKeyDto.getPayNumber().equals("") || billingKeyDto.getPayNumber().length() != 6) {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
+
             String email = billingKeyDto.getEmail();
 
             if (email == null || email.isEmpty()) {
