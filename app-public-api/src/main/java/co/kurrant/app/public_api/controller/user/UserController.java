@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.kurrant.app.public_api.dto.user.*;
@@ -144,21 +145,24 @@ public class UserController {
                 .build();
     }
 
-    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
-    @PostMapping("/cards")
-    public ResponseMessage saveCreditCard(Authentication authentication,
-                                      @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
+    @Operation(summary = "이메일 가리기 유저인지 확인", description = "카드 등록시 이메일 가리기 유저인지 확인한다.")
+    @PostMapping("/check/hideEmail")
+    public ResponseMessage isHideEmail(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
-        if (result == 2){
-            return ResponseMessage.builder()
-                    .message("같은 카드가 이미 등록되어 있습니다.")
-                    .build();
-        }
         return ResponseMessage.builder()
-                .message("결제 카드 등록에 성공하셨습니다.")
+                .data(userService.isHideEmail(securityUser))
+                .message("이메일 가리기 유저 확인에 성공하였습니다.")
                 .build();
+    }
 
+    @Operation(summary = "첫번째 빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
+    @PostMapping("/cards/types/{typeId}")
+    public ResponseMessage createBillingKeyFirst(Authentication authentication, @PathVariable Integer typeId, @RequestBody BillingKeyDto billingKeyDto) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.createNiceBillingKeyFirst(securityUser, typeId, billingKeyDto))
+                .message("빌링키 발급에 성공하였습니다.")
+                .build();
     }
 
     @Operation(summary = "결제 카드 조회", description = "결제 카드를 조회한다.")
@@ -240,7 +244,7 @@ public class UserController {
                 .build();
     }
 
-    @PostMapping("/payment/password/check")
+    @PostMapping("/payment/password/check")                                                           
     @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
     public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
@@ -269,4 +273,22 @@ public class UserController {
                 .message("결제 비밀번호 재설정 성공!")
                 .build();
     }
+
+
+//    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
+//    @PostMapping("/cards")
+//    public ResponseMessage saveCreditCard(Authentication authentication,
+//                                          @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
+//        SecurityUser securityUser = UserUtil.securityUser(authentication);
+//        Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
+//        if (result == 2){
+//            return ResponseMessage.builder()
+//                    .message("같은 카드가 이미 등록되어 있습니다.")
+//                    .build();
+//        }
+//        return ResponseMessage.builder()
+//                .message("결제 카드 등록에 성공하셨습니다.")
+//                .build();
+//
+//    }
 }
