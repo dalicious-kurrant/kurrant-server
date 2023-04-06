@@ -94,6 +94,6 @@ public class PointServiceImpl implements PointService {
         pointResponseDto = PointResponseDto.create(user.getPoint(), pointHistoryDtoList);
 
         return ItemPageableResponseDto.<PointResponseDto>builder().items(pointResponseDto).count(pointHistoryPage.getNumberOfElements())
-                .total(pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).build();
+                .total(pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).isLast(pointHistoryPage.isLast()).build();
     }
 }
