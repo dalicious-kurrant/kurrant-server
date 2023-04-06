@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.controller.user;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserService;
@@ -269,4 +270,15 @@ public class UserController {
                 .message("결제 비밀번호 재설정 성공!")
                 .build();
     }
+
+    @PostMapping("/preference")
+    @Operation(summary = "회원 정보 입력", description = "회원 정보 입력 저장")
+    public ResponseMessage userPreferenceSave(Authentication authentication, @RequestBody UserPreferenceDto userPreferenceDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String message = userService.userPreferenceSave(securityUser, userPreferenceDto);
+        return ResponseMessage.builder()
+                .message(message)
+                .build();
+    }
+
 }

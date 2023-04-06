@@ -5,6 +5,7 @@ import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
+import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -68,4 +69,6 @@ public interface UserService {
     Boolean isPaymentPassword(SecurityUser securityUser);
 
     void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto);
+
+    String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto);
 }
