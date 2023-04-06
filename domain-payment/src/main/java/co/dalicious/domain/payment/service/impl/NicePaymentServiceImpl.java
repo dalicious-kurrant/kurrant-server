@@ -30,7 +30,7 @@ public class NicePaymentServiceImpl implements PaymentService {
 
         response.setBillingKey((String) jsonObject.get("customer_uid"));
         response.setCustomerKey((String) jsonObject.get("customer_id"));
-        response.setCardNumber(returnedCardNumber.substring(0, 8));
+        response.setCardNumber(returnedCardNumber);
         response.setCardCompany((String) jsonObject.get("card_name"));
 
         return response;
