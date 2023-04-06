@@ -12,6 +12,7 @@ import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
+import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
 import co.kurrant.app.admin_api.dto.user.UserInfoResponseDto;
@@ -51,6 +52,7 @@ public class UserServiceImpl implements UserService {
     private final UserGroupRepository userGroupRepository;
     private final ProviderEmailRepository providerEmailRepository;
     private final UserSpotRepository userSpotRepository;
+    private final UserValidator userValidator;
 
 
     @Override
@@ -142,6 +144,17 @@ public class UserServiceImpl implements UserService {
                 String password = passwordEncoder.encode(saveUserListRequestDto.getPassword());
                 user.changePassword(password);
             }
+
+            //결제 비밀번호에 데이터가 없을 경우
+            if (saveUserListRequestDto.getPaymentPassword() == null || saveUserListRequestDto.getPaymentPassword().isEmpty()){
+                user.changePaymentPassword(null);
+            }
+            // 결제 비밀번호가 변경 되었을 경우
+            else if ( !saveUserListRequestDto.getPaymentPassword().equals(user.getPaymentPassword())){
+                String paymentPassword = passwordEncoder.encode(saveUserListRequestDto.getPaymentPassword());
+                user.changePaymentPassword(paymentPassword);
+            }
+
             // 그룹 변경
             List<String> groupsName = Optional.ofNullable(saveUserListRequestDto.getGroupName())
                     .map(name -> Arrays.stream(name.split(","))
@@ -226,8 +239,13 @@ public class UserServiceImpl implements UserService {
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
                     .phone(createUserDto.getPhone())
                     .name(createUserDto.getName())
-                    .role(createUserDto.getRole() == null ? Role.USER : Role.ofRoleName(createUserDto.getRole())).build();
+                    .role(createUserDto.getRole() == null ? Role.USER : Role.ofRoleName(createUserDto.getRole()))
+                    .paymentPassword((createUserDto.getPaymentPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPaymentPassword())).build();
+
             User user = userRepository.save(userMapper.toEntity(userDto));
+            if (user.isAdmin() && userValidator.adminExists()) {
+                throw new ApiException(ExceptionEnum.ADMIN_USER_SHOULD_BE_UNIQUE);
+            }
             user.updatePoint(BigDecimal.valueOf(createUserDto.getPoint() == null ? 0 : createUserDto.getPoint()));
             user.changeMarketingAgreement(createUserDto.getMarketingAgree(), createUserDto.getMarketingAlarm(), createUserDto.getOrderAlarm());
 

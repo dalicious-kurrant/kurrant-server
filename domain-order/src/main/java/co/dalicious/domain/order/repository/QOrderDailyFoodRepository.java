@@ -1,54 +1,74 @@
 package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
-import co.dalicious.domain.order.entity.Order;
+import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
-import co.dalicious.domain.payment.entity.enums.PaymentCompany;
+import co.dalicious.domain.order.util.OrderUtil;
+import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.enums.DiningType;
-import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.PeriodDto;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+import javax.persistence.EntityManager;
 import java.math.BigInteger;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import static co.dalicious.domain.client.entity.QGroup.group;
-import static co.dalicious.domain.client.entity.QSpot.spot;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;
-import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
-import static com.querydsl.core.group.GroupBy.sum;
+
 
 
 @Repository
 @RequiredArgsConstructor
 public class QOrderDailyFoodRepository {
 
-    public final JPAQueryFactory queryFactory;
+    private final JPAQueryFactory queryFactory;
+    private final EntityManager entityManager;
+
+    public List<OrderItemDailyFood> findExtraOrdersByManagerId(List<BigInteger> userIds, LocalDate startDate, LocalDate endDate) {
+        BooleanExpression whereClause = orderDailyFood.user.id.in(userIds);
+        if (startDate != null) {
+            whereClause = whereClause.and(orderItemDailyFood.dailyFood.serviceDate.goe(startDate));
+        }
+
+        if (endDate != null) {
+            whereClause = whereClause.and(orderItemDailyFood.dailyFood.serviceDate.loe(endDate));
+        }
+
+        whereClause = whereClause.and(orderDailyFood.orderType.eq(OrderType.DAILYFOOD));
+        whereClause = whereClause.and(orderDailyFood.paymentType.eq(PaymentType.SUPPORT_PRICE));
+
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .innerJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .where(whereClause)
+                .orderBy(orderItemDailyFood.dailyFood.serviceDate.desc())
+                .fetch();
+    }
     public List<OrderItemDailyFood> findByUserAndServiceDateBetween(User user, LocalDate startDate, LocalDate endDate) {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
@@ -220,7 +240,72 @@ public class QOrderDailyFoodRepository {
         return count;
     }
 
-    public List<CapacityDto.MakersCapacity> getMakersCounts(List<DailyFood> selectedDailyFoods) {
+    public ServiceDateBy.MakersAndFood getMakersCounts(List<DailyFood> dailyFoods) {
+        Map<ServiceDateBy.Makers, Integer> makersIntegerMap = new HashMap<>();
+        Map<ServiceDateBy.Food, Integer> foodIntegerMap = new HashMap<>();
+        Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
+        Set<Makers> makersSet = new HashSet<>();
+
+        for (DailyFood dailyFood : dailyFoods) {
+            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(dailyFood);
+            diningTypeServiceDateDtos.add(diningTypeServiceDateDto);
+            makersSet.add(dailyFood.getFood().getMakers());
+        }
+
+        // 기간 구하기
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+
+        List<OrderItemDailyFood> orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .innerJoin(dailyFood.food, food)
+                .innerJoin(food.makers, makers)
+                .where(makers.in(makersSet),
+                        dailyFood.serviceDate.goe(periodDto.getStartDate()),
+                        dailyFood.serviceDate.loe(periodDto.getEndDate()),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .fetch();
+
+        MultiValueMap<ServiceDateBy.Makers, OrderItemDailyFood> makersOrderMap = new LinkedMultiValueMap<>();
+        MultiValueMap<ServiceDateBy.Food, OrderItemDailyFood> foodOrderMap = new LinkedMultiValueMap<>();
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            ServiceDateBy.Makers makersDto = new ServiceDateBy.Makers();
+            makersDto.setDiningType(orderItemDailyFood.getDailyFood().getDiningType());
+            makersDto.setServiceDate(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate());
+            makersDto.setMakers(orderItemDailyFood.getDailyFood().getFood().getMakers());
+            makersOrderMap.add(makersDto, orderItemDailyFood);
+
+            ServiceDateBy.Food foodDto = new ServiceDateBy.Food();
+            foodDto.setDiningType(orderItemDailyFood.getDailyFood().getDiningType());
+            foodDto.setServiceDate(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate());
+            foodDto.setFood(orderItemDailyFood.getDailyFood().getFood());
+            foodOrderMap.add(foodDto, orderItemDailyFood);
+        }
+
+        for (ServiceDateBy.Makers makers1 : makersOrderMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoodList = makersOrderMap.get(makers1);
+            Integer count = 0;
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
+                count += orderItemDailyFood.getCount();
+            }
+            makersIntegerMap.put(makers1, count);
+        }
+
+        for (ServiceDateBy.Food food1 : foodOrderMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoodList = foodOrderMap.get(food1);
+            Integer count = 0;
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
+                count += orderItemDailyFood.getCount();
+            }
+            foodIntegerMap.put(food1, count);
+        }
+        ServiceDateBy.MakersAndFood makersAndFood = new ServiceDateBy.MakersAndFood();
+        makersAndFood.setMakersCountMap(makersIntegerMap);
+        makersAndFood.setFoodCountMap(foodIntegerMap);
+
+        return makersAndFood;
+    }
+
+    public List<CapacityDto.MakersCapacity> getMakersCounts(List<DailyFood> selectedDailyFoods, Set<Makers> makers) {
         List<CapacityDto.MakersCapacity> makersCapacities = new ArrayList<>();
         List<Makers> selectedMakers = new ArrayList<>();
         List<LocalDate> selectedServiceDate = new ArrayList<>();
@@ -232,28 +317,33 @@ public class QOrderDailyFoodRepository {
             selectedDiningTypes.add(selectedDailyFood.getDiningType());
         }
 
-        List<Tuple> result = queryFactory.select(orderItemDailyFood.dailyFood.serviceDate,
-                        orderItemDailyFood.dailyFood.diningType,
-                        food.makers,
-                        sum(orderItemDailyFood.count))
-                .from(orderItemDailyFood)
-                .join(orderItemDailyFood.dailyFood, dailyFood)
-                .join(dailyFood.food, food)
-                .where(food.makers.in(selectedMakers),
-                        dailyFood.serviceDate.in(selectedServiceDate),
-                        dailyFood.diningType.in(selectedDiningTypes),
-                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
-                .groupBy(orderItemDailyFood.dailyFood.serviceDate,
-                        orderItemDailyFood.dailyFood.diningType,
-                        food.makers)
-                .fetch();
+        String nativeQuery = "SELECT f.service_date, f.e_dining_type, makers_id, sum(oid.count) " +
+                "FROM order__order_item_dailyfood oid " +
+                "LEFT JOIN food__daily_food f ON f.id = oid.daily_food_id " +
+                "LEFT JOIN food__food ff ON ff.id = f.food_id " +
+                "LEFT JOIN order__order_item oi ON oi.id = oid.id " +
+                "WHERE f.service_date IN :serviceDates " +
+                "AND f.e_dining_type IN :diningTypes " +
+                "AND makers_id IN :makersIds " +
+                "AND oi.e_order_status IN :orderStatus " +
+                "GROUP BY f.service_date, f.e_dining_type, makers_id";
 
-        for (Tuple tuple : result) {
-            LocalDate serviceDate = tuple.get(orderItemDailyFood.dailyFood.serviceDate);
-            DiningType diningType = tuple.get(orderItemDailyFood.dailyFood.diningType);
-            Makers makers = tuple.get(food.makers);
-            Integer capacity = tuple.get(sum(orderItemDailyFood.count));
-            makersCapacities.add(new CapacityDto.MakersCapacity(serviceDate, diningType, makers, capacity));
+        @SuppressWarnings("unchecked")
+        List<Object[]> result = entityManager.createNativeQuery(nativeQuery)
+                .setParameter("serviceDates", selectedServiceDate)
+                .setParameter("diningTypes", selectedDiningTypes.stream().map(DiningType::getCode).toList())
+                .setParameter("makersIds", selectedMakers.stream().map(Makers::getId).toList())
+                .setParameter("orderStatus", OrderStatus.completePayment().stream().map(OrderStatus::getCode).toList())
+                .getResultList();
+
+        for (Object[] tuple : result) {
+            LocalDate serviceDate = ((Date) tuple[0]).toLocalDate();
+            DiningType diningType = DiningType.values()[(int) tuple[1]];
+            Makers maker = makers.stream()
+                    .filter(v -> v.getId().equals(tuple[2]))
+                    .findAny().orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+            Integer capacity = ((Number) tuple[3]).intValue();
+            makersCapacities.add(new CapacityDto.MakersCapacity(serviceDate, diningType, maker, capacity));
         }
 
         return makersCapacities;

@@ -3,6 +3,7 @@ package co.dalicious.domain.user.repository;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -35,11 +36,37 @@ public class QPointHistoryRepository {
     }
 
     public Page<PointHistory> findAllPointHistory(User user, Integer limit, Integer page, Pageable pageable) {
-        int offset = limit - (page -1);
+        int offset = limit * (page -1);
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.valueOf(0)))
-                .orderBy(pointHistory.createdDateTime.desc())
+                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
+                .orderBy(pointHistory.id.desc())
+                .limit(limit)
+                .offset(offset)
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public Page<PointHistory> findAllPointHistoryByRewardStatus(User user, Integer limit, Integer page, Pageable pageable) {
+        int offset = limit * (page -1);
+
+        QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
+                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.rewardStatus()))
+                .orderBy(pointHistory.id.desc())
+                .limit(limit)
+                .offset(offset)
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public Page<PointHistory> findAllPointHistoryByUseStatus(User user, Integer limit, Integer page, Pageable pageable) {
+        int offset = limit * (page -1);
+
+        QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
+                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.eq(PointStatus.USED))
+                .orderBy(pointHistory.id.desc())
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();

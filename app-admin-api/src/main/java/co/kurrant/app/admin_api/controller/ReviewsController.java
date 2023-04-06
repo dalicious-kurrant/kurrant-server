@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.review.dto.CommentReqDto;
+import co.kurrant.app.admin_api.dto.IdDto;
 import co.kurrant.app.admin_api.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -60,8 +61,8 @@ public class ReviewsController {
 
     @Operation(summary = "리뷰 삭제", description = "리뷰를 삭제 상태로 변경합니다.")
     @PatchMapping("/delete")
-    public ResponseMessage deleteReview(@RequestParam BigInteger reviewId) {
-        reviewService.deleteReview(reviewId);
+    public ResponseMessage deleteReview(@RequestBody IdDto idDto) {
+        reviewService.deleteReview(idDto.getId());
         return ResponseMessage.builder()
                 .message("리뷰 삭제에 성공했습니다.")
                 .build();
@@ -69,8 +70,8 @@ public class ReviewsController {
 
     @Operation(summary = "리뷰 신고", description = "리뷰를 신고 상태로 변경합니다.")
     @PatchMapping("/report")
-    public ResponseMessage reportReview(@RequestParam BigInteger reviewId) {
-        reviewService.reportReview(reviewId);
+    public ResponseMessage reportReview(@RequestBody IdDto idDto) {
+        reviewService.reportReview(idDto.getId());
         return ResponseMessage.builder()
                 .message("리뷰 신고에 성공했습니다.")
                 .build();
@@ -79,8 +80,8 @@ public class ReviewsController {
     @Operation(summary = "댓글 삭제", description = "댓글을 삭제합니다.")
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("/comment/delete")
-    public ResponseMessage deleteComment(@RequestParam BigInteger commentId) {
-        reviewService.deleteComment(commentId);
+    public ResponseMessage deleteComment(@RequestBody IdDto idDto) {
+        reviewService.deleteComment(idDto.getId());
         return ResponseMessage.builder()
                 .message("댓글 삭제를 완료했습니다.")
                 .build();

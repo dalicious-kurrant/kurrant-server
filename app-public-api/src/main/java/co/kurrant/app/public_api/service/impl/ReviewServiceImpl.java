@@ -9,6 +9,7 @@ import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.QOrderItemRepository;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.review.dto.*;
 import co.dalicious.domain.review.entity.Reviews;
@@ -35,6 +36,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -105,11 +108,11 @@ public class ReviewServiceImpl implements ReviewService {
         qReviewRepository.updateDefault(reviews);
 
         // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
-        if(reviewsList != null && !reviewsList.isEmpty() && (user.getIsMembership() || membershipDiscountRate != 0)) {
+        if(user.getIsMembership() || membershipDiscountRate != 0) {
             //음식 수량 많큼 포인트 지급
             BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice(), count);
             qUserRepository.updateUserPoint(user.getId(), rewardPoint);
-            if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByReview(user, reviews.getId(), rewardPoint);
+            if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByOthers(user, reviews.getId(), PointStatus.REVIEW_REWARD, rewardPoint);
         }
     }
 
@@ -117,19 +120,19 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional(readOnly = true)
     public ReviewableItemResDto getOrderItemForReview(SecurityUser securityUser) throws ParseException {
         User user = userUtil.getUser(securityUser);
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDateTime today = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         //리뷰 가능한 상품이 있는 지 확인 - 유저 구매했고, 이미 수령을 완료한 식단
-        List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatusBeforeToday(user, OrderStatus.RECEIPT_COMPLETE, today);
+        List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatusBeforeToday(user, OrderStatus.RECEIPT_COMPLETE, today.toLocalDate());
         List<ReviewableItemResDto.OrderFood> orderFoodList = new ArrayList<>();
         BigDecimal redeemablePoints = BigDecimal.ZERO;
-        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList, redeemablePoints); }
+        if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList, redeemablePoints, 0); }
 
         // 이미 리뷰가 작성된 아이템 예외
         List<Reviews> reviewsList = qReviewRepository.findAllByUserAndOrderItem(user, receiptCompleteItem);
         List<OrderItem> reviewOrderItem = reviewsList.stream().map(Reviews::getOrderItem).filter(receiptCompleteItem::contains).toList();
 
-        Map<LocalDate, Long> leftDayMap = new HashMap<>();
+        Map<LocalDate, String> leftDayMap = new HashMap<>();
         MultiValueMap<LocalDate, OrderItemDailyFood> orderItemDailyFoodByServiceDateMap = new LinkedMultiValueMap<>();
         for(OrderItem item : receiptCompleteItem) {
 
@@ -138,17 +141,22 @@ public class ReviewServiceImpl implements ReviewService {
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
                 LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
                 //리뷰 가능일 구하기
-                LocalDate reviewableDate = serviceDate.plusDays(5);
+                LocalDateTime reviewableDate = serviceDate.plusDays(5).atTime(LocalTime.MAX);
                 //리뷰 작성 가능일이 이미 지났으면 패스
                 if(reviewableDate.isBefore(today)) continue;
 
                 orderItemDailyFoodByServiceDateMap.add(serviceDate, orderItemDailyFood);
 
                 // d-day 구하기
-                String reviewableString = DateUtils.localDateToString(reviewableDate);
-                String todayString = DateUtils.localDateToString(today);
-                long leftDay = DateUtils.calculatedDDay(reviewableString, todayString);
+                String leftDayAndTime = DateUtils.calculatedDDayAndTime(reviewableDate);
+                String day = leftDayAndTime.split(" ")[0];
+                String time = leftDayAndTime.split(" ")[1];
 
+                String leftDay;
+                if(day.equals("0")) leftDay = time;
+                else leftDay = day;
+
+                // 적립 가능한 포인트 조회
                 BigDecimal itemPrice = orderItemDailyFood.getDailyFood().getFood().getPrice();
                 int count = orderItemDailyFood.getCount();
                 redeemablePoints = redeemablePoints.add(pointUtil.findReviewPoint(true, itemPrice, count));
@@ -157,15 +165,17 @@ public class ReviewServiceImpl implements ReviewService {
             }
         }
 
+        int size = 0;
         for(LocalDate serviceDate : orderItemDailyFoodByServiceDateMap.keySet()) {
             List<OrderItemDailyFood> orderItemList = orderItemDailyFoodByServiceDateMap.get(serviceDate);
 
             List<ReviewableItemListDto> reviewableItemListDtoList = new ArrayList<>();
             for(OrderItemDailyFood item : Objects.requireNonNull(orderItemList)) {
-                Long leftDay = leftDayMap.get(serviceDate);
+                String leftDay = leftDayMap.get(serviceDate);
 
                 ReviewableItemListDto responseDto = reviewMapper.toDailyFoodResDto(item, leftDay);
                 reviewableItemListDtoList.add(responseDto);
+                size++;
             }
             reviewableItemListDtoList = reviewableItemListDtoList.stream().sorted(Comparator.comparing(ReviewableItemListDto::getDiningType).reversed()).toList();
 
@@ -174,8 +184,9 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
+        //TODO: sse 보내기
 
-        return ReviewableItemResDto.create(orderFoodList, redeemablePoints);
+        return ReviewableItemResDto.create(orderFoodList, redeemablePoints, size);
     }
 
     @Override

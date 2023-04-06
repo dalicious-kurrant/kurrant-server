@@ -64,9 +64,6 @@ public class DailyFoodSupportPrice {
     @Comment("지원금 사용 취소 유무 (1. 차감 2. 환불)")
     private MonetaryStatus monetaryStatus;
 
-    @Comment("지원금 사용처")
-    private String SupportPriceUsage;
-
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")

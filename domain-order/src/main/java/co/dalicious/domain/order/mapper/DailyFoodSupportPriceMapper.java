@@ -16,7 +16,7 @@ import org.mapstruct.Named;
 import java.math.BigDecimal;
 
 @Mapper(componentModel = "spring", imports = PriceUtils.class)
-public interface UserSupportPriceHistoryReqMapper {
+public interface DailyFoodSupportPriceMapper {
     @Mapping(source = "orderItemDailyFood.order.user", target = "user")
     @Mapping(source = "orderItemDailyFood.order", target = "group", qualifiedByName = "getGroup")
     @Mapping(source = "supportPrice", target = "usingSupportPrice")

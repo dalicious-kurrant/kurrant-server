@@ -8,7 +8,7 @@ import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.mapper.OrderMembershipMapper;
 import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
-import co.dalicious.domain.order.mapper.UserSupportPriceHistoryReqMapper;
+import co.dalicious.domain.order.mapper.DailyFoodSupportPriceMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.service.OrderService;
@@ -53,8 +53,8 @@ import java.util.Optional;
 @Transactional
 public class OrderServiceImpl implements OrderService {
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
-    private final UserSupportPriceHistoryRepository userSupportPriceHistoryRepository;
-    private final UserSupportPriceHistoryReqMapper userSupportPriceHistoryReqMapper;
+    private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
+    private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
     private final MembershipRepository membershipRepository;
     private final OrderMembershipMapper orderMembershipMapper;
     private final OrderMembershipRepository orderMembershipRepository;
@@ -85,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
             OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) Hibernate.unproxy(orderItem);
             // 상태값이 이미 7L(취소)인지 확인
             if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
-                throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
+                continue;
             }
 
             if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
@@ -104,9 +104,9 @@ public class OrderServiceImpl implements OrderService {
                 for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
                     dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
                 }
-                DailyFoodSupportPrice dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+                DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
                 if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                    userSupportPriceHistoryRepository.save(dailyFoodSupportPrice);
+                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
                 }
             }
 
@@ -115,7 +115,7 @@ public class OrderServiceImpl implements OrderService {
                 PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
                 paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
                 // 환불 포인트 내역 남기기
-                pointUtil.createPointHistoryByOrder(user, order.getId(), paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
+                pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
             }
             orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
 
@@ -169,9 +169,9 @@ public class OrderServiceImpl implements OrderService {
             for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
                 dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
             }
-            DailyFoodSupportPrice dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+            DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
             if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                userSupportPriceHistoryRepository.save(dailyFoodSupportPrice);
+                dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
             }
         }
 
@@ -180,7 +180,7 @@ public class OrderServiceImpl implements OrderService {
             PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
             paymentCancelHistoryRepository.save(paymentCancelHistory);
             // 환불 포인트 내역 남기기
-            pointUtil.createPointHistoryByOrder(user, order.getId(), paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
+            pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
         }
 
         user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
@@ -284,6 +284,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void cancelOrderDailyFoodNice(OrderDailyFood order, User user) throws IOException, ParseException {
         BigDecimal price = BigDecimal.ZERO;
         BigDecimal deliveryFee = BigDecimal.ZERO;
@@ -294,9 +295,9 @@ public class OrderServiceImpl implements OrderService {
 
         for (OrderItem orderItem : order.getOrderItems()) {
             OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) Hibernate.unproxy(orderItem);
-            // 상태값이 이미 7L(취소)인지 확인
+            // 상태값이 이미 7L(취소)라면 건너뛰기.
             if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
-                throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
+                continue;
             }
 
             if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
@@ -315,9 +316,9 @@ public class OrderServiceImpl implements OrderService {
                 for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
                     dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
                 }
-                DailyFoodSupportPrice dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+                DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
                 if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                    userSupportPriceHistoryRepository.save(dailyFoodSupportPrice);
+                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
                 }
             }
 
@@ -326,7 +327,7 @@ public class OrderServiceImpl implements OrderService {
                 PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
                 paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
                 // 환불 포인트 내역 남기기
-                pointUtil.createPointHistoryByOrder(user, order.getId(), paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
+                pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
             }
             orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
 
@@ -381,9 +382,9 @@ public class OrderServiceImpl implements OrderService {
             for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
                 dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
             }
-            DailyFoodSupportPrice dailyFoodSupportPrice = userSupportPriceHistoryReqMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+            DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
             if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                userSupportPriceHistoryRepository.save(dailyFoodSupportPrice);
+                dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
             }
         }
 
@@ -392,7 +393,7 @@ public class OrderServiceImpl implements OrderService {
             PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFoodNice(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
             paymentCancelHistoryRepository.save(paymentCancelHistory);
             // 환불 포인트 내역 남기기
-            pointUtil.createPointHistoryByOrder(user, order.getId(), paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
+            pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
         }
 
         user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
@@ -404,6 +405,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void payMembershipNice(User user, MembershipSubscriptionType membershipSubscriptionType, PeriodDto periodDto, PaymentType paymentType) throws IOException, ParseException {
         BigDecimal defaultPrice = membershipSubscriptionType.getPrice();
         BigDecimal yearDescriptionDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, membershipSubscriptionType.getDiscountRate());
