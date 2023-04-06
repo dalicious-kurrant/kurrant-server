@@ -117,6 +117,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PointUtil pointUtil;
 
     private final VerifyUtil verifyUtil;
+    private final CartDailyFoodRepository cartDailyFoodRepository;
 
 
     @Override
@@ -228,15 +229,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (foodCountDto.getRemainCount() - cartDailyFood.getCount() < 0) {
                     throw new ApiException(ExceptionEnum.OVER_ITEM_CAPACITY);
                 }
-                if (foodCountDto.getRemainCount() - cartDailyFood.getCount() == 0 ) {
-                    if(foodCountDto.getIsFollowingMakersCapacity()) {
+                if (foodCountDto.getRemainCount() - cartDailyFood.getCount() == 0) {
+                    if (foodCountDto.getIsFollowingMakersCapacity()) {
                         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByMakersAndServiceDateAndDiningType(selectedCartDailyFood.getDailyFood().getFood().getMakers(),
                                 selectedCartDailyFood.getDailyFood().getServiceDate(), selectedCartDailyFood.getDailyFood().getDiningType());
                         for (DailyFood dailyFood : dailyFoods) {
                             dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
                         }
-                    }
-                    else {
+                    } else {
                         selectedCartDailyFood.getDailyFood().updateFoodStatus(DailyFoodStatus.SOLD_OUT);
                     }
                 }
@@ -247,10 +247,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                 if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
                     DailyFoodSupportPrice dailyFoodSupportPrice;
-                    if(spot.getGroup().getName().contains("메드트로닉")) {
+                    if (spot.getGroup().getName().contains("메드트로닉")) {
                         dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
-                    }
-                    else {
+                    } else {
                         dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, usableSupportPrice);
                     }
                     dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
@@ -272,7 +271,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // 멤버십을 지원하는 기업의 식사를 주문하면서, 멤버십에 가입되지 않은 회원이라면 멤버십 가입.
-        if(OrderUtil.isMembership(user, (Group) Hibernate.unproxy(group)) && !user.getIsMembership()) {
+        if (OrderUtil.isMembership(user, (Group) Hibernate.unproxy(group)) && !user.getIsMembership()) {
             LocalDate now = LocalDate.now();
             LocalDate membershipStartDate = LocalDate.of(now.getYear(), now.getMonth(), group.getContractStartDate().getDayOfMonth());
             PeriodDto membershipPeriod = new PeriodDto(membershipStartDate, membershipStartDate.plusMonths(1));
@@ -295,15 +294,15 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             membershipSupportPriceRepository.save(membershipSupportPrice);
 
             // 파운더스 확인
-            if(!foundersUtil.isFounders(user) &&!foundersUtil.isOverFoundersLimit()) {
-                Founders founders =  foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber()+1);
+            if (!foundersUtil.isFounders(user) && !foundersUtil.isOverFoundersLimit()) {
+                Founders founders = foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber() + 1);
                 foundersUtil.saveFounders(founders);
             }
             user.updateIsMembership(true);
         }
 
         // 결제 금액이 0이 아닐 경우, 토스페이를 통해 결제
-        if(orderItemDailyFoodReqDto.getPaymentKey() != null && orderItemDailyFoodReqDto.getAmount() != 0) {
+        if (orderItemDailyFoodReqDto.getPaymentKey() != null && orderItemDailyFoodReqDto.getAmount() != 0) {
             try {
                 JSONObject jsonObject = tossUtil.paymentConfirm(orderItemDailyFoodReqDto.getPaymentKey(), orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId());
                 System.out.println(jsonObject + "결제 Response값");
@@ -331,9 +330,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     String paymentKey = (String) jsonObject.get("paymentKey");
                     JSONObject card = (JSONObject) jsonObject.get("card");
                     String paymentCompanyCode;
-                    if(card == null) {
+                    if (card == null) {
                         JSONObject easyPay = (JSONObject) jsonObject.get("easyPay");
-                        if(easyPay == null) {
+                        if (easyPay == null) {
                             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
                         }
                         paymentCompanyCode = (String) easyPay.get("provider");
@@ -354,7 +353,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             } catch (ApiException e) {
                 for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                     orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
-                    if(payPrice.compareTo(BigDecimal.ZERO) > 0) {
+                    if (payPrice.compareTo(BigDecimal.ZERO) > 0) {
                         throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
                     }
                 }
@@ -364,8 +363,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
-        }
-        else {
+        } else {
             // 주문서 내용 업데이트 및 사용 포인트 차감
             orderDailyFood.updateDefaultPrice(defaultPrice);
             orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
@@ -377,7 +375,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
         }
 
-        qCartDailyFoodRepository.deleteByCartDailyFoodList(cartDailyFoods);
+        cartDailyFoodRepository.deleteAll(cartDailyFoods);
 
         return orderDailyFood.getId();
     }
@@ -391,7 +389,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Set<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = new HashSet<>();
         MultiValueMap<OrderItemDailyFoodGroup, OrderItemDto> multiValueMap = new LinkedMultiValueMap<>();
 
-        List<OrderItemDailyFood> orderItemList = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user ,startDate, endDate);
+        List<OrderItemDailyFood> orderItemList = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, startDate, endDate);
         for (OrderItemDailyFood orderItemDailyFood : orderItemList) {
             orderItemDailyFoodGroups.add(orderItemDailyFood.getOrderItemDailyFoodGroup());
             OrderItemDto orderItemDto = orderItemDailyFoodListMapper.toDto(orderItemDailyFood);
@@ -432,7 +430,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<Order> orders = qOrderRepository.findAllOrderByUserFilterByOrderTypeAndPeriod(user, orderType, startDate, endDate);
         for (Order order : orders) {
             // TODO: 마켓, 케이터링 구현시 instanceOf로 조건 나누기
-            if(Hibernate.unproxy(order) instanceof OrderDailyFood) {
+            if (Hibernate.unproxy(order) instanceof OrderDailyFood) {
                 List<OrderHistoryDto.OrderItem> orderItems = new ArrayList<>();
                 List<OrderItem> orderItemList = order.getOrderItems();
                 for (OrderItem orderItem : orderItemList) {
@@ -453,7 +451,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
 
-        if(!orderDailyFood.getUser().equals(user)) {
+        if (!orderDailyFood.getUser().equals(user)) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
 
@@ -464,12 +462,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         // TODO: 마켓/케이터링 구현시 instanceOf
         for (OrderItem orderItem : orderItems) {
             orderItemList.add(orderDailyFoodDetailMapper.orderItemDailyFoodToDto((OrderItemDailyFood) orderItem));
-            if(orderItem.getOrderStatus().equals(OrderStatus.CANCELED)) {
+            if (orderItem.getOrderStatus().equals(OrderStatus.CANCELED)) {
                 refundItems.add(orderItem);
             }
         }
         // 환불 내역이 존재한다면
-        if(!refundItems.isEmpty()) {
+        if (!refundItems.isEmpty()) {
             List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderItems(refundItems);
             refundDto = orderUtil.getRefundReceipt(refundItems, paymentCancelHistories);
         }
@@ -524,7 +522,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 오늘 주문 여부 확인. 오늘 주문한 기록이 없으면
         List<OrderItemDailyFood> todayOrderFoods = qOrderDailyFoodRepository.findByServiceDate(now);
-        if(todayOrderFoods.size() == 0) { lastOrderTimeNotification(user, dayOfWeek, notyDtos, now); }
+        if (todayOrderFoods.size() == 0) {
+            lastOrderTimeNotification(user, dayOfWeek, notyDtos, now);
+        }
 
         // 제공하는 dining type 중 하나라도 하지 않았다면
         HashSet<DiningType> mealInfoDiningType = new HashSet<>();
@@ -532,7 +532,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         todayOrderFoods.forEach(order -> todayOrderFoodDiningType.add(order.getDailyFood().getDiningType()));
         notyDtos.forEach(info -> mealInfoDiningType.add(info.getType()));
 
-        if(mealInfoDiningType.size() > todayOrderFoodDiningType.size()) {
+        if (mealInfoDiningType.size() > todayOrderFoodDiningType.size()) {
             lastOrderTimeNotification(user, dayOfWeek, notyDtos, now);
         }
 
@@ -546,13 +546,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             System.out.println("n.getContent() = " + n.getContent());
             System.out.println("n.getCreateDate() = " + n.getCreateDate());
         });
-        if(!todayAlreadySendNotys.isEmpty()) return;
+        if (!todayAlreadySendNotys.isEmpty()) return;
 
         // 알림을 보낸적 없으면
         Map<String, LocalDate> weekOfDay = DateUtils.getWeekOfDay(now);
         LocalDate startDate = weekOfDay.get("startDate").plusDays(7);
         LocalDate endDate = weekOfDay.get("endDate").plusDays(7);
-        List<OrderItemDailyFood> nextWeekOrderFoods =  qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, startDate, endDate);
+        List<OrderItemDailyFood> nextWeekOrderFoods = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, startDate, endDate);
 
         Set<String> nextWeekOrderFoodServiceDays = nextWeekOrderFoods.stream()
                 .map(order -> order.getDailyFood().getServiceDate().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA))
@@ -562,7 +562,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .collect(Collectors.toSet());
 
         //다음주 주문 중 모든 서비스 날이 포함 되었는지 확인
-        if(nextWeekOrderFoods.isEmpty() || nextWeekOrderFoodServiceDays.size() < mealInfoServiceDays.size()) {
+        if (nextWeekOrderFoods.isEmpty() || nextWeekOrderFoodServiceDays.size() < mealInfoServiceDays.size()) {
             // 모든 서비스 날이 포함 되지 않았다면
             sseService.send(user.getId(), 5, "다음주 식사 구매하셨나요?");
         }
@@ -575,29 +575,29 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             LocalTime curranTime = LocalTime.now(ZoneId.of("Asia/Seoul"));
             String isServiceDay = notyDto.getServiceDays().stream().filter(serviceDay -> serviceDay.equalsIgnoreCase(dayOfWeek)).findFirst().orElse(null);
 
-            if(notyDto.getMembershipBenefitTime() != null) {
+            if (notyDto.getMembershipBenefitTime() != null) {
                 // 오늘이 멤버십 할인 시간
                 Integer day = notyDto.getMembershipBenefitTime().getDay();
                 LocalTime time = notyDto.getMembershipBenefitTime().getTime();
 
-                String membershipDayOfWeek = now.minusDays(day).getDayOfWeek().getDisplayName(TextStyle.SHORT,Locale.KOREA);
+                String membershipDayOfWeek = now.minusDays(day).getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA);
                 LocalTime membershipTime = time.minusHours(2);
 
-                if(dayOfWeek.equalsIgnoreCase(membershipDayOfWeek) && curranTime.isAfter(membershipTime) && curranTime.isBefore(time)) {
+                if (dayOfWeek.equalsIgnoreCase(membershipDayOfWeek) && curranTime.isAfter(membershipTime) && curranTime.isBefore(time)) {
                     String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "까지 해야 멤버십 할인을 받을 수 있어요!";
                     sseService.send(user.getId(), 4, content);
                     return;
                 }
             }
-            if(notyDto.getLastOrderTime() != null) {
+            if (notyDto.getLastOrderTime() != null) {
                 // TODO: 지성님 확인
                 Integer day = notyDto.getLastOrderTime().getDay();
                 LocalTime time = notyDto.getLastOrderTime().getTime();
 
-                String lastOrderDayOfWeek = now.minusDays(day).getDayOfWeek().getDisplayName(TextStyle.SHORT,Locale.KOREA);
+                String lastOrderDayOfWeek = now.minusDays(day).getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA);
                 LocalTime lastOrderNoticeTime = time.minusHours(2);
                 // 서비스 가능일 이고, 오늘이 서비스 가능일이 아니면 나가기
-                if(dayOfWeek.equalsIgnoreCase(lastOrderDayOfWeek) && curranTime.isAfter(lastOrderNoticeTime) && curranTime.isBefore(time)) {
+                if (dayOfWeek.equalsIgnoreCase(lastOrderDayOfWeek) && curranTime.isAfter(lastOrderNoticeTime) && curranTime.isBefore(time)) {
                     String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "에 마감이예요!";
                     sseService.send(user.getId(), 4, content);
                     return;
@@ -689,7 +689,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, spot, selectedCartDailyFood.getDailyFood());
                 // 금액 일치 확인 TODO: 금액 일치 오류 확인(NOT_MATCHED_PRICE) -> 반올림 문제
                 if (cartDailyFood.getDiscountedPrice().intValue() != discountDto.getDiscountedPrice().intValue()) {
-                    System.out.println(discountDto.getDiscountedPrice() +" discountPrice");
+                    System.out.println(discountDto.getDiscountedPrice() + " discountPrice");
                     throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
                 }
                 if (cartDailyFood.getPrice().intValue() != selectedCartDailyFood.getDailyFood().getFood().getPrice().intValue() ||
@@ -716,15 +716,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (foodCountDto.getRemainCount() - cartDailyFood.getCount() < 0) {
                     throw new ApiException(ExceptionEnum.OVER_ITEM_CAPACITY);
                 }
-                if (foodCountDto.getRemainCount() - cartDailyFood.getCount() == 0 ) {
-                    if(foodCountDto.getIsFollowingMakersCapacity()) {
+                if (foodCountDto.getRemainCount() - cartDailyFood.getCount() == 0) {
+                    if (foodCountDto.getIsFollowingMakersCapacity()) {
                         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByMakersAndServiceDateAndDiningType(selectedCartDailyFood.getDailyFood().getFood().getMakers(),
                                 selectedCartDailyFood.getDailyFood().getServiceDate(), selectedCartDailyFood.getDailyFood().getDiningType());
                         for (DailyFood dailyFood : dailyFoods) {
                             dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
                         }
-                    }
-                    else {
+                    } else {
                         selectedCartDailyFood.getDailyFood().updateFoodStatus(DailyFoodStatus.SOLD_OUT);
                     }
                 }
@@ -735,10 +734,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                 if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
                     DailyFoodSupportPrice dailyFoodSupportPrice;
-                    if(spot.getGroup().getName().contains("메드트로닉")) {
+                    if (spot.getGroup().getName().contains("메드트로닉")) {
                         dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
-                    }
-                    else {
+                    } else {
                         dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, usableSupportPrice);
                     }
                     dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
@@ -754,7 +752,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // 멤버십을 지원하는 기업의 식사를 주문하면서, 멤버십에 가입되지 않은 회원이라면 멤버십 가입.
-        if(OrderUtil.isMembership(user, (Group) Hibernate.unproxy(group)) && !user.getIsMembership()) {
+        if (OrderUtil.isMembership(user, (Group) Hibernate.unproxy(group)) && !user.getIsMembership()) {
             LocalDate now = LocalDate.now();
             LocalDate membershipStartDate = LocalDate.of(now.getYear(), now.getMonth(), group.getContractStartDate().getDayOfMonth());
             PeriodDto membershipPeriod = new PeriodDto(membershipStartDate, membershipStartDate.plusMonths(1));
@@ -777,63 +775,60 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             membershipSupportPriceRepository.save(membershipSupportPrice);
 
             // 파운더스 확인
-            if(!foundersUtil.isFounders(user) &&!foundersUtil.isOverFoundersLimit()) {
-                Founders founders =  foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber()+1);
+            if (!foundersUtil.isFounders(user) && !foundersUtil.isOverFoundersLimit()) {
+                Founders founders = foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber() + 1);
                 foundersUtil.saveFounders(founders);
             }
         }
 
         // 결제 금액이 0이 아닐 경우, 나이스페이를 통해 결제
-        if(orderItemDailyFoodReqDto.getAmount() != 0) {
+        if (orderItemDailyFoodReqDto.getAmount() != 0) {
+            CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(orderItemDailyFoodReqDto.getCardId()).orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
 
+            if (!creditCardInfo.getUser().equals(user)) {
+                throw new ApiException(ExceptionEnum.NOT_MATCH_USER_CARD);
+            }
 
-                CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(orderItemDailyFoodReqDto.getCardId()).orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
+            if (creditCardInfo.getNiceBillingKey() == null) {
+                throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
+            }
 
-                if (creditCardInfo.getUser().getId() != user.getId()){
-                    throw new ApiException(ExceptionEnum.NOT_MATCH_USER_CARD);
+            String token = niceUtil.getToken();
+            JSONObject jsonObject = niceUtil.niceBilling(creditCardInfo.getNiceBillingKey(), orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId(), token, orderItemDailyFoodReqDto.getOrderName());
+            System.out.println(jsonObject + "결제 Response값");
+
+            Long code = (Long) jsonObject.get("code");
+            JSONObject response = (JSONObject) jsonObject.get("response");
+
+            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
+            if (code == 0) {
+                // 주문서 내용 업데이트 및 사용 포인트 차감
+                System.out.println(code + " code");
+                orderDailyFood.updateDefaultPrice(defaultPrice);
+                orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
+                orderDailyFood.updateTotalPrice(payPrice);
+                orderDailyFood.updateTotalDeliveryFee(totalDeliveryFee);
+                for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                    orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                 }
+                user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
 
-                if (creditCardInfo.getNiceBillingKey() == null){
-                    throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
+                //Order 테이블에 paymentKey와 receiptUrl 업데이트
+                String receiptUrl = response.get("receipt_url").toString();
+
+                String impUid = (String) response.get("imp_uid");
+                String paymentCompanyCode = response.get("card_name").toString();
+                PaymentCompany paymentCompany = PaymentCompany.ofValue(paymentCompanyCode);
+                orderDailyFood.updateOrderDailyFoodAfterPayment(receiptUrl, impUid, orderItemDailyFoodReqDto.getOrderId(), paymentCompany);
+            }
+            // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
+            else {
+                for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                    orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
                 }
-
-                String token = niceUtil.getToken();
-                JSONObject jsonObject = niceUtil.niceBilling(creditCardInfo.getNiceBillingKey() ,orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId(), token, orderItemDailyFoodReqDto.getOrderName());
-                System.out.println(jsonObject + "결제 Response값");
-
-                Long code = (Long) jsonObject.get("code");
-                JSONObject response = (JSONObject) jsonObject.get("response");
-
-                // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-                if (code == 0) {
-                    // 주문서 내용 업데이트 및 사용 포인트 차감
-                    System.out.println(code+ " code");
-                    orderDailyFood.updateDefaultPrice(defaultPrice);
-                    orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
-                    orderDailyFood.updateTotalPrice(payPrice);
-                    orderDailyFood.updateTotalDeliveryFee(totalDeliveryFee);
-                    for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-                        orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
-                    }
-                    user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
-
-                    //Order 테이블에 paymentKey와 receiptUrl 업데이트
-                    String receiptUrl = response.get("receipt_url").toString();
-
-                    String impUid = (String) response.get("imp_uid");
-                    String paymentCompanyCode = response.get("card_name").toString();
-                    PaymentCompany paymentCompany = PaymentCompany.ofValue(paymentCompanyCode);
-                    orderDailyFood.updateOrderDailyFoodAfterPayment(receiptUrl, impUid, orderItemDailyFoodReqDto.getOrderId(), paymentCompany);
-                }
-                // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
-                else {
-                    for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-                        orderItemDailyFood.updateOrderStatus(OrderStatus.FAILED);
-                    }
-                    throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-                }
-        }
-        else {
+                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+            }
+        } else {
             // 주문서 내용 업데이트 및 사용 포인트 차감
             orderDailyFood.updateDefaultPrice(defaultPrice);
             orderDailyFood.updatePoint(orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
@@ -845,7 +840,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
         }
 
-        qCartDailyFoodRepository.deleteByCartDailyFoodList(cartDailyFoods);
+        cartDailyFoodRepository.deleteAll(cartDailyFoods);
 
         return orderDailyFood.getId();
     }
@@ -856,7 +851,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         User user = userUtil.getUser(securityUser);
 
         //이메일 인증 검증
-        if (orderCreateBillingKeyReqDto.getKey() != null && orderCreateBillingKeyReqDto.getKey().equals("")){
+        if (orderCreateBillingKeyReqDto.getKey() != null && orderCreateBillingKeyReqDto.getKey().equals("")) {
             verifyUtil.verifyCertificationNumber(orderCreateBillingKeyReqDto.getKey(), RequiredAuth.PAYMENT_PASSWORD_CREATE);
         }
 
@@ -872,81 +867,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
         }
         //결제 비밀번호가 등록되어있는 유저라면
-        if (user.getPaymentPassword() != null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")){
+        if (user.getPaymentPassword() != null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")) {
             //결제 비밀번호 확인
             if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
                 String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
-               if (!Objects.equals(password, user.getPaymentPassword())){
-                   throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
-               }
-            }
-        }
-
-        String token = niceUtil.getToken();
-
-        String customerKey = niceUtil.createCustomerKey();
-
-        //String cardNumber, String expirationYear, String expirationMonth,
-        //                                          String cardPassword, String identityNumber
-        JSONObject jsonObject = niceUtil.cardRegisterRequest(orderCreateBillingKeyReqDto.getCardNumber(), orderCreateBillingKeyReqDto.getExpirationYear(), orderCreateBillingKeyReqDto.getExpirationMonth(),
-                orderCreateBillingKeyReqDto.getCardPassword(), orderCreateBillingKeyReqDto.getIdentityNumber(),customerKey,token);
-        String billingKey = (String) jsonObject.get("customer_uid");
-        System.out.println(jsonObject + " jsonObject");
-        String cardNumberPart = orderCreateBillingKeyReqDto.getCardNumber().substring(0, 8);
-        System.out.println(cardNumberPart + " cardPart");
-        String cardNumber = (String) jsonObject.get("card_number");
-        String cardCompany = (String) jsonObject.get("card_name");
-        String niceCustomerKey = (String) jsonObject.get("customer_id");
-
-        Integer defaultType = orderCreateBillingKeyReqDto.getDefaultType();
-
-        //중복카드라서 상태를 0에서 1로 바꿨을때 중복 저장을방지하기 위한 카운트변수
-        Integer sameCardCount = 0;
-
-        //중복 카드확인
-        List<CreditCardInfo> creditCardInfos = creditCardInfoRepository.findAllByUserId(user.getId());
-
-        if (creditCardInfos.size() != 0){
-            if (defaultType == null){
-                defaultType = 0;
-            }
-
-            for (CreditCardInfo card : creditCardInfos){
-                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0 && card.getNiceBillingKey() != null){
-                    return "이미 같은 카드가 등록되어 있습니다.";
-                }
-                //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
-                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1 && card.getNiceBillingKey().equals(billingKey)){
-                    qCreditCardInfoRepository.updateStatusCardNice(card.getId(), billingKey);
-                    sameCardCount = 1;
-                }
-            }
-        }
-
-        if (creditCardInfos.size() == 0 && defaultType == null){
-            defaultType = 1;    //기본카드로 셋팅
-            // qCreditCardInfoRepository.updateNiceBillingKey(billingKey, user.getId(), cardNumberPart);
-        }
-        Integer status =1;
-        CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType, status);
-        if (sameCardCount != 1){
-            creditCardInfoRepository.save(cardInfo);
-        }
-
-        return billingKey;
-    }
-
-    @Override
-    public Object createNiceBillingKey(SecurityUser securityUser, OrderCreateBillingKeySecondReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
-        //유저 정보 가져오기
-        User user = userUtil.getUser(securityUser);
-
-        //결제 비밀번호가 등록되어있는 유저
-        if (user.getPaymentPassword() != null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")){
-            //결제 비밀번호 확인
-            if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
-                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
-                if (!passwordEncoder.matches(orderCreateBillingKeyReqDto.getPayNumber(), user.getPaymentPassword())){
+                if (!Objects.equals(password, user.getPaymentPassword())) {
                     throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
                 }
             }
@@ -959,7 +884,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         //String cardNumber, String expirationYear, String expirationMonth,
         //                                          String cardPassword, String identityNumber
         JSONObject jsonObject = niceUtil.cardRegisterRequest(orderCreateBillingKeyReqDto.getCardNumber(), orderCreateBillingKeyReqDto.getExpirationYear(), orderCreateBillingKeyReqDto.getExpirationMonth(),
-                orderCreateBillingKeyReqDto.getCardPassword(), orderCreateBillingKeyReqDto.getIdentityNumber(),customerKey,token);
+                orderCreateBillingKeyReqDto.getCardPassword(), orderCreateBillingKeyReqDto.getIdentityNumber(), customerKey, token);
         String billingKey = (String) jsonObject.get("customer_uid");
         System.out.println(jsonObject + " jsonObject");
         String cardNumberPart = orderCreateBillingKeyReqDto.getCardNumber().substring(0, 8);
@@ -976,29 +901,99 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         //중복 카드확인
         List<CreditCardInfo> creditCardInfos = creditCardInfoRepository.findAllByUserId(user.getId());
 
-        if (creditCardInfos.size() != 0){
-            if (defaultType == null){
+        if (creditCardInfos.size() != 0) {
+            if (defaultType == null) {
                 defaultType = 0;
             }
-            for (CreditCardInfo card : creditCardInfos){
-                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0 && card.getNiceBillingKey() != null){
+
+            for (CreditCardInfo card : creditCardInfos) {
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0 && card.getNiceBillingKey() != null) {
                     return "이미 같은 카드가 등록되어 있습니다.";
                 }
                 //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
-                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1 && card.getNiceBillingKey().equals(billingKey)){
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1 && card.getNiceBillingKey().equals(billingKey)) {
                     qCreditCardInfoRepository.updateStatusCardNice(card.getId(), billingKey);
-                    sameCardCount =1;
+                    sameCardCount = 1;
                 }
             }
         }
 
-        if (creditCardInfos.size() == 0 && defaultType == null){
+        if (creditCardInfos.size() == 0 && defaultType == null) {
             defaultType = 1;    //기본카드로 셋팅
             // qCreditCardInfoRepository.updateNiceBillingKey(billingKey, user.getId(), cardNumberPart);
         }
-        Integer status =1;
+        Integer status = 1;
         CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType, status);
-        if (sameCardCount != 1){
+        if (sameCardCount != 1) {
+            creditCardInfoRepository.save(cardInfo);
+        }
+
+        return billingKey;
+    }
+
+    @Override
+    public Object createNiceBillingKey(SecurityUser securityUser, OrderCreateBillingKeySecondReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
+        //유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        //결제 비밀번호가 등록되어있는 유저
+        if (user.getPaymentPassword() != null && orderCreateBillingKeyReqDto.getPayNumber() != null && !orderCreateBillingKeyReqDto.getPayNumber().equals("")) {
+            //결제 비밀번호 확인
+            if (orderCreateBillingKeyReqDto.getPayNumber().length() == 6) {
+                String password = passwordEncoder.encode(orderCreateBillingKeyReqDto.getPayNumber());
+                if (!passwordEncoder.matches(orderCreateBillingKeyReqDto.getPayNumber(), user.getPaymentPassword())) {
+                    throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_NOT_MATCH);
+                }
+            }
+        }
+
+        String token = niceUtil.getToken();
+
+        String customerKey = niceUtil.createCustomerKey();
+
+        //String cardNumber, String expirationYear, String expirationMonth,
+        //                                          String cardPassword, String identityNumber
+        JSONObject jsonObject = niceUtil.cardRegisterRequest(orderCreateBillingKeyReqDto.getCardNumber(), orderCreateBillingKeyReqDto.getExpirationYear(), orderCreateBillingKeyReqDto.getExpirationMonth(),
+                orderCreateBillingKeyReqDto.getCardPassword(), orderCreateBillingKeyReqDto.getIdentityNumber(), customerKey, token);
+        String billingKey = (String) jsonObject.get("customer_uid");
+        System.out.println(jsonObject + " jsonObject");
+        String cardNumberPart = orderCreateBillingKeyReqDto.getCardNumber().substring(0, 8);
+        System.out.println(cardNumberPart + " cardPart");
+        String cardNumber = (String) jsonObject.get("card_number");
+        String cardCompany = (String) jsonObject.get("card_name");
+        String niceCustomerKey = (String) jsonObject.get("customer_id");
+
+        Integer defaultType = orderCreateBillingKeyReqDto.getDefaultType();
+
+        //중복카드라서 상태를 0에서 1로 바꿨을때 중복 저장을방지하기 위한 카운트변수
+        Integer sameCardCount = 0;
+
+        //중복 카드확인
+        List<CreditCardInfo> creditCardInfos = creditCardInfoRepository.findAllByUserId(user.getId());
+
+        if (creditCardInfos.size() != 0) {
+            if (defaultType == null) {
+                defaultType = 0;
+            }
+            for (CreditCardInfo card : creditCardInfos) {
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0 && card.getNiceBillingKey() != null) {
+                    return "이미 같은 카드가 등록되어 있습니다.";
+                }
+                //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
+                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1 && card.getNiceBillingKey().equals(billingKey)) {
+                    qCreditCardInfoRepository.updateStatusCardNice(card.getId(), billingKey);
+                    sameCardCount = 1;
+                }
+            }
+        }
+
+        if (creditCardInfos.size() == 0 && defaultType == null) {
+            defaultType = 1;    //기본카드로 셋팅
+            // qCreditCardInfoRepository.updateNiceBillingKey(billingKey, user.getId(), cardNumberPart);
+        }
+        Integer status = 1;
+        CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(cardNumber, cardCompany, niceCustomerKey, billingKey, user.getId(), defaultType, status);
+        if (sameCardCount != 1) {
             creditCardInfoRepository.save(cardInfo);
         }
 
@@ -1033,7 +1028,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         User user = userUtil.getUser(securityUser);
 
         OrderItemDailyFood orderItemDailyFood = qOrderDailyFoodRepository.findByUserAndId(user, orderItemId);
-        if(orderItemDailyFood == null) throw new ApiException(ExceptionEnum.ORDER_NOT_FOUND);
+        if (orderItemDailyFood == null) throw new ApiException(ExceptionEnum.ORDER_NOT_FOUND);
 
         orderItemDailyFood.updateOrderStatus(OrderStatus.RECEIPT_COMPLETE);
     }
