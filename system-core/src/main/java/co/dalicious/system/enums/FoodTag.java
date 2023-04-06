@@ -32,7 +32,17 @@ public enum FoodTag {
     COUNTRY_FRANCE("국가", "프랑스", 1011),
     COUNTRY_VIETNAM("국가", "베트남", 1012),
     COUNTRY_THAILAND("국가", "태국", 1013),
-
+    COUNTRY_TURKIYE("국가", "튀르키예", 1014),
+    COUNTRY_INDIA("국가", "인도", 1015),
+    COUNTRY_GERMANY("국가", "독일", 1016),
+    COUNTRY_INDONESIA("국가", "인도네시아", 1017),
+    COUNTRY_GREECE("국가", "그리스", 1018),
+    COUNTRY_EGYPT("국가", "이집트", 1019),
+    COUNTRY_BRAZIL("국가", "브라질", 1020),
+    COUNTRY_RUSIA("국가", "러시아", 1021),
+    COUNTRY_PHILIPPINES("국가", "필리핀", 1022),
+    COUNTRY_MONGOLIA("국가", "몽골", 1023),
+    COUNTRY_UNITED_KINGDOM("국가", "영국", 1024),
 
     FOOD_TYPE_RICE_CAKE("식품유형", "떡류", 2001),
     FOOD_TYPE_BREAD("식품유형", "빵류", 2002),
@@ -139,6 +149,9 @@ public enum FoodTag {
     ALLERGY_SQUID("알레르기 체크", "오징어", 8017),
     ALLERGY_CLAM("알레르기 체크", "조개류", 8018),
     ALLERGY_PINE_NUT("알레르기 체크", "잣", 8019),
+    ALLERGY_ABALONE("알레르기 체크", "전복", 8020),
+    ALLERGY_OYSTER("알레르기 체크", "굴", 8021),
+    ALLERGY_MUSSEL("알레르기 체크", "홍합", 8022),
 
 
     APPETITE_VEGETARIAN("특이식성", "채식", 9001),

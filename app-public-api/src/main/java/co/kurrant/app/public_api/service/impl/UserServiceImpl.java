@@ -26,20 +26,22 @@ import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
+import co.dalicious.domain.payment.util.TossUtil;
+import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.UserPreference;
 import co.dalicious.domain.user.entity.enums.*;
-import co.dalicious.domain.user.repository.ProviderEmailRepository;
-import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.UserGroupRepository;
-import co.dalicious.domain.user.repository.UserRepository;
+import co.dalicious.domain.user.mapper.UserPreferenceMapper;
+import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.enums.RequiredAuth;
+import co.kurrant.app.public_api.mapper.user.UserMapper;
 import co.kurrant.app.public_api.service.UserService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.dto.user.*;
@@ -98,6 +100,8 @@ public class UserServiceImpl implements UserService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final QUserRepository qUserRepository;
+    private final UserPreferenceMapper userPreferenceMapper;
+    private final UserPreferenceRepository userPreferenceRepository;
 
     @Override
     @Transactional
@@ -843,4 +847,19 @@ public class UserServiceImpl implements UserService {
 //        return 1;
 //    }
 
+
+    @Override
+    public String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto) {
+        User user = userUtil.getUser(securityUser);
+
+        UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
+
+        UserPreference saveResult = userPreferenceRepository.save(userPreference);
+        if (saveResult.getId() == null){
+            return "유저 정보 저장에 실패했습니다.";
+        }
+
+        return "유저 정보 저장에 성공했습니다.";
+
+    }
 }
