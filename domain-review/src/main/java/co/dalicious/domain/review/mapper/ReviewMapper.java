@@ -113,6 +113,8 @@ public interface ReviewMapper {
         reviewDetail.setForMakers(reviews.getForMakers());
         reviewDetail.setWriter(reviews.getUser().getName());
         reviewDetail.setFoodName(reviews.getFood().getName());
+        reviewDetail.setIsDelete(reviews.getIsDelete());
+        reviewDetail.setIsReport(reviews.getIsReports());
         reviewDetail.setMakersComment(getMakersComment(reviews.getComments()));
         reviewDetail.setAdminComment(getAdminComment(reviews.getComments()));
 
