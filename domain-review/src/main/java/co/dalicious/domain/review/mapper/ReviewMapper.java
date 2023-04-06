@@ -167,7 +167,7 @@ public interface ReviewMapper {
         else {
             ReviewMakersResDto.MakersComment makersComment = new ReviewMakersResDto.MakersComment();
             for(Comments comments : commentList) {
-                if(comments instanceof MakersComments makersComments) {
+                if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
                     makersComment.setCommentId(makersComments.getId());
                     makersComment.setContent(makersComments.getContent());
                 }
