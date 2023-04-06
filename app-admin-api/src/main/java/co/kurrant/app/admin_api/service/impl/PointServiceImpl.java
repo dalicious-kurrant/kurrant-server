@@ -112,8 +112,8 @@ public class PointServiceImpl implements PointService {
         List<User> userList = qUserRepository.getUserAllById(requestDto.getUserIdList());
 
         for(User user : userList) {
-            qUserRepository.updateUserPoint(user.getId(), BigDecimal.valueOf(requestDto.getRewardPoint()));
-            pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_REWARD, BigDecimal.valueOf(requestDto.getRewardPoint()));
+            qUserRepository.updateUserPoint(user.getId(), BigDecimal.valueOf(requestDto.getRewardPoint()), PointStatus.ofCode(requestDto.getPointStatus()));
+            pointUtil.createPointHistoryByOthers(user, null, PointStatus.ofCode(requestDto.getPointStatus()), BigDecimal.valueOf(requestDto.getRewardPoint()));
         }
     }
 }

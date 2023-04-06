@@ -28,7 +28,7 @@ public interface PointHistoryMapper {
                                                                List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList) {
         PointResponseDto.PointHistoryDto pointRequestDto = new PointResponseDto.PointHistoryDto();
 
-        pointRequestDto.setRewardDate(DateUtils.toISOLocalDate(pointHistory.getCreatedDateTime()));
+        pointRequestDto.setRewardDate(DateUtils.toISOLocalDateAndWeekOfDay(pointHistory.getCreatedDateTime()));
         pointRequestDto.setPoint(pointHistory.getPoint());
         pointRequestDto.setLeftPoint(pointHistory.getLeftPoint());
         pointRequestDto.setPointStatus(pointHistory.getPointStatus().getCode());
