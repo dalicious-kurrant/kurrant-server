@@ -91,6 +91,8 @@ public class ReviewAdminResDto {
         private Boolean forMakers;
         private String writer;
         private String foodName;
+        private Boolean isDelete;
+        private Boolean isReport;
         private List<MakersComment> makersComment;
         private List<AdminComment> adminComment;
     }
