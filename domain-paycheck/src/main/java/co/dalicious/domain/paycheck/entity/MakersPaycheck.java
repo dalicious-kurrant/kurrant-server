@@ -17,6 +17,7 @@ import javax.persistence.*;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.YearMonth;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -57,6 +58,11 @@ public class MakersPaycheck {
     @JoinColumn(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("기업 ID")
     private Makers makers;
+
+    @ElementCollection
+    @Comment("식사 일정별 음식 내역")
+    @CollectionTable(name = "paycheck__makers_paycheck__paycheck_daily_foods")
+    private List<PaycheckDailyFood> paycheckDailyFoods;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")

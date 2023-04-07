@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Component
@@ -53,16 +54,17 @@ public class MembershipUtil {
             return 0;
         }
 
-        Membership recentMembership = autoPaymentMembership.get(autoPaymentMembership.size() - 1);
-        if (recentMembership == null) {
+        Membership oldestMembership = autoPaymentMembership.get(autoPaymentMembership.size() - 1);
+        if (oldestMembership == null) {
             return 0;
         }
 
         // 멤버십 이용 기간을 계산
-        LocalDate firstPaidDate = recentMembership.getStartDate();
+        LocalDate firstPaidDate = oldestMembership.getStartDate();
         LocalDate now = LocalDate.now();
-        Period period = firstPaidDate.until(now);
-        return period.getDays() + 1;
+        long totalDays = ChronoUnit.DAYS.between(firstPaidDate, now);
+
+        return (int) totalDays + 1;
     }
 
     // 시작날짜와 종료날짜로 멤버십 이용 개월 반환

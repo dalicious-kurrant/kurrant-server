@@ -209,4 +209,10 @@ public class QReviewRepository {
                 .where(reviews.id.in(ids))
                 .fetch();
     }
+
+    public long pendingReviewCount() {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.comments.isEmpty())
+                .fetchCount();
+    }
 }

@@ -161,11 +161,17 @@ public enum FoodTag {
     APPETITE_DIET("특이식성", "다이어트", 9005),
     APPETITE_LOW_SALT("특이식성", "저염식", 9006),
 
-
     SPICY_LEVEL_0("맵기", "맵지 않음", 10001),
     SPICY_LEVEL_1("맵기", "약간 매움", 10002),
     SPICY_LEVEL_2("맵기", "신라면 맵기", 10003),
-    SPICY_LEVEL_3("맵기", "불닭볶음면 맵기", 10004);
+    SPICY_LEVEL_3("맵기", "불닭볶음면 맵기", 10004),
+
+    FOOD_TAG_CONVENIENCE_FOOD("식품 타입", "간편식", 11001),
+    FOOD_TAG_SALAD("식품 타입", "샐러드", 11002),
+    FOOD_TAG_DINNER_BOX("식품 타입", "정찬도시락", 11003),
+    FOOD_TAG_POSTPARTUM("식품 타입", "산후조리식", 11004),
+    FOOD_TAG_DIET("식품 타입", "다이어트식", 11005),
+    FOOD_TAG_PROTEIN("식품 타입", "간편식", 11006);
 
 
 

@@ -66,11 +66,18 @@ public class PaycheckServiceImpl implements PaycheckService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
 
         String dirName = "paycheck/makers/" + paycheckDto.getMakersId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
-        ImageResponseDto excelFileDto = imageService.upload(makersXlsx, dirName);
-        Image excelFile = new Image(excelFileDto);
 
-        ImageResponseDto pdfFileDto = imageService.upload(makersPdf, dirName);
-        Image pdfFile = new Image(pdfFileDto);
+        Image excelFile = null;
+        if(makersXlsx != null && !makersXlsx.isEmpty()) {
+            ImageResponseDto excelFileDto = imageService.upload(makersXlsx, dirName);
+            excelFile = new Image(excelFileDto);
+        }
+
+        Image pdfFile = null;
+        if(makersXlsx != null && !makersPdf.isEmpty()) {
+            ImageResponseDto pdfFileDto = imageService.upload(makersPdf, dirName);
+            pdfFile = new Image(pdfFileDto);
+        }
 
         MakersPaycheck makersPaycheck = makersPaycheckMapper.toEntity(paycheckDto, makers, excelFile, pdfFile);
 
@@ -145,11 +152,18 @@ public class PaycheckServiceImpl implements PaycheckService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
 
         String dirName = "paycheck/corporations/" + paycheckDto.getCorporationId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
-        ImageResponseDto excelFileDto = imageService.upload(corporationXlsx, dirName);
-        Image excelFile = new Image(excelFileDto);
 
-        ImageResponseDto pdfFileDto = imageService.upload(corporationPdf, dirName);
-        Image pdfFile = new Image(pdfFileDto);
+        Image excelFile = null;
+        if(corporationXlsx != null && !corporationXlsx.isEmpty()) {
+            ImageResponseDto excelFileDto = imageService.upload(corporationXlsx, dirName);
+            excelFile = new Image(excelFileDto);
+        }
+
+        Image pdfFile = null;
+        if(corporationPdf != null && !corporationPdf.isEmpty()) {
+            ImageResponseDto pdfFileDto = imageService.upload(corporationPdf, dirName);
+            pdfFile = new Image(pdfFileDto);
+        }
 
         CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toEntity(paycheckDto, corporation, excelFile, pdfFile);
         corporationPaycheckRepository.save(corporationPaycheck);
