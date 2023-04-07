@@ -7,6 +7,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.review.dto.CommentReqDto;
 import co.dalicious.domain.review.dto.ReviewMakersResDto;
+import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.Reviews;
@@ -45,6 +46,15 @@ public class ReviewServiceImpl implements ReviewService {
     public void createMakersComment(BigInteger reviewId, CommentReqDto reqDto) {
         Reviews reviews = qReviewRepository.findById(reviewId);
         if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
+
+
+        List<Comments> commentsList = reviews.getComments();
+        for(Comments comments : commentsList) {
+            if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
+                throw new ApiException(ExceptionEnum.ALREADY_WRITE_COMMENT_REVIEW);
+            }
+        }
+
 
         MakersComments comments = reviewMapper.toMakersComment(reqDto, reviews);
         commentsRepository.save(comments);
