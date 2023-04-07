@@ -93,8 +93,8 @@ public class ReviewAdminResDto {
         private String foodName;
         private Boolean isDelete;
         private Boolean isReport;
-        private List<MakersComment> makersComment;
-        private List<AdminComment> adminComment;
+        private MakersComment makersComment;
+        private AdminComment adminComment;
     }
 
     @Getter
