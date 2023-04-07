@@ -17,6 +17,7 @@ import javax.persistence.*;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.YearMonth;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -57,6 +58,11 @@ public class CorporationPaycheck {
             @AttributeOverride(name = "filename", column = @Column(name = "pdf_filename", length = 1024))
     })
     private Image pdfFile;
+
+    @ElementCollection
+    @Comment("지불 항목 내역")
+    @CollectionTable(name = "paycheck__corporation_paycheck__paycheck_categories")
+    private List<PaycheckCategory> paycheckCategories;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "corporation_id", columnDefinition = "BIGINT UNSIGNED")

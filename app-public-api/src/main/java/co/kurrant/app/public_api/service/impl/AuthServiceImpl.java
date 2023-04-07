@@ -428,6 +428,7 @@ public class AuthServiceImpl implements AuthService {
         // 엑세스 토큰이 유효하지 않을 경우
         else {
             Optional<RefreshToken> refreshToken = refreshTokenRepository.findOneByRefreshToken(reissueTokenDto.getRefreshToken());
+            System.out.println("refershToken = " + reissueTokenDto.getRefreshToken());
             if (refreshToken.isEmpty()) {
                 throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
             }
