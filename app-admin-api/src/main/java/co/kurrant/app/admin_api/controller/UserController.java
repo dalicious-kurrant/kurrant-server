@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.admin_api.dto.user.SaveAndUpdateUserList;
+import co.kurrant.app.admin_api.dto.user.SaveTestDataRequestDto;
 import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
 import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
 import co.kurrant.app.admin_api.service.UserService;
@@ -65,6 +66,16 @@ public class UserController {
         userService.resetPassword(passwordResetDto);
         return ResponseMessage.builder()
                 .message("비밀번호가 리셋되었습니다.")
+                .build();
+    }
+
+    @Operation(summary = "테스트 데이터 입력 Dto")
+    @PostMapping("/test/data")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseMessage saveTestData(@RequestBody SaveTestDataRequestDto saveTestDataRequestDto){
+        String message = userService.saveTestData(saveTestDataRequestDto);
+        return ResponseMessage.builder()
+                .message("테스트 데이터를 저장했습니다.")
                 .build();
     }
 

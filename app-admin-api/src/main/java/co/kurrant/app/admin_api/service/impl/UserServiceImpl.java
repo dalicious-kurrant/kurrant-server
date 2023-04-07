@@ -2,6 +2,8 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.UserDto;
@@ -14,9 +16,7 @@ import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.StringUtils;
-import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
-import co.kurrant.app.admin_api.dto.user.UserInfoResponseDto;
-import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
+import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
 import exception.ApiException;
@@ -53,6 +53,10 @@ public class UserServiceImpl implements UserService {
     private final ProviderEmailRepository providerEmailRepository;
     private final UserSpotRepository userSpotRepository;
     private final UserValidator userValidator;
+
+    private final FoodRepository foodRepository;
+
+    private final UserTasteTestDataRepository userTasteTestDataRepository;
 
 
     @Override
@@ -277,4 +281,32 @@ public class UserServiceImpl implements UserService {
         qUserRepository.resetPassword(passwordResetDto.getUserId(), password);
 
     }
+
+    @Override
+    public String saveTestData(SaveTestDataRequestDto saveTestDataRequestDto) {
+        //foodId 검증
+        List<TestData> testData = saveTestDataRequestDto.getTestData();
+        String foodIds = null;
+        for (int i = 0; i < testData.size(); i++) {
+            for (int j = 0; j < testData.get(i).getFoodIds().size(); j++) {
+                BigInteger foodId = testData.get(i).getFoodIds().get(j);
+                foodRepository.findById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+            }
+            //UserTasteTestData에 저장
+            foodIds = testData.get(i).getFoodIds().toString().substring(1, testData.get(i).getFoodIds().toString().length() -1);
+            UserTasteTestData userTasteTestData = UserTasteTestData.builder()
+                    .foodIds(foodIds)
+                    .page(testData.get(i).getPageNum())
+                    .build();
+
+            UserTasteTestData saveResult = userTasteTestDataRepository.save(userTasteTestData);
+            if (saveResult.getId() == null){
+                return "저장 실패...";
+            }
+        }
+
+        return "저장에 성공했습니다!";
+    }
+
+    //수정삭제 만들기
 }
