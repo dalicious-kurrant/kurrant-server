@@ -45,6 +45,14 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
+    public List<DailyFood> getDailyFoodsBetweenServiceDate(LocalDate startDate, LocalDate endDate) {
+        return queryFactory
+                .selectFrom(dailyFood)
+                .where(dailyFood.serviceDate.goe(startDate),
+                        dailyFood.serviceDate.loe(endDate))
+                .fetch();
+    }
+
     public List<DailyFood> findAllByDailyFoodIds(List<BigInteger> dailyFoodIds) {
         return queryFactory
                 .selectFrom(dailyFood)

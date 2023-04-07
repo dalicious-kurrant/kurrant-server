@@ -19,6 +19,7 @@ import co.dalicious.domain.order.mapper.DailyFoodSupportPriceMapper;
 import co.dalicious.domain.order.mapper.ExtraOrderMapper;
 import co.dalicious.domain.order.mapper.OrderMapper;
 import co.dalicious.domain.order.repository.*;
+import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
@@ -65,7 +66,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     private final OrderItemDailyFoodGroupRepository orderItemDailyFoodGroupRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
-    private final QOrderRepository qOrderRepository;
+    private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
 
@@ -134,7 +135,8 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(SecurityUser securityUser, LocalDate startDate, LocalDate endDate) {
         Corporation corporation = userUtil.getCorporation(securityUser);
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, Collections.singletonList(corporation.getId()), null);
-        return extraOrderMapper.toDailyFoodList(dailyFoods);
+        Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
+        return extraOrderMapper.toDailyFoodList(dailyFoods, remainFoodCount);
     }
 
     @Override
@@ -160,6 +162,10 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         }
         PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(periodDto.getStartDate(), periodDto.getEndDate(), Collections.singletonList(corporation.getId()), null);
+
+        dailyFoods.stream().filter(v -> v.getDailyFoodStatus().equals(DailyFoodStatus.SALES))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.SOLD_OUT));
 
         // 식단을 스팟별로 정렬
         for (BigInteger bigInteger : requestMap.keySet()) {

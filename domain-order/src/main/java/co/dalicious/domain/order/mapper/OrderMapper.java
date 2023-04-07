@@ -54,6 +54,7 @@ public interface OrderMapper {
     @Mapping(source = "dailyFood.food.name", target = "name")
     @Mapping(source = "discountDto.price", target = "price")
     @Mapping(source = "extraOrderDto.count", target = "count")
+    @Mapping(source = "extraOrderDto.usage", target = "usage")
     @Mapping(target = "discountedPrice", expression = "java(discountDto.getDiscountedPrice())")
     @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")

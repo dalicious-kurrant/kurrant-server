@@ -138,8 +138,8 @@ public class OrderDailyFoodController {
     }
 
     @PostMapping("/extra/refund")
-    public ResponseMessage refundExtraOrderItems(@RequestBody BigInteger orderItemId) {
-        orderDailyFoodService.refundExtraOrderItems(orderItemId);
+    public ResponseMessage refundExtraOrderItems(@RequestBody OrderDto.Id id) {
+        orderDailyFoodService.refundExtraOrderItems(id.getId());
         return ResponseMessage.builder()
                 .message("추가 주문을 환불하였습니다.")
                 .build();

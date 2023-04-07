@@ -1,8 +1,11 @@
 package co.dalicious.domain.user.dto;
 
+import co.dalicious.system.enums.FoodTag;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,15 +15,15 @@ public class UserPreferenceDto {
     @Schema(description = "아침 식사 횟수")
     private Integer breakfastCount;
     @Schema(description = "야식 횟수")
-    private Integer midnightSnack;
+    private Integer midnightSnackCount;
     @Schema(description = "운동 횟수")
     private Integer exerciseCount;
     @Schema(description = "음주 횟수")
     private Integer drinkCount;
     @Schema(description = "좋아하는 나라 음식")
-    private Integer favoriteCountryFood;
+    private String favoriteCountryFood;
     @Schema(description = "알러지 정보")
-    private Integer allergyInfo;
+    private String allergyInfo;
     @Schema(description = "비건여부")
     private Boolean isBegan;
     @Schema(description = "비건 정도")
