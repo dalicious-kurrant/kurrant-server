@@ -492,16 +492,19 @@ public class AuthServiceImpl implements AuthService {
                         .build();
 
                 tempRefreshTokenRepository.save(tempRefreshTokenHash);
+                System.out.println("loginResponseDto.accessToken = " + loginResponseDto.getAccessToken());
+                System.out.println("loginResponseDto.refreshToken = " + loginResponseDto.getRefreshToken());
                 return loginResponseDto;
             }
             // reissue 요청이 온 적이 있는 경우
             else {
+                System.out.println("matchingHash.accessToken = " + matchingHash.get().getNewAccessToken());
+                System.out.println("matchingHash.refreshToken = " + matchingHash.get().getNewRefreshToken());
                 return LoginTokenDto.builder()
                         .refreshToken(matchingHash.get().getNewRefreshToken())
                         .accessToken(matchingHash.get().getNewAccessToken())
                         .build();
             }
-
         } finally {
             userLock.unlock();
         }
