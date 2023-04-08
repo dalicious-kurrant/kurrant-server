@@ -5,6 +5,7 @@ import co.dalicious.domain.food.converter.DailyFoodStatusConverter;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
+import co.dalicious.system.enums.DiscountType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -48,6 +49,10 @@ public class DailyFood {
     @Column(name = "service_date", columnDefinition = "DATE")
     @Comment("배송 날짜")
     private LocalDate serviceDate;
+
+    @Column(name = "supply_price", columnDefinition = "DECIMAL(15,2)")
+    @Comment("메이커스 공급가")
+    private BigDecimal supplyPrice;
 
     @Column(name = "default_price", columnDefinition = "DECIMAL(15,2)")
     @Comment("음식 정가")
@@ -103,10 +108,11 @@ public class DailyFood {
     }
 
     @Builder
-    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, BigDecimal defaultPrice, Integer membershipDiscountRate, Integer makersDiscountRate, Integer periodDiscountRate, Food food, Group group, DailyFoodGroup dailyFoodGroup) {
+    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, BigDecimal supplyPrice, BigDecimal defaultPrice, Integer membershipDiscountRate, Integer makersDiscountRate, Integer periodDiscountRate, Food food, Group group, DailyFoodGroup dailyFoodGroup) {
         this.diningType = diningType;
         this.dailyFoodStatus = dailyFoodStatus;
         this.serviceDate = serviceDate;
+        this.supplyPrice = supplyPrice;
         this.defaultPrice = defaultPrice;
         this.membershipDiscountRate = membershipDiscountRate;
         this.makersDiscountRate = makersDiscountRate;
@@ -130,5 +136,13 @@ public class DailyFood {
 
     public void updateGroup(Group group) {
         this.group = group;
+    }
+
+    public void updateDailyFoodPrice(Food food) {
+        this.supplyPrice = food.getSupplyPrice();
+        this.defaultPrice = food.getPrice();
+        this.membershipDiscountRate = food.getFoodDiscountRate(DiscountType.MEMBERSHIP_DISCOUNT);
+        this.makersDiscountRate = food.getFoodDiscountRate(DiscountType.MAKERS_DISCOUNT);
+        this.periodDiscountRate = food.getFoodDiscountRate(DiscountType.PERIOD_DISCOUNT);
     }
 }

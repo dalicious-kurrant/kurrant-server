@@ -55,6 +55,9 @@ public class UserSupportPriceUtil {
     }
 
     public static PeriodDto getEarliestAndLatestServiceDate(Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos) {
+        if(diningTypeServiceDateDtos.isEmpty()) {
+            return null;
+        }
         // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
         LocalDate earliestServiceDate = diningTypeServiceDateDtos.stream()
                 .min(Comparator.comparing(DiningTypeServiceDateDto::getServiceDate))
