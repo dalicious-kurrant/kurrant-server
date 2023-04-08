@@ -49,7 +49,7 @@ public interface PointHistoryMapper {
                     .filter(r -> pointHistory.getReviewId().equals(r.getId())).findFirst()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.REVIEW_NOT_FOUND));
 
-            if(reviews.getIsDelete()) throw new ApiException(ExceptionEnum.ALREADY_DELETED_REVIEW);
+//            if(reviews.getIsDelete()) throw new ApiException(ExceptionEnum.ALREADY_DELETED_REVIEW);
 
             OrderItem orderItem = (OrderItem) Hibernate.unproxy(reviews.getOrderItem());
             if(orderItem instanceof  OrderItemDailyFood orderItemDailyFood) {
