@@ -26,7 +26,7 @@ import java.util.List;
 public class CorporationPaycheck {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
+    @Column(name = "id", columnDefinition = "BIGINT")
     private BigInteger id;
 
     @Comment("정산 년월")

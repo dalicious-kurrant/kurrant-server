@@ -27,7 +27,7 @@ public class MakersPaycheck {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("메이커스 정산 ID")
-    @Column(columnDefinition = "BIGINT UNSIGNED")
+    @Column(columnDefinition = "BIGINT")
     private BigInteger id;
 
     @Comment("정산 년월")

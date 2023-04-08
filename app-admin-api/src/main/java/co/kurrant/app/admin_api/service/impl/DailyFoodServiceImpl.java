@@ -109,6 +109,12 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<BigInteger> makersIds = !parameters.containsKey("makersIds") || parameters.get("makersIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersIds"));
 
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, groupIds, makersIds);
+
+        // 일치하는 식단이 없을 경우에는 빈 배열 return
+        if(dailyFoods.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         List<Group> groups = new ArrayList<>();
         Set<Makers> makers = new HashSet<>();
         for (DailyFood dailyFood : dailyFoods) {
