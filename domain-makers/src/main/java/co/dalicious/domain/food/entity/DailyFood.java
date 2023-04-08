@@ -97,18 +97,23 @@ public class DailyFood {
         this.dailyFoodStatus = dailyFoodStatus;
     }
 
-    @Builder
-    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, Food food, Group group, DailyFoodGroup dailyFoodGroup) {
-        this.diningType = diningType;
-        this.dailyFoodStatus = dailyFoodStatus;
-        this.serviceDate = serviceDate;
-        this.food = food;
-        this.group = group;
-        this.dailyFoodGroup = dailyFoodGroup;
-    }
 
     public void updateDiningType(DiningType diningType) {
         this.diningType = diningType;
+    }
+
+    @Builder
+    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, BigDecimal defaultPrice, Integer membershipDiscountRate, Integer makersDiscountRate, Integer periodDiscountRate, Food food, Group group, DailyFoodGroup dailyFoodGroup) {
+        this.diningType = diningType;
+        this.dailyFoodStatus = dailyFoodStatus;
+        this.serviceDate = serviceDate;
+        this.defaultPrice = defaultPrice;
+        this.membershipDiscountRate = membershipDiscountRate;
+        this.makersDiscountRate = makersDiscountRate;
+        this.periodDiscountRate = periodDiscountRate;
+        this.food = food;
+        this.group = group;
+        this.dailyFoodGroup = dailyFoodGroup;
     }
 
     public void updateDailyFoodStatus(DailyFoodStatus dailyFoodStatus) {

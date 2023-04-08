@@ -22,17 +22,15 @@ import java.util.*;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
 public interface DailyFoodMapper {
-      @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.diningType", target = "diningType")
-      @Mapping(target = "dailyFoodStatus", constant = "WAITING")
-      @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.serviceDate", target = "serviceDate")
-      @Mapping(source = "food", target = "food")
-      @Mapping(source = "presetGroupDailyFood.group", target = "group")
-      @Mapping(target = "dailyFoodGroup", expression = "java(toDailyFoodGroup(presetGroupDailyFood))")
       default DailyFood toDailyFood(PresetDailyFood presetDailyFood, DailyFoodGroup dailyFoodGroup) {
             return DailyFood.builder()
                     .diningType(presetDailyFood.getPresetGroupDailyFood().getPresetMakersDailyFood().getDiningType())
                     .dailyFoodStatus(DailyFoodStatus.WAITING_SALE)
                     .serviceDate(presetDailyFood.getPresetGroupDailyFood().getPresetMakersDailyFood().getServiceDate())
+                    .defaultPrice(presetDailyFood.getFood().getPrice())
+                    .membershipDiscountRate(presetDailyFood.getFood().getFoodDiscountRate(DiscountType.MEMBERSHIP_DISCOUNT))
+                    .makersDiscountRate(presetDailyFood.getFood().getFoodDiscountRate(DiscountType.MAKERS_DISCOUNT))
+                    .periodDiscountRate(presetDailyFood.getFood().getFoodDiscountRate(DiscountType.PERIOD_DISCOUNT))
                     .food(presetDailyFood.getFood())
                     .group(presetDailyFood.getPresetGroupDailyFood().getGroup())
                     .dailyFoodGroup(dailyFoodGroup)
@@ -74,6 +72,10 @@ public interface DailyFoodMapper {
                     .dailyFoodStatus(DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()))
                     .diningType(DiningType.ofCode(dailyFoodDto.getDiningType()))
                     .serviceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()))
+                    .defaultPrice(food.getPrice())
+                    .membershipDiscountRate(food.getFoodDiscountRate(DiscountType.MEMBERSHIP_DISCOUNT))
+                    .makersDiscountRate(food.getFoodDiscountRate(DiscountType.MAKERS_DISCOUNT))
+                    .periodDiscountRate(food.getFoodDiscountRate(DiscountType.PERIOD_DISCOUNT))
                     .food(food)
                     .group(group)
                     .build();
