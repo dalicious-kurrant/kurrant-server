@@ -205,9 +205,11 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
             // 식단을 구매한 사람이 없다면
             if(dailyFoodDto.getFoodCapacity().equals(dailyFoodDto.getFoodCount())) {
+                Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
                 dailyFood.updateDiningType(DiningType.ofCode(dailyFoodDto.getDiningType()));
                 dailyFood.updateServiceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()));
-                dailyFood.updateFood(Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName()));
+                dailyFood.updateFood(food);
+                dailyFood.updateDailyFoodPrice(food);
                 dailyFood.updateGroup(group);
             }
         });
