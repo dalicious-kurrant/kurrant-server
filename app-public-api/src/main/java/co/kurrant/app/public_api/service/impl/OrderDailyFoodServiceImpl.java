@@ -584,7 +584,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
             }
             if (notyDto.getLastOrderTime() != null) {
-                // TODO: 지성님 확인
                 Integer day = notyDto.getLastOrderTime().getDay();
                 LocalTime time = notyDto.getLastOrderTime().getTime();
 

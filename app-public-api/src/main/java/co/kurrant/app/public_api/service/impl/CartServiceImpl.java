@@ -47,7 +47,7 @@ public class CartServiceImpl implements CartService {
     private final CartRepository orderCartRepository;
     private final CartDailyFoodRepository cartDailyFoodRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
-    private final QCartItemRepository qOrderCartItemRepository;
+    private final CartRepository cartRepository;
     private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
     private final UserUtil userUtil;
     private final CartDailyFoodMapper orderCartDailyFoodMapper;
@@ -220,10 +220,17 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public void deleteByCartItemId(SecurityUser securityUser, BigInteger cartDailyFoodId) {
-        //cart_id와 food_id가 같은 경우 삭제
         User user = userUtil.getUser(securityUser);
 
-        qOrderCartItemRepository.deleteByUserAndCartDailyFoodId(user, cartDailyFoodId);
+        //담은 장바구니가 유저의 것인지 검증
+        CartDailyFood cartDailyFood = cartDailyFoodRepository.findById(cartDailyFoodId)
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        if(!cartDailyFood.getUser().equals(user)) {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
+
+        // 장바구니 아이템 삭제
+        cartDailyFoodRepository.delete(cartDailyFood);
     }
 
     @Override
@@ -234,8 +241,8 @@ public class CartServiceImpl implements CartService {
         Spot spot = spotRepository.findById(spotId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
         );
-        List<Cart> cartList = orderCartRepository.findAllByUserAndSpot(user, spot);
-        qOrderCartItemRepository.deleteByCartId(cartList);
+        List<CartDailyFood> cartList = orderCartRepository.findAllByUserAndSpot(user, spot);
+        cartDailyFoodRepository.deleteAll(cartList);
     }
 
     @Override
