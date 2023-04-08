@@ -16,6 +16,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -47,6 +48,22 @@ public class DailyFood {
     @Column(name = "service_date", columnDefinition = "DATE")
     @Comment("배송 날짜")
     private LocalDate serviceDate;
+
+    @Column(name = "default_price", columnDefinition = "DECIMAL(15,2)")
+    @Comment("음식 정가")
+    private BigDecimal defaultPrice;
+
+    @Column(name = "membership_discount_rate")
+    @Comment("멤버십 할인율")
+    private Integer membershipDiscountRate;
+
+    @Column(name = "makers_discount_rate")
+    @Comment("메이커스 할인율")
+    private Integer makersDiscountRate;
+
+    @Column(name = "period_discount_rate")
+    @Comment("기간 할인율")
+    private Integer periodDiscountRate;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
