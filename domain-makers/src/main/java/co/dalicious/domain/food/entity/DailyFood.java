@@ -33,7 +33,7 @@ public class DailyFood {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT UNSIGNED")
+    @Column(columnDefinition = "BIGINT")
     private BigInteger id;
 
     @Convert(converter = DiningTypeConverter.class)
@@ -50,11 +50,11 @@ public class DailyFood {
     @Comment("배송 날짜")
     private LocalDate serviceDate;
 
-    @Column(name = "supply_price", columnDefinition = "DECIMAL(15,2)")
+    @Column(name = "supply_price", precision = 15, scale = 2)
     @Comment("메이커스 공급가")
     private BigDecimal supplyPrice;
 
-    @Column(name = "default_price", columnDefinition = "DECIMAL(15,2)")
+    @Column(name = "default_price", precision = 15, scale = 2)
     @Comment("음식 정가")
     private BigDecimal defaultPrice;
 
