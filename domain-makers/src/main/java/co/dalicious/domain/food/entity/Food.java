@@ -156,6 +156,11 @@ public class Food {
                 .orElse(null);
     }
 
+    public Integer getFoodDiscountRate(DiscountType discountType) {
+        FoodDiscountPolicy foodDiscountPolicy = getFoodDiscountPolicy(discountType);
+        return foodDiscountPolicy == null ? null : foodDiscountPolicy.getDiscountRate();
+    }
+
     public FoodCapacity getFoodCapacity(DiningType diningType) {
         return getFoodCapacities().stream()
                 .filter(v -> v.getDiningType().equals(diningType))
