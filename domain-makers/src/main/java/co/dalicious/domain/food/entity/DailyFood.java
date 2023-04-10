@@ -5,6 +5,7 @@ import co.dalicious.domain.food.converter.DailyFoodStatusConverter;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
+import co.dalicious.system.enums.DiscountType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -16,6 +17,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -31,7 +33,7 @@ public class DailyFood {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT UNSIGNED")
+    @Column(columnDefinition = "BIGINT")
     private BigInteger id;
 
     @Convert(converter = DiningTypeConverter.class)
@@ -47,6 +49,26 @@ public class DailyFood {
     @Column(name = "service_date", columnDefinition = "DATE")
     @Comment("배송 날짜")
     private LocalDate serviceDate;
+
+    @Column(name = "supply_price", precision = 15, scale = 2)
+    @Comment("메이커스 공급가")
+    private BigDecimal supplyPrice;
+
+    @Column(name = "default_price", precision = 15, scale = 2)
+    @Comment("음식 정가")
+    private BigDecimal defaultPrice;
+
+    @Column(name = "membership_discount_rate")
+    @Comment("멤버십 할인율")
+    private Integer membershipDiscountRate;
+
+    @Column(name = "makers_discount_rate")
+    @Comment("메이커스 할인율")
+    private Integer makersDiscountRate;
+
+    @Column(name = "period_discount_rate")
+    @Comment("기간 할인율")
+    private Integer periodDiscountRate;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -80,18 +102,24 @@ public class DailyFood {
         this.dailyFoodStatus = dailyFoodStatus;
     }
 
-    @Builder
-    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, Food food, Group group, DailyFoodGroup dailyFoodGroup) {
-        this.diningType = diningType;
-        this.dailyFoodStatus = dailyFoodStatus;
-        this.serviceDate = serviceDate;
-        this.food = food;
-        this.group = group;
-        this.dailyFoodGroup = dailyFoodGroup;
-    }
 
     public void updateDiningType(DiningType diningType) {
         this.diningType = diningType;
+    }
+
+    @Builder
+    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, BigDecimal supplyPrice, BigDecimal defaultPrice, Integer membershipDiscountRate, Integer makersDiscountRate, Integer periodDiscountRate, Food food, Group group, DailyFoodGroup dailyFoodGroup) {
+        this.diningType = diningType;
+        this.dailyFoodStatus = dailyFoodStatus;
+        this.serviceDate = serviceDate;
+        this.supplyPrice = supplyPrice;
+        this.defaultPrice = defaultPrice;
+        this.membershipDiscountRate = membershipDiscountRate;
+        this.makersDiscountRate = makersDiscountRate;
+        this.periodDiscountRate = periodDiscountRate;
+        this.food = food;
+        this.group = group;
+        this.dailyFoodGroup = dailyFoodGroup;
     }
 
     public void updateDailyFoodStatus(DailyFoodStatus dailyFoodStatus) {
@@ -108,5 +136,13 @@ public class DailyFood {
 
     public void updateGroup(Group group) {
         this.group = group;
+    }
+
+    public void updateDailyFoodPrice(Food food) {
+        this.supplyPrice = food.getSupplyPrice();
+        this.defaultPrice = food.getPrice();
+        this.membershipDiscountRate = food.getFoodDiscountRate(DiscountType.MEMBERSHIP_DISCOUNT);
+        this.makersDiscountRate = food.getFoodDiscountRate(DiscountType.MAKERS_DISCOUNT);
+        this.periodDiscountRate = food.getFoodDiscountRate(DiscountType.PERIOD_DISCOUNT);
     }
 }

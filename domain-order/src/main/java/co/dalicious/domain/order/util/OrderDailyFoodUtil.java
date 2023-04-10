@@ -59,6 +59,9 @@ public class OrderDailyFoodUtil {
     }
 
     public Map<DailyFood, Integer> getRemainFoodsCount(List<DailyFood> dailyFoods) {
+        // 존재하는 식단이 없을 경우 빈 Map을 리턴한다.
+        if(dailyFoods.isEmpty()) return new HashMap<>();
+
         Map<DailyFood, Integer> dailyFoodIntegerMap = new HashMap<>();
         // 1. 한정 판매 수량인지 확인한다.
         List<FoodSchedule> foodSchedules = qFoodScheduleRepository.findAllByDailyFoods(dailyFoods);

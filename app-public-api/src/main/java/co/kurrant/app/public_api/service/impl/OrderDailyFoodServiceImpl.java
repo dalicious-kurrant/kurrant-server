@@ -584,7 +584,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
             }
             if (notyDto.getLastOrderTime() != null) {
-                // TODO: 지성님 확인
                 Integer day = notyDto.getLastOrderTime().getDay();
                 LocalTime time = notyDto.getLastOrderTime().getTime();
 
@@ -806,7 +805,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                 }
                 user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
-
+                pointUtil.createPointHistoryByOthers(user, orderDailyFood.getId(), PointStatus.USED, orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
                 //Order 테이블에 paymentKey와 receiptUrl 업데이트
                 String receiptUrl = response.get("receipt_url").toString();
 

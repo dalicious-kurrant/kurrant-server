@@ -93,6 +93,7 @@ public class OrderUtil {
         return false;
     }
 
+    // TODO: 식단에 가격 업데이트 적용이 되는 시점부터 주석 해제
     public static DiscountDto checkMembershipAndGetDiscountDto(User user, Group group, Spot spot, DailyFood dailyFood) {
         group = (Group) Hibernate.unproxy(group);
 
@@ -100,9 +101,12 @@ public class OrderUtil {
             // 멤버십 혜택 마감 시간 (서비스 날짜 전일 + 마감시간)
             LocalDateTime membershipBenefitTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(spot.getMembershipBenefitTime(dailyFood.getDiningType()).getDay()), spot.getMembershipBenefitTime(dailyFood.getDiningType()).getTime());
             if (spot.getDeliveryTime(dailyFood.getDiningType()) == null || LocalDateTime.now().isBefore(membershipBenefitTime)) {
+
+                //return DiscountDto.getDiscount(dailyFood);
                 return DiscountDto.getDiscount(dailyFood.getFood());
             }
         }
+        //return DiscountDto.getDiscountWithoutMembership(dailyFood);
         return DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
     }
 

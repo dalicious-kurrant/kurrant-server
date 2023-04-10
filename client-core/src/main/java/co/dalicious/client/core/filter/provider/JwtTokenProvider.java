@@ -42,7 +42,7 @@ public class JwtTokenProvider {
     private final UserDetailsService userDetailsService;
 
 //    private static final long ACCESS_TOKEN_EXPIRE_TIME = 2 * 60 * 60 * 1000L; // 2시간
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 2 * 60 * 1000L; // 3분
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 3 * 60 * 1000L; // 3분
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
 
     @PostConstruct

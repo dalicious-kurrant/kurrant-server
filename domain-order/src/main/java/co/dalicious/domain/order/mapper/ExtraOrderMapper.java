@@ -26,6 +26,9 @@ import java.util.Map;
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface ExtraOrderMapper {
     default List<ExtraOrderDto.DailyFoodList> toDailyFoodList(List<DailyFood> dailyFoods, Map<DailyFood, Integer> dailyFoodCountMap) {
+        if(dailyFoods.isEmpty()) {
+            return  new ArrayList<>();
+        }
         // 1. 식사일정별로 묶는다.
         MultiValueMap<DiningTypeServiceDateDto, DailyFood> dailyFoodMap = new LinkedMultiValueMap<>();
 
