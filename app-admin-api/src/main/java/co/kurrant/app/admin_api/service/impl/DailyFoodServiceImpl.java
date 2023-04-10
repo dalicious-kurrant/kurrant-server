@@ -116,10 +116,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         }
 
         List<Group> groups = new ArrayList<>();
-        Set<Makers> makers = new HashSet<>();
         for (DailyFood dailyFood : dailyFoods) {
             groups.add(dailyFood.getGroup());
-            makers.add(dailyFood.getFood().getMakers());
         }
         ServiceDateBy.MakersAndFood makersOrderCount = qOrderDailyFoodRepository.getMakersCounts(dailyFoods);
         ServiceDateBy.MakersAndFood makersCapacities = orderDailyFoodUtil.getMakersCapacity(dailyFoods, makersOrderCount);
