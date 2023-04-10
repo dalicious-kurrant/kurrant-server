@@ -1,5 +1,8 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.service.ImageService;
@@ -54,6 +57,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final ImageService imageService;
     private final QUserRepository qUserRepository;
     private final PointUtil pointUtil;
+    private final NotificationHashRepository notificationHashRepository;
+    private final SseService sseService;
 
     @Override
     @Transactional
@@ -106,6 +111,7 @@ public class ReviewServiceImpl implements ReviewService {
         // review 저장
         reviewRepository.save(reviews);
         qReviewRepository.updateDefault(reviews);
+        orderItem.updateOrderStatus(OrderStatus.WRITTEN_REVIEW);
 
         // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
         if(user.getIsMembership() || membershipDiscountRate != 0) {
@@ -185,6 +191,11 @@ public class ReviewServiceImpl implements ReviewService {
 
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
         //TODO: sse 보내기
+
+        List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 3, true);
+        if(notificationHashList == null || notificationHashList.isEmpty()) {
+            sseService.send(user.getId(), 3, "리뷰를 작성해야하는 상품이 있습니다.");
+        }
 
         return ReviewableItemResDto.create(orderFoodList, redeemablePoints, size);
     }
