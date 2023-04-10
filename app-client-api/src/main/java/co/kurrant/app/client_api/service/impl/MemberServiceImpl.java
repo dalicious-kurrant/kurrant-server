@@ -8,12 +8,12 @@ import co.dalicious.domain.client.entity.enums.EmployeeHistoryType;
 import co.dalicious.domain.client.mapper.EmployeeHistoryMapper;
 import co.dalicious.domain.client.mapper.EmployeeMapper;
 import co.dalicious.domain.client.repository.*;
-import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.*;
+import co.kurrant.app.client_api.dto.MemberIdListDto;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.dto.MemberListResponseDto;
 import co.kurrant.app.client_api.dto.MemberWaitingListResponseDto;
@@ -31,7 +31,6 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tika.Tika;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -157,7 +156,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void deleteMember(SecurityUser securityUser, DeleteMemberRequestDto deleteMemberRequestDto) {
+    public void deleteMember(SecurityUser securityUser, MemberIdListDto deleteMemberRequestDto) {
         Corporation corporation = userUtil.getCorporation(securityUser);
         //userId 리스트 가져오기
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
