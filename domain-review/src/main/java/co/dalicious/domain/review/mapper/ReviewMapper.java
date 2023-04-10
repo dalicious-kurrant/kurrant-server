@@ -145,6 +145,15 @@ public interface ReviewMapper {
         reviewListDto.setWriter(reviews.getUser().getName());
         reviewListDto.setIsReport(reviews.getIsReports());
         reviewListDto.setOrderItemName(getItemName(reviews.getOrderItem()));
+        reviewListDto.setIsMakersComments(false);
+
+        List<Comments> commentsList = reviews.getComments();
+        for(Comments comment : commentsList) {
+            if(comment instanceof MakersComments) {
+                reviewListDto.setIsMakersComments(true);
+                break;
+            }
+        }
 
         return  reviewListDto;
     };
