@@ -32,9 +32,9 @@ public class ReviewableItemResDto {
         }
     }
 
-    public static ReviewableItemResDto create(List<OrderFood> orderFoodList, BigDecimal redeemablePoints) {
+    public static ReviewableItemResDto create(List<OrderFood> orderFoodList, BigDecimal redeemablePoints, Integer count) {
         return ReviewableItemResDto.builder()
-                .count(orderFoodList.size())
+                .count(count)
                 .redeemablePoints(redeemablePoints)
                 .orderFoodList(orderFoodList)
                 .build();

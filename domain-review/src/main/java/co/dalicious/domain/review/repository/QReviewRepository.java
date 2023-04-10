@@ -6,10 +6,13 @@ import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.MakersComments;
+import co.dalicious.domain.review.entity.QComments;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
@@ -24,8 +27,10 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static co.dalicious.domain.review.entity.QComments.comments;
@@ -37,12 +42,14 @@ public class QReviewRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public Reviews findByUserAndOrderItem(User user, OrderItem orderItem) {
+    QComments makersComments = new QComments("makers_comments");
+    QComments adminComments = new QComments("admin_comments");
+    public List<Reviews> findByUserAndOrderItem(User user, OrderItem orderItem) {
         return queryFactory
                 .selectFrom(reviews)
                 .where(reviews.user.eq(user),
                         reviews.orderItem.eq(orderItem))
-                .fetchOne();
+                .fetch();
     }
 
     public Reviews findByUserAndId(User user, BigInteger reviewId) {
@@ -64,23 +71,37 @@ public class QReviewRepository {
         if(makersId != null) {
             filter.and(reviews.food.makers.id.eq(makersId));
         }
-        if(orderCode != null) {
-            filter.and(orderItem.order.code.containsIgnoreCase(orderCode));
+        if(orderCode != null && orderItemName != null) {
+            filter.and(orderItem.order.code.containsIgnoreCase(orderCode))
+                    .or(reviews.food.name.containsIgnoreCase(orderItemName));
         }
         if(userName != null) {
             filter.and(reviews.user.name.containsIgnoreCase(userName));
-        }
-        if(orderItemName != null) {
-            filter.and(reviews.food.name.containsIgnoreCase(orderItemName));
         }
         if(isReport != null) {
             filter.and(reviews.isReports.eq(isReport));
         }
         if(isMakersComment != null) {
-            filter.and(comments.instanceOf(MakersComments.class));
+            if(isMakersComment){
+                filter.and(comments.instanceOf(MakersComments.class));
+            }
+            else {
+                JPQLQuery<Long> makersCommentsQuery = JPAExpressions.select(makersComments.count())
+                        .from(makersComments)
+                        .where(makersComments.reviews.eq(reviews), makersComments.instanceOf(MakersComments.class));
+                filter.and(makersCommentsQuery.lt(Long.valueOf(1)));
+            }
         }
         if(isAdminComment != null) {
-            filter.and(comments.instanceOf(AdminComments.class));
+            if(isAdminComment){
+                filter.and(comments.instanceOf(AdminComments.class));
+            }
+            else {
+                JPQLQuery<Long> adminCommentsQuery = JPAExpressions.select(adminComments.count())
+                        .from(adminComments)
+                        .where(adminComments.reviews.eq(reviews), adminComments.instanceOf(AdminComments.class));
+                filter.and(adminCommentsQuery.lt(Long.valueOf(1)));
+            }
         }
 
         int offset = limit * (page - 1);
@@ -91,6 +112,7 @@ public class QReviewRepository {
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
                 .leftJoin(reviews.comments, comments)
                 .where(filter)
+                .orderBy(reviews.createdDateTime.desc())
                 .distinct()
                 .limit(limit)
                 .offset(offset)
@@ -120,15 +142,26 @@ public class QReviewRepository {
                 .fetchOne();
     }
 
-    public Page<Reviews> findAllByMakersExceptMakersComment(Makers makers, Integer limit, Integer page, Pageable pageable) {
+    public Page<Reviews> findAllByMakersExceptMakersComment(Makers makers, String foodName, Integer limit, Integer page, Pageable pageable) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+        if(foodName != null) {
+            whereCause.and(reviews.food.name.containsIgnoreCase(foodName));
+        }
 
         int offset = limit * (page - 1);
 
+        JPQLQuery<Long> makersCommentsQuery = JPAExpressions.select(makersComments.count())
+                .from(makersComments)
+                .where(makersComments.reviews.eq(reviews), makersComments.instanceOf(MakersComments.class));
+
         QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
-                .leftJoin(reviews.comments, comments)
                 .where(reviews.food.makers.eq(makers),
-                        reviews.comments.isEmpty().or(comments.instanceOf(AdminComments.class)),
-                        reviews.isDelete.ne(true))
+                        makersCommentsQuery.lt(Long.valueOf(1)),
+                        reviews.isDelete.ne(true),
+                        reviews.isReports.ne(true),
+                        whereCause)
+                .orderBy(reviews.createdDateTime.desc())
+                .distinct()
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -136,13 +169,19 @@ public class QReviewRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<Reviews> findAllByMakers(Makers makers, Integer limit, Integer page, Pageable pageable) {
+    public Page<Reviews> findAllByMakers(Makers makers, String foodName, Integer limit, Integer page, Pageable pageable) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+        if(foodName != null) {
+            whereCause.and(reviews.food.name.containsIgnoreCase(foodName));
+        }
 
         int offset = limit * (page - 1);
 
         QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
                 .leftJoin(reviews.comments, comments)
-                .where(reviews.food.makers.eq(makers), reviews.isDelete.ne(true))
+                .where(reviews.food.makers.eq(makers), reviews.isDelete.ne(true), whereCause)
+                .orderBy(reviews.createdDateTime.desc())
+                .distinct()
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -188,5 +227,17 @@ public class QReviewRepository {
         return  queryFactory.selectFrom(reviews)
                 .where(reviews.user.eq(user), reviews.orderItem.in(orderItemList))
                 .fetch();
+    }
+
+    public List<Reviews> findAllByIds(Set<BigInteger> ids) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.id.in(ids))
+                .fetch();
+    }
+
+    public long pendingReviewCount() {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.comments.isEmpty())
+                .fetchCount();
     }
 }

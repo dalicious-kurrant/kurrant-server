@@ -2,8 +2,11 @@ package co.dalicious.domain.user.repository;
 
 
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PointStatus;
+import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.user.entity.QUser.user;
@@ -23,6 +27,41 @@ import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
 public class QUserRepository {
 
     private final JPAQueryFactory queryFactory;
+
+    public List<User> findManagerByGroupIds(Set<BigInteger> groupIds) {
+        BooleanExpression hasManagerRole = userGroup.user.role.eq(Role.MANAGER);
+        BooleanExpression groupInGroupIds = userGroup.group.id.in(groupIds);
+
+        BooleanExpression managerInGroupIds = hasManagerRole.and(groupInGroupIds);
+
+        return queryFactory.select(userGroup.user)
+                .from(userGroup)
+                .where(managerInGroupIds)
+                .fetch();
+    }
+    public List<User> findAdminAndManagerByGroupIds(Set<BigInteger> groupIds) {
+        BooleanExpression hasManagerRole = userGroup.user.role.eq(Role.MANAGER);
+        BooleanExpression groupInGroupIds = userGroup.group.id.in(groupIds);
+        BooleanExpression hasAdminRole = userGroup.user.role.eq(Role.ADMIN);
+
+        BooleanExpression managerInGroupIds = hasManagerRole.and(groupInGroupIds);
+        BooleanExpression condition = managerInGroupIds.or(hasAdminRole);
+
+        return queryFactory.select(userGroup.user)
+                .from(userGroup)
+                .where(condition)
+                .fetch();
+    }
+
+    public List<User> findAllManager() {
+        BooleanExpression hasManagerRole = user.role.eq(Role.MANAGER);
+        BooleanExpression hasAdminRole = user.role.eq(Role.ADMIN);
+        BooleanExpression condition = hasManagerRole.or(hasAdminRole);
+
+        return queryFactory.selectFrom(user)
+                .where(condition)
+                .fetch();
+    }
 
 
     public User findByUserId(BigInteger userId) {
@@ -108,11 +147,19 @@ public class QUserRepository {
                 .fetch();
     }
     
-    public void updateUserPoint(BigInteger userId, BigDecimal point) {
-        queryFactory.update(user)
-                .where(user.id.eq(userId))
-                .set(user.point, user.point.add(point))
-                .execute();
+    public void updateUserPoint(BigInteger userId, BigDecimal point, PointStatus pointStatus) {
+        if(PointStatus.rewardStatus().contains(pointStatus)) {
+            queryFactory.update(user)
+                    .where(user.id.eq(userId))
+                    .set(user.point, user.point.add(point))
+                    .execute();
+        }
+        else {
+            queryFactory.update(user)
+                    .where(user.id.eq(userId))
+                    .set(user.point, user.point.subtract(point))
+                    .execute();
+        }
     }
       
     public List<User> getUsersByEmails(List<String> emails) {
@@ -150,5 +197,12 @@ public class QUserRepository {
 
           if (password == null) return false;
           return true;
+    }
+
+    public void resetPaymentPassword(BigInteger id, String payNumber) {
+        queryFactory.update(user)
+                .set(user.paymentPassword, payNumber)
+                .where(user.id.eq(id))
+                .execute();
     }
 }

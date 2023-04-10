@@ -37,6 +37,7 @@ public class PointPolicyResDto {
         private BigDecimal rewardPoint;
         private String eventStartDate;
         private String eventEndDate;
+        private BigInteger boardId;
     }
 
     @Getter

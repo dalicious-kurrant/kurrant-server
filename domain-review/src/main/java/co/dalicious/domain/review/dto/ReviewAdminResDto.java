@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Builder
 public class ReviewAdminResDto {
 
-    private Integer unansweredCount;
+    private Long unansweredCount;
     private List<MakersInfo> makersInfoList;
     private List<ReviewList> reviewList;
 
@@ -40,10 +40,11 @@ public class ReviewAdminResDto {
     public static class ReviewList {
         private BigInteger reviewId;
         private String serviceDate;
-        private BigInteger orderItemId;
+        private String orderCode;
         private String itemName;
         private String makersName;
         private Integer satisfaction;
+        private String writer;
         private String createdDate;
         private String content;
         private Boolean isMakersComment;
@@ -52,13 +53,14 @@ public class ReviewAdminResDto {
         private Boolean isDelete;
 
         @Builder
-        public ReviewList(BigInteger reviewId, String serviceDate, BigInteger orderItemId, String itemName, String makersName, Integer satisfaction, String createdDate, String content, Boolean isMakersComment, Boolean isAdminComment, Boolean isReport, Boolean isDelete) {
+        public ReviewList(BigInteger reviewId, String serviceDate, String orderCode, String itemName, String makersName, Integer satisfaction, String writer, String createdDate, String content, Boolean isMakersComment, Boolean isAdminComment, Boolean isReport, Boolean isDelete) {
             this.reviewId = reviewId;
             this.serviceDate = serviceDate;
-            this.orderItemId = orderItemId;
+            this.orderCode = orderCode;
             this.itemName = itemName;
             this.makersName = makersName;
             this.satisfaction = satisfaction;
+            this.writer = writer;
             this.createdDate = createdDate;
             this.content = content;
             this.isMakersComment = isMakersComment;
@@ -68,7 +70,7 @@ public class ReviewAdminResDto {
         }
     }
 
-    public static ReviewAdminResDto create(List<Makers> makersList, List<ReviewList> reviewList, Integer count) {
+    public static ReviewAdminResDto create(List<Makers> makersList, List<ReviewList> reviewList, Long count) {
         List<MakersInfo> makersInfos = makersList.stream().map(MakersInfo::create).collect(Collectors.toList());
         return ReviewAdminResDto.builder()
                 .unansweredCount(count)
@@ -87,8 +89,10 @@ public class ReviewAdminResDto {
         private String contentOrigin;
         private Integer satisfactionOrigin;
         private Boolean forMakers;
-        private String userName;
+        private String writer;
         private String foodName;
+        private Boolean isDelete;
+        private Boolean isReport;
         private MakersComment makersComment;
         private AdminComment adminComment;
     }

@@ -21,6 +21,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, UserValidator.class, Provider.class})
 public interface UserMapper {
+    @Mapping(source = "user.paymentPassword", target = "paymentPassword")
     @Mapping(source = "user.userStatus", target = "status", qualifiedByName = "getUserStatus")
     @Mapping(source = "user.marketingAlarm", target = "marketingAlarm")
     @Mapping(source = "user.updatedDateTime", target = "userUpdatedDateTime", qualifiedByName = "TimeFormat")

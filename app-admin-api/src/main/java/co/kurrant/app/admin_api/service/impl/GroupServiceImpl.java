@@ -14,9 +14,12 @@ import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.system.enums.DiningType;
+import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.mapper.CorporationMealInfoMapper;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.service.GroupService;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.data.domain.Page;
@@ -37,6 +40,14 @@ public class GroupServiceImpl implements GroupService {
     public final GroupRepository groupRepository;
     private final CorporationMealInfoMapper mealInfoMapper;
     private final MealInfoRepository mealInfoRepository;
+
+    @Override
+    @Transactional
+    public List<GroupDto.Spot> getSpots(BigInteger groupId) {
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        List<Spot> spots = group.getSpots();
+        return groupMapper.spotsToDtos(spots);
+    }
 
     @Override
     @Transactional(readOnly = true)

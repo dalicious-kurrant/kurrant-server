@@ -50,6 +50,11 @@ public enum ExceptionEnum {
 	EXCEL_INTEGRITY_ERROR(HttpStatus.BAD_REQUEST, "E4000101", "정합성에 위반된 데이터가 존재합니다. 올바른 데이터를 입력해주세요."),
 	CONNECTION_ERROR(HttpStatus.BAD_REQUEST, "E4000102", "연결 오류!!!"),
 	EVENT_END_DATE_IS_OVER(HttpStatus.BAD_REQUEST, "E4000103", "이미 끝난 이벤트입니다."),
+	EVENT_COUNT_OVER(HttpStatus.BAD_REQUEST, "E4000103", "이미 참여한 이벤트입니다."),
+	ALREADY_REPORTED_REVIEW(HttpStatus.BAD_REQUEST, "E4000104", "이미 신고한 리뷰입니다."),
+	ADMIN_USER_SHOULD_BE_UNIQUE(HttpStatus.BAD_REQUEST, "E4000104", "관리자 계정은 유일해야 합니다."),
+	ALREADY_WRITE_COMMENT_REVIEW(HttpStatus.BAD_REQUEST, "E4000106", "이미 댓글을 작성한 리뷰입니다."),
+	ALREADY_DELETED_REVIEW(HttpStatus.BAD_REQUEST, "E4000106", "삭제된 리뷰입니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
@@ -98,7 +103,12 @@ public enum ExceptionEnum {
 	ADMIN_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040028", "작성된 관리자 댓글이 없습니다."),
 	MAKERS_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND,"E4040029", "작성된 메이커스 댓글이 없습니다."),
 	NOT_FOUND_MANAGER(HttpStatus.NOT_FOUND,"E4040030", "매니저를 찾을 수 없습니다."),
-	NOT_FOUND_PAYMENT_PASSWORD(HttpStatus.INTERNAL_SERVER_ERROR, "E4040031", "결제 비밀번호가 등록되지 않았습니다."),
+	NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040032", "공지를 찾을 수 없습니다."),
+	CANCLE_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040033", "취소 내역을 찾을 수 없습니다."),
+	NOT_FOUND_PAYMENT_PASSWORD(HttpStatus.NOT_FOUND, "E4040034", "결제 비밀번호가 등록되지 않았습니다."),
+	ALREADY_EXIST_CARD(HttpStatus.NOT_FOUND, "E4040035", "이미 존재하는 카드입니다"),
+	NOT_FOUND_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040036", "삭제할 테스트 데이터 ID를 입력하지 않았습니다."),
+	NOT_MATCHED_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040037", "존재하지 않는 테스트 데이터 ID 입니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
@@ -120,10 +130,11 @@ public enum ExceptionEnum {
   	MAKERS_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000012", "메이커스 정보 수정 실패"),
   	ALIMTALK_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000013", "알림톡 발송 실패"),
   	TOKEN_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000014", "토큰 생성 실패"),
-	BILLING_KEY_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000015", "빌링키 발급 실패"),
+	BILLING_KEY_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000015", "잘못된 카드정보를 입력하셨습니다."),
 	TOKEN_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000016", "토큰 저장 실패"),
 	PAYMENT_PASSWORD_LENGTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000017", "결제 비밀번호는 6자리로 입력해주세요."),
 	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "결제 비밀번호가 일치하지 않습니다."),
+	PAYMENT_PASSWORD_RESET_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000019", "결제 비밀번호 재설정에 실패했습니다."),
 
 
 

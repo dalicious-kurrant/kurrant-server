@@ -18,18 +18,20 @@ public class UserDto {
     private String phone;
     private String name;
     private Role role;
+    private String paymentPassword;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     Date createdDateTime;
 
     @Builder
     public UserDto(String email, String password, String phone, String name, Role role,
-    Date createdDateTime) {
+    Date createdDateTime, String paymentPassword) {
         this.email = email;
         this.password = password;
         this.phone = phone;
         this.name = name;
         this.role = role;
         this.createdDateTime = createdDateTime;
+        this.paymentPassword = paymentPassword;
     }
 }
 

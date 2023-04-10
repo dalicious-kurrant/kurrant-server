@@ -7,6 +7,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.review.dto.CommentReqDto;
 import co.dalicious.domain.review.dto.ReviewMakersResDto;
+import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.Reviews;
@@ -46,20 +47,31 @@ public class ReviewServiceImpl implements ReviewService {
         Reviews reviews = qReviewRepository.findById(reviewId);
         if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
 
+
+        List<Comments> commentsList = reviews.getComments();
+        for(Comments comments : commentsList) {
+            if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
+                throw new ApiException(ExceptionEnum.ALREADY_WRITE_COMMENT_REVIEW);
+            }
+        }
+
+
         MakersComments comments = reviewMapper.toMakersComment(reqDto, reviews);
         commentsRepository.save(comments);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ItemPageableResponseDto<ReviewMakersResDto> getUnansweredReview(SecurityUser securityUser, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+    public ItemPageableResponseDto<ReviewMakersResDto> getUnansweredReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         Makers makers = userUtil.getMakers(securityUser);
 
-        // 메이커스 댓글이 없는 리뷰만 조회 - 삭제 제외
-        Page<Reviews> reviewsList = qReviewRepository.findAllByMakersExceptMakersComment(makers, limit, page, pageable);
+        // 메이커스 댓글이 없는 리뷰만 조회 - 삭제 제외, 신고 제외
+        Page<Reviews> reviewsList = qReviewRepository.findAllByMakersExceptMakersComment(makers, foodName, limit, page, pageable);
         ReviewMakersResDto reviewMakersResDto = new ReviewMakersResDto();
         List<ReviewMakersResDto.ReviewListDto> reviewListDtoList = new ArrayList<>();
         if(reviewsList.isEmpty()) {
+            reviewMakersResDto.setCount(0);
+            reviewMakersResDto.setReviewListDtoList(reviewListDtoList);
             return ItemPageableResponseDto.<ReviewMakersResDto>builder()
                     .items(reviewMakersResDto).limit(pageable.getPageSize())
                     .total(reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
@@ -82,11 +94,11 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    public ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview(SecurityUser securityUser, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+    public ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         Makers makers = userUtil.getMakers(securityUser);
 
-        // 메이커스 댓글이 없는 리뷰만 조회 - 삭제 제외
-        Page<Reviews> reviewsList = qReviewRepository.findAllByMakers(makers, limit, page, pageable);
+        // 메이커스 댓글이 없는 리뷰만 조회 - 삭제, 신고 제외
+        Page<Reviews> reviewsList = qReviewRepository.findAllByMakers(makers, foodName, limit, page, pageable);
 
         List<ReviewMakersResDto.ReviewListDto> reviewListDtoList = new ArrayList<>();
         if(reviewsList.isEmpty()) {
@@ -143,6 +155,7 @@ public class ReviewServiceImpl implements ReviewService {
     public void reportReviews(BigInteger reviewId) {
         Reviews reviews = qReviewRepository.findById(reviewId);
         if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
+        if(reviews.getIsReports()) throw new ApiException(ExceptionEnum.ALREADY_REPORTED_REVIEW);
 
         reviews.updateIsReport(true);
     }
