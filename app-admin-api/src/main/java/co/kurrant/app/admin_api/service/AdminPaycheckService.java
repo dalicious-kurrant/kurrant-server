@@ -1,6 +1,5 @@
 package co.kurrant.app.admin_api.service;
 
-import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
@@ -10,7 +9,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 
-public interface PaycheckService {
+public interface AdminPaycheckService {
     List<MakersDto.Makers> getMakers();
     List<GroupDto.Group> getCorporations();
 

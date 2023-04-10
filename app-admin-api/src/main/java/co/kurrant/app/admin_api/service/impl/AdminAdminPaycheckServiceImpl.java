@@ -19,7 +19,7 @@ import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
-import co.kurrant.app.admin_api.service.PaycheckService;
+import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PaycheckServiceImpl implements PaycheckService {
+public class AdminAdminPaycheckServiceImpl implements AdminPaycheckService {
     private final MakersRepository makersRepository;
     private final ImageService imageService;
     private final MakersPaycheckMapper makersPaycheckMapper;
