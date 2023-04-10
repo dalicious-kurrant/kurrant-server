@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.service;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
+import co.dalicious.domain.client.entity.SparkPlusLog;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -25,5 +26,8 @@ public interface AdminPaycheckService {
     void deleteCorporationPaycheck(List<BigInteger> ids);
     void updateCorporationPaycheckStatus(Integer status, List<BigInteger> ids);
 
+    void postSparkplusLog(Integer log);
+    List<SparkPlusLog> getSpartplusLog();
     void postMakersPaycheckExcel();
+
 }

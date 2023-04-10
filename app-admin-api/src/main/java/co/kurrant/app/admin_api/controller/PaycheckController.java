@@ -29,7 +29,7 @@ public class PaycheckController {
                 .build();
     }
 
-    @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
+    @Operation(summary = "메이커스 정산 등록 엑셀", description = "메이커스 정산 등록")
     @PostMapping("/makers/excel")
     public ResponseMessage postMakersPaycheck() {
         adminPaycheckService.postMakersPaycheckExcel();

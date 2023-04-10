@@ -21,8 +21,11 @@ import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
+import co.dalicious.domain.client.entity.SparkPlusLog;
+import co.dalicious.domain.client.entity.enums.SparkPlusLogType;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
+import co.dalicious.domain.client.repository.SparkPlusLogRepository;
 import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -53,6 +56,7 @@ public class AdminAdminPaycheckServiceImpl implements AdminPaycheckService {
     private final PaycheckService paycheckService;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final ExcelService excelService;
+    private final SparkPlusLogRepository sparkPlusLogRepository;
 
     @Override
     @Transactional
@@ -243,6 +247,22 @@ public class AdminAdminPaycheckServiceImpl implements AdminPaycheckService {
             corporationPaycheck.updatePaycheckStatus(paycheckStatus);
         }
     }
+
+    @Override
+    @Transactional
+    public void postSparkplusLog(Integer log) {
+        SparkPlusLogType sparkPlusLogType = SparkPlusLogType.ofCode(log);
+        SparkPlusLog sparkPlusLog =  sparkPlusLogRepository.findOneBySparkPlusLogType(sparkPlusLogType)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+
+        sparkPlusLog.addCount();
+    }
+
+    @Override
+    public List<SparkPlusLog> getSpartplusLog() {
+        return sparkPlusLogRepository.findAll();
+    }
+
 
     @Override
     public void postMakersPaycheckExcel() {

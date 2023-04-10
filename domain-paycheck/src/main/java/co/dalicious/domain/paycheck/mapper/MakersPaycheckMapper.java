@@ -22,16 +22,15 @@ public interface MakersPaycheckMapper {
     @Mapping(target = "paycheckStatus", expression = "java(PaycheckStatus.ofCode(paycheckDto.getPaycheckStatus()))")
     @Mapping(source = "excelFile", target = "excelFile")
     @Mapping(source = "pdfFile", target = "pdfFile")
-    @Mapping(source = "paycheckDailyFoods", target = "paycheckDailyFoods")
     MakersPaycheck toEntity(PaycheckDto.MakersRequest paycheckDto, Makers makers, Image excelFile, Image pdfFile);
 
     @Mapping(source = "makers", target = "makers")
-    @Mapping(target = "yearMonth", qualifiedByName = "getNowYearMonth")
+    @Mapping(target = "yearMonth", expression = "java(YearMonth.now())")
     @Mapping(target = "paycheckStatus", constant = "REGISTER")
     @Mapping(source = "excelFile", target = "excelFile")
     @Mapping(source = "pdfFile", target = "pdfFile")
     @Mapping(source = "paycheckDailyFoods", target = "paycheckDailyFoods")
-    MakersPaycheck toEntity(Makers makers, Image excelFile, Image pdfFile, List<PaycheckDailyFood> paycheckDailyFoods);
+    MakersPaycheck toInitiateEntity(Makers makers, Image excelFile, Image pdfFile, List<PaycheckDailyFood> paycheckDailyFoods);
 
 
     @Mapping(target = "year", expression = "java(makersPaycheck.getYearMonth().getYear())")

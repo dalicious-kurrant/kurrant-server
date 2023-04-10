@@ -7,6 +7,7 @@ import co.dalicious.domain.paycheck.converter.YearMonthAttributeConverter;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -83,14 +84,6 @@ public class MakersPaycheck {
         this.pdfFile = pdfFile;
         this.makers = makers;
         this.paycheckDailyFoods = paycheckDailyFoods;
-    }
-
-    public MakersPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, Image excelFile, Image pdfFile, Makers makers) {
-        this.yearMonth = yearMonth;
-        this.paycheckStatus = paycheckStatus;
-        this.excelFile = excelFile;
-        this.pdfFile = pdfFile;
-        this.makers = makers;
     }
 
     public void updatePaycheckStatus(PaycheckStatus paycheckStatus) {
