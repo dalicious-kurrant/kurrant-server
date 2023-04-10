@@ -419,6 +419,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginTokenDto reissue(TokenDto reissueTokenDto) {
+        System.out.println("Request: reissueTokenDto.refershToken = " + reissueTokenDto.getRefreshToken());
+        System.out.println("Request: reissueTokenDto.accessToken = " + reissueTokenDto.getAccessToken());
+
         String userId;
         boolean accessTokenValid = jwtTokenProvider.validateToken(reissueTokenDto.getAccessToken());
         // 엑세스 토큰이 유효할 경우
@@ -428,7 +431,6 @@ public class AuthServiceImpl implements AuthService {
         // 엑세스 토큰이 유효하지 않을 경우
         else {
             Optional<RefreshToken> refreshToken = refreshTokenRepository.findOneByRefreshToken(reissueTokenDto.getRefreshToken());
-            System.out.println("refershToken = " + reissueTokenDto.getRefreshToken());
             if (refreshToken.isEmpty()) {
                 throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
             }
@@ -492,14 +494,14 @@ public class AuthServiceImpl implements AuthService {
                         .build();
 
                 tempRefreshTokenRepository.save(tempRefreshTokenHash);
-                System.out.println("loginResponseDto.accessToken = " + loginResponseDto.getAccessToken());
-                System.out.println("loginResponseDto.refreshToken = " + loginResponseDto.getRefreshToken());
+                System.out.println("첫번째 발급 토큰: loginResponseDto.accessToken = " + loginResponseDto.getAccessToken());
+                System.out.println("첫번째 발급 토큰: loginResponseDto.refreshToken = " + loginResponseDto.getRefreshToken());
                 return loginResponseDto;
             }
             // reissue 요청이 온 적이 있는 경우
             else {
-                System.out.println("matchingHash.accessToken = " + matchingHash.get().getNewAccessToken());
-                System.out.println("matchingHash.refreshToken = " + matchingHash.get().getNewRefreshToken());
+                System.out.println("기존 발급 토큰: matchingHash.accessToken = " + matchingHash.get().getNewAccessToken());
+                System.out.println("기존 발급 토큰: matchingHash.refreshToken = " + matchingHash.get().getNewRefreshToken());
                 return LoginTokenDto.builder()
                         .refreshToken(matchingHash.get().getNewRefreshToken())
                         .accessToken(matchingHash.get().getNewAccessToken())
