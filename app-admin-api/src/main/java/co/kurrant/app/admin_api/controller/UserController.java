@@ -3,10 +3,7 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
-import co.kurrant.app.admin_api.dto.user.SaveAndUpdateUserList;
-import co.kurrant.app.admin_api.dto.user.SaveTestDataRequestDto;
-import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
-import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
+import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -75,9 +72,27 @@ public class UserController {
     public ResponseMessage saveTestData(@RequestBody SaveTestDataRequestDto saveTestDataRequestDto){
         String message = userService.saveTestData(saveTestDataRequestDto);
         return ResponseMessage.builder()
-                .message("테스트 데이터를 저장했습니다.")
+                .message(message)
                 .build();
     }
 
+    @Operation(summary = "테스트 데이터 수정")
+    @PatchMapping("/test/data")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseMessage updateTestData(@RequestBody UpdateTestDataRequestDto updateTestDataRequestDto){
+        String message = userService.updateTestData(updateTestDataRequestDto);
+        return ResponseMessage.builder()
+                .message(message)
+                .build();
+    }
 
+    @Operation(summary = "테스트 데이터 삭제")
+    @DeleteMapping("/test/data")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseMessage deleteTestData(@RequestBody DeleteTestDataRequestDto deleteTestDataRequestDto){
+        String message = userService.deleteTestData(deleteTestDataRequestDto);
+        return ResponseMessage.builder()
+                .message(message)
+                .build();
+    }
 }

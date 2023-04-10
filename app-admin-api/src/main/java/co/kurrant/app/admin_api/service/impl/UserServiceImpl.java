@@ -2,7 +2,6 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.QGroupRepository;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
@@ -15,7 +14,6 @@ import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.validator.UserValidator;
-import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
@@ -57,6 +55,7 @@ public class UserServiceImpl implements UserService {
     private final FoodRepository foodRepository;
 
     private final UserTasteTestDataRepository userTasteTestDataRepository;
+    private final QUserTasteTestDataRepository qUserTasteTestDataRepository;
 
 
     @Override
@@ -308,5 +307,46 @@ public class UserServiceImpl implements UserService {
         return "저장에 성공했습니다!";
     }
 
-    //수정삭제 만들기
+    @Override
+    public String updateTestData(UpdateTestDataRequestDto updateTestDataRequestDto) {
+        //foodId 검증
+        List<UpdateTestData> updateTestDataList = updateTestDataRequestDto.getUpdateTestDataList();
+        String foodIds = null;
+        for (int i = 0; i < updateTestDataList.size(); i++) {
+            for (int j = 0; j < updateTestDataList.get(i).getTestData().getFoodIds().size(); j++) {
+                BigInteger foodId = updateTestDataList.get(i).getTestData().getFoodIds().get(j);
+                foodRepository.findById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+            }
+            //UserTasteTestData에 수정 반영
+            foodIds = updateTestDataList.get(i).getTestData().getFoodIds().toString().substring(1,updateTestDataList.get(i).getTestData().getFoodIds().toString().length() -1);
+            BigInteger testDataId = updateTestDataList.get(i).getTestDataId();
+            Integer page = updateTestDataRequestDto.getUpdateTestDataList().get(i).getTestData().getPageNum();
+            long updateResult = qUserTasteTestDataRepository.updateTestData(foodIds, testDataId, page);
+
+            //결과가 1이 아닌경우는 실패
+            if (updateResult != 1){
+                return "수정 실패...";
+            }
+        }
+
+        return "수정에 성공했습니다!";
+    }
+
+    @Override
+    public String deleteTestData(DeleteTestDataRequestDto deleteTestDataRequestDto) {
+
+        //testIdList가 비어있는지 체크
+        if (deleteTestDataRequestDto.getTestDataIdList().isEmpty()){
+            throw new ApiException(ExceptionEnum.NOT_FOUND_TEST_DATA_ID);
+        }
+
+        //testId 존재하는지 체크
+        for (BigInteger id : deleteTestDataRequestDto.getTestDataIdList()){
+            userTasteTestDataRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_MATCHED_TEST_DATA_ID));
+            //존재하면 삭제
+            userTasteTestDataRepository.deleteById(id);
+        }
+
+        return "테스트 데이터 삭제 성공!";
+    }
 }
