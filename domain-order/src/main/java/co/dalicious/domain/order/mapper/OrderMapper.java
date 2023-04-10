@@ -6,7 +6,7 @@ import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.GroupDto;
 import co.dalicious.domain.order.entity.*;
@@ -46,7 +46,7 @@ public interface OrderMapper {
 
     @Mapping(target = "orderStatus", constant = "COMPLETED")
     @Mapping(target = "deliveryFee", constant = "0") // TODO: 배송비 추가가 필요한 경우 수정 필요
-    OrderItemDailyFoodGroup toOrderItemDailyFoodGroup(DiningTypeServiceDateDto diningTypeServiceDateDto);
+    OrderItemDailyFoodGroup toOrderItemDailyFoodGroup(ServiceDiningDto serviceDiningDto);
 
     @Mapping(source = "order", target = "order")
     @Mapping(target = "orderStatus", constant = "COMPLETED")
@@ -302,13 +302,13 @@ public interface OrderMapper {
 
     default List<OrderDto.OrderItemStatic> toOrderItemStatic(List<OrderItemDailyFood> orderItemDailyFoods, List<UserGroup> userGroups) {
         List<OrderDto.OrderItemStatic> orderItemStatics = new ArrayList<>();
-        MultiValueMap<DiningTypeServiceDateDto, OrderItemDailyFood> orderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
+        MultiValueMap<ServiceDiningDto, OrderItemDailyFood> orderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(orderItemDailyFood.getDailyFood().getServiceDate(), orderItemDailyFood.getDailyFood().getDiningType());
-            orderItemDailyFoodMultiValueMap.add(diningTypeServiceDateDto, orderItemDailyFood);
+            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(orderItemDailyFood.getDailyFood().getServiceDate(), orderItemDailyFood.getDailyFood().getDiningType());
+            orderItemDailyFoodMultiValueMap.add(serviceDiningDto, orderItemDailyFood);
         }
-        for (DiningTypeServiceDateDto diningTypeServiceDateDto : orderItemDailyFoodMultiValueMap.keySet()) {
-            List<OrderItemDailyFood> orderItemDailyFoodList = orderItemDailyFoodMultiValueMap.get(diningTypeServiceDateDto);
+        for (ServiceDiningDto serviceDiningDto : orderItemDailyFoodMultiValueMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoodList = orderItemDailyFoodMultiValueMap.get(serviceDiningDto);
 
             Set<User> orderUsers = (orderItemDailyFoodList == null) ? Collections.emptySet() :
                     orderItemDailyFoodList.stream()
@@ -330,9 +330,9 @@ public interface OrderMapper {
             }
 
             OrderDto.OrderItemStatic orderItemStatic = new OrderDto.OrderItemStatic();
-            Integer userCount = UserGroup.activeUserCount(diningTypeServiceDateDto.getServiceDate(), userGroups).intValue();
-            orderItemStatic.setServiceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate()));
-            orderItemStatic.setDiningType(diningTypeServiceDateDto.getDiningType().getDiningType());
+            Integer userCount = UserGroup.activeUserCount(serviceDiningDto.getServiceDate(), userGroups).intValue();
+            orderItemStatic.setServiceDate(DateUtils.format(serviceDiningDto.getServiceDate()));
+            orderItemStatic.setDiningType(serviceDiningDto.getDiningType().getDiningType());
             orderItemStatic.setUserCount(userCount);
             orderItemStatic.setOrderUserCount(orderUsers.size());
             orderItemStatic.setFoodCount(foodCount);

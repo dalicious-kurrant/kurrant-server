@@ -4,10 +4,12 @@ import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
+import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.system.util.DateUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 import java.time.YearMonth;
 import java.util.List;
@@ -20,7 +22,17 @@ public interface MakersPaycheckMapper {
     @Mapping(target = "paycheckStatus", expression = "java(PaycheckStatus.ofCode(paycheckDto.getPaycheckStatus()))")
     @Mapping(source = "excelFile", target = "excelFile")
     @Mapping(source = "pdfFile", target = "pdfFile")
+    @Mapping(source = "paycheckDailyFoods", target = "paycheckDailyFoods")
     MakersPaycheck toEntity(PaycheckDto.MakersRequest paycheckDto, Makers makers, Image excelFile, Image pdfFile);
+
+    @Mapping(source = "makers", target = "makers")
+    @Mapping(target = "yearMonth", qualifiedByName = "getNowYearMonth")
+    @Mapping(target = "paycheckStatus", constant = "REGISTER")
+    @Mapping(source = "excelFile", target = "excelFile")
+    @Mapping(source = "pdfFile", target = "pdfFile")
+    @Mapping(source = "paycheckDailyFoods", target = "paycheckDailyFoods")
+    MakersPaycheck toEntity(Makers makers, Image excelFile, Image pdfFile, List<PaycheckDailyFood> paycheckDailyFoods);
+
 
     @Mapping(target = "year", expression = "java(makersPaycheck.getYearMonth().getYear())")
     @Mapping(target = "month", expression = "java(makersPaycheck.getYearMonth().getMonthValue())")
@@ -32,6 +44,11 @@ public interface MakersPaycheckMapper {
     @Mapping(source = "excelFile.location", target = "excelFile")
     @Mapping(source = "pdfFile.location", target = "pdfFile")
     PaycheckDto.MakersResponse toDto(MakersPaycheck makersPaycheck);
+
+    @Named("getNowYearMonth")
+    default YearMonth getNowYearMonth() {
+        return YearMonth.now();
+    }
 
     default List<PaycheckDto.MakersResponse> toDtos(List<MakersPaycheck> makersPaychecks) {
         return makersPaychecks.stream()

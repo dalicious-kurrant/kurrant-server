@@ -76,6 +76,15 @@ public class MakersPaycheck {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
+    public MakersPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, Image excelFile, Image pdfFile, Makers makers, List<PaycheckDailyFood> paycheckDailyFoods) {
+        this.yearMonth = yearMonth;
+        this.paycheckStatus = paycheckStatus;
+        this.excelFile = excelFile;
+        this.pdfFile = pdfFile;
+        this.makers = makers;
+        this.paycheckDailyFoods = paycheckDailyFoods;
+    }
+
     public MakersPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, Image excelFile, Image pdfFile, Makers makers) {
         this.yearMonth = yearMonth;
         this.paycheckStatus = paycheckStatus;

@@ -24,4 +24,6 @@ public interface AdminPaycheckService {
     void updateCorporationPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.CorporationResponse paycheckDto) throws IOException;
     void deleteCorporationPaycheck(List<BigInteger> ids);
     void updateCorporationPaycheckStatus(Integer status, List<BigInteger> ids);
+
+    void postMakersPaycheckExcel();
 }

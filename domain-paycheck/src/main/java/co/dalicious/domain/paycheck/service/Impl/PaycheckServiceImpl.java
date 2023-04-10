@@ -1,20 +1,29 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
+import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckType;
+import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
 import co.dalicious.domain.paycheck.service.PaycheckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class PaycheckServiceImpl implements PaycheckService {
+    private MakersPaycheckMapper makersPaycheckMapper;
     @Override
     public TransactionInfoDefault getTransactionInfoDefault() {
         return TransactionInfoDefault.builder()
@@ -30,8 +39,45 @@ public class PaycheckServiceImpl implements PaycheckService {
     }
 
     @Override
-    public MakersPaycheck generateMakersPaycheck(Makers makers, List<DailyFood> dailyFoods) {
-        return null;
+    public MakersPaycheck generateMakersPaycheck(Makers makers, List<OrderItemDailyFood> dailyFoods) {
+        MultiValueMap<ServiceDiningDto, OrderItemDailyFood> serviceDiningMap = new LinkedMultiValueMap<>();
+        List<PaycheckDailyFood> paycheckDailyFoods = new ArrayList<>();
+
+        // 1. 식사 일정별로 묶기
+        for (OrderItemDailyFood orderItemDailyFood : dailyFoods) {
+            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(orderItemDailyFood.getDailyFood());
+            serviceDiningMap.add(serviceDiningDto, orderItemDailyFood);
+        }
+        for (ServiceDiningDto serviceDiningDto : serviceDiningMap.keySet()) {
+            List<OrderItemDailyFood> dailyFoodListByDate = serviceDiningMap.get(serviceDiningDto);
+            MultiValueMap<Food, OrderItemDailyFood> foodMap = new LinkedMultiValueMap<>();
+
+            // 2. 음식별로 묶기
+            for (OrderItemDailyFood orderItemDailyFood : dailyFoodListByDate) {
+                foodMap.add(orderItemDailyFood.getDailyFood().getFood(), orderItemDailyFood);
+            }
+            for (Food food : foodMap.keySet()) {
+                List<OrderItemDailyFood> orderItemDailyFoodsByFood = foodMap.get(food);
+                Integer count = orderItemDailyFoodsByFood.stream()
+                        .mapToInt(OrderItemDailyFood::getCount)
+                        .sum();
+
+                // 3. 메이커스 정산 리스트에 추가
+                PaycheckDailyFood paycheckDailyFood = PaycheckDailyFood.builder()
+                        .serviceDate(serviceDiningDto.getServiceDate())
+                        .diningType(serviceDiningDto.getDiningType())
+                        .name(orderItemDailyFoodsByFood.get(0).getName())
+                        .supplyPrice(orderItemDailyFoodsByFood.get(0).getDailyFood().getSupplyPrice())
+                        .count(count)
+                        .food(food)
+                        .build();
+                paycheckDailyFoods.add(paycheckDailyFood);
+            }
+        }
+
+        paycheckDailyFoods = paycheckDailyFoods.stream().sorted(Comparator.comparing(PaycheckDailyFood::getServiceDate).thenComparing(v -> v.getDiningType().getCode())).toList();
+
+        return makersPaycheckMapper.toEntity(makers, null, null, paycheckDailyFoods);
     }
 
     @Override
