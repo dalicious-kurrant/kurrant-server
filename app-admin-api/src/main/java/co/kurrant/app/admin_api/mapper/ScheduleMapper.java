@@ -115,7 +115,7 @@ public interface ScheduleMapper {
         ScheduleDto.MakersSchedule makersSchedule = new ScheduleDto.MakersSchedule();
         makersSchedule.setMakersName(makers.getName());
         makersSchedule.setMakersCapacity(makers.getMakersCapacity(diningType).getCapacity()); //TODO: 설정 필요
-        makersSchedule.setMakersCount(makers.getMakersCapacity(diningType).getCapacity() - makersCount);
+        makersSchedule.setMakersCount(makersCount);
         makersSchedule.setMakersPickupTime(DateUtils.timeToString(makersPickupTime));
         makersSchedule.setFoodSchedules(foodSchedules);
         return makersSchedule;

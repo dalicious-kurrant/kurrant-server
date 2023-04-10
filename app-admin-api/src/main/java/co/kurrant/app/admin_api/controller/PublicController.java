@@ -2,7 +2,7 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.admin_api.service.GroupService;
-import co.kurrant.app.admin_api.service.PaycheckService;
+import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,13 +16,13 @@ import java.math.BigInteger;
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1")
 public class PublicController {
-    private final PaycheckService paycheckService;
+    private final AdminPaycheckService adminPaycheckService;
     private final GroupService groupService;
     @Operation(summary = "메이커스 조회", description = "메이커스 조회")
     @GetMapping("/makersInfos")
     public ResponseMessage getMakers() {
         return ResponseMessage.builder()
-                .data(paycheckService.getMakers())
+                .data(adminPaycheckService.getMakers())
                 .message("메이커스 정산 조회에 성공하였습니다.")
                 .build();
     }
@@ -40,7 +40,7 @@ public class PublicController {
     @GetMapping("/corporationInfos")
     public ResponseMessage getCorporations() {
         return ResponseMessage.builder()
-                .data(paycheckService.getCorporations())
+                .data(adminPaycheckService.getCorporations())
                 .message("프라이빗 스팟 조회에 성공하였습니다.")
                 .build();
     }
