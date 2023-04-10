@@ -316,7 +316,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     DailyFood dailyFood = dailyFoods.stream()
                             .filter(v -> v.getServiceDate().equals(DateUtils.stringToDate(request.getServiceDate())) &&
                                     v.getDiningType().equals(DiningType.ofString(request.getDiningType())) &&
-                                    v.getFood().getId().equals(request.getFoodId()))
+                                    v.getFood().getId().equals(request.getFoodId()) &&
+                                    v.getGroup().getId().equals(request.getGroupId()))
                             .findAny()
                             .orElse(null);
 

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Builder
 public class ReviewAdminResDto {
 
-    private Integer unansweredCount;
+    private Long unansweredCount;
     private List<MakersInfo> makersInfoList;
     private List<ReviewList> reviewList;
 
@@ -70,7 +70,7 @@ public class ReviewAdminResDto {
         }
     }
 
-    public static ReviewAdminResDto create(List<Makers> makersList, List<ReviewList> reviewList, Integer count) {
+    public static ReviewAdminResDto create(List<Makers> makersList, List<ReviewList> reviewList, Long count) {
         List<MakersInfo> makersInfos = makersList.stream().map(MakersInfo::create).collect(Collectors.toList());
         return ReviewAdminResDto.builder()
                 .unansweredCount(count)
@@ -91,8 +91,10 @@ public class ReviewAdminResDto {
         private Boolean forMakers;
         private String writer;
         private String foodName;
-        private List<MakersComment> makersComment;
-        private List<AdminComment> adminComment;
+        private Boolean isDelete;
+        private Boolean isReport;
+        private MakersComment makersComment;
+        private AdminComment adminComment;
     }
 
     @Getter

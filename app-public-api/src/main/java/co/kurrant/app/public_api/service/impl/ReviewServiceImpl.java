@@ -111,7 +111,7 @@ public class ReviewServiceImpl implements ReviewService {
         if(user.getIsMembership() || membershipDiscountRate != 0) {
             //음식 수량 많큼 포인트 지급
             BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice(), count);
-            qUserRepository.updateUserPoint(user.getId(), rewardPoint);
+            qUserRepository.updateUserPoint(user.getId(), rewardPoint, PointStatus.REVIEW_REWARD);
             if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByOthers(user, reviews.getId(), PointStatus.REVIEW_REWARD, rewardPoint);
         }
     }

@@ -6,10 +6,13 @@ import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.MakersComments;
+import co.dalicious.domain.review.entity.QComments;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
@@ -128,10 +131,16 @@ public class QReviewRepository {
 
         int offset = limit * (page - 1);
 
+        QComments nonAdminComments = new QComments("non_admin_comments");
+        JPQLQuery<Long> nonAdminCommentsQuery = JPAExpressions.select(nonAdminComments.count())
+                .from(nonAdminComments)
+                .where(nonAdminComments.reviews.eq(reviews),
+                        nonAdminComments.instanceOf(AdminComments.class).not());
+
         QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
                 .leftJoin(reviews.comments, comments)
                 .where(reviews.food.makers.eq(makers),
-                        reviews.comments.isEmpty().or(comments.instanceOf(AdminComments.class)),
+                        nonAdminCommentsQuery.lt(Long.valueOf(1)),
                         reviews.isDelete.ne(true),
                         reviews.isReports.ne(true),
                         whereCause)
@@ -208,5 +217,11 @@ public class QReviewRepository {
         return queryFactory.selectFrom(reviews)
                 .where(reviews.id.in(ids))
                 .fetch();
+    }
+
+    public long pendingReviewCount() {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.comments.isEmpty())
+                .fetchCount();
     }
 }

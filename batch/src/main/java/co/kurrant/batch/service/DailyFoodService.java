@@ -44,7 +44,6 @@ public class DailyFoodService {
                 dailyFoodIds.add(dailyFoodId);
             }
         }
-
         return dailyFoodIds;
     }
 

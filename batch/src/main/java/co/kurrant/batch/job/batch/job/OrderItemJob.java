@@ -35,7 +35,7 @@ public class OrderItemJob {
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory entityManagerFactory;
     private final OrderItemService orderItemService;
-    private final int CHUNK_SIZE = 100;
+    private final int CHUNK_SIZE = 500;
 
     @Bean("orderStatusToDeliveringJob")
     public Job orderStatusToDeliveringJob() {

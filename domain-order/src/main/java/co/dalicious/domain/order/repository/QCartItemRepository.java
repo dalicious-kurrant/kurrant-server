@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.util.List;
 
-import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.order.entity.QCart.cart;
 import static co.dalicious.domain.order.entity.QCartDailyFood.cartDailyFood;
 

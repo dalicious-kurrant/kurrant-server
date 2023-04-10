@@ -28,7 +28,7 @@ public interface PointHistoryMapper {
                                                                List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList) {
         PointResponseDto.PointHistoryDto pointRequestDto = new PointResponseDto.PointHistoryDto();
 
-        pointRequestDto.setRewardDate(DateUtils.toISOLocalDate(pointHistory.getCreatedDateTime()));
+        pointRequestDto.setRewardDate(DateUtils.toISOLocalDateAndWeekOfDay(pointHistory.getCreatedDateTime()));
         pointRequestDto.setPoint(pointHistory.getPoint());
         pointRequestDto.setLeftPoint(pointHistory.getLeftPoint());
         pointRequestDto.setPointStatus(pointHistory.getPointStatus().getCode());
@@ -48,6 +48,9 @@ public interface PointHistoryMapper {
             Reviews reviews = reviewsList.stream()
                     .filter(r -> pointHistory.getReviewId().equals(r.getId())).findFirst()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.REVIEW_NOT_FOUND));
+
+//            if(reviews.getIsDelete()) throw new ApiException(ExceptionEnum.ALREADY_DELETED_REVIEW);
+
             OrderItem orderItem = (OrderItem) Hibernate.unproxy(reviews.getOrderItem());
             if(orderItem instanceof  OrderItemDailyFood orderItemDailyFood) {
                 Food food = orderItemDailyFood.getDailyFood().getFood();

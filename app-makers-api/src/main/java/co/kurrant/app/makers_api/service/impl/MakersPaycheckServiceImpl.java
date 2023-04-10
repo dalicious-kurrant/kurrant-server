@@ -7,7 +7,7 @@ import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
 import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
 import co.kurrant.app.makers_api.model.SecurityUser;
-import co.kurrant.app.makers_api.service.PaycheckService;
+import co.kurrant.app.makers_api.service.MakersPaycheckService;
 import co.kurrant.app.makers_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -20,7 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PaycheckServiceImpl implements PaycheckService {
+public class MakersPaycheckServiceImpl implements MakersPaycheckService {
     private final MakersPaycheckMapper makersPaycheckMapper;
     private final MakersPaycheckRepository makersPaycheckRepository;
     private final UserUtil userUtil;

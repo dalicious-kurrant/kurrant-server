@@ -1,14 +1,13 @@
 package co.kurrant.app.client_api.service.impl;
 
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.repository.CorporationRepository;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.repository.CorporationPaycheckRepository;
 import co.kurrant.app.client_api.model.SecurityUser;
-import co.kurrant.app.client_api.service.PaycheckService;
+import co.kurrant.app.client_api.service.ClientPaycheckService;
 import co.kurrant.app.client_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -21,7 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PaycheckServiceImpl implements PaycheckService {
+public class ClientPaycheckServiceImpl implements ClientPaycheckService {
     private final UserUtil userUtil;
     private final CorporationPaycheckRepository corporationPaycheckRepository;
     private final CorporationPaycheckMapper corporationPaycheckMapper;

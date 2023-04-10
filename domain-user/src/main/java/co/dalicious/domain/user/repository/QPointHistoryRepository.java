@@ -35,40 +35,37 @@ public class QPointHistoryRepository {
                 .fetch();
     }
 
-    public Page<PointHistory> findAllPointHistory(User user, Integer limit, Integer page, Pageable pageable) {
-        int offset = limit * (page -1);
+    public Page<PointHistory> findAllPointHistory(User user, Pageable pageable) {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
                 .orderBy(pointHistory.id.desc())
-                .limit(limit)
-                .offset(offset)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<PointHistory> findAllPointHistoryByRewardStatus(User user, Integer limit, Integer page, Pageable pageable) {
-        int offset = limit * (page -1);
+    public Page<PointHistory> findAllPointHistoryByRewardStatus(User user, Pageable pageable) {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.rewardStatus()))
                 .orderBy(pointHistory.id.desc())
-                .limit(limit)
-                .offset(offset)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<PointHistory> findAllPointHistoryByUseStatus(User user, Integer limit, Integer page, Pageable pageable) {
-        int offset = limit * (page -1);
+    public Page<PointHistory> findAllPointHistoryByUseStatus(User user, Pageable pageable) {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.eq(PointStatus.USED))
                 .orderBy(pointHistory.id.desc())
-                .limit(limit)
-                .offset(offset)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());

@@ -14,7 +14,8 @@ public enum PointStatus {
     EVENT_REWARD("이벤트 적립", 1),
     CANCEL("환불", 2),
     USED("사용", 3),
-    ADMIN_REWARD("운영자 적립", 4);
+    ADMIN_REWARD("운영자 적립", 4),
+    ADMIN_POINTS_RECOVERED("운영자 차감", 5);
 
     private final String type;
     private final Integer code;

@@ -42,6 +42,7 @@ public interface PointMapper {
         dto.setEventEndDate(pointPolicy.getEventEndDate() == null ? null : DateUtils.localDateToString(pointPolicy.getEventEndDate()));
         dto.setCompletedConditionCount(pointPolicy.getCompletedConditionCount());
         dto.setAccountCompletionLimit(pointPolicy.getAccountCompletionLimit());
+        dto.setBoardId(pointPolicy.getBoardId());
 
         return dto;
     }
@@ -54,6 +55,7 @@ public interface PointMapper {
                 .rewardPoint(BigDecimal.valueOf(eventPointPolicy.getRewardPoint()))
                 .eventStartDate(eventPointPolicy.getEventStartDate() == null ? null : DateUtils.stringToDate(eventPointPolicy.getEventStartDate()))
                 .eventEndDate(eventPointPolicy.getEventEndDate() == null ? null : DateUtils.stringToDate(eventPointPolicy.getEventEndDate()))
+                .boardId(eventPointPolicy.getBoardId())
                 .build();
     }
 
