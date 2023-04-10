@@ -14,7 +14,4 @@ public class DeleteMemberRequestDto {
 
     @Schema(description = "탈퇴처리할 유저의 아이디리스트")
     private List<BigInteger> userIdList;
-    @Schema(description = "탈퇴처리할 그룹 아이디")
-    private BigInteger groupId;
-
 }

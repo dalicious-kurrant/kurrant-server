@@ -8,11 +8,14 @@ import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDto;
 import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDtoList;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
+import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.MemberService;
+import co.kurrant.app.client_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -63,8 +66,9 @@ public class MemberController {
   @Operation(summary = "선택 유저 탈퇴처리", description = "선택한 유저를 탈퇴처리한다")
   @ResponseStatus(HttpStatus.OK)
   @PatchMapping("")
-  public ResponseMessage deleteMember(@RequestBody DeleteMemberRequestDto deleteMemberRequestDto){
-    memberService.deleteMember(deleteMemberRequestDto);
+  public ResponseMessage deleteMember(Authentication authentication, @RequestBody DeleteMemberRequestDto deleteMemberRequestDto){
+    SecurityUser securityUser = UserUtil.securityUser(authentication);
+    memberService.deleteMember(securityUser, deleteMemberRequestDto);
     return ResponseMessage.builder()
             .message("선택한 유저를 탈퇴처리했습니다.")
             .build();

@@ -18,7 +18,9 @@ import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.dto.MemberListResponseDto;
 import co.kurrant.app.client_api.dto.MemberWaitingListResponseDto;
 import co.kurrant.app.client_api.mapper.MemberMapper;
+import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.MemberService;
+import co.kurrant.app.client_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +60,7 @@ public class MemberServiceImpl implements MemberService {
     private final EmployeeHistoryRepository employeeHistoryRepository;
     private final QProviderEmailRepository qProviderEmailRepository;
     private final UserGroupRepository userGroupRepository;
+    private final UserUtil userUtil;
 
     @Override
     public List<MemberListResponseDto> getUserList(String code) {
@@ -154,13 +157,10 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
+    public void deleteMember(SecurityUser securityUser, DeleteMemberRequestDto deleteMemberRequestDto) {
+        Corporation corporation = userUtil.getCorporation(securityUser);
         //userId 리스트 가져오기
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
-
-        //code로 CorporationId 찾기 (=GroupId)
-        BigInteger groupId = deleteMemberRequestDto.getGroupId();
-//                qCorporationRepository.findOneByCode(deleteMemberRequestDto.getCode());
 
         if (userIdList.size() == 0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
@@ -169,7 +169,7 @@ public class MemberServiceImpl implements MemberService {
             EmployeeHistoryType type = EmployeeHistoryType.USER;
             EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, deleteUser.getName(), deleteUser.getEmail(), deleteUser.getPhone(), type);
             employeeHistoryRepository.save(employeeHistory);
-            Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
+            Long deleteResult = qUserGroupRepository.deleteMember(userId, corporation.getId());
             if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
         }
     }
