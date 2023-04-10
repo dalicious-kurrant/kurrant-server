@@ -32,7 +32,17 @@ public enum FoodTag {
     COUNTRY_FRANCE("국가", "프랑스", 1011),
     COUNTRY_VIETNAM("국가", "베트남", 1012),
     COUNTRY_THAILAND("국가", "태국", 1013),
-
+    COUNTRY_TURKIYE("국가", "튀르키예", 1014),
+    COUNTRY_INDIA("국가", "인도", 1015),
+    COUNTRY_GERMANY("국가", "독일", 1016),
+    COUNTRY_INDONESIA("국가", "인도네시아", 1017),
+    COUNTRY_GREECE("국가", "그리스", 1018),
+    COUNTRY_EGYPT("국가", "이집트", 1019),
+    COUNTRY_BRAZIL("국가", "브라질", 1020),
+    COUNTRY_RUSIA("국가", "러시아", 1021),
+    COUNTRY_PHILIPPINES("국가", "필리핀", 1022),
+    COUNTRY_MONGOLIA("국가", "몽골", 1023),
+    COUNTRY_UNITED_KINGDOM("국가", "영국", 1024),
 
     FOOD_TYPE_RICE_CAKE("식품유형", "떡류", 2001),
     FOOD_TYPE_BREAD("식품유형", "빵류", 2002),
@@ -139,6 +149,9 @@ public enum FoodTag {
     ALLERGY_SQUID("알레르기 체크", "오징어", 8017),
     ALLERGY_CLAM("알레르기 체크", "조개류", 8018),
     ALLERGY_PINE_NUT("알레르기 체크", "잣", 8019),
+    ALLERGY_ABALONE("알레르기 체크", "전복", 8020),
+    ALLERGY_OYSTER("알레르기 체크", "굴", 8021),
+    ALLERGY_MUSSEL("알레르기 체크", "홍합", 8022),
 
 
     APPETITE_VEGETARIAN("특이식성", "채식", 9001),
@@ -148,11 +161,17 @@ public enum FoodTag {
     APPETITE_DIET("특이식성", "다이어트", 9005),
     APPETITE_LOW_SALT("특이식성", "저염식", 9006),
 
-
     SPICY_LEVEL_0("맵기", "맵지 않음", 10001),
     SPICY_LEVEL_1("맵기", "약간 매움", 10002),
     SPICY_LEVEL_2("맵기", "신라면 맵기", 10003),
-    SPICY_LEVEL_3("맵기", "불닭볶음면 맵기", 10004);
+    SPICY_LEVEL_3("맵기", "불닭볶음면 맵기", 10004),
+
+    FOOD_TAG_CONVENIENCE_FOOD("식품 타입", "간편식", 11001),
+    FOOD_TAG_SALAD("식품 타입", "샐러드", 11002),
+    FOOD_TAG_DINNER_BOX("식품 타입", "정찬도시락", 11003),
+    FOOD_TAG_POSTPARTUM("식품 타입", "산후조리식", 11004),
+    FOOD_TAG_DIET("식품 타입", "다이어트식", 11005),
+    FOOD_TAG_PROTEIN("식품 타입", "프로틴식", 11006);
 
 
 
