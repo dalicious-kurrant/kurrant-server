@@ -1,6 +1,5 @@
 package co.kurrant.app.admin_api.service.impl;
 
-import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.ApartmentRepository;
@@ -9,11 +8,10 @@ import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QSpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.*;
@@ -38,7 +36,6 @@ import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
-import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
@@ -263,17 +260,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .map(ExtraOrderDto.Request::getFoodId)
                 .collect(Collectors.toSet());
 
-        Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
+        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
         MultiValueMap<BigInteger, ExtraOrderDto.Request> requestMap = new LinkedMultiValueMap<>();
         for (ExtraOrderDto.Request orderDto : orderDtos) {
             requestMap.add(orderDto.getSpotId(), orderDto);
 
             LocalDate serviceDate = DateUtils.stringToDate(orderDto.getServiceDate());
             DiningType diningType = DiningType.ofString(orderDto.getDiningType());
-            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(serviceDate, diningType);
-            diningTypeServiceDateDtos.add(diningTypeServiceDateDto);
+            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(serviceDate, diningType);
+            serviceDiningDtos.add(serviceDiningDto);
         }
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByFoodsBetweenServiceDate(periodDto.getStartDate(), periodDto.getEndDate(), foodIds);
 
         // 3. 음식을 추가하는 스팟 가져오기
@@ -298,17 +295,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             BigDecimal defaultPrice = BigDecimal.ZERO;
 
             // 6. 식사일정별로 DailyFood 묶기 (OrderItemDailyFoodGroup)
-            MultiValueMap<DiningTypeServiceDateDto, ExtraOrderDto.Request> orderDailyFoodGroupMap = new LinkedMultiValueMap<>();
+            MultiValueMap<ServiceDiningDto, ExtraOrderDto.Request> orderDailyFoodGroupMap = new LinkedMultiValueMap<>();
             for (ExtraOrderDto.Request request : requestsBySpot) {
-                DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(DateUtils.stringToDate(request.getServiceDate()), DiningType.ofString(request.getDiningType()));
-                orderDailyFoodGroupMap.add(diningTypeServiceDateDto, request);
+                ServiceDiningDto serviceDiningDto = new ServiceDiningDto(DateUtils.stringToDate(request.getServiceDate()), DiningType.ofString(request.getDiningType()));
+                orderDailyFoodGroupMap.add(serviceDiningDto, request);
             }
 
-            for (DiningTypeServiceDateDto diningTypeServiceDateDto : orderDailyFoodGroupMap.keySet()) {
+            for (ServiceDiningDto serviceDiningDto : orderDailyFoodGroupMap.keySet()) {
                 // 7. OrderItemDailyFoodGroup 저장
-                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.save(orderMapper.toOrderItemDailyFoodGroup(diningTypeServiceDateDto));
+                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.save(orderMapper.toOrderItemDailyFoodGroup(serviceDiningDto));
 
-                List<ExtraOrderDto.Request> requests = orderDailyFoodGroupMap.get(diningTypeServiceDateDto);
+                List<ExtraOrderDto.Request> requests = orderDailyFoodGroupMap.get(serviceDiningDto);
                 List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
                 assert requests != null;
                 BigDecimal supportPrice = BigDecimal.ZERO;

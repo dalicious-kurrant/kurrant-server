@@ -44,4 +44,23 @@ public class PublicController {
                 .message("프라이빗 스팟 조회에 성공하였습니다.")
                 .build();
     }
+
+    @Operation(summary = "스파크플러스 로그 추가", description = "스파크플러스 로그 추가")
+    @GetMapping("/sparkplus/logs/{log}")
+    public ResponseMessage postSparkplusLog(@PathVariable Integer log) {
+        adminPaycheckService.postSparkplusLog(log);
+        return ResponseMessage.builder()
+                .message("스파크플러스 로그 저장에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "스파크플러스 로그 조회", description = "스파크플러스 로그 조회")
+    @GetMapping("/sparkplus/logs")
+    public ResponseMessage getSparkplusLog() {
+
+        return ResponseMessage.builder()
+                .data(adminPaycheckService.getSpartplusLog())
+                .message("스파크플러스 로그 조회에 성공하였습니다.")
+                .build();
+    }
 }

@@ -29,6 +29,15 @@ public class PaycheckController {
                 .build();
     }
 
+    @Operation(summary = "메이커스 정산 등록 엑셀", description = "메이커스 정산 등록")
+    @PostMapping("/makers/excel")
+    public ResponseMessage postMakersPaycheck() {
+        adminPaycheckService.postMakersPaycheckExcel();
+        return ResponseMessage.builder()
+                .message("메이커스 정산 등록에 성공하였습니다.")
+                .build();
+    }
+
     @Operation(summary = "메이커스 정산 조회", description = "메이커스 정산 조회")
     @GetMapping("/makers")
     public ResponseMessage getMakersPaychecks() {

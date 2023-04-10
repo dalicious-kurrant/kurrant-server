@@ -5,7 +5,7 @@ import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -21,17 +21,17 @@ import java.util.*;
 public interface ScheduleMapper {
     default List<ScheduleDto.GroupSchedule> toGroupSchedule(List<DailyFood> dailyFoods, Map<DailyFood, Integer> dailyFoodMap,
                                                             ServiceDateBy.MakersAndFood makersCapacities, Map<Group, Integer> userGroupCount) {
-        MultiValueMap<DiningTypeServiceDateDto, DailyFood> dailyFoodByServiceMap = new LinkedMultiValueMap<>();
+        MultiValueMap<ServiceDiningDto, DailyFood> dailyFoodByServiceMap = new LinkedMultiValueMap<>();
         // 식사 날짜/식사 일정 별로 식단 묶기
         for (DailyFood dailyFood : dailyFoods) {
-            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(dailyFood.getServiceDate(), dailyFood.getDiningType());
-            dailyFoodByServiceMap.add(diningTypeServiceDateDto, dailyFood);
+            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFood.getServiceDate(), dailyFood.getDiningType());
+            dailyFoodByServiceMap.add(serviceDiningDto, dailyFood);
         }
         List<ScheduleDto.GroupSchedule> groupSchedules = new ArrayList<>();
-        for (DiningTypeServiceDateDto diningTypeServiceDateDto : dailyFoodByServiceMap.keySet()) {
+        for (ServiceDiningDto serviceDiningDto : dailyFoodByServiceMap.keySet()) {
             // 식사 날짜/식사 일정 > 그룹별로 식단 묶기
             MultiValueMap<Group, DailyFood> groupDailyFoodMap = new LinkedMultiValueMap<>();
-            List<DailyFood> serviceDailyFoods = dailyFoodByServiceMap.get(diningTypeServiceDateDto);
+            List<DailyFood> serviceDailyFoods = dailyFoodByServiceMap.get(serviceDiningDto);
             for (DailyFood serviceDailyFood : serviceDailyFoods) {
                 groupDailyFoodMap.add(serviceDailyFood.getGroup(), serviceDailyFood);
             }
@@ -55,16 +55,16 @@ public interface ScheduleMapper {
                         ScheduleDto.FoodSchedule foodSchedule = toFoodSchedule(makersDailyFood, count);
                         foodSchedules.add(foodSchedule);
                     }
-                    ScheduleDto.MakersSchedule makersSchedule = toMakersSchedule(makers, diningTypeServiceDateDto.getDiningType(), makersPickupTime, makersCount, foodSchedules);
+                    ScheduleDto.MakersSchedule makersSchedule = toMakersSchedule(makers, serviceDiningDto.getDiningType(), makersPickupTime, makersCount, foodSchedules);
                     makersSchedules.add(makersSchedule);
                 }
 
                 ScheduleDto.GroupSchedule groupSchedule = new ScheduleDto.GroupSchedule();
-                groupSchedule.setServiceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate()));
-                groupSchedule.setDiningType(diningTypeServiceDateDto.getDiningType().getCode());
+                groupSchedule.setServiceDate(DateUtils.format(serviceDiningDto.getServiceDate()));
+                groupSchedule.setDiningType(serviceDiningDto.getDiningType().getCode());
                 groupSchedule.setGroupName(group.getName());
                 groupSchedule.setGroupCapacity(userGroupCount.get(group));
-                groupSchedule.setDeliveryTime(getEarliestDeliveryTime(group, diningTypeServiceDateDto.getDiningType()));
+                groupSchedule.setDeliveryTime(getEarliestDeliveryTime(group, serviceDiningDto.getDiningType()));
                 groupSchedule.setMakersSchedules(makersSchedules);
 
                 groupSchedules.add(groupSchedule);

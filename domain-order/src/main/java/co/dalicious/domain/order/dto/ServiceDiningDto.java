@@ -10,22 +10,22 @@ import java.util.Objects;
 
 @Getter
 @Setter
-public class DiningTypeServiceDateDto {
+public class ServiceDiningDto {
     LocalDate serviceDate;
     DiningType diningType;
 
-    public DiningTypeServiceDateDto(LocalDate serviceDate, DiningType diningType) {
+    public ServiceDiningDto(LocalDate serviceDate, DiningType diningType) {
         this.serviceDate = serviceDate;
         this.diningType = diningType;
     }
 
-    public DiningTypeServiceDateDto(DailyFood dailyFood) {
+    public ServiceDiningDto(DailyFood dailyFood) {
         this.serviceDate = dailyFood.getServiceDate();
         this.diningType = dailyFood.getDiningType();
     }
 
     public boolean equals(Object obj) {
-        if(obj instanceof DiningTypeServiceDateDto tmp) {
+        if(obj instanceof ServiceDiningDto tmp) {
             return serviceDate.equals(tmp.serviceDate) && diningType.equals(tmp.diningType);
         }
         return false;
