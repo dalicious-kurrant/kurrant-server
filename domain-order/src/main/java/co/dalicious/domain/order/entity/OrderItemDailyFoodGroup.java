@@ -54,7 +54,7 @@ public class OrderItemDailyFoodGroup {
     @OneToMany(mappedBy = "orderItemDailyFoodGroup", orphanRemoval = true)
     @JsonBackReference(value = "order_item_daily_food_group_fk")
     @Comment("정기식사에 사용된 지원금")
-    private List<UserSupportPriceHistory> userSupportPriceHistories;
+    private List<DailyFoodSupportPrice> userSupportPriceHistories;
 
     @OneToMany(mappedBy = "orderItemDailyFoodGroup", cascade = CascadeType.ALL)
     @JsonBackReference(value = "order_item_daily_food_group_fk")
@@ -74,9 +74,9 @@ public class OrderItemDailyFoodGroup {
 
     public BigDecimal getUsingSupportPrice() {
         BigDecimal usingSupportPrice = BigDecimal.ZERO;
-        for (UserSupportPriceHistory userSupportPriceHistory : this.userSupportPriceHistories) {
-            if (userSupportPriceHistory.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
-                usingSupportPrice = usingSupportPrice.add(userSupportPriceHistory.getUsingSupportPrice());
+        for (DailyFoodSupportPrice dailyFoodSupportPrice : this.userSupportPriceHistories) {
+            if (dailyFoodSupportPrice.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION)) {
+                usingSupportPrice = usingSupportPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
             }
         }
         return usingSupportPrice;

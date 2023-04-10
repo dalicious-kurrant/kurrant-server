@@ -11,6 +11,7 @@ import co.dalicious.domain.food.mapper.CapacityMapper;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.domain.food.repository.*;
 import co.dalicious.domain.order.dto.CapacityDto;
+import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
@@ -108,12 +109,19 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<BigInteger> makersIds = !parameters.containsKey("makersIds") || parameters.get("makersIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersIds"));
 
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, groupIds, makersIds);
+
+        // 일치하는 식단이 없을 경우에는 빈 배열 return
+        if(dailyFoods.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         List<Group> groups = new ArrayList<>();
         for (DailyFood dailyFood : dailyFoods) {
             groups.add(dailyFood.getGroup());
         }
+        ServiceDateBy.MakersAndFood makersOrderCount = qOrderDailyFoodRepository.getMakersCounts(dailyFoods);
+        ServiceDateBy.MakersAndFood makersCapacities = orderDailyFoodUtil.getMakersCapacity(dailyFoods, makersOrderCount);
         Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
-        List<CapacityDto.MakersCapacity> makersCapacities = qOrderDailyFoodRepository.getMakersCounts(dailyFoods);
         Map<Group, Integer> userGroupCount = qUserGroupRepository.userCountsInGroup(groups);
 
         return scheduleMapper.toGroupSchedule(dailyFoods, remainFoodCount, makersCapacities, userGroupCount);
@@ -201,9 +209,11 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
             // 식단을 구매한 사람이 없다면
             if(dailyFoodDto.getFoodCapacity().equals(dailyFoodDto.getFoodCount())) {
+                Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
                 dailyFood.updateDiningType(DiningType.ofCode(dailyFoodDto.getDiningType()));
                 dailyFood.updateServiceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()));
-                dailyFood.updateFood(Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName()));
+                dailyFood.updateFood(food);
+                dailyFood.updateDailyFoodPrice(food);
                 dailyFood.updateGroup(group);
             }
         });

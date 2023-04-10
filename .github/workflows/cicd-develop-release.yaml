@@ -1,0 +1,130 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "develop-release-test" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: JDK 17 세팅
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      # app-public-api의 설정파일(.yaml) 생성
+      - name: app-public-api application.yaml(prod) 생성
+        run: |
+          cd ./app-public-api/src/main
+          mkdir resources
+          cd resources
+          touch ./application.yaml
+          echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application.yaml
+          touch ./application-prod.yaml
+          echo "${{ secrets.APP_PUBLIC_API_PROD_PROD_YAML }}" > ./application-prod.yaml
+        shell: bash
+
+      - name: client-core application-jwt.properties 생성
+        run: |
+          cd ./client-core/src/main
+          mkdir resources
+          cd resources
+          touch ./application-jwt.properties
+          echo "${{ secrets.CLIENT_CORE_JWT_PROPERTIES }}" > ./application-jwt.properties
+        shell: bash
+
+      - name: client-external-mail application-mail.properties 생성
+        run: |
+          cd ./client-external-mail/src/main
+          mkdir resources
+          cd resources
+          touch ./application-mail.properties
+          echo "${{ secrets.CLIENT_EXTERNAL_MAIL_PROPERTIES }}" > ./application-mail.properties
+        shell: bash
+
+      - name: client-external-sms application-mail.properties 생성
+        run: |
+          cd ./client-external-sms/src/main
+          mkdir resources
+          cd resources
+          touch ./application-sms.properties
+          echo "${{ secrets.CLIENT_EXTERNAL_SMS_PROPERTIES }}" > ./application-sms.properties
+        shell: bash
+
+      - name: data-redis application-redis.yml 생성
+        run: |
+          cd ./data-redis/src/main
+          mkdir resources
+          cd resources
+          touch ./application-redis.properties
+          echo "${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}" > ./application-redis.properties
+        shell: bash
+
+      - name: domain-payment application-payment.properties 생성
+        run: |
+          cd ./domain-payment/src/main
+          mkdir resources
+          cd resources
+          touch ./application-payment.properties
+          echo "${{ secrets.DOMAIN_PAYMENT_PROD_PROPERTIES }}" > ./application-payment.properties
+        shell: bash
+
+      - name: domain-file application-s3.properties 생성
+        run: |
+          cd ./domain-file/src/main
+          mkdir resources
+          cd resources
+          touch ./application-s3.properties
+          echo "${{ secrets.DOMAIN_FILE_S3_PROPERTIES }}" > ./application-s3.properties
+        shell: bash
+
+      - name: system-core application-alimtalk.properties 생성
+        run: |
+          cd ./system-core/src/main
+          mkdir resources
+          cd resources
+          touch ./application-alimtalk.properties
+          echo "${{ secrets.SYSTEM_CORE_ALIMTALK }}" > ./application-alimtalk.properties
+        shell: bash
+
+      - name: gradlew 실행 권한 추가
+        run: chmod +x gradlew
+
+      - name: Gradle 빌드
+        run: ./gradlew build
+
+      - name: Docker 빌드
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          cd app-public-api
+          docker build -t kurrant_v1_prod_test .
+          docker tag kurrant_v1_prod_test ${{ secrets.DOCKER_USERNAME }}/kurrant_v1_prod_test:${GITHUB_SHA::7}
+          docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1_prod_test:${GITHUB_SHA::7}
+
+      - name: 배포
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ubuntu
+          key: ${{ secrets.DEV_PRIVATE_KEY }}
+          envs: GITHUB_SHA
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1_prod_test:${GITHUB_SHA::7}
+            docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1_prod_test:${GITHUB_SHA::7} kurrant_v1_prod_test
+            docker stop kurrant_v1_prod_test
+            sleep 5
+            docker run -d --rm --net redis_redis_cluster --name kurrant_v1_prod_test -p 8880:8880 kurrant_v1_prod_test
+

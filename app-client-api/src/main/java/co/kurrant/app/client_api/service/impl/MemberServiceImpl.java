@@ -8,17 +8,19 @@ import co.dalicious.domain.client.entity.enums.EmployeeHistoryType;
 import co.dalicious.domain.client.mapper.EmployeeHistoryMapper;
 import co.dalicious.domain.client.mapper.EmployeeMapper;
 import co.dalicious.domain.client.repository.*;
-import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.*;
+import co.kurrant.app.client_api.dto.MemberIdListDto;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.dto.MemberListResponseDto;
 import co.kurrant.app.client_api.dto.MemberWaitingListResponseDto;
 import co.kurrant.app.client_api.mapper.MemberMapper;
+import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.MemberService;
+import co.kurrant.app.client_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +31,6 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tika.Tika;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +59,7 @@ public class MemberServiceImpl implements MemberService {
     private final EmployeeHistoryRepository employeeHistoryRepository;
     private final QProviderEmailRepository qProviderEmailRepository;
     private final UserGroupRepository userGroupRepository;
+    private final UserUtil userUtil;
 
     @Override
     public List<MemberListResponseDto> getUserList(String code) {
@@ -154,13 +156,10 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
+    public void deleteMember(SecurityUser securityUser, MemberIdListDto deleteMemberRequestDto) {
+        Corporation corporation = userUtil.getCorporation(securityUser);
         //userId 리스트 가져오기
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
-
-        //code로 CorporationId 찾기 (=GroupId)
-        BigInteger groupId = deleteMemberRequestDto.getGroupId();
-//                qCorporationRepository.findOneByCode(deleteMemberRequestDto.getCode());
 
         if (userIdList.size() == 0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
@@ -169,7 +168,7 @@ public class MemberServiceImpl implements MemberService {
             EmployeeHistoryType type = EmployeeHistoryType.USER;
             EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, deleteUser.getName(), deleteUser.getEmail(), deleteUser.getPhone(), type);
             employeeHistoryRepository.save(employeeHistory);
-            Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
+            Long deleteResult = qUserGroupRepository.deleteMember(userId, corporation.getId());
             if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
         }
     }

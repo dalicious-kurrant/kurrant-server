@@ -9,7 +9,7 @@ import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.Cart;
 import co.dalicious.domain.order.entity.CartDailyFood;
-import co.dalicious.domain.order.entity.UserSupportPriceHistory;
+import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.mapper.CartDailyFoodMapper;
 import co.dalicious.domain.order.mapper.CartDailyFoodsResMapper;
 import co.dalicious.domain.order.repository.*;
@@ -47,8 +47,8 @@ public class CartServiceImpl implements CartService {
     private final CartRepository orderCartRepository;
     private final CartDailyFoodRepository cartDailyFoodRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
-    private final QCartItemRepository qOrderCartItemRepository;
-    private final QUserSupportPriceHistoryRepository qUserSupportPriceHistoryRepository;
+    private final CartRepository cartRepository;
+    private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
     private final UserUtil userUtil;
     private final CartDailyFoodMapper orderCartDailyFoodMapper;
     private final CartDailyFoodsResMapper cartDailyFoodsResMapper;
@@ -174,7 +174,7 @@ public class CartServiceImpl implements CartService {
             // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
             PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
             // ServiceDate에 해당하는 사용 지원금 리스트 받아오기
-            List<UserSupportPriceHistory> userSupportPriceHistories = qUserSupportPriceHistoryRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
+            List<DailyFoodSupportPrice> userSupportPriceHistories = qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
             // 배송비 및 지원금 계산
             for (DiningTypeServiceDateDto diningTypeServiceDateDto : diningTypeServiceDateDtos) {
                 BigDecimal supportPrice = BigDecimal.ZERO;
@@ -220,10 +220,17 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public void deleteByCartItemId(SecurityUser securityUser, BigInteger cartDailyFoodId) {
-        //cart_id와 food_id가 같은 경우 삭제
         User user = userUtil.getUser(securityUser);
 
-        qOrderCartItemRepository.deleteByUserAndCartDailyFoodId(user, cartDailyFoodId);
+        //담은 장바구니가 유저의 것인지 검증
+        CartDailyFood cartDailyFood = cartDailyFoodRepository.findById(cartDailyFoodId)
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        if(!cartDailyFood.getUser().equals(user)) {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
+
+        // 장바구니 아이템 삭제
+        cartDailyFoodRepository.delete(cartDailyFood);
     }
 
     @Override
@@ -234,8 +241,8 @@ public class CartServiceImpl implements CartService {
         Spot spot = spotRepository.findById(spotId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
         );
-        List<Cart> cartList = orderCartRepository.findAllByUserAndSpot(user, spot);
-        qOrderCartItemRepository.deleteByCartId(cartList);
+        List<CartDailyFood> cartList = orderCartRepository.findAllByUserAndSpot(user, spot);
+        cartDailyFoodRepository.deleteAll(cartList);
     }
 
     @Override

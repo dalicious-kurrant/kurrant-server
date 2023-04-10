@@ -10,5 +10,6 @@ import lombok.Setter;
 public class SavePaymentPasswordDto {
 
     private String payNumber;
+    private String key;
 
 }

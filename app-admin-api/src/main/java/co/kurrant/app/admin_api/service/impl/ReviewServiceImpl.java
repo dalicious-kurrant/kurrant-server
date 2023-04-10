@@ -18,6 +18,7 @@ import co.kurrant.app.admin_api.service.ReviewService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,9 +53,9 @@ public class ReviewServiceImpl implements ReviewService {
         //서비스 날 기준으로 작성자, 주문번호, 주문 상품 이름, 작성자, 메이커스 댓글 여부, 관리자 댓글 여부, 신고여부, 메이커스로 필터링한 리뷰 조회 - 삭제 포함
         Page<Reviews> reviewsList = qReviewRepository.findAllByFilter(makersId, orderCode, orderItemName, writer, startDate, endDate, isReport, isMakersComment, isAdminComment, limit, page, pageable);
         List<Makers> makersList = makersRepository.findAll();
+        long count = qReviewRepository.pendingReviewCount();
 
         List<ReviewAdminResDto.ReviewList> reviewDtoList = new ArrayList<>();
-        Integer count = 0;
 
         // review dto 만들기
         for(Reviews review : reviewsList) {
@@ -64,10 +65,7 @@ public class ReviewServiceImpl implements ReviewService {
             // 달린 코멘트가 하나도 없으면
             reviewDto.setIsMakersComment(false);
             reviewDto.setIsAdminComment(false);
-            if(comments.isEmpty()) {
-                count++;
-            }
-            else {
+            if(!comments.isEmpty()) {
                 comments.forEach(comment -> {
                     if (comment instanceof MakersComments) {
                         reviewDto.setIsMakersComment(true);
@@ -99,6 +97,13 @@ public class ReviewServiceImpl implements ReviewService {
         Reviews reviews = qReviewRepository.findByIdExceptedDelete(reviewId);
         if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
 
+        List<Comments> commentsList = reviews.getComments();
+        for(Comments comments : commentsList) {
+            if(comments instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
+                throw new ApiException(ExceptionEnum.ALREADY_WRITE_COMMENT_REVIEW);
+            }
+        }
+
         AdminComments adminComments = reviewMapper.toAdminComment(reqDto, reviews);
         commentsRepository.save(adminComments);
     }
@@ -128,6 +133,7 @@ public class ReviewServiceImpl implements ReviewService {
         // 삭제된 리뷰 제외하기
         Reviews reviews = qReviewRepository.findByIdExceptedDelete(reviewId);
         if(reviews == null) throw new ApiException(ExceptionEnum.REVIEW_NOT_FOUND);
+        if(reviews.getIsReports()) throw new ApiException(ExceptionEnum.ALREADY_REPORTED_REVIEW);
 
         reviews.updateIsReport(true);
     }

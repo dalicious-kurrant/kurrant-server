@@ -21,7 +21,7 @@ public class OrderDto {
         private String spotName;
         private String diningType;
         private List<SpotFoodMap> foodMap;
-        private List<OrderItemDailyFood> orderItemDailyFoods;
+        private List<OrderItemDailyFoodGroupList> orderItemDailyFoodGroupList;
 
     }
     @Getter
@@ -30,9 +30,10 @@ public class OrderDto {
         private String foodName;
         private Integer count;
     }
+
     @Getter
     @Setter
-    public static class OrderItemDailyFood {
+    public static class ClientOrderItemDailyFood {
         private BigInteger orderItemDailyFoodId;
         private String serviceDate;
         private String groupName;
@@ -53,12 +54,44 @@ public class OrderDto {
 
     @Getter
     @Setter
+    public static class OrderItemDailyFoodGroupList {
+        private String serviceDate;
+        private String diningType;
+        private String groupName;
+        private String spotName;
+        private String userName;
+        private String userEmail;
+        private String phone;
+        private String orderCode;
+        private String orderDateTime;
+        private BigDecimal totalPrice;
+        private BigDecimal supportPrice;
+        private BigDecimal payPrice;
+        private BigDecimal deliveryPrice;
+        private List<OrderItemDailyFood> orderItemDailyFoods;
+    }
+
+    @Getter
+    @Setter
+    public static class OrderItemDailyFood {
+        private BigInteger orderItemDailyFoodId;
+        private String deliveryTime;
+        private String makers;
+        private String foodName;
+        private Integer count;
+        private BigDecimal price;
+        private BigDecimal supplyPrice;
+        private String orderStatus;
+    }
+
+    @Getter
+    @Setter
     @Schema(description = "고객사 주문 상품 리스트 조회 DTO")
     public static class GroupOrderItemDailyFoodList {
         private BigDecimal totalPrice;
         private Integer totalFoodCount;
         private Integer buyingUserCount;
-        private List<OrderItemDailyFood> orderItemDailyFoods;
+        private List<ClientOrderItemDailyFood> orderItemDailyFoods;
 
     }
 

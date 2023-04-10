@@ -14,9 +14,9 @@ public interface ReviewService {
     // 댓글 작성
     void createMakersComment(BigInteger reviewId, CommentReqDto reqDto);
     // 리뷰 조회 - 미답변 리뷰 조회, 삭제 제외
-    ItemPageableResponseDto<ReviewMakersResDto> getUnansweredReview(SecurityUser securityUser, Integer limit, Integer page, OffsetBasedPageRequest pageable);
+    ItemPageableResponseDto<ReviewMakersResDto> getUnansweredReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable);
     //리뷰 조히 - 전체 조회, 삭제 제외
-    ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview(SecurityUser securityUser, Integer limit, Integer page, OffsetBasedPageRequest pageable);
+    ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable);
     // 리뷰 상세 조회
     ReviewMakersResDto.ReviewDetail getReviewDetail(BigInteger reviewId);
     // 댓글 수정

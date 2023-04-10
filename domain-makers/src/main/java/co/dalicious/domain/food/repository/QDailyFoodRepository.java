@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QSpot.spot;
@@ -35,10 +36,34 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
+    public List<DailyFood> getSellingDailyFoodsBetweenServiceDate(LocalDate startDate, LocalDate endDate) {
+        return queryFactory
+                .selectFrom(dailyFood)
+                .where(dailyFood.serviceDate.goe(startDate),
+                        dailyFood.serviceDate.loe(endDate),
+                        dailyFood.dailyFoodStatus.eq(DailyFoodStatus.SALES))
+                .fetch();
+    }
+
+    public List<DailyFood> getDailyFoodsBetweenServiceDate(LocalDate startDate, LocalDate endDate) {
+        return queryFactory
+                .selectFrom(dailyFood)
+                .where(dailyFood.serviceDate.goe(startDate),
+                        dailyFood.serviceDate.loe(endDate))
+                .fetch();
+    }
+
     public List<DailyFood> findAllByDailyFoodIds(List<BigInteger> dailyFoodIds) {
         return queryFactory
                 .selectFrom(dailyFood)
                 .where(dailyFood.id.in(dailyFoodIds))
+                .fetch();
+    }
+
+    public List<DailyFood> findAllByFoodIds(Set<BigInteger> foodIds) {
+        return queryFactory
+                .selectFrom(dailyFood)
+                .where(dailyFood.food.id.in(foodIds))
                 .fetch();
     }
 
@@ -86,6 +111,26 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
+    public List<DailyFood> findAllByFoodsBetweenServiceDate(LocalDate startDate, LocalDate endDate, Set<BigInteger> foodIds) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if (startDate != null) {
+            whereClause.and(dailyFood.serviceDate.goe(startDate));
+        }
+
+        if (endDate != null) {
+            whereClause.and(dailyFood.serviceDate.loe(endDate));
+        }
+
+        if (foodIds != null && !foodIds.isEmpty()) {
+            whereClause.and(dailyFood.food.id.in(foodIds));
+        }
+
+        return queryFactory.selectFrom(dailyFood)
+                .where(whereClause)
+                .orderBy(dailyFood.serviceDate.asc())
+                .fetch();
+    }
+
     public List<DailyFood> findAllDailyFoodByMakersBetweenServiceDate(LocalDate startDate, LocalDate endDate, Makers makers) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
@@ -110,10 +155,10 @@ public class QDailyFoodRepository {
         if (end != null) {
             whereClause.and(dailyFood.serviceDate.loe(end));
         }
-        if(groups != null && !groups.isEmpty()) {
+        if (groups != null && !groups.isEmpty()) {
             whereClause.and(group.in(groups));
         }
-        if(spotList != null && !spotList.isEmpty()) {
+        if (spotList != null && !spotList.isEmpty()) {
             whereClause.and(spot.in(spotList));
         }
 

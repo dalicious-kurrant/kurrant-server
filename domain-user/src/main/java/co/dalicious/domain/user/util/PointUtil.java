@@ -4,12 +4,14 @@ import co.dalicious.domain.user.dto.PointPolicyResDto;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.domain.user.mapper.PointMapper;
 import co.dalicious.domain.user.repository.PointHistoryRepository;
 import co.dalicious.domain.user.repository.QPointHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -24,6 +26,7 @@ public class PointUtil {
     private final PointHistoryRepository pointHistoryRepository;
     private final PointMapper pointMapper;
 
+    // 리뷰 작성 시 포인트 산정
     public BigDecimal findReviewPoint(Boolean isReviewImage, BigDecimal itemPrice, int count) {
         BigDecimal reviewPoint = BigDecimal.ZERO;
 
@@ -61,11 +64,14 @@ public class PointUtil {
         return reviewPoint;
     }
 
+    // 리뷰 포인트 정책 전제 조회
     public List<PointPolicyResDto.ReviewPointPolicy> findReviewPointRange() {
         List<ReviewPointPolicy> reviewPointPolicyList = List.of(ReviewPointPolicy.class.getEnumConstants());
         return reviewPointPolicyList.stream().map(pointMapper::toReviewPointPolicyResponseDto).collect(Collectors.toList());
     }
 
+    // 이벤트 삭제
+    @Transactional
     public void deletePointHistoryByPointPolicy(PointPolicy pointPolicy) {
         // point 가 0 인 로그만 가져와서 다 지움
         List<PointHistory> pointHistoryList = qPointHistoryRepository.findAllByPointPolicy(pointPolicy);
@@ -73,24 +79,31 @@ public class PointUtil {
         pointHistoryRepository.deleteAll(pointHistoryList);
     }
 
-    public void createPointHistoryByPointPolicy(User user, PointPolicy pointPolicy, Map<String, BigInteger> ids) {
+    @Transactional
+    public void createPointHistoryByPointPolicy(User user, PointPolicy pointPolicy, BigInteger noticeId, PointStatus pointStatus) {
+        // 정책에 해당하는 조건 가져오기
         Integer completeCount = pointPolicy.getCompletedConditionCount();
         Integer accountLimit = pointPolicy.getAccountCompletionLimit();
 
+        // 정책 id를 가졌고, 유저가 동일한 포인트 내역 조회
         List<PointHistory> pointHistoryList = qPointHistoryRepository.findAllByUserAndPointPolicy(user, pointPolicy);
+        // 이벤트 참여가 처음이면
         if(pointHistoryList.isEmpty()) {
-            PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, ids, 0);
+            PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, noticeId, 0, pointStatus);
             pointHistoryRepository.save(pointHistory);
             return;
         }
 
+        // 이벤트 참여 횟수
         List<PointHistory> rewardPointHistoryCount = pointHistoryList.stream().filter(pointHistory -> pointHistory.getPoint().equals(BigDecimal.valueOf(0))).toList();
-        PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, ids, rewardPointHistoryCount.size());
+        PointHistory pointHistory = pointMapper.createPointHistoryForCount(user, pointPolicy, noticeId, rewardPointHistoryCount.size(), pointStatus);
 
         pointHistoryRepository.save(pointHistory);
     }
 
-    public void createPointHistoryByReview(User user, BigInteger id, BigDecimal point) {
-        pointHistoryRepository.save(pointMapper.createPointHistoryForReview(user, id, point));
+    @Transactional
+    public void createPointHistoryByOthers(User user, BigInteger id, PointStatus pointStatus, BigDecimal point) {
+        PointHistory pointHistory = pointMapper.createPointHistoryByOthers(user, id, pointStatus, point);
+        pointHistoryRepository.save(pointHistory);
     }
 }

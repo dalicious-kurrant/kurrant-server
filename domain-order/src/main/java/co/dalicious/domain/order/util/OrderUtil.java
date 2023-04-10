@@ -5,7 +5,6 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
@@ -18,7 +17,7 @@ import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.system.enums.DiningType;
+import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.util.PriceUtils;
 import exception.ApiException;
@@ -94,6 +93,7 @@ public class OrderUtil {
         return false;
     }
 
+    // TODO: 식단에 가격 업데이트 적용이 되는 시점부터 주석 해제
     public static DiscountDto checkMembershipAndGetDiscountDto(User user, Group group, Spot spot, DailyFood dailyFood) {
         group = (Group) Hibernate.unproxy(group);
 
@@ -101,9 +101,12 @@ public class OrderUtil {
             // 멤버십 혜택 마감 시간 (서비스 날짜 전일 + 마감시간)
             LocalDateTime membershipBenefitTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(spot.getMembershipBenefitTime(dailyFood.getDiningType()).getDay()), spot.getMembershipBenefitTime(dailyFood.getDiningType()).getTime());
             if (spot.getDeliveryTime(dailyFood.getDiningType()) == null || LocalDateTime.now().isBefore(membershipBenefitTime)) {
+
+                //return DiscountDto.getDiscount(dailyFood);
                 return DiscountDto.getDiscount(dailyFood.getFood());
             }
         }
+        //return DiscountDto.getDiscountWithoutMembership(dailyFood);
         return DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
     }
 
@@ -114,7 +117,7 @@ public class OrderUtil {
 
         // 2. 할인된 상품 가격 추가
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
-            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus()) && orderItemDailyFood.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE))) {
                 totalPrice = totalPrice.add(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())));
             }
         }
@@ -134,7 +137,8 @@ public class OrderUtil {
     public static BigDecimal getItemPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
-            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)) {
+            // 주문이 결제 완료(5)인 경우와, 백오피스에서 추가 주문을 취소하기 위한 조건
+            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)  || (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus()) && orderItemDailyFood.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE))) {
                 totalPrice = totalPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
             }
         }
@@ -303,7 +307,7 @@ public class OrderUtil {
         return new OrderDailyFoodDetailDto.RefundDto(refundPayPrice, refundItemPrice, refundSupportPrice, refundDeliveryFee, refundDeduction, refundTotalPrice, refundCardPrice, refundTotalPoint);
     }
 
-    public static BigDecimal getRefundSupportPrice(List<UserSupportPriceHistory> userSupportPriceHistories) {
+    public static BigDecimal getRefundSupportPrice(List<DailyFoodSupportPrice> userSupportPriceHistories) {
         // 환불된 지원금이 존재하지 않을 때.
         if (userSupportPriceHistories.stream().allMatch(v -> v.getMonetaryStatus().equals(MonetaryStatus.DEDUCTION))) {
             return BigDecimal.ZERO;
@@ -315,7 +319,7 @@ public class OrderUtil {
         // 지원금 환불이 여러개 일 경우
         if (userSupportPriceHistories.size() > 1) {
             userSupportPriceHistories = userSupportPriceHistories.stream()
-                    .sorted(Comparator.comparing(UserSupportPriceHistory::getCreatedDateTime).reversed()).toList();
+                    .sorted(Comparator.comparing(DailyFoodSupportPrice::getCreatedDateTime).reversed()).toList();
             return OrderUtil.getDeductedSupportPrice(userSupportPriceHistories.get(userSupportPriceHistories.size() - 1).getUsingSupportPrice(), userSupportPriceHistories.get(0).getUsingSupportPrice());
         }
         throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
