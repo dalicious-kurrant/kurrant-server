@@ -919,9 +919,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Object getJobType() {
+    public Object getJobType(Integer code) {
 
         List<String> jobTypeResultList = new ArrayList<>();
+
+        if (code == 1){
+        //코드가 1이라면 상세 직종을 반환
+            List<JobType> jobTypeList = Arrays.stream(JobType.values())
+                    .filter(v -> v.getCategory().equals("개별"))
+                    .toList();
+
+            for (JobType jobType : jobTypeList){
+                jobTypeResultList.add(jobType.getName());
+            }
+
+
+
+            return jobTypeResultList;
+        }
 
         List<JobType> jobTypeList = Arrays.stream(JobType.values())
                 .filter(v -> v.getCategory().equals("묶음"))
