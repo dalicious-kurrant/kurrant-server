@@ -862,4 +862,18 @@ public class UserServiceImpl implements UserService {
         return "유저 정보 저장에 성공했습니다.";
 
     }
+
+    @Override
+    public Object getCountry() {
+
+        List<String> countryList = new ArrayList<>();
+
+        for (int i = 1; i < Country.values().length; i++) {
+            System.out.println(Country.values().length);
+            System.out.println(i + " i");
+            countryList.add(Country.ofCodeByString(i));
+        }
+
+        return countryList;
+    }
 }
