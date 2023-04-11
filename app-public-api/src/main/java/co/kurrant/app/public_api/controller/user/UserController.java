@@ -285,6 +285,15 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/country")
+    @Operation(summary = "국가 정보 조회", description = "국가정보를 조회한다.")
+    public ResponseMessage getCountry(){
+        return ResponseMessage.builder()
+                .data(userService.getCountry())
+                .message("국가 정보 조회 성공")
+                .build();
+    }
+
 
 
 //    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")

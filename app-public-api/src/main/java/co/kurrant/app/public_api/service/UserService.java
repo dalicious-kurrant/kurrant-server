@@ -68,4 +68,6 @@ public interface UserService {
     void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto);
 
     String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto);
+
+    Object getCountry();
 }
