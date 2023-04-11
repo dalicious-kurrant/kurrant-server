@@ -32,6 +32,7 @@ public interface UserPreferenceMapper {
     @Mapping(source = "userPreferenceDto.beganLevel", target = "beganLevel")
     @Mapping(source = "userPreferenceDto.isBegan", target = "isBegan")
     @Mapping(source = "userPreferenceDto.allergyInfo", target = "allergyInfo", qualifiedByName = "makeFoodTagList")
+    @Mapping(source = "userPreferenceDto.allergyInfoEtc", target = "allergyInfoEtc")
     @Mapping(source = "userPreferenceDto.favoriteCountryFood", target = "favoriteCountryFood", qualifiedByName = "makeFoodTagList")
     @Mapping(source = "userPreferenceDto.breakfastCount", target = "breakfastCount")
     @Mapping(source = "userPreferenceDto.midnightSnackCount", target = "midnightSnackCount")
