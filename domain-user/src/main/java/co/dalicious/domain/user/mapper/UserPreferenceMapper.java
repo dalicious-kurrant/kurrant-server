@@ -4,6 +4,7 @@ import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserPreference;
 import co.dalicious.domain.user.entity.enums.Country;
+import co.dalicious.domain.user.entity.enums.JobType;
 import co.dalicious.system.enums.FoodTag;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -21,7 +22,8 @@ public interface UserPreferenceMapper {
     @Mapping(source = "userPreferenceDto.unselectedFoodId", target = "unselectedFoodId")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.country", target = "country", qualifiedByName = "generatedCountry")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.birthPlace", target = "birthPlace")
-    @Mapping(source = "userPreferenceDto.userDefaultInfo.jobType", target = "jobType")
+    @Mapping(source = "userPreferenceDto.userDefaultInfo.jobType", target = "jobType", qualifiedByName = "generatedJobType")
+    @Mapping(source = "userPreferenceDto.userDefaultInfo.detailJobType", target = "detailJobType", qualifiedByName = "generatedJobType")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.gender", target = "gender")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.birthYear", target = "birthYear")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.birthMonth", target = "birthMonth")
@@ -53,6 +55,11 @@ public interface UserPreferenceMapper {
     @Named("generatedCountry")
     default Country generatedCountry(String country){
         return Country.ofValue(country);
+    }
+
+    @Named("generatedJobType")
+    default JobType generatedJobType(String jobType){
+        return JobType.ofValue(jobType);
     }
 
 }
