@@ -50,6 +50,6 @@ public class PaycheckDailyFood {
     }
 
     public BigDecimal getTotalPrice() {
-        return this.supplyPrice.multiply(BigDecimal.valueOf(count));
+        return this.supplyPrice == null ? null : this.supplyPrice.multiply(BigDecimal.valueOf(count));
     }
 }

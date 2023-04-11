@@ -539,11 +539,11 @@ public class UserServiceImpl implements UserService {
 
         if (creditCardInfo.isPresent()) {
             // 이미 존재하는 카드라면 에러 발생
-            if (creditCardInfo.get().getStatus() == 0) {
+            if (creditCardInfo.get().getStatus() == 1) {
                 throw new ApiException(ExceptionEnum.ALREADY_EXIST_CARD);
             }
             // 기존에 삭제되었던 카드라면 빌링키 업데이트
-            if (creditCardInfo.get().getStatus() == 1) {
+            if (creditCardInfo.get().getStatus() == 0) {
                 creditCardInfo.get().updateNiceBillingKey(saveCardResponse.getBillingKey());
                 return saveCardResponse.getBillingKey();
             }

@@ -1,13 +1,16 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
+import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
 import co.dalicious.domain.paycheck.service.ExcelService;
+import co.dalicious.domain.paycheck.service.PaycheckService;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
@@ -19,39 +22,39 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ExcelServiceImpl implements ExcelService {
+    private final PaycheckService paycheckService;
+
     @Override
     public void createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
         Workbook workbook = new XSSFWorkbook();
-
         Sheet sheet = workbook.createSheet("MakersPaycheck");
 
-        String fileName = makersPaycheck.getYearMonth().getYear() +
-                ((makersPaycheck.getYearMonth().getMonthValue() < 10) ? "0" + String.valueOf(makersPaycheck.getYearMonth().getMonthValue()) : String.valueOf(makersPaycheck.getYearMonth().getMonthValue()))  +
-                makersPaycheck.getMakers().getName();
+        sheet.setColumnWidth(0, 2 * 256);
+
+        String fileName = "C:\\Users\\minji\\Downloads\\" + makersPaycheck.getYearMonth().getYear() +
+                ((makersPaycheck.getYearMonth().getMonthValue() < 10) ? "0" + String.valueOf(makersPaycheck.getYearMonth().getMonthValue()) : String.valueOf(makersPaycheck.getYearMonth().getMonthValue())) +
+                makersPaycheck.getMakers().getName() + ".xlsx";
 
         // Create header rows
-        createHeaderRows(sheet);
+        createHeaderRows(workbook, sheet);
 
         // Write daily foods data
-        int currentRow = 4;
+        int currentRow = 13;
         List<PaycheckDailyFood> dailyFoods = makersPaycheck.getPaycheckDailyFoods();
         for (PaycheckDailyFood dailyFood : dailyFoods) {
             Row row = sheet.createRow(currentRow);
-            writeDailyFood(row, dailyFood);
+            writeDailyFood(workbook, row, dailyFood);
             currentRow++;
         }
 
         // Write total row
-        Row totalRow = sheet.createRow(currentRow);
-        writeTotalRow(totalRow, dailyFoods);
+        Integer footerRowNumber = writeTotalRow(sheet, currentRow + 3, dailyFoods);
+        createFooterRows(sheet, footerRowNumber);
 
         // Adjust column widths
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 11; i++) {
             sheet.autoSizeColumn(i);
         }
-
-        // Merge cells
-        mergeCells(sheet);
 
         // Save the file locally
         try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
@@ -61,42 +64,268 @@ public class ExcelServiceImpl implements ExcelService {
         }
     }
 
-    private static void createHeaderRows(Sheet sheet) {
-        Row row1 = sheet.createRow(0);
-        row1.createCell(0).setCellValue("거래명세서");
+    private void createHeaderRows(Workbook workbook, Sheet sheet) {
+        // 거래명세서 제목
+        Row row1 = sheet.createRow(1);
+        Cell cell1_1 = row1.createCell(1);
+        cell1_1.setCellValue("거래명세서");
+        cell1_1.setCellStyle(titleStyle(workbook));
 
-        Row row2 = sheet.createRow(1);
-        row2.createCell(0).setCellValue("2023-03");
+        Cell cell1_6 = row1.createCell(6);
+        cell1_6.setCellValue("2023-03");
+        cell1_6.setCellStyle(center(workbook));
+        sheet.addMergedRegion(new CellRangeAddress(1, 3, 1, 2));
+        sheet.addMergedRegion(new CellRangeAddress(1, 1, 6, 7));
 
-        Row row4 = sheet.createRow(3);
+        // 수신인
+        Row row4 = sheet.createRow(4);
+        CellStyle borderStyle = workbook.createCellStyle();
+        borderStyle.setBorderBottom(BorderStyle.THIN);
+
+        for (int i = 1; i <= 7; i++) {
+            row4.createCell(i);
+            row4.getCell(i).setCellStyle(borderStyle);
+            if (i == 1) {
+                row4.getCell(i).setCellValue("수신");
+            }
+            // TODO: 수정필요
+            if (i == 2) {
+                row4.getCell(i).setCellValue("모모유부 역삼점");
+            }
+        }
+
+        // 공급자(달리셔스) 정보
+        TransactionInfoDefault transactionInfoDefault = paycheckService.getTransactionInfoDefault();
+        Row row6 = sheet.createRow(6);
+        Cell cell6_1 = row6.createCell(1);
+        cell6_1.setCellStyle(right(workbook));
+        cell6_1.setCellValue("사업자번호");
+
+        Cell cell6_2 = row6.createCell(2);
+        cell6_2.setCellValue(transactionInfoDefault.getBusinessNumber());
+
+        Cell cell6_4 = row6.createCell(4);
+        cell6_4.setCellValue("주소");
+
+        Cell cell6_5 = row6.createCell(5);
+        cell6_5.setCellValue(transactionInfoDefault.getAddress1());
+        sheet.addMergedRegion(new CellRangeAddress(6, 6, 5, 6));
+
+        Row row7 = sheet.createRow(7);
+        Cell cell7_1 = row7.createCell(1);
+        cell7_1.setCellStyle(right(workbook));
+        cell7_1.setCellValue("상호");
+
+        Cell cell7_2 = row7.createCell(2);
+        cell7_2.setCellValue(transactionInfoDefault.getCorporationName());
+
+        Cell cell7_5 = row7.createCell(5);
+        cell7_5.setCellValue(transactionInfoDefault.getAddress2());
+        sheet.addMergedRegion(new CellRangeAddress(7, 7, 5, 6));
+
+        Row row8 = sheet.createRow(8);
+        Cell cell8_1 = row8.createCell(1);
+        cell8_1.setCellStyle(right(workbook));
+        cell8_1.setCellValue("대표자");
+
+        Cell cell8_2 = row8.createCell(2);
+        cell8_2.setCellValue(transactionInfoDefault.getRepresentative());
+
+        Row row9 = sheet.createRow(9);
+        Cell cell9_1 = row9.createCell(1);
+        cell9_1.setCellStyle(right(workbook));
+        cell9_1.setCellValue("전화");
+
+        Cell cell9_2 = row9.createCell(2);
+        cell9_2.setCellValue(transactionInfoDefault.getPhone());
+
+        Cell cell9_4 = row9.createCell(4);
+        cell9_4.setCellValue("업태");
+
+        Cell cell9_5 = row9.createCell(5);
+        cell9_5.setCellValue(transactionInfoDefault.getBusiness());
+
+        Row row10 = sheet.createRow(10);
+        Cell cell10_1 = row10.createCell(1);
+        cell10_1.setCellStyle(right(workbook));
+        cell10_1.setCellValue("팩스");
+
+        Cell cell10_2 = row10.createCell(2);
+        cell10_2.setCellValue(transactionInfoDefault.getFaxNumber());
+
+        Cell cell10_4 = row10.createCell(4);
+        cell10_4.setCellValue("종목");
+
+        Cell cell10_5 = row10.createCell(5);
+        cell10_5.setCellValue(transactionInfoDefault.getBusinessForm());
+        sheet.addMergedRegion(new CellRangeAddress(10, 10, 5, 7));
+
+        // 거래 내역 헤더
+        Row row12 = sheet.createRow(12);
         String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat포함)", "수수료율", "수수료"};
-        for (int i = 0; i < headers.length; i++) {
-            row4.createCell(i).setCellValue(headers[i]);
+        for (int i = 1; i <= headers.length; i++) {
+            Cell cell13 = row12.createCell(i);
+            cell13.setCellValue(headers[i - 1]);
+            cell13.setCellStyle(dataHeader(workbook));
         }
     }
 
-    private static void writeDailyFood(Row row, PaycheckDailyFood dailyFood) {
-        row.createCell(0).setCellValue(dailyFood.getServiceDate().toString());
-        row.createCell(1).setCellValue(dailyFood.getName());
-        row.createCell(2).setCellValue(dailyFood.getSupplyPrice().toString());
-        row.createCell(3).setCellValue(dailyFood.getCount());
-        row.createCell(4).setCellValue(dailyFood.getTotalPrice().toString());
-        row.createCell(5).setCellValue("0.0%");
-        row.createCell(6).setCellValue("-");
+    private static void writeDailyFood(Workbook workBook, Row row, PaycheckDailyFood dailyFood) {
+        CellStyle dataCellStyle = center(workBook);
+        CellStyle priceCellStyle = priceStyle(workBook);
+
+        Cell cell1 = row.createCell(1);
+        cell1.setCellValue(dailyFood.getServiceDate().toString());
+        cell1.setCellStyle(dataCellStyle);
+
+        Cell cell2 = row.createCell(2);
+        cell2.setCellValue(dailyFood.getName());
+        cell2.setCellStyle(dataCellStyle);
+
+        Cell cell3 = row.createCell(3);
+        cell3.setCellValue(dailyFood.getSupplyPrice() == null ? null : dailyFood.getSupplyPrice().intValue());
+        cell3.setCellStyle(priceCellStyle);
+
+        Cell cell4 = row.createCell(4);
+        cell4.setCellValue(dailyFood.getCount());
+        cell4.setCellStyle(dataCellStyle);
+
+        Cell cell5 = row.createCell(5);
+        cell5.setCellValue(dailyFood.getTotalPrice() == null ? null : dailyFood.getTotalPrice().intValue());
+        cell5.setCellStyle(priceCellStyle);
+
+        Cell cell6 = row.createCell(6);
+        cell6.setCellValue("0.0%");
+        cell6.setCellStyle(dataCellStyle);
+
+        Cell cell7 = row.createCell(7);
+        cell7.setCellValue("-");
+        cell7.setCellStyle(dataCellStyle);
     }
 
-    private static void writeTotalRow(Row row, List<PaycheckDailyFood> dailyFoods) {
-        BigDecimal total = dailyFoods.stream()
+    private static Integer writeTotalRow(Sheet sheet, Integer startRow, List<PaycheckDailyFood> dailyFoods) {
+        // 총액 셀 추가
+        Row totalPriceRow = sheet.createRow(startRow);
+        Integer total = dailyFoods.stream()
                 .map(df -> df.getSupplyPrice().multiply(BigDecimal.valueOf(df.getCount())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, BigDecimal::add).intValue();
 
-        row.createCell(4).setCellValue("Total");
-        row.createCell(5).setCellValue(total.toString());
+
+        Cell cell1 = totalPriceRow.createCell(5);
+        cell1.setCellValue("총액");
+        cell1.setCellStyle(boldCenter(sheet.getWorkbook()));
+
+        Cell cell1_2 = totalPriceRow.createCell(6);
+        cell1_2.setCellValue(total);
+        cell1_2.setCellStyle(boldPriceStyle(sheet.getWorkbook()));
+
+        // 수수료 셀 추가
+        Row chargeRow = sheet.createRow(startRow + 1);
+        Cell cell2 = chargeRow.createCell(5);
+        cell2.setCellValue("수수료");
+        cell2.setCellStyle(boldCenter(sheet.getWorkbook()));
+
+        // TODO: 수정필요
+        Cell cell2_2 = chargeRow.createCell(6);
+        cell2_2.setCellValue(0);
+        cell2_2.setCellStyle(boldPriceStyle(sheet.getWorkbook()));
+
+        // 결제 금액 셀 추가
+        Row payPriceRow = sheet.createRow(startRow + 2);
+        Cell cell3 = payPriceRow.createCell(5);
+        cell3.setCellValue("Total");
+        cell3.setCellStyle(boldCenter(sheet.getWorkbook()));
+
+        // TODO: 수정필요
+        Cell cell3_2 = payPriceRow.createCell(6);
+        cell3_2.setCellValue(total);
+        cell3_2.setCellStyle(priceStyle(sheet.getWorkbook()));
+
+        return startRow + 3;
     }
 
-    private static void mergeCells(Sheet sheet) {
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 6));
-        sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 6));
-        sheet.addMergedRegion(new CellRangeAddress(2, 2, 0, 6));
+    private void createFooterRows(Sheet sheet, Integer footerRowNumber) {
+        Row footerRow = sheet.createRow(footerRowNumber);
+        CellStyle borderStyle = sheet.getWorkbook().createCellStyle();
+        borderStyle.setBorderTop(BorderStyle.THIN);
+
+        for (int i = 1; i <= 7; i++) {
+            footerRow.createCell(i);
+            footerRow.getCell(i).setCellStyle(borderStyle);
+            if (i == 1) {
+                footerRow.getCell(i).setCellValue("위와 같이 명세서 제출합니다.");
+            }
+        }
+
+
+        sheet.addMergedRegion(new CellRangeAddress(footerRowNumber, footerRowNumber, 1, 7));
+    }
+
+    private static CellStyle titleStyle(Workbook workbook) {
+        CellStyle titleStyle = workbook.createCellStyle();
+        titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        Font font = workbook.createFont();
+        font.setFontHeightInPoints((short) 18);
+        font.setFontName("Calibri");
+        titleStyle.setFont(font);
+        return titleStyle;
+    }
+
+    private static CellStyle center(Workbook workbook) {
+        CellStyle center = workbook.createCellStyle();
+        center.setAlignment(HorizontalAlignment.CENTER);
+        center.setVerticalAlignment(VerticalAlignment.CENTER);
+        return center;
+    }
+
+    private static CellStyle boldCenter(Workbook workbook) {
+        CellStyle center = workbook.createCellStyle();
+        center.setAlignment(HorizontalAlignment.CENTER);
+        center.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        Font boldFont = workbook.createFont();
+        boldFont.setBold(true);
+        center.setFont(boldFont);
+        return center;
+    }
+
+    private static CellStyle priceStyle(Workbook workbook) {
+        CellStyle currencyStyle = workbook.createCellStyle();
+        currencyStyle.setAlignment(HorizontalAlignment.CENTER);
+        currencyStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        DataFormat format = workbook.createDataFormat();
+        currencyStyle.setDataFormat(format.getFormat("\\₩ #,##0"));
+        return currencyStyle;
+    }
+
+    private static CellStyle boldPriceStyle(Workbook workbook) {
+        CellStyle currencyStyle = workbook.createCellStyle();
+        currencyStyle.setAlignment(HorizontalAlignment.CENTER);
+        currencyStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        DataFormat format = workbook.createDataFormat();
+        currencyStyle.setDataFormat(format.getFormat("\\₩ #,##0"));
+
+        return currencyStyle;
+    }
+
+    private static CellStyle right(Workbook workbook) {
+        CellStyle center = workbook.createCellStyle();
+        center.setAlignment(HorizontalAlignment.RIGHT);
+        center.setVerticalAlignment(VerticalAlignment.CENTER);
+        return center;
+    }
+
+    private static CellStyle dataHeader(Workbook workbook) {
+        XSSFCellStyle dataHeader = (XSSFCellStyle) workbook.createCellStyle();
+        dataHeader.setAlignment(HorizontalAlignment.CENTER);
+        dataHeader.setVerticalAlignment(VerticalAlignment.CENTER);
+        byte[] customColor = new byte[]{(byte) 230, (byte) 230, (byte) 230};
+        XSSFColor xssfColor = new XSSFColor(customColor, new DefaultIndexedColorMap());
+        dataHeader.setFillForegroundColor(xssfColor);
+        dataHeader.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return dataHeader;
     }
 }

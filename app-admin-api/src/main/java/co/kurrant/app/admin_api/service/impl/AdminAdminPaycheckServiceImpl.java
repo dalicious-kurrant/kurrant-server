@@ -265,8 +265,9 @@ public class AdminAdminPaycheckServiceImpl implements AdminPaycheckService {
 
 
     @Override
+    @Transactional
     public void postMakersPaycheckExcel() {
-        Makers makers = makersRepository.findById(BigInteger.valueOf(1))
+        Makers makers = makersRepository.findById(BigInteger.valueOf(2))
                         .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
         LocalDate startDate = LocalDate.of(2023, 4, 1);
         LocalDate endDate = LocalDate.of(2023, 4, 30);

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -23,12 +24,13 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PaycheckServiceImpl implements PaycheckService {
-    private MakersPaycheckMapper makersPaycheckMapper;
+    private final MakersPaycheckMapper makersPaycheckMapper;
     @Override
     public TransactionInfoDefault getTransactionInfoDefault() {
         return TransactionInfoDefault.builder()
                 .businessNumber("376-87-00441")
-                .address("서울특별시 강남구 테헤란로 51길 21, 3층(역삼동, 상경빌딩)")
+                .address1("서울특별시 강남구 테헤란로 51길 21")
+                .address2("3층(역삼동, 상경빌딩)")
                 .corporationName("달리셔스 주식회사")
                 .representative("이강용")
                 .business("서비스 외")
@@ -39,6 +41,7 @@ public class PaycheckServiceImpl implements PaycheckService {
     }
 
     @Override
+    @Transactional
     public MakersPaycheck generateMakersPaycheck(Makers makers, List<OrderItemDailyFood> dailyFoods) {
         MultiValueMap<ServiceDiningDto, OrderItemDailyFood> serviceDiningMap = new LinkedMultiValueMap<>();
         List<PaycheckDailyFood> paycheckDailyFoods = new ArrayList<>();
@@ -67,7 +70,7 @@ public class PaycheckServiceImpl implements PaycheckService {
                         .serviceDate(serviceDiningDto.getServiceDate())
                         .diningType(serviceDiningDto.getDiningType())
                         .name(orderItemDailyFoodsByFood.get(0).getName())
-                        .supplyPrice(orderItemDailyFoodsByFood.get(0).getDailyFood().getSupplyPrice())
+                        .supplyPrice(orderItemDailyFoodsByFood.get(0).getDailyFood().getSupplyPrice() == null ? orderItemDailyFoodsByFood.get(0).getDailyFood().getFood().getSupplyPrice() : orderItemDailyFoodsByFood.get(0).getDailyFood().getSupplyPrice())
                         .count(count)
                         .food(food)
                         .build();
