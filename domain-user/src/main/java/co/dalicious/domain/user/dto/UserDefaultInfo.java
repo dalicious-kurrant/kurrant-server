@@ -26,5 +26,7 @@ public class UserDefaultInfo {
     private BirthPlace birthPlace;
     @Schema(description = "직종")
     private JobType jobType;
+    @Schema(description = "상세직종")
+    private JobType detailJobType;
 
 }

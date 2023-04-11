@@ -933,8 +933,6 @@ public class UserServiceImpl implements UserService {
                 jobTypeResultList.add(jobType.getName());
             }
 
-
-
             return jobTypeResultList;
         }
 

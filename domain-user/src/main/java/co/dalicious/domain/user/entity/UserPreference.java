@@ -118,6 +118,12 @@ public class UserPreference {
     @Comment("직종")
     private JobType jobType;
 
+
+    @Convert(converter = JobTypeConverter.class)
+    @Column(name = "detail_job_type", columnDefinition = "INT")
+    @Comment("상세 직종")
+    private JobType detailJobType;
+
     @Column(name = "selected_food_id", columnDefinition = "VARCHAR(255)")
     @Comment("선호하는 음식 ID")
     private String selectedFoodId;
@@ -130,7 +136,7 @@ public class UserPreference {
     public UserPreference(User user,  Integer breakfastCount, Integer midnightSnackCount, Integer exerciseCount, Integer drinkCount,
                    List<FoodTag> favoriteCountryFood, List<FoodTag> allergyInfo, String allergyInfoEtc, Boolean isBegan, Integer veganLevel, Boolean isProtein,
                    Integer proteinFrequency, String birthYear, String birthMonth, String birthDay, Integer gender, Country country,
-                   BirthPlace birthPlace, JobType jobType, String selectedFoodId, String unselectedFoodId){
+                   BirthPlace birthPlace, JobType jobType, JobType detailJobType, String selectedFoodId, String unselectedFoodId){
         this.user = user;
         this.breakfastCount = breakfastCount;
         this.midnightSnackCount = midnightSnackCount;
@@ -150,6 +156,7 @@ public class UserPreference {
         this.country = country;
         this.birthPlace = birthPlace;
         this.jobType = jobType;
+        this.detailJobType = detailJobType;
         this.selectedFoodId = selectedFoodId;
         this.unselectedFoodId = unselectedFoodId;
 
