@@ -294,6 +294,24 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/tags")
+    @Operation(summary = "푸드태그 조회", description = "푸드태그 정보를 조회한다.")
+    public ResponseMessage getFavoriteCountryFoods(@RequestParam Integer code){
+        return ResponseMessage.builder()
+                .data(userService.getFavoriteCountryFoods(code))
+                .message("조회 성공!")
+                .build();
+    }
+
+    @GetMapping("/jobs")
+    @Operation(summary = "직종 조회", description = "직종을 조회한다.")
+    public ResponseMessage getJobType(){
+        return ResponseMessage.builder()
+                .data(userService.getJobType())
+                .message("조회 성공!")
+                .build();
+    }
+
 
 
 //    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")

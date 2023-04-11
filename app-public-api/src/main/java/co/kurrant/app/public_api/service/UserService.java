@@ -70,4 +70,8 @@ public interface UserService {
     String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto);
 
     Object getCountry();
+
+    Object getFavoriteCountryFoods(Integer code);
+
+    Object getJobType();
 }
