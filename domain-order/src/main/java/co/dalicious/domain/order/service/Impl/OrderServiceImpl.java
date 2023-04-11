@@ -179,6 +179,10 @@ public class OrderServiceImpl implements OrderService {
         if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
             PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
             paymentCancelHistoryRepository.save(paymentCancelHistory);
+        }
+        if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) == 0 && refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
+            PaymentCancelHistory paymentCancelHistory = orderUtil.cancelPointPaidOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
+            paymentCancelHistoryRepository.save(paymentCancelHistory);
             // 환불 포인트 내역 남기기
             pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
         }
@@ -391,6 +395,10 @@ public class OrderServiceImpl implements OrderService {
         // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
         if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
             PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFoodNice(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
+            paymentCancelHistoryRepository.save(paymentCancelHistory);
+        }
+        if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) == 0 && refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
+            PaymentCancelHistory paymentCancelHistory = orderUtil.cancelPointPaidOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
             paymentCancelHistoryRepository.save(paymentCancelHistory);
             // 환불 포인트 내역 남기기
             pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
