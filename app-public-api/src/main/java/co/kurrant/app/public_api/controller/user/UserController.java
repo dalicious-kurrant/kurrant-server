@@ -307,9 +307,9 @@ public class UserController {
 
     @GetMapping("/jobs")
     @Operation(summary = "직종 조회", description = "직종을 조회한다.")
-    public ResponseMessage getJobType(){
+    public ResponseMessage getJobType(@RequestParam Integer code){
         return ResponseMessage.builder()
-                .data(userService.getJobType())
+                .data(userService.getJobType(code))
                 .message("조회 성공!")
                 .build();
     }
