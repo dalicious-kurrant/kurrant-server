@@ -26,11 +26,9 @@ public interface UserPreferenceMapper {
     @Mapping(source = "userPreferenceDto.userDefaultInfo.birthYear", target = "birthYear")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.birthMonth", target = "birthMonth")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.birthDay", target = "birthDay")
-    @Mapping(source = "userPreferenceDto.proteinScoop", target = "proteinScoop")
-    @Mapping(source = "userPreferenceDto.proteinBarFrequency", target = "proteinBarFrequency")
-    @Mapping(source = "userPreferenceDto.proteinDrinkFrequency", target = "proteinDrinkFrequency")
+    @Mapping(source = "userPreferenceDto.proteinFrequency", target = "proteinFrequency")
     @Mapping(source = "userPreferenceDto.isProtein", target = "isProtein")
-    @Mapping(source = "userPreferenceDto.beganLevel", target = "beganLevel")
+    @Mapping(source = "userPreferenceDto.veganLevel", target = "veganLevel")
     @Mapping(source = "userPreferenceDto.isBegan", target = "isBegan")
     @Mapping(source = "userPreferenceDto.allergyInfo", target = "allergyInfo", qualifiedByName = "makeFoodTagList")
     @Mapping(source = "userPreferenceDto.allergyInfoEtc", target = "allergyInfoEtc")
@@ -47,7 +45,7 @@ public interface UserPreferenceMapper {
         List<FoodTag> result = new ArrayList<>();
         List<String> split = Arrays.stream(foodTags.split(",")).toList();
         for (String foodTagString : split ){
-            result.add(FoodTag.ofCode(Integer.valueOf(foodTagString)));
+            result.add(FoodTag.ofString(foodTagString));
         }
         return result;
     }
