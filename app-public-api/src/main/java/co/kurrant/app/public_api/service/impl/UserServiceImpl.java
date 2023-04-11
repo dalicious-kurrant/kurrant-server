@@ -39,6 +39,7 @@ import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
+import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.enums.RequiredAuth;
 import co.kurrant.app.public_api.mapper.user.UserMapper;
@@ -865,15 +866,55 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Object getCountry() {
-
         List<String> countryList = new ArrayList<>();
-
-        for (int i = 1; i < Country.values().length; i++) {
-            System.out.println(Country.values().length);
-            System.out.println(i + " i");
+        for (int i = 1; i < Country.values().length+1; i++) {
             countryList.add(Country.ofCodeByString(i));
         }
-
         return countryList;
+    }
+
+    @Override
+    public Object getFavoriteCountryFoods(Integer code) {
+
+        List<String> foodTagList = new ArrayList<>();
+        //code가 1이면 알러지 정보 반환
+        if (code == 1) {
+            List<FoodTag> tagList = Arrays.stream(FoodTag.values())
+                    .filter(v -> v.getCategory().equals("알레르기 체크"))
+                    .toList();
+
+            for (FoodTag tag : tagList){
+                foodTagList.add(tag.getTag());
+            }
+
+            return foodTagList;
+        }
+
+        //1이 아닐경우는 좋아하는 나라 음식 목록 반환
+        List<FoodTag> countryList = Arrays.stream(FoodTag.values())
+                .filter(v -> v.getCategory().equals("국가"))
+                .toList();
+
+        for (FoodTag countryTag : countryList){
+            foodTagList.add(countryTag.getTag());
+        }
+
+        return foodTagList;
+    }
+
+    @Override
+    public Object getJobType() {
+
+        List<String> jobTypeResultList = new ArrayList<>();
+
+        List<JobType> jobTypeList = Arrays.stream(JobType.values())
+                .filter(v -> v.getCategory().equals("묶음"))
+                .toList();
+
+        for (JobType jobType : jobTypeList){
+            jobTypeResultList.add(jobType.getName());
+        }
+
+        return jobTypeResultList;
     }
 }
