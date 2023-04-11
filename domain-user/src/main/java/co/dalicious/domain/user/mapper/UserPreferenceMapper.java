@@ -3,6 +3,7 @@ package co.dalicious.domain.user.mapper;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserPreference;
+import co.dalicious.domain.user.entity.enums.Country;
 import co.dalicious.system.enums.FoodTag;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,7 +19,7 @@ public interface UserPreferenceMapper {
 
     @Mapping(source = "userPreferenceDto.selectedFoodId", target = "selectedFoodId")
     @Mapping(source = "userPreferenceDto.unselectedFoodId", target = "unselectedFoodId")
-    @Mapping(source = "userPreferenceDto.userDefaultInfo.country", target = "country")
+    @Mapping(source = "userPreferenceDto.userDefaultInfo.country", target = "country", qualifiedByName = "generatedCountry")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.birthPlace", target = "birthPlace")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.jobType", target = "jobType")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.gender", target = "gender")
@@ -49,6 +50,11 @@ public interface UserPreferenceMapper {
             result.add(FoodTag.ofCode(Integer.valueOf(foodTagString)));
         }
         return result;
+    }
+
+    @Named("generatedCountry")
+    default Country generatedCountry(String country){
+        return Country.ofValue(country);
     }
 
 }
