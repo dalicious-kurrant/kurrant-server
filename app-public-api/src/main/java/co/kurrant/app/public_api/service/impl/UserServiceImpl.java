@@ -11,6 +11,8 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -28,6 +30,7 @@ import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
+import co.dalicious.domain.user.dto.UserPreferenceFoodImageResponseDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
@@ -103,6 +106,8 @@ public class UserServiceImpl implements UserService {
     private final QUserRepository qUserRepository;
     private final UserPreferenceMapper userPreferenceMapper;
     private final UserPreferenceRepository userPreferenceRepository;
+    private final QUserPreferenceRepository qUserPreferenceRepository;
+    private final FoodRepository foodRepository;
 
     @Override
     @Transactional
@@ -851,15 +856,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto) {
+
         User user = userUtil.getUser(securityUser);
 
+        List<UserPreference> preferenceList = userPreferenceRepository.findByUserId(user.getId());
+
+
         UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
+
+        //기존에 있는 정보라면 수정
+        if (!preferenceList.isEmpty()){
+            //삭제 후 저장
+            qUserPreferenceRepository.deleteOthers(user.getId());
+            userPreferenceRepository.save(userPreference);
+            return "기존 정보가 있어서 수정하였습니다.";
+        }
 
         UserPreference saveResult = userPreferenceRepository.save(userPreference);
         if (saveResult.getId() == null){
             return "유저 정보 저장에 실패했습니다.";
         }
-
         return "유저 정보 저장에 성공했습니다.";
 
     }
@@ -917,4 +933,30 @@ public class UserServiceImpl implements UserService {
 
         return jobTypeResultList;
     }
+
+    @Override
+    public Object getFoodImage(List<BigInteger> foodIds) {
+        //값을 저장해줄 LIST 생성
+        List<UserPreferenceFoodImageResponseDto> resultList = new ArrayList<>();
+
+        for (BigInteger foodId: foodIds ) {
+
+            UserPreferenceFoodImageResponseDto responseDto = new UserPreferenceFoodImageResponseDto();
+            //유효한 FoodId 인지 검증
+            Food food = foodRepository.findById(foodId)
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+            //이미지는 1번째 이미지로 일괄처리
+            String imageLocation = food.getImages().get(0).getLocation();
+
+            //DTO 설정 후 담아주기
+            responseDto.setFoodId(food.getId());
+            responseDto.setImageUrl(imageLocation);
+
+            resultList.add(responseDto);
+
+        }
+
+        return resultList;
+    }
+
 }

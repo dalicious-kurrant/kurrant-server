@@ -24,6 +24,8 @@ public class UserPreferenceDto {
     private String favoriteCountryFood;
     @Schema(description = "알러지 정보")
     private String allergyInfo;
+    @Schema(description = "기타 알러지 정보")
+    private String allergyInfoEtc;
     @Schema(description = "비건여부")
     private Boolean isBegan;
     @Schema(description = "비건 정도")
