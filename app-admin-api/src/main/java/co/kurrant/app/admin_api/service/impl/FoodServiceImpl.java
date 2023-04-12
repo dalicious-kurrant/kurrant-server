@@ -248,7 +248,7 @@ public class FoodServiceImpl implements FoodService {
         if (food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT) == null) {
             foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.PERIOD_DISCOUNT, foodDetailDto.getMakersDiscountRate()));
         }
-        else if (foodDetailDto.getMakersDiscountRate() == 0) {
+        else if (foodDetailDto.getPeriodDiscountRate() == 0) {
             foodDiscountPolicyRepository.delete(food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT));
         }
         else {
