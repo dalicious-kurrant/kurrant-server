@@ -107,6 +107,7 @@ public enum ExceptionEnum {
 	CANCLE_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040033", "취소 내역을 찾을 수 없습니다."),
 	NOT_FOUND_PAYMENT_PASSWORD(HttpStatus.NOT_FOUND, "E4040034", "결제 비밀번호가 등록되지 않았습니다."),
 	ALREADY_EXIST_CARD(HttpStatus.NOT_FOUND, "E4040035", "이미 존재하는 카드입니다"),
+	NOT_FOUND_PUSH_ALARM(HttpStatus.NOT_FOUND, "E4040036", "존재하지 않는 푸시알림 조건입니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),

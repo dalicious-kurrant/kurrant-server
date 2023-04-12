@@ -1,14 +1,15 @@
-package co.kurrant.app.admin_api.service.impl;
+package co.dalicious.client.alarm.service.impl;
 
+import co.dalicious.client.alarm.dto.AlimtalkRequestDto;
+import co.dalicious.client.alarm.dto.PushByTopicRequestDto;
+import co.dalicious.client.alarm.dto.PushRequestDto;
+import co.dalicious.client.alarm.dto.PushTokenSaveReqDto;
+import co.dalicious.client.alarm.util.KakaoUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
-import co.dalicious.system.util.KakaoUtil;
-import co.kurrant.app.admin_api.dto.push.AlimtalkRequestDto;
-import co.kurrant.app.admin_api.dto.push.PushByTopicRequestDto;
-import co.kurrant.app.admin_api.dto.push.PushRequestDto;
-import co.kurrant.app.admin_api.dto.push.PushTokenSaveReqDto;
-import co.kurrant.app.admin_api.service.PushService;
+import co.dalicious.client.alarm.service.PushService;
+import co.dalicious.system.util.DateUtils;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.*;
 import exception.ApiException;
@@ -20,10 +21,11 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,10 +43,12 @@ public class PushServiceImpl implements PushService {
         String title = pushRequestDto.getTitle();
         String content = pushRequestDto.getContent();
         String page = pushRequestDto.getPage();
+        Map<String, String> keys = pushRequestDto.getKeys();
 
         List<Message> messages = tokenList.stream().map(token -> Message.builder()
                 .putData("time", LocalDateTime.now().toString())
                 .putData("page", page)
+                .putAllData(keys)
                 .setNotification(Notification.builder()
                         .setTitle(title)
                         .setBody(content)

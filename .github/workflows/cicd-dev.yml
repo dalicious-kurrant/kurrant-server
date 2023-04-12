@@ -96,8 +96,6 @@ jobs:
           echo "${{ secrets.APP_ADMIN_API_DEV_YAML }}" > ./application.yaml
           touch ./application-dev.yaml
           echo "${{ secrets.APP_ADMIN_API_DEV_DEV_YAML }}" > ./application-dev.yaml
-          touch ./firebase.json
-          echo "${{ secrets.FIREBASE_JSON }}" > ./firebase.json
         shell: bash
 
       - name: client-core application-jwt.properties 생성
@@ -154,13 +152,15 @@ jobs:
           echo "${{ secrets.DOMAIN_FILE_S3_PROPERTIES }}" > ./application-s3.properties
         shell: bash
 
-      - name: system-core application-alimtalk.properties 생성
+      - name: client-alarm application-alimtalk.properties 생성
         run: |
-          cd ./system-core/src/main
+          cd ./client-alarm/src/main
           mkdir resources
           cd resources
           touch ./application-alimtalk.properties
           echo "${{ secrets.SYSTEM_CORE_ALIMTALK }}" > ./application-alimtalk.properties
+          touch ./firebase.json
+          echo "${{ secrets.FIREBASE_JSON }}" > ./firebase.json
         shell: bash
 
       - name: gradlew 실행 권한 추가

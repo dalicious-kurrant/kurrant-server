@@ -16,6 +16,7 @@ include 'client-external-sms'
 include 'client-external-mail'
 include 'client-oauth'
 include 'client-sse'
+include 'client-alarm'
 
 include 'domain-address'
 include 'domain-banner'

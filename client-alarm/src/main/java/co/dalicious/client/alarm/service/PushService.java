@@ -1,9 +1,9 @@
-package co.kurrant.app.admin_api.service;
+package co.dalicious.client.alarm.service;
 
-import co.kurrant.app.admin_api.dto.push.AlimtalkRequestDto;
-import co.kurrant.app.admin_api.dto.push.PushByTopicRequestDto;
-import co.kurrant.app.admin_api.dto.push.PushRequestDto;
-import co.kurrant.app.admin_api.dto.push.PushTokenSaveReqDto;
+import co.dalicious.client.alarm.dto.AlimtalkRequestDto;
+import co.dalicious.client.alarm.dto.PushByTopicRequestDto;
+import co.dalicious.client.alarm.dto.PushRequestDto;
+import co.dalicious.client.alarm.dto.PushTokenSaveReqDto;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
