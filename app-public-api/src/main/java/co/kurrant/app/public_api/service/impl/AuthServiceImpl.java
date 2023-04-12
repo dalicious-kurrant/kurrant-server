@@ -102,6 +102,8 @@ public class AuthServiceImpl implements AuthService {
                 // 존재하는 유저인지 확인
                 User user = userRepository.findOneByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
             }
+            case PAYMENT_PASSWORD_CHECK -> userValidator.isEmailValid(Provider.GENERAL, mailMessageDto.getReceivers().get(0));
+            case PAYMENT_PASSWORD_CREATE -> userValidator.isEmailValid(Provider.GENERAL, mailMessageDto.getReceivers().get(0));
         }
 
         // 이메일 폼 작성
