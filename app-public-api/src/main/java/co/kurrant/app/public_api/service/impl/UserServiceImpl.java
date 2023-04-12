@@ -539,6 +539,7 @@ public class UserServiceImpl implements UserService {
             }
             // 기존에 삭제되었던 카드라면 빌링키 업데이트
             if (creditCardInfo.get().getStatus() == 0) {
+                creditCardInfo.get().updateStatus(1);
                 creditCardInfo.get().updateNiceBillingKey(saveCardResponse.getBillingKey());
                 return saveCardResponse.getBillingKey();
             }

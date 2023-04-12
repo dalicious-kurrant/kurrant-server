@@ -1,10 +1,13 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
+import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
 import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
+
+import co.dalicious.domain.paycheck.service.PdfService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -23,6 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExcelServiceImpl implements ExcelService {
     private final PaycheckService paycheckService;
+    private final ImageService imageService;
+    private final PdfService pdfService;
 
     @Override
     public void createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
@@ -33,7 +38,11 @@ public class ExcelServiceImpl implements ExcelService {
 
         String fileName = "C:\\Users\\minji\\Downloads\\" + makersPaycheck.getYearMonth().getYear() +
                 ((makersPaycheck.getYearMonth().getMonthValue() < 10) ? "0" + String.valueOf(makersPaycheck.getYearMonth().getMonthValue()) : String.valueOf(makersPaycheck.getYearMonth().getMonthValue())) +
-                makersPaycheck.getMakers().getName() + ".xlsx";
+                "_" + makersPaycheck.getMakers().getName() + ".xlsx";
+
+        String fileName2 = "C:\\Users\\minji\\Downloads\\" + makersPaycheck.getYearMonth().getYear() +
+                ((makersPaycheck.getYearMonth().getMonthValue() < 10) ? "0" + String.valueOf(makersPaycheck.getYearMonth().getMonthValue()) : String.valueOf(makersPaycheck.getYearMonth().getMonthValue())) +
+                "_" + makersPaycheck.getMakers().getName() + ".pdf";
 
         // Create header rows
         createHeaderRows(workbook, sheet);
@@ -44,6 +53,7 @@ public class ExcelServiceImpl implements ExcelService {
         for (PaycheckDailyFood dailyFood : dailyFoods) {
             Row row = sheet.createRow(currentRow);
             writeDailyFood(workbook, row, dailyFood);
+            sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 4));
             currentRow++;
         }
 
@@ -62,7 +72,27 @@ public class ExcelServiceImpl implements ExcelService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        pdfService.excelToPdf(workbook, fileName2);
     }
+
+
+    @Override
+    public void addImageToWorkbook(Workbook workbook, Sheet sheet, byte[] imageBytes, int col1, int row1, double scaleX, double scaleY) {
+        int pictureIndex = workbook.addPicture(imageBytes, Workbook.PICTURE_TYPE_PNG);
+
+        CreationHelper helper = workbook.getCreationHelper();
+        Drawing<?> drawing = sheet.createDrawingPatriarch();
+
+        ClientAnchor anchor = helper.createClientAnchor();
+        anchor.setCol1(col1);
+        anchor.setRow1(row1);
+        anchor.setDx1(0); // Horizontal offset in 1024ths of a column width
+        anchor.setDy1(0); // Vertical offset in 1024ths of a row height
+
+        Picture picture = drawing.createPicture(anchor, pictureIndex);
+        picture.resize(scaleX, scaleY);
+    }
+
 
     private void createHeaderRows(Workbook workbook, Sheet sheet) {
         // 거래명세서 제목
@@ -123,6 +153,9 @@ public class ExcelServiceImpl implements ExcelService {
         cell7_5.setCellValue(transactionInfoDefault.getAddress2());
         sheet.addMergedRegion(new CellRangeAddress(7, 7, 5, 6));
 
+        // 도장 추가
+        addImageToWorkbook(workbook, sheet, getStamp(), 3, 7, 0.8, 2);
+
         Row row8 = sheet.createRow(8);
         Cell cell8_1 = row8.createCell(1);
         cell8_1.setCellStyle(right(workbook));
@@ -162,10 +195,22 @@ public class ExcelServiceImpl implements ExcelService {
 
         // 거래 내역 헤더
         Row row12 = sheet.createRow(12);
-        String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat포함)", "수수료율", "수수료"};
+        String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat포함)"};
         for (int i = 1; i <= headers.length; i++) {
-            Cell cell13 = row12.createCell(i);
-            cell13.setCellValue(headers[i - 1]);
+            Cell cell13 = null;
+            if (i < 2) {
+                cell13 = row12.createCell(i);
+                cell13.setCellValue(headers[i - 1]);
+            }
+            if (i == 2) {
+                cell13 = row12.createCell(i);
+                cell13.setCellValue(headers[i - 1]);
+                sheet.addMergedRegion(new CellRangeAddress(12, 12, 2, 4));
+            }
+            if (i > 2) {
+                cell13 = row12.createCell(i + 2);
+                cell13.setCellValue(headers[i - 1]);
+            }
             cell13.setCellStyle(dataHeader(workbook));
         }
     }
@@ -182,25 +227,17 @@ public class ExcelServiceImpl implements ExcelService {
         cell2.setCellValue(dailyFood.getName());
         cell2.setCellStyle(dataCellStyle);
 
-        Cell cell3 = row.createCell(3);
+        Cell cell3 = row.createCell(5);
         cell3.setCellValue(dailyFood.getSupplyPrice() == null ? null : dailyFood.getSupplyPrice().intValue());
         cell3.setCellStyle(priceCellStyle);
 
-        Cell cell4 = row.createCell(4);
+        Cell cell4 = row.createCell(6);
         cell4.setCellValue(dailyFood.getCount());
         cell4.setCellStyle(dataCellStyle);
 
-        Cell cell5 = row.createCell(5);
+        Cell cell5 = row.createCell(7);
         cell5.setCellValue(dailyFood.getTotalPrice() == null ? null : dailyFood.getTotalPrice().intValue());
         cell5.setCellStyle(priceCellStyle);
-
-        Cell cell6 = row.createCell(6);
-        cell6.setCellValue("0.0%");
-        cell6.setCellStyle(dataCellStyle);
-
-        Cell cell7 = row.createCell(7);
-        cell7.setCellValue("-");
-        cell7.setCellStyle(dataCellStyle);
     }
 
     private static Integer writeTotalRow(Sheet sheet, Integer startRow, List<PaycheckDailyFood> dailyFoods) {
@@ -256,9 +293,8 @@ public class ExcelServiceImpl implements ExcelService {
                 footerRow.getCell(i).setCellValue("위와 같이 명세서 제출합니다.");
             }
         }
-
-
         sheet.addMergedRegion(new CellRangeAddress(footerRowNumber, footerRowNumber, 1, 7));
+        addImageToWorkbook(sheet.getWorkbook(), sheet, getLogo(), 5, footerRowNumber, 3, 3);
     }
 
     private static CellStyle titleStyle(Workbook workbook) {
@@ -327,5 +363,14 @@ public class ExcelServiceImpl implements ExcelService {
         dataHeader.setFillForegroundColor(xssfColor);
         dataHeader.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         return dataHeader;
+    }
+
+
+    private byte[] getStamp() {
+        return imageService.downloadImageFromS3("util/stamp.png");
+    }
+
+    private byte[] getLogo() {
+        return imageService.downloadImageFromS3("util/logo.png");
     }
 }
