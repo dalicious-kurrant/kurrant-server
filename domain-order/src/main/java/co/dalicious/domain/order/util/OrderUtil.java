@@ -223,6 +223,11 @@ public class OrderUtil {
             if (requestRefundPrice.subtract(refundablePrice).compareTo(usingPoint) > 0) {
                 throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
             }
+            // 사용한 포인트가 (환불 요청 금액 - 환불 가능 금액) 보다 크거나 같으면
+            if(!paymentCancelHistories.isEmpty()){
+                PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).toList().get(0);
+                refundablePrice = paymentCancelHistory.getRefundablePrice();
+            }
             return new RefundPriceDto(refundablePrice, renewSupportPrice, requestRefundPrice.subtract(refundablePrice), deliveryFee, isLastOrderItemOfGroup);
         }
         throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
@@ -412,16 +417,10 @@ public class OrderUtil {
         return paymentCancleHistoryMapper.orderDailyItemFoodToEntity("주문 전체 취소", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundablePrice);
     }
 
-    public PaymentCancelHistory cancelPointPaidOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, RefundPriceDto refundPriceDto, List<PaymentCancelHistory> paymentCancelHistories) {
+    public PaymentCancelHistory cancelPointPaidOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, RefundPriceDto refundPriceDto) {
         Order order = orderItemDailyFood.getOrder();
-        // 남은 환불 가능 금액 = 총 상품 금액 - 남은 환불 금액
-        BigDecimal refundablePrice = order.getTotalPrice().subtract(refundPriceDto.getPrice());
-        if (!paymentCancelHistories.isEmpty()) {
-            paymentCancelHistories = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).collect(Collectors.toList());
-            refundablePrice = paymentCancelHistories.get(0).getRefundablePrice().subtract(refundPriceDto.getPrice());
-        }
 
-        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity("주문 마감 전 주문 취소", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundablePrice);
+        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity("주문 마감 전 주문 취소", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundPriceDto.getPrice());
     }
 
     public PaymentCancelHistory cancelOrderItemDailyFoodNice(String impUid, String cancelReason, OrderItemDailyFood orderItem, RefundPriceDto refundPriceDto) throws IOException, ParseException {

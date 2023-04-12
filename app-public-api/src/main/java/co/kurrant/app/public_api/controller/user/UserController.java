@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -305,10 +307,19 @@ public class UserController {
 
     @GetMapping("/jobs")
     @Operation(summary = "직종 조회", description = "직종을 조회한다.")
-    public ResponseMessage getJobType(){
+    public ResponseMessage getJobType(@RequestParam Integer code){
         return ResponseMessage.builder()
-                .data(userService.getJobType())
+                .data(userService.getJobType(code))
                 .message("조회 성공!")
+                .build();
+    }
+
+    @GetMapping("/preference/foods/images")
+    @Operation(summary = "회원정보 입력 중 음식 이미지 불러오기", description = "foodId로 음식 이미지를 불러온다.")
+    public ResponseMessage getFoodImage(@RequestParam List<BigInteger> foodId){
+        return ResponseMessage.builder()
+                .data(userService.getFoodImage(foodId))
+                .message("이미지 조회 성공!")
                 .build();
     }
 
