@@ -159,6 +159,8 @@ jobs:
           cd resources
           touch ./application-alimtalk.properties
           echo "${{ secrets.SYSTEM_CORE_ALIMTALK }}" > ./application-alimtalk.properties
+          touch ./application-firebase.yaml
+          echo "${{ secrets.APPLICATION-FIREBASE.YAML }}" > ./application-firebase.yaml
           touch ./firebase.json
           echo "${{ secrets.FIREBASE_JSON }}" > ./firebase.json
         shell: bash
