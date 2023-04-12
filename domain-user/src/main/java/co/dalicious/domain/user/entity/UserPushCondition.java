@@ -11,8 +11,8 @@ import org.hibernate.annotations.Comment;
 import javax.persistence.*;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserPushCondition {
 
     @Convert(converter = PushConditionConverter.class)
@@ -20,7 +20,7 @@ public class UserPushCondition {
     @Comment("푸시 알림 조건")
     private PushCondition pushCondition;
 
-    @Column(name = "is_active")
+    @Column(name = "is_active", columnDefinition = "BIT(1) DEFAULT 0")
     @Comment("알림 활성 상태")
     private Boolean isActive;
 
