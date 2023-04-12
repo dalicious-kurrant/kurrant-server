@@ -223,6 +223,11 @@ public class OrderUtil {
             if (requestRefundPrice.subtract(refundablePrice).compareTo(usingPoint) > 0) {
                 throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
             }
+            // 사용한 포인트가 (환불 요청 금액 - 환불 가능 금액) 보다 크거나 같으면
+            if(!paymentCancelHistories.isEmpty()){
+                PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).toList().get(0);
+                refundablePrice = paymentCancelHistory.getRefundablePrice();
+            }
             return new RefundPriceDto(refundablePrice, renewSupportPrice, requestRefundPrice.subtract(refundablePrice), deliveryFee, isLastOrderItemOfGroup);
         }
         throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
