@@ -1,4 +1,4 @@
-package co.dalicious.system.util;
+package co.dalicious.client.alarm.util;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

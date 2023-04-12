@@ -207,6 +207,7 @@ project(':app-admin-api') {
         implementation project(':domain-recommend')
         implementation project(':domain-review')
         implementation project(':domain-paycheck')
+        implementation project(':client-alarm')
     }
 }
 
@@ -406,5 +407,12 @@ project(':domain-paycheck') {
         implementation project(':domain-file')
         implementation project(':domain-makers')
         implementation project(':domain-order')
+    }
+}
+
+project(':client-alarm') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-user')
     }
 }

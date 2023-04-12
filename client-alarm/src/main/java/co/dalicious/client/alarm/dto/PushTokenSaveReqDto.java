@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.dto.push;
+package co.dalicious.client.alarm.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;

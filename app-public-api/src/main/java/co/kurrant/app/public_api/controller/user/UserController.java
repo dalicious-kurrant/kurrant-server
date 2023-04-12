@@ -126,6 +126,7 @@ public class UserController {
                 .build();
     }
 
+    //TODO : 알림 설정 수정 됨. -> pushCondition 확인필요
     @Operation(summary = "알림 설정 조회", description = "알림/마케팅 수신 정보 설정을 조회한다")
     @GetMapping("/setting")
     public ResponseMessage getAlarmSetting(Authentication authentication) {
@@ -137,6 +138,7 @@ public class UserController {
                 .build();
     }
 
+    //TODO : 알림 설정 수정 됨. -> pushCondition 확인필요
     @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
     @PostMapping("/setting")
     public ResponseMessage changeAlarmSetting(Authentication authentication, @RequestBody MarketingAlarmRequestDto marketingAlarmDto) {

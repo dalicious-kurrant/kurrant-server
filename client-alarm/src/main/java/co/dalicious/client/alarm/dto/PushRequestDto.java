@@ -1,10 +1,11 @@
-package co.kurrant.app.admin_api.dto.push;
+package co.dalicious.client.alarm.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -15,5 +16,6 @@ public class PushRequestDto {
     private String title;
     private String content;
     private String page;
+    private Map<String, String> keys;
 
 }
