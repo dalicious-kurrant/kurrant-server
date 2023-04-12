@@ -4,6 +4,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,8 @@ import java.io.IOException;
 @Service
 public class FcmUtil {
 
-    private static final String FIREBASE_CONFIG_PATH = "firebase.json";
+    @Value("${fcm.key.path}")
+    private String FIREBASE_CONFIG_PATH;
 
     @PostConstruct
     public void initialize() {
