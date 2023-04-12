@@ -26,6 +26,8 @@ public class ItemPageableResponseDto<T> {
     @Comment("현재 페이지의 아이템 수")
     private Integer count;
 
+    private Boolean isLast;
+
     @NotNull
     @Comment("현재 페이지의 아이템")
     private T items;

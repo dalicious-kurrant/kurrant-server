@@ -1,20 +1,16 @@
 package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
-import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -26,20 +22,23 @@ import java.util.Map;
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface ExtraOrderMapper {
     default List<ExtraOrderDto.DailyFoodList> toDailyFoodList(List<DailyFood> dailyFoods, Map<DailyFood, Integer> dailyFoodCountMap) {
+        if(dailyFoods.isEmpty()) {
+            return  new ArrayList<>();
+        }
         // 1. 식사일정별로 묶는다.
-        MultiValueMap<DiningTypeServiceDateDto, DailyFood> dailyFoodMap = new LinkedMultiValueMap<>();
+        MultiValueMap<ServiceDiningDto, DailyFood> dailyFoodMap = new LinkedMultiValueMap<>();
 
         for (DailyFood dailyFood : dailyFoods) {
-            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(dailyFood.getServiceDate(), dailyFood.getDiningType());
-            dailyFoodMap.add(diningTypeServiceDateDto, dailyFood);
+            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFood.getServiceDate(), dailyFood.getDiningType());
+            dailyFoodMap.add(serviceDiningDto, dailyFood);
         }
 
         List<ExtraOrderDto.DailyFoodList> dailyFoodLists = new ArrayList<>();
-        for (DiningTypeServiceDateDto diningTypeServiceDateDto : dailyFoodMap.keySet()) {
+        for (ServiceDiningDto serviceDiningDto : dailyFoodMap.keySet()) {
             ExtraOrderDto.DailyFoodList dailyFoodList = new ExtraOrderDto.DailyFoodList();
 
             // 2. 음식별로 묶는다.
-            List<DailyFood> dailyFoodsByServiceDate = dailyFoodMap.get(diningTypeServiceDateDto);
+            List<DailyFood> dailyFoodsByServiceDate = dailyFoodMap.get(serviceDiningDto);
             MultiValueMap<Food, DailyFood> foodDailyFoodMap = new LinkedMultiValueMap<>();
             for (DailyFood dailyFood : dailyFoodsByServiceDate) {
                 foodDailyFoodMap.add(dailyFood.getFood(), dailyFood);
@@ -72,8 +71,8 @@ public interface ExtraOrderMapper {
                 dailyFood.setGroupList(groupDtos);
                 dailyFoodDtos.add(dailyFood);
             }
-            dailyFoodList.setServiceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate()));
-            dailyFoodList.setDiningType(diningTypeServiceDateDto.getDiningType().getDiningType());
+            dailyFoodList.setServiceDate(DateUtils.format(serviceDiningDto.getServiceDate()));
+            dailyFoodList.setDiningType(serviceDiningDto.getDiningType().getDiningType());
             dailyFoodList.setDailyFoods(dailyFoodDtos);
             dailyFoodLists.add(dailyFoodList);
         }

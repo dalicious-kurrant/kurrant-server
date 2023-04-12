@@ -8,7 +8,7 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.order.entity.*;
@@ -48,7 +48,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -150,17 +149,17 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         if(users.size() != 1) throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
 
         // 추가하고자 하는 식단 리스트 가져오기
-        Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
+        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
         MultiValueMap<BigInteger, ExtraOrderDto.Request> requestMap = new LinkedMultiValueMap<>();
         for (ExtraOrderDto.Request orderDto : orderDtos) {
             requestMap.add(orderDto.getSpotId(), orderDto);
 
             LocalDate serviceDate = DateUtils.stringToDate(orderDto.getServiceDate());
             DiningType diningType = DiningType.ofString(orderDto.getDiningType());
-            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(serviceDate, diningType);
-            diningTypeServiceDateDtos.add(diningTypeServiceDateDto);
+            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(serviceDate, diningType);
+            serviceDiningDtos.add(serviceDiningDto);
         }
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(periodDto.getStartDate(), periodDto.getEndDate(), Collections.singletonList(corporation.getId()), null);
 
         dailyFoods.stream().filter(v -> v.getDailyFoodStatus().equals(DailyFoodStatus.SALES))
@@ -185,16 +184,16 @@ public class ClientOrderServiceImpl implements ClientOrderService {
             assert requestsBySpot != null;
 
             // 식사일정별로 DailyFood 묶기 (OrderItemDailyFoodGroup)
-            MultiValueMap<DiningTypeServiceDateDto, ExtraOrderDto.Request> orderDailyFoodGroupMap = new LinkedMultiValueMap<>();
+            MultiValueMap<ServiceDiningDto, ExtraOrderDto.Request> orderDailyFoodGroupMap = new LinkedMultiValueMap<>();
             for (ExtraOrderDto.Request request : requestsBySpot) {
-                DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(DateUtils.stringToDate(request.getServiceDate()), DiningType.ofString(request.getDiningType()));
-                orderDailyFoodGroupMap.add(diningTypeServiceDateDto, request);
+                ServiceDiningDto serviceDiningDto = new ServiceDiningDto(DateUtils.stringToDate(request.getServiceDate()), DiningType.ofString(request.getDiningType()));
+                orderDailyFoodGroupMap.add(serviceDiningDto, request);
             }
 
-            for (DiningTypeServiceDateDto diningTypeServiceDateDto : orderDailyFoodGroupMap.keySet()) {
-                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.save(orderMapper.toOrderItemDailyFoodGroup(diningTypeServiceDateDto));
+            for (ServiceDiningDto serviceDiningDto : orderDailyFoodGroupMap.keySet()) {
+                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.save(orderMapper.toOrderItemDailyFoodGroup(serviceDiningDto));
 
-                List<ExtraOrderDto.Request> requests = orderDailyFoodGroupMap.get(diningTypeServiceDateDto);
+                List<ExtraOrderDto.Request> requests = orderDailyFoodGroupMap.get(serviceDiningDto);
                 List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
                 assert requests != null;
                 BigDecimal supportPrice = BigDecimal.ZERO;

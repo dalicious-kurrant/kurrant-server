@@ -3,11 +3,10 @@ package co.dalicious.domain.order.mapper;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.order.entity.PaymentCancelHistory;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import org.hibernate.Hibernate;
@@ -25,12 +24,12 @@ import java.util.stream.Collectors;
 public interface OrderDailyFoodByMakersMapper {
     default OrderDailyFoodByMakersDto.ByPeriod toDto(List<OrderItemDailyFood> orderItemDailyFoodList) {
         OrderDailyFoodByMakersDto.ByPeriod byPeriod = new OrderDailyFoodByMakersDto.ByPeriod();
-        MultiValueMap<DiningTypeServiceDateDto, OrderItemDailyFood> diningTypeServiceDateMap = new LinkedMultiValueMap<>();
+        MultiValueMap<ServiceDiningDto, OrderItemDailyFood> diningTypeServiceDateMap = new LinkedMultiValueMap<>();
         MultiValueMap<Food, OrderItemDailyFood> foodMap = new LinkedMultiValueMap<>();
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
-            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate(), orderItemDailyFood.getOrderItemDailyFoodGroup().getDiningType());
-            diningTypeServiceDateMap.add(diningTypeServiceDateDto, orderItemDailyFood);
+            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate(), orderItemDailyFood.getOrderItemDailyFoodGroup().getDiningType());
+            diningTypeServiceDateMap.add(serviceDiningDto, orderItemDailyFood);
             foodMap.add(orderItemDailyFood.getDailyFood().getFood(), orderItemDailyFood);
         }
         List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = toFoodByDateDiningType(diningTypeServiceDateMap);
@@ -49,10 +48,10 @@ public interface OrderDailyFoodByMakersMapper {
         return byPeriod;
     }
 
-    default List<OrderDailyFoodByMakersDto.FoodByDateDiningType> toFoodByDateDiningType(MultiValueMap<DiningTypeServiceDateDto, OrderItemDailyFood> multiValueMap) {
+    default List<OrderDailyFoodByMakersDto.FoodByDateDiningType> toFoodByDateDiningType(MultiValueMap<ServiceDiningDto, OrderItemDailyFood> multiValueMap) {
         List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = new ArrayList<>();
-        for (DiningTypeServiceDateDto diningTypeServiceDateDto : multiValueMap.keySet()) {
-            List<OrderItemDailyFood> orderItemDailyFoods = multiValueMap.get(diningTypeServiceDateDto);
+        for (ServiceDiningDto serviceDiningDto : multiValueMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoods = multiValueMap.get(serviceDiningDto);
 
             MultiValueMap<Food, OrderItemDailyFood> foodMultiValueMap = new LinkedMultiValueMap<>();
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -65,8 +64,8 @@ public interface OrderDailyFoodByMakersMapper {
             }
 
             OrderDailyFoodByMakersDto.FoodByDateDiningType foodByDateDiningType = new OrderDailyFoodByMakersDto.FoodByDateDiningType();
-            foodByDateDiningType.setServiceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate()));
-            foodByDateDiningType.setDiningType(diningTypeServiceDateDto.getDiningType().getDiningType());
+            foodByDateDiningType.setServiceDate(DateUtils.format(serviceDiningDto.getServiceDate()));
+            foodByDateDiningType.setDiningType(serviceDiningDto.getDiningType().getDiningType());
             foodByDateDiningType.setTotalCount(totalCount);
             foodByDateDiningType.setFoods(foodList);
 
@@ -98,11 +97,11 @@ public interface OrderDailyFoodByMakersMapper {
         return foodDtoList;
     }
 
-    default List<OrderDailyFoodByMakersDto.GroupFoodByDateDiningType> toGroupFoodByGroupPeriod(MultiValueMap<DiningTypeServiceDateDto, OrderItemDailyFood> multiValueMap) {
+    default List<OrderDailyFoodByMakersDto.GroupFoodByDateDiningType> toGroupFoodByGroupPeriod(MultiValueMap<ServiceDiningDto, OrderItemDailyFood> multiValueMap) {
         List<OrderDailyFoodByMakersDto.GroupFoodByDateDiningType> groupFoodByDateDiningTypes = new ArrayList<>();
 
-        for (DiningTypeServiceDateDto diningTypeServiceDateDto : multiValueMap.keySet()) {
-            List<OrderItemDailyFood> orderItemDailyFoods = multiValueMap.get(diningTypeServiceDateDto);
+        for (ServiceDiningDto serviceDiningDto : multiValueMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoods = multiValueMap.get(serviceDiningDto);
 
             MultiValueMap<Group, OrderItemDailyFood> groupMap = new LinkedMultiValueMap<>();
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -133,8 +132,8 @@ public interface OrderDailyFoodByMakersMapper {
             }
 
             OrderDailyFoodByMakersDto.GroupFoodByDateDiningType groupFoodByDateDiningType = new OrderDailyFoodByMakersDto.GroupFoodByDateDiningType();
-            groupFoodByDateDiningType.setServiceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate()));
-            groupFoodByDateDiningType.setDiningType(diningTypeServiceDateDto.getDiningType().getDiningType());
+            groupFoodByDateDiningType.setServiceDate(DateUtils.format(serviceDiningDto.getServiceDate()));
+            groupFoodByDateDiningType.setDiningType(serviceDiningDto.getDiningType().getDiningType());
             groupFoodByDateDiningType.setFoodByGroups(foodByGroups);
 
             groupFoodByDateDiningTypes.add(groupFoodByDateDiningType);

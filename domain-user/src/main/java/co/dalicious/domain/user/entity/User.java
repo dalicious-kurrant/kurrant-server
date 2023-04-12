@@ -12,7 +12,6 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
@@ -157,6 +156,11 @@ public class User {
     @Column(name="payment_password", columnDefinition = "VARCHAR(255)")
     private String paymentPassword;
 
+    @ElementCollection
+    @Comment("푸시 알림 조건")
+    @CollectionTable(name = "user__push_condition")
+    private List<UserPushCondition> pushConditionList;
+
     @Builder
     public User(BigInteger id, String password, String name, Role role, String email, String phone) {
         this.id = id;
@@ -172,7 +176,7 @@ public class User {
                 UserStatus userStatus, String phone, String email,
                 BigDecimal point, GourmetType gourmetType, Boolean isMembership, Boolean marketingAgree,
                 Timestamp marketingAgreedDateTime, Boolean marketingAlarm, Boolean orderAlarm, Timestamp recentLoginDateTime,
-                Timestamp createdDateTime, Timestamp updatedDateTime){
+                Timestamp createdDateTime, Timestamp updatedDateTime, List<UserPushCondition> pushConditionList){
         this.id = id;
         this.password = password;
         this.name = name;
@@ -190,6 +194,7 @@ public class User {
         this.recentLoginDateTime = recentLoginDateTime;
         this.createdDateTime = createdDateTime;
         this.updatedDateTime = updatedDateTime;
+        this.pushConditionList = pushConditionList;
     }
 
 
@@ -363,6 +368,10 @@ public class User {
 
     public boolean isAdmin() {
         return Role.ADMIN.equals(this.role);
+    }
+
+    public void updatePaymentPassword(String paymentPassword) {
+        this.paymentPassword = paymentPassword;
     }
 
     @Override

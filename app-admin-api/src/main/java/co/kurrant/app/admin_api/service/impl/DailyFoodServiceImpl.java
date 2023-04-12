@@ -109,11 +109,15 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<BigInteger> makersIds = !parameters.containsKey("makersIds") || parameters.get("makersIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersIds"));
 
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, groupIds, makersIds);
+
+        // 일치하는 식단이 없을 경우에는 빈 배열 return
+        if(dailyFoods.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         List<Group> groups = new ArrayList<>();
-        Set<Makers> makers = new HashSet<>();
         for (DailyFood dailyFood : dailyFoods) {
             groups.add(dailyFood.getGroup());
-            makers.add(dailyFood.getFood().getMakers());
         }
         ServiceDateBy.MakersAndFood makersOrderCount = qOrderDailyFoodRepository.getMakersCounts(dailyFoods);
         ServiceDateBy.MakersAndFood makersCapacities = orderDailyFoodUtil.getMakersCapacity(dailyFoods, makersOrderCount);
@@ -205,9 +209,11 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
             // 식단을 구매한 사람이 없다면
             if(dailyFoodDto.getFoodCapacity().equals(dailyFoodDto.getFoodCount())) {
+                Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
                 dailyFood.updateDiningType(DiningType.ofCode(dailyFoodDto.getDiningType()));
                 dailyFood.updateServiceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()));
-                dailyFood.updateFood(Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName()));
+                dailyFood.updateFood(food);
+                dailyFood.updateDailyFoodPrice(food);
                 dailyFood.updateGroup(group);
             }
         });

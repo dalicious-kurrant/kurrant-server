@@ -30,7 +30,7 @@ public class UserValidator {
     public void isEmailValid(Provider provider, String email) {
         Optional<ProviderEmail> providerEmail = providerEmailRepository.findOneByProviderAndEmail(provider, email);
         if(providerEmail.isPresent()) {
-            throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
+            throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
         }
     }
 

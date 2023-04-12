@@ -2,10 +2,9 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
-import co.kurrant.app.admin_api.service.PaycheckService;
+import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,14 +16,23 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/paycheck")
 public class PaycheckController {
-    private final PaycheckService paycheckService;
+    private final AdminPaycheckService adminPaycheckService;
 
     @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
     @PostMapping("/makers")
     public ResponseMessage postMakersPaycheck(@RequestPart(required = false) MultipartFile makersXlsx,
                                               @RequestPart(required = false) MultipartFile makersPdf,
                                               @RequestPart PaycheckDto.MakersRequest paycheckDto) throws IOException {
-        paycheckService.postMakersPaycheck(makersXlsx, makersPdf, paycheckDto);
+        adminPaycheckService.postMakersPaycheck(makersXlsx, makersPdf, paycheckDto);
+        return ResponseMessage.builder()
+                .message("메이커스 정산 등록에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "메이커스 정산 등록 엑셀", description = "메이커스 정산 등록")
+    @PostMapping("/makers/excel")
+    public ResponseMessage postMakersPaycheck() {
+        adminPaycheckService.postMakersPaycheckExcel();
         return ResponseMessage.builder()
                 .message("메이커스 정산 등록에 성공하였습니다.")
                 .build();
@@ -34,7 +42,7 @@ public class PaycheckController {
     @GetMapping("/makers")
     public ResponseMessage getMakersPaychecks() {
         return ResponseMessage.builder()
-                .data(paycheckService.getMakersPaychecks())
+                .data(adminPaycheckService.getMakersPaychecks())
                 .message("메이커스 정산 조회에 성공하였습니다.")
                 .build();
     }
@@ -44,7 +52,7 @@ public class PaycheckController {
     public ResponseMessage updateMakersPaycheck(@RequestPart(required = false) MultipartFile makersXlsx,
                                                 @RequestPart(required = false) MultipartFile makersPdf,
                                                 @RequestPart PaycheckDto.MakersResponse paycheckDto) throws IOException {
-        paycheckService.updateMakersPaycheck(makersXlsx, makersPdf, paycheckDto);
+        adminPaycheckService.updateMakersPaycheck(makersXlsx, makersPdf, paycheckDto);
         return ResponseMessage.builder()
                 .message("메이커스 정산 수정에 성공하였습니다.")
                 .build();
@@ -53,7 +61,7 @@ public class PaycheckController {
     @Operation(summary = "메이커스 정산 삭제", description = "메이커스 정산 삭제")
     @DeleteMapping("/makers")
     public ResponseMessage deleteMakersPaycheck(@RequestBody List<BigInteger> ids) {
-        paycheckService.deleteMakersPaycheck(ids);
+        adminPaycheckService.deleteMakersPaycheck(ids);
         return ResponseMessage.builder()
                 .message("메이커스 정산 상태 변경에 성공하였습니다.")
                 .build();
@@ -62,7 +70,7 @@ public class PaycheckController {
     @Operation(summary = "메이커스 정산 상태 변경", description = "메이커스 정산 상태 변경")
     @PutMapping("/makers/status/{status}")
     public ResponseMessage updateMakersPaycheckStatus(@PathVariable Integer status, @RequestBody List<BigInteger> ids) {
-        paycheckService.updateMakersPaycheckStatus(status, ids);
+        adminPaycheckService.updateMakersPaycheckStatus(status, ids);
         return ResponseMessage.builder()
                 .message("메이커스 정산 상태 변경에 성공하였습니다.")
                 .build();
@@ -73,7 +81,7 @@ public class PaycheckController {
     public ResponseMessage postCorporationPaycheck(@RequestPart(required = false) MultipartFile corporationXlsx,
                                                    @RequestPart(required = false) MultipartFile corporationPdf,
                                                    @RequestPart PaycheckDto.CorporationRequest paycheckDto) throws IOException {
-        paycheckService.postCorporationPaycheck(corporationXlsx, corporationPdf, paycheckDto);
+        adminPaycheckService.postCorporationPaycheck(corporationXlsx, corporationPdf, paycheckDto);
         return ResponseMessage.builder()
                 .message("기업 정산 등록에 성공하였습니다.")
                 .build();
@@ -83,7 +91,7 @@ public class PaycheckController {
     @GetMapping("/corporations")
     public ResponseMessage getCorporationPaychecks() {
         return ResponseMessage.builder()
-                .data(paycheckService.getCorporationPaychecks())
+                .data(adminPaycheckService.getCorporationPaychecks())
                 .message("기업 정산 조회에 성공하였습니다.")
                 .build();
     }
@@ -93,7 +101,7 @@ public class PaycheckController {
     public ResponseMessage updateCorporationPaycheck(@RequestPart(required = false) MultipartFile corporationXlsx,
                                                 @RequestPart(required = false) MultipartFile corporationPdf,
                                                 @RequestPart(required = false) PaycheckDto.CorporationResponse paycheckDto) throws IOException {
-        paycheckService.updateCorporationPaycheck(corporationXlsx, corporationPdf, paycheckDto);
+        adminPaycheckService.updateCorporationPaycheck(corporationXlsx, corporationPdf, paycheckDto);
         return ResponseMessage.builder()
                 .message("기업 정산 수정에 성공하였습니다.")
                 .build();
@@ -102,7 +110,7 @@ public class PaycheckController {
     @Operation(summary = "기업 정산 삭제", description = "기업 정산 삭제")
     @DeleteMapping("/corporations")
     public ResponseMessage deleteCorporationPaycheck(@RequestBody List<BigInteger> ids) {
-        paycheckService.deleteCorporationPaycheck(ids);
+        adminPaycheckService.deleteCorporationPaycheck(ids);
         return ResponseMessage.builder()
                 .message("기업 정산 상태 변경에 성공하였습니다.")
                 .build();
@@ -111,7 +119,7 @@ public class PaycheckController {
     @Operation(summary = "기업 정산 상태 변경", description = "기업 정산 상태 변경")
     @PutMapping("/corporations/status/{status}")
     public ResponseMessage updateCorporationPaycheckStatus(@PathVariable Integer status, @RequestBody List<BigInteger> ids) {
-        paycheckService.updateCorporationPaycheckStatus(status, ids);
+        adminPaycheckService.updateCorporationPaycheckStatus(status, ids);
         return ResponseMessage.builder()
                 .message("기업 정산 상태 변경에 성공하였습니다.")
                 .build();

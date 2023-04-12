@@ -24,7 +24,7 @@ public class OrderItemService {
     private final EntityManager entityManager;
 
     public List<BigInteger> matchingOrderStatusByWaitDelivery() {
-        log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
+        log.info("[OrderItem id 찾기] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         // list up order item daily food by order status = delivering
         String queryString = "SELECT df.serviceDate, dfg.pickupTime, oi.id " +
@@ -54,7 +54,7 @@ public class OrderItemService {
     }
 
     public List<BigInteger> matchingOrderStatusByWaitDelivering() {
-        log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
+        log.info("[OrderItem id 찾기] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         // list up order item daily food by order status = delivering
         String queryString = "SELECT oi.id, df.serviceDate, mi.deliveryTime " +

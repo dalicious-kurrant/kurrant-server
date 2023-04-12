@@ -15,6 +15,7 @@ public interface ImageService {
     List<ImageResponseDto> upload(List<MultipartFile> multipartFiles, String dirName) throws IOException;
     ImageResponseDto upload(MultipartFile multipartFile, String dirName) throws IOException;
     void delete(String key);
+    byte[] downloadImageFromS3(String key);
 //  Image createImage(ImageCreateRequestDto imageRequestDto);
 //
 //  RequestImageUploadUrlResponseDto requestUrl(RequestImageUploadUrlRequestDto dto);

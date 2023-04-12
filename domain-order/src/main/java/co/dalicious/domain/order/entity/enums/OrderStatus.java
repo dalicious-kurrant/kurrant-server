@@ -21,7 +21,8 @@ public enum OrderStatus {
     DELIVERED("배송완료", 10L),
     RECEIPT_COMPLETE("수령완료", 11L),
     MANUAL_REFUNDED("수동 환불", 12L),
-    AUTO_REFUND("자동 환불", 13L);
+    AUTO_REFUND("자동 환불", 13L),
+    WRITTEN_REVIEW("리뷰 작성 완료", 14L);
 
     private final String orderStatus;
     private final Long code;
@@ -45,6 +46,7 @@ public enum OrderStatus {
         orderStatuses.add(OrderStatus.DELIVERING);
         orderStatuses.add(OrderStatus.DELIVERED);
         orderStatuses.add(OrderStatus.RECEIPT_COMPLETE);
+        orderStatuses.add(OrderStatus.WRITTEN_REVIEW);
         return orderStatuses;
     }
 }

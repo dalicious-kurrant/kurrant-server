@@ -7,6 +7,7 @@ import co.dalicious.domain.paycheck.converter.YearMonthAttributeConverter;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -17,6 +18,7 @@ import javax.persistence.*;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.YearMonth;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,7 +28,7 @@ public class MakersPaycheck {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("메이커스 정산 ID")
-    @Column(columnDefinition = "BIGINT UNSIGNED")
+    @Column(columnDefinition = "BIGINT")
     private BigInteger id;
 
     @Comment("정산 년월")
@@ -58,6 +60,11 @@ public class MakersPaycheck {
     @Comment("기업 ID")
     private Makers makers;
 
+    @ElementCollection
+    @Comment("식사 일정별 음식 내역")
+    @CollectionTable(name = "paycheck__makers_paycheck__paycheck_daily_foods")
+    private List<PaycheckDailyFood> paycheckDailyFoods;
+
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
@@ -70,12 +77,13 @@ public class MakersPaycheck {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    public MakersPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, Image excelFile, Image pdfFile, Makers makers) {
+    public MakersPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, Image excelFile, Image pdfFile, Makers makers, List<PaycheckDailyFood> paycheckDailyFoods) {
         this.yearMonth = yearMonth;
         this.paycheckStatus = paycheckStatus;
         this.excelFile = excelFile;
         this.pdfFile = pdfFile;
         this.makers = makers;
+        this.paycheckDailyFoods = paycheckDailyFoods;
     }
 
     public void updatePaycheckStatus(PaycheckStatus paycheckStatus) {

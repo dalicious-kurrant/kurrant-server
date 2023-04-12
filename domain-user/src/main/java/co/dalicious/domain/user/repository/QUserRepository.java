@@ -1,7 +1,10 @@
 package co.dalicious.domain.user.repository;
 
 
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
@@ -9,10 +12,12 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -146,11 +151,19 @@ public class QUserRepository {
                 .fetch();
     }
     
-    public void updateUserPoint(BigInteger userId, BigDecimal point) {
-        queryFactory.update(user)
-                .where(user.id.eq(userId))
-                .set(user.point, user.point.add(point))
-                .execute();
+    public void updateUserPoint(BigInteger userId, BigDecimal point, PointStatus pointStatus) {
+        if(PointStatus.rewardStatus().contains(pointStatus)) {
+            queryFactory.update(user)
+                    .where(user.id.eq(userId))
+                    .set(user.point, user.point.add(point))
+                    .execute();
+        }
+        else {
+            queryFactory.update(user)
+                    .where(user.id.eq(userId))
+                    .set(user.point, user.point.subtract(point))
+                    .execute();
+        }
     }
       
     public List<User> getUsersByEmails(List<String> emails) {
@@ -195,5 +208,19 @@ public class QUserRepository {
                 .set(user.paymentPassword, payNumber)
                 .where(user.id.eq(id))
                 .execute();
+    }
+
+    public List<String> findAllUserFirebaseToken() {
+        return queryFactory.select(user.firebaseToken)
+                .from(user)
+                .fetch();
+    }
+
+    public List<String> findUserFirebaseToken(List<BigInteger> userIds) {
+
+        return queryFactory.select(user.firebaseToken)
+                .from(user)
+                .where(user.id.in(userIds))
+                .fetch();
     }
 }

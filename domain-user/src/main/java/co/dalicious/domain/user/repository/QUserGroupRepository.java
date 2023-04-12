@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static co.dalicious.domain.user.entity.QUser.user;
 import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
 
 @Repository
@@ -73,5 +74,13 @@ public class QUserGroupRepository {
         }
 
         return groupIntegerMap;
+    }
+
+    public List<String> findUserGroupFirebaseToken(List<BigInteger> groupIds) {
+        return queryFactory.select(user.firebaseToken)
+                .from(userGroup)
+                .leftJoin(userGroup.user, user)
+                .where(userGroup.group.id.in(groupIds))
+                .fetch();
     }
 }

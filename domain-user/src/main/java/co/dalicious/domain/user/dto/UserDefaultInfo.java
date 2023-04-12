@@ -21,10 +21,12 @@ public class UserDefaultInfo {
     @Schema(description = "성별")
     private Integer gender;
     @Schema(description = "국적")
-    private Country nation;
+    private String country;
     @Schema(description = "출생지")
     private BirthPlace birthPlace;
     @Schema(description = "직종")
     private JobType jobType;
+    @Schema(description = "상세직종")
+    private JobType detailJobType;
 
 }
