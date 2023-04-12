@@ -7,7 +7,6 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.dto.*;
-import co.dalicious.domain.order.entity.Cart;
 import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.mapper.CartDailyFoodMapper;
@@ -157,40 +156,40 @@ public class CartServiceImpl implements CartService {
             Group group = spot.getGroup();
             // 식사일정(DiningType), 날짜별(serviceDate)로 장바구니 아이템 구분하기
             List<CartDailyFoodDto> cartDailyFoodListDtos = new ArrayList<>();
-            MultiValueMap<DiningTypeServiceDateDto, CartDailyFoodDto.DailyFood> cartDailyFoodDtoMap = new LinkedMultiValueMap<>();
-            Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
+            MultiValueMap<ServiceDiningDto, CartDailyFoodDto.DailyFood> cartDailyFoodDtoMap = new LinkedMultiValueMap<>();
+            Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
 
             for (CartDailyFood cartDailyFood : Objects.requireNonNull(spotDailyFoodMap.get(spot))) {
                 // 식사일정과 날짜 기준으로 DailyFood 매핑
                 DailyFood dailyFood = cartDailyFood.getDailyFood();
-                DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(dailyFood.getServiceDate(), dailyFood.getDiningType());
-                diningTypeServiceDateDtos.add(diningTypeServiceDateDto);
+                ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFood.getServiceDate(), dailyFood.getDiningType());
+                serviceDiningDtos.add(serviceDiningDto);
                 // CartDailyFood Dto화
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, spot, dailyFood);
                 CartDailyFoodDto.DailyFood cartFood = cartDailyFoodsResMapper.toDto(cartDailyFood, discountDto);
                 cartFood.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
-                cartDailyFoodDtoMap.add(diningTypeServiceDateDto, cartFood);
+                cartDailyFoodDtoMap.add(serviceDiningDto, cartFood);
             }
             // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
-            PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+            PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
             // ServiceDate에 해당하는 사용 지원금 리스트 받아오기
             List<DailyFoodSupportPrice> userSupportPriceHistories = qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
             // 배송비 및 지원금 계산
-            for (DiningTypeServiceDateDto diningTypeServiceDateDto : diningTypeServiceDateDtos) {
+            for (ServiceDiningDto serviceDiningDto : serviceDiningDtos) {
                 BigDecimal supportPrice = BigDecimal.ZERO;
                 group = (Group) Hibernate.unproxy(group);
                 BigDecimal deliveryFee = deliveryFeePolicy.getGroupDeliveryFee(user, group);
                 // 사용 가능한 지원금 가져오기
                 spot = (Spot) Hibernate.unproxy(spot);
                 if (spot instanceof CorporationSpot) {
-                    supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, diningTypeServiceDateDto.getServiceDate(), diningTypeServiceDateDto.getDiningType());
+                    supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, serviceDiningDto.getServiceDate(), serviceDiningDto.getDiningType());
                 }
                 CartDailyFoodDto cartDailyFoodDto = CartDailyFoodDto.builder()
-                        .serviceDate(DateUtils.format(diningTypeServiceDateDto.getServiceDate(), "yyyy-MM-dd"))
-                        .diningType(diningTypeServiceDateDto.getDiningType().getDiningType())
+                        .serviceDate(DateUtils.format(serviceDiningDto.getServiceDate(), "yyyy-MM-dd"))
+                        .diningType(serviceDiningDto.getDiningType().getDiningType())
                         .supportPrice(supportPrice)
                         .deliveryFee(deliveryFee)
-                        .cartDailyFoods(cartDailyFoodDtoMap.get(diningTypeServiceDateDto))
+                        .cartDailyFoods(cartDailyFoodDtoMap.get(serviceDiningDto))
                         .build();
                 cartDailyFoodListDtos.add(cartDailyFoodDto);
             }

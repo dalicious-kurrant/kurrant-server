@@ -22,12 +22,9 @@ import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
-import co.dalicious.domain.payment.dto.OrderCreateBillingKeySecondReqDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
-import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
-import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.NiceUtil;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.entity.*;
@@ -37,7 +34,6 @@ import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipRepository;
-import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.system.enums.DiningType;
@@ -47,14 +43,12 @@ import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
-import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -136,7 +130,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
 
-        Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
+        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
         List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
         List<BigInteger> cartDailyFoodIds = new ArrayList<>();
         BigDecimal defaultPrice = BigDecimal.ZERO;
@@ -154,7 +148,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
             totalDeliveryFee = totalDeliveryFee.add(cartDailyFoodDto.getDeliveryFee());
 
-            diningTypeServiceDateDtos.add(new DiningTypeServiceDateDto(DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType())));
+            serviceDiningDtos.add(new ServiceDiningDto(DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType())));
 
             for (CartDailyFoodDto.DailyFood dailyFood : cartDailyFoodDto.getCartDailyFoods()) {
                 cartDailyFoodIds.add(dailyFood.getId());
@@ -162,7 +156,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
 
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 
@@ -626,7 +620,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             throw new ApiException(ExceptionEnum.HAS_LESS_POINT_THAN_REQUEST);
         }
 
-        Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
+        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
         List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
         List<BigInteger> cartDailyFoodIds = new ArrayList<>();
         BigDecimal defaultPrice = BigDecimal.ZERO;
@@ -644,7 +638,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
             totalDeliveryFee = totalDeliveryFee.add(cartDailyFoodDto.getDeliveryFee());
 
-            diningTypeServiceDateDtos.add(new DiningTypeServiceDateDto(DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType())));
+            serviceDiningDtos.add(new ServiceDiningDto(DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType())));
 
             for (CartDailyFoodDto.DailyFood dailyFood : cartDailyFoodDto.getCartDailyFoods()) {
                 cartDailyFoodIds.add(dailyFood.getId());
@@ -652,7 +646,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
 
         List<CartDailyFood> cartDailyFoods = qCartDailyFoodRepository.findAllByFoodIds(cartDailyFoodIds);
 

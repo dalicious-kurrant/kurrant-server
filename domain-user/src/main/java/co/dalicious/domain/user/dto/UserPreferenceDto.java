@@ -24,18 +24,16 @@ public class UserPreferenceDto {
     private String favoriteCountryFood;
     @Schema(description = "알러지 정보")
     private String allergyInfo;
+    @Schema(description = "기타 알러지 정보")
+    private String allergyInfoEtc;
     @Schema(description = "비건여부")
     private Boolean isBegan;
     @Schema(description = "비건 정도")
-    private Integer beganLevel;
+    private Integer veganLevel;
     @Schema(description = "프로틴 섭취여부")
     private Boolean isProtein;
-    @Schema(description = "프로틴 파우더 섭취 빈도")
-    private Integer proteinScoop;
     @Schema(description = "프로틴 바 섭취 빈도")
-    private Integer proteinBarFrequency;
-    @Schema(description = "프로틴 드링크 섭취빈도")
-    private Integer proteinDrinkFrequency;
+    private Integer proteinFrequency;
     @Schema(description = "기본 정보")
     private UserDefaultInfo userDefaultInfo;
     @Schema(description = "선호하는 음식 ID")

@@ -11,6 +11,8 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -28,6 +30,7 @@ import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
+import co.dalicious.domain.user.dto.UserPreferenceFoodImageResponseDto;
 import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
@@ -39,6 +42,7 @@ import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
+import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.enums.RequiredAuth;
 import co.kurrant.app.public_api.mapper.user.UserMapper;
@@ -102,6 +106,8 @@ public class UserServiceImpl implements UserService {
     private final QUserRepository qUserRepository;
     private final UserPreferenceMapper userPreferenceMapper;
     private final UserPreferenceRepository userPreferenceRepository;
+    private final QUserPreferenceRepository qUserPreferenceRepository;
+    private final FoodRepository foodRepository;
 
     @Override
     @Transactional
@@ -533,11 +539,12 @@ public class UserServiceImpl implements UserService {
 
         if (creditCardInfo.isPresent()) {
             // 이미 존재하는 카드라면 에러 발생
-            if (creditCardInfo.get().getStatus() == 0) {
+            if (creditCardInfo.get().getStatus() == 1) {
                 throw new ApiException(ExceptionEnum.ALREADY_EXIST_CARD);
             }
             // 기존에 삭제되었던 카드라면 빌링키 업데이트
-            if (creditCardInfo.get().getStatus() == 1) {
+            if (creditCardInfo.get().getStatus() == 0) {
+                creditCardInfo.get().updateStatus(1);
                 creditCardInfo.get().updateNiceBillingKey(saveCardResponse.getBillingKey());
                 return saveCardResponse.getBillingKey();
             }
@@ -850,16 +857,120 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto) {
+
         User user = userUtil.getUser(securityUser);
 
+        List<UserPreference> preferenceList = userPreferenceRepository.findByUserId(user.getId());
+
+
         UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
+
+        //기존에 있는 정보라면 수정
+        if (!preferenceList.isEmpty()){
+            //삭제 후 저장
+            qUserPreferenceRepository.deleteOthers(user.getId());
+            userPreferenceRepository.save(userPreference);
+            return "기존 정보가 있어서 수정하였습니다.";
+        }
 
         UserPreference saveResult = userPreferenceRepository.save(userPreference);
         if (saveResult.getId() == null){
             return "유저 정보 저장에 실패했습니다.";
         }
-
         return "유저 정보 저장에 성공했습니다.";
 
     }
+
+    @Override
+    public Object getCountry() {
+        List<String> countryList = new ArrayList<>();
+        for (int i = 1; i < Country.values().length+1; i++) {
+            countryList.add(Country.ofCodeByString(i));
+        }
+        return countryList;
+    }
+
+    @Override
+    public Object getFavoriteCountryFoods(Integer code) {
+
+        List<String> foodTagList = new ArrayList<>();
+        //code가 1이면 알러지 정보 반환
+        if (code == 1) {
+            List<FoodTag> tagList = Arrays.stream(FoodTag.values())
+                    .filter(v -> v.getCategory().equals("알레르기 체크"))
+                    .toList();
+
+            for (FoodTag tag : tagList){
+                foodTagList.add(tag.getTag());
+            }
+
+            return foodTagList;
+        }
+
+        //1이 아닐경우는 좋아하는 나라 음식 목록 반환
+        List<FoodTag> countryList = Arrays.stream(FoodTag.values())
+                .filter(v -> v.getCategory().equals("국가"))
+                .toList();
+
+        for (FoodTag countryTag : countryList){
+            foodTagList.add(countryTag.getTag());
+        }
+
+        return foodTagList;
+    }
+
+    @Override
+    public Object getJobType(Integer code) {
+
+        List<String> jobTypeResultList = new ArrayList<>();
+
+        if (code == 1){
+        //코드가 1이라면 상세 직종을 반환
+            List<JobType> jobTypeList = Arrays.stream(JobType.values())
+                    .filter(v -> v.getCategory().equals("개별"))
+                    .toList();
+
+            for (JobType jobType : jobTypeList){
+                jobTypeResultList.add(jobType.getName());
+            }
+
+            return jobTypeResultList;
+        }
+
+        List<JobType> jobTypeList = Arrays.stream(JobType.values())
+                .filter(v -> v.getCategory().equals("묶음"))
+                .toList();
+
+        for (JobType jobType : jobTypeList){
+            jobTypeResultList.add(jobType.getName());
+        }
+
+        return jobTypeResultList;
+    }
+
+    @Override
+    public Object getFoodImage(List<BigInteger> foodIds) {
+        //값을 저장해줄 LIST 생성
+        List<UserPreferenceFoodImageResponseDto> resultList = new ArrayList<>();
+
+        for (BigInteger foodId: foodIds ) {
+
+            UserPreferenceFoodImageResponseDto responseDto = new UserPreferenceFoodImageResponseDto();
+            //유효한 FoodId 인지 검증
+            Food food = foodRepository.findById(foodId)
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+            //이미지는 1번째 이미지로 일괄처리
+            String imageLocation = food.getImages().get(0).getLocation();
+
+            //DTO 설정 후 담아주기
+            responseDto.setFoodId(food.getId());
+            responseDto.setImageUrl(imageLocation);
+
+            resultList.add(responseDto);
+
+        }
+
+        return resultList;
+    }
+
 }

@@ -7,6 +7,7 @@ import co.dalicious.domain.paycheck.converter.YearMonthAttributeConverter;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -76,12 +77,13 @@ public class MakersPaycheck {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    public MakersPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, Image excelFile, Image pdfFile, Makers makers) {
+    public MakersPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, Image excelFile, Image pdfFile, Makers makers, List<PaycheckDailyFood> paycheckDailyFoods) {
         this.yearMonth = yearMonth;
         this.paycheckStatus = paycheckStatus;
         this.excelFile = excelFile;
         this.pdfFile = pdfFile;
         this.makers = makers;
+        this.paycheckDailyFoods = paycheckDailyFoods;
     }
 
     public void updatePaycheckStatus(PaycheckStatus paycheckStatus) {

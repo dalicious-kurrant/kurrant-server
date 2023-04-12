@@ -406,6 +406,7 @@ project(':domain-paycheck') {
         implementation project(':domain-client')
         implementation project(':domain-file')
         implementation project(':domain-makers')
+        implementation project(':domain-order')
     }
 }
 

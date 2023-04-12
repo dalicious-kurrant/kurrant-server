@@ -63,29 +63,28 @@ public class UserPreference {
     @Comment("알러지 정보")
     private List<FoodTag> allergyInfo;
 
+    @Column(name = "allergy_info_etc", columnDefinition = "VARCHAR(255)")
+    @Comment("알러지 정보")
+    private String allergyInfoEtc;
+
     @Column(name = "is_began", columnDefinition = "Boolean")
     @Comment("비건 여부")
     private Boolean isBegan;
 
     @Column(name = "began_level", columnDefinition = "INT")
     @Comment("비건 정도")
-    private Integer beganLevel;
+    private Integer veganLevel;
 
     @Column(name = "is_protein", columnDefinition = "Boolean")
     @Comment("프로틴 섭취여부")
     private Boolean isProtein;
 
-    @Column(name = "protein_scoop", columnDefinition = "INT")
-    @Comment("프로틴 파우더 주간 섭취량")
-    private Integer proteinScoop;
 
-    @Column(name = "protein_bar_frequency", columnDefinition = "INT")
-    @Comment("프로틴 바 주간 섭취량")
-    private Integer proteinBarFrequency;
 
-    @Column(name = "protein_drink_frequency", columnDefinition = "INT")
-    @Comment("프로틴 드링크 주간 섭취량")
-    private Integer proteinDrinkFrequency;
+    @Column(name = "protein_frequency", columnDefinition = "INT")
+    @Comment("프로틴 주간 섭취량")
+    private Integer proteinFrequency;
+
 
     @Column(name = "birth_year", columnDefinition = "VARCHAR(8)")
     @Comment("태어난 년도")
@@ -119,6 +118,12 @@ public class UserPreference {
     @Comment("직종")
     private JobType jobType;
 
+
+    @Convert(converter = JobTypeConverter.class)
+    @Column(name = "detail_job_type", columnDefinition = "INT")
+    @Comment("상세 직종")
+    private JobType detailJobType;
+
     @Column(name = "selected_food_id", columnDefinition = "VARCHAR(255)")
     @Comment("선호하는 음식 ID")
     private String selectedFoodId;
@@ -129,10 +134,9 @@ public class UserPreference {
 
     @Builder
     public UserPreference(User user,  Integer breakfastCount, Integer midnightSnackCount, Integer exerciseCount, Integer drinkCount,
-                   List<FoodTag> favoriteCountryFood, List<FoodTag> allergyInfo, Boolean isBegan, Integer beganLevel, Boolean isProtein,
-                   Integer proteinScoop, Integer proteinBarFrequency, Integer proteinDrinkFrequency, String birthYear, String birthMonth,
-                   String birthDay, Integer gender, Country country,  BirthPlace birthPlace, JobType jobType,
-                   String selectedFoodId, String unselectedFoodId){
+                   List<FoodTag> favoriteCountryFood, List<FoodTag> allergyInfo, String allergyInfoEtc, Boolean isBegan, Integer veganLevel, Boolean isProtein,
+                   Integer proteinFrequency, String birthYear, String birthMonth, String birthDay, Integer gender, Country country,
+                   BirthPlace birthPlace, JobType jobType, JobType detailJobType, String selectedFoodId, String unselectedFoodId){
         this.user = user;
         this.breakfastCount = breakfastCount;
         this.midnightSnackCount = midnightSnackCount;
@@ -140,12 +144,11 @@ public class UserPreference {
         this.drinkCount = drinkCount;
         this.favoriteCountryFood = favoriteCountryFood;
         this.allergyInfo = allergyInfo;
+        this.allergyInfoEtc = allergyInfoEtc;
         this.isBegan = isBegan;
-        this.beganLevel = beganLevel;
+        this.veganLevel = veganLevel;
         this.isProtein = isProtein;
-        this. proteinScoop = proteinScoop;
-        this.proteinBarFrequency = proteinBarFrequency;
-        this.proteinDrinkFrequency = proteinDrinkFrequency;
+        this.proteinFrequency = proteinFrequency;
         this.birthYear = birthYear;
         this.birthMonth = birthMonth;
         this.birthDay = birthDay;
@@ -153,6 +156,7 @@ public class UserPreference {
         this.country = country;
         this.birthPlace = birthPlace;
         this.jobType = jobType;
+        this.detailJobType = detailJobType;
         this.selectedFoodId = selectedFoodId;
         this.unselectedFoodId = unselectedFoodId;
 

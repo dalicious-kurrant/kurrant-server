@@ -4,13 +4,11 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
-import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
-import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PaymentType;
@@ -243,17 +241,17 @@ public class QOrderDailyFoodRepository {
     public ServiceDateBy.MakersAndFood getMakersCounts(List<DailyFood> dailyFoods) {
         Map<ServiceDateBy.Makers, Integer> makersIntegerMap = new HashMap<>();
         Map<ServiceDateBy.Food, Integer> foodIntegerMap = new HashMap<>();
-        Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
+        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
         Set<Makers> makersSet = new HashSet<>();
 
         for (DailyFood dailyFood : dailyFoods) {
-            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(dailyFood);
-            diningTypeServiceDateDtos.add(diningTypeServiceDateDto);
+            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFood);
+            serviceDiningDtos.add(serviceDiningDto);
             makersSet.add(dailyFood.getFood().getMakers());
         }
 
         // 기간 구하기
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
 
         List<OrderItemDailyFood> orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
                 .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
