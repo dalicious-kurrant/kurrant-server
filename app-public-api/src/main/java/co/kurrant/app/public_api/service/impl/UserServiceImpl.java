@@ -513,7 +513,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // 이메일 인증을 하였는지 검증
-            verifyUtil.isAuthenticated(email, RequiredAuth.PAYMENT_PASSWORD_CREATE);
+            verifyUtil.isAuthenticated(email, RequiredAuth.PAYMENT_PASSWORD_CREATE_APPLE);
 
             // 이메일과 비밀번호 설정
             String password = passwordEncoder.encode(billingKeyDto.getPassword());
