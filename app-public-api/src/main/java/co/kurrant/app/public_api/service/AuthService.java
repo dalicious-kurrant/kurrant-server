@@ -7,7 +7,9 @@ import co.dalicious.client.oauth.AppleAndroidLoginDto;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.user.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.security.core.Authentication;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -15,7 +17,7 @@ import java.util.Map;
 
 public interface AuthService {
     // 이메일 인증
-    void mailConfirm(MailMessageDto mailMessageDto, String type) throws Exception;
+    void mailConfirm(Authentication authentication, MailMessageDto mailMessageDto, String type) throws Exception;
     // Sms 인증
     void sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException;
     // 회원가입

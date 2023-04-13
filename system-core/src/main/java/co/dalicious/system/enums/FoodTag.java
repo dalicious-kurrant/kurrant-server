@@ -171,7 +171,8 @@ public enum FoodTag {
     FOOD_TAG_DINNER_BOX("식품 타입", "정찬도시락", 11003),
     FOOD_TAG_POSTPARTUM("식품 타입", "산후조리식", 11004),
     FOOD_TAG_DIET("식품 타입", "다이어트식", 11005),
-    FOOD_TAG_PROTEIN("식품 타입", "프로틴식", 11006);
+    FOOD_TAG_PROTEIN("식품 타입", "프로틴식", 11006),
+    FOOD_TAG_SINGLE_BOWL("식품 타입", "한그릇 음식", 11007);
 
 
 
