@@ -175,7 +175,6 @@ public enum FoodTag {
     FOOD_TAG_SINGLE_BOWL("식품 타입", "한그릇 음식", 11007);
 
 
-
     private final String category;
     private final String tag;
     private final Integer code;

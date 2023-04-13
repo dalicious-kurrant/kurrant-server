@@ -106,4 +106,23 @@ public class PointUtil {
         PointHistory pointHistory = pointMapper.createPointHistoryByOthers(user, id, pointStatus, point);
         pointHistoryRepository.save(pointHistory);
     }
+
+    // 리뷰 수정 시 포인트 산정
+    public BigDecimal findReviewPointWhenUpdate(User user, BigInteger reviewId) {
+        PointHistory pointHistory = qPointHistoryRepository.findByContentId(user, reviewId, PointStatus.REVIEW_REWARD);
+
+        BigDecimal contentPoint = pointHistory.getPoint();
+
+        BigDecimal point = BigDecimal.ZERO;
+
+        List<PointPolicyResDto.ReviewPointPolicy> reviewPointPolicyList = findReviewPointRange();
+        for(PointPolicyResDto.ReviewPointPolicy reviewPointPolicy : reviewPointPolicyList) {
+            if(reviewPointPolicy.getContentPoint().compareTo(contentPoint) == 0) {
+                BigDecimal imagePoint = reviewPointPolicy.getImagePoint();
+                point = point.add(imagePoint);
+            }
+        }
+
+        return point;
+    }
 }
