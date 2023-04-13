@@ -102,11 +102,11 @@ public class OrderUtil {
             LocalDateTime membershipBenefitTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(spot.getMembershipBenefitTime(dailyFood.getDiningType()).getDay()), spot.getMembershipBenefitTime(dailyFood.getDiningType()).getTime());
             if (spot.getDeliveryTime(dailyFood.getDiningType()) == null || LocalDateTime.now().isBefore(membershipBenefitTime)) {
 
-                //return DiscountDto.getDiscount(dailyFood);
+//                return DiscountDto.getDiscount(dailyFood);
                 return DiscountDto.getDiscount(dailyFood.getFood());
             }
         }
-        //return DiscountDto.getDiscountWithoutMembership(dailyFood);
+//        return DiscountDto.getDiscountWithoutMembership(dailyFood);
         return DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
     }
 

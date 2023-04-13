@@ -9,7 +9,6 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.client.alarm.service.PushService;
-import co.dalicious.system.util.DateUtils;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.*;
 import exception.ApiException;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
