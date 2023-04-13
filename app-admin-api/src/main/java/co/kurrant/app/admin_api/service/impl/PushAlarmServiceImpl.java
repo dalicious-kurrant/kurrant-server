@@ -122,22 +122,22 @@ public class PushAlarmServiceImpl implements PushAlarmService {
         for(HandlePushAlarmDto.HandlePushAlarmReqDto reqDto : reqDtoList) {
             if(HandlePushAlarmType.ALL.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
                 List<String> allUserFcmToken = qUserRepository.findAllUserFirebaseToken();
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserFcmToken, null, reqDto.getMessage(), reqDto.getPage());
+                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserFcmToken, null, reqDto.getMessage(), reqDto.getPage(), null);
                 pushRequestDtoList.add(pushRequestDto);
             }
             else if(HandlePushAlarmType.GROUP.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
                 List<String> allUserGroupFcmToken = qUserGroupRepository.findUserGroupFirebaseToken(reqDto.getGroupIds());
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserGroupFcmToken, null, reqDto.getMessage(), reqDto.getPage());
+                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserGroupFcmToken, null, reqDto.getMessage(), reqDto.getPage(),null);
                 pushRequestDtoList.add(pushRequestDto);
             }
             else if(HandlePushAlarmType.SPOT.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
                 List<String> allUserSpotFcmToken = qUserSpotRepository.findAllUserSpotFirebaseToken(reqDto.getSpotIds());
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserSpotFcmToken, null, reqDto.getMessage(), reqDto.getPage());
+                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserSpotFcmToken, null, reqDto.getMessage(), reqDto.getPage(),null);
                 pushRequestDtoList.add(pushRequestDto);
             }
             else if(HandlePushAlarmType.USER.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
                 List<String> userFirebaseToken = qUserRepository.findUserFirebaseToken(reqDto.getUserIds());
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(userFirebaseToken, null, reqDto.getMessage(), reqDto.getPage());
+                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(userFirebaseToken, null, reqDto.getMessage(), reqDto.getPage(),null);
                 pushRequestDtoList.add(pushRequestDto);
             }
         }
