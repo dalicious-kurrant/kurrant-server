@@ -16,7 +16,7 @@ public interface PushAlarmMapper {
 
         autoPushAlarmList.setStatus(pushAlarms.getPushStatus().getCode());
         autoPushAlarmList.setId(pushAlarms.getId());
-        autoPushAlarmList.setCondition(pushAlarms.getCondition().getCode());
+        autoPushAlarmList.setCondition(pushAlarms.getCondition().getCondition());
         autoPushAlarmList.setMessage(pushAlarms.getMessage());
         autoPushAlarmList.setUrl(pushAlarms.getRedirectUrl());
 

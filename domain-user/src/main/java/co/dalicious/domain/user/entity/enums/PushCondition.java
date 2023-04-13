@@ -8,6 +8,20 @@ import java.util.Arrays;
 
 @Getter
 public enum PushCondition {
+
+    /*식단*/
+    NEW_DAILYFOOD("새로운 식단이 등록되었을 때",1),
+    LAST_ORDER_BY_DAILYFOOD("식단 주문 마감이 1시간 남았을 때", 2),
+
+    /*배송*/
+    DELIVERED_ORDER_ITEM("상품이 도착했을 때", 1001),
+
+    /*리뷰*/
+    REVIEW_DEADLINE("리뷰 작성 마감 시간 1일 전", 2001),
+    REVIEW_GET_COMMENT("리뷰에 댓글이 달렸을 때", 2002),
+
+    /*공지 및 이벤트*/
+    NEW_NOTICE("새로운 혜택 및 소식", 3001)
     ;
 
     private final String condition;

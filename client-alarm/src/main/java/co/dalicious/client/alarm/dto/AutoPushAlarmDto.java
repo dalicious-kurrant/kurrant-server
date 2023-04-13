@@ -14,7 +14,7 @@ public class AutoPushAlarmDto {
     public static class AutoPushAlarmList {
         private Integer status;
         private BigInteger id;
-        private Integer condition;
+        private String condition;
         private String message;
         private String url;
     }
