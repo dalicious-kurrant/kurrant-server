@@ -11,8 +11,6 @@ public interface PushAlarmService {
     void updateAutoPushAlarmStatus(AutoPushAlarmDto.AutoPushAlarmStatusReqDto reqDto);
     void updateAutoPushAlarmUrl(AutoPushAlarmDto.AutoPushAlarmUrlReqDto reqDto);
     List<HandlePushAlarmDto.HandlePushAlarmType> findAllTypeList();
-    List<HandlePushAlarmDto.HandlePushAlarmGroup> findAllGroupList(Integer type);
-    List<HandlePushAlarmDto.HandlePushAlarmSpot> findAllSpotList(Integer type);
-    List<HandlePushAlarmDto.HandlePushAlarmUser> findAllUserList(Integer type);
+    List<HandlePushAlarmDto.HandlePushAlarm> findAllListByType(Integer type);
     void createHandlePushAlarmList(List<HandlePushAlarmDto.HandlePushAlarmReqDto> reqDtoList);
 }

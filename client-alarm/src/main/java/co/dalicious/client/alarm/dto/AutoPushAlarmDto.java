@@ -24,7 +24,6 @@ public class AutoPushAlarmDto {
     public static class AutoPushAlarmMessageReqDto {
         private BigInteger id;
         private String message;
-        private String url;
     }
 
     @Getter

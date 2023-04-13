@@ -63,29 +63,11 @@ public class PushAlarmController {
     }
 
     @Operation(summary = "수동 푸시 알림 그룹 조회", description = "수동 푸시 알림 그룹을 조회한다.")
-    @GetMapping("/handle/groups")
-    public ResponseMessage findAllGroupList(@RequestParam Integer type) {
+    @GetMapping("/handle")
+    public ResponseMessage findAllListByType(@RequestParam Integer type) {
         return ResponseMessage.builder()
-                .message("수동 푸시 알림 스팟을 조회했습니다.")
-                .data(pushAlarmService.findAllGroupList(type))
-                .build();
-    }
-
-    @Operation(summary = "수동 푸시 알림 스팟 조회", description = "수동 푸시 알림 스팟을 조회한다.")
-    @GetMapping("/handle/spots")
-    public ResponseMessage findAllSpotList(@RequestParam Integer type) {
-        return ResponseMessage.builder()
-                .message("수동 푸시 알림 상세 스팟을 조회했습니다.")
-                .data(pushAlarmService.findAllSpotList(type))
-                .build();
-    }
-
-    @Operation(summary = "수동 푸시 알림 유저 조회", description = "수동 푸시 알림 유저를 조회한다.")
-    @GetMapping("/handle/users")
-    public ResponseMessage findAllUserList(@RequestParam Integer type) {
-        return ResponseMessage.builder()
-                .message("수동 푸시 알림 유저를 조회했습니다.")
-                .data(pushAlarmService.findAllUserList(type))
+                .message("수동 푸시 알림 조건에 맞는 데이터를 조회했습니다.")
+                .data(pushAlarmService.findAllListByType(type))
                 .build();
     }
 
