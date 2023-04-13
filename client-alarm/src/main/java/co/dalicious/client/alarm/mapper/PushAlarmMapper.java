@@ -7,6 +7,7 @@ import co.dalicious.client.alarm.entity.PushAlarms;
 import org.mapstruct.Mapper;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper(componentModel = "spring")
 public interface PushAlarmMapper {
@@ -23,13 +24,14 @@ public interface PushAlarmMapper {
         return autoPushAlarmList;
     }
 
-    default PushRequestDto toPushRequestDto(List<String> firebaseToken, String title ,String message, String page) {
+    default PushRequestDto toPushRequestDto(List<String> firebaseToken, String title , String message, String page, Map<String, String> keys) {
         PushRequestDto pushRequestDto = new PushRequestDto();
 
         pushRequestDto.setTokenList(firebaseToken);
         pushRequestDto.setTitle(title);
         pushRequestDto.setContent(message);
         pushRequestDto.setPage(page);
+        pushRequestDto.setKeys(keys);
 
         return pushRequestDto;
     }
