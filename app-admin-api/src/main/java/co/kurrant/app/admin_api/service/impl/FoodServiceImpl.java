@@ -246,13 +246,13 @@ public class FoodServiceImpl implements FoodService {
         }
 
         if (food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT) == null) {
-            foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.PERIOD_DISCOUNT, foodDetailDto.getMakersDiscountRate()));
+            foodDiscountPolicyRepository.save(foodMapper.toFoodDiscountPolicy(food, DiscountType.PERIOD_DISCOUNT, foodDetailDto.getPeriodDiscountRate()));
         }
         else if (foodDetailDto.getPeriodDiscountRate() == 0) {
             foodDiscountPolicyRepository.delete(food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT));
         }
         else {
-            food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT).updateFoodDiscountPolicy(foodDetailDto.getMakersDiscountRate());
+            food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT).updateFoodDiscountPolicy(foodDetailDto.getPeriodDiscountRate());
         }
     }
 
