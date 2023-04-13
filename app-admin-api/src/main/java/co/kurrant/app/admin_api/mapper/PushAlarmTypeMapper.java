@@ -19,31 +19,22 @@ public interface PushAlarmTypeMapper {
         return handlePushAlarmType;
     }
 
-    default HandlePushAlarmDto.HandlePushAlarmGroup toHandlePushAlarmGroup(Group group) {
-        HandlePushAlarmDto.HandlePushAlarmGroup handlePushAlarmGroup = new HandlePushAlarmDto.HandlePushAlarmGroup();
+    default HandlePushAlarmDto.HandlePushAlarm toHandlePushAlarmByType(Group group, Spot spot, User user) {
+        HandlePushAlarmDto.HandlePushAlarm handlePushAlarm = new HandlePushAlarmDto.HandlePushAlarm();
 
-        handlePushAlarmGroup.setGroupId(group.getId());
-        handlePushAlarmGroup.setGroupName(group.getName());
-
-        return handlePushAlarmGroup;
-    }
-
-    default HandlePushAlarmDto.HandlePushAlarmSpot toHandlePushAlarmSpot(Spot spot) {
-        HandlePushAlarmDto.HandlePushAlarmSpot handlePushAlarmSpot = new HandlePushAlarmDto.HandlePushAlarmSpot();
-
-        handlePushAlarmSpot.setSpotId(spot.getId());
-        handlePushAlarmSpot.setSpotName(spot.getName());
-
-        return handlePushAlarmSpot;
-    }
-
-    default HandlePushAlarmDto.HandlePushAlarmUser toHandlePushAlarmUser(User user) {
-        HandlePushAlarmDto.HandlePushAlarmUser handlePushAlarmUser = new HandlePushAlarmDto.HandlePushAlarmUser();
-
-        handlePushAlarmUser.setUserid(user.getId());
-        handlePushAlarmUser.setName(user.getName());
-        handlePushAlarmUser.setEmail(user.getEmail());
-
-        return handlePushAlarmUser;
+        if(group != null) {
+            handlePushAlarm.setId(group.getId());
+            handlePushAlarm.setName(group.getName());
+        }
+        else if(spot != null) {
+            handlePushAlarm.setId(spot.getId());
+            handlePushAlarm.setName(spot.getName());
+        }
+        else if(user != null) {
+            handlePushAlarm.setId(user.getId());
+            handlePushAlarm.setName(user.getName());
+            handlePushAlarm.setEmail(user.getEmail());
+        }
+        return handlePushAlarm;
     }
 }

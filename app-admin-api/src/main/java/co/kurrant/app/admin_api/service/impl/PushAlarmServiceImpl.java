@@ -96,35 +96,22 @@ public class PushAlarmServiceImpl implements PushAlarmService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<HandlePushAlarmDto.HandlePushAlarmGroup> findAllGroupList(Integer type) {
-        List<HandlePushAlarmDto.HandlePushAlarmGroup> handlePushAlarmGroupList = new ArrayList<>();
+    public List<HandlePushAlarmDto.HandlePushAlarm> findAllListByType(Integer type) {
+        List<HandlePushAlarmDto.HandlePushAlarm> handlePushAlarmByTypeList = new ArrayList<>();
         if(HandlePushAlarmType.GROUP.equals(HandlePushAlarmType.ofCode(type))) {
             List<Group> groupList = groupRepository.findAll();
-            handlePushAlarmGroupList = groupList.stream().map(pushAlarmTypeMapper::toHandlePushAlarmGroup).collect(Collectors.toList());
+            handlePushAlarmByTypeList = groupList.stream().map(g -> pushAlarmTypeMapper.toHandlePushAlarmByType(g, null, null)).collect(Collectors.toList());
         }
-        return handlePushAlarmGroupList;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<HandlePushAlarmDto.HandlePushAlarmSpot> findAllSpotList(Integer type) {
-        List<HandlePushAlarmDto.HandlePushAlarmSpot> handlePushAlarmSpotList = new ArrayList<>();
-        if(HandlePushAlarmType.SPOT.equals(HandlePushAlarmType.ofCode(type))) {
+        else if(HandlePushAlarmType.SPOT.equals(HandlePushAlarmType.ofCode(type))) {
             List<Spot> spotList = spotRepository.findAll();
-            handlePushAlarmSpotList = spotList.stream().map(pushAlarmTypeMapper::toHandlePushAlarmSpot).collect(Collectors.toList());
+            handlePushAlarmByTypeList = spotList.stream().map(s -> pushAlarmTypeMapper.toHandlePushAlarmByType(null, s, null)).collect(Collectors.toList());
         }
-        return handlePushAlarmSpotList;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<HandlePushAlarmDto.HandlePushAlarmUser> findAllUserList(Integer type) {
-        List<HandlePushAlarmDto.HandlePushAlarmUser> handlePushAlarmUserList = new ArrayList<>();
-        if(HandlePushAlarmType.USER.equals(HandlePushAlarmType.ofCode(type))) {
+        else if(HandlePushAlarmType.USER.equals(HandlePushAlarmType.ofCode(type))) {
             List<User> userList = userRepository.findAll();
-            handlePushAlarmUserList = userList.stream().map(pushAlarmTypeMapper::toHandlePushAlarmUser).collect(Collectors.toList());
+            handlePushAlarmByTypeList = userList.stream().map(u -> pushAlarmTypeMapper.toHandlePushAlarmByType(null, null, u)).collect(Collectors.toList());
         }
-        return handlePushAlarmUserList;
+
+        return handlePushAlarmByTypeList;
     }
 
     @Override
