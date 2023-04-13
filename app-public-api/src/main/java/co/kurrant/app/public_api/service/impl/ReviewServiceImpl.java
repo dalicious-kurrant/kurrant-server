@@ -260,8 +260,15 @@ public class ReviewServiceImpl implements ReviewService {
             List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
             imageList.addAll(Image.toImages(imageResponseDtos));
         }
+        // 기존 리뷰가 사진이 없다가 수정시 사진을 넣으면 포인트 지급
+        if((reviews.getImages() == null || reviews.getImages().isEmpty()) && (fileList != null && !fileList.isEmpty())) {
+            BigDecimal rewardPoint = pointUtil.findReviewPointWhenUpdate(user, reviews.getId());
+            qUserRepository.updateUserPoint(user.getId(), rewardPoint, PointStatus.REVIEW_REWARD);
+            if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByOthers(user, reviews.getId(), PointStatus.REVIEW_REWARD, rewardPoint);
+        }
 
         reviews.updatedReviews(updateReqDto, imageList);
+
     }
 
     @Override
