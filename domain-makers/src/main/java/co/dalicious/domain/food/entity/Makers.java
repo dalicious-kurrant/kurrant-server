@@ -6,6 +6,7 @@ import co.dalicious.domain.file.entity.embeddable.ImageWithEnum;
 import co.dalicious.domain.file.entity.embeddable.enums.ImageType;
 import co.dalicious.domain.food.converter.ServiceFormConverter;
 import co.dalicious.domain.food.converter.ServiceTypeConverter;
+import co.dalicious.domain.food.dto.SaveMakersRequestDto;
 import co.dalicious.domain.food.entity.enums.Origin;
 import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
@@ -20,6 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
+import org.locationtech.jts.io.ParseException;
 
 import javax.persistence.*;
 import java.math.BigInteger;
@@ -155,12 +157,7 @@ public class Makers {
     private Role role;
 
     @Builder
-    Makers(String code, String name, String companyName, String CEO, String CEOPhone,
-           String managerName, String managerPhone, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany,
-           BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate,
-           Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String bank, String depositHolder,
-           String accountNumber, Timestamp createdDateTime, Timestamp updatedDateTime, String password, Role role
-    ) {
+    public Makers(String code, String name, String companyName, String CEO, String CEOPhone, String managerName, String managerPhone, List<MakersCapacity> makersCapacities, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate, Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String fee, String bank, String depositHolder, String accountNumber, List<ImageWithEnum> images, List<Origin> origins, Timestamp createdDateTime, Timestamp updatedDateTime, String password, Role role) {
         this.code = code;
         this.name = name;
         this.companyName = companyName;
@@ -168,6 +165,7 @@ public class Makers {
         this.CEOPhone = CEOPhone;
         this.managerName = managerName;
         this.managerPhone = managerPhone;
+        this.makersCapacities = makersCapacities;
         this.serviceType = serviceType;
         this.serviceForm = serviceForm;
         this.isParentCompany = isParentCompany;
@@ -179,14 +177,65 @@ public class Makers {
         this.isNutritionInformation = isNutritionInformation;
         this.openTime = openTime;
         this.closeTime = closeTime;
+        this.fee = fee;
         this.bank = bank;
         this.depositHolder = depositHolder;
         this.accountNumber = accountNumber;
+        this.images = images;
+        this.origins = origins;
         this.createdDateTime = createdDateTime;
         this.updatedDateTime = updatedDateTime;
         this.password = password;
         this.role = role;
+    }
 
+    public void updateMakers(SaveMakersRequestDto saveMakersRequestDto) throws ParseException {
+        if (saveMakersRequestDto.getCode() != null && !saveMakersRequestDto.getCode().isEmpty())
+            this.code = saveMakersRequestDto.getCode();
+        if (saveMakersRequestDto.getName() != null && !saveMakersRequestDto.getName().isEmpty())
+            this.name = saveMakersRequestDto.getName();
+        if (saveMakersRequestDto.getCompanyName() != null && !saveMakersRequestDto.getCompanyName().isEmpty())
+            this.companyName = saveMakersRequestDto.getCompanyName();
+        if (saveMakersRequestDto.getCeo() != null && !saveMakersRequestDto.getCeo().isEmpty())
+            this.CEO = saveMakersRequestDto.getCeo();
+        if (saveMakersRequestDto.getCeoPhone() != null && !saveMakersRequestDto.getCeoPhone().isEmpty())
+            this.CEOPhone = saveMakersRequestDto.getCeoPhone();
+        if (saveMakersRequestDto.getManagerName() != null && !saveMakersRequestDto.getManagerName().isEmpty())
+            this.managerName = saveMakersRequestDto.getManagerName();
+        if (saveMakersRequestDto.getManagerPhone() != null && !saveMakersRequestDto.getManagerPhone().isEmpty())
+            this.CEOPhone = saveMakersRequestDto.getCeoPhone();
+        if (saveMakersRequestDto.getServiceType() != null && !saveMakersRequestDto.getServiceType().isEmpty())
+            this.serviceType = ServiceType.ofString(saveMakersRequestDto.getServiceType());
+        if (saveMakersRequestDto.getServiceForm() != null && !saveMakersRequestDto.getServiceForm().isEmpty())
+            this.serviceForm = ServiceForm.ofString(saveMakersRequestDto.getServiceForm());
+        if (saveMakersRequestDto.getIsParentCompany() != null)
+            this.isParentCompany = saveMakersRequestDto.getIsParentCompany();
+        if (saveMakersRequestDto.getParentCompanyId() != null)
+            this.parentCompanyId = saveMakersRequestDto.getParentCompanyId();
+        if (saveMakersRequestDto.getCompanyRegistrationNumber() != null && !saveMakersRequestDto.getCompanyRegistrationNumber().isEmpty())
+            this.companyRegistrationNumber = saveMakersRequestDto.getCompanyRegistrationNumber();
+        if (!saveMakersRequestDto.getContractStartDate().isEmpty())
+            this.contractStartDate = LocalDate.parse(saveMakersRequestDto.getContractStartDate());
+        if (saveMakersRequestDto.getContractEndDate() != null && !saveMakersRequestDto.getContractEndDate().isEmpty())
+            this.contractEndDate = LocalDate.parse(saveMakersRequestDto.getContractEndDate());
+        if (saveMakersRequestDto.getIsNutritionInformation() != null)
+            this.isNutritionInformation = saveMakersRequestDto.getIsNutritionInformation();
+        if (saveMakersRequestDto.getOpenTime() != null && !saveMakersRequestDto.getOpenTime().isEmpty())
+            this.openTime = LocalTime.parse(saveMakersRequestDto.getOpenTime());
+        if (saveMakersRequestDto.getCloseTime() != null && !saveMakersRequestDto.getCloseTime().isEmpty())
+            this.closeTime =  LocalTime.parse(saveMakersRequestDto.getCloseTime());
+        if (saveMakersRequestDto.getFee() != null)
+            this.fee = saveMakersRequestDto.getFee();
+        if (saveMakersRequestDto.getBank() != null && !saveMakersRequestDto.getBank().isEmpty())
+            this.bank = saveMakersRequestDto.getBank();
+        if (saveMakersRequestDto.getDepositHolder() != null && !saveMakersRequestDto.getDepositHolder().isEmpty())
+            this.depositHolder = saveMakersRequestDto.getDepositHolder();
+        if (saveMakersRequestDto.getAccountNumber() != null && !saveMakersRequestDto.getAccountNumber().isEmpty())
+            this.accountNumber = saveMakersRequestDto.getAccountNumber();
+    }
+
+    public void updateAddress(Address address) {
+        this.address = address;
     }
 
     public MakersCapacity getMakersCapacity(DiningType diningType) {

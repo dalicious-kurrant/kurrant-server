@@ -2,7 +2,7 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.food.dto.LocationTestDto;
-import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
+import co.dalicious.domain.food.dto.SaveMakersRequestDtoList;
 import co.kurrant.app.admin_api.service.MakersService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

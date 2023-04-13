@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.dto.makers;
+package co.dalicious.domain.food.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
