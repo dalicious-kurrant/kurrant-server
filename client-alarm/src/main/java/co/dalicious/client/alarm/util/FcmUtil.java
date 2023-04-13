@@ -30,7 +30,7 @@ public class FcmUtil {
                     System.out.println("FCM 초기화!");
                 }
             } catch (IOException e) {
-                throw new RuntimeException();
+                throw new RuntimeException(e.getMessage());
             }
     }
 
