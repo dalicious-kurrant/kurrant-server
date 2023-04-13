@@ -17,6 +17,7 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -72,7 +73,16 @@ public class ExcelServiceImpl implements ExcelService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        pdfService.excelToPdf(workbook, fileName2);
+//        // Convert Excel to HTML and then to PDF
+//        pdfService.excelToPdf(workbook);
+//
+//        // Save the PDF file locally
+//        try (FileOutputStream pdfFileOutputStream = new FileOutputStream(fileName2)) {
+//            pdfOutputStream.writeTo(pdfFileOutputStream);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
     }
 
 
