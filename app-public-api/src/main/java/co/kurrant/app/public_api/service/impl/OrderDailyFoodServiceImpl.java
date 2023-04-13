@@ -394,10 +394,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         for (OrderItemDailyFoodGroup OrderItemDailyFoodGroup : orderItemDailyFoodGroups) {
+
+            List<OrderItemDto> orderItemDtoList = multiValueMap.get(OrderItemDailyFoodGroup);
+            orderItemDtoList = orderItemDtoList != null && !orderItemDtoList.isEmpty() ?
+                    orderItemDtoList.stream().sorted(Comparator.comparing((OrderItemDto dto) -> dto.getOrderStatus() != null && dto.getOrderStatus().equals(10) ? 0 : 1)
+                            .thenComparing(dto -> dto.getOrderStatus().equals(11) ? 0 : 1))
+                            .toList() : orderItemDtoList;
+
             OrderDetailDto orderDetailDto = OrderDetailDto.builder()
                     .serviceDate(DateUtils.format(OrderItemDailyFoodGroup.getServiceDate(), "yyyy-MM-dd"))
                     .diningType(OrderItemDailyFoodGroup.getDiningType().getDiningType())
-                    .orderItemDtoList(multiValueMap.get(OrderItemDailyFoodGroup))
+                    .orderItemDtoList(orderItemDtoList)
                     .build();
             orderDetailDtos.add(orderDetailDto);
         }
