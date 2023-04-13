@@ -9,5 +9,4 @@ import java.util.List;
 
 public interface SpotRepository extends JpaRepository<Spot, BigInteger> {
 
-    void setDiningTypeList(List<DiningType> diningTypeList);
 }
