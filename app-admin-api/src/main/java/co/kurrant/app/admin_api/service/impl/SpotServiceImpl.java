@@ -243,8 +243,7 @@ public class SpotServiceImpl implements SpotService {
         qGroupRepository.updateSpotDetail(updateSpotDetailRequestDto, groupId);
 
         qSpotRepository.updateSpotDetail(updateSpotDetailRequestDto);
-        List<DiningType> diningTypeList = Arrays.stream(updateSpotDetailRequestDto.getDiningTypes().split(",")).map(DiningType::ofString).toList();
-        spotRepository.setDiningTypeList(diningTypeList);
+
 
         //mealInfo
         //지원금 수정
