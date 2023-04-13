@@ -213,6 +213,7 @@ public class QUserRepository {
     public List<String> findAllUserFirebaseToken() {
         return queryFactory.select(user.firebaseToken)
                 .from(user)
+                .where(user.firebaseToken.isNotNull())
                 .fetch();
     }
 
@@ -220,7 +221,7 @@ public class QUserRepository {
 
         return queryFactory.select(user.firebaseToken)
                 .from(user)
-                .where(user.id.in(userIds))
+                .where(user.id.in(userIds), user.firebaseToken.isNotNull())
                 .fetch();
     }
 }

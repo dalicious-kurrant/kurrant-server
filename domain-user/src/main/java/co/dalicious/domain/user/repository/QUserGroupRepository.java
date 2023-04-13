@@ -1,11 +1,15 @@
 package co.dalicious.domain.user.repository;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.user.entity.QUserPushCondition;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +25,7 @@ import java.util.Objects;
 
 import static co.dalicious.domain.user.entity.QUser.user;
 import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
+import static co.dalicious.domain.user.entity.QUserPushCondition.userPushCondition;
 
 @Repository
 @RequiredArgsConstructor
@@ -80,7 +85,18 @@ public class QUserGroupRepository {
         return queryFactory.select(user.firebaseToken)
                 .from(userGroup)
                 .leftJoin(userGroup.user, user)
-                .where(userGroup.group.id.in(groupIds))
+                .where(userGroup.group.id.in(groupIds), user.firebaseToken.isNotNull())
+                .fetch();
+    }
+
+    public List<String> findUserGroupFirebaseToken(List<BigInteger> groupIds, PushCondition pushCondition) {
+        return queryFactory.select(user.firebaseToken)
+                .from(userGroup)
+                .leftJoin(userGroup.user, user)
+                .leftJoin(user.pushConditionList, userPushCondition).fetchJoin()
+                .where(userGroup.group.id.in(groupIds),
+                        userPushCondition.pushCondition.eq(pushCondition),
+                        userPushCondition.isActive.eq(true))
                 .fetch();
     }
 }
