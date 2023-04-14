@@ -77,12 +77,11 @@ public class QUserGroupRepository {
                 .fetch();
     }
 
-    public List<String> findUserGroupFirebaseToken(Set<BigInteger> groupIds, PushCondition pushCondition) {
-        return queryFactory.select(user.firebaseToken)
+    public List<User> findUserGroupFirebaseToken(Set<BigInteger> groupIds) {
+        return queryFactory.select(user)
                 .from(userGroup)
                 .leftJoin(userGroup.user, user)
                 .where(userGroup.group.id.in(groupIds),
-                        user.pushConditionList.contains(pushCondition),
                         user.firebaseToken.isNotNull())
                 .fetch();
     }

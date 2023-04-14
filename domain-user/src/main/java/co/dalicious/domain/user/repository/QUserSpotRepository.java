@@ -46,12 +46,11 @@ public class QUserSpotRepository {
                 .fetch();
     }
 
-    public List<String> findAllUserSpotFirebaseToken(Set<BigInteger> spotIds, PushCondition pushCondition) {
-        return queryFactory.select(user.firebaseToken)
+    public List<User> findAllUserSpotFirebaseToken(Set<BigInteger> spotIds) {
+        return queryFactory.select(user)
                 .from(userSpot)
                 .leftJoin(userSpot.user, user)
                 .where(userSpot.spot.id.in(spotIds),
-                        user.pushConditionList.contains(pushCondition),
                         user.firebaseToken.isNotNull())
                 .fetch();
     }
