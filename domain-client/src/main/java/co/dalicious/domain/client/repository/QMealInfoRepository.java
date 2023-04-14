@@ -61,7 +61,7 @@ public class QMealInfoRepository {
 
     public void updateSpotDetailDelete1(String diningType, BigInteger groupId, String serviceDays) {
         queryFactory.delete(corporationMealInfo)
-                .where(corporationMealInfo.diningType.ne(DiningType.ofString(diningType)),
+                .where(corporationMealInfo.diningType.ne(DiningType.ofCode(Integer.valueOf(diningType))),
                         corporationMealInfo.group.id.eq(groupId))
                 .execute();
 
@@ -78,7 +78,7 @@ public class QMealInfoRepository {
         DiningType targetDiningType = null;
         DiningType[] diningTypes = DiningType.values();
         for (DiningType dt : diningTypes) {
-            if (!dt.equals(DiningType.ofString(diningType)) && !dt.equals(DiningType.ofString(diningType2))) {
+            if (!dt.equals(DiningType.ofCode(Integer.valueOf(diningType))) && !dt.equals(DiningType.ofCode(Integer.valueOf(diningType2)))) {
                 targetDiningType = dt;
             }
         }
