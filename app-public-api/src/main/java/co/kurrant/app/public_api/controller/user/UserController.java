@@ -296,6 +296,15 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/preference/foods")
+    @Operation(summary = "음식 TestData 조회", description = "음식 테스트 데이터을 조회한다.")
+    public ResponseMessage getTestData(){
+        return ResponseMessage.builder()
+                .data(userService.getTestData())
+                .message("조회 성공!")
+                .build();
+    }
+
     @GetMapping("/preference/foods/images")
     @Operation(summary = "회원정보 입력 중 음식 이미지 불러오기", description = "foodId로 음식 이미지를 불러온다.")
     public ResponseMessage getFoodImage(@RequestParam List<BigInteger> foodId){

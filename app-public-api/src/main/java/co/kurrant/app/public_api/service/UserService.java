@@ -76,4 +76,6 @@ public interface UserService {
     Object getJobType(Integer category, String code);
 
     Object getFoodImage(List<BigInteger> foodId);
+
+    Object getTestData();
 }

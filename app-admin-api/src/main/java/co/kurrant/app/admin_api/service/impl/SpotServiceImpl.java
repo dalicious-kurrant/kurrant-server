@@ -261,24 +261,19 @@ public class SpotServiceImpl implements SpotService {
 
        List<String> split = Arrays.stream(updateSpotDetailRequestDto.getDiningTypes().split(",")).toList();
         for (String diningType : split){
-
-            if (mealInfoDiningTypeList.contains(DiningType.ofString(diningType)) && mealInfoDiningTypeList.size() > split.size()){
-                System.out.println("1번");
+            if (mealInfoDiningTypeList.contains(DiningType.ofCode(Integer.valueOf(diningType))) && mealInfoDiningTypeList.size() > split.size()){
                 //기존 mealInfo에 존재하면서 dto에 요청한 diningType의 size가 기존 mealInfoList의 size보다 작은 경우는 해당 diningtype을 제외하고 제거한다.
                 if (split.size() == 1){ //이때 split의 size는 1 또는 2이다.
                     qMealInfoRepository.updateSpotDetailDelete1(split.get(0), groupId, updateSpotDetailRequestDto.getServiceDays());
                 } else {
-                    System.out.println(split.get(0));
-                    System.out.println(split.get(1) + " 0과 1");
                     qMealInfoRepository.updateSpotDetailDelete2(split.get(0), split.get(1), groupId, updateSpotDetailRequestDto.getServiceDays());
                 }
-            } else if (mealInfoDiningTypeList.contains(DiningType.ofString(diningType))) {
-                System.out.println("2번");
+            } else if (mealInfoDiningTypeList.contains(DiningType.ofCode(Integer.valueOf(diningType)))) {
+
                 //기존 MealInfo에 해당하는 diningType이라면 요일만 수정
                 //다이닝 타입에 맞는 서비스요일을 수정
-                qMealInfoRepository.updateSpotDetailServiceDays(groupId, updateSpotDetailRequestDto, diningType);
+                qMealInfoRepository.updateSpotDetailServiceDays(groupId, updateSpotDetailRequestDto, Integer.valueOf(diningType));
             } else { //기존 MealInfo에 해당하지 않는 diningType이라면 diningType에 맞는 mealInfo 생성
-                System.out.println("3번");
                 CorporationMealInfo updateMealInfo = mealInfoMapper.toEntityUpdateSpotDetail(mealInfoList.get(0), updateSpotDetailRequestDto.getServiceDays(), diningType, updateSpotDetailRequestDto);
                 mealInfoRepository.save(updateMealInfo);
             }

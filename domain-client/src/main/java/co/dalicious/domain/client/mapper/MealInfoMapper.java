@@ -54,11 +54,11 @@ public interface MealInfoMapper {
     default BigDecimal getSupportPrice(UpdateSpotDetailRequestDto updateSpotDetailRequestDto){
         String[] split = updateSpotDetailRequestDto.getDiningTypes().split(",");
         for (String diningType : split){
-            if (diningType.equals("아침")){
+            if (diningType.equals("1")){
                 return updateSpotDetailRequestDto.getBreakfastSupportPrice();
             }
 
-            if (diningType.equals("저녁")){
+            if (diningType.equals("3")){
                 return updateSpotDetailRequestDto.getDinnerSupportPrice();
             }
         }
@@ -67,7 +67,7 @@ public interface MealInfoMapper {
 
     @Named("getDiningTypeByString")
     default DiningType getDiningTypeByString(String diningType){
-        return DiningType.ofString(diningType);
+        return DiningType.ofCode(Integer.valueOf(diningType));
     }
 
 }
