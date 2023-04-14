@@ -30,6 +30,11 @@ public class PushUtil {
 
     public void sendToType(Set<BigInteger> groupIds, Set<BigInteger> spotIds, Set<BigInteger> userIds,
                            PushCondition pushCondition, BigInteger contentId, String key, LocalDate date) {
+        // 활성화 된 자동 알람을 불러오기
+        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
+        // 비활성인 경우 알람 안보냄
+        if(pushAlarms == null) return;
+
         List<String> firebaseToken = new ArrayList<>();
 
         if(groupIds != null && !groupIds.isEmpty()) {
@@ -43,8 +48,6 @@ public class PushUtil {
         if(userIds != null && !userIds.isEmpty()) {
             firebaseToken = qUserRepository.findUserFirebaseToken(userIds, pushCondition);
         }
-
-        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
 
         Map<String, String> keys = new HashMap<>();
         if(contentId != null) {
