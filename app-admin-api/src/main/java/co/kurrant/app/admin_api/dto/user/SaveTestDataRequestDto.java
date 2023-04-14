@@ -13,5 +13,4 @@ public class SaveTestDataRequestDto {
 
     private List<TestData> testData;
 
-
 }

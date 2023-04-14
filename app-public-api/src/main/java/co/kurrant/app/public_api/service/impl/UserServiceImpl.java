@@ -763,7 +763,6 @@ public class UserServiceImpl implements UserService {
             } else {
                 throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
             }
-            ;
         }
 
         return "결제 비밀번호 확인 성공!";
@@ -920,30 +919,33 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Object getJobType(Integer code) {
+    public Object getJobType(Integer category, String code) {
+        //묶여있는 직종의 코드까지 같이 보내주기 위해 맵으로 된 목록 생성
+        List<Map<String, String>> jobTypeResultList = new ArrayList<>();
+        Map<String,String> jobTypeMap = new HashMap<>();
 
-        List<String> jobTypeResultList = new ArrayList<>();
-
-        if (code == 1){
+        if (category == 1){
         //코드가 1이라면 상세 직종을 반환
             List<JobType> jobTypeList = Arrays.stream(JobType.values())
-                    .filter(v -> v.getCategory().equals("개별"))
+                    .filter(v -> v.getCategory().equals(code))
                     .toList();
-
+            //상세 직종을 반환할 목록 생성
+            List<String> jobTypeDetailList = new ArrayList<>();
             for (JobType jobType : jobTypeList){
-                jobTypeResultList.add(jobType.getName());
+                jobTypeDetailList.add(jobType.getName());
             }
 
-            return jobTypeResultList;
+            return jobTypeDetailList;
         }
 
         List<JobType> jobTypeList = Arrays.stream(JobType.values())
                 .filter(v -> v.getCategory().equals("묶음"))
                 .toList();
-
+        //이름과 코드를 같이 보내준다.
         for (JobType jobType : jobTypeList){
-            jobTypeResultList.add(jobType.getName());
+            jobTypeMap.put(jobType.getCode().toString(), jobType.getName());
         }
+        jobTypeResultList.add(jobTypeMap);
 
         return jobTypeResultList;
     }

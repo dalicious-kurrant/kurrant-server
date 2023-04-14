@@ -1,11 +1,8 @@
 package co.dalicious.domain.user.dto;
 
-import co.dalicious.system.enums.FoodTag;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 @Getter
 @Setter
@@ -40,5 +37,6 @@ public class UserPreferenceDto {
     private String selectedFoodId;
     @Schema(description = "선호하지 않는 음식 ID")
     private String unselectedFoodId;
+
 
 }
