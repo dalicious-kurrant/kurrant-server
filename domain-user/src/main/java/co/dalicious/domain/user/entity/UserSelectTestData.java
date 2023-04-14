@@ -36,17 +36,16 @@ public class UserSelectTestData {
     @Comment("유저가 선택하지 않은 foodId")
     private String unselectedFoodIds;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_preference_id")
+    @Column(name="user_preference_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("회원정보 ID")
-    private UserPreference userPreference;
+    private BigInteger userPreferenceId;
 
     @Builder
-    public UserSelectTestData(User user, String selectedFoodIds, String unselectedFoodIds, UserPreference userPreference){
+    public UserSelectTestData(User user, String selectedFoodIds, String unselectedFoodIds, BigInteger userPreferenceId){
         this.user = user;
         this.selectedFoodIds = selectedFoodIds;
         this.unselectedFoodIds = unselectedFoodIds;
-        this.userPreference = userPreference;
+        this.userPreferenceId = userPreferenceId;
     }
 
 }
