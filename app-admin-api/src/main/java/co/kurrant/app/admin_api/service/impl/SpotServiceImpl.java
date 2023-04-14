@@ -229,6 +229,7 @@ public class SpotServiceImpl implements SpotService {
     }
 
     @Override
+    @Transactional
     public void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
 
         //manager가 존재하는 user인지 체크
@@ -241,6 +242,7 @@ public class SpotServiceImpl implements SpotService {
         BigInteger groupId = qSpotRepository.getGroupId(updateSpotDetailRequestDto.getSpotId());
 
         qGroupRepository.updateSpotDetail(updateSpotDetailRequestDto, groupId);
+
 
         qSpotRepository.updateSpotDetail(updateSpotDetailRequestDto);
 
