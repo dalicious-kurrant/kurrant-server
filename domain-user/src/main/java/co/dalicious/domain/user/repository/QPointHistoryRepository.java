@@ -73,7 +73,7 @@ public class QPointHistoryRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public PointHistory findByContentId(User user, BigInteger id, PointStatus pointStatus) {
+    public List<PointHistory> findByContentId(User user, BigInteger id, PointStatus pointStatus) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(pointStatus.equals(PointStatus.REVIEW_REWARD)) {
@@ -91,6 +91,6 @@ public class QPointHistoryRepository {
 
         return jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), whereCause)
-                .fetchOne();
+                .fetch();
     }
 }
