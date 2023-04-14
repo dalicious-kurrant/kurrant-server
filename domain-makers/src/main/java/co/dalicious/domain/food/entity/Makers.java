@@ -157,7 +157,7 @@ public class Makers {
     private Role role;
 
     @Builder
-    public Makers(String code, String name, String companyName, String CEO, String CEOPhone, String managerName, String managerPhone, List<MakersCapacity> makersCapacities, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate, Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String fee, String bank, String depositHolder, String accountNumber, List<ImageWithEnum> images, List<Origin> origins, Timestamp createdDateTime, Timestamp updatedDateTime, String password, Role role) {
+    public Makers(String code, String name, String companyName, String CEO, String CEOPhone, String managerName, String managerPhone, List<MakersCapacity> makersCapacities, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate, Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String fee, String bank, String depositHolder, String accountNumber, List<ImageWithEnum> images, List<Origin> origins, String password, Role role) {
         this.code = code;
         this.name = name;
         this.companyName = companyName;
@@ -183,11 +183,12 @@ public class Makers {
         this.accountNumber = accountNumber;
         this.images = images;
         this.origins = origins;
-        this.createdDateTime = createdDateTime;
-        this.updatedDateTime = updatedDateTime;
         this.password = password;
         this.role = role;
     }
+
+    @Builder
+
 
     public void updateMakers(SaveMakersRequestDto saveMakersRequestDto) throws ParseException {
         if (saveMakersRequestDto.getCode() != null && !saveMakersRequestDto.getCode().isEmpty())

@@ -3,6 +3,8 @@ package co.kurrant.app.admin_api.mapper;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
+import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.FoodCapacity;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
 import co.dalicious.domain.food.entity.enums.ServiceForm;
