@@ -18,10 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static co.dalicious.domain.user.entity.QUser.user;
 import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
@@ -89,14 +86,15 @@ public class QUserGroupRepository {
                 .fetch();
     }
 
-    public List<String> findUserGroupFirebaseToken(List<BigInteger> groupIds, PushCondition pushCondition) {
+    public List<String> findUserGroupFirebaseToken(Set<BigInteger> groupIds, PushCondition pushCondition) {
         return queryFactory.select(user.firebaseToken)
                 .from(userGroup)
                 .leftJoin(userGroup.user, user)
                 .leftJoin(user.pushConditionList, userPushCondition).fetchJoin()
                 .where(userGroup.group.id.in(groupIds),
                         userPushCondition.pushCondition.eq(pushCondition),
-                        userPushCondition.isActive.eq(true))
+                        userPushCondition.isActive.eq(true),
+                        user.firebaseToken.isNotNull())
                 .fetch();
     }
 }
