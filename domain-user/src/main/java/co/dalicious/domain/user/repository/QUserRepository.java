@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.PointStatus;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
@@ -25,6 +26,7 @@ import java.util.Set;
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.user.entity.QUser.user;
 import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
+import static co.dalicious.domain.user.entity.QUserPushCondition.userPushCondition;
 
 @Repository
 @RequiredArgsConstructor
@@ -222,6 +224,18 @@ public class QUserRepository {
         return queryFactory.select(user.firebaseToken)
                 .from(user)
                 .where(user.id.in(userIds), user.firebaseToken.isNotNull())
+                .fetch();
+    }
+
+    public List<String> findUserFirebaseToken(Set<BigInteger> userIds, PushCondition pushCondition) {
+
+        return queryFactory.select(user.firebaseToken)
+                .from(user)
+                .leftJoin(user.pushConditionList, userPushCondition).fetchJoin()
+                .where(user.id.in(userIds),
+                        userPushCondition.pushCondition.eq(pushCondition),
+                        userPushCondition.isActive.eq(true),
+                        user.firebaseToken.isNotNull())
                 .fetch();
     }
 }

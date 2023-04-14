@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Set;
 
 import static co.dalicious.domain.user.entity.QUser.user;
 import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
@@ -47,14 +48,15 @@ public class QUserSpotRepository {
                 .fetch();
     }
 
-    public List<String> findAllUserSpotFirebaseToken(List<BigInteger> spotIds, PushCondition pushCondition) {
+    public List<String> findAllUserSpotFirebaseToken(Set<BigInteger> spotIds, PushCondition pushCondition) {
         return queryFactory.select(user.firebaseToken)
                 .from(userSpot)
                 .leftJoin(userSpot.user, user)
                 .leftJoin(user.pushConditionList, userPushCondition).fetchJoin()
                 .where(userSpot.spot.id.in(spotIds),
                         userPushCondition.pushCondition.eq(pushCondition),
-                        userPushCondition.isActive.eq(true))
+                        userPushCondition.isActive.eq(true),
+                        user.firebaseToken.isNotNull())
                 .fetch();
     }
 }
