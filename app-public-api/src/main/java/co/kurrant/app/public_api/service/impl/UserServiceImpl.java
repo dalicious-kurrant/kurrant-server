@@ -13,47 +13,41 @@ import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
-import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
-import co.dalicious.domain.payment.dto.CreditCardDto;
-import co.dalicious.domain.payment.dto.CreditCardResponseDto;
-import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentPasswordStatus;
 import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
-import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
-import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.dalicious.domain.user.dto.UserPreferenceFoodImageResponseDto;
+import co.dalicious.domain.user.dto.UserSelectTestDataDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
+import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.enums.FoodTag;
-import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.enums.RequiredAuth;
-import co.kurrant.app.public_api.mapper.user.UserMapper;
-import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
+import co.kurrant.app.public_api.service.UserService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
@@ -103,8 +97,11 @@ public class UserServiceImpl implements UserService {
     private final QUserRepository qUserRepository;
     private final UserPreferenceMapper userPreferenceMapper;
     private final UserPreferenceRepository userPreferenceRepository;
+    private final UserTasteTestDataRepository userTasteTestDataRepository;
     private final QUserPreferenceRepository qUserPreferenceRepository;
     private final FoodRepository foodRepository;
+    private final UserSelectTestDataRepository userSelectTestDataRepository;
+    private final UserSelectTestDataMapper userSelectTestDataMapper;
 
     @Override
     @Transactional
@@ -493,7 +490,7 @@ public class UserServiceImpl implements UserService {
             user.updatePaymentPassword(password);
         }
 
-        // TYPE3: 결제 비밀번호가 등록되지 않았으면서, 애플 유저가 아닌 경우
+        // TYPE3: 결제 비밀번호가 등록되지 않았으면서, 애플 유저인 경우
         if (paymentPasswordStatus.equals(PaymentPasswordStatus.NOT_HAVE_PAYMENT_PASSWORD_AND_HIDE_EMAIL)) {
             // 결제 비밀번호가 6자리인지 확인
             if (billingKeyDto.getPayNumber() == null || billingKeyDto.getPayNumber().equals("") || billingKeyDto.getPayNumber().length() != 6) {
@@ -757,7 +754,6 @@ public class UserServiceImpl implements UserService {
             } else {
                 throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
             }
-            ;
         }
 
         return "결제 비밀번호 확인 성공!";
@@ -854,8 +850,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userUtil.getUser(securityUser);
 
-        List<UserPreference> preferenceList = userPreferenceRepository.findByUserId(user.getId());
-
+        List<UserPreference> preferenceList = userPreferenceRepository.findAllByUserId(user.getId());
 
         UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
 
@@ -864,6 +859,12 @@ public class UserServiceImpl implements UserService {
             //삭제 후 저장
             qUserPreferenceRepository.deleteOthers(user.getId());
             userPreferenceRepository.save(userPreference);
+            /*
+            for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
+                UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), userPreference, userPreference.getUser());
+                userSelectTestDataRepository.save(userSelectTestData);
+            }
+             */
             return "기존 정보가 있어서 수정하였습니다.";
         }
 
@@ -871,6 +872,14 @@ public class UserServiceImpl implements UserService {
         if (saveResult.getId() == null){
             return "유저 정보 저장에 실패했습니다.";
         }
+/*
+        for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
+            UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), saveResult, saveResult.getUser());
+            userSelectTestDataRepository.save(userSelectTestData);
+        }*/
+
+
+
         return "유저 정보 저장에 성공했습니다.";
 
     }
@@ -914,30 +923,33 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Object getJobType(Integer code) {
+    public Object getJobType(Integer category, String code) {
+        //묶여있는 직종의 코드까지 같이 보내주기 위해 맵으로 된 목록 생성
+        List<Map<String, String>> jobTypeResultList = new ArrayList<>();
+        Map<String,String> jobTypeMap = new HashMap<>();
 
-        List<String> jobTypeResultList = new ArrayList<>();
-
-        if (code == 1){
+        if (category == 1){
         //코드가 1이라면 상세 직종을 반환
             List<JobType> jobTypeList = Arrays.stream(JobType.values())
-                    .filter(v -> v.getCategory().equals("개별"))
+                    .filter(v -> v.getCategory().equals(code))
                     .toList();
-
+            //상세 직종을 반환할 목록 생성
+            List<String> jobTypeDetailList = new ArrayList<>();
             for (JobType jobType : jobTypeList){
-                jobTypeResultList.add(jobType.getName());
+                jobTypeDetailList.add(jobType.getName());
             }
 
-            return jobTypeResultList;
+            return jobTypeDetailList;
         }
 
         List<JobType> jobTypeList = Arrays.stream(JobType.values())
                 .filter(v -> v.getCategory().equals("묶음"))
                 .toList();
-
+        //이름과 코드를 같이 보내준다.
         for (JobType jobType : jobTypeList){
-            jobTypeResultList.add(jobType.getName());
+            jobTypeMap.put(jobType.getCode().toString(), jobType.getName());
         }
+        jobTypeResultList.add(jobTypeMap);
 
         return jobTypeResultList;
     }
@@ -967,4 +979,8 @@ public class UserServiceImpl implements UserService {
         return resultList;
     }
 
+    @Override
+    public Object getTestData() {
+        return userTasteTestDataRepository.findAll();
+    }
 }

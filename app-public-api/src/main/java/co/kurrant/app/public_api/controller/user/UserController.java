@@ -235,26 +235,6 @@ public class UserController {
                 .build();
     }
 
-    @PostMapping("/payment/password")
-    @Operation(summary = "결제 비밀번호 등록하기", description = "결제 비밀번호 등록")
-    public ResponseMessage savePaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        String result = userService.savePaymentPassword(securityUser, savePaymentPasswordDto);
-        return ResponseMessage.builder()
-                .message(result)
-                .build();
-    }
-
-    @PostMapping("/payment/password/check")
-    @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
-    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
-        return ResponseMessage.builder()
-                .message(result)
-                .build();
-    }
-
     @GetMapping("/payment/password")
     @Operation(summary = "결제 비밀번호 등록 되어 있는지 확인", description = "결제 비밀번호 등록 유무 확인")
     public ResponseMessage isPaymentPassword(Authentication authentication){
@@ -305,9 +285,18 @@ public class UserController {
 
     @GetMapping("/jobs")
     @Operation(summary = "직종 조회", description = "직종을 조회한다.")
-    public ResponseMessage getJobType(@RequestParam Integer code){
+    public ResponseMessage getJobType(@RequestParam Integer category, @RequestParam (required = false) String code){
         return ResponseMessage.builder()
-                .data(userService.getJobType(code))
+                .data(userService.getJobType(category, code))
+                .message("조회 성공!")
+                .build();
+    }
+
+    @GetMapping("/preference/foods")
+    @Operation(summary = "음식 TestData 조회", description = "음식 테스트 데이터을 조회한다.")
+    public ResponseMessage getTestData(){
+        return ResponseMessage.builder()
+                .data(userService.getTestData())
                 .message("조회 성공!")
                 .build();
     }
@@ -321,8 +310,26 @@ public class UserController {
                 .build();
     }
 
+    @PostMapping("/payment/password/check")
+    @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
+    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
+        return ResponseMessage.builder()
+                .message(result)
+                .build();
+    }
 
-
+//
+//    @PostMapping("/payment/password")
+//    @Operation(summary = "결제 비밀번호 등록하기", description = "결제 비밀번호 등록")
+//    public ResponseMessage savePaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+//        SecurityUser securityUser = UserUtil.securityUser(authentication);
+//        String result = userService.savePaymentPassword(securityUser, savePaymentPasswordDto);
+//        return ResponseMessage.builder()
+//                .message(result)
+//                .build();
+//    }
 //    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
 //    @PostMapping("/cards")
 //    public ResponseMessage saveCreditCard(Authentication authentication,

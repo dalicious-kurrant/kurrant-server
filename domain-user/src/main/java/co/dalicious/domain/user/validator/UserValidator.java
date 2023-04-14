@@ -34,6 +34,15 @@ public class UserValidator {
         }
     }
 
+    public void isEmailValid(User user, String email) {
+        List<ProviderEmail> providerEmails = providerEmailRepository.findAllByEmail(email);
+        for (ProviderEmail providerEmail : providerEmails) {
+            if(!providerEmail.getUser().equals(user)) {
+                throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
+            }
+        }
+    }
+
     public void isExistingMainEmail(String email) {
         if(userRepository.findOneByEmail(email).isPresent()) {
             throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);

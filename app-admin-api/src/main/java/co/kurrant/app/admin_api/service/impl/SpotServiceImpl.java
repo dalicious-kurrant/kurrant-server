@@ -4,6 +4,7 @@ import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.mapper.MealInfoMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
@@ -37,11 +38,14 @@ public class SpotServiceImpl implements SpotService {
     private final SpotMapper spotMapper;
     private final QGroupRepository qGroupRepository;
     private final GroupMapper groupMapper;
+    private final MealInfoMapper mealInfoMapper;
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final CorporationRepository corporationRepository;
     private final MealInfoRepository mealInfoRepository;
+    private final QMealInfoRepository qMealInfoRepository;
     private final CorporaionMealInfoRepository corporaionMealInfoRepository;
+    private final QCorporationRepository qCorporationRepository;
 
 
     @Override
@@ -238,8 +242,46 @@ public class SpotServiceImpl implements SpotService {
 
         qGroupRepository.updateSpotDetail(updateSpotDetailRequestDto, groupId);
 
-        System.out.println(updateSpotDetailRequestDto.getMemo() + " 메모확인");
         qSpotRepository.updateSpotDetail(updateSpotDetailRequestDto);
+
+
+        //mealInfo
+        //지원금 수정
+        qMealInfoRepository.updateSpotDetailSupportPrice(groupId, updateSpotDetailRequestDto);
+
+        //식사타입, 요일 수정
+        List<MealInfo> mealInfoList = mealInfoRepository.findAllByGroupId(groupId);
+        List<DiningType> mealInfoDiningTypeList = new ArrayList<>();
+        for (MealInfo mealInfo : mealInfoList){
+            //그룹에 해당되는 다이닝타입만을 추출
+            mealInfoDiningTypeList.add(mealInfo.getDiningType());
+        }
+
+
+
+       List<String> split = Arrays.stream(updateSpotDetailRequestDto.getDiningTypes().split(",")).toList();
+        for (String diningType : split){
+            if (mealInfoDiningTypeList.contains(DiningType.ofCode(Integer.valueOf(diningType))) && mealInfoDiningTypeList.size() > split.size()){
+                //기존 mealInfo에 존재하면서 dto에 요청한 diningType의 size가 기존 mealInfoList의 size보다 작은 경우는 해당 diningtype을 제외하고 제거한다.
+                if (split.size() == 1){ //이때 split의 size는 1 또는 2이다.
+                    qMealInfoRepository.updateSpotDetailDelete1(split.get(0), groupId, updateSpotDetailRequestDto.getServiceDays());
+                } else {
+                    qMealInfoRepository.updateSpotDetailDelete2(split.get(0), split.get(1), groupId, updateSpotDetailRequestDto.getServiceDays());
+                }
+            } else if (mealInfoDiningTypeList.contains(DiningType.ofCode(Integer.valueOf(diningType)))) {
+
+                //기존 MealInfo에 해당하는 diningType이라면 요일만 수정
+                //다이닝 타입에 맞는 서비스요일을 수정
+                qMealInfoRepository.updateSpotDetailServiceDays(groupId, updateSpotDetailRequestDto, Integer.valueOf(diningType));
+            } else { //기존 MealInfo에 해당하지 않는 diningType이라면 diningType에 맞는 mealInfo 생성
+                CorporationMealInfo updateMealInfo = mealInfoMapper.toEntityUpdateSpotDetail(mealInfoList.get(0), updateSpotDetailRequestDto.getServiceDays(), diningType, updateSpotDetailRequestDto);
+                mealInfoRepository.save(updateMealInfo);
+            }
+        }
+
+        //corporation 수정
+        qCorporationRepository.updateSpotDetail(updateSpotDetailRequestDto, groupId);
+
 
 
 

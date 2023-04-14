@@ -8,6 +8,5 @@ import java.util.List;
 
 public interface UserPreferenceRepository extends JpaRepository<UserPreference, BigInteger> {
 
-
-    List<UserPreference> findByUserId(BigInteger userId);
+    List<UserPreference> findAllByUserId(BigInteger userId);
 }

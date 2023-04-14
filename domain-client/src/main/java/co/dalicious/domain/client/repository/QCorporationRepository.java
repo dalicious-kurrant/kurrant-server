@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.Corporation;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
@@ -34,4 +35,17 @@ public class QCorporationRepository {
                 .fetchOne();
     }
 
+    public void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto, BigInteger groupId) {
+
+        queryFactory.update(corporation)
+                .set(corporation.isSetting, updateSpotDetailRequestDto.getIsSetting())
+                .set(corporation.isGarbage, updateSpotDetailRequestDto.getIsGarbage())
+                .set(corporation.isHotStorage, updateSpotDetailRequestDto.getIsHotStorage())
+                .set(corporation.minimumSpend, updateSpotDetailRequestDto.getMinPrice())
+                .set(corporation.maximumSpend, updateSpotDetailRequestDto.getMaxPrice())
+                .set(corporation.isMembershipSupport, updateSpotDetailRequestDto.getIsMembershipSupport())
+                .where(corporation.id.eq(groupId))
+                .execute();
+
+    }
 }

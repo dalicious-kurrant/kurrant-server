@@ -1,11 +1,8 @@
 package co.dalicious.domain.user.dto;
 
-import co.dalicious.system.enums.FoodTag;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 @Getter
 @Setter
