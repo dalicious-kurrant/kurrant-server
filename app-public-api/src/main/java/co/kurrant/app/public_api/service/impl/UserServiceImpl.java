@@ -499,7 +499,7 @@ public class UserServiceImpl implements UserService {
             user.updatePaymentPassword(password);
         }
 
-        // TYPE3: 결제 비밀번호가 등록되지 않았으면서, 애플 유저가 아닌 경우
+        // TYPE3: 결제 비밀번호가 등록되지 않았으면서, 애플 유저인 경우
         if (paymentPasswordStatus.equals(PaymentPasswordStatus.NOT_HAVE_PAYMENT_PASSWORD_AND_HIDE_EMAIL)) {
             // 결제 비밀번호가 6자리인지 확인
             if (billingKeyDto.getPayNumber() == null || billingKeyDto.getPayNumber().equals("") || billingKeyDto.getPayNumber().length() != 6) {
