@@ -126,27 +126,23 @@ public class UserController {
                 .build();
     }
 
-    //TODO : 알림 설정 수정 됨. -> pushCondition 확인필요
     @Operation(summary = "알림 설정 조회", description = "알림/마케팅 수신 정보 설정을 조회한다")
     @GetMapping("/setting")
     public ResponseMessage getAlarmSetting(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        MarketingAlarmResponseDto MarketingDto = userService.getAlarmSetting(securityUser);
         return ResponseMessage.builder()
                 .message("알림 설정 조회에 성공하였습니다.")
-                .data(MarketingDto)
+                .data(userService.getAlarmSetting(securityUser))
                 .build();
     }
 
-    //TODO : 알림 설정 수정 됨. -> pushCondition 확인필요
     @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
     @PostMapping("/setting")
     public ResponseMessage changeAlarmSetting(Authentication authentication, @RequestBody MarketingAlarmRequestDto marketingAlarmDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        MarketingAlarmResponseDto changeMarketingDto = userService.changeAlarmSetting(securityUser, marketingAlarmDto);
         return ResponseMessage.builder()
                 .message("마케팅 수신 정보 변경에 성공하였습니다.")
-                .data(changeMarketingDto)
+                .data(userService.changeAlarmSetting(securityUser, marketingAlarmDto))
                 .build();
     }
 

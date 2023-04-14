@@ -382,4 +382,8 @@ public class User {
         User user = (User) o;
         return Objects.equals(id, user.id);
     }
+
+    public void updatePushCondition(List<PushCondition> pushConditionList) {
+        this.pushConditionList = pushConditionList;
+    }
 }
