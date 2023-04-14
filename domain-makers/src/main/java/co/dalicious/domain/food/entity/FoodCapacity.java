@@ -43,13 +43,18 @@ public class FoodCapacity {
     private DayAndTime lastOrderTime;
 
     @Builder
-    public FoodCapacity(Food food, DiningType diningType, Integer capacity) {
+    public FoodCapacity(Food food, DiningType diningType, Integer capacity, DayAndTime lastOrderTime) {
         this.food = food;
         this.diningType = diningType;
         this.capacity = capacity;
+        this.lastOrderTime = lastOrderTime;
     }
 
     public void updateCapacity(Integer capacity) {
         this.capacity = capacity;
+    }
+
+    public void updateLastOrderTime(DayAndTime lastOrderTime) {
+        this.lastOrderTime = lastOrderTime;
     }
 }
