@@ -305,6 +305,16 @@ public class UserController {
                 .build();
     }
 
+    @PostMapping("/payment/password/check")
+    @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
+    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
+        return ResponseMessage.builder()
+                .message(result)
+                .build();
+    }
+
 //
 //    @PostMapping("/payment/password")
 //    @Operation(summary = "결제 비밀번호 등록하기", description = "결제 비밀번호 등록")
@@ -330,15 +340,5 @@ public class UserController {
 //                .message("결제 카드 등록에 성공하셨습니다.")
 //                .build();
 //
-//    }
-
-//    @PostMapping("/payment/password/check")
-//    @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
-//    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
-//        SecurityUser securityUser = UserUtil.securityUser(authentication);
-//        String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
-//        return ResponseMessage.builder()
-//                .message(result)
-//                .build();
 //    }
 }
