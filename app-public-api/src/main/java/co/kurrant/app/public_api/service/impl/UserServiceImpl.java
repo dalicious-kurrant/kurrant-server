@@ -23,9 +23,7 @@ import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
-import co.dalicious.domain.user.dto.UserPreferenceDto;
-import co.dalicious.domain.user.dto.UserPreferenceFoodImageResponseDto;
-import co.dalicious.domain.user.dto.UserSelectTestDataDto;
+import co.dalicious.domain.user.dto.*;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
@@ -859,12 +857,12 @@ public class UserServiceImpl implements UserService {
             //삭제 후 저장
             qUserPreferenceRepository.deleteOthers(user.getId());
             userPreferenceRepository.save(userPreference);
-            /*
+
             for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
-                UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), userPreference, userPreference.getUser());
+                UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), userPreference.getId(), userPreference.getUser());
                 userSelectTestDataRepository.save(userSelectTestData);
             }
-             */
+
             return "기존 정보가 있어서 수정하였습니다.";
         }
 
@@ -872,11 +870,10 @@ public class UserServiceImpl implements UserService {
         if (saveResult.getId() == null){
             return "유저 정보 저장에 실패했습니다.";
         }
-/*
         for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
-            UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), saveResult, saveResult.getUser());
+            UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), saveResult.getId(), saveResult.getUser());
             userSelectTestDataRepository.save(userSelectTestData);
-        }*/
+        }
 
 
 
@@ -981,6 +978,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Object getTestData() {
-        return userTasteTestDataRepository.findAll();
+
+        List<UserTestDataDto> userTestDataList = new ArrayList<>();
+        //테스트데이터 조회
+        List<UserTasteTestData> userTasteTestDataList = userTasteTestDataRepository.findAll();
+        for (UserTasteTestData testData : userTasteTestDataList){
+            UserTestDataDto userTestData = new UserTestDataDto();
+            Map<BigInteger, String> foodImageMap = new HashMap<>();
+            List<String> stringList = Arrays.stream(testData.getFoodIds().split(",")).toList();
+            for (String id : stringList){
+                String foodId = id.replace(" ", "");
+                //food 조회
+                Food food = foodRepository.findById(BigInteger.valueOf(Long.parseLong(foodId)))
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+                //food의 imageUrl 가져오기
+                String url = food.getImages().get(0).getLocation();
+                //id와 url을 같이 보내주기 위해 맵에 put
+                foodImageMap.put(food.getId(), url);
+            }
+            userTestData.setId(testData.getId());
+            userTestData.setPage(testData.getPage());
+            userTestData.setFoodIds(foodImageMap);
+            userTestDataList.add(userTestData);
+        }
+
+        return userTestDataList;
     }
 }

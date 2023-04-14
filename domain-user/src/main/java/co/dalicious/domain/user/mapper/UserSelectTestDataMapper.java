@@ -16,8 +16,8 @@ public interface UserSelectTestDataMapper {
 
 
     @Mapping(source = "user", target = "user")
-    @Mapping(source = "userPreference", target = "userPreference")
+    @Mapping(source = "userPreferenceId", target = "userPreferenceId")
     @Mapping(source = "selectedFoodId", target = "selectedFoodIds")
     @Mapping(source = "unselectedFoodId", target = "unselectedFoodIds")
-    UserSelectTestData toEntity(String selectedFoodId, String unselectedFoodId, UserPreference userPreference, User user);
+    UserSelectTestData toEntity(String selectedFoodId, String unselectedFoodId, BigInteger userPreferenceId, User user);
 }
