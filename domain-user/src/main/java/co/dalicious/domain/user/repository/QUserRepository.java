@@ -26,7 +26,6 @@ import java.util.Set;
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.user.entity.QUser.user;
 import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
-import static co.dalicious.domain.user.entity.QUserPushCondition.userPushCondition;
 
 @Repository
 @RequiredArgsConstructor
@@ -231,10 +230,8 @@ public class QUserRepository {
 
         return queryFactory.select(user.firebaseToken)
                 .from(user)
-                .leftJoin(user.pushConditionList, userPushCondition).fetchJoin()
                 .where(user.id.in(userIds),
-                        userPushCondition.pushCondition.eq(pushCondition),
-                        userPushCondition.isActive.eq(true),
+                        user.pushConditionList.contains(pushCondition),
                         user.firebaseToken.isNotNull())
                 .fetch();
     }
