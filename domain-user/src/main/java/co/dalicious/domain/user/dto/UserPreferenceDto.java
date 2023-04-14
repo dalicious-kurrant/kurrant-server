@@ -38,5 +38,4 @@ public class UserPreferenceDto {
     @Schema(description = "선호하지 않는 음식 ID")
     private String unselectedFoodId;
 
-
 }

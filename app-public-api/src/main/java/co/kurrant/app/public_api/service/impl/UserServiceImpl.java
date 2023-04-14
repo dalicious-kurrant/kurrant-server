@@ -13,50 +13,41 @@ import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
-import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
-import co.dalicious.domain.payment.dto.CreditCardDto;
-import co.dalicious.domain.payment.dto.CreditCardResponseDto;
-import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentPasswordStatus;
 import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
-import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
-import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.dalicious.domain.user.dto.UserPreferenceFoodImageResponseDto;
-import co.dalicious.domain.user.entity.ProviderEmail;
-import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.UserPreference;
+import co.dalicious.domain.user.dto.UserSelectTestDataDto;
+import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
+import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.enums.FoodTag;
-import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.enums.RequiredAuth;
-import co.kurrant.app.public_api.mapper.user.UserMapper;
-import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
+import co.kurrant.app.public_api.service.UserService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
@@ -106,8 +97,11 @@ public class UserServiceImpl implements UserService {
     private final QUserRepository qUserRepository;
     private final UserPreferenceMapper userPreferenceMapper;
     private final UserPreferenceRepository userPreferenceRepository;
+    private final UserTasteTestDataRepository userTasteTestDataRepository;
     private final QUserPreferenceRepository qUserPreferenceRepository;
     private final FoodRepository foodRepository;
+    private final UserSelectTestDataRepository userSelectTestDataRepository;
+    private final UserSelectTestDataMapper userSelectTestDataMapper;
 
     @Override
     @Transactional
@@ -859,8 +853,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userUtil.getUser(securityUser);
 
-        List<UserPreference> preferenceList = userPreferenceRepository.findByUserId(user.getId());
-
+        List<UserPreference> preferenceList = userPreferenceRepository.findAllByUserId(user.getId());
 
         UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
 
@@ -869,6 +862,12 @@ public class UserServiceImpl implements UserService {
             //삭제 후 저장
             qUserPreferenceRepository.deleteOthers(user.getId());
             userPreferenceRepository.save(userPreference);
+            /*
+            for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
+                UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), userPreference, userPreference.getUser());
+                userSelectTestDataRepository.save(userSelectTestData);
+            }
+             */
             return "기존 정보가 있어서 수정하였습니다.";
         }
 
@@ -876,6 +875,14 @@ public class UserServiceImpl implements UserService {
         if (saveResult.getId() == null){
             return "유저 정보 저장에 실패했습니다.";
         }
+/*
+        for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
+            UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), saveResult, saveResult.getUser());
+            userSelectTestDataRepository.save(userSelectTestData);
+        }*/
+
+
+
         return "유저 정보 저장에 성공했습니다.";
 
     }
@@ -975,4 +982,8 @@ public class UserServiceImpl implements UserService {
         return resultList;
     }
 
+    @Override
+    public Object getTestData() {
+        return userTasteTestDataRepository.findAll();
+    }
 }

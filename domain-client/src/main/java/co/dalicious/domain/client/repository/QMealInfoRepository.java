@@ -50,11 +50,11 @@ public class QMealInfoRepository {
         }
     }
 
-    public void updateSpotDetailServiceDays(BigInteger groupId, UpdateSpotDetailRequestDto updateSpotDetailRequestDto, String diningType) {
+    public void updateSpotDetailServiceDays(BigInteger groupId, UpdateSpotDetailRequestDto updateSpotDetailRequestDto, Integer diningType) {
 
         queryFactory.update(corporationMealInfo)
                 .set(corporationMealInfo.serviceDays, updateSpotDetailRequestDto.getServiceDays())
-                .where(corporationMealInfo.diningType.eq(DiningType.ofString(diningType)),
+                .where(corporationMealInfo.diningType.eq(DiningType.ofCode(diningType)),
                         corporationMealInfo.group.id.eq(groupId))
                 .execute();
     }
