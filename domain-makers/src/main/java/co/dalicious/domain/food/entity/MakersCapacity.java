@@ -2,6 +2,7 @@ package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.client.converter.DayAndTimeConverter;
 import co.dalicious.domain.client.entity.DayAndTime;
+import co.dalicious.domain.food.dto.MakersCapacityDto;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -10,10 +11,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.math.BigInteger;
 
+@DynamicUpdate
+@DynamicInsert
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -49,4 +54,10 @@ public class MakersCapacity {
         this.lastOrderTime = lastOrderTime;
     }
 
+    public void updateMakersCapacity(Makers makers, MakersCapacityDto makersCapacity) {
+        this.makers = makers;
+        this.diningType = DiningType.ofCode(makersCapacity.getDiningType());
+        this.capacity = makersCapacity.getCapacity();
+        this.lastOrderTime = DayAndTime.stringToDayAndTime(makersCapacity.getLastOrderTime());
+    }
 }

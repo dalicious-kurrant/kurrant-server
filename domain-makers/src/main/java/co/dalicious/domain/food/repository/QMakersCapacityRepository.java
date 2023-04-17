@@ -1,5 +1,6 @@
 package co.dalicious.domain.food.repository;
 
+import co.dalicious.domain.food.dto.UpdateMakersReqDto;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
 import co.dalicious.system.enums.DiningType;
@@ -53,4 +54,5 @@ public class QMakersCapacityRepository {
                 .where(makersCapacity.makers.id.eq(id))
                 .execute();
     }
+
 }

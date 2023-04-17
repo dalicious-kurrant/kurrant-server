@@ -2,6 +2,7 @@ package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.dto.MakersCapacityDto;
+import co.dalicious.domain.food.dto.UpdateMakersReqDto;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
 import co.dalicious.system.enums.DiningType;
@@ -35,4 +36,7 @@ public interface MakersCapacityMapper {
         return DayAndTime.stringToDayAndTime(lastOrderTime);
     }
 
+
+
 }
+
