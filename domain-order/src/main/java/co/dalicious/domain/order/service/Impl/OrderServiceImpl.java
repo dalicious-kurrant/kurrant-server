@@ -175,10 +175,20 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
+        PaymentCancelHistory paymentCancelHistory = null;
         // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
         if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
-            PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
+            paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
             paymentCancelHistoryRepository.save(paymentCancelHistory);
+        }
+        // 결제 정보가 없지만 포인트 내역이 있다면
+        if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) == 0 && refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
+            paymentCancelHistory = orderUtil.cancelPointPaidOrderItemDailyFood(orderItemDailyFood, refundPriceDto);
+            paymentCancelHistoryRepository.save(paymentCancelHistory);
+        }
+
+        // 환불 포인트가 있으면
+        if(paymentCancelHistory != null && refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0){
             // 환불 포인트 내역 남기기
             pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
         }
@@ -388,13 +398,24 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
+        PaymentCancelHistory paymentCancelHistory = null;
         // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
         if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
-            PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFoodNice(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
+            paymentCancelHistory = orderUtil.cancelOrderItemDailyFoodNice(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
             paymentCancelHistoryRepository.save(paymentCancelHistory);
+        }
+        // 결제 정보가 없지만 포인트 내역이 있다면
+        if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) == 0 && refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
+            paymentCancelHistory = orderUtil.cancelPointPaidOrderItemDailyFood(orderItemDailyFood, refundPriceDto);
+            paymentCancelHistoryRepository.save(paymentCancelHistory);
+        }
+
+        // 환불한 포인트가 있으면
+        if(paymentCancelHistory != null && refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0){
             // 환불 포인트 내역 남기기
             pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
         }
+
 
         user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
         orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);

@@ -47,10 +47,8 @@ public interface PointHistoryMapper {
         if(pointHistory.getPointStatus().equals(PointStatus.REVIEW_REWARD)) {
             Reviews reviews = reviewsList.stream()
                     .filter(r -> pointHistory.getReviewId().equals(r.getId())).findFirst()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.REVIEW_NOT_FOUND));
-
-//            if(reviews.getIsDelete()) throw new ApiException(ExceptionEnum.ALREADY_DELETED_REVIEW);
-
+                    .orElse(null);
+            if(reviews == null) return;
             OrderItem orderItem = (OrderItem) Hibernate.unproxy(reviews.getOrderItem());
             if(orderItem instanceof  OrderItemDailyFood orderItemDailyFood) {
                 Food food = orderItemDailyFood.getDailyFood().getFood();
@@ -63,7 +61,8 @@ public interface PointHistoryMapper {
         else if(pointHistory.getPointStatus().equals(PointStatus.USED)) {
             Order order = orderList.stream()
                     .filter(o -> pointHistory.getOrderId().equals(o.getId())).findFirst()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
+                    .orElse(null);
+            if(order == null) return;
             List<OrderItem> orderItems = order.getOrderItems();
             for(OrderItem orderItem : orderItems) {
                 if(Hibernate.unproxy(orderItem) instanceof OrderItemDailyFood orderItemDailyFood) {
@@ -83,7 +82,8 @@ public interface PointHistoryMapper {
         else if(pointHistory.getPointStatus().equals(PointStatus.EVENT_REWARD)) {
             Notice notice = noticeList.stream()
                     .filter(n -> pointHistory.getBoardId().equals(n.getId())).findFirst()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
+                    .orElse(null);
+            if(notice == null) return;
 
             name.append(notice.getTitle());
             id = notice.getId();
@@ -92,7 +92,8 @@ public interface PointHistoryMapper {
         else if(pointHistory.getPointStatus().equals(PointStatus.CANCEL)) {
             PaymentCancelHistory cancelHistory = cancelHistoryList.stream()
                     .filter(c -> pointHistory.getPaymentCancelHistoryId().equals(c.getId())).findFirst()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.CANCLE_HISTORY_NOT_FOUND));
+                    .orElse(null);
+            if(cancelHistory == null) return;
             OrderItem orderItem = (OrderItem) Hibernate.unproxy(cancelHistory.getOrderItem());
             if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                 makersName = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();

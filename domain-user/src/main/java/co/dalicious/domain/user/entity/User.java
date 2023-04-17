@@ -1,5 +1,6 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.user.converter.PushConditionsConverter;
 import co.dalicious.domain.user.converter.UserStatusConverter;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.system.util.StringUtils;
@@ -12,7 +13,6 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
@@ -157,6 +157,11 @@ public class User {
     @Column(name="payment_password", columnDefinition = "VARCHAR(255)")
     private String paymentPassword;
 
+    @Convert(converter = PushConditionsConverter.class)
+    @Column(name = "push_condition")
+    @Comment("알림 조건")
+    private List<PushCondition> pushConditionList;
+
     @Builder
     public User(BigInteger id, String password, String name, Role role, String email, String phone) {
         this.id = id;
@@ -172,7 +177,7 @@ public class User {
                 UserStatus userStatus, String phone, String email,
                 BigDecimal point, GourmetType gourmetType, Boolean isMembership, Boolean marketingAgree,
                 Timestamp marketingAgreedDateTime, Boolean marketingAlarm, Boolean orderAlarm, Timestamp recentLoginDateTime,
-                Timestamp createdDateTime, Timestamp updatedDateTime){
+                Timestamp createdDateTime, Timestamp updatedDateTime, List<PushCondition> pushConditionList){
         this.id = id;
         this.password = password;
         this.name = name;
@@ -190,6 +195,7 @@ public class User {
         this.recentLoginDateTime = recentLoginDateTime;
         this.createdDateTime = createdDateTime;
         this.updatedDateTime = updatedDateTime;
+        this.pushConditionList = pushConditionList;
     }
 
 
@@ -375,5 +381,13 @@ public class User {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
         return Objects.equals(id, user.id);
+    }
+
+    public void updatePushCondition(List<PushCondition> pushConditionList) {
+        this.pushConditionList = pushConditionList;
+    }
+
+    public boolean hasPushCondition(PushCondition condition) {
+        return pushConditionList.contains(condition);
     }
 }

@@ -117,15 +117,14 @@ public class DateUtils {
     }
 
     public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime midnight = LocalDateTime.of(now.toLocalDate(), LocalTime.MAX);
+        LocalTime deliveryTime = LocalTime.of(limitDayAndTime.getHour(), limitDayAndTime.getMinute(), limitDayAndTime.getSecond());
+        LocalDateTime nowDeliveryTime = LocalDateTime.of(now.toLocalDate(), deliveryTime);
 
         long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
-        long hoursLeft = now.until(midnight, ChronoUnit.HOURS);
+        long hoursLeft = now.until(nowDeliveryTime, ChronoUnit.HOURS);
         now = now.plusHours(hoursLeft);
-        long minutesLeft = now.until(midnight, ChronoUnit.MINUTES);
+        long minutesLeft = now.until(nowDeliveryTime, ChronoUnit.MINUTES);
 
         return String.format("%01d %02d:%02d", leftDay, hoursLeft, minutesLeft);
     }

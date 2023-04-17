@@ -26,9 +26,11 @@ import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.enums.RequiredAuth;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.AuthService;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserMapper;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -48,6 +50,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -82,13 +85,14 @@ public class AuthServiceImpl implements AuthService {
     private final SnsLoginService snsLoginService;
     private final UserValidator userValidator;
     private final UserMapper userMapper;
+    private final UserUtil userUtil;
     private final EmployeeRepository employeeRepository;
     private final QUserRepository qUserRepository;
     private final ConcurrentHashMap<String, Lock> userLocks = new ConcurrentHashMap<>();
 
     // 이메일 인증
     @Override
-    public void mailConfirm(MailMessageDto mailMessageDto, String type) throws Exception {
+    public void mailConfirm(Authentication authentication, MailMessageDto mailMessageDto, String type) throws Exception {
         // 인증을 요청하는 위치 파악하기
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
         switch (requiredAuth) {
@@ -101,6 +105,16 @@ public class AuthServiceImpl implements AuthService {
             case FIND_PASSWORD -> {
                 // 존재하는 유저인지 확인
                 User user = userRepository.findOneByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+            }
+            case PAYMENT_PASSWORD_CREATE_APPLE -> {
+                SecurityUser securityUser = UserUtil.securityUser(authentication);
+                User user = userUtil.getUser(securityUser);
+                userValidator.isEmailValid(user, mailMessageDto.getReceivers().get(0));
+                Optional<User> userOptional = userRepository.findOneByEmail(mailMessageDto.getReceivers().get(0));
+
+                if(userOptional.isPresent()) {
+                    throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
+                }
             }
         }
 

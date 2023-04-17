@@ -35,7 +35,7 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
             return getCorporationDeliveryFee(user, (Corporation) group);
         } else if (group instanceof OpenGroup) {
             // TODO: 추후 삭제
-            if(group.getName().replaceAll("\\s+", "").contains("스파크플러스") && LocalDate.now().isBefore(LocalDate.of(2023, 4, 1))) {
+            if(group.getName().replaceAll("\\s+", "").contains("스파크플러스") && LocalDate.now().isBefore(LocalDate.of(2023, 4, 22))) {
                 return getMembershipCorporationDeliveryFee();
             }
             return getOpenGroupDeliveryFee(user, (OpenGroup) group);

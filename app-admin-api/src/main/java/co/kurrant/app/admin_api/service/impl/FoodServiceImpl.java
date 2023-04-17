@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.service.ImageService;
@@ -215,14 +216,14 @@ public class FoodServiceImpl implements FoodService {
         food.updateImages(images);
         food.updateFood(foodDetailDto);
 
-        if(food.updateFoodCapacity(DiningType.MORNING, foodDetailDto.getMorningCapacity()) != null) {
-            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.MORNING, foodDetailDto.getMorningCapacity()));
+        if(food.updateFoodCapacity(DiningType.MORNING, foodDetailDto.getMorningCapacity(),  DayAndTime.stringToDayAndTime(foodDetailDto.getMorningLastOrderTime())) != null) {
+            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.MORNING, foodDetailDto.getMorningCapacity(), DayAndTime.stringToDayAndTime(foodDetailDto.getMorningLastOrderTime())));
         }
-        if(food.updateFoodCapacity(DiningType.LUNCH, foodDetailDto.getLunchCapacity()) != null) {
-            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.LUNCH, foodDetailDto.getLunchCapacity()));
+        if(food.updateFoodCapacity(DiningType.LUNCH, foodDetailDto.getLunchCapacity(),  DayAndTime.stringToDayAndTime(foodDetailDto.getLunchLastOrderTime())) != null) {
+            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.LUNCH, foodDetailDto.getLunchCapacity(), DayAndTime.stringToDayAndTime(foodDetailDto.getLunchLastOrderTime())));
         }
-        if(food.updateFoodCapacity(DiningType.DINNER, foodDetailDto.getDinnerCapacity()) != null) {
-            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.DINNER, foodDetailDto.getDinnerCapacity()));
+        if(food.updateFoodCapacity(DiningType.DINNER, foodDetailDto.getDinnerCapacity(),  DayAndTime.stringToDayAndTime(foodDetailDto.getDinnerLastOrderTime())) != null) {
+            foodCapacityRepository.save(food.updateFoodCapacity(DiningType.DINNER, foodDetailDto.getDinnerCapacity(), DayAndTime.stringToDayAndTime(foodDetailDto.getDinnerLastOrderTime())));
         }
 
         //음식 할인 정책 저장

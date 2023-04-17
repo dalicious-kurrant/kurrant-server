@@ -1,10 +1,8 @@
 package co.dalicious.domain.client.mapper;
 
 import co.dalicious.domain.client.dto.SpotResponseDto;
-import co.dalicious.domain.client.entity.DayAndTime;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MealInfo;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.system.enums.DiningType;
 import jdk.jfr.Name;
 import org.mapstruct.Mapper;
@@ -13,6 +11,7 @@ import org.mapstruct.Named;
 
 import javax.annotation.MatchesPattern;
 import javax.persistence.NamedEntityGraph;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalTime;
 
@@ -41,5 +40,34 @@ public interface MealInfoMapper {
         return LocalTime.parse(deliveryTime);
     }
 
+
+    @Mapping(source = "mealInfo.lastOrderTime", target = "lastOrderTime")
+    @Mapping(source = "serviceDays", target = "serviceDays")
+    @Mapping(source = "mealInfo.deliveryTime", target = "deliveryTime", qualifiedByName = "getDeliveryTime")
+    @Mapping(source = "diningType", target = "diningType", qualifiedByName = "getDiningTypeByString")
+    @Mapping(source = "mealInfo.group", target = "group")
+    @Mapping(source = "mealInfo.membershipBenefitTime", target = "membershipBenefitTime")
+    @Mapping(source = "updateSpotDetailRequestDto", target = "supportPrice", qualifiedByName = "getSupportPrice")
+    CorporationMealInfo toEntityUpdateSpotDetail(MealInfo mealInfo, String serviceDays, String diningType, UpdateSpotDetailRequestDto updateSpotDetailRequestDto);
+
+    @Named("getSupportPrice")
+    default BigDecimal getSupportPrice(UpdateSpotDetailRequestDto updateSpotDetailRequestDto){
+        String[] split = updateSpotDetailRequestDto.getDiningTypes().split(",");
+        for (String diningType : split){
+            if (diningType.equals("1")){
+                return updateSpotDetailRequestDto.getBreakfastSupportPrice();
+            }
+
+            if (diningType.equals("3")){
+                return updateSpotDetailRequestDto.getDinnerSupportPrice();
+            }
+        }
+        return updateSpotDetailRequestDto.getLunchSupportPrice();
+    }
+
+    @Named("getDiningTypeByString")
+    default DiningType getDiningTypeByString(String diningType){
+        return DiningType.ofCode(Integer.valueOf(diningType));
+    }
 
 }

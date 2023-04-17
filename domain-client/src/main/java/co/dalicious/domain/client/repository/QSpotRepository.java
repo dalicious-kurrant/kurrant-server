@@ -4,12 +4,14 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
+import co.dalicious.system.enums.DiningType;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -120,6 +122,18 @@ public class QSpotRepository {
                     .where(spot.id.eq(updateSpotDetailRequestDto.getSpotId()))
                     .execute();
         }
+
+        /*
+        //DiningTypes
+        if (updateSpotDetailRequestDto.getDiningTypes() != null && !updateSpotDetailRequestDto.getDiningTypes().equals("")){
+
+            List<DiningType> diningTypeList = Arrays.stream(updateSpotDetailRequestDto.getDiningTypes().split(",")).map(DiningType::ofString).toList();
+
+            queryFactory.update(spot)
+                    .set(spot.diningTypes, diningTypeList)
+                    .where(spot.id.eq(updateSpotDetailRequestDto.getSpotId()))
+                    .execute();
+        }*/
 
 
     }

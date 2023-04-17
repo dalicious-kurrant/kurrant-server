@@ -1,15 +1,19 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.dto.MakersInfoResponseDto;
+import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.FoodCapacity;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.MakersCapacity;
 import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.MakersDto;
-import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
+import co.dalicious.domain.food.dto.SaveMakersRequestDto;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Point;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -36,6 +40,9 @@ public interface MakersMapper {
     @Mapping(source = "dinnerCapacity", target = "dinnerCapacity")
     @Mapping(source = "lunchCapacity", target = "lunchCapacity")
     @Mapping(source = "morningCapacity", target = "morningCapacity")
+    @Mapping(source = "makers", target = "dinnerLastOrderTime", qualifiedByName = "getDinnerLastOrderTime")
+    @Mapping(source = "makers", target = "lunchLastOrderTime", qualifiedByName = "getLunchLastOrderTime")
+    @Mapping(source = "makers", target = "morningLastOrderTime", qualifiedByName = "getMorningLastOrderTime")
     @Mapping(source = "diningTypes", target = "diningTypes")
     @Mapping(source = "makers.address.location", target = "location", qualifiedByName = "getLocation")
     @Mapping(source = "makers.address.address2", target = "address2")
@@ -69,7 +76,26 @@ public interface MakersMapper {
     MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<String> diningTypes,
                                 Integer morningCapacity, Integer lunchCapacity, Integer dinnerCapacity);
 
+    @Named("getDinnerLastOrderTime")
+    default String getDinnerLastOrderTime(Makers makers) {
+        MakersCapacity dinnerCapacity = makers.getMakersCapacity(DiningType.DINNER);
+        if(dinnerCapacity == null) return "정보 없음";
+        return DayAndTime.dayAndTimeToString(dinnerCapacity.getLastOrderTime());
+    }
 
+    @Named("getLunchLastOrderTime")
+    default String getLunchLastOrderTime(Makers makers) {
+        MakersCapacity dinnerCapacity = makers.getMakersCapacity(DiningType.LUNCH);
+        if(dinnerCapacity == null) return "정보 없음";
+        return DayAndTime.dayAndTimeToString(dinnerCapacity.getLastOrderTime());
+    }
+
+    @Named("getMorningLastOrderTime")
+    default String getMorningLastOrderTime(Makers makers) {
+        MakersCapacity dinnerCapacity = makers.getMakersCapacity(DiningType.MORNING);
+        if(dinnerCapacity == null) return "정보 없음";
+        return DayAndTime.dayAndTimeToString(dinnerCapacity.getLastOrderTime());
+    }
 
     @Named("generatedServiceForm")
     default String generatedServiceForm(ServiceForm serviceForm){

@@ -77,6 +77,14 @@ public class QGroupRepository {
                     .where(group.id.eq(groupId))
                     .execute();
         }
+        //메모수정
+        if (updateSpotDetailRequestDto.getMemo() != null){
+            queryFactory.update(group)
+                    .set(group.memo, updateSpotDetailRequestDto.getMemo())
+                    .where(group.id.eq(groupId))
+                    .execute();
+        }
+
     }
 
     public BigInteger findById(BigInteger groupId) {

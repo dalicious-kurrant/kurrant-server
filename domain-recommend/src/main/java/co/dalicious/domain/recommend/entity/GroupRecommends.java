@@ -13,7 +13,7 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "Recommend__group_recommends")
+@Table(name = "recommend__group_recommends")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GroupRecommends {
 

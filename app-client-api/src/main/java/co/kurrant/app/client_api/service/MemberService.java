@@ -8,8 +8,10 @@ import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDtoList;
 import co.dalicious.domain.client.dto.ImportExcelWaitingUserListResponseDto;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
+import co.kurrant.app.client_api.dto.MemberIdListDto;
 import co.kurrant.app.client_api.dto.MemberListResponseDto;
 import co.kurrant.app.client_api.dto.MemberWaitingListResponseDto;
+import co.kurrant.app.client_api.model.SecurityUser;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +27,7 @@ public interface MemberService {
 
     List<MemberWaitingListResponseDto> getWaitingUserList(String code);
 
-    void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto);
+    void deleteMember(SecurityUser securityUser, MemberIdListDto deleteMemberRequestDto);
 
     List<ImportExcelWaitingUserListResponseDto> importExcelForWaitingUserList(MultipartFile file) throws IOException;
 

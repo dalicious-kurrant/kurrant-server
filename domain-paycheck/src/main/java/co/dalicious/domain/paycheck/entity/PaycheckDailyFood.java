@@ -1,7 +1,9 @@
 package co.dalicious.domain.paycheck.entity;
 
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -20,6 +22,9 @@ public class PaycheckDailyFood {
     @Comment("서비스 날짜")
     private LocalDate serviceDate;
 
+    @Comment("식사 일정")
+    private DiningType diningType;
+
     @Comment("음식 이름")
     private String name;
 
@@ -33,4 +38,18 @@ public class PaycheckDailyFood {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn
     private Food food;
+
+    @Builder
+    public PaycheckDailyFood(LocalDate serviceDate, DiningType diningType, String name, BigDecimal supplyPrice, Integer count, Food food) {
+        this.serviceDate = serviceDate;
+        this.diningType = diningType;
+        this.name = name;
+        this.supplyPrice = supplyPrice;
+        this.count = count;
+        this.food = food;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return this.supplyPrice == null ? null : this.supplyPrice.multiply(BigDecimal.valueOf(count));
+    }
 }
