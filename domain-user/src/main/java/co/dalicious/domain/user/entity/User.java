@@ -1,5 +1,6 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.user.converter.PushConditionsConverter;
 import co.dalicious.domain.user.converter.UserStatusConverter;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.system.util.StringUtils;
@@ -156,10 +157,10 @@ public class User {
     @Column(name="payment_password", columnDefinition = "VARCHAR(255)")
     private String paymentPassword;
 
-    @ElementCollection
-    @Comment("푸시 알림 조건")
-    @CollectionTable(name = "user__push_condition")
-    private List<UserPushCondition> pushConditionList;
+    @Convert(converter = PushConditionsConverter.class)
+    @Column(name = "push_condition")
+    @Comment("알림 조건")
+    private List<PushCondition> pushConditionList;
 
     @Builder
     public User(BigInteger id, String password, String name, Role role, String email, String phone) {
@@ -176,7 +177,7 @@ public class User {
                 UserStatus userStatus, String phone, String email,
                 BigDecimal point, GourmetType gourmetType, Boolean isMembership, Boolean marketingAgree,
                 Timestamp marketingAgreedDateTime, Boolean marketingAlarm, Boolean orderAlarm, Timestamp recentLoginDateTime,
-                Timestamp createdDateTime, Timestamp updatedDateTime, List<UserPushCondition> pushConditionList){
+                Timestamp createdDateTime, Timestamp updatedDateTime, List<PushCondition> pushConditionList){
         this.id = id;
         this.password = password;
         this.name = name;
@@ -380,5 +381,13 @@ public class User {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
         return Objects.equals(id, user.id);
+    }
+
+    public void updatePushCondition(List<PushCondition> pushConditionList) {
+        this.pushConditionList = pushConditionList;
+    }
+
+    public boolean hasPushCondition(PushCondition condition) {
+        return pushConditionList.contains(condition);
     }
 }

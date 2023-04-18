@@ -13,50 +13,39 @@ import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
-import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
-import co.dalicious.domain.payment.dto.CreditCardDto;
-import co.dalicious.domain.payment.dto.CreditCardResponseDto;
-import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentPasswordStatus;
 import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
-import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
-import co.dalicious.domain.payment.util.TossUtil;
-import co.dalicious.domain.user.dto.UserPreferenceDto;
-import co.dalicious.domain.user.dto.UserPreferenceFoodImageResponseDto;
-import co.dalicious.domain.user.entity.ProviderEmail;
-import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.UserPreference;
+import co.dalicious.domain.user.dto.*;
+import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
+import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.enums.FoodTag;
-import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.enums.RequiredAuth;
-import co.kurrant.app.public_api.mapper.user.UserMapper;
-import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
+import co.kurrant.app.public_api.service.UserService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
@@ -106,8 +95,11 @@ public class UserServiceImpl implements UserService {
     private final QUserRepository qUserRepository;
     private final UserPreferenceMapper userPreferenceMapper;
     private final UserPreferenceRepository userPreferenceRepository;
+    private final UserTasteTestDataRepository userTasteTestDataRepository;
     private final QUserPreferenceRepository qUserPreferenceRepository;
     private final FoodRepository foodRepository;
+    private final UserSelectTestDataRepository userSelectTestDataRepository;
+    private final UserSelectTestDataMapper userSelectTestDataMapper;
 
     @Override
     @Transactional
@@ -306,43 +298,40 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
+    public List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
-        return MarketingAlarmResponseDto.builder()
-                .marketingAgree(user.getMarketingAgree())
-                .orderAlarm(user.getOrderAlarm())
-                .marketingAlarm(user.getMarketingAlarm())
-                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
-                .build();
+        List<PushCondition> userPushConditionList = user.getPushConditionList();
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
+
+        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(userPushConditionList, c)).toList();
     }
 
     @Override
     @Transactional
-    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+    public List<MarketingAlarmResponseDto> changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-        Boolean currantMarketingInfoAgree = user.getMarketingAgree();
-        Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
-        Boolean currantOrderAlarmAgree = user.getOrderAlarm();
+        List<PushCondition> userPushConditionList = new ArrayList<>();
+        if(user.getPushConditionList() != null && !user.getPushConditionList().isEmpty()) {
+            userPushConditionList = user.getPushConditionList();
+        }
 
-        // 현재 시간 가져오기
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        if(marketingAlarmDto.getIsActive()){
+            PushCondition pushCondition = PushCondition.ofCode(marketingAlarmDto.getCode());
+            userPushConditionList.add(pushCondition);
+        }
+        else {
+            PushCondition pushCondition = userPushConditionList.stream()
+                    .filter(c -> c.getCode().equals(marketingAlarmDto.getCode()))
+                    .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_NOT_ACTIVE));
+            userPushConditionList.remove(pushCondition);
+        }
+        List<PushCondition> finalUserPushConditionList = userPushConditionList;
+        user.updatePushCondition(finalUserPushConditionList);
 
-        // 변수 설정
-        Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
-        Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
-        Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
-
-        user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
-
-        return MarketingAlarmResponseDto.builder()
-                .marketingAgree(currantMarketingInfoAgree)
-                .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
-                .marketingAlarm(currantMarketingAlarmAgree)
-                .orderAlarm(currantOrderAlarmAgree)
-                .build();
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
+        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(finalUserPushConditionList, c)).toList();
     }
 
     @Override
@@ -860,8 +849,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userUtil.getUser(securityUser);
 
-        List<UserPreference> preferenceList = userPreferenceRepository.findByUserId(user.getId());
-
+        List<UserPreference> preferenceList = userPreferenceRepository.findAllByUserId(user.getId());
 
         UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
         List<FoodTag> foodTags  = userPreference.getFavoriteCountryFood();
@@ -876,6 +864,12 @@ public class UserServiceImpl implements UserService {
             //삭제 후 저장
             qUserPreferenceRepository.deleteOthers(user.getId());
             userPreferenceRepository.save(userPreference);
+
+            for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
+                UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), userPreference.getId(), userPreference.getUser());
+                userSelectTestDataRepository.save(userSelectTestData);
+            }
+
             return "기존 정보가 있어서 수정하였습니다.";
         }
 
@@ -883,6 +877,13 @@ public class UserServiceImpl implements UserService {
         if (saveResult.getId() == null){
             return "유저 정보 저장에 실패했습니다.";
         }
+        for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
+            UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), saveResult.getId(), saveResult.getUser());
+            userSelectTestDataRepository.save(userSelectTestData);
+        }
+
+
+
         return "유저 정보 저장에 성공했습니다.";
 
     }
@@ -982,4 +983,32 @@ public class UserServiceImpl implements UserService {
         return resultList;
     }
 
+    @Override
+    public Object getTestData() {
+
+        List<UserTestDataDto> userTestDataList = new ArrayList<>();
+        //테스트데이터 조회
+        List<UserTasteTestData> userTasteTestDataList = userTasteTestDataRepository.findAll();
+        for (UserTasteTestData testData : userTasteTestDataList){
+            UserTestDataDto userTestData = new UserTestDataDto();
+            Map<BigInteger, String> foodImageMap = new HashMap<>();
+            List<String> stringList = Arrays.stream(testData.getFoodIds().split(",")).toList();
+            for (String id : stringList){
+                String foodId = id.replace(" ", "");
+                //food 조회
+                Food food = foodRepository.findById(BigInteger.valueOf(Long.parseLong(foodId)))
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+                //food의 imageUrl 가져오기
+                String url = food.getImages().get(0).getLocation();
+                //id와 url을 같이 보내주기 위해 맵에 put
+                foodImageMap.put(food.getId(), url);
+            }
+            userTestData.setId(testData.getId());
+            userTestData.setPage(testData.getPage());
+            userTestData.setFoodIds(foodImageMap);
+            userTestDataList.add(userTestData);
+        }
+
+        return userTestDataList;
+    }
 }
