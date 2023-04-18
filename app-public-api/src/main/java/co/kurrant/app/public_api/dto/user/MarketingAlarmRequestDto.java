@@ -1,11 +1,16 @@
 package co.kurrant.app.public_api.dto.user;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter
+@NoArgsConstructor
+//@Setter
 public class MarketingAlarmRequestDto {
-    private Integer code;
-    private Boolean isActive;
+    private Boolean isMarketingInfoAgree;
+    private Boolean isMarketingAlarmAgree;
+    private Boolean isOrderAlarmAgree;
+//    private Integer code;
+//    private Boolean isActive;
 }
