@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.service.ImageService;
@@ -21,6 +22,7 @@ import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.review.repository.ReviewRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserRepository;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ReviewService;
@@ -145,9 +147,15 @@ public class ReviewServiceImpl implements ReviewService {
             if(reviewOrderItem.contains(item)) continue;
 
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
+                MealInfo mealInfos = orderItemDailyFood.getDailyFood().getGroup().getMealInfos().stream()
+                        .filter(m -> m.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType()))
+                        .findAny().orElse(null);
+                LocalTime deliveryTime = mealInfos != null ? mealInfos.getDeliveryTime() : LocalTime.MAX;
+
                 LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
                 //리뷰 가능일 구하기
-                LocalDateTime reviewableDate = serviceDate.plusDays(5).atTime(LocalTime.MAX);
+                LocalDateTime reviewableDate = serviceDate.plusDays(5).atTime(deliveryTime);
+                System.out.println("reviewableDate = " + reviewableDate);
                 //리뷰 작성 가능일이 이미 지났으면 패스
                 if(reviewableDate.isBefore(today)) continue;
 
@@ -259,9 +267,14 @@ public class ReviewServiceImpl implements ReviewService {
         if(fileList != null && !fileList.isEmpty()) {
             List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
             imageList.addAll(Image.toImages(imageResponseDtos));
+            // 기존 리뷰가 사진이 없다가 수정시 사진을 넣으면 포인트 지급
+            BigDecimal rewardPoint = pointUtil.findReviewPointWhenUpdate(user, reviews.getId());
+            qUserRepository.updateUserPoint(user.getId(), rewardPoint, PointStatus.REVIEW_REWARD);
+            if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByOthers(user, reviews.getId(), PointStatus.REVIEW_REWARD, rewardPoint);
         }
 
         reviews.updatedReviews(updateReqDto, imageList);
+
     }
 
     @Override

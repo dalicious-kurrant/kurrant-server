@@ -43,16 +43,34 @@ public class PushServiceImpl implements PushService {
         String page = pushRequestDto.getPage();
         Map<String, String> keys = pushRequestDto.getKeys();
 
-        List<Message> messages = tokenList.stream().map(token -> Message.builder()
-                .putData("time", LocalDateTime.now().toString())
-                .putData("page", page)
-                .putAllData(keys)
-                .setNotification(Notification.builder()
-                        .setTitle(title)
-                        .setBody(content)
-                        .build())
-                .setToken(token)
-                .build()).collect(Collectors.toList());
+        List<Message> messages;
+
+        // 관련 파라미터가 있으면
+        if(keys != null && !keys.isEmpty()) {
+            messages = tokenList.stream().map(token -> Message.builder()
+                    .putData("time", LocalDateTime.now().toString())
+                    .putData("page", page)
+                    .putAllData(keys)
+                    .setNotification(Notification.builder()
+                            .setTitle(title)
+                            .setBody(content)
+                            .build())
+                    .setToken(token)
+                    .build()).collect(Collectors.toList());
+        }
+        // 없으면
+        else {
+            messages = tokenList.stream().map(token -> Message.builder()
+                    .putData("time", LocalDateTime.now().toString())
+                    .putData("page", page)
+                    .setNotification(Notification.builder()
+                            .setTitle(title)
+                            .setBody(content)
+                            .build())
+                    .setToken(token)
+                    .build()).collect(Collectors.toList());
+        }
+
 
         //알림 발송
         BatchResponse response;

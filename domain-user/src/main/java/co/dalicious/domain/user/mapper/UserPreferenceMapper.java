@@ -18,10 +18,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface UserPreferenceMapper {
 
-    @Mapping(source = "userPreferenceDto.selectedFoodId", target = "selectedFoodId")
-    @Mapping(source = "userPreferenceDto.unselectedFoodId", target = "unselectedFoodId")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.country", target = "country", qualifiedByName = "generatedCountry")
-    @Mapping(source = "userPreferenceDto.userDefaultInfo.birthPlace", target = "birthPlace")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.jobType", target = "jobType", qualifiedByName = "generatedJobType")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.detailJobType", target = "detailJobType", qualifiedByName = "generatedJobType")
     @Mapping(source = "userPreferenceDto.userDefaultInfo.gender", target = "gender")

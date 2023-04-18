@@ -1,4 +1,4 @@
-package co.kurrant.app.admin_api.dto.makers;
+package co.dalicious.domain.food.dto;
 
 import co.dalicious.domain.food.dto.MakersCapacityDto;
 import io.swagger.v3.oas.annotations.media.Schema;

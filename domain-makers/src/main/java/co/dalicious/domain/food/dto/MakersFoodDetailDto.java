@@ -19,6 +19,9 @@ public class MakersFoodDetailDto {
     private Integer morningCapacity;
     private Integer lunchCapacity;
     private Integer dinnerCapacity;
+    private String morningLastOrderTime;
+    private String lunchLastOrderTime;
+    private String dinnerLastOrderTime;
     private BigDecimal supplyPrice;
     private BigDecimal foodPrice;
     private List<String> foodImages;
@@ -32,13 +35,16 @@ public class MakersFoodDetailDto {
     private String description;
     private BigDecimal customPrice;
 
-    public MakersFoodDetailDto(String makersName, BigInteger foodId, String foodName, Integer morningCapacity, Integer lunchCapacity, Integer dinnerCapacity, BigDecimal supplyPrice, BigDecimal foodPrice, List<String> foodImages, BigDecimal makersDiscountPrice, Integer makersDiscountRate, BigDecimal membershipDiscountPrice, Integer membershipDiscountRate, BigDecimal periodDiscountPrice, Integer periodDiscountRate, List<Integer> foodTags, String description, BigDecimal customPrice) {
+    public MakersFoodDetailDto(String makersName, BigInteger foodId, String foodName, Integer morningCapacity, Integer lunchCapacity, Integer dinnerCapacity, String morningLastOrderTime, String lunchLastOrderTime, String dinnerLastOrderTime, BigDecimal supplyPrice, BigDecimal foodPrice, List<String> foodImages, BigDecimal makersDiscountPrice, Integer makersDiscountRate, BigDecimal membershipDiscountPrice, Integer membershipDiscountRate, BigDecimal periodDiscountPrice, Integer periodDiscountRate, List<Integer> foodTags, String description, BigDecimal customPrice) {
         this.makersName = makersName;
         this.foodId = foodId;
         this.foodName = foodName;
         this.morningCapacity = morningCapacity;
         this.lunchCapacity = lunchCapacity;
         this.dinnerCapacity = dinnerCapacity;
+        this.morningLastOrderTime = morningLastOrderTime;
+        this.lunchLastOrderTime = lunchLastOrderTime;
+        this.dinnerLastOrderTime = dinnerLastOrderTime;
         this.supplyPrice = supplyPrice;
         this.foodPrice = foodPrice;
         this.foodImages = foodImages;

@@ -313,8 +313,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                         orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                     }
-                    user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
                     pointUtil.createPointHistoryByOthers(user, orderDailyFood.getId(), PointStatus.USED, orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
+                    user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
 
                     //Order 테이블에 paymentKey와 receiptUrl 업데이트
                     JSONObject receipt = (JSONObject) jsonObject.get("receipt");
@@ -394,10 +394,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         for (OrderItemDailyFoodGroup OrderItemDailyFoodGroup : orderItemDailyFoodGroups) {
+
+            List<OrderItemDto> orderItemDtoList = multiValueMap.get(OrderItemDailyFoodGroup);
+            orderItemDtoList = orderItemDtoList != null && !orderItemDtoList.isEmpty() ?
+                    orderItemDtoList.stream().sorted(Comparator.comparing((OrderItemDto dto) -> dto.getOrderStatus() != null && dto.getOrderStatus().equals(10) ? 0 : 1)
+                            .thenComparing(dto -> dto.getOrderStatus().equals(11) ? 0 : 1))
+                            .toList() : orderItemDtoList;
+
             OrderDetailDto orderDetailDto = OrderDetailDto.builder()
                     .serviceDate(DateUtils.format(OrderItemDailyFoodGroup.getServiceDate(), "yyyy-MM-dd"))
                     .diningType(OrderItemDailyFoodGroup.getDiningType().getDiningType())
-                    .orderItemDtoList(multiValueMap.get(OrderItemDailyFoodGroup))
+                    .orderItemDtoList(orderItemDtoList)
                     .build();
             orderDetailDtos.add(orderDetailDto);
         }
@@ -809,8 +816,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                     orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
                 }
-                user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
                 pointUtil.createPointHistoryByOthers(user, orderDailyFood.getId(), PointStatus.USED, orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
+
+                user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
                 //Order 테이블에 paymentKey와 receiptUrl 업데이트
                 String receiptUrl = response.get("receipt_url").toString();
 

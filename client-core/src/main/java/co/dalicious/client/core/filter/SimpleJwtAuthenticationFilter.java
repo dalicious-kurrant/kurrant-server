@@ -42,7 +42,7 @@ public class SimpleJwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (request.getRequestURI().startsWith("/v1/auth")) {
+        if (request.getRequestURI().startsWith("/v1/auth") && request.getRequestURI().startsWith("/v1/auth/certification/email?type=8")) {
             filterChain.doFilter(request, response);
             return;
         }

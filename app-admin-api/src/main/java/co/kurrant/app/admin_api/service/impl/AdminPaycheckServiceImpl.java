@@ -7,9 +7,8 @@ import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
-import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
+import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
@@ -17,7 +16,7 @@ import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
 import co.dalicious.domain.paycheck.repository.CorporationPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
-import co.dalicious.domain.paycheck.service.ExcelService;
+import co.dalicious.domain.paycheck.repository.QMakersPaycheckRepository;
 import co.dalicious.domain.paycheck.service.PaycheckService;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
@@ -36,14 +35,12 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AdminAdminPaycheckServiceImpl implements AdminPaycheckService {
+public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final MakersRepository makersRepository;
     private final ImageService imageService;
     private final MakersPaycheckMapper makersPaycheckMapper;
@@ -54,8 +51,7 @@ public class AdminAdminPaycheckServiceImpl implements AdminPaycheckService {
     private final CorporationPaycheckMapper corporationPaycheckMapper;
     private final CorporationPaycheckRepository corporationPaycheckRepository;
     private final PaycheckService paycheckService;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
-    private final ExcelService excelService;
+    private final QMakersPaycheckRepository qMakersPaycheckRepository;
     private final SparkPlusLogRepository sparkPlusLogRepository;
 
     @Override
@@ -102,6 +98,15 @@ public class AdminAdminPaycheckServiceImpl implements AdminPaycheckService {
     public List<PaycheckDto.MakersResponse> getMakersPaychecks() {
         List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByOrderByCreatedDateTimeDesc();
         return makersPaycheckMapper.toDtos(makersPaychecks);
+    }
+
+    @Override
+    @Transactional
+    public PaycheckDto.MakersDetail getMakersPaycheckDetail(BigInteger makersPaycheckId) {
+        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(makersPaycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        TransactionInfoDefault transactionInfoDefault = paycheckService.getTransactionInfoDefault();
+        return makersPaycheckMapper.toDetailDto(makersPaycheck, transactionInfoDefault);
     }
 
     @Override
@@ -266,17 +271,8 @@ public class AdminAdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public void postMakersPaycheckExcel() {
-        Makers makers = makersRepository.findById(BigInteger.valueOf(2))
-                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
-        LocalDate startDate = LocalDate.of(2023, 4, 1);
-        LocalDate endDate = LocalDate.of(2023, 4, 30);
-        List<Integer> diningTypes = Arrays.asList(1, 2, 3);
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
-        MakersPaycheck makersPaycheck = paycheckService.generateMakersPaycheck(makers, orderItemDailyFoods);
-        makersPaycheck = makersPaycheckRepository.save(makersPaycheck);
-
-        excelService.createMakersPaycheckExcel(makersPaycheck);
+    public List<MakersPaycheck> postMakersPaycheckExcel() {
+        return paycheckService.generateAllMakersPaycheck(qMakersPaycheckRepository.getPaycheckDto());
     }
 
     public String getImagePrefix(Image image) {

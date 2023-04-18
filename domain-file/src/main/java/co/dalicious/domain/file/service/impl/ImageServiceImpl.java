@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -124,5 +125,22 @@ public class ImageServiceImpl implements ImageService {
         }
 
         return baos.toByteArray();
+    }
+
+    @Override
+    public ImageResponseDto fileUpload(byte[] fileBytes, String dirName, String fileName) {
+        AmazonS3 amazonS3 = amazonS3Client();
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(fileBytes);
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(fileBytes.length);
+        metadata.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+        String key = dirName + "/" + createKey(fileName);
+        PutObjectRequest request = new PutObjectRequest(bucketName, key, inputStream, metadata);
+        String location = String.valueOf(amazonS3.getUrl(bucketName, key));
+        amazonS3.putObject(request);
+
+        return new ImageResponseDto(location, key, fileName);
     }
 }

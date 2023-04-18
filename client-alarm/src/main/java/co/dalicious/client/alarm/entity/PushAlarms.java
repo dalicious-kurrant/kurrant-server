@@ -1,6 +1,7 @@
 package co.dalicious.client.alarm.entity;
 
 import co.dalicious.client.alarm.converter.PushStatusConverter;
+import co.dalicious.domain.user.converter.PushConditionConverter;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.client.alarm.entity.enums.PushStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -33,6 +34,7 @@ public class PushAlarms {
     @Comment("푸시알림 상태 - 0. 활성 / 1. 비활성")
     private PushStatus pushStatus;
 
+    @Convert(converter = PushConditionConverter.class)
     @Column(name = "push_condition")
     @Comment("푸시알림 조건")
     private PushCondition condition;

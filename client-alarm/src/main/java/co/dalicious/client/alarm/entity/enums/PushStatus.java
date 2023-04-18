@@ -10,8 +10,8 @@ import java.util.Arrays;
 
 @Getter
 public enum PushStatus {
-    ACTIVE("활성", 0),
-    INACTIVE("비활성", 1);
+    INACTIVE("비활성", 0),
+    ACTIVE("활성", 1);
 
     private final String status;
     private final Integer code;

@@ -1,5 +1,6 @@
 package co.kurrant.app.makers_api.service.impl;
 
+import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
@@ -15,6 +16,7 @@ import co.dalicious.domain.review.mapper.ReviewMapper;
 import co.dalicious.domain.review.repository.CommentsRepository;
 import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.review.repository.ReviewRepository;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.ReviewService;
 import co.kurrant.app.makers_api.util.UserUtil;
@@ -32,7 +34,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +45,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final CommentsRepository commentsRepository;
     private final UserUtil userUtil;
+    private final PushUtil pushUtil;
+
     @Override
     @Transactional
     public void createMakersComment(BigInteger reviewId, CommentReqDto reqDto) {
@@ -55,9 +61,14 @@ public class ReviewServiceImpl implements ReviewService {
             }
         }
 
-
         MakersComments comments = reviewMapper.toMakersComment(reqDto, reviews);
         commentsRepository.save(comments);
+
+        // 댓글 생성 푸시알림
+        Set<BigInteger> userIdSet = new HashSet<>();
+        userIdSet.add(reviews.getUser().getId());
+
+        pushUtil.sendToType(null, null, userIdSet, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
     }
 
     @Override

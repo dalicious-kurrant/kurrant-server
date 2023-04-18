@@ -107,11 +107,6 @@ public class UserPreference {
     @Comment("국가")
     private Country country;
 
-    @Convert(converter = BirthPlaceConverter.class)
-    @Column(name = "birth_place", columnDefinition = "INT")
-    @Comment("출생지")
-    private BirthPlace birthPlace;
-
 
     @Convert(converter = JobTypeConverter.class)
     @Column(name = "job_type", columnDefinition = "INT")
@@ -132,11 +127,12 @@ public class UserPreference {
     @Comment("선호하지 않는 음식 ID")
     private String unselectedFoodId;
 
+
     @Builder
     public UserPreference(User user,  Integer breakfastCount, Integer midnightSnackCount, Integer exerciseCount, Integer drinkCount,
                    List<FoodTag> favoriteCountryFood, List<FoodTag> allergyInfo, String allergyInfoEtc, Boolean isBegan, Integer veganLevel, Boolean isProtein,
                    Integer proteinFrequency, String birthYear, String birthMonth, String birthDay, Integer gender, Country country,
-                   BirthPlace birthPlace, JobType jobType, JobType detailJobType, String selectedFoodId, String unselectedFoodId){
+                   JobType jobType, JobType detailJobType, String selectedFoodId, String unselectedFoodId){
         this.user = user;
         this.breakfastCount = breakfastCount;
         this.midnightSnackCount = midnightSnackCount;
@@ -154,7 +150,6 @@ public class UserPreference {
         this.birthDay = birthDay;
         this.gender = gender;
         this.country = country;
-        this.birthPlace = birthPlace;
         this.jobType = jobType;
         this.detailJobType = detailJobType;
         this.selectedFoodId = selectedFoodId;
@@ -162,4 +157,7 @@ public class UserPreference {
 
     }
 
+    public void updateFavoriteCountryFood(List<FoodTag> favoriteCountryFood) {
+        this.favoriteCountryFood = favoriteCountryFood;
+    }
 }

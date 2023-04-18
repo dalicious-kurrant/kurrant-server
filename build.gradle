@@ -245,6 +245,7 @@ project(':app-makers-api') {
         implementation project(':client-sse')
         implementation project(':domain-recommend')
         implementation project(':domain-paycheck')
+        implementation project(':client-alarm')
     }
 }
 

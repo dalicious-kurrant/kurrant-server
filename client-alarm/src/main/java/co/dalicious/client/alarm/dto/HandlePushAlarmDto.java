@@ -30,22 +30,8 @@ public class HandlePushAlarmDto {
 
     @Getter
     @Setter
-    public static class HandlePushAlarmGroup {
-        private BigInteger groupId;
-        private String groupName;
-    }
-
-    @Getter
-    @Setter
-    public static class HandlePushAlarmSpot {
-        private BigInteger spotId;
-        private String spotName;
-    }
-
-    @Getter
-    @Setter
-    public static class HandlePushAlarmUser {
-        private BigInteger userid;
+    public static class HandlePushAlarm {
+        private BigInteger id;
         private String name;
         private String email;
     }

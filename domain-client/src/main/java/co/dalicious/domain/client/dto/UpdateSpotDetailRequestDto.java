@@ -45,9 +45,9 @@ public class UpdateSpotDetailRequestDto {
     @Schema(description = "좌표")
     private String location;
     @Schema(description = "최소 구매 가능 금액")
-    private Integer minPrice;
+    private BigDecimal minPrice;
     @Schema(description = "최대 구매 가능 금액")
-    private Integer maxPrice;
+    private BigDecimal maxPrice;
     @Schema(description = "식사 세팅 지원 서비스")
     private Boolean isSetting;
     @Schema(description = "쓰레기 지원 서비스")

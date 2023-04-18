@@ -4,6 +4,7 @@ import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointStatus;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
 import static co.dalicious.domain.user.entity.QPointHistory.pointHistory;
@@ -69,5 +71,26 @@ public class QPointHistoryRepository {
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public List<PointHistory> findByContentId(User user, BigInteger id, PointStatus pointStatus) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(pointStatus.equals(PointStatus.REVIEW_REWARD)) {
+            whereCause.and(pointHistory.reviewId.eq(id));
+        }
+        if(pointStatus.equals(PointStatus.EVENT_REWARD)) {
+            whereCause.and(pointHistory.boardId.eq(id));
+        }
+        if(pointStatus.equals(PointStatus.CANCEL)) {
+            whereCause.and(pointHistory.paymentCancelHistoryId.eq(id));
+        }
+        if(pointStatus.equals(PointStatus.USED)) {
+            whereCause.and(pointHistory.orderId.eq(id));
+        }
+
+        return jpaQueryFactory.selectFrom(pointHistory)
+                .where(pointHistory.user.eq(user), whereCause)
+                .fetch();
     }
 }

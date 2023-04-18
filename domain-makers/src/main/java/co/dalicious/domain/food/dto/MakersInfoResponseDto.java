@@ -44,8 +44,12 @@ public class MakersInfoResponseDto {
     private String createdDateTime;
     private String updatedDateTime;
     private List<String> diningTypes;
+    private String morningLastOrderTime;
+    private String lunchLastOrderTime;
+    private String dinnerLastOrderTime;
     private Integer morningCapacity;
     private Integer lunchCapacity;
     private Integer dinnerCapacity;
+    private String memo;
 
 }
