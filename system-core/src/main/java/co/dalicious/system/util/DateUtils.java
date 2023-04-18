@@ -130,7 +130,7 @@ public class DateUtils {
     }
 
     public static String toISOLocalDateAndWeekOfDay(Timestamp ts) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd E", Locale.KOREA);
+        SimpleDateFormat sdf = new SimpleDateFormat("MM월 dd일 E", Locale.KOREA);
         return sdf.format(ts);
     }
 }
