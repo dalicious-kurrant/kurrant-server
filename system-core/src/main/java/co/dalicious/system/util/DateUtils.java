@@ -1,7 +1,6 @@
 package co.dalicious.system.util;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -118,15 +117,17 @@ public class DateUtils {
 
     public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
         LocalDateTime now = LocalDateTime.now();
-        LocalTime deliveryTime = LocalTime.of(limitDayAndTime.getHour(), limitDayAndTime.getMinute(), limitDayAndTime.getSecond());
-        LocalDateTime nowDeliveryTime = LocalDateTime.of(now.toLocalDate(), deliveryTime);
 
         long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
-        long hoursLeft = now.until(nowDeliveryTime, ChronoUnit.HOURS);
+        long hoursLeft = now.until(limitDayAndTime, ChronoUnit.HOURS);
+        System.out.println("hoursLeft = " + hoursLeft);
         now = now.plusHours(hoursLeft);
-        long minutesLeft = now.until(nowDeliveryTime, ChronoUnit.MINUTES);
+        long minutesLeft = now.until(limitDayAndTime, ChronoUnit.MINUTES);
+        System.out.println("minutesLeft = " + minutesLeft);
 
-        return String.format("%01d %02d:%02d", leftDay, hoursLeft, minutesLeft);
+        LocalTime remainingTime = LocalTime.of((int) hoursLeft % 24, (int) minutesLeft);
+
+        return String.format("%01d %tk:%tM", leftDay, remainingTime, remainingTime);
     }
 
     public static String toISOLocalDateAndWeekOfDay(Timestamp ts) {
