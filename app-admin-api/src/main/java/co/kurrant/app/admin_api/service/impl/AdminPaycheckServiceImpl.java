@@ -11,13 +11,17 @@ import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
+import co.dalicious.domain.paycheck.entity.PaycheckAdd;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
 import co.dalicious.domain.paycheck.repository.CorporationPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.QMakersPaycheckRepository;
+import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
+import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.dalicious.domain.client.entity.SparkPlusLog;
@@ -35,8 +39,11 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +60,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final PaycheckService paycheckService;
     private final QMakersPaycheckRepository qMakersPaycheckRepository;
     private final SparkPlusLogRepository sparkPlusLogRepository;
+    private final ExcelService excelService;
 
     @Override
     @Transactional
@@ -95,8 +103,16 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public List<PaycheckDto.MakersResponse> getMakersPaychecks() {
-        List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByOrderByCreatedDateTimeDesc();
+    public List<PaycheckDto.MakersResponse> getMakersPaychecks(Map<String, Object> parameters) {
+        Integer year = !parameters.containsKey("year") || parameters.get("year") == null ? null : Integer.parseInt(String.valueOf(parameters.get("year")));
+        Integer month = !parameters.containsKey("month") || parameters.get("month") == null ? null : Integer.parseInt(String.valueOf(parameters.get("month")));
+        List<BigInteger> makersIds = !parameters.containsKey("makersIds") || parameters.get("makersIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersIds"));
+        Integer status = !parameters.containsKey("status") || parameters.get("status") == null ? null : Integer.parseInt(String.valueOf(parameters.get("status")));
+        Boolean hasRequest = !parameters.containsKey("hasRequest") || parameters.get("hasRequest") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("hasRequest")));
+
+        YearMonth yearMonth = (year != null && month != null) ? YearMonth.of(year, month) : null;
+
+        List<MakersPaycheck> makersPaychecks = qMakersPaycheckRepository.getMakersPaychecksByFilter(yearMonth, makersIds, PaycheckStatus.ofCode(status), hasRequest);
         return makersPaycheckMapper.toDtos(makersPaychecks);
     }
 
@@ -106,6 +122,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(makersPaycheckId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         TransactionInfoDefault transactionInfoDefault = paycheckService.getTransactionInfoDefault();
+        transactionInfoDefault.updateYearMonth(DateUtils.YearMonthToString(makersPaycheck.getYearMonth()));
         return makersPaycheckMapper.toDetailDto(makersPaycheck, transactionInfoDefault);
     }
 
@@ -142,10 +159,31 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         makersPaycheck.updateMakersPaycheck(YearMonth.of(paycheckDto.getYear(), paycheckDto.getMonth()), PaycheckStatus.ofString(paycheckDto.getPaycheckStatus()));
     }
 
+//    메이커스 정산 삭제
+//    @Override
+//    public void deleteMakersPaycheck(List<BigInteger> ids) {
+//        List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByIdIn(ids);
+//        makersPaycheckRepository.deleteAll(makersPaychecks);
+//    }
+
     @Override
-    public void deleteMakersPaycheck(List<BigInteger> ids) {
-        List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByIdIn(ids);
-        makersPaycheckRepository.deleteAll(makersPaychecks);
+    @Transactional
+    public void postPaycheckAdd(BigInteger makersPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
+        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(makersPaycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        List<PaycheckAdd> paycheckAdds = makersPaycheckMapper.toPaycheckAdds(paycheckAddDtos);
+        makersPaycheck = makersPaycheck.updatePaycheckAdds(paycheckAdds);
+
+        // 요청 Body에 파일이 존재하지 않는다면 삭제
+        if (makersPaycheck.getExcelFile() != null) {
+            imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
+        }
+        // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
+        ImageResponseDto imageResponseDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+        Image image = new Image(imageResponseDto);
+        makersPaycheck.updateExcelFile(image);
+
+        // TODO: 추후 PDF 파일 추가
     }
 
     @Override

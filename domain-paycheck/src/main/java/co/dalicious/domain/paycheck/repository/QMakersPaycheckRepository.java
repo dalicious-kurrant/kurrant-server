@@ -2,6 +2,9 @@ package co.dalicious.domain.paycheck.repository;
 
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
+import co.dalicious.domain.paycheck.entity.MakersPaycheck;
+import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.Coalesce;
@@ -11,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +25,7 @@ import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
+import static co.dalicious.domain.paycheck.entity.QMakersPaycheck.makersPaycheck;
 
 @Repository
 @RequiredArgsConstructor
@@ -64,4 +70,23 @@ public class QMakersPaycheckRepository {
         return paycheckDailyFoods;
     }
 
+    public List<MakersPaycheck> getMakersPaychecksByFilter(YearMonth yearMonth, List<BigInteger> makersIds, PaycheckStatus paycheckStatus, Boolean hasRequest) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(yearMonth != null) {
+            whereClause.and(makersPaycheck.yearMonth.eq(yearMonth));
+        }
+        if(makersIds != null && !makersIds.isEmpty()) {
+            whereClause.and(makersPaycheck.makers.id.in(makersIds));
+        }
+        if(paycheckStatus != null) {
+            whereClause.and(makersPaycheck.paycheckStatus.eq(paycheckStatus));
+        }
+        if(hasRequest != null) {
+            whereClause.and(hasRequest ? makersPaycheck.paycheckMemos.isNotEmpty() : makersPaycheck.paycheckMemos.isEmpty());
+        }
+        return queryFactory.selectFrom(makersPaycheck)
+                .where(whereClause)
+                .orderBy(makersPaycheck.createdDateTime.asc())
+                .fetch();
+    }
 }

@@ -4,9 +4,11 @@ import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
+import co.dalicious.domain.paycheck.entity.PaycheckAdd;
 import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
 import co.dalicious.domain.paycheck.service.ExcelService;
 
+import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -39,9 +41,9 @@ public class ExcelServiceImpl implements ExcelService {
         Sheet sheet = workbook.createSheet("MakersPaycheck");
 
         sheet.setColumnWidth(0, 2 * 256);
-        String dirName = "paycheck/makers/" + makersPaycheck.getMakers().getId().toString() + makersPaycheck.getYearAndMonthString();
+        String dirName = "paycheck/makers/" + makersPaycheck.getMakers().getId().toString() + makersPaycheck.getYearAndMonthString() + "/" +  makersPaycheck.getMakers().getId().toString();
 
-        String fileName = makersPaycheck.getMakers().getId().toString()  + "/" + makersPaycheck.getYearAndMonthString() +
+        String fileName =  makersPaycheck.getYearAndMonthString() +
                 "_" + makersPaycheck.getMakers().getName() + ".xlsx";
 
         String fileName2 = "C:\\Users\\minji\\Downloads\\" + makersPaycheck.getYearMonth().getYear() +
@@ -61,8 +63,23 @@ public class ExcelServiceImpl implements ExcelService {
             currentRow++;
         }
 
-        // Write total row
-        Integer footerRowNumber = writeTotalRow(sheet, currentRow + 3, dailyFoods);
+        // 추가 요청 헤더 생성
+        List<PaycheckAdd> paycheckAdds = makersPaycheck.getPaycheckAdds();
+        if(!paycheckAdds.isEmpty()) {
+            Row row = sheet.createRow(++currentRow);
+            createDailyFoodAddHeader(workbook, sheet, row);
+            currentRow++;
+
+            for (PaycheckAdd paycheckAdd : paycheckAdds) {
+                writeDailyFoodAdd(workbook, row, paycheckAdd);
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow , 6, 7));
+                currentRow++;
+            }
+        }
+
+
+        // 총 금액 row 추가
+        Integer footerRowNumber = writeTotalRow(sheet, currentRow + 3, makersPaycheck);
         createFooterRows(sheet, footerRowNumber);
 
         // Adjust column widths
@@ -289,42 +306,80 @@ public class ExcelServiceImpl implements ExcelService {
         cell5.setCellStyle(priceCellStyle);
     }
 
-    private static Integer writeTotalRow(Sheet sheet, Integer startRow, List<PaycheckDailyFood> dailyFoods) {
+    private static void createDailyFoodAddHeader(Workbook workBook, Sheet sheet, Row row) {
+        String[] headers = {"이슈날짜", "이슈항목", "정산항목", "금액", "내용"};
+        for (int i = 1; i <= headers.length; i++) {
+            Cell cell = null;
+            if (i < 5) {
+                cell = row.createCell(i);
+                cell.setCellValue(headers[i - 1]);
+            }
+            if (i == 5) {
+                cell = row.createCell(i);
+                cell.setCellValue(headers[i - 1]);
+                sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 6, 7));
+            }
+            cell.setCellStyle(dataHeader(workBook));
+        }
+    }
+
+    private static void writeDailyFoodAdd(Workbook workBook, Row row, PaycheckAdd paycheckAdd) {
+        CellStyle dataCellStyle = center(workBook);
+        CellStyle priceCellStyle = priceStyle(workBook);
+
+        Cell cell1 = row.createCell(1);
+        cell1.setCellValue(DateUtils.format(paycheckAdd.getIssueDate()));
+        cell1.setCellStyle(dataCellStyle);
+
+        Cell cell2 = row.createCell(2);
+        cell2.setCellValue(paycheckAdd.getIssueItem());
+        cell2.setCellStyle(dataCellStyle);
+
+        Cell cell3 = row.createCell(3);
+        cell3.setCellValue(paycheckAdd.getPaycheckItem());
+        cell3.setCellStyle(dataCellStyle);
+
+        Cell cell4 = row.createCell(4);
+        cell4.setCellValue(paycheckAdd.getPrice().intValue());
+        cell4.setCellStyle(priceCellStyle);
+
+        Cell cell5 = row.createCell(5);
+        cell5.setCellValue(paycheckAdd.getMemo());
+        cell5.setCellStyle(priceCellStyle);
+    }
+
+    private static Integer writeTotalRow(Sheet sheet, Integer startRow, MakersPaycheck makersPaycheck) {
         // 총액 셀 추가
         Row totalPriceRow = sheet.createRow(startRow);
-        Integer total = dailyFoods.stream()
-                .map(df -> df.getSupplyPrice().multiply(BigDecimal.valueOf(df.getCount())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add).intValue();
 
 
-        Cell cell1 = totalPriceRow.createCell(5);
+        Cell cell1 = totalPriceRow.createCell(6);
         cell1.setCellValue("총액");
         cell1.setCellStyle(boldCenter(sheet.getWorkbook()));
 
-        Cell cell1_2 = totalPriceRow.createCell(6);
-        cell1_2.setCellValue(total);
+        Cell cell1_2 = totalPriceRow.createCell(7);
+        cell1_2.setCellValue(makersPaycheck.getFoodTotalPrice().intValue());
         cell1_2.setCellStyle(boldPriceStyle(sheet.getWorkbook()));
 
         // 수수료 셀 추가
         Row chargeRow = sheet.createRow(startRow + 1);
-        Cell cell2 = chargeRow.createCell(5);
+        Cell cell2 = chargeRow.createCell(6);
         cell2.setCellValue("수수료");
         cell2.setCellStyle(boldCenter(sheet.getWorkbook()));
 
-        // TODO: 수정필요
-        Cell cell2_2 = chargeRow.createCell(6);
-        cell2_2.setCellValue(0);
+        Cell cell2_2 = chargeRow.createCell(7);
+        cell2_2.setCellValue(makersPaycheck.getCommissionPrice().intValue());
         cell2_2.setCellStyle(boldPriceStyle(sheet.getWorkbook()));
 
         // 결제 금액 셀 추가
         Row payPriceRow = sheet.createRow(startRow + 2);
-        Cell cell3 = payPriceRow.createCell(5);
+        Cell cell3 = payPriceRow.createCell(6);
         cell3.setCellValue("Total");
         cell3.setCellStyle(boldCenter(sheet.getWorkbook()));
 
         // TODO: 수정필요
-        Cell cell3_2 = payPriceRow.createCell(6);
-        cell3_2.setCellValue(total);
+        Cell cell3_2 = payPriceRow.createCell(7);
+        cell3_2.setCellValue(makersPaycheck.getTotalPrice());
         cell3_2.setCellStyle(priceStyle(sheet.getWorkbook()));
 
         return startRow + 3;

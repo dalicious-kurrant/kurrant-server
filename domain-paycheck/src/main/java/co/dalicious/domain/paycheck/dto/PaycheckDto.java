@@ -3,9 +3,9 @@ package co.dalicious.domain.paycheck.dto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.system.enums.DiningType;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.poi.hpsf.Decimal;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -40,11 +40,13 @@ public class PaycheckDto {
     @Setter
     public static class MakersDetail {
         private TransactionInfoDefault transactionInfoDefault;
+        private MakersPaycheckInfo makersPaycheckInfo;
         private List<PaycheckDailyFoodDto> paycheckDailyFoods;
         private List<PaycheckAddDto> paycheckAdds;
-        private BigDecimal foodsPrice;
+        private Integer foodsPrice;
         private Double commission;
-        private BigDecimal totalPrice;
+        private Integer commissionPrice;
+        private Integer totalPrice;
         private List<String> paycheckMemo;
     }
     @Getter
@@ -102,5 +104,28 @@ public class PaycheckDto {
         private String paycheckItem;
         private BigDecimal price;
         private String memo;
+    }
+
+    @Getter
+    @Setter
+    public static class MakersPaycheckInfo {
+        private String year;
+        private String month;
+        private String makers;
+        private String status;
+        private String depositHolder;
+        private String bankName;
+        private String bankAccount;
+
+        @Builder
+        public MakersPaycheckInfo(String year, String month, String makers, String status, String depositHolder, String bankName, String bankAccount) {
+            this.year = year;
+            this.month = month;
+            this.makers = makers;
+            this.status = status;
+            this.depositHolder = depositHolder;
+            this.bankName = bankName;
+            this.bankAccount = bankAccount;
+        }
     }
 }

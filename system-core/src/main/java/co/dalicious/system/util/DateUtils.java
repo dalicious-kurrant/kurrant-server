@@ -116,6 +116,10 @@ public class DateUtils {
         return YearMonth.of(year, month);
     }
 
+    public static String YearMonthToString(YearMonth yearMonth) {
+        return yearMonth.getYear() + "-" + yearMonth.getMonthValue();
+    }
+
     public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
         LocalDateTime now = LocalDateTime.now();
         LocalTime deliveryTime = LocalTime.of(limitDayAndTime.getHour(), limitDayAndTime.getMinute(), limitDayAndTime.getSecond());

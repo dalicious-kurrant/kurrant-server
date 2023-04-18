@@ -7,6 +7,7 @@ import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.PaycheckAdd;
 import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
+import co.dalicious.domain.paycheck.entity.PaycheckMemo;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.system.util.DateUtils;
 import org.apache.poi.hpsf.Decimal;
@@ -57,6 +58,15 @@ public interface MakersPaycheckMapper {
     @Mapping(source = "pdfFile.location", target = "pdfFile")
     PaycheckDto.MakersResponse toDto(MakersPaycheck makersPaycheck);
 
+    @Mapping(source = "issueDate", target = "issueDate", qualifiedByName = "stringToLocalDate")
+    PaycheckAdd toPaycheckAdd(PaycheckDto.PaycheckAddDto paycheckAddDto);
+
+    default List<PaycheckAdd> toPaycheckAdds(List<PaycheckDto.PaycheckAddDto> paycheckAddDto) {
+        return paycheckAddDto.stream()
+                .map(this::toPaycheckAdd)
+                .toList();
+    }
+
 
     default PaycheckDto.PaycheckDailyFoodDto toPaycheckDailyFoodDto(PaycheckDailyFood paycheckDailyFood) {
         PaycheckDto.PaycheckDailyFoodDto paycheckDailyFoodDto = new PaycheckDto.PaycheckDailyFoodDto();
@@ -92,28 +102,47 @@ public interface MakersPaycheckMapper {
 
     default PaycheckDto.MakersDetail toDetailDto(MakersPaycheck makersPaycheck, TransactionInfoDefault transactionInfoDefault) {
         PaycheckDto.MakersDetail makersDetail = new PaycheckDto.MakersDetail();
+
         List<PaycheckDto.PaycheckDailyFoodDto> paycheckDailyFoodDtos = toPaycheckDailyFoodDtos(makersPaycheck.getPaycheckDailyFoods());
 
-        BigDecimal foodsPrice = paycheckDailyFoodDtos.stream()
-                .map(PaycheckDto.PaycheckDailyFoodDto::getTotalPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        // TODO: 수수료 정리 필요
-        double commission = 7.7;
-        BigDecimal totalPrice = foodsPrice.multiply(BigDecimal.valueOf((100 - commission) / 100));
+        PaycheckDto.MakersPaycheckInfo makersPaycheckInfo = toMakersPaycheckInfo(makersPaycheck);
+
+        List<String> memo = makersPaycheck.getPaycheckMemos().stream()
+                .map(PaycheckMemo::getMemo)
+                .toList();
 
         makersDetail.setTransactionInfoDefault(transactionInfoDefault);
+        makersDetail.setMakersPaycheckInfo(makersPaycheckInfo);
         makersDetail.setPaycheckDailyFoods(paycheckDailyFoodDtos);
         makersDetail.setPaycheckAdds(toPaycheckAddDtos(makersPaycheck.getPaycheckAdds()));
-        makersDetail.setFoodsPrice(foodsPrice);
-        makersDetail.setCommission(commission);
-        makersDetail.setTotalPrice(totalPrice);
+        makersDetail.setFoodsPrice(makersPaycheck.getFoodTotalPrice().intValue());
+        makersDetail.setCommission(makersPaycheck.getCommission());
+        makersDetail.setCommissionPrice(makersPaycheck.getCommissionPrice().intValue());
+        makersDetail.setTotalPrice(makersPaycheck.getTotalPrice());
+        makersDetail.setPaycheckMemo(memo);
         return makersDetail;
     }
 
+    default PaycheckDto.MakersPaycheckInfo toMakersPaycheckInfo(MakersPaycheck makersPaycheck) {
+        return PaycheckDto.MakersPaycheckInfo.builder()
+                .year(String.valueOf(makersPaycheck.getYearMonth().getYear()))
+                .month(String.valueOf(makersPaycheck.getYearMonth().getMonth()))
+                .makers(makersPaycheck.getMakers().getName())
+                .status(makersPaycheck.getPaycheckStatus().getPaycheckStatus())
+                .depositHolder(makersPaycheck.getMakers().getDepositHolder())
+                .bankName(makersPaycheck.getMakers().getBank())
+                .bankAccount(makersPaycheck.getMakers().getAccountNumber())
+                .build();
+    }
 
     @Named("getNowYearMonth")
     default YearMonth getNowYearMonth() {
         return YearMonth.now();
+    }
+
+    @Named("stringToLocalDate")
+    default LocalDate stringToLocalDate(String issueDate) {
+        return DateUtils.stringToDate(issueDate);
     }
 
     default List<PaycheckDto.MakersResponse> toDtos(List<MakersPaycheck> makersPaychecks) {
