@@ -347,7 +347,6 @@ public class QOrderDailyFoodRepository {
         return makersCapacities;
     }
 
-
     public List<OrderItemDailyFood> findAllByIds(List<BigInteger> ids) {
         return queryFactory.selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.id.in(ids))

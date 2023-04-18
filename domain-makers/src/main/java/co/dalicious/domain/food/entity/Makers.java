@@ -1,19 +1,18 @@
 package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.entity.embeddable.ImageWithEnum;
 import co.dalicious.domain.file.entity.embeddable.enums.ImageType;
 import co.dalicious.domain.food.converter.ServiceFormConverter;
 import co.dalicious.domain.food.converter.ServiceTypeConverter;
 import co.dalicious.domain.food.dto.SaveMakersRequestDto;
+import co.dalicious.domain.food.dto.UpdateMakersReqDto;
 import co.dalicious.domain.food.entity.enums.Origin;
 import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.domain.user.converter.RoleConverter;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.system.enums.DiningType;
-import co.dalicious.system.util.DateUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,7 +26,6 @@ import javax.persistence.*;
 import java.math.BigInteger;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -68,7 +66,7 @@ public class Makers {
     @Comment("담당자 전화번호")
     private String managerPhone;
 
-    @OneToMany(mappedBy = "makers", orphanRemoval = true)
+    @OneToMany(mappedBy = "makers")
     @JsonBackReference(value = "makers_fk")
     @Comment("일일 식사 일정별 최대 수량")
     private List<MakersCapacity> makersCapacities;
@@ -156,6 +154,10 @@ public class Makers {
     @Comment("유저 타입")
     private Role role;
 
+    @Comment("메모")
+    @Column(name = "memo", columnDefinition = "VARCHAR(255)")
+    private String memo;
+
     @Builder
     public Makers(String code, String name, String companyName, String CEO, String CEOPhone, String managerName, String managerPhone, List<MakersCapacity> makersCapacities, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate, Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String fee, String bank, String depositHolder, String accountNumber, List<ImageWithEnum> images, List<Origin> origins, String password, Role role) {
         this.code = code;
@@ -188,9 +190,7 @@ public class Makers {
     }
 
     @Builder
-
-
-    public void updateMakers(SaveMakersRequestDto saveMakersRequestDto) throws ParseException {
+    public void updateMakers(SaveMakersRequestDto saveMakersRequestDto) {
         if (saveMakersRequestDto.getCode() != null && !saveMakersRequestDto.getCode().isEmpty())
             this.code = saveMakersRequestDto.getCode();
         if (saveMakersRequestDto.getName() != null && !saveMakersRequestDto.getName().isEmpty())
@@ -254,4 +254,57 @@ public class Makers {
     public void updateImages(List<ImageWithEnum> images) {
         this.images = images;
     }
+
+
+    public void updateMakersDetail(UpdateMakersReqDto updateMakersReqDto, Address address, List<MakersCapacity> makersCapacityList) {
+        if (updateMakersReqDto.getCode() != null && !updateMakersReqDto.getCode().equals(""))
+            this.code = updateMakersReqDto.getCode();
+        if (updateMakersReqDto.getName() != null && !updateMakersReqDto.getName().equals(""))
+            this.name = updateMakersReqDto.getName();
+        if (updateMakersReqDto.getCompanyName() != null && !updateMakersReqDto.getCompanyName().equals(""))
+            this.companyName = updateMakersReqDto.getCompanyName();
+        if (updateMakersReqDto.getCeo() != null && !updateMakersReqDto.getCeo().equals(""))
+            this.CEO = updateMakersReqDto.getCeo();
+        if (updateMakersReqDto.getCeoPhone() != null && !updateMakersReqDto.getCeoPhone().equals(""))
+            this.CEOPhone = updateMakersReqDto.getCeoPhone();
+        if (updateMakersReqDto.getManagerName() != null && !updateMakersReqDto.getManagerName().equals(""))
+            this.managerName = updateMakersReqDto.getManagerName();
+        if (updateMakersReqDto.getManagerPhone() != null && !updateMakersReqDto.getManagerPhone().equals(""))
+            this.managerPhone = updateMakersReqDto.getManagerPhone();
+        if (updateMakersReqDto.getDiningTypes() != null)
+            this.makersCapacities = makersCapacityList;
+        if (updateMakersReqDto.getServiceType() != null && updateMakersReqDto.getServiceType().equals(""))
+            this.serviceType = ServiceType.ofString(updateMakersReqDto.getServiceType());
+        if (updateMakersReqDto.getServiceForm() != null && updateMakersReqDto.getServiceForm().equals(""))
+            this.serviceForm = ServiceForm.ofString(updateMakersReqDto.getServiceForm());
+        if (updateMakersReqDto.getIsParentCompany() != null)
+            this.isParentCompany = updateMakersReqDto.getIsParentCompany();
+        if (updateMakersReqDto.getParentCompanyId() != null && updateMakersReqDto.getParentCompanyId().intValue() != 0)
+            this.parentCompanyId = updateMakersReqDto.getParentCompanyId();
+        if (address != null)
+            this.address = address;
+        if (updateMakersReqDto.getCompanyRegistrationNumber() != null && !updateMakersReqDto.getCompanyRegistrationNumber().equals(""))
+            this.companyRegistrationNumber = updateMakersReqDto.getCompanyRegistrationNumber();
+        if (updateMakersReqDto.getContractStartDate() != null && !updateMakersReqDto.getContractStartDate().equals(""))
+            this.contractStartDate = LocalDate.parse(updateMakersReqDto.getContractStartDate());
+        if (updateMakersReqDto.getContractEndDate() != null && !updateMakersReqDto.getContractEndDate().equals(""))
+            this.contractEndDate = LocalDate.parse(updateMakersReqDto.getContractEndDate());
+        if (updateMakersReqDto.getIsNutritionInformation() != null)
+            this.isNutritionInformation = updateMakersReqDto.getIsNutritionInformation();
+        if (updateMakersReqDto.getOpenTime() != null && !updateMakersReqDto.getOpenTime().equals(""))
+            this.openTime = LocalTime.parse(updateMakersReqDto.getOpenTime());
+        if (updateMakersReqDto.getCloseTime() != null && !updateMakersReqDto.getCloseTime().equals(""))
+            this.closeTime = LocalTime.parse(updateMakersReqDto.getCloseTime());
+        if (updateMakersReqDto.getFee() != null)
+            this.fee = updateMakersReqDto.getFee();
+        if (updateMakersReqDto.getBank() != null && !updateMakersReqDto.getBank().equals(""))
+            this.bank = updateMakersReqDto.getBank();
+        if (updateMakersReqDto.getDepositHolder() != null && !updateMakersReqDto.getDepositHolder().equals(""))
+            this.depositHolder = updateMakersReqDto.getDepositHolder();
+        if (updateMakersReqDto.getAccountNumber() != null && !updateMakersReqDto.getAccountNumber().equals(""))
+            this.accountNumber = updateMakersReqDto.getAccountNumber();
+        if (updateMakersReqDto.getMemo() != null && !updateMakersReqDto.getMemo().equals(""))
+            this.memo = updateMakersReqDto.getMemo();
+    }
+
 }

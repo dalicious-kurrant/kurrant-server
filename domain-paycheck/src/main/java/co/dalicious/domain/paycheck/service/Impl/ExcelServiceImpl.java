@@ -1,15 +1,20 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
+import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
 import co.dalicious.domain.paycheck.service.ExcelService;
-import co.dalicious.domain.paycheck.service.PaycheckService;
 
-import co.dalicious.domain.paycheck.service.PdfService;
 import lombok.RequiredArgsConstructor;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -17,28 +22,26 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ExcelServiceImpl implements ExcelService {
-    private final PaycheckService paycheckService;
     private final ImageService imageService;
-    private final PdfService pdfService;
 
     @Override
-    public void createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
+    public ImageResponseDto createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("MakersPaycheck");
 
         sheet.setColumnWidth(0, 2 * 256);
+        String dirName = "paycheck/makers/" + makersPaycheck.getMakers().getId().toString() + makersPaycheck.getYearAndMonthString();
 
-        String fileName = "C:\\Users\\minji\\Downloads\\" + makersPaycheck.getYearMonth().getYear() +
-                ((makersPaycheck.getYearMonth().getMonthValue() < 10) ? "0" + String.valueOf(makersPaycheck.getYearMonth().getMonthValue()) : String.valueOf(makersPaycheck.getYearMonth().getMonthValue())) +
+        String fileName = makersPaycheck.getMakers().getId().toString()  + "/" + makersPaycheck.getYearAndMonthString() +
                 "_" + makersPaycheck.getMakers().getName() + ".xlsx";
 
         String fileName2 = "C:\\Users\\minji\\Downloads\\" + makersPaycheck.getYearMonth().getYear() +
@@ -68,7 +71,8 @@ public class ExcelServiceImpl implements ExcelService {
         }
 
         // Save the file locally
-        try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
             workbook.write(outputStream);
         } catch (IOException e) {
             e.printStackTrace();
@@ -82,7 +86,7 @@ public class ExcelServiceImpl implements ExcelService {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-
+        return imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
     }
 
 
@@ -101,6 +105,41 @@ public class ExcelServiceImpl implements ExcelService {
 
         Picture picture = drawing.createPicture(anchor, pictureIndex);
         picture.resize(scaleX, scaleY);
+    }
+
+    // FIXME: 정우님에게 물어보기
+
+    private ByteArrayOutputStream imageToPdf(BufferedImage bufferedImage) {
+        PDDocument document = new PDDocument();
+        PDPage page = new PDPage(new PDRectangle(bufferedImage.getWidth(), bufferedImage.getHeight()));
+        document.addPage(page);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+            PDImageXObject image = PDImageXObject.createFromByteArray(document, bufferedImageToByteArray(bufferedImage), "excel");
+            contentStream.drawImage(image, 0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
+            contentStream.close();
+            document.save(byteArrayOutputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                document.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return byteArrayOutputStream;
+    }
+
+    private byte[] bufferedImageToByteArray(BufferedImage bufferedImage) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(bufferedImage, "PNG", byteArrayOutputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return byteArrayOutputStream.toByteArray();
     }
 
 
@@ -135,7 +174,7 @@ public class ExcelServiceImpl implements ExcelService {
         }
 
         // 공급자(달리셔스) 정보
-        TransactionInfoDefault transactionInfoDefault = paycheckService.getTransactionInfoDefault();
+        TransactionInfoDefault transactionInfoDefault = getTransactionInfoDefault();
         Row row6 = sheet.createRow(6);
         Cell cell6_1 = row6.createCell(1);
         cell6_1.setCellStyle(right(workbook));
@@ -382,5 +421,19 @@ public class ExcelServiceImpl implements ExcelService {
 
     private byte[] getLogo() {
         return imageService.downloadImageFromS3("util/logo.png");
+    }
+
+    public TransactionInfoDefault getTransactionInfoDefault() {
+        return TransactionInfoDefault.builder()
+                .businessNumber("376-87-00441")
+                .address1("서울특별시 강남구 테헤란로 51길 21")
+                .address2("3층(역삼동, 상경빌딩)")
+                .corporationName("달리셔스 주식회사")
+                .representative("이강용")
+                .business("서비스 외")
+                .phone("02-897-2123")
+                .faxNumber("02-2179-9614")
+                .businessForm("응용소프트웨어 개발 및 공급업 외")
+                .build();
     }
 }

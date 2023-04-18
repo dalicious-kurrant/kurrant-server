@@ -1,15 +1,20 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.file.dto.ImageResponseDto;
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckType;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
+import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
+import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,14 +22,16 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.time.YearMonth;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class PaycheckServiceImpl implements PaycheckService {
     private final MakersPaycheckMapper makersPaycheckMapper;
+    private final MakersPaycheckRepository makersPaycheckRepository;
+    private final ExcelService excelService;
+
     @Override
     public TransactionInfoDefault getTransactionInfoDefault() {
         return TransactionInfoDefault.builder()
@@ -38,6 +45,29 @@ public class PaycheckServiceImpl implements PaycheckService {
                 .faxNumber("02-2179-9614")
                 .businessForm("응용소프트웨어 개발 및 공급업 외")
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public List<MakersPaycheck> generateAllMakersPaycheck(List<PaycheckDto.PaycheckDailyFood> paycheckDailyFoodDtos) {
+        // 1. 메이커스별로 묶기
+        // 2. 식사 일정별로 묶기
+        // 3. 음식별로 묶기
+        MultiValueMap<Makers, PaycheckDailyFood> paycheckDailyFoodMap = new LinkedMultiValueMap<>();
+        for (PaycheckDto.PaycheckDailyFood paycheckDailyFoodDto : paycheckDailyFoodDtos) {
+            PaycheckDailyFood paycheckDailyFood = makersPaycheckMapper.toPaycheckDailyFood(paycheckDailyFoodDto);
+            paycheckDailyFoodMap.add(paycheckDailyFoodDto.getMakers(), paycheckDailyFood);
+        }
+        for (Makers makers : paycheckDailyFoodMap.keySet()) {
+            // 메이커스 정산 생성 및 저장
+            MakersPaycheck makersPaycheck = makersPaycheckMapper.toInitiateEntity(paycheckDailyFoodMap.get(makers), makers);
+            makersPaycheck = makersPaycheckRepository.save(makersPaycheck);
+            // 정산 엑셀 생성
+            ImageResponseDto imageResponseDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+            Image excelFile = new Image(imageResponseDto);
+            makersPaycheck.updateExcelFile(excelFile);
+        }
+        return makersPaycheckRepository.findAllByYearMonth(YearMonth.now());
     }
 
     @Override

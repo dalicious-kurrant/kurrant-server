@@ -1,20 +1,17 @@
 package co.dalicious.domain.food.dto;
 
-import co.dalicious.system.enums.DiningType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.util.List;
 
 @Getter
 @Setter
-@Schema(description = "메이커스 정보 조회 응답 DTO")
-public class MakersInfoResponseDto {
-
-    private BigInteger id;
+@Schema(description = "메이커스 상세정보를 수정요청하는 dto")
+public class UpdateMakersReqDto {
+    private BigInteger makersId;
     private String code;
     private String name;
     private String companyName;
@@ -22,7 +19,8 @@ public class MakersInfoResponseDto {
     private String ceoPhone;
     private String managerName;
     private String managerPhone;
-    private Integer dailyCapacity;
+    private Integer capacity;
+    private List<MakersCapacityDto> diningTypes;
     private String serviceType;
     private String serviceForm;
     private Boolean isParentCompany;
@@ -41,15 +39,5 @@ public class MakersInfoResponseDto {
     private String bank;
     private String depositHolder;
     private String accountNumber;
-    private String createdDateTime;
-    private String updatedDateTime;
-    private List<String> diningTypes;
-    private String morningLastOrderTime;
-    private String lunchLastOrderTime;
-    private String dinnerLastOrderTime;
-    private Integer morningCapacity;
-    private Integer lunchCapacity;
-    private Integer dinnerCapacity;
     private String memo;
-
 }

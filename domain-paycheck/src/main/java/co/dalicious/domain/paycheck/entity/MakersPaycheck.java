@@ -7,7 +7,6 @@ import co.dalicious.domain.paycheck.converter.YearMonthAttributeConverter;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -65,6 +64,11 @@ public class MakersPaycheck {
     @CollectionTable(name = "paycheck__makers_paycheck__paycheck_daily_foods")
     private List<PaycheckDailyFood> paycheckDailyFoods;
 
+    @ElementCollection
+    @Comment("식사 일정별 음식 내역")
+    @CollectionTable(name = "paycheck__makers_paycheck__paycheck_add")
+    private List<PaycheckAdd> paycheckAdds;
+
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
@@ -101,5 +105,10 @@ public class MakersPaycheck {
 
     public void updatePdfFile(Image pdfFile) {
         this.pdfFile = pdfFile;
+    }
+
+    public String getYearAndMonthString() {
+        return "거래명세서_" + this.yearMonth.getYear() + "-" +
+                ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
     }
 }

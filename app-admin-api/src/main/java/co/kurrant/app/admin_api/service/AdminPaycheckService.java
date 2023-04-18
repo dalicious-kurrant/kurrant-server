@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.service;
 
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
+import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.dalicious.domain.client.entity.SparkPlusLog;
@@ -16,6 +17,7 @@ public interface AdminPaycheckService {
 
     void postMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersRequest paycheckDto) throws IOException;
     List<PaycheckDto.MakersResponse> getMakersPaychecks();
+    PaycheckDto.MakersDetail getMakersPaycheckDetail(BigInteger makersPaycheckId);
     void updateMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersResponse paycheckDto) throws IOException;
     void deleteMakersPaycheck(List<BigInteger> ids);
     void updateMakersPaycheckStatus(Integer status, List<BigInteger> ids);
@@ -28,6 +30,6 @@ public interface AdminPaycheckService {
 
     void postSparkplusLog(Integer log);
     List<SparkPlusLog> getSpartplusLog();
-    void postMakersPaycheckExcel();
+    List<MakersPaycheck> postMakersPaycheckExcel();
 
 }
