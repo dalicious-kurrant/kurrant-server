@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
+import co.dalicious.domain.paycheck.service.PaycheckService;
 import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,8 @@ public class PaycheckController {
     @Operation(summary = "메이커스 정산 등록 엑셀", description = "메이커스 정산 등록")
     @PostMapping("/makers/excel")
     public ResponseMessage postMakersPaycheck() {
-        adminPaycheckService.postMakersPaycheckExcel();
         return ResponseMessage.builder()
+                .data(adminPaycheckService.postMakersPaycheckExcel())
                 .message("메이커스 정산 등록에 성공하였습니다.")
                 .build();
     }
@@ -43,6 +44,15 @@ public class PaycheckController {
     public ResponseMessage getMakersPaychecks() {
         return ResponseMessage.builder()
                 .data(adminPaycheckService.getMakersPaychecks())
+                .message("메이커스 정산 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "메이커스 정산 상세 조회", description = "메이커스 정산 조회")
+    @GetMapping("/makers/{makersPaycheckId}")
+    public ResponseMessage getMakersPaycheckDetail(@PathVariable BigInteger makersPaycheckId) {
+        return ResponseMessage.builder()
+                .data(adminPaycheckService.getMakersPaycheckDetail(makersPaycheckId))
                 .message("메이커스 정산 조회에 성공하였습니다.")
                 .build();
     }

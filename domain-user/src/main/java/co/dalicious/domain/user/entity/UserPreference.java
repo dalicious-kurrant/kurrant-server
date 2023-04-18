@@ -157,4 +157,7 @@ public class UserPreference {
 
     }
 
+    public void updateFavoriteCountryFood(List<FoodTag> favoriteCountryFood) {
+        this.favoriteCountryFood = favoriteCountryFood;
+    }
 }

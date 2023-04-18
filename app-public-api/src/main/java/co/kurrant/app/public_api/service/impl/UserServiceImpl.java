@@ -855,6 +855,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Transactional
     public String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto) {
 
         User user = userUtil.getUser(securityUser);
@@ -863,6 +864,12 @@ public class UserServiceImpl implements UserService {
 
 
         UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
+        List<FoodTag> foodTags  = userPreference.getFavoriteCountryFood();
+
+//        foodTags = foodTags.stream()
+//                .filter(v -> v.getCode().equals(1))
+//                .toList();
+//        userPreference.updateFavoriteCountryFood(foodTags);
 
         //기존에 있는 정보라면 수정
         if (!preferenceList.isEmpty()){
