@@ -190,7 +190,7 @@ public class Makers {
     }
 
     @Builder
-    public void updateMakers(SaveMakersRequestDto saveMakersRequestDto) throws ParseException {
+    public void updateMakers(SaveMakersRequestDto saveMakersRequestDto) {
         if (saveMakersRequestDto.getCode() != null && !saveMakersRequestDto.getCode().isEmpty())
             this.code = saveMakersRequestDto.getCode();
         if (saveMakersRequestDto.getName() != null && !saveMakersRequestDto.getName().isEmpty())

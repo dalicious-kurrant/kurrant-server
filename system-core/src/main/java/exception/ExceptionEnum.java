@@ -135,7 +135,7 @@ public enum ExceptionEnum {
 	BILLING_KEY_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000015", "잘못된 카드정보를 입력하셨습니다."),
 	TOKEN_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000016", "토큰 저장 실패"),
 	PAYMENT_PASSWORD_LENGTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000017", "결제 비밀번호는 6자리로 입력해주세요."),
-	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "결제 비밀번호가 일치하지 않습니다."),
+	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "비밀번호가 생각나지 않으시면 [비밀번호 재설정]을 눌러주세요."),
 	PAYMENT_PASSWORD_RESET_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000019", "결제 비밀번호 재설정에 실패했습니다."),
 
 
