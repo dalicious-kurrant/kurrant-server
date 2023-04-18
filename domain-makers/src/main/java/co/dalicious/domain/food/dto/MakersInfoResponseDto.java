@@ -50,5 +50,6 @@ public class MakersInfoResponseDto {
     private Integer morningCapacity;
     private Integer lunchCapacity;
     private Integer dinnerCapacity;
+    private String memo;
 
 }
