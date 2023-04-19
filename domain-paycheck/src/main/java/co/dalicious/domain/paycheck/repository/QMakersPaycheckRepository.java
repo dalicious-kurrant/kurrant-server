@@ -70,10 +70,13 @@ public class QMakersPaycheckRepository {
         return paycheckDailyFoods;
     }
 
-    public List<MakersPaycheck> getMakersPaychecksByFilter(YearMonth yearMonth, List<BigInteger> makersIds, PaycheckStatus paycheckStatus, Boolean hasRequest) {
+    public List<MakersPaycheck> getMakersPaychecksByFilter(YearMonth startYearMonth, YearMonth endYearMonth, List<BigInteger> makersIds, PaycheckStatus paycheckStatus, Boolean hasRequest) {
         BooleanBuilder whereClause = new BooleanBuilder();
-        if(yearMonth != null) {
-            whereClause.and(makersPaycheck.yearMonth.eq(yearMonth));
+        if(startYearMonth != null) {
+            whereClause.and(makersPaycheck.yearMonth.goe(startYearMonth));
+        }
+        if(endYearMonth != null) {
+            whereClause.and(makersPaycheck.yearMonth.loe(endYearMonth));
         }
         if(makersIds != null && !makersIds.isEmpty()) {
             whereClause.and(makersPaycheck.makers.id.in(makersIds));

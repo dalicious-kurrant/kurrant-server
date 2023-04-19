@@ -100,8 +100,6 @@ public class PaycheckDto {
     @Setter
     public static class PaycheckAddDto {
         private String issueDate;
-        private String issueItem;
-        private String paycheckItem;
         private BigDecimal price;
         private String memo;
     }

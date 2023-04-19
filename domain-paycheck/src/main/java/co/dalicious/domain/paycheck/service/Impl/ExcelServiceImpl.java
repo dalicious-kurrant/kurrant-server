@@ -41,9 +41,9 @@ public class ExcelServiceImpl implements ExcelService {
         Sheet sheet = workbook.createSheet("MakersPaycheck");
 
         sheet.setColumnWidth(0, 2 * 256);
-        String dirName = "paycheck/makers/" + makersPaycheck.getMakers().getId().toString() + makersPaycheck.getYearAndMonthString() + "/" +  makersPaycheck.getMakers().getId().toString();
+        String dirName = "paycheck/makers/" + makersPaycheck.getMakers().getId().toString() + makersPaycheck.getYearAndMonthString() + "/" + makersPaycheck.getMakers().getId().toString() + "/";
 
-        String fileName =  makersPaycheck.getYearAndMonthString() +
+        String fileName = makersPaycheck.getYearAndMonthString() +
                 "_" + makersPaycheck.getMakers().getName() + ".xlsx";
 
         String fileName2 = "C:\\Users\\minji\\Downloads\\" + makersPaycheck.getYearMonth().getYear() +
@@ -65,14 +65,14 @@ public class ExcelServiceImpl implements ExcelService {
 
         // 추가 요청 헤더 생성
         List<PaycheckAdd> paycheckAdds = makersPaycheck.getPaycheckAdds();
-        if(!paycheckAdds.isEmpty()) {
+        if (!paycheckAdds.isEmpty()) {
             Row row = sheet.createRow(++currentRow);
             createDailyFoodAddHeader(workbook, sheet, row);
             currentRow++;
 
             for (PaycheckAdd paycheckAdd : paycheckAdds) {
-                writeDailyFoodAdd(workbook, row, paycheckAdd);
-                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow , 6, 7));
+                writeDailyFoodAdd(workbook, sheet, currentRow, paycheckAdd);
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 6));
                 currentRow++;
             }
         }
@@ -307,23 +307,24 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
     private static void createDailyFoodAddHeader(Workbook workBook, Sheet sheet, Row row) {
-        String[] headers = {"이슈날짜", "이슈항목", "정산항목", "금액", "내용"};
+        String[] headers = {"이슈날짜", "내용", "금액"};
         for (int i = 1; i <= headers.length; i++) {
             Cell cell = null;
-            if (i < 5) {
+            if (i != 2) {
                 cell = row.createCell(i);
                 cell.setCellValue(headers[i - 1]);
             }
-            if (i == 5) {
+            if (i == 2) {
                 cell = row.createCell(i);
                 cell.setCellValue(headers[i - 1]);
-                sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 6, 7));
+                sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 2, 6));
             }
             cell.setCellStyle(dataHeader(workBook));
         }
     }
 
-    private static void writeDailyFoodAdd(Workbook workBook, Row row, PaycheckAdd paycheckAdd) {
+    private static void writeDailyFoodAdd(Workbook workBook, Sheet sheet, Integer rowNum, PaycheckAdd paycheckAdd) {
+        Row row = sheet.createRow(rowNum);
         CellStyle dataCellStyle = center(workBook);
         CellStyle priceCellStyle = priceStyle(workBook);
 
@@ -332,20 +333,12 @@ public class ExcelServiceImpl implements ExcelService {
         cell1.setCellStyle(dataCellStyle);
 
         Cell cell2 = row.createCell(2);
-        cell2.setCellValue(paycheckAdd.getIssueItem());
-        cell2.setCellStyle(dataCellStyle);
+        cell2.setCellValue(paycheckAdd.getPrice().intValue());
+        cell2.setCellStyle(priceCellStyle);
 
         Cell cell3 = row.createCell(3);
-        cell3.setCellValue(paycheckAdd.getPaycheckItem());
-        cell3.setCellStyle(dataCellStyle);
-
-        Cell cell4 = row.createCell(4);
-        cell4.setCellValue(paycheckAdd.getPrice().intValue());
-        cell4.setCellStyle(priceCellStyle);
-
-        Cell cell5 = row.createCell(5);
-        cell5.setCellValue(paycheckAdd.getMemo());
-        cell5.setCellStyle(priceCellStyle);
+        cell3.setCellValue(paycheckAdd.getMemo());
+        cell3.setCellStyle(priceCellStyle);
     }
 
     private static Integer writeTotalRow(Sheet sheet, Integer startRow, MakersPaycheck makersPaycheck) {

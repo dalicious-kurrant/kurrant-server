@@ -104,15 +104,16 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     @Override
     @Transactional
     public List<PaycheckDto.MakersResponse> getMakersPaychecks(Map<String, Object> parameters) {
-        Integer year = !parameters.containsKey("year") || parameters.get("year") == null ? null : Integer.parseInt(String.valueOf(parameters.get("year")));
-        Integer month = !parameters.containsKey("month") || parameters.get("month") == null ? null : Integer.parseInt(String.valueOf(parameters.get("month")));
+        String startYearMonth = !parameters.containsKey("startYearMonth") || parameters.get("startYearMonth") == null ? null : String.valueOf(parameters.get("startYearMonth"));
+        String endYearMonth = !parameters.containsKey("endYearMonth") || parameters.get("endYearMonth") == null ? null : String.valueOf(parameters.get("endYearMonth"));
         List<BigInteger> makersIds = !parameters.containsKey("makersIds") || parameters.get("makersIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersIds"));
         Integer status = !parameters.containsKey("status") || parameters.get("status") == null ? null : Integer.parseInt(String.valueOf(parameters.get("status")));
         Boolean hasRequest = !parameters.containsKey("hasRequest") || parameters.get("hasRequest") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("hasRequest")));
 
-        YearMonth yearMonth = (year != null && month != null) ? YearMonth.of(year, month) : null;
+        YearMonth start = startYearMonth == null ? null : YearMonth.parse(startYearMonth.substring(0, 4) + "-" + startYearMonth.substring(4));
+        YearMonth end = endYearMonth == null ? null : YearMonth.parse(endYearMonth.substring(0, 4) + "-" + endYearMonth.substring(4));
 
-        List<MakersPaycheck> makersPaychecks = qMakersPaycheckRepository.getMakersPaychecksByFilter(yearMonth, makersIds, PaycheckStatus.ofCode(status), hasRequest);
+        List<MakersPaycheck> makersPaychecks = qMakersPaycheckRepository.getMakersPaychecksByFilter(start, end, makersIds, PaycheckStatus.ofCode(status), hasRequest);
         return makersPaycheckMapper.toDtos(makersPaychecks);
     }
 

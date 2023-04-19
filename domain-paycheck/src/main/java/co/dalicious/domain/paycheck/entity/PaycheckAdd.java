@@ -17,12 +17,6 @@ public class PaycheckAdd {
     @Comment("이슈 날짜")
     private LocalDate issueDate;
 
-    @Comment("이슈 항목")
-    private String issueItem;
-
-    @Comment("정산 항목")
-    private String paycheckItem;
-
     @Comment("금액")
     private BigDecimal price;
 
@@ -30,10 +24,8 @@ public class PaycheckAdd {
     private String memo;
 
     @Builder
-    public PaycheckAdd(LocalDate issueDate, String issueItem, String paycheckItem, BigDecimal price, String memo) {
+    public PaycheckAdd(LocalDate issueDate, BigDecimal price, String memo) {
         this.issueDate = issueDate;
-        this.issueItem = issueItem;
-        this.paycheckItem = paycheckItem;
         this.price = price;
         this.memo = memo;
     }

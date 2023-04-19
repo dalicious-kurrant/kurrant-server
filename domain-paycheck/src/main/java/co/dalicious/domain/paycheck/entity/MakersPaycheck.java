@@ -71,7 +71,7 @@ public class MakersPaycheck {    @Id
 
     @ElementCollection
     @Comment("식사 일정별 음식 내역")
-    @CollectionTable(name = "paycheck__makers_paycheck__paycheck_add")
+    @CollectionTable(name = "paycheck__makers_paycheck__paycheck_memo")
     private List<PaycheckMemo> paycheckMemos;
 
     @CreationTimestamp

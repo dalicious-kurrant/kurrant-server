@@ -10,7 +10,6 @@ import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
 import co.dalicious.domain.paycheck.entity.PaycheckMemo;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.system.util.DateUtils;
-import org.apache.poi.hpsf.Decimal;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -87,8 +86,6 @@ public interface MakersPaycheckMapper {
     default PaycheckDto.PaycheckAddDto toPaycheckAddDto(PaycheckAdd paycheckAdd) {
         PaycheckDto.PaycheckAddDto paycheckAddDto = new PaycheckDto.PaycheckAddDto();
         paycheckAddDto.setIssueDate(DateUtils.format(paycheckAdd.getIssueDate()));
-        paycheckAddDto.setIssueItem(paycheckAdd.getIssueItem());
-        paycheckAddDto.setPaycheckItem(paycheckAdd.getPaycheckItem());
         paycheckAddDto.setPrice(paycheckAdd.getPrice());
         paycheckAddDto.setMemo(paycheckAdd.getMemo());
         return paycheckAddDto;
@@ -126,7 +123,7 @@ public interface MakersPaycheckMapper {
     default PaycheckDto.MakersPaycheckInfo toMakersPaycheckInfo(MakersPaycheck makersPaycheck) {
         return PaycheckDto.MakersPaycheckInfo.builder()
                 .year(String.valueOf(makersPaycheck.getYearMonth().getYear()))
-                .month(String.valueOf(makersPaycheck.getYearMonth().getMonth()))
+                .month(String.valueOf(makersPaycheck.getYearMonth().getMonthValue()))
                 .makers(makersPaycheck.getMakers().getName())
                 .status(makersPaycheck.getPaycheckStatus().getPaycheckStatus())
                 .depositHolder(makersPaycheck.getMakers().getDepositHolder())

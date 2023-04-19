@@ -21,10 +21,11 @@ public enum PaycheckStatus {
     }
 
     public static PaycheckStatus ofCode(Integer dbData) {
+        if(dbData == null) return null;
         return Arrays.stream(PaycheckStatus.values())
                 .filter(v -> v.getCode().equals(dbData))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+                .orElseThrow(null);
     }
 
     public static PaycheckStatus ofString(String paycheckStatus) {
