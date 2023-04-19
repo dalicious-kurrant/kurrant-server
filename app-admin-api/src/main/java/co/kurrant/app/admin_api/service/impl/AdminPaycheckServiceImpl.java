@@ -103,7 +103,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public List<PaycheckDto.MakersResponse> getMakersPaychecks(Map<String, Object> parameters) {
+    public PaycheckDto.MakersResponse getMakersPaychecks(Map<String, Object> parameters) {
         String startYearMonth = !parameters.containsKey("startYearMonth") || parameters.get("startYearMonth") == null ? null : String.valueOf(parameters.get("startYearMonth"));
         String endYearMonth = !parameters.containsKey("endYearMonth") || parameters.get("endYearMonth") == null ? null : String.valueOf(parameters.get("endYearMonth"));
         List<BigInteger> makersIds = !parameters.containsKey("makersIds") || parameters.get("makersIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersIds"));
@@ -114,7 +114,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         YearMonth end = endYearMonth == null ? null : YearMonth.parse(endYearMonth.substring(0, 4) + "-" + endYearMonth.substring(4));
 
         List<MakersPaycheck> makersPaychecks = qMakersPaycheckRepository.getMakersPaychecksByFilter(start, end, makersIds, PaycheckStatus.ofCode(status), hasRequest);
-        return makersPaycheckMapper.toDtos(makersPaychecks);
+        return makersPaycheckMapper.toMakersResponse(makersPaychecks);
     }
 
     @Override
@@ -127,38 +127,38 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         return makersPaycheckMapper.toDetailDto(makersPaycheck, transactionInfoDefault);
     }
 
-    @Override
-    @Transactional
-    public void updateMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersResponse paycheckDto) throws IOException {
-        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(paycheckDto.getId())
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-
-        // 요청 Body에 파일이 존재하지 않는다면 삭제
-        if (paycheckDto.getExcelFile() == null && makersPaycheck.getExcelFile() != null) {
-            imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
-            makersPaycheck.updateExcelFile(null);
-        }
-        if (paycheckDto.getPdfFile() == null && makersPaycheck.getPdfFile() != null) {
-            imageService.delete(getImagePrefix(makersPaycheck.getPdfFile()));
-            makersPaycheck.updatePdfFile(null);
-        }
-
-        // 업로드 파일 저장
-        if (makersXlsx != null) {
-            String dirName = "paycheck/makers/" + paycheckDto.getId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
-            ImageResponseDto excelFileDto = imageService.upload(makersXlsx, dirName);
-            Image excelFile = new Image(excelFileDto);
-            makersPaycheck.updateExcelFile(excelFile);
-        }
-        if (makersPdf != null) {
-            String dirName = "paycheck/makers/" + paycheckDto.getId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
-            ImageResponseDto pdfFileDto = imageService.upload(makersPdf, dirName);
-            Image pdfFile = new Image(pdfFileDto);
-            makersPaycheck.updatePdfFile(pdfFile);
-        }
-
-        makersPaycheck.updateMakersPaycheck(YearMonth.of(paycheckDto.getYear(), paycheckDto.getMonth()), PaycheckStatus.ofString(paycheckDto.getPaycheckStatus()));
-    }
+//    @Override
+//    @Transactional
+//    public void updateMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersResponse paycheckDto) throws IOException {
+//        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(paycheckDto.getId())
+//                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+//
+//        // 요청 Body에 파일이 존재하지 않는다면 삭제
+//        if (paycheckDto.getExcelFile() == null && makersPaycheck.getExcelFile() != null) {
+//            imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
+//            makersPaycheck.updateExcelFile(null);
+//        }
+//        if (paycheckDto.getPdfFile() == null && makersPaycheck.getPdfFile() != null) {
+//            imageService.delete(getImagePrefix(makersPaycheck.getPdfFile()));
+//            makersPaycheck.updatePdfFile(null);
+//        }
+//
+//        // 업로드 파일 저장
+//        if (makersXlsx != null) {
+//            String dirName = "paycheck/makers/" + paycheckDto.getId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
+//            ImageResponseDto excelFileDto = imageService.upload(makersXlsx, dirName);
+//            Image excelFile = new Image(excelFileDto);
+//            makersPaycheck.updateExcelFile(excelFile);
+//        }
+//        if (makersPdf != null) {
+//            String dirName = "paycheck/makers/" + paycheckDto.getId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
+//            ImageResponseDto pdfFileDto = imageService.upload(makersPdf, dirName);
+//            Image pdfFile = new Image(pdfFileDto);
+//            makersPaycheck.updatePdfFile(pdfFile);
+//        }
+//
+//        makersPaycheck.updateMakersPaycheck(YearMonth.of(paycheckDto.getYear(), paycheckDto.getMonth()), PaycheckStatus.ofString(paycheckDto.getPaycheckStatus()));
+//    }
 
 //    메이커스 정산 삭제
 //    @Override

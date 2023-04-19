@@ -113,6 +113,11 @@ public class MakersPaycheck {    @Id
     }
 
     public String getYearAndMonthString() {
+        return this.yearMonth.getYear() +
+                ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
+    }
+
+    public String getFileName() {
         return "거래명세서_" + this.yearMonth.getYear() + "-" +
                 ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
     }
@@ -143,7 +148,7 @@ public class MakersPaycheck {    @Id
         return getFoodTotalPrice().multiply(BigDecimal.valueOf(getCommission() / 100));
     }
 
-    public Integer getTotalPrice() {
-        return getFoodTotalPrice().subtract(getCommissionPrice()).intValue();
+    public BigDecimal getTotalPrice() {
+        return getFoodTotalPrice().subtract(getCommissionPrice());
     }
 }

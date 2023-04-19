@@ -41,9 +41,9 @@ public class ExcelServiceImpl implements ExcelService {
         Sheet sheet = workbook.createSheet("MakersPaycheck");
 
         sheet.setColumnWidth(0, 2 * 256);
-        String dirName = "paycheck/makers/" + makersPaycheck.getMakers().getId().toString() + makersPaycheck.getYearAndMonthString() + "/" + makersPaycheck.getMakers().getId().toString() + "/";
+        String dirName = "paycheck/makers/" + makersPaycheck.getMakers().getId().toString() + "/" + makersPaycheck.getYearAndMonthString() + "/" + makersPaycheck.getMakers().getId().toString();
 
-        String fileName = makersPaycheck.getYearAndMonthString() +
+        String fileName = makersPaycheck.getFileName() +
                 "_" + makersPaycheck.getMakers().getName() + ".xlsx";
 
         String fileName2 = "C:\\Users\\minji\\Downloads\\" + makersPaycheck.getYearMonth().getYear() +
@@ -310,14 +310,18 @@ public class ExcelServiceImpl implements ExcelService {
         String[] headers = {"이슈날짜", "내용", "금액"};
         for (int i = 1; i <= headers.length; i++) {
             Cell cell = null;
-            if (i != 2) {
-                cell = row.createCell(i);
-                cell.setCellValue(headers[i - 1]);
+            if (i == 1) {
+                cell = row.createCell(1);
+                cell.setCellValue(headers[0]);
             }
             if (i == 2) {
-                cell = row.createCell(i);
-                cell.setCellValue(headers[i - 1]);
+                cell = row.createCell(2);
+                cell.setCellValue(headers[1]);
                 sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 2, 6));
+            }
+            if (i == 3) {
+                cell = row.createCell(7);
+                cell.setCellValue(headers[2]);
             }
             cell.setCellStyle(dataHeader(workBook));
         }
@@ -333,11 +337,11 @@ public class ExcelServiceImpl implements ExcelService {
         cell1.setCellStyle(dataCellStyle);
 
         Cell cell2 = row.createCell(2);
-        cell2.setCellValue(paycheckAdd.getPrice().intValue());
+        cell2.setCellValue(paycheckAdd.getMemo());
         cell2.setCellStyle(priceCellStyle);
 
-        Cell cell3 = row.createCell(3);
-        cell3.setCellValue(paycheckAdd.getMemo());
+        Cell cell3 = row.createCell(7);
+        cell3.setCellValue(paycheckAdd.getPrice().intValue());
         cell3.setCellStyle(priceCellStyle);
     }
 
@@ -372,7 +376,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         // TODO: 수정필요
         Cell cell3_2 = payPriceRow.createCell(7);
-        cell3_2.setCellValue(makersPaycheck.getTotalPrice());
+        cell3_2.setCellValue(makersPaycheck.getTotalPrice().intValue());
         cell3_2.setCellStyle(priceStyle(sheet.getWorkbook()));
 
         return startRow + 3;

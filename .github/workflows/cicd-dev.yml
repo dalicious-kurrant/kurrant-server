@@ -149,7 +149,7 @@ jobs:
           mkdir resources
           cd resources
           touch ./application-s3.properties
-          echo "${{ secrets.DOMAIN_FILE_S3_PROPERTIES }}" > ./application-s3.properties
+          echo "${{ secrets.DOMAIN_FILE_DEV_S3_PROPERTIES }}" > ./application-s3.properties
         shell: bash
 
       - name: client-alarm application-alimtalk.properties 생성

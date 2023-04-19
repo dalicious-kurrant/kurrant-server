@@ -25,6 +25,24 @@ public class PaycheckDto {
     @Getter
     @Setter
     public static class MakersResponse {
+        private List<MakersList> makersLists;
+        private PaycheckPrice paycheckPrice;
+    }
+
+    @Getter
+    @Setter
+    public static class PaycheckPrice {
+        private Integer totalPrice;
+        private Integer totalCount;
+        private Integer completePrice;
+        private Integer completeCount;
+        private Integer leftPrice;
+        private Integer leftCount;
+    }
+
+    @Getter
+    @Setter
+    public static class MakersList {
         private BigInteger id;
         private Integer year;
         private Integer month;
@@ -36,6 +54,7 @@ public class PaycheckDto {
         private String excelFile;
         private String pdfFile;
     }
+
     @Getter
     @Setter
     public static class MakersDetail {
@@ -49,6 +68,7 @@ public class PaycheckDto {
         private Integer totalPrice;
         private List<String> paycheckMemo;
     }
+
     @Getter
     @Setter
     public static class CorporationRequest {

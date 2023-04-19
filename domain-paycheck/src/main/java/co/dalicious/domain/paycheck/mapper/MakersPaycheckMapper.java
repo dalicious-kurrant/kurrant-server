@@ -55,7 +55,7 @@ public interface MakersPaycheckMapper {
     @Mapping(source = "paycheckStatus.paycheckStatus", target = "paycheckStatus")
     @Mapping(source = "excelFile.location", target = "excelFile")
     @Mapping(source = "pdfFile.location", target = "pdfFile")
-    PaycheckDto.MakersResponse toDto(MakersPaycheck makersPaycheck);
+    PaycheckDto.MakersList toDto(MakersPaycheck makersPaycheck);
 
     @Mapping(source = "issueDate", target = "issueDate", qualifiedByName = "stringToLocalDate")
     PaycheckAdd toPaycheckAdd(PaycheckDto.PaycheckAddDto paycheckAddDto);
@@ -115,7 +115,7 @@ public interface MakersPaycheckMapper {
         makersDetail.setFoodsPrice(makersPaycheck.getFoodTotalPrice().intValue());
         makersDetail.setCommission(makersPaycheck.getCommission());
         makersDetail.setCommissionPrice(makersPaycheck.getCommissionPrice().intValue());
-        makersDetail.setTotalPrice(makersPaycheck.getTotalPrice());
+        makersDetail.setTotalPrice(makersPaycheck.getTotalPrice().intValue());
         makersDetail.setPaycheckMemo(memo);
         return makersDetail;
     }
@@ -142,9 +142,38 @@ public interface MakersPaycheckMapper {
         return DateUtils.stringToDate(issueDate);
     }
 
-    default List<PaycheckDto.MakersResponse> toDtos(List<MakersPaycheck> makersPaychecks) {
+    default List<PaycheckDto.MakersList> toDtos(List<MakersPaycheck> makersPaychecks) {
         return makersPaychecks.stream()
                 .map(this::toDto)
                 .toList();
+    }
+
+    default PaycheckDto.MakersResponse toMakersResponse(List<MakersPaycheck> makersPaychecks) {
+        PaycheckDto.MakersResponse makersResponse = new PaycheckDto.MakersResponse();
+        makersResponse.setMakersLists(toDtos(makersPaychecks));
+        makersResponse.setPaycheckPrice(toPaycheckPrice(makersPaychecks));
+        return makersResponse;
+    }
+
+    default PaycheckDto.PaycheckPrice toPaycheckPrice(List<MakersPaycheck> makersPaychecks) {
+        PaycheckDto.PaycheckPrice paycheckPrice = new PaycheckDto.PaycheckPrice();
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        BigDecimal completePrice = BigDecimal.ZERO;
+        int completeCount = 0;
+        for (MakersPaycheck makersPaycheck : makersPaychecks) {
+            totalPrice = totalPrice.add(makersPaycheck.getTotalPrice());
+
+            if(makersPaycheck.getPaycheckStatus().equals(PaycheckStatus.PAYMENT_COMPLETE)) {
+                completeCount++;
+                completePrice = completePrice.add(makersPaycheck.getTotalPrice());
+            }
+        }
+        paycheckPrice.setTotalCount(makersPaychecks.size());
+        paycheckPrice.setTotalPrice(totalPrice.intValue());
+        paycheckPrice.setCompleteCount(completeCount);
+        paycheckPrice.setCompletePrice(completePrice.intValue());
+        paycheckPrice.setLeftCount(makersPaychecks.size() - completeCount);
+        paycheckPrice.setLeftPrice(totalPrice.subtract(completePrice).intValue());
+        return paycheckPrice;
     }
 }
