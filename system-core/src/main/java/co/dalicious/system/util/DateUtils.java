@@ -122,13 +122,22 @@ public class DateUtils {
     public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
         LocalDateTime now = LocalDateTime.now();
 
-        long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
-        long hoursLeft = now.until(limitDayAndTime, ChronoUnit.HOURS);
-        now = now.plusHours(hoursLeft);
-        hoursLeft = hoursLeft % 24;
-        long minutesLeft = now.until(limitDayAndTime, ChronoUnit.MINUTES);
+        long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate()) * -1;
 
-        LocalTime remainingTime = LocalTime.of((int) hoursLeft % 24, (int) minutesLeft);
+        long hoursLeft = now.until(limitDayAndTime, ChronoUnit.HOURS);
+        hoursLeft = hoursLeft % 24;
+        if(hoursLeft < 0) {
+            hoursLeft = hoursLeft + 24;
+        }
+
+        now = now.plusHours(hoursLeft);
+        long minutesLeft = now.until(limitDayAndTime, ChronoUnit.MINUTES);
+        minutesLeft = minutesLeft % 60;
+        if(minutesLeft < 0) {
+            minutesLeft = minutesLeft + 60;
+        }
+
+        LocalTime remainingTime = LocalTime.of((int) hoursLeft, (int) minutesLeft);
 
         return String.format("%01d %tk:%tM", leftDay, remainingTime, remainingTime);
     }
