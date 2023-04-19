@@ -47,10 +47,12 @@ public class PaycheckDto {
         private Integer year;
         private Integer month;
         private String makersName;
+        private Integer totalPrice;
         private String accountHolder;
         private String nameOfBank;
         private String accountNumber;
         private String paycheckStatus;
+        private Boolean hasRequest;
         private String excelFile;
         private String pdfFile;
     }
@@ -134,9 +136,12 @@ public class PaycheckDto {
         private String depositHolder;
         private String bankName;
         private String bankAccount;
+        private String excelFile;
+        private String pdfFile;
 
         @Builder
-        public MakersPaycheckInfo(String year, String month, String makers, String status, String depositHolder, String bankName, String bankAccount) {
+
+        public MakersPaycheckInfo(String year, String month, String makers, String status, String depositHolder, String bankName, String bankAccount, String excelFile, String pdfFile) {
             this.year = year;
             this.month = month;
             this.makers = makers;
@@ -144,6 +149,8 @@ public class PaycheckDto {
             this.depositHolder = depositHolder;
             this.bankName = bankName;
             this.bankAccount = bankAccount;
+            this.excelFile = excelFile;
+            this.pdfFile = pdfFile;
         }
     }
 }

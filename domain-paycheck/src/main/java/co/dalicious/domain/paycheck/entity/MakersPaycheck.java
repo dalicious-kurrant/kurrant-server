@@ -24,7 +24,8 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "paycheck__makers_paycheck")
-public class MakersPaycheck {    @Id
+public class MakersPaycheck {
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("메이커스 정산 ID")
     @Column(columnDefinition = "BIGINT")
@@ -144,6 +145,7 @@ public class MakersPaycheck {    @Id
     public Double getCommission() {
         return 7.7;
     }
+
     public BigDecimal getCommissionPrice() {
         return getFoodTotalPrice().multiply(BigDecimal.valueOf(getCommission() / 100));
     }

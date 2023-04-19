@@ -48,11 +48,13 @@ public interface MakersPaycheckMapper {
 
     @Mapping(target = "year", expression = "java(makersPaycheck.getYearMonth().getYear())")
     @Mapping(target = "month", expression = "java(makersPaycheck.getYearMonth().getMonthValue())")
+    @Mapping(target = "totalPrice", expression = "java(makersPaycheck.getTotalPrice().intValue())")
     @Mapping(source = "makers.name", target = "makersName")
     @Mapping(source = "makers.depositHolder", target = "accountHolder")
     @Mapping(source = "makers.bank", target = "nameOfBank")
     @Mapping(source = "makers.accountNumber", target = "accountNumber")
     @Mapping(source = "paycheckStatus.paycheckStatus", target = "paycheckStatus")
+    @Mapping(target = "hasRequest", expression = "java(!makersPaycheck.getPaycheckMemos().isEmpty())")
     @Mapping(source = "excelFile.location", target = "excelFile")
     @Mapping(source = "pdfFile.location", target = "pdfFile")
     PaycheckDto.MakersList toDto(MakersPaycheck makersPaycheck);
@@ -129,6 +131,8 @@ public interface MakersPaycheckMapper {
                 .depositHolder(makersPaycheck.getMakers().getDepositHolder())
                 .bankName(makersPaycheck.getMakers().getBank())
                 .bankAccount(makersPaycheck.getMakers().getAccountNumber())
+                .excelFile(makersPaycheck.getExcelFile() == null ? null : makersPaycheck.getExcelFile().getLocation())
+                .pdfFile(makersPaycheck.getPdfFile() == null ? null : makersPaycheck.getPdfFile().getLocation())
                 .build();
     }
 
