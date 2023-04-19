@@ -109,10 +109,11 @@ public class ReviewServiceImpl implements ReviewService {
         commentsRepository.save(adminComments);
 
         // 댓글 생성 푸시알림
-        Set<BigInteger> userIdSet = new HashSet<>();
-        userIdSet.add(reviews.getUser().getId());
+        BigInteger userId = reviews.getUser().getId();
+        Map<String, Set<BigInteger>> userIdsMap = Collections.singletonMap("userIds", new HashSet<>(Collections.singletonList(userId)));
 
-        pushUtil.sendToType(null, null, userIdSet, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
+        pushUtil.sendToType(userIdsMap, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
+
     }
 
     @Override
