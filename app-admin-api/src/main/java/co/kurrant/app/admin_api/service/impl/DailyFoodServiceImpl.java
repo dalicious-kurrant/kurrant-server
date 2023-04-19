@@ -108,8 +108,9 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             presetMakersDailyFood.updateConfirmStatus(ConfirmStatus.COMPLETE);
         }
 
+        Map<String, Set<BigInteger>> groupIds = Collections.singletonMap("groupIds", groupIdSet);
         // 식단이 생성 됐을 때 푸시알림
-        pushUtil.sendToType(groupIdSet, null, null, PushCondition.NEW_DAILYFOOD, null, "date", LocalDate.now(ZoneId.of("Asia/Seoul")));
+        pushUtil.sendToType(groupIds, PushCondition.NEW_DAILYFOOD, null, "date", LocalDate.now(ZoneId.of("Asia/Seoul")));
     }
 
     @Override
@@ -263,8 +264,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<DailyFood> newDailyFoods = dailyFoodMapper.toDailyFoods(newDailyFoodGroupMap, groups, foodsByMakers);
         dailyFoodRepository.saveAll(newDailyFoods);
 
-        Set<BigInteger> groupIdSet = groups.stream().map(Group::getId).collect(Collectors.toSet());
+        Map<String, Set<BigInteger>> groupIds = Collections.singletonMap("groupIds", groups.stream().map(Group::getId).collect(Collectors.toSet()));
         // 식단이 생성 됐을 때 푸시알림
-        pushUtil.sendToType(groupIdSet, null, null, PushCondition.NEW_DAILYFOOD, null, "date", LocalDate.now(ZoneId.of("Asia/Seoul")));
+        pushUtil.sendToType(groupIds, PushCondition.NEW_DAILYFOOD, null, "date", LocalDate.now(ZoneId.of("Asia/Seoul")));
     }
 }

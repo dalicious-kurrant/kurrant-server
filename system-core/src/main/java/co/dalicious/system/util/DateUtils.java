@@ -124,10 +124,9 @@ public class DateUtils {
 
         long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
         long hoursLeft = now.until(limitDayAndTime, ChronoUnit.HOURS);
-        System.out.println("hoursLeft = " + hoursLeft);
         now = now.plusHours(hoursLeft);
+        hoursLeft = hoursLeft % 24;
         long minutesLeft = now.until(limitDayAndTime, ChronoUnit.MINUTES);
-        System.out.println("minutesLeft = " + minutesLeft);
 
         LocalTime remainingTime = LocalTime.of((int) hoursLeft % 24, (int) minutesLeft);
 

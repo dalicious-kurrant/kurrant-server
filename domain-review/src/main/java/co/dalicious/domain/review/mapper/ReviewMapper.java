@@ -46,6 +46,8 @@ public interface ReviewMapper {
         reviewableItemListDto.setImageLocation(getLocation(orderItemDailyFood.getDailyFood().getFood().getImages()));
         reviewableItemListDto.setMakersName(orderItemDailyFood.getDailyFood().getFood().getMakers().getName());
         reviewableItemListDto.setFoodName(orderItemDailyFood.getDailyFood().getFood().getName());
+        reviewableItemListDto.setFoodDescription(orderItemDailyFood.getDailyFood().getFood().getDescription());
+        reviewableItemListDto.setFoodCount(orderItemDailyFood.getCount());
         reviewableItemListDto.setReviewDDay(reviewDDAy);
         return reviewableItemListDto;
     }
