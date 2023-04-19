@@ -1,6 +1,5 @@
 package co.kurrant.batch.service;
 
-import co.dalicious.domain.order.repository.QOrderItemRepository;
 import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,6 @@ public class ReviewService {
     private final EntityManager entityManager;
 
     public List<BigInteger> findOrderItemByReviewDeadline() {
-        LocalDate limitDay = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7);
         // order status -> RECEIPT_COMPLETE 이고 남은 리뷰 작성 기한이 0일이면서 현재시간이 deliveryTime 보다 전일때.
         String queryString = "SELECT oi.id, df.serviceDate, mi.deliveryTime\n" +
                 "FROM OrderItem oi\n" +
@@ -47,7 +45,8 @@ public class ReviewService {
             if(serviceDate == null) continue;
             if(deliveryTime == null) deliveryTime = LocalTime.MAX;
 
-            String reviewableDate = DateUtils.calculatedDDayAndTime(LocalDateTime.of(serviceDate, deliveryTime));
+            LocalDate limitDay = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(5);
+            String reviewableDate = DateUtils.calculatedDDayAndTime(LocalDateTime.of(limitDay, deliveryTime));
             String day = reviewableDate.split(" ")[0];
             LocalTime time = DateUtils.stringToLocalTime(reviewableDate.split(" ")[1]);
 
