@@ -5,6 +5,7 @@ import co.dalicious.system.enums.DiscountType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
+
 @Converter
 public class DiscountTypeConverter implements AttributeConverter<DiscountType, Integer> {
     @Override
