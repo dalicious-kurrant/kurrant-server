@@ -384,33 +384,30 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         // 유저정보 가져오기
         User user = userUtil.getUser(securityUser);
         List<OrderDetailDto> orderDetailDtos = new ArrayList<>();
-        Set<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = new HashSet<>();
-        MultiValueMap<OrderItemDailyFoodGroup, OrderItemDto> multiValueMap = new LinkedMultiValueMap<>();
+        MultiValueMap<OrderDetailDto.OrderDetail, OrderItemDailyFood> multiValueMap = new LinkedMultiValueMap<>();
 
         List<OrderItemDailyFood> orderItemList = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, startDate, endDate);
-        for (OrderItemDailyFood orderItemDailyFood : orderItemList) {
-            orderItemDailyFoodGroups.add(orderItemDailyFood.getOrderItemDailyFoodGroup());
-            OrderItemDto orderItemDto = orderItemDailyFoodListMapper.toDto(orderItemDailyFood);
-            // 상속 비교를 하기 위해 프록시 해제
-            OrderDailyFood orderDailyFood = (OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder());
-            orderItemDto.setGroupName(orderDailyFood.getGroupName());
-            orderItemDto.setSpotName(orderDailyFood.getSpotName());
-            multiValueMap.add(orderItemDailyFood.getOrderItemDailyFoodGroup(), orderItemDto);
+        // group by orderItemDailyFoodGroup
+        for(OrderItemDailyFood orderItemDailyFood : orderItemList) {
+            OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
+            OrderDetailDto.OrderDetail orderDetail = OrderDetailDto.OrderDetail.create(orderItemDailyFoodGroup.getServiceDate(), orderItemDailyFoodGroup.getDiningType());
+            multiValueMap.add(orderDetail, orderItemDailyFood);
         }
 
-        for (OrderItemDailyFoodGroup OrderItemDailyFoodGroup : orderItemDailyFoodGroups) {
+        //make dto
+        for(OrderDetailDto.OrderDetail orderDetail : multiValueMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoods = multiValueMap.get(orderDetail);
+            if(orderItemDailyFoods == null || orderItemDailyFoods.isEmpty()) continue;
 
-            List<OrderItemDto> orderItemDtoList = multiValueMap.get(OrderItemDailyFoodGroup);
-            orderItemDtoList = orderItemDtoList != null && !orderItemDtoList.isEmpty() ?
-                    orderItemDtoList.stream().sorted(Comparator.comparing((OrderItemDto dto) -> dto.getOrderStatus() != null && dto.getOrderStatus().equals(10) ? 0 : 1)
-                                    .thenComparing(dto -> dto.getOrderStatus().equals(11) ? 0 : 1))
-                            .toList() : orderItemDtoList;
+            List<OrderItemDto> orderItemDtoList = new ArrayList<>();
+            for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                OrderItemDto orderItemDto = orderItemDailyFoodListMapper.toDto(orderItemDailyFood);
+                orderItemDtoList.add(orderItemDto);
+            }
 
-            OrderDetailDto orderDetailDto = OrderDetailDto.builder()
-                    .serviceDate(DateUtils.format(OrderItemDailyFoodGroup.getServiceDate(), "yyyy-MM-dd"))
-                    .diningType(OrderItemDailyFoodGroup.getDiningType().getDiningType())
-                    .orderItemDtoList(orderItemDtoList)
-                    .build();
+            orderItemDtoList = orderItemDtoList.stream().sorted(Comparator.comparing(OrderItemDto::getOrderStatus).reversed()).toList();
+
+            OrderDetailDto orderDetailDto = orderItemDailyFoodListMapper.toOrderDetailDto(orderDetail, orderItemDtoList);
             orderDetailDtos.add(orderDetailDto);
         }
 
