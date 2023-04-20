@@ -229,6 +229,7 @@ public class SpotServiceImpl implements SpotService {
     }
 
     @Override
+    @Transactional
     public void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
 
         //manager가 존재하는 user인지 체크
@@ -241,6 +242,7 @@ public class SpotServiceImpl implements SpotService {
         BigInteger groupId = qSpotRepository.getGroupId(updateSpotDetailRequestDto.getSpotId());
 
         qGroupRepository.updateSpotDetail(updateSpotDetailRequestDto, groupId);
+
 
         qSpotRepository.updateSpotDetail(updateSpotDetailRequestDto);
 
@@ -258,7 +260,8 @@ public class SpotServiceImpl implements SpotService {
         }
 
 
-
+       //diningType
+        Optional<Spot> spot = spotRepository.findById(updateSpotDetailRequestDto.getSpotId());
        List<String> split = Arrays.stream(updateSpotDetailRequestDto.getDiningTypes().split(",")).toList();
         for (String diningType : split){
             if (mealInfoDiningTypeList.contains(DiningType.ofCode(Integer.valueOf(diningType))) && mealInfoDiningTypeList.size() > split.size()){
@@ -277,6 +280,8 @@ public class SpotServiceImpl implements SpotService {
                 CorporationMealInfo updateMealInfo = mealInfoMapper.toEntityUpdateSpotDetail(mealInfoList.get(0), updateSpotDetailRequestDto.getServiceDays(), diningType, updateSpotDetailRequestDto);
                 mealInfoRepository.save(updateMealInfo);
             }
+            //spot에도 바뀐 diningType으로 적용
+            spot.get().updateDiningType(updateSpotDetailRequestDto.getDiningTypes());
         }
 
         //corporation 수정

@@ -386,4 +386,8 @@ public class User {
     public void updatePushCondition(List<PushCondition> pushConditionList) {
         this.pushConditionList = pushConditionList;
     }
+
+    public boolean hasPushCondition(PushCondition condition) {
+        return pushConditionList.contains(condition);
+    }
 }

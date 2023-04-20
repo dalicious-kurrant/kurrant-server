@@ -26,8 +26,8 @@ public class UserDefaultInfo {
     @Schema(description = "국적")
     private String country;
     @Schema(description = "직종")
-    private JobType jobType;
+    private String jobType;
     @Schema(description = "상세직종")
-    private JobType detailJobType;
+    private String detailJobType;
 
 }

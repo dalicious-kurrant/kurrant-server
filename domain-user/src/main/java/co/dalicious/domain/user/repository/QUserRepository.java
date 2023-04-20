@@ -2,6 +2,7 @@ package co.dalicious.domain.user.repository;
 
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.user.entity.QUser;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.PointStatus;
@@ -10,6 +11,7 @@ import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -226,12 +228,10 @@ public class QUserRepository {
                 .fetch();
     }
 
-    public List<String> findUserFirebaseToken(Set<BigInteger> userIds, PushCondition pushCondition) {
+    public List<User> findUserFirebaseToken(Set<BigInteger> userIds) {
 
-        return queryFactory.select(user.firebaseToken)
-                .from(user)
+        return queryFactory.selectFrom(user)
                 .where(user.id.in(userIds),
-                        user.pushConditionList.contains(pushCondition),
                         user.firebaseToken.isNotNull())
                 .fetch();
     }

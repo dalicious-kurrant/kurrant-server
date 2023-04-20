@@ -5,6 +5,7 @@ import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.mapper.PushAlarmMapper;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
@@ -38,19 +39,31 @@ public class PushUtil {
         // 비활성인 경우 알람 안보냄
         if(pushAlarms == null) return;
 
-        List<String> firebaseToken = new ArrayList<>();
+        List<User> userList = new ArrayList<>();
 
         if(groupIds != null && !groupIds.isEmpty()) {
             //해당 그룹 유저의 fcm token 찾기
-            firebaseToken = qUserGroupRepository.findUserGroupFirebaseToken(groupIds, pushCondition);
+            userList = qUserGroupRepository.findUserGroupFirebaseToken(groupIds);
         }
         if(spotIds != null && !spotIds.isEmpty()) {
             //해당 스팟 유저의 fcm token 찾기
-            firebaseToken = qUserSpotRepository.findAllUserSpotFirebaseToken(spotIds, pushCondition);
+            userList = qUserSpotRepository.findAllUserSpotFirebaseToken(spotIds);
         }
         if(userIds != null && !userIds.isEmpty()) {
-            firebaseToken = qUserRepository.findUserFirebaseToken(userIds, pushCondition);
+            userList = qUserRepository.findUserFirebaseToken(userIds);
         }
+
+        List<String> firebaseTokenList = new ArrayList<>();
+
+        userList.forEach(user -> {
+            List<PushCondition> pushConditionList = user.getPushConditionList();
+            if(pushConditionList == null || pushConditionList.isEmpty()){
+                return;
+            }
+            if(pushConditionList.contains(pushCondition)) {
+                firebaseTokenList.add(user.getFirebaseToken());
+            }
+        });
 
         Map<String, String> keys = new HashMap<>();
         if(contentId != null) {
@@ -60,7 +73,7 @@ public class PushUtil {
             keys.put(key, DateUtils.format(date));
         }
 
-        PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(firebaseToken, null, pushAlarms.getMessage(), pushAlarms.getRedirectUrl(), keys);
+        PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(firebaseTokenList, null, pushAlarms.getMessage(), pushAlarms.getRedirectUrl(), keys);
 
         pushService.sendToPush(pushRequestDto);
     }

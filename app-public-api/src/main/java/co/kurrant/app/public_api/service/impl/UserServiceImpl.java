@@ -23,9 +23,7 @@ import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
-import co.dalicious.domain.user.dto.UserPreferenceDto;
-import co.dalicious.domain.user.dto.UserPreferenceFoodImageResponseDto;
-import co.dalicious.domain.user.dto.UserSelectTestDataDto;
+import co.dalicious.domain.user.dto.*;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
@@ -298,85 +296,85 @@ public class UserServiceImpl implements UserService {
         providerEmailRepository.save(providerEmail);
     }
 
+//    @Override
+//    @Transactional
+//    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
+//        // 유저 정보 가져오기
+//        User user = userUtil.getUser(securityUser);
+//        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
+//        return MarketingAlarmResponseDto.builder()
+//                .marketingAgree(user.getMarketingAgree())
+//                .orderAlarm(user.getOrderAlarm())
+//                .marketingAlarm(user.getMarketingAlarm())
+//                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
+//                .build();
+//    }
+//
+//
+//    @Override
+//    @Transactional
+//    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+//            // 유저 정보 가져오기
+//            User user = userUtil.getUser(securityUser);
+//            Boolean currantMarketingInfoAgree = user.getMarketingAgree();
+//            Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
+//            Boolean currantOrderAlarmAgree = user.getOrderAlarm();
+//
+//            // 현재 시간 가져오기
+//            Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+//
+//            // 변수 설정
+//            Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
+//            Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
+//            Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
+//
+//            user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
+//
+//            return MarketingAlarmResponseDto.builder()
+//                    .marketingAgree(currantMarketingInfoAgree)
+//                    .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
+//                    .marketingAlarm(currantMarketingAlarmAgree)
+//                    .orderAlarm(currantOrderAlarmAgree)
+//                    .build();
+//        }
+
     @Override
     @Transactional
-    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
+    public List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
-        return MarketingAlarmResponseDto.builder()
-                .marketingAgree(user.getMarketingAgree())
-                .orderAlarm(user.getOrderAlarm())
-                .marketingAlarm(user.getMarketingAlarm())
-                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
-                .build();
-    }
+        List<PushCondition> userPushConditionList = user.getPushConditionList();
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
 
+        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(userPushConditionList, c)).toList();
+    }
 
     @Override
     @Transactional
-    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
-            // 유저 정보 가져오기
-            User user = userUtil.getUser(securityUser);
-            Boolean currantMarketingInfoAgree = user.getMarketingAgree();
-            Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
-            Boolean currantOrderAlarmAgree = user.getOrderAlarm();
-
-            // 현재 시간 가져오기
-            Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-
-            // 변수 설정
-            Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
-            Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
-            Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
-
-            user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
-
-            return MarketingAlarmResponseDto.builder()
-                    .marketingAgree(currantMarketingInfoAgree)
-                    .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
-                    .marketingAlarm(currantMarketingAlarmAgree)
-                    .orderAlarm(currantOrderAlarmAgree)
-                    .build();
+    public List<MarketingAlarmResponseDto> changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+        // 유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+        List<PushCondition> userPushConditionList = new ArrayList<>();
+        if(user.getPushConditionList() != null && !user.getPushConditionList().isEmpty()) {
+            userPushConditionList = user.getPushConditionList();
         }
 
-//    @Override
-//    @Transactional
-//    public List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser) {
-//        // 유저 정보 가져오기
-//        User user = userUtil.getUser(securityUser);
-//        List<PushCondition> userPushConditionList = user.getPushConditionList();
-//        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
-//
-//        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(userPushConditionList, c)).toList();
-//    }
+        if(marketingAlarmDto.getIsActive()){
+            PushCondition pushCondition = PushCondition.ofCode(marketingAlarmDto.getCode());
+            userPushConditionList.add(pushCondition);
+        }
+        else {
+            PushCondition pushCondition = userPushConditionList.stream()
+                    .filter(c -> c.getCode().equals(marketingAlarmDto.getCode()))
+                    .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_NOT_ACTIVE));
+            userPushConditionList.remove(pushCondition);
+        }
+        List<PushCondition> finalUserPushConditionList = userPushConditionList;
+        user.updatePushCondition(finalUserPushConditionList);
 
-//    @Override
-//    @Transactional
-//    public List<MarketingAlarmResponseDto> changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
-//        // 유저 정보 가져오기
-//        User user = userUtil.getUser(securityUser);
-//        List<PushCondition> userPushConditionList = new ArrayList<>();
-//        if(user.getPushConditionList() != null && !user.getPushConditionList().isEmpty()) {
-//            userPushConditionList = user.getPushConditionList();
-//        }
-//
-//        if(marketingAlarmDto.getIsActive()){
-//            PushCondition pushCondition = PushCondition.ofCode(marketingAlarmDto.getCode());
-//            userPushConditionList.add(pushCondition);
-//        }
-//        else {
-//            PushCondition pushCondition = userPushConditionList.stream()
-//                    .filter(c -> c.getCode().equals(marketingAlarmDto.getCode()))
-//                    .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_NOT_ACTIVE));
-//            userPushConditionList.remove(pushCondition);
-//        }
-//        List<PushCondition> finalUserPushConditionList = userPushConditionList;
-//        user.updatePushCondition(finalUserPushConditionList);
-//
-//        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
-//        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(finalUserPushConditionList, c)).toList();
-//    }
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
+        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(finalUserPushConditionList, c)).toList();
+    }
 
     @Override
     @Transactional
@@ -888,6 +886,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Transactional
     public String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto) {
 
         User user = userUtil.getUser(securityUser);
@@ -895,18 +894,24 @@ public class UserServiceImpl implements UserService {
         List<UserPreference> preferenceList = userPreferenceRepository.findAllByUserId(user.getId());
 
         UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
+        List<FoodTag> foodTags  = userPreference.getFavoriteCountryFood();
+
+//        foodTags = foodTags.stream()
+//                .filter(v -> v.getCode().equals(1))
+//                .toList();
+//        userPreference.updateFavoriteCountryFood(foodTags);
 
         //기존에 있는 정보라면 수정
         if (!preferenceList.isEmpty()){
             //삭제 후 저장
             qUserPreferenceRepository.deleteOthers(user.getId());
             userPreferenceRepository.save(userPreference);
-            /*
+
             for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
-                UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), userPreference, userPreference.getUser());
+                UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), userPreference.getId(), userPreference.getUser());
                 userSelectTestDataRepository.save(userSelectTestData);
             }
-             */
+
             return "기존 정보가 있어서 수정하였습니다.";
         }
 
@@ -914,11 +919,10 @@ public class UserServiceImpl implements UserService {
         if (saveResult.getId() == null){
             return "유저 정보 저장에 실패했습니다.";
         }
-/*
         for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
-            UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), saveResult, saveResult.getUser());
+            UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), saveResult.getId(), saveResult.getUser());
             userSelectTestDataRepository.save(userSelectTestData);
-        }*/
+        }
 
 
 
@@ -1023,6 +1027,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Object getTestData() {
-        return userTasteTestDataRepository.findAll();
+
+        List<UserTestDataDto> userTestDataList = new ArrayList<>();
+        //테스트데이터 조회
+        List<UserTasteTestData> userTasteTestDataList = userTasteTestDataRepository.findAll();
+        for (UserTasteTestData testData : userTasteTestDataList){
+            UserTestDataDto userTestData = new UserTestDataDto();
+            Map<BigInteger, String> foodImageMap = new HashMap<>();
+            List<String> stringList = Arrays.stream(testData.getFoodIds().split(",")).toList();
+            for (String id : stringList){
+                String foodId = id.replace(" ", "");
+                //food 조회
+                Food food = foodRepository.findById(BigInteger.valueOf(Long.parseLong(foodId)))
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+                //food의 imageUrl 가져오기
+                String url = food.getImages().get(0).getLocation();
+                //id와 url을 같이 보내주기 위해 맵에 put
+                foodImageMap.put(food.getId(), url);
+            }
+            userTestData.setId(testData.getId());
+            userTestData.setPage(testData.getPage());
+            userTestData.setFoodIds(foodImageMap);
+            userTestDataList.add(userTestData);
+        }
+
+        return userTestDataList;
     }
 }
