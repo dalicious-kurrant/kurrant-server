@@ -405,7 +405,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 orderItemDtoList.add(orderItemDto);
             }
 
-            orderItemDtoList = orderItemDtoList.stream().sorted(Comparator.comparing(OrderItemDto::getOrderStatus).reversed()).toList();
+            orderItemDtoList = orderItemDtoList.stream()
+                    .sorted(Comparator.comparing((OrderItemDto orderItemDto) -> orderItemDto.getOrderStatus().equals(14))
+                            .thenComparing(OrderItemDto::getOrderStatus, Comparator.reverseOrder()))
+                    .toList();
 
             OrderDetailDto orderDetailDto = orderItemDailyFoodListMapper.toOrderDetailDto(orderDetail, orderItemDtoList);
             orderDetailDtos.add(orderDetailDto);
