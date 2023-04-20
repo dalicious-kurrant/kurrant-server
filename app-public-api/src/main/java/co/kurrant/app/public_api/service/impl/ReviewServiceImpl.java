@@ -144,7 +144,7 @@ public class ReviewServiceImpl implements ReviewService {
         MultiValueMap<LocalDate, OrderItemDailyFood> orderItemDailyFoodByServiceDateMap = new LinkedMultiValueMap<>();
         for(OrderItem item : receiptCompleteItem) {
 
-            if(reviewOrderItem.contains(item)) continue;
+//            if(reviewOrderItem.contains(item)) continue;
 
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
                 MealInfo mealInfos = orderItemDailyFood.getDailyFood().getGroup().getMealInfos().stream()
@@ -169,7 +169,7 @@ public class ReviewServiceImpl implements ReviewService {
                 String time = leftDayAndTime.split(" ")[1];
 
                 String leftDay;
-                if(day.equals("1")) leftDay = time;
+                if(day.equals("0")) leftDay = time;
                 else leftDay = day;
                 System.out.println("leftDay = " + leftDay);
                 // 적립 가능한 포인트 조회
