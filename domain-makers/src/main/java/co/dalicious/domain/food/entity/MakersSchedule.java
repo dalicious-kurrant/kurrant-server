@@ -11,7 +11,6 @@ import org.hibernate.annotations.Comment;
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Getter
 @Entity

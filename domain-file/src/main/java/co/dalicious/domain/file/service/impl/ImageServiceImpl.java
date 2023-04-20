@@ -7,9 +7,7 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.*;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,12 +97,6 @@ public class ImageServiceImpl implements ImageService {
         return new ImageResponseDto(location, key, fileName);
     }
 
-//    @Override
-//    public void delete(String key) {
-//        AmazonS3 amazonS3 = amazonS3Client();
-//        amazonS3.deleteObject(new DeleteObjectRequest(bucketName, key));
-//    }
-
     public void delete(String prefix) {
         AmazonS3 amazonS3 = amazonS3Client();
         ObjectListing objectListing = amazonS3.listObjects(bucketName, prefix);
@@ -112,55 +106,41 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
-    //  @Override
-//  @Transactional
-//  public Image createImage(ImageCreateRequestDto dto) {
-//
-//    AmazonS3Client client = this.createAmazonS3Client();
-//    boolean isExist = client.doesObjectExist(this.bucketName, dto.getKey());
-//    if (!isExist) {
-//      throw new FileNotFoundException();
-//    }
-//
-//    return Image.builder().key(dto.getKey()).location(dto.getLocation()).filename(dto.getFilename())
-//        .build();
-//  }
-//
-//  @Override
-//  public RequestImageUploadUrlResponseDto requestUrl(RequestImageUploadUrlRequestDto dto) {
-//    AmazonS3 s3Client = this.createAmazonS3Client();
-//    String key = this.createKey(dto.getFilename());
-//
-//    String uploadId = null;
-//    if (dto.getParts() > 1) {
-//      InitiateMultipartUploadResult res = s3Client
-//          .initiateMultipartUpload(new InitiateMultipartUploadRequest(this.bucketName, key));
-//      uploadId = res.getUploadId();
-//    }
-//
-//    List<String> presignedUrls = new ArrayList<String>(dto.getParts());
-//    for (int i = 0; i < dto.getParts(); i++) {
-//      Date expiration = DateUtils.addMinutes(new Date(), 15 * i + 540);
-//      GeneratePresignedUrlRequest generatePresignedUrlRequest =
-//          new GeneratePresignedUrlRequest(this.bucketName, key);
-//      generatePresignedUrlRequest.setExpiration(expiration);
-//
-//      // TODO: 멀티파트 업로드 사용법은 추후 작업
-//      generatePresignedUrlRequest.withMethod(HttpMethod.PUT);
-//
-//      if (dto.getParts() > 1 && uploadId != null) {
-//        generatePresignedUrlRequest.addRequestParameter("uploadId", uploadId);
-//        generatePresignedUrlRequest.addRequestParameter("partNumber", String.valueOf(i + 1));
-//      }
-//
-//      URL url = s3Client.generatePresignedUrl(generatePresignedUrlRequest);
-//      presignedUrls.add(url.toString());
-//    }
-//
-//    String location = this.extractLocation(presignedUrls.get(0));
-//
-//    return RequestImageUploadUrlResponseDto.builder().key(key).location(location)
-//        .urls(presignedUrls).uploadId(uploadId).build();
-//  }
+    public byte[] downloadImageFromS3(String key) {
+        AmazonS3 amazonS3 = amazonS3Client();
 
+        S3Object s3Object = amazonS3.getObject(bucketName, key);
+        S3ObjectInputStream inputStream = s3Object.getObjectContent();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+
+        try {
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return baos.toByteArray();
+    }
+
+    @Override
+    public ImageResponseDto fileUpload(byte[] fileBytes, String dirName, String fileName) {
+        AmazonS3 amazonS3 = amazonS3Client();
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(fileBytes);
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(fileBytes.length);
+        metadata.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+        String key = dirName + "/" + createKey(fileName);
+        PutObjectRequest request = new PutObjectRequest(bucketName, key, inputStream, metadata);
+        String location = String.valueOf(amazonS3.getUrl(bucketName, key));
+        amazonS3.putObject(request);
+
+        return new ImageResponseDto(location, key, fileName);
+    }
 }

@@ -40,19 +40,19 @@ public class DiscountDto {
         BigDecimal subtractPrice = BigDecimal.ZERO;
 
         // 1. 멤버십 할인
-        if(membershipDiscountedRate != 0) {
+        if (membershipDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((membershipDiscountedRate / 100.0)));
             membershipDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(subtractPrice);
         }
         // 2. 메이커스 할인
-        if(makersDiscountedRate != 0) {
+        if (makersDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
             makersDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 3. 기간 할인
-        if(periodDiscountedRate != 0) {
+        if (periodDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
             periodDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
         }
@@ -80,15 +80,18 @@ public class DiscountDto {
         BigDecimal makersDiscountedPrice = BigDecimal.ZERO;
         BigDecimal periodDiscountedPrice = BigDecimal.ZERO;
 
+        BigDecimal subtractPrice = BigDecimal.ZERO;
 
         // 1. 메이커스 할인
-        if(makersDiscountedRate != 0) {
-            makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
+        if (makersDiscountedRate != 0) {
+            subtractPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
+            makersDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 2. 기간 할인
-        if(periodDiscountedRate != 0) {
-            periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
+        if (periodDiscountedRate != 0) {
+            subtractPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
+            periodDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
@@ -117,19 +120,19 @@ public class DiscountDto {
         BigDecimal subtractPrice = BigDecimal.ZERO;
 
         // 1. 멤버십 할인
-        if(membershipDiscountedRate != 0) {
+        if (membershipDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((membershipDiscountedRate / 100.0)));
             membershipDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(subtractPrice);
         }
         // 2. 메이커스 할인
-        if(makersDiscountedRate != 0) {
+        if (makersDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
             makersDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 3. 기간 할인
-        if(periodDiscountedRate != 0) {
+        if (periodDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
             periodDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
         }
@@ -157,7 +160,9 @@ public class DiscountDto {
         BigDecimal makersDiscountedPrice = BigDecimal.ZERO;
         BigDecimal periodDiscountedPrice = BigDecimal.ZERO;
 
-        for(FoodDiscountPolicy foodDiscountPolicy : food.getFoodDiscountPolicyList()) {
+        BigDecimal subtractPrice = BigDecimal.ZERO;
+
+        for (FoodDiscountPolicy foodDiscountPolicy : food.getFoodDiscountPolicyList()) {
             switch (foodDiscountPolicy.getDiscountType()) {
                 case MAKERS_DISCOUNT -> makersDiscountedRate = foodDiscountPolicy.getDiscountRate();
                 case PERIOD_DISCOUNT -> periodDiscountedRate = foodDiscountPolicy.getDiscountRate();
@@ -165,13 +170,15 @@ public class DiscountDto {
         }
 
         // 1. 메이커스 할인
-        if(makersDiscountedRate != 0) {
-            makersDiscountedPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
+        if (makersDiscountedRate != 0) {
+            subtractPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
+            makersDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 2. 기간 할인
-        if(periodDiscountedRate != 0) {
-            periodDiscountedPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
+        if (periodDiscountedRate != 0) {
+            subtractPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
+            periodDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
@@ -185,13 +192,13 @@ public class DiscountDto {
 
     public BigDecimal getDiscountedPrice() {
         BigDecimal totalPrice = this.price;
-        if(this.membershipDiscountPrice != null && this.membershipDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
+        if (this.membershipDiscountPrice != null && this.membershipDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
             totalPrice = totalPrice.subtract(this.membershipDiscountPrice);
         }
-        if(this.makersDiscountPrice != null && this.makersDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
+        if (this.makersDiscountPrice != null && this.makersDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
             totalPrice = totalPrice.subtract(this.makersDiscountPrice);
         }
-        if(this.periodDiscountPrice != null && this.periodDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
+        if (this.periodDiscountPrice != null && this.periodDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
             totalPrice = totalPrice.subtract(this.periodDiscountPrice);
         }
         return totalPrice;

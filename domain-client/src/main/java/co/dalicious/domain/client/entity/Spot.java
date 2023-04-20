@@ -97,6 +97,16 @@ public class Spot {
         this.memo = memo;
     }
 
+    public void updateDiningType(String diningTypes) {
+        List<DiningType> diningTypeList = new ArrayList<>();
+        String[] split = diningTypes.split(",");
+        for (String diningType : split){
+            diningTypeList.add(DiningType.ofCode(Integer.valueOf(diningType)));
+        }
+        this.diningTypes = diningTypeList;
+    }
+
+
     public List<MealInfo> getMealInfos() {
         List<DiningType> diningTypeList = this.diningTypes;
         return this.group.getMealInfos().stream()

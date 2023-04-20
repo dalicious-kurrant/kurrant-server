@@ -1,6 +1,7 @@
 package co.dalicious.domain.payment.util;
 
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import io.swagger.annotations.Api;
 import io.swagger.v3.core.util.Json;
@@ -9,6 +10,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -28,7 +30,7 @@ public class NiceUtil {
 
     NiceUtil(@Value("${nice.api-key}") String apiKey,
              @Value("${nice.secret-key}") String secretKey
-             ){
+    ) {
         this.secretKey = secretKey;
         this.apiKey = apiKey;
     }
@@ -59,7 +61,7 @@ public class NiceUtil {
         JSONObject jsonObject = (JSONObject) parser.parse(reader);
         responseStream.close();
         Long resultCode = (Long) jsonObject.get("code");
-        if (resultCode != 0 ){
+        if (resultCode != 0) {
             throw new ApiException(ExceptionEnum.TOKEN_CREATE_FAILED);
         }
         JSONObject response = (JSONObject) jsonObject.get("response");
@@ -73,7 +75,7 @@ public class NiceUtil {
         int targetStringLength = 50; // 길이제한
         Random random = new Random();
 
-        String generatedString = random.ints(leftLimit,rightLimit + 1)
+        String generatedString = random.ints(leftLimit, rightLimit + 1)
                 .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
                 .limit(targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
@@ -84,17 +86,17 @@ public class NiceUtil {
 
     //카드 등록요청(자동결제 빌링키 발급)
     public JSONObject cardRegisterRequest(String cardNumber, String expirationYear, String expirationMonth,
-                                    String cardPassword, String identityNumber, String customerKey, String token) throws IOException, ParseException {
+                                          String cardPassword, String identityNumber, String customerKey, String token) throws IOException, ParseException {
         byte[] secretKeyToByte = secretKey.getBytes();
 
         Base64.Encoder encode = Base64.getEncoder();
         byte[] encodeByte = encode.encode(secretKeyToByte);
         String authorizations = "Basic " + new String(encodeByte, 0, encodeByte.length);
 
-        URL url = new URL("https://api.iamport.kr/subscribe/customers/"+customerKey);
+        URL url = new URL("https://api.iamport.kr/subscribe/customers/" + customerKey);
 
         //유효기간 년월 합치기
-        String expiry = "20" + expirationYear +"-" +expirationMonth;
+        String expiry = "20" + expirationYear + "-" + expirationMonth;
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Authorization", token);
@@ -121,8 +123,9 @@ public class NiceUtil {
         JSONObject jsonObject = (JSONObject) parser.parse(reader);
         System.out.println(jsonObject + "jsonObject");
         Long resultCode = (Long) jsonObject.get("code");
-        if (resultCode != 0){
-            throw new ApiException(ExceptionEnum.BILLING_KEY_CREATE_FAILED);
+        if (resultCode != 0) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000001", (String) jsonObject.get("message"));
+
         }
         responseStream.close();
         JSONObject response = (JSONObject) jsonObject.get("response");
@@ -132,7 +135,7 @@ public class NiceUtil {
     public JSONObject niceBilling(String billingKey, Integer amount, String orderId, String token, String orderName) throws IOException, ParseException {
         Base64.Encoder encode = Base64.getEncoder();
         byte[] encodeByte = encode.encode(secretKey.getBytes("UTF-8"));
-        String authorizations = "Basic "+ new String(encodeByte, 0, encodeByte.length);
+        String authorizations = "Basic " + new String(encodeByte, 0, encodeByte.length);
 
         URL url = new URL("https://api.iamport.kr/subscribe/payments/again");
 
@@ -151,9 +154,9 @@ public class NiceUtil {
         outputStream.write(obj.toString().getBytes("UTF-8"));
 
         int code = connection.getResponseCode();
-        boolean isSuccess = code == 200? true : false;
+        boolean isSuccess = code == 200 ? true : false;
 
-        InputStream responseStream = isSuccess? connection.getInputStream(): connection.getErrorStream();
+        InputStream responseStream = isSuccess ? connection.getInputStream() : connection.getErrorStream();
 
         Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8);
         JSONParser parser = new JSONParser();
@@ -189,7 +192,7 @@ public class NiceUtil {
         JSONObject jsonObject = (JSONObject) parser.parse(reader);
         System.out.println(jsonObject + "jsonObject");
         Long resultCode = (Long) jsonObject.get("code");
-        if (resultCode != 0){
+        if (resultCode != 0) {
             throw new ApiException(ExceptionEnum.PAYMENT_CANCELLATION_FAILED);
         }
         responseStream.close();

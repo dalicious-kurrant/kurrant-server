@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.ApartmentRepository;
@@ -29,10 +30,7 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.ClientType;
-import co.dalicious.domain.user.entity.enums.Role;
-import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
@@ -92,6 +90,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
     private final QUserRepository qUserRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
+    private final PushUtil pushUtil;
 
     @Override
     @Transactional
@@ -195,12 +194,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
         }
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
+        Map<String, Set<BigInteger>> userIdsMap = new HashMap<>();
+        Set<BigInteger> userIds = new HashSet<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             if (!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
                 throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
             }
             orderItemDailyFood.updateOrderStatus(orderStatus);
+            userIds.add(orderItemDailyFood.getOrder().getUser().getId());
         }
+        userIdsMap.put("userIds", userIds);
+        pushUtil.sendToType(userIdsMap, PushCondition.DELIVERED_ORDER_ITEM, null, null, null);
     }
 
     @Override

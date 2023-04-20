@@ -46,7 +46,7 @@ public enum ExceptionEnum {
 	NOT_MATCH_USER_CARD(HttpStatus.BAD_REQUEST, "E4000034", "유저 카드정보와 일치하지 않습니다."),
 	NOT_MATCHED_GROUP(HttpStatus.BAD_REQUEST, "E4000035", "그룹이 일치하지 않습니다."),
 	NOT_MATCHED_MAKERS(HttpStatus.BAD_REQUEST, "E4000036", "메이커스가 일치하지 않습니다."),
-	EXCEL_EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "E4000100", "중복된 이메일 입력이 존재합니다."),
+	EXCEL_EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "E4000100", "이미 사용중인 이메일입니다."),
 	EXCEL_INTEGRITY_ERROR(HttpStatus.BAD_REQUEST, "E4000101", "정합성에 위반된 데이터가 존재합니다. 올바른 데이터를 입력해주세요."),
 	CONNECTION_ERROR(HttpStatus.BAD_REQUEST, "E4000102", "연결 오류!!!"),
 	EVENT_END_DATE_IS_OVER(HttpStatus.BAD_REQUEST, "E4000103", "이미 끝난 이벤트입니다."),
@@ -107,8 +107,10 @@ public enum ExceptionEnum {
 	CANCLE_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040033", "취소 내역을 찾을 수 없습니다."),
 	NOT_FOUND_PAYMENT_PASSWORD(HttpStatus.NOT_FOUND, "E4040034", "결제 비밀번호가 등록되지 않았습니다."),
 	ALREADY_EXIST_CARD(HttpStatus.NOT_FOUND, "E4040035", "이미 존재하는 카드입니다"),
+	NOT_FOUND_PUSH_ALARM(HttpStatus.NOT_FOUND, "E4040036", "존재하지 않는 푸시알림 조건입니다."),
 	NOT_FOUND_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040036", "삭제할 테스트 데이터 ID를 입력하지 않았습니다."),
 	NOT_MATCHED_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040037", "존재하지 않는 테스트 데이터 ID 입니다."),
+	ALREADY_NOT_ACTIVE(HttpStatus.NOT_FOUND, "E4040038", "이미 비활성화 상태입니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
@@ -133,7 +135,7 @@ public enum ExceptionEnum {
 	BILLING_KEY_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000015", "잘못된 카드정보를 입력하셨습니다."),
 	TOKEN_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000016", "토큰 저장 실패"),
 	PAYMENT_PASSWORD_LENGTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000017", "결제 비밀번호는 6자리로 입력해주세요."),
-	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "결제 비밀번호가 일치하지 않습니다."),
+	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "비밀번호가 생각나지 않으시면 [비밀번호 재설정]을 눌러주세요."),
 	PAYMENT_PASSWORD_RESET_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000019", "결제 비밀번호 재설정에 실패했습니다."),
 
 

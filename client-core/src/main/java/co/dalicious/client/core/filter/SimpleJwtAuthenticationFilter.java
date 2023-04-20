@@ -36,12 +36,13 @@ public class SimpleJwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         URI prodUri = UriComponentsBuilder.fromHttpUrl(String.valueOf(request.getRequestURL())).build().toUri();
-        if(prodUri.getHost().contains("prod.dalicious.co") || prodUri.getHost().contains("3.39.196.44")) {
+        if(prodUri.getHost().contains("prod.dalicious.co") || prodUri.getHost().contains("3.39.196.44") ||
+        prodUri.getHost().contains("dev.server.kurrant.shop")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (request.getRequestURI().startsWith("/v1/auth")) {
+        if (request.getRequestURI().startsWith("/v1/auth") && request.getRequestURI().startsWith("/v1/auth/certification/email?type=8")) {
             filterChain.doFilter(request, response);
             return;
         }

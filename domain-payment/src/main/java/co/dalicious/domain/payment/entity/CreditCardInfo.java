@@ -90,4 +90,8 @@ public class CreditCardInfo {
     public void updateNiceBillingKey(String niceBillingKey) {
         this.niceBillingKey = niceBillingKey;
     }
+
+    public void updateStatus(Integer status) {
+        this.status = status;
+    }
 }

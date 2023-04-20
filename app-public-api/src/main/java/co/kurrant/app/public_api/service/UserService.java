@@ -38,9 +38,11 @@ public interface UserService {
     // 이메일/비밀번호 설정
     void setEmailAndPassword(SecurityUser securityUser, SetEmailAndPasswordDto setEmailAndPasswordDto);
     // 알람/마케팅 설정 조회
-    MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser);
+//    MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser);
+    List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser);
     // 알람/마케팅 설정 변경
-    MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto);
+//    MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto);
+    List<MarketingAlarmResponseDto> changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto);
     // 마이페이지(개인정보) 유저 정보 가져오기
     UserPersonalInfoDto getPersonalUserInfo(SecurityUser securityUser);
     // 오픈스팟 그룹 설정
@@ -68,4 +70,14 @@ public interface UserService {
     void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto);
 
     String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto);
+
+    Object getCountry();
+
+    Object getFavoriteCountryFoods(Integer code);
+
+    Object getJobType(Integer category, String code);
+
+    Object getFoodImage(List<BigInteger> foodId);
+
+    Object getTestData();
 }

@@ -1,8 +1,7 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.food.dto.LocationTestDto;
-import co.dalicious.domain.food.dto.MakersInfoResponseDto;
+import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
 import co.dalicious.domain.food.mapper.MakersCapacityMapper;
@@ -10,8 +9,7 @@ import co.dalicious.domain.food.repository.MakersCapacityRepository;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QMakersCapacityRepository;
 import co.dalicious.domain.food.repository.QMakersRepository;
-import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDto;
-import co.kurrant.app.admin_api.dto.makers.SaveMakersRequestDtoList;
+import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.service.MakersService;
 import exception.ApiException;
@@ -24,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -100,23 +99,17 @@ public class MakersServiceImpl implements MakersService {
                 }
                 //다이닝 타입별 가능수량을 계산해서 저장해준다.
                 for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
-
+                        String lastOrderTime = saveMakersRequestDto.getDiningTypes().get(i).getLastOrderTime();
                         Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
                         Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
 
-                        MakersCapacity makersCapacity = makersCapacityMapper.toEntityForCapacitySave(optionalMakers.get(), diningType, capacity);
+                        MakersCapacity makersCapacity = makersCapacityMapper.toEntityForCapacitySave(optionalMakers.get(), diningType, capacity, lastOrderTime);
 
                         makersCapacityRepository.save(makersCapacity);
                     }
                 //그 외 수정
-                qMakersRepository.updateMakers(saveMakersRequestDto.getId(),saveMakersRequestDto.getCode(),saveMakersRequestDto.getName(),
-                        saveMakersRequestDto.getCompanyName(), saveMakersRequestDto.getCeo(), saveMakersRequestDto.getCeoPhone(),
-                        saveMakersRequestDto.getManagerName(), saveMakersRequestDto.getManagerPhone(), saveMakersRequestDto.getServiceType(),
-                        saveMakersRequestDto.getServiceForm(), saveMakersRequestDto.getIsParentCompany(), saveMakersRequestDto.getParentCompanyId(),
-                        address, saveMakersRequestDto.getCompanyRegistrationNumber(), saveMakersRequestDto.getContractStartDate(),
-                        saveMakersRequestDto.getContractEndDate(), saveMakersRequestDto.getIsNutritionInformation(), saveMakersRequestDto.getOpenTime(),
-                        saveMakersRequestDto.getCloseTime(), saveMakersRequestDto.getBank(), saveMakersRequestDto.getDepositHolder(), saveMakersRequestDto.getAccountNumber(),
-                        saveMakersRequestDto.getFee());
+                optionalMakers.get().updateMakers(saveMakersRequestDto);
+                optionalMakers.get().updateAddress(address);
             }else {
                 Makers makers = makersMapper.toEntity(saveMakersRequestDto, address);
 
@@ -146,5 +139,34 @@ public class MakersServiceImpl implements MakersService {
         System.out.println(location + " location");
 
         qMakersRepository.updateLocation(location, locationTestDto);
+    }
+
+    @Override
+    @Transactional
+    public void updateMakers(UpdateMakersReqDto updateMakersReqDto) throws ParseException {
+        //존재하는 Makers인지 확인
+        Makers makers = makersRepository.findById(updateMakersReqDto.getMakersId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+        //위치값 반영
+        Address address = new Address();
+        address.makeAddress(updateMakersReqDto.getAddress1(), updateMakersReqDto.getAddress2(), updateMakersReqDto.getZipCode(), updateMakersReqDto.getLocation());
+
+
+        List<MakersCapacity> makersCapacityList = new ArrayList<>();
+        if (updateMakersReqDto.getDiningTypes() != null){
+            //기존 Capacity정보 삭제
+            qMakersCapacityRepository.deleteAllByMakersId(makers.getId());
+        }
+
+        for (MakersCapacityDto capacityDto : updateMakersReqDto.getDiningTypes()){
+            //makersCapacity 수정
+            MakersCapacity makersCapacity = makersCapacityMapper.toEntity(makers, capacityDto);
+            makersCapacityList.add(makersCapacity);
+            makersCapacityRepository.save(makersCapacity);
+        }
+
+        makers.updateMakersDetail(updateMakersReqDto, address, makersCapacityList);
+
+
+
     }
 }
