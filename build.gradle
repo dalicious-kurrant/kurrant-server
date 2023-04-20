@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.7.2'
+        springBootVersion = '2.7.7'
         dependencyManagementVersion = '1.0.12.RELEASE'
         mysqlVersion = '8.0.30'
         lombokVersion = '6.5.0.3'
