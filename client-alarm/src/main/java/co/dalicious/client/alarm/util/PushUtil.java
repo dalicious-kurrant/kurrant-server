@@ -29,8 +29,11 @@ public class PushUtil {
     private final PushService pushService;
     private final PushAlarmMapper pushAlarmMapper;
 
-    public void sendToType(Set<BigInteger> groupIds, Set<BigInteger> spotIds, Set<BigInteger> userIds,
-                           PushCondition pushCondition, BigInteger contentId, String key, LocalDate date) {
+    public void sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, LocalDate date) {
+        Set<BigInteger> groupIds = !ids.containsKey("groupIds") || ids.get("groupIds") == null ? null : ids.get("groupIds");
+        Set<BigInteger> spotIds = !ids.containsKey("spotIds") || ids.get("spotIds") == null ? null : ids.get("spotIds");
+        Set<BigInteger> userIds = !ids.containsKey("userIds") || ids.get("userIds") == null ? null : ids.get("userIds");
+
         // 활성화 된 자동 알람을 불러오기
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
         // 비활성인 경우 알람 안보냄

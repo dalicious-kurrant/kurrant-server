@@ -296,85 +296,85 @@ public class UserServiceImpl implements UserService {
         providerEmailRepository.save(providerEmail);
     }
 
+//    @Override
+//    @Transactional
+//    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
+//        // 유저 정보 가져오기
+//        User user = userUtil.getUser(securityUser);
+//        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
+//        return MarketingAlarmResponseDto.builder()
+//                .marketingAgree(user.getMarketingAgree())
+//                .orderAlarm(user.getOrderAlarm())
+//                .marketingAlarm(user.getMarketingAlarm())
+//                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
+//                .build();
+//    }
+//
+//
+//    @Override
+//    @Transactional
+//    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+//            // 유저 정보 가져오기
+//            User user = userUtil.getUser(securityUser);
+//            Boolean currantMarketingInfoAgree = user.getMarketingAgree();
+//            Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
+//            Boolean currantOrderAlarmAgree = user.getOrderAlarm();
+//
+//            // 현재 시간 가져오기
+//            Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+//
+//            // 변수 설정
+//            Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
+//            Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
+//            Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
+//
+//            user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
+//
+//            return MarketingAlarmResponseDto.builder()
+//                    .marketingAgree(currantMarketingInfoAgree)
+//                    .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
+//                    .marketingAlarm(currantMarketingAlarmAgree)
+//                    .orderAlarm(currantOrderAlarmAgree)
+//                    .build();
+//        }
+
     @Override
     @Transactional
-    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
+    public List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
-        return MarketingAlarmResponseDto.builder()
-                .marketingAgree(user.getMarketingAgree())
-                .orderAlarm(user.getOrderAlarm())
-                .marketingAlarm(user.getMarketingAlarm())
-                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
-                .build();
-    }
+        List<PushCondition> userPushConditionList = user.getPushConditionList();
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
 
+        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(userPushConditionList, c)).toList();
+    }
 
     @Override
     @Transactional
-    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
-            // 유저 정보 가져오기
-            User user = userUtil.getUser(securityUser);
-            Boolean currantMarketingInfoAgree = user.getMarketingAgree();
-            Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
-            Boolean currantOrderAlarmAgree = user.getOrderAlarm();
-
-            // 현재 시간 가져오기
-            Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-
-            // 변수 설정
-            Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
-            Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
-            Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
-
-            user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
-
-            return MarketingAlarmResponseDto.builder()
-                    .marketingAgree(currantMarketingInfoAgree)
-                    .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
-                    .marketingAlarm(currantMarketingAlarmAgree)
-                    .orderAlarm(currantOrderAlarmAgree)
-                    .build();
+    public List<MarketingAlarmResponseDto> changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+        // 유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+        List<PushCondition> userPushConditionList = new ArrayList<>();
+        if(user.getPushConditionList() != null && !user.getPushConditionList().isEmpty()) {
+            userPushConditionList = user.getPushConditionList();
         }
 
-//    @Override
-//    @Transactional
-//    public List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser) {
-//        // 유저 정보 가져오기
-//        User user = userUtil.getUser(securityUser);
-//        List<PushCondition> userPushConditionList = user.getPushConditionList();
-//        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
-//
-//        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(userPushConditionList, c)).toList();
-//    }
+        if(marketingAlarmDto.getIsActive()){
+            PushCondition pushCondition = PushCondition.ofCode(marketingAlarmDto.getCode());
+            userPushConditionList.add(pushCondition);
+        }
+        else {
+            PushCondition pushCondition = userPushConditionList.stream()
+                    .filter(c -> c.getCode().equals(marketingAlarmDto.getCode()))
+                    .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_NOT_ACTIVE));
+            userPushConditionList.remove(pushCondition);
+        }
+        List<PushCondition> finalUserPushConditionList = userPushConditionList;
+        user.updatePushCondition(finalUserPushConditionList);
 
-//    @Override
-//    @Transactional
-//    public List<MarketingAlarmResponseDto> changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
-//        // 유저 정보 가져오기
-//        User user = userUtil.getUser(securityUser);
-//        List<PushCondition> userPushConditionList = new ArrayList<>();
-//        if(user.getPushConditionList() != null && !user.getPushConditionList().isEmpty()) {
-//            userPushConditionList = user.getPushConditionList();
-//        }
-//
-//        if(marketingAlarmDto.getIsActive()){
-//            PushCondition pushCondition = PushCondition.ofCode(marketingAlarmDto.getCode());
-//            userPushConditionList.add(pushCondition);
-//        }
-//        else {
-//            PushCondition pushCondition = userPushConditionList.stream()
-//                    .filter(c -> c.getCode().equals(marketingAlarmDto.getCode()))
-//                    .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_NOT_ACTIVE));
-//            userPushConditionList.remove(pushCondition);
-//        }
-//        List<PushCondition> finalUserPushConditionList = userPushConditionList;
-//        user.updatePushCondition(finalUserPushConditionList);
-//
-//        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
-//        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(finalUserPushConditionList, c)).toList();
-//    }
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
+        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(finalUserPushConditionList, c)).toList();
+    }
 
     @Override
     @Transactional

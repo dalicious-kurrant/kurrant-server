@@ -11,13 +11,17 @@ import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
+import co.dalicious.domain.paycheck.entity.PaycheckAdd;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
 import co.dalicious.domain.paycheck.repository.CorporationPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.QMakersPaycheckRepository;
+import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
+import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.dalicious.domain.client.entity.SparkPlusLog;
@@ -35,8 +39,11 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +60,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final PaycheckService paycheckService;
     private final QMakersPaycheckRepository qMakersPaycheckRepository;
     private final SparkPlusLogRepository sparkPlusLogRepository;
+    private final ExcelService excelService;
 
     @Override
     @Transactional
@@ -95,9 +103,18 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public List<PaycheckDto.MakersResponse> getMakersPaychecks() {
-        List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByOrderByCreatedDateTimeDesc();
-        return makersPaycheckMapper.toDtos(makersPaychecks);
+    public PaycheckDto.MakersResponse getMakersPaychecks(Map<String, Object> parameters) {
+        String startYearMonth = !parameters.containsKey("startYearMonth") || parameters.get("startYearMonth") == null ? null : String.valueOf(parameters.get("startYearMonth"));
+        String endYearMonth = !parameters.containsKey("endYearMonth") || parameters.get("endYearMonth") == null ? null : String.valueOf(parameters.get("endYearMonth"));
+        List<BigInteger> makersIds = !parameters.containsKey("makersIds") || parameters.get("makersIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersIds"));
+        Integer status = !parameters.containsKey("status") || parameters.get("status") == null ? null : Integer.parseInt(String.valueOf(parameters.get("status")));
+        Boolean hasRequest = !parameters.containsKey("hasRequest") || parameters.get("hasRequest") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("hasRequest")));
+
+        YearMonth start = startYearMonth == null ? null : YearMonth.parse(startYearMonth.substring(0, 4) + "-" + startYearMonth.substring(4));
+        YearMonth end = endYearMonth == null ? null : YearMonth.parse(endYearMonth.substring(0, 4) + "-" + endYearMonth.substring(4));
+
+        List<MakersPaycheck> makersPaychecks = qMakersPaycheckRepository.getMakersPaychecksByFilter(start, end, makersIds, PaycheckStatus.ofCode(status), hasRequest);
+        return makersPaycheckMapper.toMakersResponse(makersPaychecks);
     }
 
     @Override
@@ -106,46 +123,68 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(makersPaycheckId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         TransactionInfoDefault transactionInfoDefault = paycheckService.getTransactionInfoDefault();
+        transactionInfoDefault.updateYearMonth(DateUtils.YearMonthToString(makersPaycheck.getYearMonth()));
         return makersPaycheckMapper.toDetailDto(makersPaycheck, transactionInfoDefault);
     }
 
+//    @Override
+//    @Transactional
+//    public void updateMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersResponse paycheckDto) throws IOException {
+//        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(paycheckDto.getId())
+//                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+//
+//        // 요청 Body에 파일이 존재하지 않는다면 삭제
+//        if (paycheckDto.getExcelFile() == null && makersPaycheck.getExcelFile() != null) {
+//            imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
+//            makersPaycheck.updateExcelFile(null);
+//        }
+//        if (paycheckDto.getPdfFile() == null && makersPaycheck.getPdfFile() != null) {
+//            imageService.delete(getImagePrefix(makersPaycheck.getPdfFile()));
+//            makersPaycheck.updatePdfFile(null);
+//        }
+//
+//        // 업로드 파일 저장
+//        if (makersXlsx != null) {
+//            String dirName = "paycheck/makers/" + paycheckDto.getId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
+//            ImageResponseDto excelFileDto = imageService.upload(makersXlsx, dirName);
+//            Image excelFile = new Image(excelFileDto);
+//            makersPaycheck.updateExcelFile(excelFile);
+//        }
+//        if (makersPdf != null) {
+//            String dirName = "paycheck/makers/" + paycheckDto.getId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
+//            ImageResponseDto pdfFileDto = imageService.upload(makersPdf, dirName);
+//            Image pdfFile = new Image(pdfFileDto);
+//            makersPaycheck.updatePdfFile(pdfFile);
+//        }
+//
+//        makersPaycheck.updateMakersPaycheck(YearMonth.of(paycheckDto.getYear(), paycheckDto.getMonth()), PaycheckStatus.ofString(paycheckDto.getPaycheckStatus()));
+//    }
+
+//    메이커스 정산 삭제
+//    @Override
+//    public void deleteMakersPaycheck(List<BigInteger> ids) {
+//        List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByIdIn(ids);
+//        makersPaycheckRepository.deleteAll(makersPaychecks);
+//    }
+
     @Override
     @Transactional
-    public void updateMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersResponse paycheckDto) throws IOException {
-        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(paycheckDto.getId())
+    public void postPaycheckAdd(BigInteger makersPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
+        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(makersPaycheckId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        List<PaycheckAdd> paycheckAdds = makersPaycheckMapper.toPaycheckAdds(paycheckAddDtos);
+        makersPaycheck = makersPaycheck.updatePaycheckAdds(paycheckAdds);
 
         // 요청 Body에 파일이 존재하지 않는다면 삭제
-        if (paycheckDto.getExcelFile() == null && makersPaycheck.getExcelFile() != null) {
+        if (makersPaycheck.getExcelFile() != null) {
             imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
-            makersPaycheck.updateExcelFile(null);
         }
-        if (paycheckDto.getPdfFile() == null && makersPaycheck.getPdfFile() != null) {
-            imageService.delete(getImagePrefix(makersPaycheck.getPdfFile()));
-            makersPaycheck.updatePdfFile(null);
-        }
+        // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
+        ImageResponseDto imageResponseDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+        Image image = new Image(imageResponseDto);
+        makersPaycheck.updateExcelFile(image);
 
-        // 업로드 파일 저장
-        if (makersXlsx != null) {
-            String dirName = "paycheck/makers/" + paycheckDto.getId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
-            ImageResponseDto excelFileDto = imageService.upload(makersXlsx, dirName);
-            Image excelFile = new Image(excelFileDto);
-            makersPaycheck.updateExcelFile(excelFile);
-        }
-        if (makersPdf != null) {
-            String dirName = "paycheck/makers/" + paycheckDto.getId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
-            ImageResponseDto pdfFileDto = imageService.upload(makersPdf, dirName);
-            Image pdfFile = new Image(pdfFileDto);
-            makersPaycheck.updatePdfFile(pdfFile);
-        }
-
-        makersPaycheck.updateMakersPaycheck(YearMonth.of(paycheckDto.getYear(), paycheckDto.getMonth()), PaycheckStatus.ofString(paycheckDto.getPaycheckStatus()));
-    }
-
-    @Override
-    public void deleteMakersPaycheck(List<BigInteger> ids) {
-        List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByIdIn(ids);
-        makersPaycheckRepository.deleteAll(makersPaychecks);
+        // TODO: 추후 PDF 파일 추가
     }
 
     @Override

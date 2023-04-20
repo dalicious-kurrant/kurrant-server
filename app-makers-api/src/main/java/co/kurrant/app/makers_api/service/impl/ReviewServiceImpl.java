@@ -33,10 +33,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -65,10 +62,11 @@ public class ReviewServiceImpl implements ReviewService {
         commentsRepository.save(comments);
 
         // 댓글 생성 푸시알림
-        Set<BigInteger> userIdSet = new HashSet<>();
-        userIdSet.add(reviews.getUser().getId());
+        BigInteger userId = reviews.getUser().getId();
+        Map<String, Set<BigInteger>> userIdsMap = Collections.singletonMap("userIds", new HashSet<>(Collections.singletonList(userId)));
 
-        pushUtil.sendToType(null, null, userIdSet, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
+        pushUtil.sendToType(userIdsMap, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
+
     }
 
     @Override

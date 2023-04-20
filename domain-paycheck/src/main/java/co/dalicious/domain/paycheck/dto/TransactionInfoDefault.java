@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TransactionInfoDefault {
+    private String yearMonth;
     private String businessNumber;
     private String address1;
     private String address2;
@@ -18,7 +19,6 @@ public class TransactionInfoDefault {
     private String businessForm;
 
     @Builder
-
     public TransactionInfoDefault(String businessNumber, String address1, String address2, String corporationName, String representative, String business, String phone, String faxNumber, String businessForm) {
         this.businessNumber = businessNumber;
         this.address1 = address1;
@@ -29,5 +29,9 @@ public class TransactionInfoDefault {
         this.phone = phone;
         this.faxNumber = faxNumber;
         this.businessForm = businessForm;
+    }
+
+    public void updateYearMonth(String yearMonth) {
+        this.yearMonth = yearMonth;
     }
 }

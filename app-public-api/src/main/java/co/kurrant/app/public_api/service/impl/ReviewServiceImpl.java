@@ -144,7 +144,7 @@ public class ReviewServiceImpl implements ReviewService {
         MultiValueMap<LocalDate, OrderItemDailyFood> orderItemDailyFoodByServiceDateMap = new LinkedMultiValueMap<>();
         for(OrderItem item : receiptCompleteItem) {
 
-            if(reviewOrderItem.contains(item)) continue;
+//            if(reviewOrderItem.contains(item)) continue;
 
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
                 MealInfo mealInfos = orderItemDailyFood.getDailyFood().getGroup().getMealInfos().stream()
@@ -158,18 +158,20 @@ public class ReviewServiceImpl implements ReviewService {
                 System.out.println("reviewableDate = " + reviewableDate);
                 //리뷰 작성 가능일이 이미 지났으면 패스
                 if(reviewableDate.isBefore(today)) continue;
+                System.out.println("item = " + ((OrderItemDailyFood) item).getName());
 
                 orderItemDailyFoodByServiceDateMap.add(serviceDate, orderItemDailyFood);
 
                 // d-day 구하기
                 String leftDayAndTime = DateUtils.calculatedDDayAndTime(reviewableDate);
+                System.out.println("leftDayAndTime = " + leftDayAndTime);
                 String day = leftDayAndTime.split(" ")[0];
                 String time = leftDayAndTime.split(" ")[1];
 
                 String leftDay;
                 if(day.equals("0")) leftDay = time;
                 else leftDay = day;
-
+                System.out.println("leftDay = " + leftDay);
                 // 적립 가능한 포인트 조회
                 BigDecimal itemPrice = orderItemDailyFood.getDailyFood().getFood().getPrice();
                 int count = orderItemDailyFood.getCount();

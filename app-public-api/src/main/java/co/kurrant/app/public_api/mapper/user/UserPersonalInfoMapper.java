@@ -34,20 +34,20 @@ public interface UserPersonalInfoMapper {
         return providerEmailDtos;
     }
 
-//    default MarketingAlarmResponseDto toMarketingAlarmResponseDto(List<PushCondition> userPushCondition, PushCondition pushCondition) {
-//        MarketingAlarmResponseDto responseDto = new MarketingAlarmResponseDto();
-//
-//        if(userPushCondition == null || userPushCondition.isEmpty() || !userPushCondition.contains(pushCondition)) {
-//            responseDto.setCode(pushCondition.getCode());
-//            responseDto.setCondition(pushCondition.getCondition());
-//            responseDto.setIsActive(false);
-//        }
-//        else {
-//            responseDto.setCode(pushCondition.getCode());
-//            responseDto.setCondition(pushCondition.getCondition());
-//            responseDto.setIsActive(true);
-//        }
-//
-//        return responseDto;
-//    }
+    default MarketingAlarmResponseDto toMarketingAlarmResponseDto(List<PushCondition> userPushCondition, PushCondition pushCondition) {
+        MarketingAlarmResponseDto responseDto = new MarketingAlarmResponseDto();
+
+        if(userPushCondition == null || userPushCondition.isEmpty() || !userPushCondition.contains(pushCondition)) {
+            responseDto.setCode(pushCondition.getCode());
+            responseDto.setCondition(pushCondition.getCondition());
+            responseDto.setIsActive(false);
+        }
+        else {
+            responseDto.setCode(pushCondition.getCode());
+            responseDto.setCondition(pushCondition.getCondition());
+            responseDto.setIsActive(true);
+        }
+
+        return responseDto;
+    }
 }
