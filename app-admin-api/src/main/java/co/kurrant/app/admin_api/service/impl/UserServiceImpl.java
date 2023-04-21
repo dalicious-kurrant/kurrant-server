@@ -220,7 +220,18 @@ public class UserServiceImpl implements UserService {
             if (saveUserListRequestDto.getPoint() != null) {
                 BigDecimal point = BigDecimal.valueOf(saveUserListRequestDto.getPoint());
                 if (!user.getPoint().equals(point)) {
-                    pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_REWARD, point);
+
+                    BigDecimal differencePoint = point.subtract(user.getPoint());
+                    // 차액이 플러스면
+                    if(differencePoint.compareTo(BigDecimal.valueOf(0)) > 0) {
+                        pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_REWARD, differencePoint);
+                    }
+                    // 차액이 마이너스면
+                    else if(differencePoint.compareTo(BigDecimal.valueOf(0)) < 0) {
+                        differencePoint = differencePoint.multiply(BigDecimal.valueOf(-1));
+                        pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_POINTS_RECOVERED, differencePoint);
+                    }
+
                     user.updatePoint(point);
                 }
             }
