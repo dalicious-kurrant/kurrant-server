@@ -235,7 +235,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         List<BigInteger> userIds = users.stream()
                 .map(User::getId)
                 .toList();
-        List<OrderItemDailyFood> orderDailyFoods =  qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate);
+        List<OrderItemDailyFood> orderDailyFoods =  qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate, null);
 
         return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
     }
