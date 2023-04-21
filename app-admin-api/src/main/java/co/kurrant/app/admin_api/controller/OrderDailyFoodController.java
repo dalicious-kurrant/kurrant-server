@@ -114,9 +114,10 @@ public class OrderDailyFoodController {
 
     @GetMapping("/extra/dailyFoods")
     public ResponseMessage getExtraDailyFoods(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+                                              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+                                              @RequestParam BigInteger groupId) {
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.getExtraDailyFoods(startDate, endDate))
+                .data(orderDailyFoodService.getExtraDailyFoods(startDate, endDate, groupId))
                 .message("추가 주문 식단 목록 조회에 성공하였습니다.")
                 .build();
     }
