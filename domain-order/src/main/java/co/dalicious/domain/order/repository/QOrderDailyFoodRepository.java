@@ -47,7 +47,7 @@ public class QOrderDailyFoodRepository {
     private final JPAQueryFactory queryFactory;
     private final EntityManager entityManager;
 
-    public List<OrderItemDailyFood> findExtraOrdersByManagerId(List<BigInteger> userIds, LocalDate startDate, LocalDate endDate) {
+    public List<OrderItemDailyFood> findExtraOrdersByManagerId(List<BigInteger> userIds, LocalDate startDate, LocalDate endDate, Group group) {
         BooleanExpression whereClause = orderDailyFood.user.id.in(userIds);
         if (startDate != null) {
             whereClause = whereClause.and(orderItemDailyFood.dailyFood.serviceDate.goe(startDate));
@@ -55,6 +55,9 @@ public class QOrderDailyFoodRepository {
 
         if (endDate != null) {
             whereClause = whereClause.and(orderItemDailyFood.dailyFood.serviceDate.loe(endDate));
+        }
+        if (group != null) {
+            whereClause = whereClause.and(orderItemDailyFood.dailyFood.group.eq(group));
         }
 
         whereClause = whereClause.and(orderDailyFood.orderType.eq(OrderType.DAILYFOOD));
