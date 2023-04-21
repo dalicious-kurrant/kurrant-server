@@ -105,7 +105,7 @@ public enum ExceptionEnum {
 	NOT_FOUND_MANAGER(HttpStatus.NOT_FOUND,"E4040030", "매니저를 찾을 수 없습니다."),
 	NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040032", "공지를 찾을 수 없습니다."),
 	CANCLE_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "E4040033", "취소 내역을 찾을 수 없습니다."),
-	NOT_FOUND_PAYMENT_PASSWORD(HttpStatus.NOT_FOUND, "E4040034", "결제 비밀번호가 등록되지 않았습니다."),
+	NOT_FOUND_PAYMENT_PASSWORD(HttpStatus.NOT_FOUND, "E4040034", "결제 비밀번호를 재설정 해주세요."),
 	ALREADY_EXIST_CARD(HttpStatus.NOT_FOUND, "E4040035", "이미 존재하는 카드입니다"),
 	NOT_FOUND_PUSH_ALARM(HttpStatus.NOT_FOUND, "E4040036", "존재하지 않는 푸시알림 조건입니다."),
 	NOT_FOUND_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040036", "삭제할 테스트 데이터 ID를 입력하지 않았습니다."),
