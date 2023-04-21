@@ -7,6 +7,8 @@ import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
+import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
@@ -61,6 +63,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final QMakersPaycheckRepository qMakersPaycheckRepository;
     private final SparkPlusLogRepository sparkPlusLogRepository;
     private final ExcelService excelService;
+    private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
 
     @Override
     @Transactional
@@ -231,6 +234,17 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     public List<PaycheckDto.CorporationResponse> getCorporationPaychecks() {
         List<CorporationPaycheck> corporationPaychecks = corporationPaycheckRepository.findAll();
         return corporationPaycheckMapper.toDtos(corporationPaychecks);
+    }
+
+    @Override
+    @Transactional
+    public PaycheckDto.CorporationOrder getCorporationOrderHistory(BigInteger corporationPaycheckId) {
+        CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(corporationPaycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        Corporation corporation = corporationPaycheck.getCorporation();
+        YearMonth yearMonth = corporationPaycheck.getYearMonth();
+        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+        return corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices);
     }
 
     @Override

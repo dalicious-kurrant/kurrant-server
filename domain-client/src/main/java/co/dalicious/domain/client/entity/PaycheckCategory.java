@@ -1,7 +1,7 @@
-package co.dalicious.domain.paycheck.entity;
+package co.dalicious.domain.client.entity;
 
-import co.dalicious.domain.paycheck.converter.PaycheckCategoryItemConverter;
-import co.dalicious.domain.paycheck.entity.enums.PaycheckCategoryItem;
+import co.dalicious.domain.client.converter.PaycheckCategoryItemConverter;
+import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

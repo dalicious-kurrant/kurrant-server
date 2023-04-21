@@ -18,6 +18,10 @@ public class PeriodDto {
         this.endDate = endDate;
     }
 
+    public String toString() {
+        return DateUtils.format(this.startDate) + " ~ " + DateUtils.format(this.endDate);
+    }
+
     @Getter
     @Setter
     @NoArgsConstructor
