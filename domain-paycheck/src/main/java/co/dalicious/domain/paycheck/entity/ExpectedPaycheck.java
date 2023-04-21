@@ -1,5 +1,6 @@
 package co.dalicious.domain.paycheck.entity;
 
+import co.dalicious.domain.client.entity.PaycheckCategory;
 import co.dalicious.domain.paycheck.converter.YearMonthAttributeConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
@@ -26,12 +27,17 @@ public class ExpectedPaycheck {
     @Convert(converter = YearMonthAttributeConverter.class)
     private YearMonth yearMonth;
 
-    @OneToOne(mappedBy = "expectedPaycheck")
-    @JsonBackReference(value = "spot_fk")
-    private CorporationPaycheck corporationPaycheck;
-
     @ElementCollection
     @Comment("지불 항목 내역")
     @CollectionTable(name = "paycheck__expected_paycheck_paycheck_categories")
     private List<PaycheckCategory> paycheckCategories;
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @Comment("선불 정산")
+    private CorporationPaycheck corporationPaycheck;
+
+    public ExpectedPaycheck(YearMonth yearMonth, List<PaycheckCategory> paycheckCategories) {
+        this.yearMonth = yearMonth;
+        this.paycheckCategories = paycheckCategories;
+    }
 }

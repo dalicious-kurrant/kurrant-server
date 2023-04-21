@@ -1,6 +1,7 @@
 package co.dalicious.domain.paycheck.mapper;
 
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.PaycheckCategory;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
@@ -8,8 +9,10 @@ import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
+import co.dalicious.domain.paycheck.entity.ExpectedPaycheck;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
@@ -18,6 +21,7 @@ import org.mapstruct.Mapping;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,8 +32,8 @@ public interface CorporationPaycheckMapper {
     @Mapping(source = "corporation", target = "corporation")
     @Mapping(target = "yearMonth", expression = "java(DateUtils.toYearMonth(paycheckDto.getYear(), paycheckDto.getMonth()))")
     @Mapping(target = "paycheckStatus", expression = "java(PaycheckStatus.ofCode(paycheckDto.getPaycheckStatus()))")
-    @Mapping(source = "excelFile", target = "excelFile")
-    @Mapping(source = "pdfFile", target = "pdfFile")
+//    @Mapping(source = "excelFile", target = "excelFile")
+//    @Mapping(source = "pdfFile", target = "pdfFile")
     @Mapping(source = "paycheckDto.managerName", target = "managerName")
     @Mapping(source = "paycheckDto.phone", target = "phone")
     CorporationPaycheck toEntity(PaycheckDto.CorporationRequest paycheckDto, Corporation corporation, Image excelFile, Image pdfFile);
@@ -41,6 +45,23 @@ public interface CorporationPaycheckMapper {
     @Mapping(source = "excelFile.location", target = "excelFile")
     @Mapping(source = "pdfFile.location", target = "pdfFile")
     PaycheckDto.CorporationResponse toDto(CorporationPaycheck corporationPaycheck);
+
+    default CorporationPaycheck toInitiateEntity(Corporation corporation, User user) {
+        return CorporationPaycheck.builder()
+                .yearMonth(YearMonth.now())
+                .paycheckStatus(PaycheckStatus.REGISTER)
+                .managerName(user.getName())
+                .phone(user.getPhone())
+                .paycheckCategories(null)
+                .corporation(corporation)
+                .build();
+    }
+
+    default ExpectedPaycheck toExpectedPaycheck(Corporation corporation) {
+        YearMonth yearMonth = YearMonth.now();
+        List<PaycheckCategory> paycheckCategories = corporation.getPaycheckCategories();
+        return new ExpectedPaycheck(yearMonth, paycheckCategories);
+    };
 
     default List<PaycheckDto.CorporationResponse> toDtos(List<CorporationPaycheck> corporationPaycheck) {
         return corporationPaycheck.stream()

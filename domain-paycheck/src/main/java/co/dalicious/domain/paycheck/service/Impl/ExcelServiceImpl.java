@@ -51,7 +51,7 @@ public class ExcelServiceImpl implements ExcelService {
                 "_" + makersPaycheck.getMakers().getName() + ".pdf";
 
         // Create header rows
-        createHeaderRows(workbook, sheet);
+        createHeaderRows(workbook, sheet, makersPaycheck.getMakers().getName());
 
         // Write daily foods data
         int currentRow = 13;
@@ -160,7 +160,7 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
 
-    private void createHeaderRows(Workbook workbook, Sheet sheet) {
+    private void createHeaderRows(Workbook workbook, Sheet sheet, String makersName) {
         // 거래명세서 제목
         Row row1 = sheet.createRow(1);
         Cell cell1_1 = row1.createCell(1);

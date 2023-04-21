@@ -1,12 +1,15 @@
 package co.dalicious.domain.paycheck.entity;
 
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.PaycheckCategory;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.paycheck.converter.PaycheckStatusConverter;
 import co.dalicious.domain.paycheck.converter.YearMonthAttributeConverter;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -61,11 +64,11 @@ public class CorporationPaycheck {
 
     @ElementCollection
     @Comment("지불 항목 내역")
-    @CollectionTable(name = "paycheck__corporation_paycheck__paycheck_categories")
+    @CollectionTable(name = "paycheck__corporation_paycheck_paycheck_categories")
     private List<PaycheckCategory> paycheckCategories;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @Comment("선불 정산")
+    @OneToOne(mappedBy = "corporationPaycheck")
+    @JsonBackReference(value = "spot_fk")
     private ExpectedPaycheck expectedPaycheck;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -92,6 +95,16 @@ public class CorporationPaycheck {
         this.phone = phone;
         this.excelFile = excelFile;
         this.pdfFile = pdfFile;
+        this.corporation = corporation;
+    }
+
+    @Builder
+    public CorporationPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, String managerName, String phone, List<PaycheckCategory> paycheckCategories, Corporation corporation) {
+        this.yearMonth = yearMonth;
+        this.paycheckStatus = paycheckStatus;
+        this.managerName = managerName;
+        this.phone = phone;
+        this.paycheckCategories = paycheckCategories;
         this.corporation = corporation;
     }
 

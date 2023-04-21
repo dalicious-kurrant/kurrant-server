@@ -64,7 +64,7 @@ public class DateUtils {
     }
 
     public static String timeToString(LocalTime time) {
-        return time.format(DateTimeFormatter.ofPattern("HH:mm"));
+        return (time == null) ? null : time.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
     public static String timeToStringWithAMPM(LocalTime time) {

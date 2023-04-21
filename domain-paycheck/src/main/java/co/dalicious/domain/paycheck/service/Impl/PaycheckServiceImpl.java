@@ -11,6 +11,8 @@ import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
+import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
+import co.dalicious.domain.paycheck.entity.ExpectedPaycheck;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckType;
@@ -20,6 +22,8 @@ import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
 import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.repository.QUserRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +43,9 @@ public class PaycheckServiceImpl implements PaycheckService {
     private final MakersPaycheckRepository makersPaycheckRepository;
     private final ExcelService excelService;
     private final DeliveryFeePolicy deliveryFeePolicy;
+    private final CorporationPaycheckMapper corporationPaycheckMapper;
+    private final QUserRepository qUserRepository;
+
     @Override
     public TransactionInfoDefault getTransactionInfoDefault() {
         return TransactionInfoDefault.builder()
@@ -136,13 +143,24 @@ public class PaycheckServiceImpl implements PaycheckService {
         return PaycheckType.PREPAID_MEMBERSHIP;
     }
 
+    @Override
+    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices) {
+        // 1. 매니저 계정 확인
+
+        //
+
+        // 선불 정산인 경우 체크
+        PaycheckType paycheckType = getPaycheckType(corporation);
+        ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation);
+        return null;
+    }
+
     public BigDecimal getCorporationDeliveryFee(Corporation corporation) {
-        // TODO: 정산시 사용, 앱에서는 0원으로 지정
         PaycheckType paycheckType = getPaycheckType(corporation);
         if (paycheckType.equals(PaycheckType.POSTPAID_MEMBERSHIP) || paycheckType.equals(PaycheckType.PREPAID_MEMBERSHIP)) {
             return deliveryFeePolicy.getMembershipCorporationDeliveryFee();
         } else if (corporation.getEmployeeCount() >= 50) {
-            return deliveryFeePolicy.getNoMembershipCorporationDeliveryFeeUpper50(corporation.getAddress());
+            return deliveryFeePolicy.getNoMembershipCorporationDeliveryFeeUpper50(corporation);
         } else if (corporation.getEmployeeCount() > 0) {
             return deliveryFeePolicy.getNoMembershipCorporationDeliveryFeeLower50();
         }

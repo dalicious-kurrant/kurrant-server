@@ -11,10 +11,12 @@ public enum PaycheckCategoryItem {
     BREAKFAST("조식비", 1),
     LUNCH("중식비", 2),
     DINNER("석식비", 3),
-    EXTRA_ORDER("추가 주문", 4),
-    GARBAGE("쓰레기 수거", 5),
-    HOT_STORAGE("온장고 사용", 6),
-    SETTING("식사 세팅", 7)
+    DELIVERY_FEE("배송비", 4),
+    MEMBERSHIP("멤버십", 5),
+    EXTRA_ORDER("추가 주문", 6),
+    GARBAGE("쓰레기 수거", 7),
+    HOT_STORAGE("온장고 사용", 8),
+    SETTING("식사 세팅", 9)
     ;
     private final String paycheckCategoryItem;
     private final Integer code;
