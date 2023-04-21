@@ -51,10 +51,11 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.transaction.Transactional;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -247,8 +248,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate) {
-        List<DailyFood> dailyFoods = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate);
+    public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate, BigInteger groupId) {
+        Group group = groupId == null ? null : groupRepository.findById(groupId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+
+        List<DailyFood> dailyFoods = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate, group);
         Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
         return extraOrderMapper.toDailyFoodList(dailyFoods, remainFoodCount);
     }
