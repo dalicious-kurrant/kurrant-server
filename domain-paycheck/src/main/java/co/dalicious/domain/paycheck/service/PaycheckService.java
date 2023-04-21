@@ -1,7 +1,6 @@
 package co.dalicious.domain.paycheck.service;
 
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
@@ -19,7 +18,7 @@ public interface PaycheckService {
     // 메이커스 정산 Entity를 생성한다.
     MakersPaycheck generateMakersPaycheck(Makers makers, List<OrderItemDailyFood> dailyFoods);
 
-    // 정산 구분을 확인한다.
+    // 고객사 정산 구분을 확인한다.
     PaycheckType getPaycheckType(Corporation corporation);
 
 }

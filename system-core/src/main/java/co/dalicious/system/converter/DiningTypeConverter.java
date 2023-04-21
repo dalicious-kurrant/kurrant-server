@@ -5,6 +5,7 @@ import co.dalicious.system.enums.DiningType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
+
 @Converter
 public class DiningTypeConverter implements AttributeConverter<DiningType, Integer> {
     @Override

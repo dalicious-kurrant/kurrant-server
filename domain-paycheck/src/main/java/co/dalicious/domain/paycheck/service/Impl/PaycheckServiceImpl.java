@@ -6,22 +6,29 @@ import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckType;
+import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
 import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
 import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
+import co.dalicious.domain.user.entity.User;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.*;
 
@@ -31,7 +38,7 @@ public class PaycheckServiceImpl implements PaycheckService {
     private final MakersPaycheckMapper makersPaycheckMapper;
     private final MakersPaycheckRepository makersPaycheckRepository;
     private final ExcelService excelService;
-
+    private final DeliveryFeePolicy deliveryFeePolicy;
     @Override
     public TransactionInfoDefault getTransactionInfoDefault() {
         return TransactionInfoDefault.builder()
@@ -50,9 +57,6 @@ public class PaycheckServiceImpl implements PaycheckService {
     @Override
     @Transactional
     public List<MakersPaycheck> generateAllMakersPaycheck(List<PaycheckDto.PaycheckDailyFood> paycheckDailyFoodDtos) {
-        // 1. 메이커스별로 묶기
-        // 2. 식사 일정별로 묶기
-        // 3. 음식별로 묶기
         MultiValueMap<Makers, PaycheckDailyFood> paycheckDailyFoodMap = new LinkedMultiValueMap<>();
         for (PaycheckDto.PaycheckDailyFood paycheckDailyFoodDto : paycheckDailyFoodDtos) {
             PaycheckDailyFood paycheckDailyFood = makersPaycheckMapper.toPaycheckDailyFood(paycheckDailyFoodDto);
@@ -115,6 +119,33 @@ public class PaycheckServiceImpl implements PaycheckService {
 
     @Override
     public PaycheckType getPaycheckType(Corporation corporation) {
-        return null;
+        Boolean isMembershipSupport = corporation.getIsMembershipSupport();
+        Boolean isPrepaid = corporation.getIsPrepaid();
+
+        if(!isMembershipSupport) {
+            return PaycheckType.NO_MEMBERSHIP;
+        }
+        if(!isPrepaid) {
+            return PaycheckType.POSTPAID_MEMBERSHIP;
+        }
+        // TODO: 예외 멤버십 선불 추가
+        if(corporation.getName().contains("메드트로닉")) {
+            return PaycheckType.PREPAID_MEMBERSHIP_EXCEPTION_MEDTRONIC;
+        }
+
+        return PaycheckType.PREPAID_MEMBERSHIP;
+    }
+
+    public BigDecimal getCorporationDeliveryFee(Corporation corporation) {
+        // TODO: 정산시 사용, 앱에서는 0원으로 지정
+        PaycheckType paycheckType = getPaycheckType(corporation);
+        if (paycheckType.equals(PaycheckType.POSTPAID_MEMBERSHIP) || paycheckType.equals(PaycheckType.PREPAID_MEMBERSHIP)) {
+            return deliveryFeePolicy.getMembershipCorporationDeliveryFee();
+        } else if (corporation.getEmployeeCount() >= 50) {
+            return deliveryFeePolicy.getNoMembershipCorporationDeliveryFeeUpper50(corporation.getAddress());
+        } else if (corporation.getEmployeeCount() > 0) {
+            return deliveryFeePolicy.getNoMembershipCorporationDeliveryFeeLower50();
+        }
+        throw new ApiException(ExceptionEnum.IS_NOT_APPROPRIATE_EMPLOYEE_COUNT);
     }
 }

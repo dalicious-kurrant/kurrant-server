@@ -26,7 +26,7 @@ import java.util.List;
 public class CorporationPaycheck {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", columnDefinition = "BIGINT")
+    @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
     @Comment("정산 년월")
@@ -63,6 +63,10 @@ public class CorporationPaycheck {
     @Comment("지불 항목 내역")
     @CollectionTable(name = "paycheck__corporation_paycheck__paycheck_categories")
     private List<PaycheckCategory> paycheckCategories;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @Comment("선불 정산")
+    private ExpectedPaycheck expectedPaycheck;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "corporation_id", columnDefinition = "BIGINT UNSIGNED")

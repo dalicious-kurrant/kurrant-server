@@ -27,10 +27,10 @@ public class MakersPaycheckServiceImpl implements MakersPaycheckService {
 
     @Override
     @Transactional
-    public List<PaycheckDto.MakersResponse> getMakersPaychecks(SecurityUser securityUser) {
+    public PaycheckDto.MakersResponse getMakersPaychecks(SecurityUser securityUser) {
         Makers makers = userUtil.getMakers(securityUser);
         List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByMakers(makers);
-        return makersPaycheckMapper.toDtos(makersPaychecks);
+        return makersPaycheckMapper.toMakersResponse(makersPaychecks);
     }
 
     @Override

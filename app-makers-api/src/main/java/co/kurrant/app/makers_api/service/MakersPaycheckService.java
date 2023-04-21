@@ -7,6 +7,6 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface MakersPaycheckService {
-    List<PaycheckDto.MakersResponse> getMakersPaychecks(SecurityUser securityUser);
+    PaycheckDto.MakersResponse getMakersPaychecks(SecurityUser securityUser);
     void updateMakersPaycheckStatus(SecurityUser securityUser, Integer integer, List<BigInteger> ids);
 }

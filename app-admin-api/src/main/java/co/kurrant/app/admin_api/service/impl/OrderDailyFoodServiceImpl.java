@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.ApartmentRepository;
@@ -29,10 +30,7 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.ClientType;
-import co.dalicious.domain.user.entity.enums.Role;
-import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
@@ -53,10 +51,11 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.transaction.Transactional;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -92,6 +91,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
     private final QUserRepository qUserRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
+    private final PushUtil pushUtil;
 
     @Override
     @Transactional
@@ -195,12 +195,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
         }
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
+        Map<String, Set<BigInteger>> userIdsMap = new HashMap<>();
+        Set<BigInteger> userIds = new HashSet<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             if (!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
                 throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
             }
             orderItemDailyFood.updateOrderStatus(orderStatus);
+            userIds.add(orderItemDailyFood.getOrder().getUser().getId());
         }
+        userIdsMap.put("userIds", userIds);
+        pushUtil.sendToType(userIdsMap, PushCondition.DELIVERED_ORDER_ITEM, null, null, null);
     }
 
     @Override
@@ -243,8 +248,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate) {
-        List<DailyFood> dailyFoods = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate);
+    public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate, BigInteger groupId) {
+        Group group = groupId == null ? null : groupRepository.findById(groupId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+
+        List<DailyFood> dailyFoods = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate, group);
         Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
         return extraOrderMapper.toDailyFoodList(dailyFoods, remainFoodCount);
     }
@@ -344,12 +351,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     public List<ExtraOrderDto.Response> getExtraOrders(Map<String, Object> parameters) {
         LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        Group group = !parameters.containsKey("groupId") || parameters.get("groupId") == null ? null :
+                groupRepository.findById(BigInteger.valueOf(Integer.parseInt(String.valueOf(parameters.get("groupId"))))).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
 
         List<User> users = qUserRepository.findAllManager();
         List<BigInteger> userIds = users.stream()
                 .map(User::getId)
                 .toList();
-        List<OrderItemDailyFood> orderDailyFoods = qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate);
+        List<OrderItemDailyFood> orderDailyFoods = qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate, group);
 
         return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
     }

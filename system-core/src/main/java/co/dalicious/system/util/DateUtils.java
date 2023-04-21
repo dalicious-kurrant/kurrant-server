@@ -1,7 +1,6 @@
 package co.dalicious.system.util;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -116,21 +115,27 @@ public class DateUtils {
         return YearMonth.of(year, month);
     }
 
+    public static String YearMonthToString(YearMonth yearMonth) {
+        return yearMonth.getYear() + "-" + yearMonth.getMonthValue();
+    }
+
     public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
         LocalDateTime now = LocalDateTime.now();
-        LocalTime deliveryTime = LocalTime.of(limitDayAndTime.getHour(), limitDayAndTime.getMinute(), limitDayAndTime.getSecond());
-        LocalDateTime nowDeliveryTime = LocalDateTime.of(now.toLocalDate(), deliveryTime);
 
         long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
-        long hoursLeft = now.until(nowDeliveryTime, ChronoUnit.HOURS);
+        long hoursLeft = now.until(limitDayAndTime, ChronoUnit.HOURS);
+        hoursLeft = hoursLeft % 24;
         now = now.plusHours(hoursLeft);
-        long minutesLeft = now.until(nowDeliveryTime, ChronoUnit.MINUTES);
+        long minutesLeft = now.until(limitDayAndTime, ChronoUnit.MINUTES);
+        minutesLeft = minutesLeft % 60;
 
-        return String.format("%01d %02d:%02d", leftDay, hoursLeft, minutesLeft);
+        LocalTime remainingTime = LocalTime.of((int) hoursLeft, (int) minutesLeft);
+
+        return String.format("%01d %tk:%tM", leftDay, remainingTime, remainingTime);
     }
 
     public static String toISOLocalDateAndWeekOfDay(Timestamp ts) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd E", Locale.KOREA);
+        SimpleDateFormat sdf = new SimpleDateFormat("MM월 dd일 E", Locale.KOREA);
         return sdf.format(ts);
     }
 }

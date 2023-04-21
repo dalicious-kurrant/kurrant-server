@@ -2,7 +2,6 @@ package co.dalicious.domain.order.util;
 
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.FoodSchedule;
-import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.QFoodScheduleRepository;
 import co.dalicious.domain.food.repository.QMakersScheduleRepository;
 import co.dalicious.domain.food.entity.MakersSchedule;
