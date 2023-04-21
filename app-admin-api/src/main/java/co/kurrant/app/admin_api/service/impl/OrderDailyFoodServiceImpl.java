@@ -351,12 +351,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     public List<ExtraOrderDto.Response> getExtraOrders(Map<String, Object> parameters) {
         LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        Group group = !parameters.containsKey("groupId") || parameters.get("groupId") == null ? null :
+                groupRepository.findById(BigInteger.valueOf(Integer.parseInt(String.valueOf(parameters.get("groupId"))))).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
 
         List<User> users = qUserRepository.findAllManager();
         List<BigInteger> userIds = users.stream()
                 .map(User::getId)
                 .toList();
-        List<OrderItemDailyFood> orderDailyFoods = qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate);
+        List<OrderItemDailyFood> orderDailyFoods = qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate, group);
 
         return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
     }
