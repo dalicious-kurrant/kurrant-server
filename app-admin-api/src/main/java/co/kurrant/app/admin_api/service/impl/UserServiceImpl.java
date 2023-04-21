@@ -7,12 +7,10 @@ import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.*;
-import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.Provider;
-import co.dalicious.domain.user.entity.enums.Role;
-import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
+import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
@@ -56,6 +54,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserTasteTestDataRepository userTasteTestDataRepository;
     private final QUserTasteTestDataRepository qUserTasteTestDataRepository;
+    private final PointUtil pointUtil;
 
 
     @Override
@@ -220,8 +219,10 @@ public class UserServiceImpl implements UserService {
                 user.updateUserStatus(UserStatus.ofCode(saveUserListRequestDto.getStatus()));
             if (saveUserListRequestDto.getPoint() != null) {
                 BigDecimal point = BigDecimal.valueOf(saveUserListRequestDto.getPoint());
-                if (!user.getPoint().equals(point))
+                if (!user.getPoint().equals(point)) {
+                    pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_REWARD, point);
                     user.updatePoint(point);
+                }
             }
             if (saveUserListRequestDto.getMarketingAgree() != null && saveUserListRequestDto.getMarketingAlarm() != null && saveUserListRequestDto.getOrderAlarm() != null &&
                     (!user.getMarketingAgree().equals(saveUserListRequestDto.getMarketingAgree()) ||
