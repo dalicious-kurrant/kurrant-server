@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public interface AdminPaycheckService {
     List<MakersDto.Makers> getMakers();
@@ -27,6 +26,7 @@ public interface AdminPaycheckService {
 
     void postCorporationPaycheck(MultipartFile corporationXlsx, MultipartFile corporationPdf, PaycheckDto.CorporationRequest paycheckDto) throws IOException;
     List<PaycheckDto.CorporationResponse> getCorporationPaychecks();
+    PaycheckDto.CorporationOrder getCorporationOrderHistory(BigInteger corporationPaycheckId);
     void updateCorporationPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.CorporationResponse paycheckDto) throws IOException;
     void deleteCorporationPaycheck(List<BigInteger> ids);
     void updateCorporationPaycheckStatus(Integer status, List<BigInteger> ids);

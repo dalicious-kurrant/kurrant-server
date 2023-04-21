@@ -108,6 +108,24 @@ public class PaycheckController {
                 .build();
     }
 
+    @Operation(summary = "기업 정산 식수 내역 조회", description = "기업 정산 식수 내역 조회")
+    @GetMapping("/corporations/{corporationPaycheckId}/orders")
+    public ResponseMessage getCorporationOrderHistory(@PathVariable BigInteger corporationPaycheckId) {
+        return ResponseMessage.builder()
+                .data(adminPaycheckService.getCorporationOrderHistory(corporationPaycheckId))
+                .message("기업 정산 식수 내역 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "기업 정산 인보이스 조회", description = "기업 정산 인보이스 조회")
+    @GetMapping("/corporations/{corporationPaycheckId}/invoice")
+    public ResponseMessage getCorporationInvoice(@PathVariable BigInteger corporationPaycheckId) {
+        return ResponseMessage.builder()
+                .data(adminPaycheckService.getCorporationOrderHistory(corporationPaycheckId))
+                .message("기업 정산 인보이스 조회에 성공하였습니다.")
+                .build();
+    }
+
     @Operation(summary = "기업 정산 수정", description = "기업 정산 등록")
     @PatchMapping("/corporations")
     public ResponseMessage updateCorporationPaycheck(@RequestPart(required = false) MultipartFile corporationXlsx,

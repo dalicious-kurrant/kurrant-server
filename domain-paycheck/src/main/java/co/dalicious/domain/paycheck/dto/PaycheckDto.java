@@ -2,7 +2,9 @@ package co.dalicious.domain.paycheck.dto;
 
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -94,6 +96,74 @@ public class PaycheckDto {
         private String paycheckStatus;
         private String excelFile;
         private String pdfFile;
+    }
+
+    @Getter
+    @Setter
+    public static class CorporationOrder {
+        private List<CorporationOrderItem> corporationOrderItems;
+        private CorporationInfo corporationInfo;
+    }
+
+    @Getter
+    @Setter
+    public static class CorporationInfo {
+        private String name;
+        private String period;
+        private Integer totalPrice;
+        private Integer morningCount;
+        private Integer lunchCount;
+        private Integer dinnerCount;
+
+        @Builder
+        public CorporationInfo(String name, String period, Integer totalPrice, Integer morningCount, Integer lunchCount, Integer dinnerCount) {
+            this.name = name;
+            this.period = period;
+            this.totalPrice = totalPrice;
+            this.morningCount = morningCount;
+            this.lunchCount = lunchCount;
+            this.dinnerCount = dinnerCount;
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class paymentCategory {
+        private String paymentCategory;
+        private Integer count;
+    }
+
+    @Getter
+    @Setter
+    public static class CorporationOrderItem {
+        private String serviceDate;
+        private String diningType;
+        private String makers;
+        private String food;
+        private Integer count;
+        private Integer supportPrice;
+        private String user;
+        private String email;
+
+        @Builder
+        public CorporationOrderItem(OrderItemDailyFood orderItemDailyFood, BigDecimal supportPrice) {
+            this.serviceDate = DateUtils.format(orderItemDailyFood.getDailyFood().getServiceDate());
+            this.diningType = orderItemDailyFood.getDailyFood().getDiningType().getDiningType();
+            this.makers = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
+            this.food = orderItemDailyFood.getName();
+            this.supportPrice = supportPrice.intValue();
+            this.user = orderItemDailyFood.getOrder().getUser().getName();
+            this.email = orderItemDailyFood.getOrder().getUser().getEmail();
+
+            // 음식을 여러개 주문 하였을 경우
+            // FIXME: 메드트로닉은 다른 로직
+            for(int i = 1; i <= orderItemDailyFood.getCount(); i++) {
+                BigDecimal discountedPrice = orderItemDailyFood.getDiscountedPrice();
+                if(discountedPrice.multiply(BigDecimal.valueOf(i)).compareTo(supportPrice) >= 0) {
+                    this.count = i;
+                }
+            }
+        }
     }
 
     @Getter
