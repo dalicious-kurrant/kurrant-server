@@ -8,7 +8,6 @@ import java.math.BigInteger;
 @Schema(description = "해당 날짜에 주문한 음식들")
 @Getter
 @Setter
-@AllArgsConstructor
 public class OrderItemDto {
     private BigInteger id;
     private BigInteger dailyFoodId;

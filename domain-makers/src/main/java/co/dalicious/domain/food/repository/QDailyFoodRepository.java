@@ -45,11 +45,18 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
-    public List<DailyFood> getDailyFoodsBetweenServiceDate(LocalDate startDate, LocalDate endDate) {
+    public List<DailyFood> getDailyFoodsBetweenServiceDate(LocalDate startDate, LocalDate endDate, Group group) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(group != null) {
+            whereCause.and(dailyFood.group.eq(group));
+        }
+
         return queryFactory
                 .selectFrom(dailyFood)
                 .where(dailyFood.serviceDate.goe(startDate),
-                        dailyFood.serviceDate.loe(endDate))
+                        dailyFood.serviceDate.loe(endDate),
+                        whereCause)
                 .fetch();
     }
 

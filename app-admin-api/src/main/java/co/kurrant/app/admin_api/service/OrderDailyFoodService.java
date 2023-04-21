@@ -5,6 +5,7 @@ import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.dalicious.domain.order.dto.OrderDto;
+import org.geolatte.geom.V;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -28,7 +29,7 @@ public interface OrderDailyFoodService {
 
     void cancelOrderItemsNice(List<BigInteger> idList) throws IOException, ParseException;
 
-    List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate);
+    List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate, BigInteger groupId);
     void postExtraOrderItems(List<ExtraOrderDto.Request> orderDtos);
     List<ExtraOrderDto.Response> getExtraOrders(Map<String, Object> parameters);
     void refundExtraOrderItems(BigInteger id);
