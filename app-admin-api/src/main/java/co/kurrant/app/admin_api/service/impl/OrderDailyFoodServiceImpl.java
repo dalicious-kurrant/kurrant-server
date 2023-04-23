@@ -209,7 +209,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    @Transactional
     public void cancelOrderItems(List<BigInteger> orderItemList) throws IOException, ParseException {
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
 
@@ -233,7 +232,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    @Transactional
     public void cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
 
