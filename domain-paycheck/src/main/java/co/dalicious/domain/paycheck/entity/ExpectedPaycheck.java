@@ -2,13 +2,13 @@ package co.dalicious.domain.paycheck.entity;
 
 import co.dalicious.domain.client.entity.PaycheckCategory;
 import co.dalicious.domain.paycheck.converter.YearMonthAttributeConverter;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.YearMonth;
 import java.util.List;
@@ -39,5 +39,13 @@ public class ExpectedPaycheck {
     public ExpectedPaycheck(YearMonth yearMonth, List<PaycheckCategory> paycheckCategories) {
         this.yearMonth = yearMonth;
         this.paycheckCategories = paycheckCategories;
+    }
+
+    public BigDecimal getTotalPrice() {
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        for (PaycheckCategory paycheckCategory : paycheckCategories) {
+            totalPrice = totalPrice.add(paycheckCategory.getTotalPrice());
+        }
+        return totalPrice;
     }
 }

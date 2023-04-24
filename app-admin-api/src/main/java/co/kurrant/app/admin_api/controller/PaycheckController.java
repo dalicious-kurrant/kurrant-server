@@ -101,9 +101,9 @@ public class PaycheckController {
 
     @Operation(summary = "기업 정산 조회", description = "기업 정산 조회")
     @GetMapping("/corporations")
-    public ResponseMessage getCorporationPaychecks() {
+    public ResponseMessage getCorporationPaychecks(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
-                .data(adminPaycheckService.getCorporationPaychecks())
+                .data(adminPaycheckService.getCorporationPaychecks(parameters))
                 .message("기업 정산 조회에 성공하였습니다.")
                 .build();
     }

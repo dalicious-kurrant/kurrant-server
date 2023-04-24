@@ -91,11 +91,30 @@ public class PaycheckDto {
         private Integer year;
         private Integer month;
         private String corporationName;
+        private Integer prepaidPrice;
+        private Integer price;
         private String managerName;
         private String phone;
         private String paycheckStatus;
+        private Boolean hasRequest;
         private String excelFile;
         private String pdfFile;
+
+        @Builder
+        public CorporationResponse(BigInteger id, Integer year, Integer month, String corporationName, Integer prepaidPrice, Integer price, String managerName, String phone, String paycheckStatus, Boolean hasRequest, String excelFile, String pdfFile) {
+            this.id = id;
+            this.year = year;
+            this.month = month;
+            this.corporationName = corporationName;
+            this.prepaidPrice = prepaidPrice;
+            this.price = price;
+            this.managerName = managerName;
+            this.phone = phone;
+            this.paycheckStatus = paycheckStatus;
+            this.hasRequest = hasRequest;
+            this.excelFile = excelFile;
+            this.pdfFile = pdfFile;
+        }
     }
 
     @Getter
@@ -157,9 +176,9 @@ public class PaycheckDto {
 
             // 음식을 여러개 주문 하였을 경우
             // FIXME: 메드트로닉은 다른 로직
-            for(int i = 1; i <= orderItemDailyFood.getCount(); i++) {
+            for (int i = 1; i <= orderItemDailyFood.getCount(); i++) {
                 BigDecimal discountedPrice = orderItemDailyFood.getDiscountedPrice();
-                if(discountedPrice.multiply(BigDecimal.valueOf(i)).compareTo(supportPrice) >= 0) {
+                if (discountedPrice.multiply(BigDecimal.valueOf(i)).compareTo(supportPrice) >= 0) {
                     this.count = i;
                 }
             }

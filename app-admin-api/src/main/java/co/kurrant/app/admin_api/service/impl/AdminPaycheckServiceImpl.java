@@ -19,6 +19,7 @@ import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
 import co.dalicious.domain.paycheck.repository.CorporationPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
+import co.dalicious.domain.paycheck.repository.QCorporationPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.QMakersPaycheckRepository;
 import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
@@ -64,6 +65,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final SparkPlusLogRepository sparkPlusLogRepository;
     private final ExcelService excelService;
     private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
+    private final QCorporationPaycheckRepository qCorporationPaycheckRepository;
 
     @Override
     @Transactional
@@ -231,8 +233,18 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public List<PaycheckDto.CorporationResponse> getCorporationPaychecks() {
-        List<CorporationPaycheck> corporationPaychecks = corporationPaycheckRepository.findAll();
+    public List<PaycheckDto.CorporationResponse> getCorporationPaychecks(Map<String, Object> parameters) {
+        String startYearMonth = !parameters.containsKey("startYearMonth") || parameters.get("startYearMonth") == null ? null : String.valueOf(parameters.get("startYearMonth"));
+        String endYearMonth = !parameters.containsKey("endYearMonth") || parameters.get("endYearMonth") == null ? null : String.valueOf(parameters.get("endYearMonth"));
+        List<BigInteger> corporationIds = !parameters.containsKey("corporationIds") || parameters.get("corporationIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("corporationIds"));
+        Integer status = !parameters.containsKey("status") || parameters.get("status") == null ? null : Integer.parseInt(String.valueOf(parameters.get("status")));
+        Boolean hasRequest = !parameters.containsKey("hasRequest") || parameters.get("hasRequest") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("hasRequest")));
+
+        YearMonth start = startYearMonth == null ? null : YearMonth.parse(startYearMonth.substring(0, 4) + "-" + startYearMonth.substring(4));
+        YearMonth end = endYearMonth == null ? null : YearMonth.parse(endYearMonth.substring(0, 4) + "-" + endYearMonth.substring(4));
+
+
+        List<CorporationPaycheck> corporationPaychecks = qCorporationPaycheckRepository.getCorporationPaychecksByFilter(start, end, corporationIds, PaycheckStatus.ofCode(status), hasRequest);
         return corporationPaycheckMapper.toDtos(corporationPaychecks);
     }
 
