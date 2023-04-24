@@ -38,13 +38,28 @@ public interface CorporationPaycheckMapper {
     @Mapping(source = "paycheckDto.phone", target = "phone")
     CorporationPaycheck toEntity(PaycheckDto.CorporationRequest paycheckDto, Corporation corporation, Image excelFile, Image pdfFile);
 
-    @Mapping(target = "year", expression = "java(corporationPaycheck.getYearMonth().getYear())")
-    @Mapping(target = "month", expression = "java(corporationPaycheck.getYearMonth().getMonthValue())")
+    @Mapping(target = "year", expression = "java()")
+    @Mapping(target = "month", expression = "java()")
     @Mapping(source = "corporation.name", target = "corporationName")
     @Mapping(source = "paycheckStatus.paycheckStatus", target = "paycheckStatus")
     @Mapping(source = "excelFile.location", target = "excelFile")
     @Mapping(source = "pdfFile.location", target = "pdfFile")
-    PaycheckDto.CorporationResponse toDto(CorporationPaycheck corporationPaycheck);
+    default PaycheckDto.CorporationResponse toDto(CorporationPaycheck corporationPaycheck) {
+        return PaycheckDto.CorporationResponse.builder()
+                .id(corporationPaycheck.getId())
+                .year(corporationPaycheck.getYearMonth().getYear())
+                .month(corporationPaycheck.getYearMonth().getMonthValue())
+                .corporationName(corporationPaycheck.getCorporation().getName())
+                .prepaidPrice(corporationPaycheck.getExpectedPaycheck() == null ? null : corporationPaycheck.getExpectedPaycheck().getTotalPrice().intValue())
+                .price(corporationPaycheck.getTotalPrice().intValue())
+                .managerName(corporationPaycheck.getManagerName())
+                .phone(corporationPaycheck.getPhone())
+                .paycheckStatus(corporationPaycheck.getPaycheckStatus().getPaycheckStatus())
+                .hasRequest(corporationPaycheck.hasRequest())
+                .excelFile(corporationPaycheck.getExcelFile().getLocation())
+                .pdfFile(corporationPaycheck.getPdfFile().getLocation())
+                .build();
+    };
 
     default CorporationPaycheck toInitiateEntity(Corporation corporation, User user) {
         return CorporationPaycheck.builder()
