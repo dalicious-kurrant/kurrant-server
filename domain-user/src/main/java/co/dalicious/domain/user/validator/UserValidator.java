@@ -90,4 +90,9 @@ public class UserValidator {
     public boolean adminExists() {
         return userRepository.existsByRole(Role.ADMIN);
     }
+
+    public Boolean isPhoneValidBoolean(String phone) {
+        Optional<User> user = userRepository.findOneByPhone(phone);
+        return user.isPresent();
+    }
 }

@@ -249,6 +249,9 @@ public class UserServiceImpl implements UserService {
                 .filter(v -> !updateUserEmails.contains(v.getEmail()))
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
+            // 이미 있는 핸드폰 번호인지 확인
+            if(userValidator.isPhoneValidBoolean(createUserDto.getPhone())) continue;
+
             UserDto userDto = UserDto.builder()
                     .email(createUserDto.getEmail())
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
