@@ -71,6 +71,7 @@ public class PushServiceImpl implements PushService {
                     .build()).collect(Collectors.toList());
         }
 
+        if(messages.isEmpty()) return;
 
         //알림 발송
         BatchResponse response;
