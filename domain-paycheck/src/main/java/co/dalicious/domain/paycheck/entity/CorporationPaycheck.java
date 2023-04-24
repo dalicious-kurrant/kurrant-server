@@ -17,6 +17,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.YearMonth;
@@ -66,6 +67,11 @@ public class CorporationPaycheck {
     @Comment("지불 항목 내역")
     @CollectionTable(name = "paycheck__corporation_paycheck_paycheck_categories")
     private List<PaycheckCategory> paycheckCategories;
+
+    @ElementCollection
+    @Comment("식사 일정별 음식 내역")
+    @CollectionTable(name = "paycheck__corporation_paycheck__paycheck_memo")
+    private List<PaycheckMemo> paycheckMemos;
 
     @OneToOne(mappedBy = "corporationPaycheck")
     @JsonBackReference(value = "spot_fk")
@@ -125,5 +131,17 @@ public class CorporationPaycheck {
         this.paycheckStatus = paycheckStatus;
         this.managerName = managerName;
         this.phone = phone;
+    }
+
+    public BigDecimal getTotalPrice() {
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        for (PaycheckCategory paycheckCategory : paycheckCategories) {
+            totalPrice = totalPrice.add(paycheckCategory.getTotalPrice());
+        }
+        return totalPrice;
+    }
+
+    public Boolean hasRequest() {
+        return !this.paycheckMemos.isEmpty();
     }
 }
