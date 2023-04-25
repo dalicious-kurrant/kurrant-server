@@ -4,6 +4,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.order.converter.MonetaryStatusConverter;
 import co.dalicious.domain.order.dto.DailySupportPriceDto;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
@@ -129,5 +130,46 @@ public class DailyFoodSupportPrice {
             supportPrice = supportPrice.subtract(orderItemDailyFood.getOrderItemTotalPrice());
         }
         return dailySupportPriceDtos;
+    }
+
+    public Integer getCount() {
+        BigDecimal supportPrice = this.usingSupportPrice;
+
+        List<OrderItemDailyFood> orderItemDailyFoods = this.orderItemDailyFoodGroup.getOrderDailyFoods();
+        // 주문 완료인 상품들만 추출
+        orderItemDailyFoods = orderItemDailyFoods.stream()
+                .filter(v -> OrderStatus.completePayment().contains(v.getOrderStatus()))
+                .sorted(Comparator.comparing(OrderItemDailyFood::getOrderItemTotalPrice))
+                .toList();
+        if(orderItemDailyFoods.size() == 1) {
+            OrderItemDailyFood orderItemDailyFood = orderItemDailyFoods.get(0);
+            // 지원금을 사용한 상품의 개수 추출
+            for(int i = 1; i <= orderItemDailyFood.getCount(); i++) {
+                BigDecimal discountedPrice = orderItemDailyFood.getDiscountedPrice();
+                if(discountedPrice.multiply(BigDecimal.valueOf(i)).compareTo(supportPrice) >= 0) {
+                    return i;
+                }
+            }
+        }
+
+        int i = 0;
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            if(supportPrice.compareTo(orderItemDailyFood.getOrderItemTotalPrice()) > 0) {
+                i += orderItemDailyFood.getCount();
+            } else if (supportPrice.compareTo(BigDecimal.ZERO) > 0) {
+                // 지원금을 사용한 상품의 개수 추출
+                for(int j = 1; j <= orderItemDailyFood.getCount(); j++) {
+                    BigDecimal discountedPrice = orderItemDailyFood.getDiscountedPrice();
+                    if(discountedPrice.multiply(BigDecimal.valueOf(j)).compareTo(supportPrice) >= 0) {
+                        i += j;
+                    }
+                }
+            }
+        }
+        return i;
+    }
+
+    public Order getOrder() {
+        return this.orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder();
     }
 }

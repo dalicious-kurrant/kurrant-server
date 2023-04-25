@@ -217,6 +217,28 @@ public class PaycheckDto {
 
     @Getter
     @Setter
+    public static class PaycheckCategory {
+        private String category;
+        private Integer price;
+        private Integer count;
+        private Integer days;
+        private Integer totalPrice;
+    }
+
+    @Getter
+    @Setter
+    public static class Invoice {
+        private CorporationResponse corporationResponse;
+        private TransactionInfoDefault transactionInfoDefault;
+        private List<PaycheckCategory> prepaidPaycheck;
+        private List<PaycheckCategory> paycheck;
+        private List<PaycheckAddDto> paycheckAdds;
+        private Integer prepaidTotalPrice;
+        private Integer totalPrice;
+    }
+
+    @Getter
+    @Setter
     public static class MakersPaycheckInfo {
         private String year;
         private String month;
