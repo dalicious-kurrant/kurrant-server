@@ -61,8 +61,8 @@ public class PaycheckController {
 
     @Operation(summary = "메이커스 정산 이슈 추가", description = "메이커스 정산 이슈 추가")
     @PostMapping("/makers/{makersPaycheckId}/issues")
-    public ResponseMessage postPaycheckAdd(@PathVariable BigInteger makersPaycheckId, @RequestBody List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
-        adminPaycheckService.postPaycheckAdd(makersPaycheckId, paycheckAddDtos);
+    public ResponseMessage postMakersPaycheckAdd(@PathVariable BigInteger makersPaycheckId, @RequestBody List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
+        adminPaycheckService.postMakersPaycheckAdd(makersPaycheckId, paycheckAddDtos);
         return ResponseMessage.builder()
                 .message("메이커스 정산 이슈 추가에 성공하였습니다.")
                 .build();
@@ -161,6 +161,15 @@ public class PaycheckController {
         adminPaycheckService.updateCorporationPaycheckStatus(status, ids);
         return ResponseMessage.builder()
                 .message("기업 정산 상태 변경에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "기업 정산 이슈 추가", description = "기업 정산 이슈 추가")
+    @PostMapping("/corporations/{corporationPaycheckId}/issues")
+    public ResponseMessage postPaycheckAdd(@PathVariable BigInteger corporationPaycheckId, @RequestBody List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
+        adminPaycheckService.postCorporationPaycheckAdd(corporationPaycheckId, paycheckAddDtos);
+        return ResponseMessage.builder()
+                .message("기업 정산 이슈 추가에 성공하였습니다.")
                 .build();
     }
 }

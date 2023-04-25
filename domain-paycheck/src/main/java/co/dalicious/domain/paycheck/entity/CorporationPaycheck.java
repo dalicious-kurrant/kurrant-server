@@ -151,11 +151,39 @@ public class CorporationPaycheck {
         return totalPrice;
     }
 
+    public BigDecimal getExpectedTotalPrice() {
+        if(this.getExpectedPaycheck() == null) return null;
+        return this.getExpectedPaycheck().getTotalPrice();
+    }
+
+    public BigDecimal getPaycheckAddsTotalPrice() {
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        for (PaycheckAdd paycheckAdd : this.paycheckAdds) {
+            totalPrice = totalPrice.add(paycheckAdd.getPrice());
+        }
+        return totalPrice;
+    }
+
     public BigDecimal getPrepaidTotalPrice() {
         return this.expectedPaycheck == null ? null : this.expectedPaycheck.getTotalPrice();
     }
 
     public Boolean hasRequest() {
         return !this.paycheckMemos.isEmpty();
+    }
+
+    public String getYearAndMonthString() {
+        return this.yearMonth.getYear() +
+                ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
+    }
+
+    public String getFileName() {
+        return "거래명세서_" + this.yearMonth.getYear() + "-" +
+                ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
+    }
+
+    public CorporationPaycheck updatePaycheckAdds(List<PaycheckAdd> paycheckAdds) {
+        this.paycheckAdds.addAll(paycheckAdds);
+        return this;
     }
 }

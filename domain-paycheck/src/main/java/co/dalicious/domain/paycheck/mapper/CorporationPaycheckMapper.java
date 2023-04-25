@@ -22,6 +22,7 @@ import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -223,6 +224,20 @@ public interface CorporationPaycheckMapper {
                 .toList();
     }
 
+    @Mapping(source = "issueDate", target = "issueDate", qualifiedByName = "stringToLocalDate")
+    PaycheckAdd toPaycheckAdd(PaycheckDto.PaycheckAddDto paycheckAddDto);
+
+    @Named("stringToLocalDate")
+    default LocalDate stringToLocalDate(String localDate) {
+        return DateUtils.stringToDate(localDate);
+    }
+
+    default List<PaycheckAdd> toMemoPaycheckAdds(List<PaycheckDto.PaycheckAddDto> paycheckAddDto) {
+        return paycheckAddDto.stream()
+                .map(this::toPaycheckAdd)
+                .toList();
+    }
+
     @Mapping(target = "issueDate", expression = "java(DateUtils.format(paycheckAdd.getIssueDate()))")
     PaycheckDto.PaycheckAddDto toPaycheckAddDto(PaycheckAdd paycheckAdd);
 
@@ -312,7 +327,7 @@ public interface CorporationPaycheckMapper {
     PaycheckDto.PaycheckCategory toExpectedPaycheckCategoryDto(PaycheckCategory paycheckCategory, Integer days);
 
     default List<PaycheckDto.PaycheckCategory> toExpectedPaycheckCategoryDtos(List<PaycheckCategory> paycheckCategories, Integer days) {
-        if(paycheckCategories == null || paycheckCategories.isEmpty()) {
+        if (paycheckCategories == null || paycheckCategories.isEmpty()) {
             return null;
         }
 

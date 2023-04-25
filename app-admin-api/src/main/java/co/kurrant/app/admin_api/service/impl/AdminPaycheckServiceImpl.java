@@ -178,7 +178,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public void postPaycheckAdd(BigInteger makersPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
+    public void postMakersPaycheckAdd(BigInteger makersPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
         MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(makersPaycheckId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         List<PaycheckAdd> paycheckAdds = makersPaycheckMapper.toPaycheckAdds(paycheckAddDtos);
@@ -357,6 +357,24 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         for (CorporationPaycheck corporationPaycheck : corporationPaychecks) {
             corporationPaycheck.updatePaycheckStatus(paycheckStatus);
         }
+    }
+
+    @Override
+    @Transactional
+    public void postCorporationPaycheckAdd(BigInteger corporationPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
+        CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(corporationPaycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        List<PaycheckAdd> paycheckAdds = corporationPaycheckMapper.toMemoPaycheckAdds(paycheckAddDtos);
+        corporationPaycheck = corporationPaycheck.updatePaycheckAdds(paycheckAdds);
+
+        // 요청 Body에 파일이 존재하지 않는다면 삭제
+        if (corporationPaycheck.getExcelFile() != null) {
+            imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
+        }
+        // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
+        ImageResponseDto imageResponseDto = excelService.createCorporationPaycheckExcel(corporationPaycheck);
+        Image image = new Image(imageResponseDto);
+        corporationPaycheck.updateExcelFile(image);
     }
 
     @Override
