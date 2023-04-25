@@ -293,7 +293,11 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     public PaycheckDto.Invoice getCorporationInvoice(BigInteger corporationPaycheckId) {
         CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(corporationPaycheckId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-        return corporationPaycheckMapper.toInvoice(corporationPaycheck, 0);
+        PaycheckDto.Invoice invoice = corporationPaycheckMapper.toInvoice(corporationPaycheck, 0);
+        TransactionInfoDefault transactionInfoDefault = paycheckService.getTransactionInfoDefault();
+        transactionInfoDefault.setYearMonth(DateUtils.YearMonthToString(corporationPaycheck.getYearMonth()));
+        invoice.setTransactionInfoDefault(transactionInfoDefault);
+        return invoice;
     }
 
     @Override
