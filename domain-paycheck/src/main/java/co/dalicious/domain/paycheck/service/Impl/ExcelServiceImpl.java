@@ -1,11 +1,11 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
+import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.PaycheckCategory;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
-import co.dalicious.domain.paycheck.entity.MakersPaycheck;
-import co.dalicious.domain.paycheck.entity.PaycheckAdd;
-import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
+import co.dalicious.domain.paycheck.entity.*;
 import co.dalicious.domain.paycheck.service.ExcelService;
 
 import co.dalicious.system.util.DateUtils;
@@ -22,12 +22,16 @@ import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.YearMonth;
 import java.util.List;
 
 @Service
@@ -36,6 +40,7 @@ public class ExcelServiceImpl implements ExcelService {
     private final ImageService imageService;
 
     @Override
+    @Transactional
     public ImageResponseDto createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("MakersPaycheck");
@@ -51,7 +56,8 @@ public class ExcelServiceImpl implements ExcelService {
                 "_" + makersPaycheck.getMakers().getName() + ".pdf";
 
         // Create header rows
-        createHeaderRows(workbook, sheet, makersPaycheck.getMakers().getName());
+        createHeaderRows(workbook, sheet, makersPaycheck.getMakers().getName(), makersPaycheck.getYearMonth());
+        createDailyFoodHeader(workbook, sheet);
 
         // Write daily foods data
         int currentRow = 13;
@@ -69,7 +75,6 @@ public class ExcelServiceImpl implements ExcelService {
             Row row = sheet.createRow(++currentRow);
             createDailyFoodAddHeader(workbook, sheet, row);
             currentRow++;
-
             for (PaycheckAdd paycheckAdd : paycheckAdds) {
                 writeDailyFoodAdd(workbook, sheet, currentRow, paycheckAdd);
                 sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 6));
@@ -79,7 +84,102 @@ public class ExcelServiceImpl implements ExcelService {
 
 
         // 총 금액 row 추가
-        Integer footerRowNumber = writeTotalRow(sheet, currentRow + 3, makersPaycheck);
+        Integer footerRowNumber = writeMakersTotalRow(sheet, currentRow + 3, makersPaycheck);
+        createFooterRows(sheet, footerRowNumber);
+
+        // Adjust column widths
+        for (int i = 0; i < 11; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Save the file locally
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            workbook.write(outputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//        // Convert Excel to HTML and then to PDF
+//        pdfService.excelToPdf(workbook);
+//
+//        // Save the PDF file locally
+//        try (FileOutputStream pdfFileOutputStream = new FileOutputStream(fileName2)) {
+//            pdfOutputStream.writeTo(pdfFileOutputStream);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+        return imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+    }
+
+    @Override
+    public ImageResponseDto createCorporationPaycheckExcel(CorporationPaycheck corporationPaycheck) {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("MakersPaycheck");
+
+        sheet.setColumnWidth(0, 2 * 256);
+        String dirName = "paycheck/corporations/" + corporationPaycheck.getCorporation().getId().toString() + "/" + corporationPaycheck.getYearAndMonthString() + "/";
+
+        String fileName = corporationPaycheck.getFileName() +
+                "_" + corporationPaycheck.getCorporation().getName() + ".xlsx";
+
+
+        // 거래명세서 헤더(달리셔스 정보) 생성
+        createHeaderRows(workbook, sheet, corporationPaycheck.getCorporation().getName(), corporationPaycheck.getYearMonth());
+
+        // 선금 데이터 생성
+        int currentRow = 12;
+        ExpectedPaycheck expectedPaycheck = corporationPaycheck.getExpectedPaycheck();
+        if (expectedPaycheck != null) {
+            currentRow = createHeaderContext(workbook, sheet, currentRow, "선금");
+            BigDecimal totalPrice = BigDecimal.ZERO;
+
+            List<PaycheckCategory> paycheckCategories = expectedPaycheck.getPaycheckCategories();
+            for (PaycheckCategory paycheckCategory : paycheckCategories) {
+                Row row = sheet.createRow(currentRow);
+                writePaycheckCategory(workbook, row, paycheckCategory);
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 6, 7));
+                totalPrice = totalPrice.add(paycheckCategory.getTotalPrice());
+                currentRow++;
+            }
+            currentRow = createCategoryTotalPrice(sheet, currentRow, totalPrice);
+            currentRow++;
+        }
+
+        List<PaycheckCategory> paycheckCategories = corporationPaycheck.getPaycheckCategories();
+        currentRow = createHeaderContext(workbook, sheet, currentRow, "실비");
+
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        for (PaycheckCategory paycheckCategory : paycheckCategories) {
+            Row row = sheet.createRow(currentRow);
+            writePaycheckCategory(workbook, row, paycheckCategory);
+            sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 6, 7));
+            totalPrice = totalPrice.add(paycheckCategory.getTotalPrice());
+            currentRow++;
+        }
+        currentRow = createCategoryTotalPrice(sheet, currentRow, totalPrice);
+        currentRow++;
+
+        // 추가 요청 헤더 생성
+        List<PaycheckAdd> paycheckAdds = corporationPaycheck.getPaycheckAdds();
+        if (!paycheckAdds.isEmpty()) {
+            currentRow = createHeaderTitle(workbook, sheet, currentRow, "추가이슈");
+            Row row = sheet.createRow(currentRow);
+            createDailyFoodAddHeader(workbook, sheet, row);
+            currentRow++;
+
+            BigDecimal addPrice = BigDecimal.ZERO;
+            for (PaycheckAdd paycheckAdd : paycheckAdds) {
+                writeDailyFoodAdd(workbook, sheet, currentRow, paycheckAdd);
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 6));
+                addPrice = addPrice.add(paycheckAdd.getPrice());
+                currentRow++;
+            }
+            currentRow = createCategoryTotalPrice_2(sheet, currentRow, addPrice);
+        }
+
+
+        // 총 금액 row 추가
+        Integer footerRowNumber = writeCorporationTotalRow(sheet, currentRow + 3, corporationPaycheck);
         createFooterRows(sheet, footerRowNumber);
 
         // Adjust column widths
@@ -160,7 +260,7 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
 
-    private void createHeaderRows(Workbook workbook, Sheet sheet, String makersName) {
+    private void createHeaderRows(Workbook workbook, Sheet sheet, String name, YearMonth yearMonth) {
         // 거래명세서 제목
         Row row1 = sheet.createRow(1);
         Cell cell1_1 = row1.createCell(1);
@@ -168,7 +268,7 @@ public class ExcelServiceImpl implements ExcelService {
         cell1_1.setCellStyle(titleStyle(workbook));
 
         Cell cell1_6 = row1.createCell(6);
-        cell1_6.setCellValue("2023-03");
+        cell1_6.setCellValue(DateUtils.YearMonthToString(yearMonth));
         cell1_6.setCellStyle(center(workbook));
         sheet.addMergedRegion(new CellRangeAddress(1, 3, 1, 2));
         sheet.addMergedRegion(new CellRangeAddress(1, 1, 6, 7));
@@ -184,9 +284,8 @@ public class ExcelServiceImpl implements ExcelService {
             if (i == 1) {
                 row4.getCell(i).setCellValue("수신");
             }
-            // TODO: 수정필요
             if (i == 2) {
-                row4.getCell(i).setCellValue("모모유부 역삼점");
+                row4.getCell(i).setCellValue(name);
             }
         }
 
@@ -258,10 +357,12 @@ public class ExcelServiceImpl implements ExcelService {
         Cell cell10_5 = row10.createCell(5);
         cell10_5.setCellValue(transactionInfoDefault.getBusinessForm());
         sheet.addMergedRegion(new CellRangeAddress(10, 10, 5, 7));
+    }
 
+    private void createDailyFoodHeader(Workbook workbook, Sheet sheet) {
         // 거래 내역 헤더
         Row row12 = sheet.createRow(12);
-        String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat포함)"};
+        String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat별도)"};
         for (int i = 1; i <= headers.length; i++) {
             Cell cell13 = null;
             if (i < 2) {
@@ -279,6 +380,71 @@ public class ExcelServiceImpl implements ExcelService {
             }
             cell13.setCellStyle(dataHeader(workbook));
         }
+    }
+
+    private Integer createHeaderTitle(Workbook workbook, Sheet sheet, Integer rowNum, String title) {
+        Row row = sheet.createRow(rowNum);
+        Cell cell = row.createCell(1);
+        cell.setCellValue(title);
+        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, 1, 7));
+        cell.setCellStyle(titleHeader(workbook));
+
+        return ++rowNum;
+    }
+
+    private Integer createHeaderContext(Workbook workbook, Sheet sheet, Integer rowNum, String title) {
+        Integer currantRow = createHeaderTitle(workbook, sheet, rowNum, title);
+
+        // 거래 내역 헤더
+        Row row = sheet.createRow(currantRow);
+        String[] headers = {"일자", "항목", "금액", "수량", "일수", "금액(vat별도)"};
+        for (int i = 1; i <= headers.length; i++) {
+            Cell cell = null;
+            if (i == 6) {
+                cell = row.createCell(i);
+                cell.setCellValue(headers[i - 1]);
+                cell.setCellStyle(dataHeader(workbook));
+                sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 6, 7));
+                continue;
+            }
+
+            cell = row.createCell(i);
+            cell.setCellValue(headers[i - 1]);
+
+            cell.setCellStyle(dataHeader(workbook));
+        }
+        return ++currantRow;
+    }
+
+    private static void writePaycheckCategory(Workbook workBook, Row row, PaycheckCategory paycheckCategory) {
+        CellStyle dataCellStyle = center(workBook);
+        CellStyle priceCellStyle = priceStyle(workBook);
+
+        Cell cell2 = row.createCell(2);
+        cell2.setCellValue(paycheckCategory.getPaycheckCategoryItem().getPaycheckCategoryItem());
+        cell2.setCellStyle(dataCellStyle);
+
+        Cell cell3 = row.createCell(3);
+        Integer priceValue = (paycheckCategory.getPrice() != null) ? paycheckCategory.getPrice().intValue() : null;
+        if (priceValue != null) {
+            cell3.setCellValue(priceValue);
+        } else {
+            cell3.setBlank();
+        }
+        cell3.setCellStyle(dataCellStyle);
+
+        Cell cell4 = row.createCell(4);
+        cell4.setCellValue(paycheckCategory.getCount());
+        cell4.setCellStyle(dataCellStyle);
+
+        //TODO: 수정 필요
+        Cell cell5 = row.createCell(5);
+        cell5.setCellValue(0);
+        cell5.setCellStyle(dataCellStyle);
+
+        Cell cell6 = row.createCell(6);
+        cell6.setCellValue(paycheckCategory.getTotalPrice().intValue());
+        cell6.setCellStyle(priceCellStyle);
     }
 
     private static void writeDailyFood(Workbook workBook, Row row, PaycheckDailyFood dailyFood) {
@@ -345,7 +511,7 @@ public class ExcelServiceImpl implements ExcelService {
         cell3.setCellStyle(priceCellStyle);
     }
 
-    private static Integer writeTotalRow(Sheet sheet, Integer startRow, MakersPaycheck makersPaycheck) {
+    private static Integer writeMakersTotalRow(Sheet sheet, Integer startRow, MakersPaycheck makersPaycheck) {
         // 총액 셀 추가
         Row totalPriceRow = sheet.createRow(startRow);
 
@@ -361,7 +527,7 @@ public class ExcelServiceImpl implements ExcelService {
         // 수수료 셀 추가
         Row chargeRow = sheet.createRow(startRow + 1);
         Cell cell2 = chargeRow.createCell(6);
-        cell2.setCellValue("수수료");
+        cell2.setCellValue("배송 수수료");
         cell2.setCellStyle(boldCenter(sheet.getWorkbook()));
 
         Cell cell2_2 = chargeRow.createCell(7);
@@ -380,6 +546,106 @@ public class ExcelServiceImpl implements ExcelService {
         cell3_2.setCellStyle(priceStyle(sheet.getWorkbook()));
 
         return startRow + 3;
+    }
+
+    private static Integer writeCorporationTotalRow(Sheet sheet, Integer startRow, CorporationPaycheck corporationPaycheck) {
+        // 총액 셀 추가
+        Row row = sheet.createRow(startRow);
+
+        Integer prepaidTotalPrice = corporationPaycheck.getExpectedPaycheck() == null ? 0 : corporationPaycheck.getExpectedTotalPrice().intValue();
+        Integer totalPrice = corporationPaycheck.getTotalPrice().intValue();
+        Integer paycheckAddPrice = corporationPaycheck.getPaycheckAdds() == null ? 0 : corporationPaycheck.getPaycheckAddsTotalPrice().intValue();
+
+        if (prepaidTotalPrice != 0) {
+            Cell cell = row.createCell(5);
+            cell.setCellValue("선금 총액");
+
+            Cell cell2 = row.createCell(6);
+            cell2.setCellValue(prepaidTotalPrice);
+            cell2.setCellStyle(priceStyle(sheet.getWorkbook()));
+            sheet.addMergedRegion(new CellRangeAddress(startRow, startRow, 6, 7));
+
+            row = sheet.createRow(++startRow);
+        }
+
+        Cell cell = row.createCell(5);
+        cell.setCellValue("실비 총액");
+
+        Cell cell2 = row.createCell(6);
+        cell2.setCellValue(totalPrice + paycheckAddPrice);
+        cell2.setCellStyle(priceStyle(sheet.getWorkbook()));
+        sheet.addMergedRegion(new CellRangeAddress(startRow, startRow, 6, 7));
+
+        Row row1 = sheet.createRow(++startRow);
+        Cell cell3 = row1.createCell(5);
+        cell3.setCellValue("총액 (VAT포함)");
+        cell3.setCellStyle(bold(sheet.getWorkbook()));
+
+        Cell cell4 = row1.createCell(6);
+        sheet.addMergedRegion(new CellRangeAddress(startRow, startRow, 6, 7));
+
+        // Create cell style
+        CellStyle cellStyle = boldPriceStyle(sheet.getWorkbook());
+        cellStyle.setBorderTop(BorderStyle.THIN);
+        cellStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
+
+        // Apply cell style to cells 6 and 7 in the merged region
+        for (int i = 6; i <= 7; i++) {
+            Cell mergedCell = row1.createCell(i);
+            mergedCell.setCellStyle(cellStyle);
+        }
+
+        cell4.setCellValue(1.1 * (totalPrice + paycheckAddPrice - prepaidTotalPrice));
+
+
+        return ++startRow;
+    }
+
+    private Integer createCategoryTotalPrice(Sheet sheet, Integer rowNumber, BigDecimal totalPrice) {
+        Row row = sheet.createRow(rowNumber);
+        CellStyle borderStyle = sheet.getWorkbook().createCellStyle();
+        borderStyle.setBorderTop(BorderStyle.THIN);
+        borderStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
+
+        for (int i = 1; i <= 7; i++) {
+            Cell cell = row.createCell(i);
+            if (i == 6 || i == 7) {
+                CellStyle cellStyle = boldPriceStyle(sheet.getWorkbook());
+                cellStyle.setBorderTop(BorderStyle.THIN);
+                cellStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
+                cell.setCellStyle(cellStyle);
+            }
+            else {
+                row.getCell(i).setCellStyle(borderStyle);
+            }
+        }
+        sheet.addMergedRegion(new CellRangeAddress(rowNumber, rowNumber, 6, 7));
+        Cell cell = row.getCell(6);
+        cell.setCellValue(totalPrice.intValue());
+        return ++rowNumber;
+    }
+
+    private Integer createCategoryTotalPrice_2(Sheet sheet, Integer rowNumber, BigDecimal totalPrice) {
+        Row row = sheet.createRow(rowNumber);
+        CellStyle borderStyle = sheet.getWorkbook().createCellStyle();
+        borderStyle.setBorderTop(BorderStyle.THIN);
+        borderStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
+
+        for (int i = 1; i <= 7; i++) {
+            Cell cell = row.createCell(i);
+            if (i == 7) {
+                CellStyle cellStyle = boldPriceStyle(sheet.getWorkbook());
+                cellStyle.setBorderTop(BorderStyle.THIN);
+                cellStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
+                cell.setCellStyle(cellStyle);
+            }
+            else {
+                row.getCell(i).setCellStyle(borderStyle);
+            }
+        }
+        Cell cell = row.getCell(7);
+        cell.setCellValue(totalPrice.intValue());
+        return ++rowNumber;
     }
 
     private void createFooterRows(Sheet sheet, Integer footerRowNumber) {
@@ -427,6 +693,18 @@ public class ExcelServiceImpl implements ExcelService {
         return center;
     }
 
+    private static CellStyle bold(Workbook workbook) {
+        CellStyle bold = workbook.createCellStyle();
+        bold.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        bold.setBorderTop(BorderStyle.THIN);
+
+        Font boldFont = workbook.createFont();
+        boldFont.setBold(true);
+        bold.setFont(boldFont);
+        return bold;
+    }
+
     private static CellStyle priceStyle(Workbook workbook) {
         CellStyle currencyStyle = workbook.createCellStyle();
         currencyStyle.setAlignment(HorizontalAlignment.CENTER);
@@ -464,6 +742,21 @@ public class ExcelServiceImpl implements ExcelService {
         dataHeader.setFillForegroundColor(xssfColor);
         dataHeader.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         return dataHeader;
+    }
+
+    private static CellStyle titleHeader(Workbook workbook) {
+        XSSFCellStyle titleHeader = (XSSFCellStyle) workbook.createCellStyle();
+        byte[] customColor = new byte[]{(byte) 123, (byte) 123, (byte) 123};
+        XSSFColor xssfColor = new XSSFColor(customColor, new DefaultIndexedColorMap());
+        titleHeader.setFillForegroundColor(xssfColor);
+        titleHeader.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        Font boldFont = workbook.createFont();
+        boldFont.setBold(true);
+        boldFont.setColor(IndexedColors.WHITE.getIndex());
+        titleHeader.setFont(boldFont);
+
+        return titleHeader;
     }
 
 

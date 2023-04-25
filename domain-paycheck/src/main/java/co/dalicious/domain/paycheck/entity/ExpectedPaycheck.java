@@ -36,9 +36,10 @@ public class ExpectedPaycheck {
     @Comment("선불 정산")
     private CorporationPaycheck corporationPaycheck;
 
-    public ExpectedPaycheck(YearMonth yearMonth, List<PaycheckCategory> paycheckCategories) {
+    public ExpectedPaycheck(YearMonth yearMonth, List<PaycheckCategory> paycheckCategories, CorporationPaycheck corporationPaycheck) {
         this.yearMonth = yearMonth;
         this.paycheckCategories = paycheckCategories;
+        this.corporationPaycheck = corporationPaycheck;
     }
 
     public BigDecimal getTotalPrice() {

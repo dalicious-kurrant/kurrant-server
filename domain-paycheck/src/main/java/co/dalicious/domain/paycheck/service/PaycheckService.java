@@ -3,6 +3,7 @@ package co.dalicious.domain.paycheck.service;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
@@ -24,6 +25,6 @@ public interface PaycheckService {
     PaycheckType getPaycheckType(Corporation corporation);
 
     // 고객사 정산 Entity를 생성한다.
-    CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices);
+    CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices);
 
 }

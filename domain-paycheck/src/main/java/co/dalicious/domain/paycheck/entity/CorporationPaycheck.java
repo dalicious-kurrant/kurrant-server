@@ -69,7 +69,12 @@ public class CorporationPaycheck {
     private List<PaycheckCategory> paycheckCategories;
 
     @ElementCollection
-    @Comment("식사 일정별 음식 내역")
+    @Comment("지불 항목 내역")
+    @CollectionTable(name = "paycheck__corporation_paycheck_paycheck_adds")
+    private List<PaycheckAdd> paycheckAdds;
+
+    @ElementCollection
+    @Comment("메모")
     @CollectionTable(name = "paycheck__corporation_paycheck__paycheck_memo")
     private List<PaycheckMemo> paycheckMemos;
 
@@ -105,14 +110,19 @@ public class CorporationPaycheck {
     }
 
     @Builder
-    public CorporationPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, String managerName, String phone, List<PaycheckCategory> paycheckCategories, Corporation corporation) {
+    public CorporationPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, String managerName, String phone, Image excelFile, Image pdfFile, List<PaycheckCategory> paycheckCategories, List<PaycheckAdd> paycheckAdds, List<PaycheckMemo> paycheckMemos, ExpectedPaycheck expectedPaycheck, Corporation corporation) {
         this.yearMonth = yearMonth;
         this.paycheckStatus = paycheckStatus;
         this.managerName = managerName;
         this.phone = phone;
+        this.excelFile = excelFile;
+        this.pdfFile = pdfFile;
         this.paycheckCategories = paycheckCategories;
+        this.paycheckAdds = paycheckAdds;
+        this.paycheckMemos = paycheckMemos;
         this.corporation = corporation;
     }
+
 
     public void updatePaycheckStatus(PaycheckStatus paycheckStatus) {
         this.paycheckStatus = paycheckStatus;
@@ -141,7 +151,39 @@ public class CorporationPaycheck {
         return totalPrice;
     }
 
+    public BigDecimal getExpectedTotalPrice() {
+        if(this.getExpectedPaycheck() == null) return null;
+        return this.getExpectedPaycheck().getTotalPrice();
+    }
+
+    public BigDecimal getPaycheckAddsTotalPrice() {
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        for (PaycheckAdd paycheckAdd : this.paycheckAdds) {
+            totalPrice = totalPrice.add(paycheckAdd.getPrice());
+        }
+        return totalPrice;
+    }
+
+    public BigDecimal getPrepaidTotalPrice() {
+        return this.expectedPaycheck == null ? null : this.expectedPaycheck.getTotalPrice();
+    }
+
     public Boolean hasRequest() {
         return !this.paycheckMemos.isEmpty();
+    }
+
+    public String getYearAndMonthString() {
+        return this.yearMonth.getYear() +
+                ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
+    }
+
+    public String getFileName() {
+        return "거래명세서_" + this.yearMonth.getYear() + "-" +
+                ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
+    }
+
+    public CorporationPaycheck updatePaycheckAdds(List<PaycheckAdd> paycheckAdds) {
+        this.paycheckAdds.addAll(paycheckAdds);
+        return this;
     }
 }

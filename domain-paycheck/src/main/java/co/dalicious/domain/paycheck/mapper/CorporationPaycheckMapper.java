@@ -2,22 +2,29 @@ package co.dalicious.domain.paycheck.mapper;
 
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.PaycheckCategory;
+import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
 import co.dalicious.domain.paycheck.entity.ExpectedPaycheck;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
+import co.dalicious.domain.paycheck.entity.PaycheckAdd;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,6 +33,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.fasterxml.jackson.databind.type.LogicalType.Collection;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, PaycheckStatus.class})
 public interface CorporationPaycheckMapper {
@@ -56,10 +67,12 @@ public interface CorporationPaycheckMapper {
                 .phone(corporationPaycheck.getPhone())
                 .paycheckStatus(corporationPaycheck.getPaycheckStatus().getPaycheckStatus())
                 .hasRequest(corporationPaycheck.hasRequest())
-                .excelFile(corporationPaycheck.getExcelFile().getLocation())
-                .pdfFile(corporationPaycheck.getPdfFile().getLocation())
+                .excelFile(corporationPaycheck.getExcelFile() == null ? null : corporationPaycheck.getExcelFile().getLocation())
+                .pdfFile(corporationPaycheck.getPdfFile() == null ? null : corporationPaycheck.getPdfFile().getLocation())
                 .build();
-    };
+    }
+
+    ;
 
     default CorporationPaycheck toInitiateEntity(Corporation corporation, User user) {
         return CorporationPaycheck.builder()
@@ -72,11 +85,11 @@ public interface CorporationPaycheckMapper {
                 .build();
     }
 
-    default ExpectedPaycheck toExpectedPaycheck(Corporation corporation) {
+    default ExpectedPaycheck toExpectedPaycheck(Corporation corporation, CorporationPaycheck corporationPaycheck) {
         YearMonth yearMonth = YearMonth.now();
         List<PaycheckCategory> paycheckCategories = corporation.getPaycheckCategories();
-        return new ExpectedPaycheck(yearMonth, paycheckCategories);
-    };
+        return (paycheckCategories == null || paycheckCategories.isEmpty()) ? null : new ExpectedPaycheck(yearMonth, paycheckCategories, corporationPaycheck);
+    }
 
     default List<PaycheckDto.CorporationResponse> toDtos(List<CorporationPaycheck> corporationPaycheck) {
         return corporationPaycheck.stream()
@@ -163,5 +176,175 @@ public interface CorporationPaycheckMapper {
             }
         }
         return corporationOrderItems;
+    }
+
+    // FIXME: dailyFoodSupportPrices -> order의 PaymentType은 1.
+    default List<PaycheckCategory> toPaycheckDailyFood(List<DailyFoodSupportPrice> dailyFoodSupportPrices) {
+        List<PaycheckCategory> paycheckCategories = new ArrayList<>();
+        Integer morningCount = 0;
+        Integer lunchCount = 0;
+        Integer dinnerCount = 0;
+
+        BigDecimal morningPrice = BigDecimal.ZERO;
+        BigDecimal lunchPrice = BigDecimal.ZERO;
+        BigDecimal dinnerPrice = BigDecimal.ZERO;
+
+        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
+            switch (dailyFoodSupportPrice.getDiningType()) {
+                case MORNING -> {
+                    morningCount += dailyFoodSupportPrice.getCount();
+                    morningPrice = morningPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
+                }
+                case LUNCH -> {
+                    lunchCount += dailyFoodSupportPrice.getCount();
+                    lunchPrice = lunchPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
+                }
+                case DINNER -> {
+                    dinnerCount += dailyFoodSupportPrice.getCount();
+                    dinnerPrice = dinnerPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
+                }
+            }
+        }
+
+        if (morningCount != 0 && morningPrice.compareTo(BigDecimal.ZERO) != 0) {
+            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.BREAKFAST, morningCount, null, morningPrice));
+        }
+        if (lunchCount != 0 && lunchPrice.compareTo(BigDecimal.ZERO) != 0) {
+            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.LUNCH, lunchCount, null, lunchPrice));
+        }
+        if (dinnerCount != 0 && dinnerPrice.compareTo(BigDecimal.ZERO) != 0) {
+            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.DINNER, dinnerCount, null, dinnerPrice));
+        }
+        return paycheckCategories;
+    }
+
+    default List<PaycheckAdd> toPaycheckAdds(List<OrderItemDailyFood> orderItemDailyFoods) {
+        return orderItemDailyFoods.stream()
+                .map(this::toPaycheckAdd)
+                .toList();
+    }
+
+    @Mapping(source = "issueDate", target = "issueDate", qualifiedByName = "stringToLocalDate")
+    PaycheckAdd toPaycheckAdd(PaycheckDto.PaycheckAddDto paycheckAddDto);
+
+    @Named("stringToLocalDate")
+    default LocalDate stringToLocalDate(String localDate) {
+        return DateUtils.stringToDate(localDate);
+    }
+
+    default List<PaycheckAdd> toMemoPaycheckAdds(List<PaycheckDto.PaycheckAddDto> paycheckAddDto) {
+        return paycheckAddDto.stream()
+                .map(this::toPaycheckAdd)
+                .toList();
+    }
+
+    @Mapping(target = "issueDate", expression = "java(DateUtils.format(paycheckAdd.getIssueDate()))")
+    PaycheckDto.PaycheckAddDto toPaycheckAddDto(PaycheckAdd paycheckAdd);
+
+    default List<PaycheckDto.PaycheckAddDto> toPaycheckAddDtos(List<PaycheckAdd> paycheckAdds) {
+        return paycheckAdds.stream().map(this::toPaycheckAddDto).toList();
+    }
+
+    default List<PaycheckCategory> toMembership(List<MembershipSupportPrice> membershipSupportPrices) {
+        List<PaycheckCategory> paycheckCategories = new ArrayList<>();
+        // 중간에 멤버십 가격이 변동될 수 있으므로 금액을 구분해서 확인
+        MultiValueMap<BigDecimal, MembershipSupportPrice> membershipMap = new LinkedMultiValueMap<>();
+        for (MembershipSupportPrice membershipSupportPrice : membershipSupportPrices) {
+            membershipMap.add(membershipSupportPrice.getUsingSupportPrice(), membershipSupportPrice);
+        }
+
+        for (BigDecimal bigDecimal : membershipMap.keySet()) {
+            BigDecimal totalPrice = bigDecimal.multiply(BigDecimal.valueOf(membershipMap.get(bigDecimal).size()));
+            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.MEMBERSHIP, membershipMap.get(bigDecimal).size(), bigDecimal, totalPrice));
+        }
+        return paycheckCategories;
+    }
+
+    @Mapping(source = "createdDateTime", target = "issueDate")
+    @Mapping(source = "discountedPrice", target = "price")
+    @Mapping(source = "usage", target = "memo")
+    PaycheckAdd toPaycheckAdd(OrderItemDailyFood orderItemDailyFood);
+
+    default List<PaycheckCategory> toPaycheckCategories(Corporation corporation) {
+        // 1. 쓰레기 수거
+        // 2. 온장고
+        // 3. 식사 셋팅
+        return null;
+    }
+
+    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
+        // 2. 식비 계산 (추가 주문은 제외함.)
+        List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
+        List<DailyFoodSupportPrice> removeDailyFoodSupportPrice = new ArrayList<>();
+        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
+            if (dailyFoodSupportPrice.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE)) {
+                orderItemDailyFoods.addAll(dailyFoodSupportPrice.getOrderItemDailyFoodGroup().getOrderDailyFoods());
+                removeDailyFoodSupportPrice.add(dailyFoodSupportPrice);
+            }
+        }
+        dailyFoodSupportPrices.removeAll(removeDailyFoodSupportPrice);
+
+        List<PaycheckCategory> paycheckCategories = toPaycheckDailyFood(dailyFoodSupportPrices);
+
+        // 3. 추가 주문 계산
+        List<PaycheckAdd> paycheckAdds = toPaycheckAdds(orderItemDailyFoods);
+        // 4. 멤버십 계산
+        List<PaycheckCategory> memberships = (membershipSupportPrices == null) ? null : toMembership(membershipSupportPrices);
+        // 5. 추가 이슈
+        List<PaycheckCategory> paycheckCategories1 = toPaycheckCategories(corporation);
+
+        List<PaycheckCategory> addedPaycheckCategories = new ArrayList<>(paycheckCategories);
+        if (memberships != null) addedPaycheckCategories.addAll(memberships);
+        if (paycheckCategories1 != null) addedPaycheckCategories.addAll(paycheckCategories1);
+
+        return CorporationPaycheck.builder()
+                .yearMonth(YearMonth.now())
+                .paycheckStatus(PaycheckStatus.REGISTER)
+                .managerName(null)
+                .phone(null)
+                .paycheckCategories(addedPaycheckCategories)
+                .paycheckAdds(paycheckAdds)
+                .corporation(corporation)
+                .build();
+    }
+
+    @Mapping(source = "paycheckCategory.paycheckCategoryItem.paycheckCategoryItem", target = "category")
+    @Mapping(target = "paycheckCategory.price", expression = "java(paycheckCategory.getPrice().intValue())")
+    @Mapping(source = "days", target = "days")
+    @Mapping(target = "paycheckCategory.totalPrice", expression = "java(paycheckCategory.getTotalPrice().intValue())")
+    PaycheckDto.PaycheckCategory toPaycheckCategoryDto(PaycheckCategory paycheckCategory, Integer days);
+
+    default List<PaycheckDto.PaycheckCategory> toPaycheckCategoryDtos(List<PaycheckCategory> paycheckCategories, Integer days) {
+        return paycheckCategories.stream()
+                .map(v -> (PaycheckDto.PaycheckCategory) this.toPaycheckCategoryDto(v, days))
+                .toList();
+    }
+
+    @Mapping(source = "paycheckCategory.paycheckCategoryItem.paycheckCategoryItem", target = "category")
+    @Mapping(target = "paycheckCategory.price", expression = "java(paycheckCategory.getPrice().intValue())")
+    @Mapping(source = "days", target = "days")
+    @Mapping(target = "paycheckCategory.totalPrice", expression = "java(paycheckCategory.getTotalPrice().intValue())")
+    PaycheckDto.PaycheckCategory toExpectedPaycheckCategoryDto(PaycheckCategory paycheckCategory, Integer days);
+
+    default List<PaycheckDto.PaycheckCategory> toExpectedPaycheckCategoryDtos(List<PaycheckCategory> paycheckCategories, Integer days) {
+        if (paycheckCategories == null || paycheckCategories.isEmpty()) {
+            return null;
+        }
+
+        return paycheckCategories.stream()
+                .map(v -> (PaycheckDto.PaycheckCategory) this.toExpectedPaycheckCategoryDto(v, days))
+                .toList();
+    }
+
+    default PaycheckDto.Invoice toInvoice(CorporationPaycheck corporationPaycheck, Integer days) {
+        PaycheckDto.Invoice invoice = new PaycheckDto.Invoice();
+
+        invoice.setCorporationResponse(toDto(corporationPaycheck));
+        invoice.setPrepaidPaycheck(toExpectedPaycheckCategoryDtos(corporationPaycheck.getExpectedPaycheck() == null ? null : corporationPaycheck.getExpectedPaycheck().getPaycheckCategories(), days));
+        invoice.setPaycheck(toPaycheckCategoryDtos(corporationPaycheck.getPaycheckCategories(), days));
+        invoice.setPaycheckAdds(toPaycheckAddDtos(corporationPaycheck.getPaycheckAdds()));
+        invoice.setPrepaidTotalPrice(corporationPaycheck.getPrepaidTotalPrice() == null ? null : corporationPaycheck.getPrepaidTotalPrice().intValue());
+        invoice.setTotalPrice(corporationPaycheck.getTotalPrice().intValue());
+        return invoice;
     }
 }

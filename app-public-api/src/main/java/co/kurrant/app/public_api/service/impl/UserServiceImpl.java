@@ -1053,4 +1053,11 @@ public class UserServiceImpl implements UserService {
 
         return userTestDataList;
     }
+
+    @Override
+    public Boolean userPreferenceCheck(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        List<UserPreference> userPreferences = userPreferenceRepository.findAllByUserId(user.getId());
+        return !userPreferences.isEmpty();
+    }
 }

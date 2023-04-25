@@ -61,8 +61,8 @@ public class PaycheckController {
 
     @Operation(summary = "메이커스 정산 이슈 추가", description = "메이커스 정산 이슈 추가")
     @PostMapping("/makers/{makersPaycheckId}/issues")
-    public ResponseMessage postPaycheckAdd(@PathVariable BigInteger makersPaycheckId, @RequestBody List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
-        adminPaycheckService.postPaycheckAdd(makersPaycheckId, paycheckAddDtos);
+    public ResponseMessage postMakersPaycheckAdd(@PathVariable BigInteger makersPaycheckId, @RequestBody List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
+        adminPaycheckService.postMakersPaycheckAdd(makersPaycheckId, paycheckAddDtos);
         return ResponseMessage.builder()
                 .message("메이커스 정산 이슈 추가에 성공하였습니다.")
                 .build();
@@ -88,12 +88,21 @@ public class PaycheckController {
 //                .build();
 //    }
 
+//    @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
+//    @PostMapping("/corporations")
+//    public ResponseMessage postCorporationPaycheck(@RequestPart(required = false) MultipartFile corporationXlsx,
+//                                                   @RequestPart(required = false) MultipartFile corporationPdf,
+//                                                   @RequestPart PaycheckDto.CorporationRequest paycheckDto) throws IOException {
+//        adminPaycheckService.postCorporationPaycheck(corporationXlsx, corporationPdf, paycheckDto);
+//        return ResponseMessage.builder()
+//                .message("기업 정산 등록에 성공하였습니다.")
+//                .build();
+//    }
+
     @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
     @PostMapping("/corporations")
-    public ResponseMessage postCorporationPaycheck(@RequestPart(required = false) MultipartFile corporationXlsx,
-                                                   @RequestPart(required = false) MultipartFile corporationPdf,
-                                                   @RequestPart PaycheckDto.CorporationRequest paycheckDto) throws IOException {
-        adminPaycheckService.postCorporationPaycheck(corporationXlsx, corporationPdf, paycheckDto);
+    public ResponseMessage postCorporationPaycheck() {
+        adminPaycheckService.postCorporationPaycheckExcel();
         return ResponseMessage.builder()
                 .message("기업 정산 등록에 성공하였습니다.")
                 .build();
@@ -121,7 +130,7 @@ public class PaycheckController {
     @GetMapping("/corporations/{corporationPaycheckId}/invoice")
     public ResponseMessage getCorporationInvoice(@PathVariable BigInteger corporationPaycheckId) {
         return ResponseMessage.builder()
-                .data(adminPaycheckService.getCorporationOrderHistory(corporationPaycheckId))
+                .data(adminPaycheckService.getCorporationInvoice(corporationPaycheckId))
                 .message("기업 정산 인보이스 조회에 성공하였습니다.")
                 .build();
     }
@@ -152,6 +161,15 @@ public class PaycheckController {
         adminPaycheckService.updateCorporationPaycheckStatus(status, ids);
         return ResponseMessage.builder()
                 .message("기업 정산 상태 변경에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "기업 정산 이슈 추가", description = "기업 정산 이슈 추가")
+    @PostMapping("/corporations/{corporationPaycheckId}/issues")
+    public ResponseMessage postPaycheckAdd(@PathVariable BigInteger corporationPaycheckId, @RequestBody List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
+        adminPaycheckService.postCorporationPaycheckAdd(corporationPaycheckId, paycheckAddDtos);
+        return ResponseMessage.builder()
+                .message("기업 정산 이슈 추가에 성공하였습니다.")
                 .build();
     }
 }
