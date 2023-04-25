@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.asm.Advice;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -262,6 +263,16 @@ public class UserController {
         String message = userService.userPreferenceSave(securityUser, userPreferenceDto);
         return ResponseMessage.builder()
                 .message(message)
+                .build();
+    }
+
+    @GetMapping("/preference/check")
+    @Operation(summary = "회원정보 입력 여부")
+    public ResponseMessage userPreferenceCheck(Authentication authentication){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.userPreferenceCheck(securityUser))
+                .message("회원정보 입력 여부 조회 성공")
                 .build();
     }
 

@@ -80,4 +80,6 @@ public interface UserService {
     Object getFoodImage(List<BigInteger> foodId);
 
     Object getTestData();
+
+    Boolean userPreferenceCheck(SecurityUser securityUser);
 }
