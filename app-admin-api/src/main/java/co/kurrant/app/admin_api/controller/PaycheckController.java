@@ -88,12 +88,21 @@ public class PaycheckController {
 //                .build();
 //    }
 
+//    @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
+//    @PostMapping("/corporations")
+//    public ResponseMessage postCorporationPaycheck(@RequestPart(required = false) MultipartFile corporationXlsx,
+//                                                   @RequestPart(required = false) MultipartFile corporationPdf,
+//                                                   @RequestPart PaycheckDto.CorporationRequest paycheckDto) throws IOException {
+//        adminPaycheckService.postCorporationPaycheck(corporationXlsx, corporationPdf, paycheckDto);
+//        return ResponseMessage.builder()
+//                .message("기업 정산 등록에 성공하였습니다.")
+//                .build();
+//    }
+
     @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
     @PostMapping("/corporations")
-    public ResponseMessage postCorporationPaycheck(@RequestPart(required = false) MultipartFile corporationXlsx,
-                                                   @RequestPart(required = false) MultipartFile corporationPdf,
-                                                   @RequestPart PaycheckDto.CorporationRequest paycheckDto) throws IOException {
-        adminPaycheckService.postCorporationPaycheck(corporationXlsx, corporationPdf, paycheckDto);
+    public ResponseMessage postCorporationPaycheck() {
+        adminPaycheckService.postCorporationPaycheckExcel();
         return ResponseMessage.builder()
                 .message("기업 정산 등록에 성공하였습니다.")
                 .build();
@@ -121,7 +130,7 @@ public class PaycheckController {
     @GetMapping("/corporations/{corporationPaycheckId}/invoice")
     public ResponseMessage getCorporationInvoice(@PathVariable BigInteger corporationPaycheckId) {
         return ResponseMessage.builder()
-                .data(adminPaycheckService.getCorporationOrderHistory(corporationPaycheckId))
+                .data(adminPaycheckService.getCorporationInvoice(corporationPaycheckId))
                 .message("기업 정산 인보이스 조회에 성공하였습니다.")
                 .build();
     }

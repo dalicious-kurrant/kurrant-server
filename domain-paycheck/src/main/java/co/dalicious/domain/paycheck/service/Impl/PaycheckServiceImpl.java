@@ -1,27 +1,30 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.PaycheckCategory;
+import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
-import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
-import co.dalicious.domain.paycheck.entity.ExpectedPaycheck;
-import co.dalicious.domain.paycheck.entity.MakersPaycheck;
-import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
+import co.dalicious.domain.paycheck.entity.*;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckType;
 import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
+import co.dalicious.domain.paycheck.repository.CorporationPaycheckRepository;
+import co.dalicious.domain.paycheck.repository.ExpectedPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
 import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import exception.ApiException;
@@ -45,6 +48,8 @@ public class PaycheckServiceImpl implements PaycheckService {
     private final DeliveryFeePolicy deliveryFeePolicy;
     private final CorporationPaycheckMapper corporationPaycheckMapper;
     private final QUserRepository qUserRepository;
+    private final CorporationPaycheckRepository corporationPaycheckRepository;
+    private final ExpectedPaycheckRepository expectedPaycheckRepository;
 
     @Override
     public TransactionInfoDefault getTransactionInfoDefault() {
@@ -129,29 +134,39 @@ public class PaycheckServiceImpl implements PaycheckService {
         Boolean isMembershipSupport = corporation.getIsMembershipSupport();
         Boolean isPrepaid = corporation.getIsPrepaid();
 
-        if(!isMembershipSupport) {
+        if (isMembershipSupport != null && !isMembershipSupport) {
             return PaycheckType.NO_MEMBERSHIP;
         }
-        if(!isPrepaid) {
+        if (isPrepaid != null && !isPrepaid) {
             return PaycheckType.POSTPAID_MEMBERSHIP;
         }
         // TODO: 예외 멤버십 선불 추가
-        if(corporation.getName().contains("메드트로닉")) {
+        if (corporation.getName().contains("메드트로닉")) {
             return PaycheckType.PREPAID_MEMBERSHIP_EXCEPTION_MEDTRONIC;
         }
 
         return PaycheckType.PREPAID_MEMBERSHIP;
     }
 
+    /*
+     * 현재 DailyFoodSupportPrice에는
+     * 1. 일반 지원금 결제
+     * 2. 추가 주문
+     * 이 존재한다. 정산에서는 PaymentType에 따라 구분하였지만, 식사 구매에서 더 많은 예외 상황이 생긴다면, 구분이 필요하다.
+     */
     @Override
-    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices) {
+    @Transactional
+    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
         // 1. 매니저 계정 확인
 
-        //
+        // 2. CorporationPaycheck 생성
+        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+        corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
 
         // 선불 정산인 경우 체크
         PaycheckType paycheckType = getPaycheckType(corporation);
-        ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation);
+        ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation, corporationPaycheck);
+        if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
         return null;
     }
 
@@ -166,4 +181,6 @@ public class PaycheckServiceImpl implements PaycheckService {
         }
         throw new ApiException(ExceptionEnum.IS_NOT_APPROPRIATE_EMPLOYEE_COUNT);
     }
+
+
 }
