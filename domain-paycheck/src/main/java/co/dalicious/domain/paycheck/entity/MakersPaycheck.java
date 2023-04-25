@@ -124,8 +124,7 @@ public class MakersPaycheck {
     }
 
     public MakersPaycheck updatePaycheckAdds(List<PaycheckAdd> paycheckAdds) {
-        this.paycheckAdds = paycheckAdds;
-
+        this.paycheckAdds.addAll(paycheckAdds);
         return this;
     }
 

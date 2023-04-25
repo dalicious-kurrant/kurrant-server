@@ -180,17 +180,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public void cancelOrder(BigInteger orderId) throws IOException, ParseException {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
-        User user = order.getUser();
-
-        if (order instanceof OrderDailyFood orderDailyFood) {
-            orderService.cancelOrderDailyFood(orderDailyFood, user);
-        }
-    }
-
-    @Override
-    @Transactional
     public void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) {
         OrderStatus orderStatus = OrderStatus.ofCode(statusAndIdList.getStatus());
         if (!OrderStatus.completePayment().contains(orderStatus)) {
@@ -211,24 +200,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    @Transactional
-    public void cancelOrderItems(List<BigInteger> orderItemList) {
-        List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
-
-        for (OrderItem orderItem : orderItems) {
-            try {
-                User user = orderItem.getOrder().getUser();
-                if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
-                    orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
-                }
-            } catch (Exception e) {
-                // Log the exception or handle it as needed
-                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
-            }
-        }
-    }
-
-    @Override
     public void cancelOrderNice(BigInteger orderId) throws IOException, ParseException {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
         User user = order.getUser();
@@ -242,12 +213,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Transactional
     public void cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
-
         for (OrderItem orderItem : orderItems) {
-            User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
+            try {
+                User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
 
-            if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
-                orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
+                if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+                    orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
+                }
+
+            } catch (Exception e) {
+                // Log the exception or handle it as needed
+                log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
     }
@@ -396,4 +372,33 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
     }
 
+
+    @Override
+    @Transactional
+    public void cancelOrderToss(BigInteger orderId) throws IOException, ParseException {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
+        User user = order.getUser();
+
+        if (order instanceof OrderDailyFood orderDailyFood) {
+            orderService.cancelOrderDailyFood(orderDailyFood, user);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrderItemsToss(List<BigInteger> orderItemList) {
+        List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
+
+        for (OrderItem orderItem : orderItems) {
+            try {
+                User user = orderItem.getOrder().getUser();
+                if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+                    orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
+                }
+            } catch (Exception e) {
+                // Log the exception or handle it as needed
+                log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
+            }
+        }
+    }
 }
