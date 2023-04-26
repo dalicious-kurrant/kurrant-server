@@ -1,6 +1,6 @@
 package co.dalicious.domain.paycheck.entity;
 
-import co.dalicious.domain.client.entity.PaycheckCategory;
+import co.dalicious.domain.client.entity.PrepaidCategory;
 import co.dalicious.domain.paycheck.converter.YearMonthAttributeConverter;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -44,8 +44,8 @@ public class ExpectedPaycheck {
 
     public BigDecimal getTotalPrice() {
         BigDecimal totalPrice = BigDecimal.ZERO;
-        for (PaycheckCategory paycheckCategory : paycheckCategories) {
-            totalPrice = totalPrice.add(paycheckCategory.getTotalPrice());
+        for (PaycheckCategory prepaidCategory : paycheckCategories) {
+            totalPrice = totalPrice.add(prepaidCategory.getTotalPrice());
         }
         return totalPrice;
     }

@@ -152,4 +152,8 @@ public class MakersPaycheck {
     public BigDecimal getTotalPrice() {
         return getFoodTotalPrice().subtract(getCommissionPrice());
     }
+
+    public void updateMemo(PaycheckMemo paycheckMemo) {
+        this.paycheckMemos.add(paycheckMemo);
+    }
 }

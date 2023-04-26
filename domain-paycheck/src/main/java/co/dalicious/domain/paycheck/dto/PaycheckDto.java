@@ -3,6 +3,7 @@ package co.dalicious.domain.paycheck.dto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.paycheck.entity.PaycheckMemo;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import lombok.Builder;
@@ -66,11 +67,11 @@ public class PaycheckDto {
         private MakersPaycheckInfo makersPaycheckInfo;
         private List<PaycheckDailyFoodDto> paycheckDailyFoods;
         private List<PaycheckAddDto> paycheckAdds;
+        private List<MemoResDto> memoResDtos;
         private Integer foodsPrice;
         private Double commission;
         private Integer commissionPrice;
         private Integer totalPrice;
-        private List<String> paycheckMemo;
     }
 
     @Getter
@@ -217,6 +218,26 @@ public class PaycheckDto {
 
     @Getter
     @Setter
+    public static class MemoDto {
+        private String memo;
+    }
+
+    @Getter
+    @Setter
+    public static class MemoResDto {
+        private String writer;
+        private String memo;
+        private String createdDateTime;
+
+        public MemoResDto(String writer, String memo, String createdDateTime) {
+            this.writer = writer;
+            this.memo = memo;
+            this.createdDateTime = createdDateTime;
+        }
+    }
+
+    @Getter
+    @Setter
     public static class PaycheckCategory {
         private String category;
         private Integer price;
@@ -233,8 +254,10 @@ public class PaycheckDto {
         private List<PaycheckCategory> prepaidPaycheck;
         private List<PaycheckCategory> paycheck;
         private List<PaycheckAddDto> paycheckAdds;
+        private List<MemoResDto> memoResDtos;
         private Integer prepaidTotalPrice;
         private Integer totalPrice;
+        private Integer vatTotalPrice;
     }
 
     @Getter
