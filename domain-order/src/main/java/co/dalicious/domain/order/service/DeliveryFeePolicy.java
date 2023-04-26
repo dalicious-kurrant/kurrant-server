@@ -28,7 +28,7 @@ public interface DeliveryFeePolicy {
     // 그룹이 기업이고, 기업이 멤버십을 지원하지 않으며, 기업 인원이 50명 미만일 경우
     BigDecimal getNoMembershipCorporationDeliveryFeeLower50();
     // 그룹이 기업이고, 기업이 멤버십을 지원하지 않으며, 기업 인원이 50명 이상일 경우
-    BigDecimal getNoMembershipCorporationDeliveryFeeUpper50(Address address);
+    BigDecimal getNoMembershipCorporationDeliveryFeeUpper50(Corporation corporation);
     // 그룹이 기업이고, 기업이 멤버십을 지원하지 않으며, 기존게 가입된 고객사이며, 기업 인원이 50명 이상일 경우
     BigDecimal getNoMembershipExistedCorporationDeliveryFeeUpper50(Address address);
 }

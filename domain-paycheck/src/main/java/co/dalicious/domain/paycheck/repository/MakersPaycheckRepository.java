@@ -5,6 +5,7 @@ import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.math.BigInteger;
+import java.time.YearMonth;
 import java.util.List;
 
 public interface MakersPaycheckRepository extends JpaRepository<MakersPaycheck, BigInteger> {
@@ -12,4 +13,5 @@ public interface MakersPaycheckRepository extends JpaRepository<MakersPaycheck, 
     List<MakersPaycheck> findAllByMakersAndIdIn(Makers makers, List<BigInteger> ids);
     List<MakersPaycheck> findAllByIdIn(List<BigInteger> ids);
     List<MakersPaycheck> findAllByMakers(Makers makers);
+    List<MakersPaycheck> findAllByYearMonth(YearMonth yearMonth);
 }

@@ -2,21 +2,17 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.*;
-import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.Provider;
-import co.dalicious.domain.user.entity.enums.Role;
-import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
+import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.user.validator.UserValidator;
-import co.dalicious.system.util.StringUtils;
-import co.kurrant.app.admin_api.dto.user.SaveUserListRequestDto;
-import co.kurrant.app.admin_api.dto.user.UserInfoResponseDto;
-import co.kurrant.app.admin_api.dto.user.UserResetPasswordRequestDto;
+import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
 import exception.ApiException;
@@ -53,6 +49,12 @@ public class UserServiceImpl implements UserService {
     private final ProviderEmailRepository providerEmailRepository;
     private final UserSpotRepository userSpotRepository;
     private final UserValidator userValidator;
+
+    private final FoodRepository foodRepository;
+
+    private final UserTasteTestDataRepository userTasteTestDataRepository;
+    private final QUserTasteTestDataRepository qUserTasteTestDataRepository;
+    private final PointUtil pointUtil;
 
 
     @Override
@@ -217,8 +219,21 @@ public class UserServiceImpl implements UserService {
                 user.updateUserStatus(UserStatus.ofCode(saveUserListRequestDto.getStatus()));
             if (saveUserListRequestDto.getPoint() != null) {
                 BigDecimal point = BigDecimal.valueOf(saveUserListRequestDto.getPoint());
-                if (!user.getPoint().equals(point))
+                if (!user.getPoint().equals(point)) {
+
+                    BigDecimal differencePoint = point.subtract(user.getPoint());
+                    // 차액이 플러스면
+                    if(differencePoint.compareTo(BigDecimal.valueOf(0)) > 0) {
+                        pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_REWARD, differencePoint);
+                    }
+                    // 차액이 마이너스면
+                    else if(differencePoint.compareTo(BigDecimal.valueOf(0)) < 0) {
+                        differencePoint = differencePoint.multiply(BigDecimal.valueOf(-1));
+                        pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_POINTS_RECOVERED, differencePoint);
+                    }
+
                     user.updatePoint(point);
+                }
             }
             if (saveUserListRequestDto.getMarketingAgree() != null && saveUserListRequestDto.getMarketingAlarm() != null && saveUserListRequestDto.getOrderAlarm() != null &&
                     (!user.getMarketingAgree().equals(saveUserListRequestDto.getMarketingAgree()) ||
@@ -234,6 +249,9 @@ public class UserServiceImpl implements UserService {
                 .filter(v -> !updateUserEmails.contains(v.getEmail()))
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
+            // 이미 있는 핸드폰 번호인지 확인
+            if(userValidator.isPhoneValidBoolean(createUserDto.getPhone())) continue;
+
             UserDto userDto = UserDto.builder()
                     .email(createUserDto.getEmail())
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
@@ -276,5 +294,74 @@ public class UserServiceImpl implements UserService {
         //수정
         qUserRepository.resetPassword(passwordResetDto.getUserId(), password);
 
+    }
+
+    @Override
+    public String saveTestData(SaveTestDataRequestDto saveTestDataRequestDto) {
+        //foodId 검증
+        List<TestData> testData = saveTestDataRequestDto.getTestData();
+        String foodIds = null;
+        for (int i = 0; i < testData.size(); i++) {
+            for (int j = 0; j < testData.get(i).getFoodIds().size(); j++) {
+                BigInteger foodId = testData.get(i).getFoodIds().get(j);
+                foodRepository.findById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+            }
+            //UserTasteTestData에 저장
+            foodIds = testData.get(i).getFoodIds().toString().substring(1, testData.get(i).getFoodIds().toString().length() -1);
+            UserTasteTestData userTasteTestData = UserTasteTestData.builder()
+                    .foodIds(foodIds)
+                    .page(testData.get(i).getPageNum())
+                    .build();
+
+            UserTasteTestData saveResult = userTasteTestDataRepository.save(userTasteTestData);
+            if (saveResult.getId() == null){
+                return "저장 실패...";
+            }
+        }
+
+        return "저장에 성공했습니다!";
+    }
+
+    @Override
+    public String updateTestData(UpdateTestDataRequestDto updateTestDataRequestDto) {
+        //foodId 검증
+        List<UpdateTestData> updateTestDataList = updateTestDataRequestDto.getUpdateTestDataList();
+        String foodIds = null;
+        for (int i = 0; i < updateTestDataList.size(); i++) {
+            for (int j = 0; j < updateTestDataList.get(i).getTestData().getFoodIds().size(); j++) {
+                BigInteger foodId = updateTestDataList.get(i).getTestData().getFoodIds().get(j);
+                foodRepository.findById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+            }
+            //UserTasteTestData에 수정 반영
+            foodIds = updateTestDataList.get(i).getTestData().getFoodIds().toString().substring(1,updateTestDataList.get(i).getTestData().getFoodIds().toString().length() -1);
+            BigInteger testDataId = updateTestDataList.get(i).getTestDataId();
+            Integer page = updateTestDataRequestDto.getUpdateTestDataList().get(i).getTestData().getPageNum();
+            long updateResult = qUserTasteTestDataRepository.updateTestData(foodIds, testDataId, page);
+
+            //결과가 1이 아닌경우는 실패
+            if (updateResult != 1){
+                return "수정 실패...";
+            }
+        }
+
+        return "수정에 성공했습니다!";
+    }
+
+    @Override
+    public String deleteTestData(DeleteTestDataRequestDto deleteTestDataRequestDto) {
+
+        //testIdList가 비어있는지 체크
+        if (deleteTestDataRequestDto.getTestDataIdList().isEmpty()){
+            throw new ApiException(ExceptionEnum.NOT_FOUND_TEST_DATA_ID);
+        }
+
+        //testId 존재하는지 체크
+        for (BigInteger id : deleteTestDataRequestDto.getTestDataIdList()){
+            userTasteTestDataRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_MATCHED_TEST_DATA_ID));
+            //존재하면 삭제
+            userTasteTestDataRepository.deleteById(id);
+        }
+
+        return "테스트 데이터 삭제 성공!";
     }
 }

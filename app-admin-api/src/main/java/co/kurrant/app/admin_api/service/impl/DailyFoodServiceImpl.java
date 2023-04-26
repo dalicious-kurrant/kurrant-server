@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -14,6 +15,7 @@ import co.dalicious.domain.order.dto.CapacityDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -38,6 +40,7 @@ import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,6 +66,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final QMakersRepository qMakersRepository;
     private final QFoodRepository qFoodRepository;
     private final DailyFoodGroupRepository dailyFoodGroupRepository;
+    private final PushUtil pushUtil;
 
     @Override
     @Transactional
@@ -73,10 +77,15 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         Map<PresetGroupDailyFood, DailyFoodGroup> presetGroupDailyFoodMap = new HashMap<>();
         Set<PresetMakersDailyFood> presetMakersDailyFoodSet = new HashSet<>();
 
+        // 푸시 알림을 보낼 그룹
+        Set<BigInteger> groupIdSet = new HashSet<>();
+
         // DailyFoodGroup 저장
         for (PresetDailyFood presetDailyFood : presetDailyFoods) {
             presetGroupDailyFoodMap.put(presetDailyFood.getPresetGroupDailyFood(), dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(presetDailyFood.getPresetGroupDailyFood())));
+            groupIdSet.add(presetDailyFood.getPresetGroupDailyFood().getGroup().getId());
         }
+
 
         // 식단 저장 후 저장할 FoodSchedule을 찾은 후 저장한다.
         for (PresetDailyFood presetDailyFood : presetDailyFoods) {
@@ -98,6 +107,10 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             }
             presetMakersDailyFood.updateConfirmStatus(ConfirmStatus.COMPLETE);
         }
+
+        Map<String, Set<BigInteger>> groupIds = Collections.singletonMap("groupIds", groupIdSet);
+        // 식단이 생성 됐을 때 푸시알림
+        pushUtil.sendToType(groupIds, PushCondition.NEW_DAILYFOOD, null, "date", LocalDate.now(ZoneId.of("Asia/Seoul")));
     }
 
     @Override
@@ -250,5 +263,9 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         List<DailyFood> newDailyFoods = dailyFoodMapper.toDailyFoods(newDailyFoodGroupMap, groups, foodsByMakers);
         dailyFoodRepository.saveAll(newDailyFoods);
+
+        Map<String, Set<BigInteger>> groupIds = Collections.singletonMap("groupIds", groups.stream().map(Group::getId).collect(Collectors.toSet()));
+        // 식단이 생성 됐을 때 푸시알림
+        pushUtil.sendToType(groupIds, PushCondition.NEW_DAILYFOOD, null, "date", LocalDate.now(ZoneId.of("Asia/Seoul")));
     }
 }

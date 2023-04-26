@@ -47,6 +47,13 @@ public class Address {
     this.location = createPoint(location);
   }
 
+  public void makeAddress(String address1, String address2, String zipcode, String location) throws ParseException {
+    this.address1 = address1;
+    this.address2 = address2;
+    this.zipCode = zipcode;
+    this.location = createPoint(location);
+  }
+
   public String addressToString() {
     return this.address1 + " " + this.address2;
   }

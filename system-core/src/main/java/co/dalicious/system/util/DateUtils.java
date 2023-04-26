@@ -1,7 +1,6 @@
 package co.dalicious.system.util;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -65,7 +64,7 @@ public class DateUtils {
     }
 
     public static String timeToString(LocalTime time) {
-        return time.format(DateTimeFormatter.ofPattern("HH:mm"));
+        return (time == null) ? null : time.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
     public static String timeToStringWithAMPM(LocalTime time) {
@@ -116,22 +115,27 @@ public class DateUtils {
         return YearMonth.of(year, month);
     }
 
-    public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    public static String YearMonthToString(YearMonth yearMonth) {
+        return yearMonth.getYear() + "-" + yearMonth.getMonthValue();
+    }
 
+    public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime midnight = LocalDateTime.of(now.toLocalDate(), LocalTime.MAX);
 
         long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
-        long hoursLeft = now.until(midnight, ChronoUnit.HOURS);
+        long hoursLeft = now.until(limitDayAndTime, ChronoUnit.HOURS);
+        hoursLeft = hoursLeft % 24;
         now = now.plusHours(hoursLeft);
-        long minutesLeft = now.until(midnight, ChronoUnit.MINUTES);
+        long minutesLeft = now.until(limitDayAndTime, ChronoUnit.MINUTES);
+        minutesLeft = minutesLeft % 60;
 
-        return String.format("%01d %02d:%02d", leftDay, hoursLeft, minutesLeft);
+        LocalTime remainingTime = LocalTime.of((int) hoursLeft, (int) minutesLeft);
+
+        return String.format("%01d %tk:%tM", leftDay, remainingTime, remainingTime);
     }
 
     public static String toISOLocalDateAndWeekOfDay(Timestamp ts) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd E", Locale.KOREA);
+        SimpleDateFormat sdf = new SimpleDateFormat("MM월 dd일 E", Locale.KOREA);
         return sdf.format(ts);
     }
 }

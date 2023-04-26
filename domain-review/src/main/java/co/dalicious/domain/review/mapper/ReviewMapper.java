@@ -46,6 +46,8 @@ public interface ReviewMapper {
         reviewableItemListDto.setImageLocation(getLocation(orderItemDailyFood.getDailyFood().getFood().getImages()));
         reviewableItemListDto.setMakersName(orderItemDailyFood.getDailyFood().getFood().getMakers().getName());
         reviewableItemListDto.setFoodName(orderItemDailyFood.getDailyFood().getFood().getName());
+        reviewableItemListDto.setFoodDescription(orderItemDailyFood.getDailyFood().getFood().getDescription());
+        reviewableItemListDto.setFoodCount(orderItemDailyFood.getCount());
         reviewableItemListDto.setReviewDDay(reviewDDAy);
         return reviewableItemListDto;
     }
@@ -145,6 +147,15 @@ public interface ReviewMapper {
         reviewListDto.setWriter(reviews.getUser().getName());
         reviewListDto.setIsReport(reviews.getIsReports());
         reviewListDto.setOrderItemName(getItemName(reviews.getOrderItem()));
+        reviewListDto.setIsMakersComments(false);
+
+        List<Comments> commentsList = reviews.getComments();
+        for(Comments comment : commentsList) {
+            if(comment instanceof MakersComments) {
+                reviewListDto.setIsMakersComments(true);
+                break;
+            }
+        }
 
         return  reviewListDto;
     };

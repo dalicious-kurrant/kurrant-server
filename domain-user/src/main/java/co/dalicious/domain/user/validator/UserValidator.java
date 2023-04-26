@@ -30,7 +30,16 @@ public class UserValidator {
     public void isEmailValid(Provider provider, String email) {
         Optional<ProviderEmail> providerEmail = providerEmailRepository.findOneByProviderAndEmail(provider, email);
         if(providerEmail.isPresent()) {
-            throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
+            throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
+        }
+    }
+
+    public void isEmailValid(User user, String email) {
+        List<ProviderEmail> providerEmails = providerEmailRepository.findAllByEmail(email);
+        for (ProviderEmail providerEmail : providerEmails) {
+            if(!providerEmail.getUser().equals(user)) {
+                throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
+            }
         }
     }
 
@@ -80,5 +89,10 @@ public class UserValidator {
 
     public boolean adminExists() {
         return userRepository.existsByRole(Role.ADMIN);
+    }
+
+    public Boolean isPhoneValidBoolean(String phone) {
+        Optional<User> user = userRepository.findOneByPhone(phone);
+        return user.isPresent();
     }
 }

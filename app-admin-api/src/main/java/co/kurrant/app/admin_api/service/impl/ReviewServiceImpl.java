@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.food.entity.Makers;
@@ -13,6 +14,7 @@ import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.review.mapper.ReviewMapper;
 import co.dalicious.domain.review.repository.CommentsRepository;
 import co.dalicious.domain.review.repository.QReviewRepository;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.service.ReviewService;
 import exception.ApiException;
@@ -25,9 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +36,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final CommentsRepository commentsRepository;
     private final ReviewMapper reviewMapper;
     private final MakersRepository makersRepository;
+    private final PushUtil pushUtil;
 
     @Override
     @Transactional(readOnly = true)
@@ -106,6 +107,13 @@ public class ReviewServiceImpl implements ReviewService {
 
         AdminComments adminComments = reviewMapper.toAdminComment(reqDto, reviews);
         commentsRepository.save(adminComments);
+
+        // 댓글 생성 푸시알림
+        BigInteger userId = reviews.getUser().getId();
+        Map<String, Set<BigInteger>> userIdsMap = Collections.singletonMap("userIds", new HashSet<>(Collections.singletonList(userId)));
+
+        pushUtil.sendToType(userIdsMap, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
+
     }
 
     @Override

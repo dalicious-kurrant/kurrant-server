@@ -9,10 +9,10 @@ import java.util.Arrays;
 @Getter
 public enum PointCondition {
     /* event - user */
-    USER_ATTENDANCE("출석 체크", 1),
+    USER_ATTENDANCE("유저 이벤트 테스트 1", 1),
 
     /* event - order */
-    ORDER_FIRST_ORDER("첫구매 이벤트",101);
+    ORDER_FIRST_ORDER("구매 이벤트 테스트 1",101);
 
     private final String condition;
     private final Integer code;

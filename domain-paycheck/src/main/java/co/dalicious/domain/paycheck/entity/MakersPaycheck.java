@@ -14,6 +14,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.YearMonth;
@@ -27,7 +28,7 @@ public class MakersPaycheck {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("메이커스 정산 ID")
-    @Column(columnDefinition = "BIGINT")
+    @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
     @Comment("정산 년월")
@@ -64,6 +65,16 @@ public class MakersPaycheck {
     @CollectionTable(name = "paycheck__makers_paycheck__paycheck_daily_foods")
     private List<PaycheckDailyFood> paycheckDailyFoods;
 
+    @ElementCollection
+    @Comment("식사 일정별 음식 내역")
+    @CollectionTable(name = "paycheck__makers_paycheck__paycheck_add")
+    private List<PaycheckAdd> paycheckAdds;
+
+    @ElementCollection
+    @Comment("식사 일정별 음식 내역")
+    @CollectionTable(name = "paycheck__makers_paycheck__paycheck_memo")
+    private List<PaycheckMemo> paycheckMemos;
+
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
@@ -76,12 +87,13 @@ public class MakersPaycheck {
     @Comment("수정일")
     private Timestamp updatedDateTime;
 
-    public MakersPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, Image excelFile, Image pdfFile, Makers makers) {
+    public MakersPaycheck(YearMonth yearMonth, PaycheckStatus paycheckStatus, Image excelFile, Image pdfFile, Makers makers, List<PaycheckDailyFood> paycheckDailyFoods) {
         this.yearMonth = yearMonth;
         this.paycheckStatus = paycheckStatus;
         this.excelFile = excelFile;
         this.pdfFile = pdfFile;
         this.makers = makers;
+        this.paycheckDailyFoods = paycheckDailyFoods;
     }
 
     public void updatePaycheckStatus(PaycheckStatus paycheckStatus) {
@@ -99,5 +111,45 @@ public class MakersPaycheck {
 
     public void updatePdfFile(Image pdfFile) {
         this.pdfFile = pdfFile;
+    }
+
+    public String getYearAndMonthString() {
+        return this.yearMonth.getYear() +
+                ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
+    }
+
+    public String getFileName() {
+        return "거래명세서_" + this.yearMonth.getYear() + "-" +
+                ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
+    }
+
+    public MakersPaycheck updatePaycheckAdds(List<PaycheckAdd> paycheckAdds) {
+        this.paycheckAdds.addAll(paycheckAdds);
+        return this;
+    }
+
+    public BigDecimal getFoodTotalPrice() {
+        BigDecimal foodTotalPrice = this.paycheckDailyFoods.stream()
+                .map(df -> df.getSupplyPrice().multiply(BigDecimal.valueOf(df.getCount())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal issuePrice = this.paycheckAdds.stream()
+                .map(PaycheckAdd::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return foodTotalPrice.add(issuePrice);
+    }
+
+    // TODO: 수정 필요
+    public Double getCommission() {
+        return 7.7;
+    }
+
+    public BigDecimal getCommissionPrice() {
+        return getFoodTotalPrice().multiply(BigDecimal.valueOf(getCommission() / 100));
+    }
+
+    public BigDecimal getTotalPrice() {
+        return getFoodTotalPrice().subtract(getCommissionPrice());
     }
 }
