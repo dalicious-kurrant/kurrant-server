@@ -2,6 +2,7 @@ package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.converter.IdListConverter;
@@ -35,7 +36,7 @@ public class Corporation extends Group{
     @ElementCollection
     @Comment("지불 항목 내역")
     @CollectionTable(name = "client__corporation_paycheck_categories")
-    private List<PaycheckCategory> paycheckCategories;
+    private List<PrepaidCategory> prepaidCategories;
 
     @Column(name = "is_membership_support", columnDefinition = "BIT(1) DEFAULT 0")
     @Comment("기업 멤버십 지원 여부")
@@ -118,5 +119,15 @@ public class Corporation extends Group{
         this.isSetting = isSetting;
         this.minimumSpend = (groupInfoList.getMinimumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMinimumSpend());
         this.maximumSpend = (groupInfoList.getMaximumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMaximumSpend());
+    }
+
+    public PrepaidCategory getPrepaidCategory(PaycheckCategoryItem paycheckCategoryItem) {
+        if(this.prepaidCategories == null || this.prepaidCategories.isEmpty()) {
+            return null;
+        }
+        return this.prepaidCategories.stream()
+                .filter(v -> v.getPaycheckCategoryItem().equals(paycheckCategoryItem))
+                .findAny()
+                .orElse(null);
     }
 }

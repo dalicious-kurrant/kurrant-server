@@ -1,7 +1,6 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.PaycheckCategory;
+import co.dalicious.domain.client.entity.PrepaidCategory;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
@@ -22,7 +21,6 @@ import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +28,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -149,11 +146,11 @@ public class ExcelServiceImpl implements ExcelService {
         currentRow = createHeaderContext(workbook, sheet, currentRow, "실비");
 
         BigDecimal totalPrice = BigDecimal.ZERO;
-        for (PaycheckCategory paycheckCategory : paycheckCategories) {
+        for (PaycheckCategory prepaidCategory : paycheckCategories) {
             Row row = sheet.createRow(currentRow);
-            writePaycheckCategory(workbook, row, paycheckCategory);
+            writePaycheckCategory(workbook, row, prepaidCategory);
             sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 6, 7));
-            totalPrice = totalPrice.add(paycheckCategory.getTotalPrice());
+            totalPrice = totalPrice.add(prepaidCategory.getTotalPrice());
             currentRow++;
         }
         currentRow = createCategoryTotalPrice(sheet, currentRow, totalPrice);
@@ -439,11 +436,46 @@ public class ExcelServiceImpl implements ExcelService {
 
         //TODO: 수정 필요
         Cell cell5 = row.createCell(5);
-        cell5.setCellValue(0);
+        if (paycheckCategory.getDays() == null) {
+            cell5.setBlank();
+        } else {
+            cell5.setCellValue(paycheckCategory.getDays());
+        }
+
         cell5.setCellStyle(dataCellStyle);
 
         Cell cell6 = row.createCell(6);
         cell6.setCellValue(paycheckCategory.getTotalPrice().intValue());
+        cell6.setCellStyle(priceCellStyle);
+    }
+
+    private static void writePrepaidCategory(Workbook workBook, Row row, PrepaidCategory prepaidCategory) {
+        CellStyle dataCellStyle = center(workBook);
+        CellStyle priceCellStyle = priceStyle(workBook);
+
+        Cell cell2 = row.createCell(2);
+        cell2.setCellValue(prepaidCategory.getPaycheckCategoryItem().getPaycheckCategoryItem());
+        cell2.setCellStyle(dataCellStyle);
+
+        Cell cell3 = row.createCell(3);
+        Integer priceValue = (prepaidCategory.getPrice() != null) ? prepaidCategory.getPrice().intValue() : null;
+        if (priceValue != null) {
+            cell3.setCellValue(priceValue);
+        } else {
+            cell3.setBlank();
+        }
+        cell3.setCellStyle(dataCellStyle);
+
+        Cell cell4 = row.createCell(4);
+        cell4.setCellValue(prepaidCategory.getCount());
+        cell4.setCellStyle(dataCellStyle);
+
+        //TODO: 수정 필요
+        Cell cell5 = row.createCell(5);
+        cell5.setCellStyle(dataCellStyle);
+
+        Cell cell6 = row.createCell(6);
+        cell6.setCellValue(prepaidCategory.getTotalPrice().intValue());
         cell6.setCellStyle(priceCellStyle);
     }
 
@@ -614,8 +646,7 @@ public class ExcelServiceImpl implements ExcelService {
                 cellStyle.setBorderTop(BorderStyle.THIN);
                 cellStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
                 cell.setCellStyle(cellStyle);
-            }
-            else {
+            } else {
                 row.getCell(i).setCellStyle(borderStyle);
             }
         }
@@ -638,8 +669,7 @@ public class ExcelServiceImpl implements ExcelService {
                 cellStyle.setBorderTop(BorderStyle.THIN);
                 cellStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
                 cell.setCellStyle(cellStyle);
-            }
-            else {
+            } else {
                 row.getCell(i).setCellStyle(borderStyle);
             }
         }

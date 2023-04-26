@@ -2,7 +2,6 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
-import co.dalicious.domain.paycheck.service.PaycheckService;
 import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor

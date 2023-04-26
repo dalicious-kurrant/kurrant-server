@@ -118,7 +118,7 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
             return BigDecimal.valueOf(25000L);
         }
         // 그 외
-        return BigDecimal.valueOf(30000L);
+        return BigDecimal.valueOf(25000L);
     }
 
     @Override

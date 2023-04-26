@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
-public class PaycheckCategory {
+public class PrepaidCategory {
     @Convert(converter = PaycheckCategoryItemConverter.class)
     @Comment("지불 항목")
     private PaycheckCategoryItem paycheckCategoryItem;
@@ -31,7 +31,7 @@ public class PaycheckCategory {
     @Comment("총 금액")
     private BigDecimal totalPrice;
 
-    public PaycheckCategory(PaycheckCategoryItem paycheckCategoryItem, Integer count, BigDecimal price, BigDecimal totalPrice) {
+    public PrepaidCategory(PaycheckCategoryItem paycheckCategoryItem, Integer count, BigDecimal price, BigDecimal totalPrice) {
         this.paycheckCategoryItem = paycheckCategoryItem;
         this.count = count;
         this.price = price;
