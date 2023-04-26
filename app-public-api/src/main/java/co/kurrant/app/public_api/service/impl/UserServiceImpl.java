@@ -1041,9 +1041,13 @@ public class UserServiceImpl implements UserService {
                 Food food = foodRepository.findById(BigInteger.valueOf(Long.parseLong(foodId)))
                         .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
                 //food의 imageUrl 가져오기
-                String url = food.getImages().get(0).getLocation();
-                //id와 url을 같이 보내주기 위해 맵에 put
-                foodImageMap.put(food.getId(), url);
+                if (!food.getImages().get(0).getLocation().isEmpty()){
+                    String url = food.getImages().get(0).getLocation();
+                    //id와 url을 같이 보내주기 위해 맵에 put
+                    foodImageMap.put(food.getId(), url);
+                } else {
+                    throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD_IMAGE);
+                }
             }
             userTestData.setId(testData.getId());
             userTestData.setPage(testData.getPage());
