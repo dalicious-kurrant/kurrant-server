@@ -1,7 +1,6 @@
 package co.dalicious.domain.paycheck.entity;
 
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.PaycheckCategory;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.paycheck.converter.PaycheckStatusConverter;
 import co.dalicious.domain.paycheck.converter.YearMonthAttributeConverter;
@@ -185,5 +184,9 @@ public class CorporationPaycheck {
     public CorporationPaycheck updatePaycheckAdds(List<PaycheckAdd> paycheckAdds) {
         this.paycheckAdds.addAll(paycheckAdds);
         return this;
+    }
+
+    public void updateMemo(PaycheckMemo paycheckMemos) {
+        this.paycheckMemos.add(paycheckMemos);
     }
 }

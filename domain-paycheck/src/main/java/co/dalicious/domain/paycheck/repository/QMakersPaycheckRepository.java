@@ -1,5 +1,6 @@
 package co.dalicious.domain.paycheck.repository;
 
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
@@ -81,6 +82,29 @@ public class QMakersPaycheckRepository {
         if(makersIds != null && !makersIds.isEmpty()) {
             whereClause.and(makersPaycheck.makers.id.in(makersIds));
         }
+        if(paycheckStatus != null) {
+            whereClause.and(makersPaycheck.paycheckStatus.eq(paycheckStatus));
+        }
+        if(hasRequest != null) {
+            whereClause.and(hasRequest ? makersPaycheck.paycheckMemos.isNotEmpty() : makersPaycheck.paycheckMemos.isEmpty());
+        }
+        return queryFactory.selectFrom(makersPaycheck)
+                .where(whereClause)
+                .orderBy(makersPaycheck.createdDateTime.asc())
+                .fetch();
+    }
+
+    public List<MakersPaycheck> getMakersPaychecksByFilter(Makers makers, YearMonth startYearMonth, YearMonth endYearMonth, PaycheckStatus paycheckStatus, Boolean hasRequest) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        whereClause.and(makersPaycheck.makers.eq(makers));
+
+        if(startYearMonth != null) {
+            whereClause.and(makersPaycheck.yearMonth.goe(startYearMonth));
+        }
+        if(endYearMonth != null) {
+            whereClause.and(makersPaycheck.yearMonth.loe(endYearMonth));
+        }
+
         if(paycheckStatus != null) {
             whereClause.and(makersPaycheck.paycheckStatus.eq(paycheckStatus));
         }
