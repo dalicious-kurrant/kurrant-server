@@ -6,10 +6,13 @@ import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.MakersComments;
+import co.dalicious.domain.review.entity.QComments;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
@@ -27,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static co.dalicious.domain.review.entity.QComments.comments;
@@ -38,6 +42,8 @@ public class QReviewRepository {
 
     public final JPAQueryFactory queryFactory;
 
+    QComments makersComments = new QComments("makers_comments");
+    QComments adminComments = new QComments("admin_comments");
     public List<Reviews> findByUserAndOrderItem(User user, OrderItem orderItem) {
         return queryFactory
                 .selectFrom(reviews)
@@ -76,10 +82,26 @@ public class QReviewRepository {
             filter.and(reviews.isReports.eq(isReport));
         }
         if(isMakersComment != null) {
-            filter.and(comments.instanceOf(MakersComments.class));
+            if(isMakersComment){
+                filter.and(comments.instanceOf(MakersComments.class));
+            }
+            else {
+                JPQLQuery<Long> makersCommentsQuery = JPAExpressions.select(makersComments.count())
+                        .from(makersComments)
+                        .where(makersComments.reviews.eq(reviews), makersComments.instanceOf(MakersComments.class));
+                filter.and(makersCommentsQuery.lt(Long.valueOf(1)));
+            }
         }
         if(isAdminComment != null) {
-            filter.and(comments.instanceOf(AdminComments.class));
+            if(isAdminComment){
+                filter.and(comments.instanceOf(AdminComments.class));
+            }
+            else {
+                JPQLQuery<Long> adminCommentsQuery = JPAExpressions.select(adminComments.count())
+                        .from(adminComments)
+                        .where(adminComments.reviews.eq(reviews), adminComments.instanceOf(AdminComments.class));
+                filter.and(adminCommentsQuery.lt(Long.valueOf(1)));
+            }
         }
 
         int offset = limit * (page - 1);
@@ -128,10 +150,13 @@ public class QReviewRepository {
 
         int offset = limit * (page - 1);
 
+        JPQLQuery<Long> makersCommentsQuery = JPAExpressions.select(makersComments.count())
+                .from(makersComments)
+                .where(makersComments.reviews.eq(reviews), makersComments.instanceOf(MakersComments.class));
+
         QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
-                .leftJoin(reviews.comments, comments)
                 .where(reviews.food.makers.eq(makers),
-                        reviews.comments.isEmpty().or(comments.instanceOf(AdminComments.class)),
+                        makersCommentsQuery.lt(Long.valueOf(1)),
                         reviews.isDelete.ne(true),
                         reviews.isReports.ne(true),
                         whereCause)
@@ -208,5 +233,11 @@ public class QReviewRepository {
         return queryFactory.selectFrom(reviews)
                 .where(reviews.id.in(ids))
                 .fetch();
+    }
+
+    public long pendingReviewCount() {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.comments.isEmpty())
+                .fetchCount();
     }
 }

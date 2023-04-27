@@ -1,15 +1,16 @@
 package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.client.dto.SpotListResponseDto;
+import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
+import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.parser.ParseException;
-import org.springframework.security.core.Authentication;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -37,22 +38,21 @@ public interface UserService {
     // 이메일/비밀번호 설정
     void setEmailAndPassword(SecurityUser securityUser, SetEmailAndPasswordDto setEmailAndPasswordDto);
     // 알람/마케팅 설정 조회
-    MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser);
+//    MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser);
+    List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser);
     // 알람/마케팅 설정 변경
-    MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto);
+//    MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto);
+    List<MarketingAlarmResponseDto> changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto);
     // 마이페이지(개인정보) 유저 정보 가져오기
     UserPersonalInfoDto getPersonalUserInfo(SecurityUser securityUser);
     // 오픈스팟 그룹 설정
     void settingGroup(SecurityUser securityUser, BigInteger groupId);
     // 유저가 속한 그룹 정보 리스트
     List<SpotListResponseDto> getClients(SecurityUser securityUser);
-
-    Integer saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException;
-
+    Integer isHideEmail(SecurityUser securityUser);
+    Object createNiceBillingKeyFirst(SecurityUser securityUser, Integer typeId, BillingKeyDto billingKeyDto) throws IOException, ParseException;
     List<CreditCardResponseDto> getCardList(SecurityUser securityUser);
-
     void patchDefaultCard(SecurityUser securityUser, CreditCardDefaultSettingDto creditCardDefaultSettingDto);
-
     void deleteCard(DeleteCreditCardDto deleteCreditCardDto);
     void changeName(SecurityUser securityUser, ChangeNameDto changeNameDto);
     void withdrawal(SecurityUser securityUser);
@@ -68,4 +68,18 @@ public interface UserService {
     Boolean isPaymentPassword(SecurityUser securityUser);
 
     void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto);
+
+    String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto);
+
+    Object getCountry();
+
+    Object getFavoriteCountryFoods(Integer code);
+
+    Object getJobType(Integer category, String code);
+
+    Object getFoodImage(List<BigInteger> foodId);
+
+    Object getTestData();
+
+    Boolean userPreferenceCheck(SecurityUser securityUser);
 }

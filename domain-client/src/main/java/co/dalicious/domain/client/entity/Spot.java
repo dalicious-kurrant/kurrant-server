@@ -4,6 +4,7 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.SpotResponseDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypesConverter;
@@ -97,6 +98,16 @@ public class Spot {
         this.memo = memo;
     }
 
+    public void updateDiningType(String diningTypes) {
+        List<DiningType> diningTypeList = new ArrayList<>();
+        String[] split = diningTypes.split(",");
+        for (String diningType : split){
+            diningTypeList.add(DiningType.ofCode(Integer.valueOf(diningType)));
+        }
+        this.diningTypes = diningTypeList;
+    }
+
+
     public List<MealInfo> getMealInfos() {
         List<DiningType> diningTypeList = this.diningTypes;
         return this.group.getMealInfos().stream()
@@ -135,11 +146,6 @@ public class Spot {
         return this.address.getLocation();
     }
 
-    public void updateSpot(Address address, Group group) {
-        this.address = address;
-        this.diningTypes = group.getDiningTypes();
-    }
-
     public void updateSpot(SpotResponseDto spotResponseDto) throws ParseException {
         if(this.status == SpotStatus.INACTIVE) {
             this.status = SpotStatus.ACTIVE;
@@ -167,4 +173,12 @@ public class Spot {
         }
         updateDiningTypes(newDiningTypes);
     }
+
+    public void updateSpot(UpdateSpotDetailRequestDto spotResponseDto) throws ParseException {
+        // TODO: Location 추가
+        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        this.name = spotResponseDto.getSpotName();
+        this.address = address;
+    }
+
 }

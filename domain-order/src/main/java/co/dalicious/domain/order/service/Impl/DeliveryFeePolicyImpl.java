@@ -35,7 +35,7 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
             return getCorporationDeliveryFee(user, (Corporation) group);
         } else if (group instanceof OpenGroup) {
             // TODO: 추후 삭제
-            if(group.getName().replaceAll("\\s+", "").contains("스파크플러스") && LocalDate.now().isBefore(LocalDate.of(2023, 4, 1))) {
+            if(group.getName().replaceAll("\\s+", "").contains("스파크플러스") && LocalDate.now().isBefore(LocalDate.of(2023, 4, 22))) {
                 return getMembershipCorporationDeliveryFee();
             }
             return getOpenGroupDeliveryFee(user, (OpenGroup) group);
@@ -69,7 +69,7 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
         if (corporation.getIsMembershipSupport() || !corporation.getIsMembershipSupport()) {
             return getMembershipCorporationDeliveryFee();
         } else if (corporation.getEmployeeCount() >= 50) {
-            return getNoMembershipCorporationDeliveryFeeUpper50(corporation.getAddress());
+            return getNoMembershipCorporationDeliveryFeeUpper50(corporation);
         } else if (corporation.getEmployeeCount() > 0) {
             return getNoMembershipCorporationDeliveryFeeLower50();
         }
@@ -107,8 +107,8 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
     }
 
     @Override
-    public BigDecimal getNoMembershipCorporationDeliveryFeeUpper50(Address address) {
-        String strAddress = address.getAddress1();
+    public BigDecimal getNoMembershipCorporationDeliveryFeeUpper50(Corporation corporation) {
+        String strAddress = corporation.getAddress().getAddress1();
         // 강남 3구, 강남, 서초, 송파
         if (strAddress.contains("강남구") || strAddress.contains("서초구") || strAddress.contains("송파구")) {
             return BigDecimal.valueOf(20000L);
@@ -118,7 +118,7 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
             return BigDecimal.valueOf(25000L);
         }
         // 그 외
-        return BigDecimal.valueOf(30000L);
+        return BigDecimal.valueOf(25000L);
     }
 
     @Override

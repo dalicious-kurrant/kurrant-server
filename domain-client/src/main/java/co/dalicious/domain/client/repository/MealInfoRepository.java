@@ -4,7 +4,10 @@ import co.dalicious.domain.client.entity.MealInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.math.BigInteger;
+import java.util.List;
 
 public interface MealInfoRepository extends JpaRepository<MealInfo, BigInteger> {
     MealInfo findByGroupId(BigInteger id);
+
+    List<MealInfo> findAllByGroupId(BigInteger groupId);
 }

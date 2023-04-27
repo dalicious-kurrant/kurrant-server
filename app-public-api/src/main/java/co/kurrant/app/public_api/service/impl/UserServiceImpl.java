@@ -11,45 +11,43 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
-import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
-import co.dalicious.domain.payment.dto.CreditCardResponseDto;
-import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.entity.enums.PaymentPasswordStatus;
 import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
-import co.dalicious.domain.payment.mapper.CreditCardInfoSaveMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
-import co.dalicious.domain.payment.util.TossUtil;
-import co.dalicious.domain.user.entity.ProviderEmail;
-import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.payment.service.PaymentService;
+import co.dalicious.domain.user.dto.*;
+import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
-import co.dalicious.domain.user.repository.ProviderEmailRepository;
-import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.UserGroupRepository;
-import co.dalicious.domain.user.repository.UserRepository;
+import co.dalicious.domain.user.mapper.UserPreferenceMapper;
+import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
+import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
-import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
-import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
+import co.kurrant.app.public_api.service.UserService;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -73,7 +71,7 @@ import java.util.*;
 @Transactional
 public class UserServiceImpl implements UserService {
     private final UserUtil userUtil;
-    private final TossUtil tossUtil;
+    private final PaymentService paymentService;
     private final SnsLoginService snsLoginService;
     private final UserValidator userValidator;
     private final PasswordEncoder passwordEncoder;
@@ -87,7 +85,6 @@ public class UserServiceImpl implements UserService {
     private final GroupRepository groupRepository;
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
-    private final CreditCardInfoSaveMapper creditCardInfoSaveMapper;
     private final CreditCardInfoMapper creditCardInfoMapper;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final FoundersUtil foundersUtil;
@@ -96,6 +93,13 @@ public class UserServiceImpl implements UserService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final QUserRepository qUserRepository;
+    private final UserPreferenceMapper userPreferenceMapper;
+    private final UserPreferenceRepository userPreferenceRepository;
+    private final UserTasteTestDataRepository userTasteTestDataRepository;
+    private final QUserPreferenceRepository qUserPreferenceRepository;
+    private final FoodRepository foodRepository;
+    private final UserSelectTestDataRepository userSelectTestDataRepository;
+    private final UserSelectTestDataMapper userSelectTestDataMapper;
 
     @Override
     @Transactional
@@ -292,45 +296,84 @@ public class UserServiceImpl implements UserService {
         providerEmailRepository.save(providerEmail);
     }
 
+//    @Override
+//    @Transactional
+//    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
+//        // 유저 정보 가져오기
+//        User user = userUtil.getUser(securityUser);
+//        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
+//        return MarketingAlarmResponseDto.builder()
+//                .marketingAgree(user.getMarketingAgree())
+//                .orderAlarm(user.getOrderAlarm())
+//                .marketingAlarm(user.getMarketingAlarm())
+//                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
+//                .build();
+//    }
+//
+//
+//    @Override
+//    @Transactional
+//    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+//            // 유저 정보 가져오기
+//            User user = userUtil.getUser(securityUser);
+//            Boolean currantMarketingInfoAgree = user.getMarketingAgree();
+//            Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
+//            Boolean currantOrderAlarmAgree = user.getOrderAlarm();
+//
+//            // 현재 시간 가져오기
+//            Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+//
+//            // 변수 설정
+//            Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
+//            Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
+//            Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
+//
+//            user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
+//
+//            return MarketingAlarmResponseDto.builder()
+//                    .marketingAgree(currantMarketingInfoAgree)
+//                    .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
+//                    .marketingAlarm(currantMarketingAlarmAgree)
+//                    .orderAlarm(currantOrderAlarmAgree)
+//                    .build();
+//        }
+
     @Override
     @Transactional
-    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
+    public List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
-        return MarketingAlarmResponseDto.builder()
-                .marketingAgree(user.getMarketingAgree())
-                .orderAlarm(user.getOrderAlarm())
-                .marketingAlarm(user.getMarketingAlarm())
-                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
-                .build();
+        List<PushCondition> userPushConditionList = user.getPushConditionList();
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
+
+        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(userPushConditionList, c)).toList();
     }
 
     @Override
     @Transactional
-    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+    public List<MarketingAlarmResponseDto> changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-        Boolean currantMarketingInfoAgree = user.getMarketingAgree();
-        Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
-        Boolean currantOrderAlarmAgree = user.getOrderAlarm();
+        List<PushCondition> userPushConditionList = new ArrayList<>();
+        if(user.getPushConditionList() != null && !user.getPushConditionList().isEmpty()) {
+            userPushConditionList = user.getPushConditionList();
+        }
 
-        // 현재 시간 가져오기
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        if(marketingAlarmDto.getIsActive()){
+            PushCondition pushCondition = PushCondition.ofCode(marketingAlarmDto.getCode());
+            userPushConditionList.add(pushCondition);
+        }
+        else {
+            PushCondition pushCondition = userPushConditionList.stream()
+                    .filter(c -> c.getCode().equals(marketingAlarmDto.getCode()))
+                    .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_NOT_ACTIVE));
+            userPushConditionList.remove(pushCondition);
+        }
+        List<PushCondition> finalUserPushConditionList = userPushConditionList;
+        user.updatePushCondition(finalUserPushConditionList);
 
-        // 변수 설정
-        Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
-        Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
-        Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
-
-        user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
-
-        return MarketingAlarmResponseDto.builder()
-                .marketingAgree(currantMarketingInfoAgree)
-                .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
-                .marketingAlarm(currantMarketingAlarmAgree)
-                .orderAlarm(currantOrderAlarmAgree)
-                .build();
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
+        return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(finalUserPushConditionList, c)).toList();
     }
 
     @Override
@@ -441,66 +484,112 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Integer saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
+    public Integer isHideEmail(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        Optional<ProviderEmail> providerEmail = user.getProviderEmails().stream()
+                .filter(v -> v.getProvider().equals(Provider.GENERAL))
+                .findAny();
+
+        if(user.getEmail().contains("appleid")) {
+            return 3;
+        }
+        else return 2;
+    }
+
+    @Override
+    @Transactional
+    public String createNiceBillingKeyFirst(SecurityUser securityUser, Integer typeId, BillingKeyDto billingKeyDto) throws IOException, ParseException {
+        //유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
-        /*영문 대소문자, 숫자, 특수문자 -, _, =, ., @로 이루어진 최소 2자 이상 최대 300자 이하의 문자열*/
-        //ASCII코드상 숫자 48~57 / 영대문자 65~90 / 영소문자 97~122
-        String customerKey = tossUtil.createCustomerKey();
+        PaymentPasswordStatus paymentPasswordStatus = PaymentPasswordStatus.ofCode(typeId);
 
-        System.out.println(customerKey + "customerKey");
-
-        String identityNumber = saveCreditCardRequestDto.getIdentityNumber().substring(2);
-
-        //TOSS에 요청하기 위한 request 객체 빌드
-        JSONObject response = tossUtil.cardRegisterRequest(saveCreditCardRequestDto.getCardNumber(), saveCreditCardRequestDto.getExpirationYear(), saveCreditCardRequestDto.getExpirationMonth(),
-                saveCreditCardRequestDto.getCardPassword(), identityNumber, customerKey);
-        System.out.println(response + " RESPONSE CHECK===========================================");
-
-        //빌링키가 없다면 Exception 처리
-        if (!response.containsKey("billingKey")) {
-            throw new ApiException(ExceptionEnum.FAIL_TO_CREDITCARD_REGIST);
-        }
-        /*
-        빌링키  / 카드번호 / 카드회사 / 카드타입 / 오너타입
-        * */
-        String billingKey = response.get("billingKey").toString();
-        String cardNumber = response.get("cardNumber").toString();
-        String cardCompany = response.get("cardCompany").toString();
-        JSONObject cardObject = (JSONObject) response.get("card");
-        String cardType = cardObject.get("cardType").toString();
-        String ownerType = cardObject.get("ownerType").toString();
-
-        Integer defaultType = saveCreditCardRequestDto.getDefaultType();
-
-
-        //카드 등록하기전에 중복카드가 존재하는지 확인
-        List<CreditCardInfo> cardInfoList = qCreditCardInfoRepository.findAllByUserId(user.getId());
-        if (cardInfoList.size() != 0) {
-            if (defaultType == null) {
-                defaultType = 0;
+        // TYPE1: 결제 비밀번호가 등록이 된 유저
+        if (paymentPasswordStatus.equals(PaymentPasswordStatus.HAS_PAYMENT_PASSWORD)) {
+            // 결제 비밀번호가 6자리인지 확인
+            if (user.getPaymentPassword() == null || billingKeyDto.getPayNumber() == null || billingKeyDto.getPayNumber().equals("") || billingKeyDto.getPayNumber().length() != 6) {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
             }
-            for (CreditCardInfo card : cardInfoList) {
-                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0) {
-                    return 2;
-                }
-                //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
-                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1) {
-                    qCreditCardInfoRepository.updateStatusCard(card.getId(), billingKey);
-                }
+            //결제 비밀번호 일치 확인
+            if (!passwordEncoder.matches(billingKeyDto.getPayNumber(), user.getPaymentPassword())) {
+                throw new ApiException(ExceptionEnum.PASSWORD_DOES_NOT_MATCH);
             }
         }
-        //중복카드가 없고 디폴트타입이 null일 경우는 디폴트 타입으로 설정
-        if (cardInfoList.size() == 0 && defaultType == null) {
+
+        // TYPE2: 결제 비밀번호가 등록되지 않았으면서, 애플 유저가 아닌 경우
+        if (paymentPasswordStatus.equals(PaymentPasswordStatus.NOT_HAVE_PAYMENT_PASSWORD_GENERAL)) {
+            // 결제 비밀번호가 6자리인지 확인
+            if (billingKeyDto.getPayNumber() == null || billingKeyDto.getPayNumber().equals("") || billingKeyDto.getPayNumber().length() != 6) {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
+            // 이메일 인증을 하였는지 검증
+            verifyUtil.isAuthenticated(user.getEmail(), RequiredAuth.PAYMENT_PASSWORD_CREATE);
+
+            // 결제 비밀번호 등록
+            String password = passwordEncoder.encode(billingKeyDto.getPayNumber());
+            user.updatePaymentPassword(password);
+        }
+
+        // TYPE3: 결제 비밀번호가 등록되지 않았으면서, 애플 유저인 경우
+        if (paymentPasswordStatus.equals(PaymentPasswordStatus.NOT_HAVE_PAYMENT_PASSWORD_AND_HIDE_EMAIL)) {
+            // 결제 비밀번호가 6자리인지 확인
+            if (billingKeyDto.getPayNumber() == null || billingKeyDto.getPayNumber().equals("") || billingKeyDto.getPayNumber().length() != 6) {
+                throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
+            }
+
+            String email = billingKeyDto.getEmail();
+
+            if (email == null || email.isEmpty()) {
+                throw new ApiException(ExceptionEnum.NOT_FOUND);
+            }
+
+            // 이메일 인증을 하였는지 검증
+            verifyUtil.isAuthenticated(email, RequiredAuth.PAYMENT_PASSWORD_CREATE_APPLE);
+
+            // 이메일과 비밀번호 설정
+            String password = passwordEncoder.encode(billingKeyDto.getPassword());
+            user.setEmailAndPassword(email, password);
+            ProviderEmail providerEmail = new ProviderEmail(Provider.GENERAL, email, user);
+            providerEmailRepository.save(providerEmail);
+
+            // 결제 비밀번호 등록
+            String payPassword = passwordEncoder.encode(billingKeyDto.getPayNumber());
+            user.updatePaymentPassword(payPassword);
+        }
+
+        CreditCardDto.Response saveCardResponse = paymentService.getBillingKey(billingKeyDto.getCardNumber(), billingKeyDto.getExpirationYear(), billingKeyDto.getExpirationMonth(), billingKeyDto.getCardPassword(), billingKeyDto.getIdentityNumber());
+
+        int defaultType = (billingKeyDto.getDefaultType() == null) ? 0 : billingKeyDto.getDefaultType();
+
+        // 중복 카드확인
+        List<CreditCardInfo> creditCardInfos = creditCardInfoRepository.findAllByUserId(user.getId());
+
+        Optional<CreditCardInfo> creditCardInfo = creditCardInfos.stream()
+                .filter(v -> v.isSameCard(saveCardResponse.getCardNumber(), saveCardResponse.getCardCompany()))
+                .findAny();
+
+        if (creditCardInfo.isPresent()) {
+            // 이미 존재하는 카드라면 에러 발생
+            if (creditCardInfo.get().getStatus() == 1) {
+                throw new ApiException(ExceptionEnum.ALREADY_EXIST_CARD);
+            }
+            // 기존에 삭제되었던 카드라면 빌링키 업데이트
+            if (creditCardInfo.get().getStatus() == 0) {
+                creditCardInfo.get().updateStatus(1);
+                creditCardInfo.get().updateNiceBillingKey(saveCardResponse.getBillingKey());
+                return saveCardResponse.getBillingKey();
+            }
+        }
+        // 등록된 카드가 없다면 기본카드로 셋팅
+        if (creditCardInfos.size() == 0 && defaultType == 0) {
             defaultType = 1;
         }
 
-        //CreditCard 저장을 위한 엔티티 매핑
-        CreditCardInfo creditCardInfo = creditCardInfoSaveMapper.toSaveEntity(cardNumber, user.getId(), ownerType, cardType, customerKey, billingKey, cardCompany, defaultType);
+        CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(saveCardResponse, user.getId(), defaultType);
 
-        //카드정보 저장
-        creditCardInfoRepository.save(creditCardInfo);
-        return 1;
+        creditCardInfoRepository.save(cardInfo);
+
+        return cardInfo.getNiceBillingKey();
     }
 
     @Override
@@ -705,7 +794,6 @@ public class UserServiceImpl implements UserService {
             } else {
                 throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
             }
-            ;
         }
 
         return "결제 비밀번호 확인 성공!";
@@ -718,6 +806,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto) {
         User user = userUtil.getUser(securityUser);
         String paymentPassword = passwordEncoder.encode(resetDto.getPayNumber());
@@ -729,5 +818,251 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new ApiException(ExceptionEnum.PAYMENT_PASSWORD_LENGTH_ERROR);
         }
+    }
+
+    //    @Override
+//    @Transactional
+//    public Integer saveCreditCard(SecurityUser securityUser, SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
+//        User user = userUtil.getUser(securityUser);
+//
+//        /*영문 대소문자, 숫자, 특수문자 -, _, =, ., @로 이루어진 최소 2자 이상 최대 300자 이하의 문자열*/
+//        //ASCII코드상 숫자 48~57 / 영대문자 65~90 / 영소문자 97~122
+//        String customerKey = tossUtil.createCustomerKey();
+//
+//        System.out.println(customerKey + "customerKey");
+//
+//        String identityNumber = saveCreditCardRequestDto.getIdentityNumber().substring(2);
+//
+//        //TOSS에 요청하기 위한 request 객체 빌드
+//        JSONObject response = tossUtil.cardRegisterRequest(saveCreditCardRequestDto.getCardNumber(), saveCreditCardRequestDto.getExpirationYear(), saveCreditCardRequestDto.getExpirationMonth(),
+//                saveCreditCardRequestDto.getCardPassword(), identityNumber, customerKey);
+//        System.out.println(response + " RESPONSE CHECK===========================================");
+//
+//        //빌링키가 없다면 Exception 처리
+//        if (!response.containsKey("billingKey")) {
+//            throw new ApiException(ExceptionEnum.FAIL_TO_CREDITCARD_REGIST);
+//        }
+//        /*
+//        빌링키  / 카드번호 / 카드회사 / 카드타입 / 오너타입
+//        * */
+//        String billingKey = response.get("billingKey").toString();
+//        String cardNumber = response.get("cardNumber").toString();
+//        String cardCompany = response.get("cardCompany").toString();
+//        JSONObject cardObject = (JSONObject) response.get("card");
+//        String cardType = cardObject.get("cardType").toString();
+//        String ownerType = cardObject.get("ownerType").toString();
+//
+//        Integer defaultType = saveCreditCardRequestDto.getDefaultType();
+//
+//
+//        //카드 등록하기전에 중복카드가 존재하는지 확인
+//        List<CreditCardInfo> cardInfoList = qCreditCardInfoRepository.findAllByUserId(user.getId());
+//        if (cardInfoList.size() != 0) {
+//            if (defaultType == null) {
+//                defaultType = 0;
+//            }
+//            for (CreditCardInfo card : cardInfoList) {
+//                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 0) {
+//                    return 2;
+//                }
+//                //중복카드지만 status가 0인 경우는 삭제된 카드를 재등록하는 경우이므로 Status값을 1로 바꿔준다.
+//                if (cardNumber.equals(card.getCardNumber()) && cardCompany.equals(card.getCardCompany()) && card.getStatus() != 1) {
+//                    qCreditCardInfoRepository.updateStatusCard(card.getId(), billingKey);
+//                }
+//            }
+//        }
+//        //중복카드가 없고 디폴트타입이 null일 경우는 디폴트 타입으로 설정
+//        if (cardInfoList.size() == 0 && defaultType == null) {
+//            defaultType = 1;
+//        }
+//
+//        //CreditCard 저장을 위한 엔티티 매핑
+//        CreditCardInfo creditCardInfo = creditCardInfoSaveMapper.toSaveEntity(cardNumber, user.getId(), ownerType, cardType, customerKey, billingKey, cardCompany, defaultType);
+//
+//        //카드정보 저장
+//        creditCardInfoRepository.save(creditCardInfo);
+//        return 1;
+//    }
+
+
+    @Override
+    @Transactional
+    public String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto) {
+
+        User user = userUtil.getUser(securityUser);
+
+        List<UserPreference> preferenceList = userPreferenceRepository.findAllByUserId(user.getId());
+
+        UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
+        List<FoodTag> foodTags  = userPreference.getFavoriteCountryFood();
+
+//        foodTags = foodTags.stream()
+//                .filter(v -> v.getCode().equals(1))
+//                .toList();
+//        userPreference.updateFavoriteCountryFood(foodTags);
+
+        //기존에 있는 정보라면 수정
+        if (!preferenceList.isEmpty()){
+            //삭제 후 저장
+            qUserPreferenceRepository.deleteOthers(user.getId());
+            userPreferenceRepository.save(userPreference);
+
+            for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
+                UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), userPreference.getId(), userPreference.getUser());
+                userSelectTestDataRepository.save(userSelectTestData);
+            }
+
+            return "기존 정보가 있어서 수정하였습니다.";
+        }
+
+        UserPreference saveResult = userPreferenceRepository.save(userPreference);
+        if (saveResult.getId() == null){
+            return "유저 정보 저장에 실패했습니다.";
+        }
+        for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
+            UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), saveResult.getId(), saveResult.getUser());
+            userSelectTestDataRepository.save(userSelectTestData);
+        }
+
+
+
+        return "유저 정보 저장에 성공했습니다.";
+
+    }
+
+    @Override
+    public Object getCountry() {
+        List<String> countryList = new ArrayList<>();
+        for (int i = 1; i < Country.values().length+1; i++) {
+            countryList.add(Country.ofCodeByString(i));
+        }
+        return countryList;
+    }
+
+    @Override
+    public Object getFavoriteCountryFoods(Integer code) {
+
+        List<String> foodTagList = new ArrayList<>();
+        //code가 1이면 알러지 정보 반환
+        if (code == 1) {
+            List<FoodTag> tagList = Arrays.stream(FoodTag.values())
+                    .filter(v -> v.getCategory().equals("알레르기 체크"))
+                    .toList();
+
+            for (FoodTag tag : tagList){
+                foodTagList.add(tag.getTag());
+            }
+
+            return foodTagList;
+        }
+
+        //1이 아닐경우는 좋아하는 나라 음식 목록 반환
+        List<FoodTag> countryList = Arrays.stream(FoodTag.values())
+                .filter(v -> v.getCategory().equals("국가"))
+                .toList();
+
+        for (FoodTag countryTag : countryList){
+            foodTagList.add(countryTag.getTag());
+        }
+
+        return foodTagList;
+    }
+
+    @Override
+    public Object getJobType(Integer category, String code) {
+        //묶여있는 직종의 코드까지 같이 보내주기 위해 맵으로 된 목록 생성
+        List<Map<String, String>> jobTypeResultList = new ArrayList<>();
+        Map<String,String> jobTypeMap = new HashMap<>();
+
+        if (category == 1){
+        //코드가 1이라면 상세 직종을 반환
+            List<JobType> jobTypeList = Arrays.stream(JobType.values())
+                    .filter(v -> v.getCategory().equals(code))
+                    .toList();
+            //상세 직종을 반환할 목록 생성
+            List<String> jobTypeDetailList = new ArrayList<>();
+            for (JobType jobType : jobTypeList){
+                jobTypeDetailList.add(jobType.getName());
+            }
+
+            return jobTypeDetailList;
+        }
+
+        List<JobType> jobTypeList = Arrays.stream(JobType.values())
+                .filter(v -> v.getCategory().equals("묶음"))
+                .toList();
+        //이름과 코드를 같이 보내준다.
+        for (JobType jobType : jobTypeList){
+            jobTypeMap.put(jobType.getCode().toString(), jobType.getName());
+        }
+        jobTypeResultList.add(jobTypeMap);
+
+        return jobTypeResultList;
+    }
+
+    @Override
+    public Object getFoodImage(List<BigInteger> foodIds) {
+        //값을 저장해줄 LIST 생성
+        List<UserPreferenceFoodImageResponseDto> resultList = new ArrayList<>();
+
+        for (BigInteger foodId: foodIds ) {
+
+            UserPreferenceFoodImageResponseDto responseDto = new UserPreferenceFoodImageResponseDto();
+            //유효한 FoodId 인지 검증
+            Food food = foodRepository.findById(foodId)
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+            //이미지는 1번째 이미지로 일괄처리
+            String imageLocation = food.getImages().get(0).getLocation();
+
+            //DTO 설정 후 담아주기
+            responseDto.setFoodId(food.getId());
+            responseDto.setImageUrl(imageLocation);
+
+            resultList.add(responseDto);
+
+        }
+
+        return resultList;
+    }
+
+    @Override
+    public Object getTestData() {
+
+        List<UserTestDataDto> userTestDataList = new ArrayList<>();
+        //테스트데이터 조회
+        List<UserTasteTestData> userTasteTestDataList = userTasteTestDataRepository.findAll();
+        for (UserTasteTestData testData : userTasteTestDataList){
+            UserTestDataDto userTestData = new UserTestDataDto();
+            Map<BigInteger, String> foodImageMap = new HashMap<>();
+            List<String> stringList = Arrays.stream(testData.getFoodIds().split(",")).toList();
+            for (String id : stringList){
+                String foodId = id.replace(" ", "");
+                //food 조회
+                Food food = foodRepository.findById(BigInteger.valueOf(Long.parseLong(foodId)))
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+                //food의 imageUrl 가져오기
+                if (food.getImages().size() != 0){
+                    String url = food.getImages().get(0).getLocation();
+                    //id와 url을 같이 보내주기 위해 맵에 put
+                    foodImageMap.put(food.getId(), url);
+                } else {
+                    System.out.println(food.getId() + "  : foodId");
+                    throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD_IMAGE);
+                }
+            }
+            userTestData.setId(testData.getId());
+            userTestData.setPage(testData.getPage());
+            userTestData.setFoodIds(foodImageMap);
+            userTestDataList.add(userTestData);
+        }
+
+        return userTestDataList;
+    }
+
+    @Override
+    public Boolean userPreferenceCheck(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        List<UserPreference> userPreferences = userPreferenceRepository.findAllByUserId(user.getId());
+        return !userPreferences.isEmpty();
     }
 }

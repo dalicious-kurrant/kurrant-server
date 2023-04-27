@@ -12,6 +12,5 @@ import java.util.List;
 
 @Repository
 public interface CartRepository extends JpaRepository<CartDailyFood, BigInteger> {
-
-    List<Cart> findAllByUserAndSpot(User user, Spot spot);
+    List<CartDailyFood> findAllByUserAndSpot(User user, Spot spot);
 }

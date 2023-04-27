@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 
 @Getter
 @Setter
@@ -28,6 +29,8 @@ public class UpdateSpotDetailRequestDto {
     private String diningTypes;
     @Schema(description = "식사 요일")
     private String serviceDays;
+    @Schema(description = "지원금이 없는 요일")
+    private String notSupportDays;
     @Schema(description = "우편 번호")
     private String zipCode;
     @Schema(description = "기업 멤버십 지원 여부")
@@ -45,9 +48,9 @@ public class UpdateSpotDetailRequestDto {
     @Schema(description = "좌표")
     private String location;
     @Schema(description = "최소 구매 가능 금액")
-    private Integer minPrice;
+    private BigDecimal minPrice;
     @Schema(description = "최대 구매 가능 금액")
-    private Integer maxPrice;
+    private BigDecimal maxPrice;
     @Schema(description = "식사 세팅 지원 서비스")
     private Boolean isSetting;
     @Schema(description = "쓰레기 지원 서비스")
@@ -56,5 +59,13 @@ public class UpdateSpotDetailRequestDto {
     private Boolean isHotStorage;
     @Schema(description = "메모")
     private String memo;
-
+    @Schema(description = "정산 선불 정보")
+    private List<PrepaidCategory> prepaidCategoryList;
+    @Getter
+    public static class PrepaidCategory {
+        private Integer code;
+        private Integer count;
+        private Integer price;
+        private Integer totalPrice;
+    }
 }

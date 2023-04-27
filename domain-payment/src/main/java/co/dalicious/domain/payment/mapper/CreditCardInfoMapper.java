@@ -1,5 +1,6 @@
 package co.dalicious.domain.payment.mapper;
 
+import co.dalicious.domain.payment.dto.CreditCardDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import org.mapstruct.Mapper;
@@ -18,14 +19,14 @@ public interface CreditCardInfoMapper {
     @Mapping(source = "creditCardInfo.defaultType", target = "defaultType")
     CreditCardResponseDto toDto(CreditCardInfo creditCardInfo);
 
-    @Mapping(source = "status", target = "status")
+    @Mapping(target = "status", constant = "1")
     @Mapping(source = "defaultType", target = "defaultType")
-    @Mapping(source = "cardNumber", target = "cardNumber")
-    @Mapping(source = "cardCompany", target = "cardCompany")
-    @Mapping(source = "niceCustomerKey", target = "customerKey")
-    @Mapping(source = "billingKey", target = "niceBillingKey")
+    @Mapping(source = "saveCardResponse.cardNumber", target = "cardNumber")
+    @Mapping(source = "saveCardResponse.cardCompany", target = "cardCompany")
+    @Mapping(source = "saveCardResponse.customerKey", target = "customerKey")
+    @Mapping(source = "saveCardResponse.billingKey", target = "niceBillingKey")
     @Mapping(source = "id", target = "user.id")
-    CreditCardInfo toEntity(String cardNumber, String cardCompany, String niceCustomerKey, String billingKey, BigInteger id, Integer defaultType, Integer status);
+    CreditCardInfo toEntity(CreditCardDto.Response saveCardResponse, BigInteger id, Integer defaultType);
 
 
 }

@@ -4,13 +4,11 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
-import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
-import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PaymentType;
@@ -49,7 +47,7 @@ public class QOrderDailyFoodRepository {
     private final JPAQueryFactory queryFactory;
     private final EntityManager entityManager;
 
-    public List<OrderItemDailyFood> findExtraOrdersByManagerId(List<BigInteger> userIds, LocalDate startDate, LocalDate endDate) {
+    public List<OrderItemDailyFood> findExtraOrdersByManagerId(List<BigInteger> userIds, LocalDate startDate, LocalDate endDate, Group group) {
         BooleanExpression whereClause = orderDailyFood.user.id.in(userIds);
         if (startDate != null) {
             whereClause = whereClause.and(orderItemDailyFood.dailyFood.serviceDate.goe(startDate));
@@ -57,6 +55,9 @@ public class QOrderDailyFoodRepository {
 
         if (endDate != null) {
             whereClause = whereClause.and(orderItemDailyFood.dailyFood.serviceDate.loe(endDate));
+        }
+        if (group != null) {
+            whereClause = whereClause.and(orderItemDailyFood.dailyFood.group.eq(group));
         }
 
         whereClause = whereClause.and(orderDailyFood.orderType.eq(OrderType.DAILYFOOD));
@@ -73,7 +74,7 @@ public class QOrderDailyFoodRepository {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.order.user.eq(user),
-                        orderItemDailyFood.orderStatus.in(OrderStatus.COMPLETED, OrderStatus.WAIT_DELIVERY, OrderStatus.DELIVERING, OrderStatus.DELIVERED, OrderStatus.RECEIPT_COMPLETE),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()),
                         orderItemDailyFood.orderItemDailyFoodGroup.serviceDate.between(startDate, endDate))
                 .fetch();
     }
@@ -243,17 +244,17 @@ public class QOrderDailyFoodRepository {
     public ServiceDateBy.MakersAndFood getMakersCounts(List<DailyFood> dailyFoods) {
         Map<ServiceDateBy.Makers, Integer> makersIntegerMap = new HashMap<>();
         Map<ServiceDateBy.Food, Integer> foodIntegerMap = new HashMap<>();
-        Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
+        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
         Set<Makers> makersSet = new HashSet<>();
 
         for (DailyFood dailyFood : dailyFoods) {
-            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(dailyFood);
-            diningTypeServiceDateDtos.add(diningTypeServiceDateDto);
+            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFood);
+            serviceDiningDtos.add(serviceDiningDto);
             makersSet.add(dailyFood.getFood().getMakers());
         }
 
         // 기간 구하기
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
 
         List<OrderItemDailyFood> orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
                 .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
@@ -348,7 +349,6 @@ public class QOrderDailyFoodRepository {
 
         return makersCapacities;
     }
-
 
     public List<OrderItemDailyFood> findAllByIds(List<BigInteger> ids) {
         return queryFactory.selectFrom(orderItemDailyFood)

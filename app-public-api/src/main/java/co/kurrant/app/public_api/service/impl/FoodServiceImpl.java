@@ -78,14 +78,6 @@ public class FoodServiceImpl implements FoodService {
             dailyFoodList = qDailyFoodRepository.findAllByGroupAndSelectedDateAndDiningType(group, selectedDate, diningType);
 
             for (DailyFood dailyFood : dailyFoodList) {
-                /* FIXME: Spring Batch 서버 구현 완료
-                MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
-                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
-                if(LocalDate.now().equals(dailyFood.getServiceDate()) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
-                    dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
-                }
-               */
-
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
                 dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
@@ -122,11 +114,11 @@ public class FoodServiceImpl implements FoodService {
                 // 이용가능 날짜
                 switch (diningType) {
                     case MORNING ->
-                            serviceDays.setMorningServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                            serviceDays.setMorningServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
                     case LUNCH ->
-                            serviceDays.setLunchServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                            serviceDays.setLunchServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
                     case DINNER ->
-                            serviceDays.setDinnerServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                            serviceDays.setDinnerServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
                 }
             }
             // 결과값을 담아줄 LIST 생성
@@ -212,9 +204,9 @@ public class FoodServiceImpl implements FoodService {
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
-
-        Food food = dailyFood.getFood();
-        DiscountDto discountDto = DiscountDto.getDiscount(food);
+        // TODO: 식단에 가격 업데이트 적용이 되는 시점부터 주석 해제
+//        DiscountDto discountDto = DiscountDto.getDiscount(dailyFood);
+        DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
         return new RetrieveDiscountDto(discountDto);
     }
 }

@@ -93,6 +93,7 @@ public class OrderUtil {
         return false;
     }
 
+    // TODO: 식단에 가격 업데이트 적용이 되는 시점부터 주석 해제
     public static DiscountDto checkMembershipAndGetDiscountDto(User user, Group group, Spot spot, DailyFood dailyFood) {
         group = (Group) Hibernate.unproxy(group);
 
@@ -100,9 +101,12 @@ public class OrderUtil {
             // 멤버십 혜택 마감 시간 (서비스 날짜 전일 + 마감시간)
             LocalDateTime membershipBenefitTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(spot.getMembershipBenefitTime(dailyFood.getDiningType()).getDay()), spot.getMembershipBenefitTime(dailyFood.getDiningType()).getTime());
             if (spot.getDeliveryTime(dailyFood.getDiningType()) == null || LocalDateTime.now().isBefore(membershipBenefitTime)) {
+
+//                return DiscountDto.getDiscount(dailyFood);
                 return DiscountDto.getDiscount(dailyFood.getFood());
             }
         }
+//        return DiscountDto.getDiscountWithoutMembership(dailyFood);
         return DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
     }
 
@@ -218,6 +222,11 @@ public class OrderUtil {
         if (refundablePrice.compareTo(requestRefundPrice) < 0) {
             if (requestRefundPrice.subtract(refundablePrice).compareTo(usingPoint) > 0) {
                 throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+            }
+            // 사용한 포인트가 (환불 요청 금액 - 환불 가능 금액) 보다 크거나 같으면
+            if(!paymentCancelHistories.isEmpty()){
+                PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).toList().get(0);
+                refundablePrice = paymentCancelHistory.getRefundablePrice();
             }
             return new RefundPriceDto(refundablePrice, renewSupportPrice, requestRefundPrice.subtract(refundablePrice), deliveryFee, isLastOrderItemOfGroup);
         }
@@ -394,7 +403,6 @@ public class OrderUtil {
 
         //결제 취소 후 기록을 저장한다.
         return paymentCancleHistoryMapper.orderDailyItemFoodToEntity(cancelReason, refundPriceDto, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice));
-
     }
 
     public PaymentCancelHistory cancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, RefundPriceDto refundPriceDto, List<PaymentCancelHistory> paymentCancelHistories) {
@@ -407,7 +415,12 @@ public class OrderUtil {
         }
 
         return paymentCancleHistoryMapper.orderDailyItemFoodToEntity("주문 전체 취소", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundablePrice);
+    }
 
+    public PaymentCancelHistory cancelPointPaidOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, RefundPriceDto refundPriceDto) {
+        Order order = orderItemDailyFood.getOrder();
+
+        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity("주문 마감 전 주문 취소", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundPriceDto.getPrice());
     }
 
     public PaymentCancelHistory cancelOrderItemDailyFoodNice(String impUid, String cancelReason, OrderItemDailyFood orderItem, RefundPriceDto refundPriceDto) throws IOException, ParseException {

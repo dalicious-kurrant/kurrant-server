@@ -1,10 +1,14 @@
 package co.dalicious.domain.food.mapper;
 
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailDto;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.FoodCapacity;
+import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.MakersCapacity;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.FoodTag;
 import exception.ApiException;
@@ -19,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = {Image.class, DiningType.class})
+@Mapper(componentModel = "spring", imports = {Image.class, DiningType.class, DayAndTime.class})
 public interface MakersFoodMapper {
 
     @Mapping(source = "food.id", target = "foodId")
@@ -72,6 +76,9 @@ public interface MakersFoodMapper {
     @Mapping(target = "morningCapacity", expression = "java(food.getFoodCapacity(DiningType.MORNING) == null ? 0 : food.getFoodCapacity(DiningType.MORNING).getCapacity())")
     @Mapping(target = "lunchCapacity", expression = "java(food.getFoodCapacity(DiningType.LUNCH) == null ? 0 : food.getFoodCapacity(DiningType.LUNCH).getCapacity())")
     @Mapping(target = "dinnerCapacity", expression = "java(food.getFoodCapacity(DiningType.DINNER) == null ? 0 : food.getFoodCapacity(DiningType.DINNER).getCapacity())")
+    @Mapping(source = "food",target = "morningLastOrderTime", qualifiedByName = "getMorningLastOrderTime")
+    @Mapping(source = "food",target = "lunchLastOrderTime", qualifiedByName = "getLunchLastOrderTime")
+    @Mapping(source = "food",target = "dinnerLastOrderTime", qualifiedByName = "getDinnerLastOrderTime")
     MakersFoodDetailDto toFoodManagingDto(Food food, DiscountDto discountDto);
     @Named("getAllFoodList")
     default List<String> getAllFoodList(List<FoodTag> foodTags) {
@@ -108,6 +115,27 @@ public interface MakersFoodMapper {
             return bigDecimal = bigDecimal.add(customPrice);
         }
         return bigDecimal;
+    }
+
+    @Named("getDinnerLastOrderTime")
+    default String getDinnerLastOrderTime(Food food) {
+        FoodCapacity foodCapacity = food.getFoodCapacity(DiningType.DINNER);
+        if(foodCapacity == null) return "정보 없음";
+        return DayAndTime.dayAndTimeToString(foodCapacity.getLastOrderTime());
+    }
+
+    @Named("getLunchLastOrderTime")
+    default String getLunchLastOrderTime(Food food) {
+        FoodCapacity foodCapacity = food.getFoodCapacity(DiningType.LUNCH);
+        if(foodCapacity == null) return "정보 없음";
+        return DayAndTime.dayAndTimeToString(foodCapacity.getLastOrderTime());
+    }
+
+    @Named("getMorningLastOrderTime")
+    default String getMorningLastOrderTime(Food food) {
+        FoodCapacity foodCapacity = food.getFoodCapacity(DiningType.MORNING);
+        if(foodCapacity == null) return "정보 없음";
+        return DayAndTime.dayAndTimeToString(foodCapacity.getLastOrderTime());
     }
 }
 

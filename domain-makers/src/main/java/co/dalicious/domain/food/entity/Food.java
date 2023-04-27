@@ -1,5 +1,6 @@
 package co.dalicious.domain.food.entity;
 
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
@@ -106,7 +107,7 @@ public class Food {
     private BigDecimal customPrice;
 
     @Builder
-    public Food(FoodStatus foodStatus, String name, BigDecimal supplyPrice,BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
+    public Food(FoodStatus foodStatus, String name, BigDecimal supplyPrice, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
         this.foodStatus = foodStatus;
         this.name = name;
         this.price = price;
@@ -135,7 +136,7 @@ public class Food {
         if (!this.getId().equals(makersFoodDetailReqDto.getFoodId())) {
             throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
         }
-        if(makersFoodDetailReqDto.getDefaultPrice() == null) {
+        if (makersFoodDetailReqDto.getDefaultPrice() == null) {
             throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
         }
         this.supplyPrice = makersFoodDetailReqDto.getSupplyPrice();
@@ -156,6 +157,11 @@ public class Food {
                 .orElse(null);
     }
 
+    public Integer getFoodDiscountRate(DiscountType discountType) {
+        FoodDiscountPolicy foodDiscountPolicy = getFoodDiscountPolicy(discountType);
+        return foodDiscountPolicy == null ? null : foodDiscountPolicy.getDiscountRate();
+    }
+
     public FoodCapacity getFoodCapacity(DiningType diningType) {
         return getFoodCapacities().stream()
                 .filter(v -> v.getDiningType().equals(diningType))
@@ -163,26 +169,24 @@ public class Food {
                 .orElse(null);
     }
 
-    public FoodCapacity updateFoodCapacity(DiningType diningType, Integer capacity) {
+    public FoodCapacity updateFoodCapacity(DiningType diningType, Integer capacity, DayAndTime lastOrderTime) {
         FoodCapacity foodCapacity = getFoodCapacity(diningType);
-        if (foodCapacity == null) {
-            if (this.makers.getMakersCapacity(diningType) == null || this.makers.getMakersCapacity(diningType).getCapacity().equals(capacity)) {
-                return null;
-            } else {
-                return FoodCapacity.builder()
-                        .capacity(capacity)
-                        .food(this)
-                        .diningType(diningType)
-                        .build();
-            }
-        } else {
-            if (foodCapacity.getCapacity().equals(capacity)) {
-                return null;
-            } else {
-                foodCapacity.updateCapacity(capacity);
-            }
 
+        if (foodCapacity == null && (this.makers.getMakersCapacity(diningType) == null || this.makers.getMakersCapacity(diningType).getCapacity().equals(capacity)) && lastOrderTime == null) {
+            return null;
         }
+
+        if (foodCapacity == null) {
+            return FoodCapacity.builder()
+                    .capacity(capacity)
+                    .food(this)
+                    .lastOrderTime(lastOrderTime)
+                    .diningType(diningType)
+                    .build();
+        }
+
+        foodCapacity.updateCapacity(capacity);
+        foodCapacity.updateLastOrderTime(lastOrderTime);
         return null;
     }
 

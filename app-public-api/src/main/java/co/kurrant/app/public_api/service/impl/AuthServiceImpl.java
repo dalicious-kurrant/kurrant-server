@@ -26,9 +26,11 @@ import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
 import co.dalicious.system.enums.RequiredAuth;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.AuthService;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserMapper;
+import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -48,6 +50,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -58,6 +61,10 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @Service
@@ -80,13 +87,18 @@ public class AuthServiceImpl implements AuthService {
     private final SnsLoginService snsLoginService;
     private final UserValidator userValidator;
     private final UserMapper userMapper;
+    private final UserUtil userUtil;
     private final EmployeeRepository employeeRepository;
     private final QUserRepository qUserRepository;
+    private final ConcurrentHashMap<String, Lock> userLocks = new ConcurrentHashMap<>();
 
     // 이메일 인증
     @Override
-    public void mailConfirm(MailMessageDto mailMessageDto, String type) throws Exception {
+    public void mailConfirm(Authentication authentication, MailMessageDto mailMessageDto, String type) throws Exception {
         // 인증을 요청하는 위치 파악하기
+        for(String email : mailMessageDto.getReceivers()) {
+            UserValidator.isValidEmail(email);
+        }
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
         switch (requiredAuth) {
             case SIGNUP -> {
@@ -98,6 +110,16 @@ public class AuthServiceImpl implements AuthService {
             case FIND_PASSWORD -> {
                 // 존재하는 유저인지 확인
                 User user = userRepository.findOneByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+            }
+            case PAYMENT_PASSWORD_CREATE_APPLE -> {
+                SecurityUser securityUser = UserUtil.securityUser(authentication);
+                User user = userUtil.getUser(securityUser);
+                userValidator.isEmailValid(user, mailMessageDto.getReceivers().get(0));
+                Optional<User> userOptional = userRepository.findOneByEmail(mailMessageDto.getReceivers().get(0));
+
+                if(userOptional.isPresent()) {
+                    throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
+                }
             }
         }
 
@@ -111,11 +133,11 @@ public class AuthServiceImpl implements AuthService {
 
         String subject = ("[커런트] 회원가입 인증 코드: "); //메일 제목
 
-        if (requiredAuth == RequiredAuth.PAYMENT_PASSWORD_CREATE || type.equals("7")){
+        if (requiredAuth.equals(RequiredAuth.PAYMENT_PASSWORD_CREATE) || requiredAuth.equals(RequiredAuth.PAYMENT_PASSWORD_CREATE_APPLE)) {
             subject = ("[커런트] 결제 비밀번호 등록 인증 코드: ");
         }
 
-        if (requiredAuth == RequiredAuth.PAYMENT_PASSWORD_CHECK || type.equals("6")){
+        if (requiredAuth == RequiredAuth.PAYMENT_PASSWORD_CHECK || type.equals("6")) {
             subject = ("[커런트] 결제 비밀번호 확인 인증 코드: ");
         }
 
@@ -124,28 +146,31 @@ public class AuthServiceImpl implements AuthService {
         content += """
                 <!DOCTYPE html>
                 <html>
-                    <head></head>
-                    <body>
-                        <div>
-                            <div style="width:100%; justify-content: center;  align-items: center; display: flex; flex-direction: column;">
-                                <div style="width:100%; max-width: 481px;">
-                                    <img style="margin-bottom: 32px;" src="https://asset.kurrant.co/img/common/logo.png" />
-                                </div>
-                                <div style="padding: 50px; padding-right: 104px; border:1px solid #E4E3E7; border-radius: 14px; max-width: 481px; min-height: 481px; width: 100%; box-sizing: border-box;">
-                                    <div style="font-size: 26px; font-weight: 600; font-family: ‘Franklin Gothic Medium’, ‘Arial Narrow’, Arial, sans-serif; line-height: 35px; margin-bottom: 32px; color: #343337;">커런트에서 요청하신 인증번호를 발송해 드립니다.</div>
-                                    <div style="font-size: 14px; line-height: 22px; font-weight: 400; color: #343337;">아래 인증번호 6자리를 인증번호 입력창에 입력해주세요</div>
-                                    <div style="color: #343337; font-size: 22px; font-weight: 600; line-height: 30px;">
+                <head></head>
+                <body>
+                <header>
+                    <div style="width:100%; max-width: 481px;">
+                        <img style="margin-bottom: 32px;" src="https://asset.kurrant.co/img/common/logo.png" />
+                    </div>
+                </header>
+                <div>
+                    <div style="width:100%; justify-content: center;  align-items: center; display: flex; flex-direction: column;">
+                
+                        <div style="padding: 50px; padding-right: 104px; border:1px solid #E4E3E7; border-radius: 14px; max-width: 481px; min-height: 481px; width: 100%; box-sizing: border-box;">
+                            <div style="font-size: 26px; font-weight: 600; font-family: ‘Franklin Gothic Medium’, ‘Arial Narrow’, Arial, sans-serif; line-height: 35px; margin-bottom: 32px; color: #343337;">커런트에서 요청하신 인증번호를 발송해 드립니다.</div>
+                            <div style="font-size: 14px; line-height: 22px; font-weight: 400; color: #343337;">아래 인증번호 6자리를 인증번호 입력창에 입력해주세요</div>
+                            <div style="color: #343337; font-size: 22px; font-weight: 600; line-height: 30px;">
                 """;
         content += key;
         content += "</div>\n" + "</div>\n" + "</div>";
         content += """
-                 <footer  style="justify-content: center;  align-items: center; display: flex; flex-direction: column; margin-top: 125px;">
-                                 <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">서울특별시 강남구 테헤란로51길 21 3층</div>
-                                 <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">달리셔스주식회사</div>
-                             </footer>
-                         </div>
-                     </body>
-                 </html>
+                             <footer  style="justify-content: center;  align-items: center; display: flex; flex-direction: column; margin-top: 125px;">
+                                <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">서울특별시 강남구 테헤란로51길 21 3층</div>
+                                <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">달리셔스주식회사</div>
+                            </footer>
+                        </div>
+                </body>
+                </html>
                 """;
 
         // 인증번호 발송
@@ -414,7 +439,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public LoginTokenDto reissue(TokenDto reissueTokenDto) {
+        System.out.println("Request: reissueTokenDto.refershToken = " + reissueTokenDto.getRefreshToken());
+        System.out.println("Request: reissueTokenDto.accessToken = " + reissueTokenDto.getAccessToken());
+
         String userId;
         boolean accessTokenValid = jwtTokenProvider.validateToken(reissueTokenDto.getAccessToken());
         // 엑세스 토큰이 유효할 경우
@@ -429,67 +458,80 @@ public class AuthServiceImpl implements AuthService {
             }
             userId = refreshToken.get().getUserId().toString();
         }
+        // Get or create the lock for the userId
+        Lock userLock = userLocks.computeIfAbsent(userId, id -> new ReentrantLock());
+
+        // Lock only for the same userId
+        userLock.lock();
+
         // 기존에 reissue 요청이 왔는지 검증
-        List<TempRefreshTokenHash> tempRefreshTokenHashes = tempRefreshTokenRepository.findAllByUserId(userId);
+        try {
+            List<TempRefreshTokenHash> tempRefreshTokenHashes = tempRefreshTokenRepository.findAllByUserId(userId);
 
-        Optional<TempRefreshTokenHash> matchingHash = tempRefreshTokenHashes.stream()
-                .filter(hash -> hash.getOldRefreshToken().equals(reissueTokenDto.getRefreshToken()))
-                .findFirst();
+            Optional<TempRefreshTokenHash> matchingHash = tempRefreshTokenHashes.stream()
+                    .filter(hash -> hash.getOldRefreshToken().equals(reissueTokenDto.getRefreshToken()))
+                    .findFirst();
 
-        // reissue 요청이 온 적이 없는 경우
-        if (matchingHash.isEmpty()) {
-            List<RefreshToken> refreshTokens = refreshTokenRepository.findAllByUserId(BigInteger.valueOf(Integer.parseInt(userId)));
+            // reissue 요청이 온 적이 없는 경우
+            if (matchingHash.isEmpty()) {
+                List<RefreshToken> refreshTokens = refreshTokenRepository.findAllByUserId(BigInteger.valueOf(Integer.parseInt(userId)));
 
-            // 5. 로그아웃 되어 Refresh Token이 존재하지 않는 경우 처리
-            if (refreshTokens == null) {
-                throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
-            }
-            // 6. 잘못된 Refresh Token일 경우 예외 처리
-            refreshTokens.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
-                    .findAny()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR));
-
-            // 7. 새로운 토큰 생성
-            List<String> roles = new ArrayList<>();
-
-            if (accessTokenValid) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(reissueTokenDto.getAccessToken());
-                Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-                for (GrantedAuthority authority : authorities) {
-                    roles.add(authority.getAuthority());
+                // 5. 로그아웃 되어 Refresh Token이 존재하지 않는 경우 처리
+                if (refreshTokens == null) {
+                    throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
                 }
-            } else {
-                User user = userRepository.findById(BigInteger.valueOf(Integer.parseInt(userId))).orElseThrow(
-                        () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
-                );
-                roles.add(user.getRole().getAuthority());
+                // 6. 잘못된 Refresh Token일 경우 예외 처리
+                refreshTokens.stream().filter(v -> v.getRefreshToken().equals(reissueTokenDto.getRefreshToken()))
+                        .findAny()
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR));
+
+                // 7. 새로운 토큰 생성
+                List<String> roles = new ArrayList<>();
+
+                if (accessTokenValid) {
+                    Authentication authentication = jwtTokenProvider.getAuthentication(reissueTokenDto.getAccessToken());
+                    Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+                    for (GrantedAuthority authority : authorities) {
+                        roles.add(authority.getAuthority());
+                    }
+                } else {
+                    User user = userRepository.findById(BigInteger.valueOf(Integer.parseInt(userId))).orElseThrow(
+                            () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
+                    );
+                    roles.add(user.getRole().getAuthority());
+                }
+
+                LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(userId, roles);
+
+                // 8. RefreshToken Redis 업데이트
+                refreshTokenRepository.deleteAll(refreshTokens);
+
+                tempRefreshTokenRepository.deleteAll(tempRefreshTokenHashes);
+
+                TempRefreshTokenHash tempRefreshTokenHash = TempRefreshTokenHash.builder()
+                        .userId(userId)
+                        .oldRefreshToken(reissueTokenDto.getRefreshToken())
+                        .newRefreshToken(loginResponseDto.getRefreshToken())
+                        .newAccessToken(loginResponseDto.getAccessToken())
+                        .build();
+
+                tempRefreshTokenRepository.save(tempRefreshTokenHash);
+                System.out.println("첫번째 발급 토큰: loginResponseDto.accessToken = " + loginResponseDto.getAccessToken());
+                System.out.println("첫번째 발급 토큰: loginResponseDto.refreshToken = " + loginResponseDto.getRefreshToken());
+                return loginResponseDto;
             }
-
-            LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(userId, roles);
-
-            // 8. RefreshToken Redis 업데이트
-            refreshTokenRepository.deleteAll(refreshTokens);
-
-            tempRefreshTokenRepository.deleteAll(tempRefreshTokenHashes);
-
-            TempRefreshTokenHash tempRefreshTokenHash = TempRefreshTokenHash.builder()
-                    .userId(userId)
-                    .oldRefreshToken(reissueTokenDto.getRefreshToken())
-                    .newRefreshToken(loginResponseDto.getRefreshToken())
-                    .newAccessToken(loginResponseDto.getAccessToken())
-                    .build();
-
-            tempRefreshTokenRepository.save(tempRefreshTokenHash);
-            return loginResponseDto;
+            // reissue 요청이 온 적이 있는 경우
+            else {
+                System.out.println("기존 발급 토큰: matchingHash.accessToken = " + matchingHash.get().getNewAccessToken());
+                System.out.println("기존 발급 토큰: matchingHash.refreshToken = " + matchingHash.get().getNewRefreshToken());
+                return LoginTokenDto.builder()
+                        .refreshToken(matchingHash.get().getNewRefreshToken())
+                        .accessToken(matchingHash.get().getNewAccessToken())
+                        .build();
+            }
+        } finally {
+            userLock.unlock();
         }
-        // reissue 요청이 온 적이 있는 경우
-        else {
-            return LoginTokenDto.builder()
-                    .refreshToken(matchingHash.get().getNewRefreshToken())
-                    .accessToken(matchingHash.get().getNewAccessToken())
-                    .build();
-        }
-
     }
 
     @Override

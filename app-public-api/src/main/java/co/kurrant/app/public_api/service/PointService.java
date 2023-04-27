@@ -6,5 +6,5 @@ import co.dalicious.domain.user.dto.PointResponseDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 
 public interface PointService {
-    ItemPageableResponseDto<PointResponseDto> findAllPointLogs(SecurityUser securityUser, Integer condition, Integer limit, Integer page, OffsetBasedPageRequest pageable);
+    ItemPageableResponseDto<PointResponseDto> findAllPointLogs(SecurityUser securityUser, Integer condition, OffsetBasedPageRequest pageable); //, Integer limit, Integer page
 }
