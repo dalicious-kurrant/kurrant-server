@@ -64,8 +64,7 @@ public enum ExceptionEnum {
 	/* E403 */
 	FORBIDDEN(HttpStatus.FORBIDDEN, "E4030000", "접근 권한이 없습니다."),
 	SELL_STATUS_NOT_ALLOWED(HttpStatus.FORBIDDEN, "E4030001", "sellStatusNotAllowed"),
-	REFRESH_TOKEN_ERROR(HttpStatus.FORBIDDEN, "E4030002", "유효하지 않은 Refresh Token입니다."),
-	ACCESS_TOKEN_ERROR(HttpStatus.FORBIDDEN, "E4030003", "유효하지 않은 Access Token입니다."),
+	REFRESH_TOKEN_ERROR(HttpStatus.ALREADY_REPORTED, "E4030002", "유효하지 않은 Refresh Token입니다."),
 
 	/* E404 */
 	NOT_FOUND(HttpStatus.NOT_FOUND, "E4040000", "일치하는 데이터를 찾을 수 없습니다."),
@@ -112,10 +111,14 @@ public enum ExceptionEnum {
 	NOT_FOUND_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040036", "삭제할 테스트 데이터 ID를 입력하지 않았습니다."),
 	NOT_MATCHED_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040037", "존재하지 않는 테스트 데이터 ID 입니다."),
 	ALREADY_NOT_ACTIVE(HttpStatus.NOT_FOUND, "E4040038", "이미 비활성화 상태입니다."),
+	NOT_FOUND_FOOD_IMAGE(HttpStatus.NOT_FOUND, "E4040039", "음식 이미지를 찾을 수 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
 	ALREADY_EXISTING_GROUP(HttpStatus.CONFLICT, "E4090001", "이미 그룹에 가입된 유저입니다."),
+
+	/* E411 */
+	ACCESS_TOKEN_ERROR(HttpStatus.LENGTH_REQUIRED, "E4110003", "유효하지 않은 Access Token입니다."),
 
   	/* E500 */
 	FAIL_TO_SEND_CERTIFICATION_NUMBER(HttpStatus.INTERNAL_SERVER_ERROR, "E5000001", "failToSendCertificationNumber"),

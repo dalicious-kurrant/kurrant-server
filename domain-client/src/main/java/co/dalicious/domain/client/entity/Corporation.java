@@ -1,14 +1,12 @@
 package co.dalicious.domain.client.entity;
 
-import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
-import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.converter.IdListConverter;
 import co.dalicious.system.enums.DiningType;
-import com.querydsl.core.group.GroupExpression;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +18,6 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 
 @DynamicInsert
@@ -32,6 +29,14 @@ import java.util.List;
 public class Corporation extends Group{
     @Comment("그룹 코드")
     private String code;
+
+    @Comment("정산 선불 여부")
+    private Boolean isPrepaid;
+
+    @ElementCollection
+    @Comment("지불 항목 내역")
+    @CollectionTable(name = "client__corporation_paycheck_categories")
+    private List<PrepaidCategory> prepaidCategories;
 
     @Column(name = "is_membership_support", columnDefinition = "BIT(1) DEFAULT 0")
     @Comment("기업 멤버십 지원 여부")
@@ -116,10 +121,21 @@ public class Corporation extends Group{
         this.maximumSpend = (groupInfoList.getMaximumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMaximumSpend());
     }
 
+
     private Boolean useOrNotUse(String data) {
         Boolean use = null;
         if(data.equals("미사용")) use = false;
         else if(data.equals("사용")) use = true;
         return use;
+    }
+
+    public PrepaidCategory getPrepaidCategory(PaycheckCategoryItem paycheckCategoryItem) {
+        if(this.prepaidCategories == null || this.prepaidCategories.isEmpty()) {
+            return null;
+        }
+        return this.prepaidCategories.stream()
+                .filter(v -> v.getPaycheckCategoryItem().equals(paycheckCategoryItem))
+                .findAny()
+                .orElse(null);
     }
 }

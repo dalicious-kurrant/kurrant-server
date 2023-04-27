@@ -27,7 +27,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "order__order_item_dailyfood_group")
-public class OrderItemDailyFoodGroup {
+public class  OrderItemDailyFoodGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("주문상세 PK")

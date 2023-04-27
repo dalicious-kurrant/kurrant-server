@@ -1,4 +1,4 @@
-package co.dalicious.domain.paycheck.entity;
+package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.client.converter.PaycheckCategoryItemConverter;
 import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
@@ -15,13 +15,11 @@ import java.math.BigDecimal;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
-public class PaycheckCategory {
+public class PrepaidCategory {
     @Convert(converter = PaycheckCategoryItemConverter.class)
     @Comment("지불 항목")
     private PaycheckCategoryItem paycheckCategoryItem;
 
-    @Comment("사용 일 수")
-    private Integer days;
     @Comment("개수")
     private Integer count;
 
@@ -33,9 +31,8 @@ public class PaycheckCategory {
     @Comment("총 금액")
     private BigDecimal totalPrice;
 
-    public PaycheckCategory(PaycheckCategoryItem paycheckCategoryItem, Integer days, Integer count, BigDecimal price, BigDecimal totalPrice) {
+    public PrepaidCategory(PaycheckCategoryItem paycheckCategoryItem, Integer count, BigDecimal price, BigDecimal totalPrice) {
         this.paycheckCategoryItem = paycheckCategoryItem;
-        this.days = days;
         this.count = count;
         this.price = price;
         this.totalPrice = totalPrice;

@@ -11,7 +11,8 @@ public enum PaycheckType {
     NO_MEMBERSHIP("비멤버십 후불", 1),
     POSTPAID_MEMBERSHIP("멤버십 후불", 2),
     PREPAID_MEMBERSHIP("멤버십 선불", 3),
-    PREPAID_MEMBERSHIP_EXCEPTION("예외 멤버십 선불", 4)
+    PREPAID_MEMBERSHIP_EXCEPTION("예외 멤버십 선불", 4),
+    PREPAID_MEMBERSHIP_EXCEPTION_MEDTRONIC("예외 멤버십 메드트로닉", 4)
     ;
     private final String paycheckType;
     private final Integer code;
