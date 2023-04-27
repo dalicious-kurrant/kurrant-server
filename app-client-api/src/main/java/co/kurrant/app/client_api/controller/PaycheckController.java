@@ -1,6 +1,7 @@
 package co.kurrant.app.client_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.ClientPaycheckService;
@@ -62,9 +63,9 @@ public class PaycheckController {
 
     @Operation(summary = "기업 정산 완료", description = "기업 정산 완료")
     @PutMapping("/complete")
-    public ResponseMessage completeCorporationPaycheckStatus(Authentication authentication, @RequestBody BigInteger id) {
+    public ResponseMessage completeCorporationPaycheckStatus(Authentication authentication, @RequestBody OrderDto.Id id) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        clientPaycheckService.completeCorporationPaycheckStatus(securityUser, id);
+        clientPaycheckService.completeCorporationPaycheckStatus(securityUser, id.getId());
         return ResponseMessage.builder()
                 .message("기업 정산 완료 상태 변경에 성공하였습니다.")
                 .build();

@@ -130,10 +130,10 @@ public class PaycheckDto {
     public static class CorporationInfo {
         private String name;
         private String period;
-        private Integer totalPrice;
         private Integer morningCount;
         private Integer lunchCount;
         private Integer dinnerCount;
+        private Integer totalPrice;
 
         @Builder
         public CorporationInfo(String name, String period, Integer totalPrice, Integer morningCount, Integer lunchCount, Integer dinnerCount) {

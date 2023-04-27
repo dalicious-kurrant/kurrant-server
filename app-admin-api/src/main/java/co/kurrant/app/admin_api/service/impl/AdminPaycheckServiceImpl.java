@@ -262,6 +262,17 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
+    public void postOneCorporationPaycheckExcel(BigInteger corporationId) {
+        Corporation corporation = corporationRepository.findById(corporationId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        YearMonth yearMonth = YearMonth.now();
+        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+        List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth);
+        paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+    }
+
+    @Override
+    @Transactional
     public List<PaycheckDto.CorporationResponse> getCorporationPaychecks(Map<String, Object> parameters) {
         String startYearMonth = !parameters.containsKey("startYearMonth") || parameters.get("startYearMonth") == null ? null : String.valueOf(parameters.get("startYearMonth"));
         String endYearMonth = !parameters.containsKey("endYearMonth") || parameters.get("endYearMonth") == null ? null : String.valueOf(parameters.get("endYearMonth"));
@@ -365,14 +376,18 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(corporationPaycheckId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         List<PaycheckAdd> paycheckAdds = corporationPaycheckMapper.toMemoPaycheckAdds(paycheckAddDtos);
+        Corporation corporation = corporationPaycheck.getCorporation();
         corporationPaycheck = corporationPaycheck.updatePaycheckAdds(paycheckAdds);
+
+        YearMonth yearMonth = corporationPaycheck.getYearMonth();
+        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
 
         // 요청 Body에 파일이 존재하지 않는다면 삭제
         if (corporationPaycheck.getExcelFile() != null) {
             imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
         }
         // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
-        ImageResponseDto imageResponseDto = excelService.createCorporationPaycheckExcel(corporationPaycheck);
+        ImageResponseDto imageResponseDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
         Image image = new Image(imageResponseDto);
         corporationPaycheck.updateExcelFile(image);
     }

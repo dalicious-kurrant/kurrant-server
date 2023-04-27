@@ -27,6 +27,7 @@ public interface AdminPaycheckService {
 
 //    void postCorporationPaycheck(MultipartFile corporationXlsx, MultipartFile corporationPdf, PaycheckDto.CorporationRequest paycheckDto) throws IOException;
     void postCorporationPaycheckExcel();
+    void postOneCorporationPaycheckExcel(BigInteger corporationId);
     List<PaycheckDto.CorporationResponse> getCorporationPaychecks(Map<String, Object> parameters);
     PaycheckDto.CorporationOrder getCorporationOrderHistory(BigInteger corporationPaycheckId);
     PaycheckDto.Invoice getCorporationInvoice(BigInteger corporationPaycheckId);

@@ -106,6 +106,15 @@ public class PaycheckController {
                 .build();
     }
 
+    @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
+    @PostMapping("/corporations/{corporationId}")
+    public ResponseMessage postOneCorporationPaycheck(@PathVariable BigInteger corporationId) {
+        adminPaycheckService.postOneCorporationPaycheckExcel(corporationId);
+        return ResponseMessage.builder()
+                .message("기업 정산 등록에 성공하였습니다.")
+                .build();
+    }
+
     @Operation(summary = "기업 정산 조회", description = "기업 정산 조회")
     @GetMapping("/corporations")
     public ResponseMessage getCorporationPaychecks(@RequestParam Map<String, Object> parameters) {
