@@ -26,9 +26,7 @@ import org.springframework.util.MultiValueMap;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, PaycheckStatus.class})
 public interface CorporationPaycheckMapper {
@@ -64,6 +62,12 @@ public interface CorporationPaycheckMapper {
                 .build();
     }
 
+    default List<PaycheckDto.CorporationResponse> toDtos(List<CorporationPaycheck> corporationPaychecks) {
+        return corporationPaychecks.stream()
+                .map(this::toDto)
+                .toList();
+    }
+
     ;
 
     default CorporationPaycheck toInitiateEntity(Corporation corporation, User user) {
@@ -95,10 +99,24 @@ public interface CorporationPaycheckMapper {
                 .toList();
     }
 
-    default List<PaycheckDto.CorporationResponse> toDtos(List<CorporationPaycheck> corporationPaycheck) {
-        return corporationPaycheck.stream()
-                .map(this::toDto)
-                .toList();
+    default PaycheckDto.CorporationMain toListDto(List<CorporationPaycheck> corporationPaychecks) {
+        Map<PaycheckStatus, Integer> statusMap = new HashMap<>();
+        List<PaycheckDto.CorporationResponse> corporationLists = new ArrayList<>();
+        List<PaycheckDto.StatusList> statusLists = new ArrayList<>();
+        for (CorporationPaycheck corporationPaycheck : corporationPaychecks) {
+            corporationLists.add(toDto(corporationPaycheck));
+            if(statusMap.containsKey(corporationPaycheck.getPaycheckStatus())) {
+                Integer count = statusMap.get(corporationPaycheck.getPaycheckStatus());
+                statusMap.put(corporationPaycheck.getPaycheckStatus(), ++count);
+                continue;
+            }
+            statusMap.put(corporationPaycheck.getPaycheckStatus(), 1);
+        }
+        for (PaycheckStatus paycheckStatus : statusMap.keySet()) {
+            PaycheckDto.StatusList statusList = new PaycheckDto.StatusList(paycheckStatus.getPaycheckStatus(), statusMap.get(paycheckStatus));
+            statusLists.add(statusList);
+        }
+        return new PaycheckDto.CorporationMain(corporationLists, statusLists);
     }
 
     default PaycheckDto.CorporationOrder toCorporationOrder(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices) {

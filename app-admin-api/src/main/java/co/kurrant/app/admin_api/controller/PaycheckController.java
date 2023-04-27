@@ -66,6 +66,15 @@ public class PaycheckController {
                 .build();
     }
 
+    @Operation(summary = "메이커스 정산 메모 작성", description = "메이커스 정산 메모 작성")
+    @PutMapping("/makers/{paycheckId}/memo")
+    public ResponseMessage postMemo(@PathVariable BigInteger paycheckId, @RequestBody PaycheckDto.MemoDto memoDto) {
+        adminPaycheckService.postMakersMemo(paycheckId, memoDto);
+        return ResponseMessage.builder()
+                .message("메이커스 정산 메모 작성에 성공하였습니다.")
+                .build();
+    }
+
 //    @Operation(summary = "메이커스 정산 수정", description = "메이커스 정산 등록")
 //    @PatchMapping("/makers")
 //    public ResponseMessage updateMakersPaycheck(@RequestPart(required = false) MultipartFile makersXlsx,
@@ -177,6 +186,15 @@ public class PaycheckController {
         adminPaycheckService.postCorporationPaycheckAdd(corporationPaycheckId, paycheckAddDtos);
         return ResponseMessage.builder()
                 .message("기업 정산 이슈 추가에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "기업 정산 메모 작성", description = "기업 정산 메모 작성")
+    @PutMapping("/corporations/{paycheckId}/memo")
+    public ResponseMessage postCorporationMemo(@PathVariable BigInteger paycheckId, @RequestBody PaycheckDto.MemoDto memoDto) {
+        adminPaycheckService.postCorporationMemo(paycheckId, memoDto);
+        return ResponseMessage.builder()
+                .message("기업 정산 메모 작성에 성공하였습니다.")
                 .build();
     }
 }

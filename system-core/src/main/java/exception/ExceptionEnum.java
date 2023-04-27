@@ -56,6 +56,7 @@ public enum ExceptionEnum {
 	ALREADY_WRITE_COMMENT_REVIEW(HttpStatus.BAD_REQUEST, "E4000106", "이미 댓글을 작성한 리뷰입니다."),
 	ALREADY_DELETED_REVIEW(HttpStatus.BAD_REQUEST, "E4000106", "삭제된 리뷰입니다."),
 	ALREADY_USED_DAYS(HttpStatus.BAD_REQUEST, "E4000107", "이미 서비스를 제공하고 있는 요일입니다."),
+	NOT_VALID_EMAIL(HttpStatus.BAD_REQUEST, "E4000100", "잘못된 이메일 주소입니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),

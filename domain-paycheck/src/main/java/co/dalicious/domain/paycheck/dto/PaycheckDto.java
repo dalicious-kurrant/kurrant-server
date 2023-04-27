@@ -119,6 +119,29 @@ public class PaycheckDto {
     }
 
     @Getter
+    public static class StatusList {
+        private String status;
+        private Integer count;
+
+        public StatusList(String status, Integer count) {
+            this.status = status;
+            this.count = count;
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class CorporationMain {
+        private List<CorporationResponse> corporationResponses;
+        private List<StatusList> statusLists;
+
+        public CorporationMain(List<CorporationResponse> corporationResponses, List<StatusList> statusLists) {
+            this.corporationResponses = corporationResponses;
+            this.statusLists = statusLists;
+        }
+    }
+
+    @Getter
     @Setter
     public static class CorporationOrder {
         private List<CorporationOrderItem> corporationOrderItems;
