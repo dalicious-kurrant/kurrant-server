@@ -16,8 +16,6 @@ public interface SpotService {
 
     void deleteSpot(List<BigInteger> spotIdList);
     List<GroupDto.Group> getGroupList();
-
-    Object getSpotDetail(Integer spotId);
-
+//    Object getSpotDetail(Integer spotId);
     void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException;
 }

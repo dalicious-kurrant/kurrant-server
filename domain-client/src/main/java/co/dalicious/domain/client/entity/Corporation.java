@@ -104,15 +104,22 @@ public class Corporation extends Group{
         this.maximumSpend = maximumSpend;
     }
 
-    public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList, Boolean isMembershipSupport, Boolean isSetting, Boolean isGarbage, Boolean isHotStorage) {
+    public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
         updateGroup(address, diningTypeList, groupInfoList.getName(), groupInfoList.getManagerId());
         this.code = groupInfoList.getCode();
         this.employeeCount = groupInfoList.getEmployeeCount();
-        this.isMembershipSupport = isMembershipSupport;
-        this.isGarbage = isGarbage;
-        this.isHotStorage = isHotStorage;
-        this.isSetting = isSetting;
+        this.isMembershipSupport = !groupInfoList.getIsMembershipSupport().equals("미지원");
+        this.isGarbage = useOrNotUse(groupInfoList.getIsGarbage());
+        this.isHotStorage = useOrNotUse(groupInfoList.getIsHotStorage());
+        this.isSetting = useOrNotUse(groupInfoList.getIsSetting());
         this.minimumSpend = (groupInfoList.getMinimumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMinimumSpend());
         this.maximumSpend = (groupInfoList.getMaximumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMaximumSpend());
+    }
+
+    private Boolean useOrNotUse(String data) {
+        Boolean use = null;
+        if(data.equals("미사용")) use = false;
+        else if(data.equals("사용")) use = true;
+        return use;
     }
 }
