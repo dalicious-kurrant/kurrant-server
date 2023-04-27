@@ -6,6 +6,7 @@ import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.repository.*;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;

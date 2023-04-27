@@ -19,7 +19,7 @@ public interface SpotService {
     
     List<GroupDto.Group> getGroupList();
 
-    SpotDetailResDto getSpotDetail(Integer spotId);
+//    SpotDetailResDto getSpotDetail(Integer spotId);
 
     void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException;
 }
