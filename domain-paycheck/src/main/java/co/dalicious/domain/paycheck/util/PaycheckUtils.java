@@ -7,6 +7,7 @@ import co.dalicious.domain.order.dto.DailySupportPriceDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.paycheck.entity.PaycheckCategory;
+import co.dalicious.domain.paycheck.entity.enums.CategoryPrice;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckType;
 import org.springframework.stereotype.Component;
 
@@ -15,12 +16,12 @@ import java.util.*;
 
 @Component
 public class PaycheckUtils {
-    private static final BigDecimal DELIVERY_FEE_PER_ITEM = BigDecimal.valueOf(500);
-    private static final BigDecimal DELIVERY_FEE_BELOW_50 = BigDecimal.valueOf(25000);
-    private static final BigDecimal GARBAGE_PER_ITEM = BigDecimal.valueOf(300);
-    private static final BigDecimal GARBAGE_PER_BELOW_50 = BigDecimal.valueOf(15000);
-    private static final BigDecimal HOT_STORAGE = BigDecimal.valueOf(20000);
-    private static final BigDecimal MEAL_SETTING = BigDecimal.valueOf(1000000);
+    private static final BigDecimal DELIVERY_FEE_PER_ITEM = CategoryPrice.DELIVERY_FEE_PER_ITEM.getPrice();
+    private static final BigDecimal DELIVERY_FEE_BELOW_50 = CategoryPrice.DELIVERY_FEE_BELOW_50.getPrice();
+    private static final BigDecimal GARBAGE_PER_ITEM = CategoryPrice.GARBAGE_PER_ITEM.getPrice();
+    private static final BigDecimal GARBAGE_PER_BELOW_50 = CategoryPrice.GARBAGE_PER_BELOW_50.getPrice();
+    private static final BigDecimal HOT_STORAGE = CategoryPrice.HOT_STORAGE.getPrice();
+    private static final BigDecimal MEAL_SETTING = CategoryPrice.MEAL_SETTING.getPrice();
 
     // 고객사 타입
     public static PaycheckType getPaycheckType(Corporation corporation) {

@@ -12,6 +12,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DiningTypesUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
+import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.SpotService;
@@ -206,14 +207,14 @@ public class SpotServiceImpl implements SpotService {
     }
 
     @Override
-    public Object getSpotDetail(Integer spotId) {
+    public SpotDetailResDto getSpotDetail(Integer spotId) {
 
         //spotId로 spot 조회
         Spot spot = spotRepository.findById(BigInteger.valueOf(spotId))
                 .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
 
 
-        if (spot instanceof CorporationSpot){
+        if (spot instanceof CorporationSpot) {
             Optional<Corporation> corporation = corporationRepository.findById(spot.getGroup().getId());
             List<CorporationMealInfo> corporationMealInfo = corporaionMealInfoRepository.findAllByGroupId(spot.getGroup().getId());
 
@@ -234,7 +235,7 @@ public class SpotServiceImpl implements SpotService {
 
         //manager가 존재하는 user인지 체크
         User manager = null;
-        if (updateSpotDetailRequestDto.getManagerId() != null){
+        if (updateSpotDetailRequestDto.getManagerId() != null) {
             manager = userRepository.findById(updateSpotDetailRequestDto.getManagerId())
                     .orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
         }
@@ -254,19 +255,19 @@ public class SpotServiceImpl implements SpotService {
         //식사타입, 요일 수정
         List<MealInfo> mealInfoList = mealInfoRepository.findAllByGroupId(groupId);
         List<DiningType> mealInfoDiningTypeList = new ArrayList<>();
-        for (MealInfo mealInfo : mealInfoList){
+        for (MealInfo mealInfo : mealInfoList) {
             //그룹에 해당되는 다이닝타입만을 추출
             mealInfoDiningTypeList.add(mealInfo.getDiningType());
         }
 
 
-       //diningType
+        //diningType
         Optional<Spot> spot = spotRepository.findById(updateSpotDetailRequestDto.getSpotId());
-       List<String> split = Arrays.stream(updateSpotDetailRequestDto.getDiningTypes().split(",")).toList();
-        for (String diningType : split){
-            if (mealInfoDiningTypeList.contains(DiningType.ofCode(Integer.valueOf(diningType))) && mealInfoDiningTypeList.size() > split.size()){
+        List<String> split = Arrays.stream(updateSpotDetailRequestDto.getDiningTypes().split(",")).toList();
+        for (String diningType : split) {
+            if (mealInfoDiningTypeList.contains(DiningType.ofCode(Integer.valueOf(diningType))) && mealInfoDiningTypeList.size() > split.size()) {
                 //기존 mealInfo에 존재하면서 dto에 요청한 diningType의 size가 기존 mealInfoList의 size보다 작은 경우는 해당 diningtype을 제외하고 제거한다.
-                if (split.size() == 1){ //이때 split의 size는 1 또는 2이다.
+                if (split.size() == 1) { //이때 split의 size는 1 또는 2이다.
                     qMealInfoRepository.updateSpotDetailDelete1(split.get(0), groupId, updateSpotDetailRequestDto.getServiceDays());
                 } else {
                     qMealInfoRepository.updateSpotDetailDelete2(split.get(0), split.get(1), groupId, updateSpotDetailRequestDto.getServiceDays());
@@ -286,8 +287,6 @@ public class SpotServiceImpl implements SpotService {
 
         //corporation 수정
         qCorporationRepository.updateSpotDetail(updateSpotDetailRequestDto, groupId);
-
-
 
 
     }

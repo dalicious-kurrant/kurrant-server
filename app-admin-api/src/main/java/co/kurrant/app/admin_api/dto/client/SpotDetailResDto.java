@@ -1,11 +1,13 @@
 package co.kurrant.app.admin_api.dto.client;
-
+import co.dalicious.domain.paycheck.entity.enums.CategoryPrice;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -38,7 +40,36 @@ public class SpotDetailResDto {
     private Boolean isGarbage;
     private Boolean isHotStorage;
     private String memo;
+    private List<PrepaidCategory> prepaidCategoryList;
+    private List<CategoryPrice> categoryPrices;
 
+    public SpotDetailResDto() {
+        List<CategoryPrice> categoryPrices1 = new ArrayList<>();
+        for (co.dalicious.domain.paycheck.entity.enums.CategoryPrice categoryPrice : co.dalicious.domain.paycheck.entity.enums.CategoryPrice.values()) {
+            categoryPrices.add(new CategoryPrice(categoryPrice));
+        }
+        this.categoryPrices = categoryPrices1;
+    }
 
+    @Getter
+    public static class CategoryPrice {
+        private final Integer code;
+        private final String category;
+        private final Integer price;
+
+        public CategoryPrice(co.dalicious.domain.paycheck.entity.enums.CategoryPrice categoryPrice) {
+            this.code = categoryPrice.getCode();
+            this.category = categoryPrice.getCategory();
+            this.price = categoryPrice.getPrice().intValue();
+        }
+    }
+
+    @Getter
+    public static class PrepaidCategory {
+        private String paycheckCategoryItem;
+        private Integer count;
+        private Integer price;
+        private Integer totalPrice;
+    }
 
 }

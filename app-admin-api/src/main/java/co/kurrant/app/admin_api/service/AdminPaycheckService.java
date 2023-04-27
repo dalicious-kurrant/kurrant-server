@@ -24,18 +24,17 @@ public interface AdminPaycheckService {
 //    void deleteMakersPaycheck(List<BigInteger> ids);
     void postMakersPaycheckAdd(BigInteger makersPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos);
     void updateMakersPaycheckStatus(Integer status, List<BigInteger> ids);
-
-//    void postCorporationPaycheck(MultipartFile corporationXlsx, MultipartFile corporationPdf, PaycheckDto.CorporationRequest paycheckDto) throws IOException;
+    void postMakersMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto);
     void postCorporationPaycheckExcel();
     void postOneCorporationPaycheckExcel(BigInteger corporationId);
-    List<PaycheckDto.CorporationResponse> getCorporationPaychecks(Map<String, Object> parameters);
+    PaycheckDto.CorporationMain getCorporationPaychecks(Map<String, Object> parameters);
     PaycheckDto.CorporationOrder getCorporationOrderHistory(BigInteger corporationPaycheckId);
     PaycheckDto.Invoice getCorporationInvoice(BigInteger corporationPaycheckId);
     void updateCorporationPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.CorporationResponse paycheckDto) throws IOException;
     void deleteCorporationPaycheck(List<BigInteger> ids);
     void updateCorporationPaycheckStatus(Integer status, List<BigInteger> ids);
     void postCorporationPaycheckAdd(BigInteger corporationPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos);
-
+    void postCorporationMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto);
     void postSparkplusLog(Integer log);
     List<SparkPlusLog> getSpartplusLog();
     List<MakersPaycheck> postMakersPaycheckExcel();

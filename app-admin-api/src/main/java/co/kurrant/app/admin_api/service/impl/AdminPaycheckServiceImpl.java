@@ -17,6 +17,7 @@ import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.PaycheckAdd;
+import co.dalicious.domain.paycheck.entity.PaycheckMemo;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
@@ -211,6 +212,16 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         }
     }
 
+    @Override
+    @Transactional
+    public void postMakersMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto) {
+        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(paycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        String writer = "커런트";
+        PaycheckMemo paycheckMemo = new PaycheckMemo(writer, memoDto.getMemo());
+        makersPaycheck.updateMemo(paycheckMemo);
+    }
+
     //    @Override
 //    @Transactional
 //    public void postCorporationPaycheck(MultipartFile corporationXlsx, MultipartFile corporationPdf, PaycheckDto.CorporationRequest paycheckDto) throws IOException {
@@ -273,7 +284,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public List<PaycheckDto.CorporationResponse> getCorporationPaychecks(Map<String, Object> parameters) {
+    public PaycheckDto.CorporationMain getCorporationPaychecks(Map<String, Object> parameters) {
         String startYearMonth = !parameters.containsKey("startYearMonth") || parameters.get("startYearMonth") == null ? null : String.valueOf(parameters.get("startYearMonth"));
         String endYearMonth = !parameters.containsKey("endYearMonth") || parameters.get("endYearMonth") == null ? null : String.valueOf(parameters.get("endYearMonth"));
         List<BigInteger> corporationIds = !parameters.containsKey("corporationIds") || parameters.get("corporationIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("corporationIds"));
@@ -285,7 +296,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
 
         List<CorporationPaycheck> corporationPaychecks = qCorporationPaycheckRepository.getCorporationPaychecksByFilter(start, end, corporationIds, PaycheckStatus.ofCode(status), hasRequest);
-        return corporationPaycheckMapper.toDtos(corporationPaychecks);
+        return corporationPaycheckMapper.toListDto(corporationPaychecks);
     }
 
     @Override
@@ -390,6 +401,16 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         ImageResponseDto imageResponseDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
         Image image = new Image(imageResponseDto);
         corporationPaycheck.updateExcelFile(image);
+    }
+
+    @Override
+    @Transactional
+    public void postCorporationMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto) {
+        CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(paycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        String writer = "커런트";
+        PaycheckMemo paycheckMemo = new PaycheckMemo(writer, memoDto.getMemo());
+        corporationPaycheck.updateMemo(paycheckMemo);
     }
 
     @Override

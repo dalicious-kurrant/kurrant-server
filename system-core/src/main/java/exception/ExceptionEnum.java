@@ -55,6 +55,7 @@ public enum ExceptionEnum {
 	ADMIN_USER_SHOULD_BE_UNIQUE(HttpStatus.BAD_REQUEST, "E4000104", "관리자 계정은 유일해야 합니다."),
 	ALREADY_WRITE_COMMENT_REVIEW(HttpStatus.BAD_REQUEST, "E4000106", "이미 댓글을 작성한 리뷰입니다."),
 	ALREADY_DELETED_REVIEW(HttpStatus.BAD_REQUEST, "E4000106", "삭제된 리뷰입니다."),
+	NOT_VALID_EMAIL(HttpStatus.BAD_REQUEST, "E4000100", "잘못된 이메일 주소입니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),

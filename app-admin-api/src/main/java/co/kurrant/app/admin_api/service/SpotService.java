@@ -4,6 +4,7 @@ import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
+import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
 import org.locationtech.jts.io.ParseException;
 
 import java.math.BigInteger;
@@ -17,7 +18,7 @@ public interface SpotService {
     void deleteSpot(List<BigInteger> spotIdList);
     List<GroupDto.Group> getGroupList();
 
-    Object getSpotDetail(Integer spotId);
+    SpotDetailResDto getSpotDetail(Integer spotId);
 
     void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException;
 }

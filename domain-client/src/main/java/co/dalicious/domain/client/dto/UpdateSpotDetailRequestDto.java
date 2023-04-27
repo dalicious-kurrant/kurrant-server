@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 
 @Getter
 @Setter
@@ -56,5 +57,13 @@ public class UpdateSpotDetailRequestDto {
     private Boolean isHotStorage;
     @Schema(description = "메모")
     private String memo;
-
+    @Schema(description = "정산 선불 정보")
+    private List<PrepaidCategory> prepaidCategoryList;
+    @Getter
+    public static class PrepaidCategory {
+        private Integer code;
+        private Integer count;
+        private Integer price;
+        private Integer totalPrice;
+    }
 }
