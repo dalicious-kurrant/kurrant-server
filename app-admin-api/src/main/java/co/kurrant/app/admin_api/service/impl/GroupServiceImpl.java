@@ -3,9 +3,11 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.ApartmentRequestDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.MealInfoRepository;
@@ -13,9 +15,10 @@ import co.dalicious.domain.client.repository.QCorporationRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserRepository;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DaysUtil;
 import co.kurrant.app.admin_api.dto.GroupDto;
-import co.kurrant.app.admin_api.mapper.CorporationMealInfoMapper;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.service.GroupService;
 import exception.ApiException;
@@ -26,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -38,7 +42,6 @@ public class GroupServiceImpl implements GroupService {
     public final GroupMapper groupMapper;
     public final QGroupRepository qGroupRepository;
     public final GroupRepository groupRepository;
-    private final CorporationMealInfoMapper mealInfoMapper;
     private final MealInfoRepository mealInfoRepository;
 
     @Override
@@ -93,106 +96,71 @@ public class GroupServiceImpl implements GroupService {
             Group group = groupList.stream().filter(groupMatch -> groupMatch.getId().equals(groupInfoList.getId())).findFirst().orElse(null);
             Address address = new Address(groupInfoList.getZipCode(), groupInfoList.getAddress1(), groupInfoList.getAddress2(), groupInfoList.getLocation());
 
+            // 겹치는 요일이 있으면 패스
+            List<Days> notSupportDays = groupInfoList.getNotSupportDays() != null ? DaysUtil.serviceDaysToDaysList(groupInfoList.getNotSupportDays()) : new ArrayList<>();
+            List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(groupInfoList.getServiceDays());
+            List<Days> supportDays = new ArrayList<>(serviceDays);
+            supportDays.retainAll(notSupportDays);
+
             // group 없으면
             if(group == null) {
-                if(GroupDataType.CORPORATION.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
-                    Corporation corporation = groupMapper.groupInfoListToCorporationEntity(groupInfoList, address);
-                    newGroupList.add(corporation);
+                Group newGroup = groupMapper.saveToEntity(groupInfoList, address);
+                newGroupList.add(newGroup);
 
-                    List<DiningType> diningTypeList = corporation.getDiningTypes();
-                    for(DiningType diningType : diningTypeList) {
-                        CorporationMealInfo mealInfo = mealInfoMapper.toCorporationMealInfoEntity(groupInfoList, corporation,diningType, "00:00");
-                        newMealInfoList.add(mealInfo);
-                    }
-                }
-                else if(GroupDataType.APARTMENT.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))){
-                    Apartment apartment = groupMapper.groupInfoListToApartmentEntity(groupInfoList, address);
-                    newGroupList.add(apartment);
+                List<DiningType> diningTypeList = newGroup.getDiningTypes();
+                for(DiningType diningType : diningTypeList) {
+                    List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
 
-                    List<DiningType> diningTypeList = apartment.getDiningTypes();
-                    for(DiningType diningType : diningTypeList) {
-                        ApartmentMealInfo mealInfo = mealInfoMapper.toApartmentMealInfoEntity(groupInfoList, apartment, diningType, "00:00");
-                        newMealInfoList.add(mealInfo);
-                    }
-                }
-                else if(GroupDataType.OPEN_GROUP.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))){
-                    OpenGroup openGroup = groupMapper.groupInfoListToOpenGroupEntity(groupInfoList, address);
-                    newGroupList.add(openGroup);
+                    Integer supportPrice = null;
+                    if(diningType.equals(DiningType.MORNING)) supportPrice = groupInfoList.getMorningSupportPrice();
+                    else if(diningType.equals(DiningType.LUNCH)) supportPrice = groupInfoList.getLunchSupportPrice();
+                    else if(diningType.equals(DiningType.DINNER)) supportPrice = groupInfoList.getDinnerSupportPrice();
+                    serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, BigDecimal.valueOf(supportPrice)));
 
-                    List<DiningType> diningTypeList = openGroup.getDiningTypes();
-                    for(DiningType diningType : diningTypeList) {
-                        OpenGroupMealInfo mealInfo = mealInfoMapper.toOpenGroupMealInfoEntity(groupInfoList, openGroup, diningType, "00:00");
-                        newMealInfoList.add(mealInfo);
-                    }
-
+                    MealInfo mealInfo = groupMapper.toMealInfo(newGroup, diningType, "00:00", "00:00", groupInfoList.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
+                    newMealInfoList.add(mealInfo);
                 }
             }
             // group 있으면
             else {
                 List<DiningType> diningTypeList = new ArrayList<>();
                 List<String> integerList = groupInfoList.getDiningTypes();
-                for(String code : integerList) {
-                    diningTypeList.add(DiningType.ofString(code));
+                for(String string : integerList) {
+                    diningTypeList.add(DiningType.ofString(string));
                 }
 
+                // group update
                 if(group instanceof Corporation corporation) {
-                    Boolean isMembership = null;
-                    if(groupInfoList.getIsMembershipSupport().equals("미지원")) isMembership = false;
-                    else if(groupInfoList.getIsMembershipSupport().equals("지원")) isMembership = true;
-
-                    corporation.updateCorporation(groupInfoList, address, diningTypeList, isMembership, useOrNotUse(groupInfoList.getIsSetting()), useOrNotUse(groupInfoList.getIsGarbage()), useOrNotUse(groupInfoList.getIsHotStorage()));
-                    newGroupList.add(corporation);
-
-                    List<MealInfo> mealInfoList = corporation.getMealInfos();
-                    diningTypeList.forEach(type -> {
-                        CorporationMealInfo corporationMealInfo = mealInfoList.stream()
-                                .filter(mealInfo -> mealInfo instanceof CorporationMealInfo && mealInfo.getDiningType().equals(type))
-                                .map(mealInfo -> (CorporationMealInfo) mealInfo)
-                                .findFirst().orElse(null);
-                        if(corporationMealInfo == null) {
-                            corporationMealInfo = mealInfoMapper.toCorporationMealInfoEntity(groupInfoList, corporation, type,"00:00");
-                            newMealInfoList.add(corporationMealInfo);
-                        }
-                        corporationMealInfo.updateCorporationMealInfo(groupInfoList);
-                        newMealInfoList.add(corporationMealInfo);
-                    });
+                    corporation.updateCorporation(groupInfoList, address, diningTypeList);
                 }
-                else if(group instanceof Apartment apartment) {
-                    apartment.updateApartment(groupInfoList, address, diningTypeList);
-                    newGroupList.add(apartment);
-
-                    List<MealInfo> mealInfoList = apartment.getMealInfos();
-                    diningTypeList.forEach(type -> {
-                        ApartmentMealInfo apartmentMealInfo = mealInfoList.stream()
-                                .filter(mealInfo -> mealInfo instanceof ApartmentMealInfo && mealInfo.getDiningType().equals(type))
-                                .map(mealInfo -> (ApartmentMealInfo) mealInfo)
-                                .findFirst().orElse(null);
-                        if(apartmentMealInfo == null) {
-                            apartmentMealInfo = mealInfoMapper.toApartmentMealInfoEntity(groupInfoList, apartment, type,"00:00");
-                            newMealInfoList.add(apartmentMealInfo);
-                        }
-                        apartmentMealInfo.updateApartmentMealInfo(groupInfoList);
-                        newMealInfoList.add(apartmentMealInfo);
-                    });
+                else if (group instanceof Apartment apartment) {
+                    apartment.updateApartment(address, diningTypeList, groupInfoList.getName(), groupInfoList.getManagerId(), groupInfoList.getEmployeeCount());
                 }
-                else if(group instanceof OpenGroup openGroup) {
-                    openGroup.updateOpenSpot(groupInfoList, address, diningTypeList);
-                    newGroupList.add(openGroup);
-
-                    List<MealInfo> mealInfoList = openGroup.getMealInfos();
-                    diningTypeList.forEach(type -> {
-                        OpenGroupMealInfo openGroupMealInfo = mealInfoList.stream()
-                                .filter(mealInfo -> mealInfo instanceof OpenGroupMealInfo && mealInfo.getDiningType().equals(type))
-                                .map(mealInfo -> (OpenGroupMealInfo) mealInfo)
-                                .findFirst().orElse(null);
-                        if(openGroupMealInfo == null) {
-                            openGroupMealInfo = mealInfoMapper.toOpenGroupMealInfoEntity(groupInfoList, openGroup, type,"00:00");
-                            newMealInfoList.add(openGroupMealInfo);
-                        }
-                        openGroupMealInfo.updateOpenGroupMealInfo(groupInfoList);
-                        newMealInfoList.add(openGroupMealInfo);
-                    });
+                else if (group instanceof  OpenGroup openGroup) {
+                    openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getManagerId(), groupInfoList.getEmployeeCount());
                 }
+
+                // dining type 체크해서 있으면 업데이트, 없으면 생성
+                List<MealInfo> mealInfoList = group.getMealInfos();
+                for(DiningType diningType : diningTypeList) {
+                    Integer supportPrice = null;
+                    if(diningType.equals(DiningType.MORNING)) supportPrice = groupInfoList.getMorningSupportPrice();
+                    else if(diningType.equals(DiningType.LUNCH)) supportPrice = groupInfoList.getLunchSupportPrice();
+                    else if(diningType.equals(DiningType.DINNER)) supportPrice = groupInfoList.getDinnerSupportPrice();
+
+                    List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
+                    if(supportPrice != 0) serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, BigDecimal.valueOf(supportPrice)));
+
+                    MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
+                    if(mealInfo == null) {
+                        MealInfo newMealInfo = groupMapper.toMealInfo(group, diningType, "00:00", "00:00", groupInfoList.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
+                        newMealInfoList.add(newMealInfo);
+                    } else {
+                        if(mealInfo instanceof  CorporationMealInfo corporationMealInfo) corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDaysAndSupportPriceList);
+                        else mealInfo.updateMealInfo(serviceDays);
+                    }
+                }
+
             }
         }
 
@@ -223,11 +191,6 @@ public class GroupServiceImpl implements GroupService {
         return groupListDtoList;
     }
 
-    private Boolean useOrNotUse(String data) {
-        Boolean use = null;
-        if(data.equals("미사용")) use = false;
-        else if(data.equals("사용")) use = true;
-        return use;
-    }
+
 
 }

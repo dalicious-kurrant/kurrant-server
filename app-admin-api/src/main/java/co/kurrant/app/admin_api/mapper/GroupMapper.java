@@ -3,10 +3,13 @@ package co.kurrant.app.admin_api.mapper;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DaysUtil;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import org.mapstruct.*;
@@ -14,7 +17,6 @@ import org.mapstruct.*;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class, BigDecimal.class})
 public interface GroupMapper {
@@ -70,152 +72,124 @@ public interface GroupMapper {
         return groupDto;
     }
 
-    @Mapping(source = "group.memo", target = "memo")
-    @Mapping(source = "group.id", target = "id")
-    @Mapping(source = "group", target = "groupType", qualifiedByName = "getGroupDataType")
-    @Mapping(source = "group", target = "code", qualifiedByName = "getGroupCode")
-    @Mapping(source = "group.name", target = "name")
-    @Mapping(source = "group.address.zipCode", target = "zipCode")
-    @Mapping(source = "group.address.address1", target = "address1")
-    @Mapping(source = "group.address.address2", target = "address2")
-    @Mapping(source = "group", target = "location", qualifiedByName = "getLocation")
-    @Mapping(source = "group.diningTypes", target = "diningTypes", qualifiedByName = "getDiningCodeList")
-    @Mapping(source = "group", target = "serviceDays", qualifiedByName = "serviceDayToString")
-    @Mapping(source = "managerUser.id", target = "managerId")
-    @Mapping(source = "managerUser.name", target = "managerName")
-    @Mapping(source = "managerUser.phone", target = "managerPhone")
-    @Mapping(source = "group", target = "isMembershipSupport", qualifiedByName = "getIsMembershipSupport")
-    @Mapping(source = "group", target = "employeeCount", qualifiedByName = "getEmployeeCount")
-    @Mapping(source = "group", target = "isSetting", qualifiedByName = "getIsSetting")
-    @Mapping(source = "group", target = "isGarbage", qualifiedByName = "getIsGarbage")
-    @Mapping(source = "group", target = "isHotStorage", qualifiedByName = "getIsHotStorage")
-    @Mapping(target = "morningSupportPrice", expression = "java(getSupportPrice(group, DiningType.MORNING))")
-    @Mapping(target = "lunchSupportPrice", expression = "java(getSupportPrice(group, DiningType.LUNCH))")
-    @Mapping(target = "dinnerSupportPrice", expression = "java(getSupportPrice(group, DiningType.DINNER))")
-    @Mapping(source = "group", target = "minimumSpend", qualifiedByName = "getMinimumSpend")
-    @Mapping(source = "group", target = "maximumSpend", qualifiedByName = "getMaximumSpend")
-    GroupListDto.GroupInfoList toCorporationListDto(Group group, User managerUser);
+    default GroupListDto.GroupInfoList toCorporationListDto(Group group, User managerUser) {
+        GroupListDto.GroupInfoList groupInfoList = new GroupListDto.GroupInfoList();
+        boolean isCorporation = group instanceof Corporation;
 
-    @Named("getLocation")
-    default String getLocation(Group group) {
-        if (group.getAddress().getLocation() != null) {
-            return String.valueOf(group.getAddress().getLocation());
-        }
-        return null;
-    }
+        groupInfoList.setId(group.getId());
 
-    @Named("getGroupDataType")
-    default Integer getGroupDataType(Group group) {
         Integer groupType = null;
-        if(group instanceof Corporation ) groupType = GroupDataType.CORPORATION.getCode();
-        else if(group instanceof Apartment) groupType = GroupDataType.APARTMENT.getCode();
-        else if(group instanceof OpenGroup) groupType = GroupDataType.OPEN_GROUP.getCode();
-        return groupType;
-    }
-
-
-    @Named("getMinimumSpend")
-    default BigDecimal getMinimumSpend(Group group) {
-        BigDecimal minimumSpend = BigDecimal.ZERO;
-        if (group instanceof Corporation corporation) {
-            return minimumSpend = corporation.getMinimumSpend();
+        Integer employeeCount = null;
+        if(group instanceof Corporation corporation) {
+            groupType = GroupDataType.CORPORATION.getCode();
+            employeeCount = corporation.getEmployeeCount();
+            groupInfoList.setMinimumSpend(corporation.getMinimumSpend());
+            groupInfoList.setMaximumSpend(corporation.getMaximumSpend());
         }
-        return minimumSpend;
-    }
-
-    @Named("getMaximumSpend")
-    default BigDecimal getMaximumSpend(Group group) {
-        BigDecimal maximumSpend = BigDecimal.ZERO;
-        if (group instanceof Corporation corporation) {
-            return maximumSpend = corporation.getMaximumSpend();
+        else if(group instanceof Apartment apartment) {
+            groupType = GroupDataType.APARTMENT.getCode();
+            employeeCount = apartment.getFamilyCount();
         }
-        return maximumSpend;
-    }
-
-    @Named("getSupportPrice")
-    default BigDecimal getSupportPrice(Group group, DiningType type) {
-        if (group instanceof Corporation) {
-            for (MealInfo mealInfo : group.getMealInfos()) {
-                if (mealInfo.getDiningType().equals(type)) return ((CorporationMealInfo) mealInfo).getSupportPrice();
-            }
+        else if(group instanceof OpenGroup openGroup) {
+            groupType = GroupDataType.OPEN_GROUP.getCode();
+            employeeCount = openGroup.getOpenGroupUserCount();
         }
-        return null;
-    }
 
-    @Named("getDiningCodeList")
-    default List<Integer> getDiningCodeList(List<DiningType> diningTypeList) {
-        return diningTypeList.stream().map(DiningType::getCode).toList();
-    }
+        groupInfoList.setGroupType(groupType);
+        groupInfoList.setEmployeeCount(employeeCount);
 
-    @Named("serviceDayToString")
-    default String serviceDayToString(Group group) {
-        StringBuilder mealInfoBuilder = new StringBuilder();
+        groupInfoList.setCode((isCorporation) ? ((Corporation) group).getCode() : null);
+        groupInfoList.setName(group.getName());
+        groupInfoList.setZipCode(group.getAddress().getZipCode());
+        groupInfoList.setAddress1(group.getAddress().getAddress1());
+        groupInfoList.setAddress2(group.getAddress().getAddress2());
+        groupInfoList.setLocation((group.getAddress().getLocation() != null) ? String.valueOf(group.getAddress().getLocation()) : null);
+
+        List<DiningType> diningTypeList = group.getDiningTypes();
+        groupInfoList.setDiningTypes(diningTypeList.stream().map(DiningType::getCode).toList());
+        if(managerUser != null) {
+            groupInfoList.setManagerId(managerUser.getId());
+            groupInfoList.setManagerName(managerUser.getName());
+            groupInfoList.setManagerPhone(managerUser.getPhone());
+        }
+        groupInfoList.setIsMembershipSupport((isCorporation) ? ((Corporation) group).getIsMembershipSupport() : null);
+        groupInfoList.setIsGarbage((isCorporation) ? ((Corporation) group).getIsGarbage() : null);
+        groupInfoList.setIsHotStorage((isCorporation) ? ((Corporation) group).getIsHotStorage() : null);
+        groupInfoList.setIsSetting((isCorporation) ? ((Corporation) group).getIsSetting() : null);
 
         List<MealInfo> mealInfoList = group.getMealInfos();
-        List<String> serviceDayList = mealInfoList.stream()
-                .map(MealInfo::getServiceDays)
-                .filter(serviceDays -> serviceDays != null && !serviceDays.isBlank())
-                .flatMap(serviceDays -> Stream.of(serviceDays.split(", |,"))).toList();
+        List<Days> serviceDays = null;
+        List<Days> notSupportDays = null;
+        BigDecimal morningSupportPrice = BigDecimal.ZERO;
+        BigDecimal lunchSupportPrice = BigDecimal.ZERO;
+        BigDecimal dinnerSupportPrice = BigDecimal.ZERO;
 
-        serviceDayList.stream().distinct().forEach(day -> mealInfoBuilder.append(day).append(", "));
-        if (mealInfoBuilder.length() != 0) {
-            return String.valueOf(mealInfoBuilder).substring(0, mealInfoBuilder.length() - 2);
+        for(MealInfo mealInfo : mealInfoList) {
+            serviceDays = mealInfo.getServiceDays();
+            if(mealInfo instanceof CorporationMealInfo corporationMealInfo && diningTypeList.contains(mealInfo.getDiningType())) {
+                List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = corporationMealInfo.getServiceDaysAndSupportPrices();
+                for(ServiceDaysAndSupportPrice serviceDaysAndSupportPrice : serviceDaysAndSupportPriceList) {
+                    List<Days> days = serviceDaysAndSupportPrice.getSupportDays();
+                    BigDecimal supportPrice = serviceDaysAndSupportPrice.getSupportPrice();
+
+                    switch (mealInfo.getDiningType()) {
+                        case MORNING -> morningSupportPrice = morningSupportPrice.add(supportPrice);
+                        case LUNCH -> lunchSupportPrice = lunchSupportPrice.add(supportPrice);
+                        case DINNER -> dinnerSupportPrice = dinnerSupportPrice.add(supportPrice);
+                    }
+
+                    notSupportDays = serviceDays.stream().filter(d -> !days.contains(d)).toList();
+                }
+            }
+        }
+        groupInfoList.setServiceDays(serviceDays != null ? DaysUtil.serviceDaysToDaysString(serviceDays) : null);
+        groupInfoList.setNotSupportDays(notSupportDays != null ? DaysUtil.serviceDaysToDaysString(notSupportDays) : null);
+        groupInfoList.setMorningSupportPrice(morningSupportPrice);
+        groupInfoList.setLunchSupportPrice(lunchSupportPrice);
+        groupInfoList.setDinnerSupportPrice(dinnerSupportPrice);
+
+        return groupInfoList;
+    }
+
+    default Group saveToEntity(GroupExcelRequestDto groupInfoList, Address address) {
+        List<DiningType> diningTypeList = getDiningType(groupInfoList.getDiningTypes());
+
+        if(GroupDataType.CORPORATION.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
+            return Corporation.builder()
+                    .address(address)
+                    .diningTypes(diningTypeList)
+                    .name(groupInfoList.getName())
+                    .managerId(groupInfoList.getManagerId())
+                    .code(createCode(groupInfoList.getCode()))
+                    .isMembershipSupport(!groupInfoList.getIsMembershipSupport().equals("미지원"))
+                    .employeeCount(groupInfoList.getEmployeeCount())
+                    .isGarbage(!groupInfoList.getIsGarbage().equals("미사용"))
+                    .isHotStorage(!groupInfoList.getIsHotStorage().equals("미사용"))
+                    .isSetting(!groupInfoList.getIsSetting().equals("미사용"))
+                    .minimumSpend(setMinimumSpend(groupInfoList))
+                    .maximumSpend(setMaximumSpend(groupInfoList))
+                    .build();
+        }
+        else if(GroupDataType.APARTMENT.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
+            return Apartment.builder()
+                    .address(address)
+                    .diningTypes(diningTypeList)
+                    .name(groupInfoList.getName())
+                    .managerId(groupInfoList.getManagerId())
+                    .familyCount(groupInfoList.getEmployeeCount())
+                    .build();
+        }
+        else if(GroupDataType.OPEN_GROUP.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
+            return OpenGroup.builder()
+                    .address(address)
+                    .diningTypes(diningTypeList)
+                    .name(groupInfoList.getName())
+                    .managerId(groupInfoList.getManagerId())
+                    .openGroupUserCount(groupInfoList.getEmployeeCount())
+                    .build();
         }
         return null;
-
     }
-
-    @Named("getGroupCode")
-    default String getGroupCode(Group group) {
-        if (group instanceof Corporation corporation) return corporation.getCode();
-        else return null;
-    }
-
-    @Named("getEmployeeCount")
-    default Integer getEmployeeCount(Group group) {
-        if (group instanceof Corporation corporation) return corporation.getEmployeeCount();
-        else if (group instanceof Apartment apartment) return apartment.getFamilyCount();
-        else if (group instanceof OpenGroup openGroup) return openGroup.getOpenGroupUserCount();
-        else return null;
-    }
-
-    @Named("getIsSetting")
-    default Boolean getIsSetting(Group group) {
-        if (group instanceof Corporation corporation) return corporation.getIsSetting();
-        else return null;
-    }
-
-    @Named("getIsGarbage")
-    default Boolean getIsGarbage(Group group) {
-        if (group instanceof Corporation corporation) return corporation.getIsGarbage();
-        else return null;
-    }
-
-    @Named("getIsHotStorage")
-    default Boolean getIsHotStorage(Group group) {
-        if (group instanceof Corporation corporation) return corporation.getIsHotStorage();
-        else return null;
-    }
-
-    @Named("getIsMembershipSupport")
-    default Boolean getIsMembershipSupport(Group group) {
-        if (group instanceof Corporation corporation) return corporation.getIsMembershipSupport();
-        else return null;
-    }
-
-    @Mapping(source = "address", target = "address")
-    @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
-    @Mapping(source = "groupInfoList.name", target = "name")
-    @Mapping(source = "groupInfoList.managerId", target = "managerId")
-    @Mapping(source = "groupInfoList.code", target = "code", qualifiedByName = "createCode")
-    @Mapping(source = "groupInfoList", target = "isMembershipSupport", qualifiedByName = "isMembershipSupport")
-    @Mapping(source = "groupInfoList.employeeCount", target = "employeeCount")
-    @Mapping(source = "groupInfoList", target = "isGarbage", qualifiedByName = "isGarbage")
-    @Mapping(source = "groupInfoList", target = "isHotStorage", qualifiedByName = "isHotStorage")
-    @Mapping(source = "groupInfoList", target = "isSetting", qualifiedByName = "isSetting")
-    @Mapping(source = "groupInfoList", target = "minimumSpend", qualifiedByName = "setMinimumSpend")
-    @Mapping(source = "groupInfoList", target = "maximumSpend", qualifiedByName = "setMaximumSpend")
-    Corporation groupInfoListToCorporationEntity(GroupExcelRequestDto groupInfoList, Address address);
 
 
     @Named("createCode")
@@ -254,52 +228,6 @@ public interface GroupMapper {
         return null;
     }
 
-    @Named("isMembershipSupport")
-    default Boolean isMembershipSupport(GroupExcelRequestDto groupInfoList) {
-        Boolean result = null;
-        if (Objects.equals(groupInfoList.getIsMembershipSupport(), "미지원")) result = false;
-        else if (Objects.equals(groupInfoList.getIsMembershipSupport(), "지원")) result = true;
-        return result;
-    }
-
-    @Named("isGarbage")
-    default Boolean isGarbage(GroupExcelRequestDto groupInfoList) {
-        Boolean result = null;
-        if (Objects.equals(groupInfoList.getIsGarbage(), "미사용")) result = false;
-        else if (Objects.equals(groupInfoList.getIsGarbage(), "사용")) result = true;
-        return result;
-    }
-
-    @Named("isHotStorage")
-    default Boolean isHotStorage(GroupExcelRequestDto groupInfoList) {
-        Boolean result = null;
-        if (Objects.equals(groupInfoList.getIsHotStorage(), "미사용")) result = false;
-        else if (Objects.equals(groupInfoList.getIsHotStorage(), "사용")) result = true;
-        return result;
-    }
-
-    @Named("isSetting")
-    default Boolean isSetting(GroupExcelRequestDto groupInfoList) {
-        Boolean result = null;
-        if (Objects.equals(groupInfoList.getIsSetting(), "미사용")) result = false;
-        else if (Objects.equals(groupInfoList.getIsSetting(), "사용")) result = true;
-        return result;
-    }
-
-    @Mapping(source = "address", target = "address")
-    @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
-    @Mapping(source = "groupInfoList.name", target = "name")
-    @Mapping(source = "groupInfoList.managerId", target = "managerId")
-    @Mapping(source = "groupInfoList.employeeCount", target = "familyCount")
-    Apartment groupInfoListToApartmentEntity(GroupExcelRequestDto groupInfoList, Address address);
-
-    @Mapping(source = "address", target = "address")
-    @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
-    @Mapping(source = "groupInfoList.name", target = "name")
-    @Mapping(source = "groupInfoList.managerId", target = "managerId")
-    @Mapping(source = "groupInfoList.employeeCount", target = "openGroupUserCount")
-    OpenGroup groupInfoListToOpenGroupEntity(GroupExcelRequestDto groupInfoList, Address address);
-
     @Named("getDiningType")
     default List<DiningType> getDiningType(List<String> diningTypeInteger) {
         List<DiningType> diningTypeList = new ArrayList<>();
@@ -308,6 +236,52 @@ public interface GroupMapper {
                 diningTypeList.add(DiningType.ofString(diningTypeCode));
             }
             return diningTypeList;
+        }
+        return null;
+    }
+
+    default ServiceDaysAndSupportPrice toServiceDaysAndSupportPriceEntity(List<Days> supportDays, BigDecimal supportPrice) {
+        return ServiceDaysAndSupportPrice.builder()
+                .supportPrice(supportPrice)
+                .supportDays(supportDays)
+                .build();
+    }
+
+    default MealInfo toMealInfo(Group group, DiningType diningType, String lastOrderTime, String deliveryTime, String useDays, String membershipBenefitTime, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList) {
+        // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
+        if (lastOrderTime == null || deliveryTime == null || useDays == null) {
+            return null;
+        }
+        // 기업 스팟인 경우
+        if (group instanceof Corporation corporation) {
+            return CorporationMealInfo.builder()
+                    .group(corporation)
+                    .diningType(diningType)
+                    .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
+                    .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
+                    .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
+                    .serviceDaysAndSupportPrices(serviceDaysAndSupportPriceList)
+                    .build();
+        } else if (group instanceof Apartment apartment) {
+            return ApartmentMealInfo.builder()
+                    .group(apartment)
+                    .diningType(diningType)
+                    .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
+                    .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
+                    .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
+                    .build();
+        } else if (group instanceof OpenGroup openGroup) {
+            return OpenGroupMealInfo.builder()
+                    .group(openGroup)
+                    .diningType(diningType)
+                    .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
+                    .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
+                    .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
+                    .build();
+
         }
         return null;
     }

@@ -1,14 +1,18 @@
 package co.kurrant.app.public_api.dto.order;
 
-import co.dalicious.domain.client.entity.DayAndTime;
-import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DaysUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.security.core.parameters.P;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -25,7 +29,7 @@ public class OrderByServiceDateNotyDto {
         return OrderByServiceDateNotyDto.builder()
                 .type(mealInfo.getDiningType())
                 .lastOrderTime(mealInfo.getLastOrderTime())
-                .serviceDays(List.of(mealInfo.getServiceDays().split(", ")))
+                .serviceDays(DaysUtil.serviceDaysToDaysStringList(mealInfo.getServiceDays()))
                 .membershipBenefitTime(mealInfo.getMembershipBenefitTime())
                 .build();
 
