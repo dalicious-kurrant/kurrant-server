@@ -44,6 +44,7 @@ public class SpotServiceImpl implements SpotService {
     private final GroupRepository groupRepository;
     private final MealInfoRepository mealInfoRepository;
 
+    private final UserRepository userRepository;
 
     @Override
     public List<SpotResponseDto> getAllSpotList(Integer status) {
@@ -198,28 +199,24 @@ public class SpotServiceImpl implements SpotService {
 
     }
 
-//    @Override
-//    public Object getSpotDetail(Integer spotId) {
-//
-//        //spotId로 spot 조회
-//        Spot spot = spotRepository.findById(BigInteger.valueOf(spotId))
-//                .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-//
-//
-//        if (spot instanceof CorporationSpot){
-//            Optional<Corporation> corporation = corporationRepository.findById(spot.getGroup().getId());
-//            List<CorporationMealInfo> corporationMealInfo = corporaionMealInfoRepository.findAllByGroupId(spot.getGroup().getId());
-//
-//
-//            if (spot.getGroup().getManagerId() != null) {
-//                User manager = userRepository.findById(spot.getGroup().getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MANAGER));
-//                return spotMapper.toDetailDto(spot, manager, corporation.get(), corporationMealInfo);
-//            }
-//            return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), corporation.get(), corporationMealInfo);
-//        }
-//
-//        return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), null, null);
-//    }
+    @Override
+    public SpotDetailResDto getSpotDetail(Integer spotId) {
+        //spotId로 spot 조회
+        Spot spot = spotRepository.findById(BigInteger.valueOf(spotId))
+                .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+
+        if (spot instanceof CorporationSpot corporationSpot){
+            List<MealInfo> mealInfoList = corporationSpot.getMealInfos();
+
+            if (spot.getGroup().getManagerId() != null) {
+                User manager = userRepository.findById(spot.getGroup().getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MANAGER));
+                return spotMapper.toDetailDto(spot, manager, mealInfoList);
+            }
+            return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), mealInfoList);
+        }
+
+        return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), null);
+    }
 
     @Override
     @Transactional
@@ -232,19 +229,33 @@ public class SpotServiceImpl implements SpotService {
         List<DiningType> updateDiningTypeList = DiningTypesUtils.stringToDiningTypes(updateSpotDetailRequestDto.getDiningTypes());
         spot.updateDiningTypes(updateDiningTypeList);
 
-        // 다이닝 타입에 맞게 식사 일정 수정 및 생성
+        List<Days> notSupportDays = updateSpotDetailRequestDto.getNotSupportDays() != null ? DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getNotSupportDays()) : new ArrayList<>();
+        List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getServiceDays());
+        List<Days> supportDays = new ArrayList<>(serviceDays);
+        supportDays.retainAll(notSupportDays);
+
+        // dining type 체크해서 있으면 업데이트, 없으면 생성
         List<MealInfo> mealInfoList = spot.getMealInfos();
         List<MealInfo> newMealInfoList = new ArrayList<>();
         for(DiningType diningType : updateDiningTypeList) {
+            BigDecimal supportPrice = null;
+            if(diningType.equals(DiningType.MORNING)) supportPrice = updateSpotDetailRequestDto.getBreakfastSupportPrice();
+            else if(diningType.equals(DiningType.LUNCH)) supportPrice = updateSpotDetailRequestDto.getLunchSupportPrice();
+            else if(diningType.equals(DiningType.DINNER)) supportPrice = updateSpotDetailRequestDto.getDinnerSupportPrice();
+
+            List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
+            if(supportPrice.compareTo(BigDecimal.valueOf(0)) != 0) serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, supportPrice));
+
             MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
-            if(mealInfo != null) {
-                mealInfo.updateMealInfo(DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getServiceDays()), mealInfo);
-            }
-            else  {
-                MealInfo newMealInfo = spotMapper.toMealInfo(spot.getGroup(), diningType, "00:00", "00:00", updateSpotDetailRequestDto.getServiceDays(), "00:00");
+            if(mealInfo == null) {
+                MealInfo newMealInfo = groupMapper.toMealInfo(spot.getGroup(), diningType, "00:00", "00:00", updateSpotDetailRequestDto.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
                 newMealInfoList.add(newMealInfo);
+            } else {
+                if(mealInfo instanceof  CorporationMealInfo corporationMealInfo) corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDaysAndSupportPriceList);
+                else mealInfo.updateMealInfo(serviceDays);
             }
         }
+
         mealInfoRepository.saveAll(newMealInfoList);
         spot.updateSpot(updateSpotDetailRequestDto);
     }

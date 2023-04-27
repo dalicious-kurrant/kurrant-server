@@ -54,4 +54,12 @@ public class DaysUtil {
     public static List<String> serviceDaysToDaysStringList(List<Days> daysList) {
         return daysList.stream().map(Days::getDays).collect(Collectors.toList());
     }
+
+    public static String serviceDaysSetToString(Set<Days> daysList) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for(Days days : daysList) {
+            stringBuilder.append(days.getDays()).append(", ");
+        }
+        return stringBuilder.substring(0, stringBuilder.length() - 2);
+    }
 }

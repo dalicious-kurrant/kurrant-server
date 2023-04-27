@@ -18,13 +18,13 @@ public class SpotDetailResDto {
     private String spotName;
     @Schema(description = "그룹 아이디")
     private BigInteger groupId;
-
     private String managerName;
     private BigInteger managerId;
     private String managerPhone;
     private String spotType;
     private String diningTypes;
     private String mealDay;
+    private String notSupportDays;
     private String zipCode;
     private Boolean isMembershipSupport;
     private String address1;
