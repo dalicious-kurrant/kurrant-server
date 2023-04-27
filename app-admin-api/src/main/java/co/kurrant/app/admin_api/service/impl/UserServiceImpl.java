@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
@@ -297,15 +298,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public String saveTestData(SaveTestDataRequestDto saveTestDataRequestDto) {
-        //foodId 검증
+
         List<TestData> testData = saveTestDataRequestDto.getTestData();
         String foodIds = null;
+
+        //기존 TestData 삭제
+        userTasteTestDataRepository.deleteAll();
+
+        //foodId 검증
         for (int i = 0; i < testData.size(); i++) {
             for (int j = 0; j < testData.get(i).getFoodIds().size(); j++) {
                 BigInteger foodId = testData.get(i).getFoodIds().get(j);
-                foodRepository.findById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+                Food food = foodRepository.findById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+
+                //image가 없는 food 걸러내기
+                if (food.getImages().isEmpty()){
+                    throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD_IMAGE);
+                }
             }
+
             //UserTasteTestData에 저장
             foodIds = testData.get(i).getFoodIds().toString().substring(1, testData.get(i).getFoodIds().toString().length() -1);
             UserTasteTestData userTasteTestData = UserTasteTestData.builder()
