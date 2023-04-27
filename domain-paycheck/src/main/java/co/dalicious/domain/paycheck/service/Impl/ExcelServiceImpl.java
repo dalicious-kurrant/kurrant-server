@@ -12,11 +12,6 @@ import co.dalicious.domain.paycheck.service.ExcelService;
 
 import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -50,9 +45,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         String fileName = makersPaycheck.getMakers().getName() + makersPaycheck.getFileName() + ".xlsx";
 
-        String fileName2 = "C:\\Users\\minji\\Downloads\\" + makersPaycheck.getYearMonth().getYear() +
-                ((makersPaycheck.getYearMonth().getMonthValue() < 10) ? "0" + String.valueOf(makersPaycheck.getYearMonth().getMonthValue()) : String.valueOf(makersPaycheck.getYearMonth().getMonthValue())) +
-                "_" + makersPaycheck.getMakers().getName() + ".pdf";
+        String fileName2 = makersPaycheck.getMakers().getName() + makersPaycheck.getFileName() + ".pdf";
 
         // Create header rows
         createHeaderRows(workbook, sheet, makersPaycheck.getMakers().getName(), makersPaycheck.getYearMonth());
@@ -138,6 +131,11 @@ public class ExcelServiceImpl implements ExcelService {
 //            e.printStackTrace();
 //        }
         return imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+    }
+
+    public void convertExcelToPdf(Workbook workbook, String pdfFilePath) throws Exception {
+        // Save the Excel file as a PDF
+
     }
 
     public void createCorporationPaycheckOrderExcel(CorporationPaycheck corporationPaycheck, Workbook workbook) {
@@ -250,31 +248,6 @@ public class ExcelServiceImpl implements ExcelService {
 
         Picture picture = drawing.createPicture(anchor, pictureIndex);
         picture.resize(scaleX, scaleY);
-    }
-
-    // FIXME: 정우님에게 물어보기
-
-    private ByteArrayOutputStream imageToPdf(BufferedImage bufferedImage) {
-        PDDocument document = new PDDocument();
-        PDPage page = new PDPage(new PDRectangle(bufferedImage.getWidth(), bufferedImage.getHeight()));
-        document.addPage(page);
-
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-            PDImageXObject image = PDImageXObject.createFromByteArray(document, bufferedImageToByteArray(bufferedImage), "excel");
-            contentStream.drawImage(image, 0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
-            contentStream.close();
-            document.save(byteArrayOutputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                document.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return byteArrayOutputStream;
     }
 
     private byte[] bufferedImageToByteArray(BufferedImage bufferedImage) {
