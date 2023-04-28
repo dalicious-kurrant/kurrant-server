@@ -10,8 +10,11 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.QOrderItemDailyFood;
 import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
+import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
@@ -50,6 +53,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
 
@@ -72,6 +76,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
     private final QMembershipSupportPriceRepository qMembershipSupportPriceRepository;
     private final QCorporationPaycheckRepository qCorporationPaycheckRepository;
+    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
 
     @Override
     @Transactional
@@ -436,6 +441,19 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     @Transactional
     public List<MakersPaycheck> postMakersPaycheckExcel() {
         return paycheckService.generateAllMakersPaycheck(qMakersPaycheckRepository.getPaycheckDto());
+    }
+
+    @Override
+    @Transactional
+    public MakersPaycheck postOneMakersPaycheckExcel(BigInteger makersId) {
+        Makers makers = makersRepository.findById(makersId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+        YearMonth yearMonth = YearMonth.now();
+        LocalDate start = yearMonth.atDay(1);
+        LocalDate end = yearMonth.atEndOfMonth();
+        List<Integer> diningTypes = List.of(1, 2, 3);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByMakersFilter(start, end, makers, diningTypes);
+        return paycheckService.generateMakersPaycheck(makers, orderItemDailyFoods);
     }
 
     public String getImagePrefix(Image image) {

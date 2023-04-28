@@ -19,6 +19,24 @@ import java.util.Map;
 public class PaycheckController {
     private final AdminPaycheckService adminPaycheckService;
 
+    @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
+    @PostMapping("/makers")
+    public ResponseMessage postMakersPaycheck() {
+        adminPaycheckService.postMakersPaycheckExcel();
+        return ResponseMessage.builder()
+                .message("기업 정산 등록에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
+    @PostMapping("/makers/{makersId}")
+    public ResponseMessage postOneMakersPaycheck(@PathVariable BigInteger makersId) {
+        adminPaycheckService.postOneMakersPaycheckExcel(makersId);
+        return ResponseMessage.builder()
+                .message("기업 정산 등록에 성공하였습니다.")
+                .build();
+    }
+
     @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
     @PostMapping("/makers")
     public ResponseMessage postMakersPaycheck(@RequestPart(required = false) MultipartFile makersXlsx,
