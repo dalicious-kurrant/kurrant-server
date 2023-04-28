@@ -8,12 +8,13 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @Schema(description = "스팟 상세정보를 수정 요청하는 Dto")
-public class UpdateSpotDetailRequestDto {
+public class UpdateSpotDetailResponseDto {
     @Schema(description = "스팟 ID")
     private BigInteger spotId;
     @Schema(description = "코드")
@@ -70,6 +71,28 @@ public class UpdateSpotDetailRequestDto {
     private String memo;
     @Schema(description = "정산 선불 정보")
     private List<PrepaidCategory> prepaidCategoryList;
+    private List<CategoryPrice> categoryPrices;
+
+    public UpdateSpotDetailResponseDto() {
+        List<CategoryPrice> categoryPrices1 = new ArrayList<>();
+        for (co.dalicious.system.enums.CategoryPrice categoryPrice : co.dalicious.system.enums.CategoryPrice.values()) {
+            categoryPrices1.add(new CategoryPrice(categoryPrice));
+        }
+        this.categoryPrices = categoryPrices1;
+    }
+
+    @Getter
+    public static class CategoryPrice {
+        private final Integer code;
+        private final String category;
+        private final Integer price;
+
+        public CategoryPrice(co.dalicious.system.enums.CategoryPrice categoryPrice) {
+            this.code = categoryPrice.getCode();
+            this.category = categoryPrice.getCategory();
+            this.price = categoryPrice.getPrice().intValue();
+        }
+    }
     @Getter
     @NoArgsConstructor
     public static class PrepaidCategory {

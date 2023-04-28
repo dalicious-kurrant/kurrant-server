@@ -1,5 +1,4 @@
 package co.kurrant.app.admin_api.dto.client;
-import co.dalicious.domain.paycheck.entity.enums.CategoryPrice;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -63,7 +62,7 @@ public class SpotDetailResDto {
 
     public SpotDetailResDto() {
         List<CategoryPrice> categoryPrices1 = new ArrayList<>();
-        for (co.dalicious.domain.paycheck.entity.enums.CategoryPrice categoryPrice : co.dalicious.domain.paycheck.entity.enums.CategoryPrice.values()) {
+        for (co.dalicious.system.enums.CategoryPrice categoryPrice : co.dalicious.system.enums.CategoryPrice.values()) {
             categoryPrices1.add(new CategoryPrice(categoryPrice));
         }
         this.categoryPrices = categoryPrices1;
@@ -75,7 +74,7 @@ public class SpotDetailResDto {
         private final String category;
         private final Integer price;
 
-        public CategoryPrice(co.dalicious.domain.paycheck.entity.enums.CategoryPrice categoryPrice) {
+        public CategoryPrice(co.dalicious.system.enums.CategoryPrice categoryPrice) {
             this.code = categoryPrice.getCode();
             this.category = categoryPrice.getCategory();
             this.price = categoryPrice.getPrice().intValue();

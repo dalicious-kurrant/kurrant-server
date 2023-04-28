@@ -65,7 +65,7 @@ public class PaycheckServiceImpl implements PaycheckService {
 
     @Override
     @Transactional
-    public List<MakersPaycheck> generateAllMakersPaycheck(List<PaycheckDto.PaycheckDailyFood> paycheckDailyFoodDtos) {
+    public List<MakersPaycheck> generateAllMakersPaycheck(List<? extends PaycheckDto.PaycheckDailyFood> paycheckDailyFoodDtos) {
         MultiValueMap<Makers, PaycheckDailyFood> paycheckDailyFoodMap = new LinkedMultiValueMap<>();
         for (PaycheckDto.PaycheckDailyFood paycheckDailyFoodDto : paycheckDailyFoodDtos) {
             PaycheckDailyFood paycheckDailyFood = makersPaycheckMapper.toPaycheckDailyFood(paycheckDailyFoodDto);
@@ -124,8 +124,7 @@ public class PaycheckServiceImpl implements PaycheckService {
         }
 
         paycheckDailyFoods = paycheckDailyFoods.stream().sorted(Comparator.comparing(PaycheckDailyFood::getServiceDate).thenComparing(v -> v.getDiningType().getCode())).toList();
-
-        return makersPaycheckMapper.toInitiateEntity(makers, null, null, paycheckDailyFoods);
+        return makersPaycheckRepository.save(makersPaycheckMapper.toInitiateEntity(makers, null, null, paycheckDailyFoods));
     }
 
     /*

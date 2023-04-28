@@ -243,6 +243,7 @@ project(':batch') {
         implementation project(':domain-makers')
         implementation project(':domain-client')
         implementation project(':domain-payment')
+        implementation project(':domain-paycheck')
     }
 }
 

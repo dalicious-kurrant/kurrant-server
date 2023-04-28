@@ -26,7 +26,7 @@ public interface AdminPaycheckService {
     void updateMakersPaycheckStatus(Integer status, List<BigInteger> ids);
     void postMakersMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto);
     void postCorporationPaycheckExcel();
-    void postOneCorporationPaycheckExcel(BigInteger corporationId);
+    void postOneCorporationPaycheckExcel(BigInteger corporationId, String yearMonth);
     PaycheckDto.CorporationMain getCorporationPaychecks(Map<String, Object> parameters);
     PaycheckDto.CorporationOrder getCorporationOrderHistory(BigInteger corporationPaycheckId);
     PaycheckDto.Invoice getCorporationInvoice(BigInteger corporationPaycheckId);
@@ -38,5 +38,6 @@ public interface AdminPaycheckService {
     void postSparkplusLog(Integer log);
     List<SparkPlusLog> getSpartplusLog();
     List<MakersPaycheck> postMakersPaycheckExcel();
+    void postOneMakersPaycheckExcel(BigInteger makersId, String yearMonth);
 
 }

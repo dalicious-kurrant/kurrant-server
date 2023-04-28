@@ -1,4 +1,4 @@
-package co.dalicious.domain.paycheck.entity.enums;
+package co.dalicious.system.enums;
 
 import lombok.Getter;
 

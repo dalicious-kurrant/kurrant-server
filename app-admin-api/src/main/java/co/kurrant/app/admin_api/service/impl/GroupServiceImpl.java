@@ -3,13 +3,11 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.client.dto.ApartmentRequestDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
-import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserRepository;
@@ -19,7 +17,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.DiningTypesUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
-import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.GroupService;
@@ -199,22 +197,22 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional(readOnly = true)
-    public SpotDetailResDto getGroupDetail(Integer spotId) {
+    public UpdateSpotDetailResponseDto getGroupDetail(Integer spotId) {
         //spotId로 spot 조회
-        Spot spot = spotRepository.findById(BigInteger.valueOf(spotId))
-                .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        Group group = groupRepository.findById(BigInteger.valueOf(spotId))
+                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
 
-        if (spot instanceof CorporationSpot corporationSpot){
-            List<MealInfo> mealInfoList = corporationSpot.getMealInfos();
+        if (group instanceof Corporation){
+            List<MealInfo> mealInfoList = group.getMealInfos();
 
-            if (spot.getGroup().getManagerId() != null) {
-                User manager = userRepository.findById(spot.getGroup().getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MANAGER));
-                return spotMapper.toDetailDto(spot, manager, mealInfoList);
+            if (group.getManagerId() != null) {
+                User manager = userRepository.findById(group.getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MANAGER));
+                return spotMapper.toDetailDto(group, manager, mealInfoList);
             }
-            return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), mealInfoList);
+            return spotMapper.toDetailDto(group, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), mealInfoList);
         }
 
-        return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), null);
+        return spotMapper.toDetailDto(group, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), null);
     }
 
     @Override
@@ -225,7 +223,7 @@ public class GroupServiceImpl implements GroupService {
         Spot spot = spotRepository.findById(updateSpotDetailRequestDto.getSpotId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
 
         // 스팟에 해당하는 다이닝 타입 변경
-        List<DiningType> updateDiningTypeList = DiningTypesUtils.stringToDiningTypes(updateSpotDetailRequestDto.getDiningTypes());
+        List<DiningType> updateDiningTypeList = DiningTypesUtils.stringCodeToDiningTypes(updateSpotDetailRequestDto.getDiningTypes());
         spot.updateDiningTypes(updateDiningTypeList);
 
         List<Days> notSupportDays = updateSpotDetailRequestDto.getNotSupportDays() != null ? DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getNotSupportDays()) : new ArrayList<>();
@@ -243,7 +241,7 @@ public class GroupServiceImpl implements GroupService {
             else if(diningType.equals(DiningType.DINNER)) supportPrice = updateSpotDetailRequestDto.getDinnerSupportPrice();
 
             List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
-            if(supportPrice.compareTo(BigDecimal.valueOf(0)) != 0) serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, supportPrice));
+            if(supportPrice != null && supportPrice.compareTo(BigDecimal.valueOf(0)) != 0) serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, supportPrice));
 
             MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
             if(mealInfo == null) {
@@ -256,7 +254,7 @@ public class GroupServiceImpl implements GroupService {
         }
         Group group = (Group) Hibernate.unproxy(spot.getGroup());
 
-        Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), updateSpotDetailRequestDto.getLocation());
+        Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), updateSpotDetailRequestDto.getLocation().equals("없음") ? null : updateSpotDetailRequestDto.getLocation());
 
         if(group instanceof Corporation corporation) {
             corporation.updateCorporation(updateSpotDetailRequestDto, address, updateDiningTypeList);

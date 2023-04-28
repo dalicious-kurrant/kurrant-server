@@ -219,6 +219,19 @@ public class PaycheckDto {
         private String foodName;
         private BigDecimal supplyPrice;
         private Integer count;
+
+        public PaycheckDailyFood(Makers makers, DiningType diningType, LocalDate serviceDate, Food food, String foodName, BigDecimal supplyPrice, Integer count) {
+            this.makers = makers;
+            this.diningType = diningType;
+            this.serviceDate = serviceDate;
+            this.food = food;
+            this.foodName = foodName;
+            this.supplyPrice = supplyPrice;
+            this.count = count;
+        }
+
+        public PaycheckDailyFood() {
+        }
     }
 
     @Getter
