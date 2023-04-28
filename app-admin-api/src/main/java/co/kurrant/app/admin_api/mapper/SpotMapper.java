@@ -224,6 +224,8 @@ public interface SpotMapper {
         spotDetailResDto.setMemo(spot.getMemo());
 
         if (Hibernate.unproxy(spot.getGroup()) instanceof Corporation corporation) {
+            spotDetailResDto.setCode(corporation.getCode());
+            spotDetailResDto.setExpectedCount(corporation.getEmployeeCount());
             spotDetailResDto.setIsSetting(corporation.getIsSetting());
             spotDetailResDto.setIsHotStorage(corporation.getIsHotStorage());
             spotDetailResDto.setIsGarbage(corporation.getIsGarbage());

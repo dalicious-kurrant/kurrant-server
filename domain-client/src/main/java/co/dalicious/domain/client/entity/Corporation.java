@@ -139,8 +139,8 @@ public class Corporation extends Group{
 
     private Boolean useOrNotUse(String data) {
         Boolean use = null;
-        if(data.equals("미사용")) use = false;
-        else if(data.equals("사용")) use = true;
+        if(data.equals("미사용") || data.equals("false")) use = false;
+        else if(data.equals("사용") || data.equals("true")) use = true;
         return use;
     }
 
