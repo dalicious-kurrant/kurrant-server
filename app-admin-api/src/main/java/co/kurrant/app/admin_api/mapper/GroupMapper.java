@@ -83,6 +83,7 @@ public interface GroupMapper {
         if(group instanceof Corporation corporation) {
             groupType = GroupDataType.CORPORATION.getCode();
             employeeCount = corporation.getEmployeeCount();
+            groupInfoList.setIsPrepaid(corporation.getIsPrepaid());
             groupInfoList.setMinimumSpend(corporation.getMinimumSpend());
             groupInfoList.setMaximumSpend(corporation.getMaximumSpend());
         }

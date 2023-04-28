@@ -15,27 +15,42 @@ import java.util.List;
 @Schema(description = "스팟 상세조회 응답 DTO")
 public class SpotDetailResDto {
 
-    @Schema(description = "스팟 이름")
-    private String spotName;
     @Schema(description = "그룹 아이디")
     private BigInteger groupId;
+    @Schema(description = "기업 코드")
+    private String code;
+    @Schema(description = "담당자")
     private String managerName;
-    private BigInteger managerId;
+    @Schema(description = "담당자 번호")
     private String managerPhone;
+    @Schema(description = "스팟 타입")
     private String spotType;
+    @Schema(description = "담당자 ID")
+    private BigInteger managerId;
+    @Schema(description = "사원수")
+    private Integer expectedCount;
+    @Schema(description = "이름")
+    private String spotName;
+    @Schema(description = "식사타입")
     private String diningTypes;
+    @Schema(description = "식사요일")
     private String mealDay;
-    private String supportDays;
-    private String notSupportDays;
+    @Schema(description = "우편번호")
     private String zipCode;
+    @Schema(description = "기업 멤버십 지원 여부")
     private Boolean isMembershipSupport;
+    @Schema(description = "기본 주소")
     private String address1;
+    @Schema(description = "상세 주소")
     private String address2;
+    @Schema(description = "위치")
+    private String location;
     @Schema(description = "아침 지원금")
     private BigDecimal breakfastSupportPrice;
     private BigDecimal lunchSupportPrice;
     private BigDecimal dinnerSupportPrice;
-    private String location;
+    private String supportDays;
+    private String notSupportDays;
     private Integer minPrice;
     private Integer maxPrice;
     private Boolean isSetting;
