@@ -240,4 +240,23 @@ public class QReviewRepository {
                 .where(reviews.comments.isEmpty())
                 .fetchCount();
     }
+
+    public long countReviewByMakers(Makers makers, Boolean isComment) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(makers != null && isComment) {
+            JPQLQuery<Long> makersCommentsQuery = JPAExpressions.select(makersComments.count())
+                    .from(makersComments)
+                    .where(makersComments.reviews.eq(reviews), makersComments.instanceOf(MakersComments.class));
+            whereCause.and(makersCommentsQuery.lt(Long.valueOf(1)));
+        }
+
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.food.makers.eq(makers),
+                        reviews.isDelete.ne(true),
+                        reviews.isReports.ne(true),
+                        whereCause)
+                .fetchCount();
+
+    }
 }
