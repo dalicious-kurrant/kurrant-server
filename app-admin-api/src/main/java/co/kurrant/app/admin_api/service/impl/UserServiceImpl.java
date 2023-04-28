@@ -2,17 +2,16 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.*;
-import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.Provider;
-import co.dalicious.domain.user.entity.enums.Role;
-import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
+import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
@@ -56,6 +55,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserTasteTestDataRepository userTasteTestDataRepository;
     private final QUserTasteTestDataRepository qUserTasteTestDataRepository;
+    private final PointUtil pointUtil;
 
 
     @Override
@@ -220,8 +220,21 @@ public class UserServiceImpl implements UserService {
                 user.updateUserStatus(UserStatus.ofCode(saveUserListRequestDto.getStatus()));
             if (saveUserListRequestDto.getPoint() != null) {
                 BigDecimal point = BigDecimal.valueOf(saveUserListRequestDto.getPoint());
-                if (!user.getPoint().equals(point))
+                if (!user.getPoint().equals(point)) {
+
+                    BigDecimal differencePoint = point.subtract(user.getPoint());
+                    // 차액이 플러스면
+                    if(differencePoint.compareTo(BigDecimal.valueOf(0)) > 0) {
+                        pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_REWARD, differencePoint);
+                    }
+                    // 차액이 마이너스면
+                    else if(differencePoint.compareTo(BigDecimal.valueOf(0)) < 0) {
+                        differencePoint = differencePoint.multiply(BigDecimal.valueOf(-1));
+                        pointUtil.createPointHistoryByOthers(user, null, PointStatus.ADMIN_POINTS_RECOVERED, differencePoint);
+                    }
+
                     user.updatePoint(point);
+                }
             }
             if (saveUserListRequestDto.getMarketingAgree() != null && saveUserListRequestDto.getMarketingAlarm() != null && saveUserListRequestDto.getOrderAlarm() != null &&
                     (!user.getMarketingAgree().equals(saveUserListRequestDto.getMarketingAgree()) ||
@@ -237,6 +250,9 @@ public class UserServiceImpl implements UserService {
                 .filter(v -> !updateUserEmails.contains(v.getEmail()))
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
+            // 이미 있는 핸드폰 번호인지 확인
+            if(userValidator.isPhoneValidBoolean(createUserDto.getPhone())) continue;
+
             UserDto userDto = UserDto.builder()
                     .email(createUserDto.getEmail())
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
@@ -282,15 +298,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public String saveTestData(SaveTestDataRequestDto saveTestDataRequestDto) {
-        //foodId 검증
+
         List<TestData> testData = saveTestDataRequestDto.getTestData();
         String foodIds = null;
+
+        //기존 TestData 삭제
+        userTasteTestDataRepository.deleteAll();
+
+        //foodId 검증
         for (int i = 0; i < testData.size(); i++) {
             for (int j = 0; j < testData.get(i).getFoodIds().size(); j++) {
                 BigInteger foodId = testData.get(i).getFoodIds().get(j);
-                foodRepository.findById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+                Food food = foodRepository.findById(foodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+
+                //image가 없는 food 걸러내기
+                if (food.getImages().isEmpty()){
+                    throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD_IMAGE);
+                }
             }
+
             //UserTasteTestData에 저장
             foodIds = testData.get(i).getFoodIds().toString().substring(1, testData.get(i).getFoodIds().toString().length() -1);
             UserTasteTestData userTasteTestData = UserTasteTestData.builder()

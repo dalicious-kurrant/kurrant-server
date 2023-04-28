@@ -106,20 +106,25 @@ public interface MakersPaycheckMapper {
 
         PaycheckDto.MakersPaycheckInfo makersPaycheckInfo = toMakersPaycheckInfo(makersPaycheck);
 
-        List<String> memo = makersPaycheck.getPaycheckMemos().stream()
-                .map(PaycheckMemo::getMemo)
-                .toList();
-
         makersDetail.setTransactionInfoDefault(transactionInfoDefault);
         makersDetail.setMakersPaycheckInfo(makersPaycheckInfo);
         makersDetail.setPaycheckDailyFoods(paycheckDailyFoodDtos);
         makersDetail.setPaycheckAdds(toPaycheckAddDtos(makersPaycheck.getPaycheckAdds()));
+        makersDetail.setMemoResDtos(toPaycheckMemos(makersPaycheck.getPaycheckMemos()));
         makersDetail.setFoodsPrice(makersPaycheck.getFoodTotalPrice().intValue());
         makersDetail.setCommission(makersPaycheck.getCommission());
         makersDetail.setCommissionPrice(makersPaycheck.getCommissionPrice().intValue());
         makersDetail.setTotalPrice(makersPaycheck.getTotalPrice().intValue());
-        makersDetail.setPaycheckMemo(memo);
         return makersDetail;
+    }
+
+    @Mapping(target = "createdDateTime", expression = "java(DateUtils.format(paycheckMemo.getCreatedDateTime()))")
+    PaycheckDto.MemoResDto toPaycheckMemo(PaycheckMemo paycheckMemo);
+
+    default List<PaycheckDto.MemoResDto> toPaycheckMemos(List<PaycheckMemo> paycheckMemos) {
+        return paycheckMemos.stream()
+                .map(this::toPaycheckMemo)
+                .toList();
     }
 
     default PaycheckDto.MakersPaycheckInfo toMakersPaycheckInfo(MakersPaycheck makersPaycheck) {

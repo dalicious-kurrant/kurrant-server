@@ -92,7 +92,7 @@ public class ReviewServiceImpl implements ReviewService {
             reviewListDtoList.add(reviewListDto);
         }
 
-        reviewMakersResDto.setCount(reviewListDtoList.size());
+        reviewMakersResDto.setCount((int) qReviewRepository.countReviewByMakers(makers, true));
         reviewMakersResDto.setReviewListDtoList(reviewListDtoList);
 
         return ItemPageableResponseDto.<ReviewMakersResDto>builder()
@@ -103,17 +103,20 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    public ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+    public ItemPageableResponseDto<ReviewMakersResDto> getAllReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
         Makers makers = userUtil.getMakers(securityUser);
 
         // 메이커스 댓글이 없는 리뷰만 조회 - 삭제, 신고 제외
         Page<Reviews> reviewsList = qReviewRepository.findAllByMakers(makers, foodName, limit, page, pageable);
 
+        ReviewMakersResDto reviewMakersResDto = new ReviewMakersResDto();
         List<ReviewMakersResDto.ReviewListDto> reviewListDtoList = new ArrayList<>();
         if(reviewsList.isEmpty()) {
-            return ListItemResponseDto.<ReviewMakersResDto.ReviewListDto>builder()
-                    .items(reviewListDtoList).limit(pageable.getPageSize()).offset(pageable.getOffset())
-                    .total((long) reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
+            reviewMakersResDto.setCount(0);
+            reviewMakersResDto.setReviewListDtoList(reviewListDtoList);
+            return ItemPageableResponseDto.<ReviewMakersResDto>builder()
+                    .items(reviewMakersResDto).limit(pageable.getPageSize())
+                    .total(reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
                     .build();
         }
 
@@ -122,9 +125,12 @@ public class ReviewServiceImpl implements ReviewService {
             reviewListDtoList.add(reviewListDto);
         }
 
-        return ListItemResponseDto.<ReviewMakersResDto.ReviewListDto>builder()
-                .items(reviewListDtoList).limit(pageable.getPageSize()).offset(pageable.getOffset())
-                .total((long) reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
+        reviewMakersResDto.setCount((int) qReviewRepository.countReviewByMakers(makers, false));
+        reviewMakersResDto.setReviewListDtoList(reviewListDtoList);
+
+        return ItemPageableResponseDto.<ReviewMakersResDto>builder()
+                .items(reviewMakersResDto).limit(pageable.getPageSize())
+                .total(reviewsList.getTotalPages()).count(reviewsList.getNumberOfElements())
                 .build();
     }
 

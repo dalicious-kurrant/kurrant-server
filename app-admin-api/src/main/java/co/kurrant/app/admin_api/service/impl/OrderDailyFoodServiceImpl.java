@@ -48,13 +48,15 @@ import co.kurrant.app.admin_api.service.OrderDailyFoodService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.transaction.Transactional;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -64,6 +66,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final GroupRepository groupRepository;
     private final ApartmentRepository apartmentRepository;
@@ -177,17 +180,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public void cancelOrder(BigInteger orderId) throws IOException, ParseException {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
-        User user = order.getUser();
-
-        if (order instanceof OrderDailyFood orderDailyFood) {
-            orderService.cancelOrderDailyFood(orderDailyFood, user);
-        }
-    }
-
-    @Override
-    @Transactional
     public void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) {
         OrderStatus orderStatus = OrderStatus.ofCode(statusAndIdList.getStatus());
         if (!OrderStatus.completePayment().contains(orderStatus)) {
@@ -208,20 +200,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    @Transactional
-    public void cancelOrderItems(List<BigInteger> orderItemList) throws IOException, ParseException {
-        List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
-
-        for (OrderItem orderItem : orderItems) {
-            User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
-
-            if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
-                orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
-            }
-        }
-    }
-
-    @Override
     public void cancelOrderNice(BigInteger orderId) throws IOException, ParseException {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
         User user = order.getUser();
@@ -235,20 +213,27 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Transactional
     public void cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
-
         for (OrderItem orderItem : orderItems) {
-            User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
+            try {
+                User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
 
-            if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
-                orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
+                if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+                    orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
+                }
+
+            } catch (Exception e) {
+                // Log the exception or handle it as needed
+                log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
     }
 
     @Override
     @Transactional
-    public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate) {
-        List<DailyFood> dailyFoods = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate);
+    public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate, BigInteger groupId) {
+        Group group = groupId == null ? null : groupRepository.findById(groupId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+
+        List<DailyFood> dailyFoods = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate, group);
         Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
         return extraOrderMapper.toDailyFoodList(dailyFoods, remainFoodCount);
     }
@@ -348,12 +333,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     public List<ExtraOrderDto.Response> getExtraOrders(Map<String, Object> parameters) {
         LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        Group group = !parameters.containsKey("groupId") || parameters.get("groupId") == null ? null :
+                groupRepository.findById(BigInteger.valueOf(Integer.parseInt(String.valueOf(parameters.get("groupId"))))).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
 
         List<User> users = qUserRepository.findAllManager();
         List<BigInteger> userIds = users.stream()
                 .map(User::getId)
                 .toList();
-        List<OrderItemDailyFood> orderDailyFoods = qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate);
+        List<OrderItemDailyFood> orderDailyFoods = qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate, group);
 
         return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
     }
@@ -385,4 +372,33 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
     }
 
+
+    @Override
+    @Transactional
+    public void cancelOrderToss(BigInteger orderId) throws IOException, ParseException {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
+        User user = order.getUser();
+
+        if (order instanceof OrderDailyFood orderDailyFood) {
+            orderService.cancelOrderDailyFood(orderDailyFood, user);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrderItemsToss(List<BigInteger> orderItemList) {
+        List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
+
+        for (OrderItem orderItem : orderItems) {
+            try {
+                User user = orderItem.getOrder().getUser();
+                if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+                    orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
+                }
+            } catch (Exception e) {
+                // Log the exception or handle it as needed
+                log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
+            }
+        }
+    }
 }

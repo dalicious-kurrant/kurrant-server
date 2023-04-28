@@ -12,6 +12,6 @@ import java.util.List;
 
 @Repository
 public interface OrderItemRepository extends JpaRepository<OrderItem, BigInteger> {
-    @Query("SELECT om FROM OrderItem om WHERE om.id IN :ids")
+    @Query("SELECT oi FROM OrderItem oi JOIN FETCH oi.order o JOIN FETCH o.user WHERE oi.id IN :ids")
     List<OrderItem> findAllByIds(@Param("ids") List<BigInteger> ids);
 }

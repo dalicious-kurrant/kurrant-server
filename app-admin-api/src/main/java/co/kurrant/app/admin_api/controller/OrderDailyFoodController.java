@@ -74,7 +74,7 @@ public class OrderDailyFoodController {
 
     @PostMapping("/cancel")
     public ResponseMessage cancelOrder(@RequestBody OrderDto.Id id) throws IOException, ParseException {
-        orderDailyFoodService.cancelOrder(id.getId());
+        orderDailyFoodService.cancelOrderNice(id.getId());
         return ResponseMessage.builder()
                 .message("주문 전체 취소를 성공했습니다.")
                 .build();
@@ -90,33 +90,17 @@ public class OrderDailyFoodController {
 
     @PostMapping("/orderItems/cancel")
     public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
-        orderDailyFoodService.cancelOrderItems(idList.getIdList());
-        return ResponseMessage.builder()
-                .message("부분 주문 취소를 성공했습니다.")
-                .build();
-    }
-
-    @PostMapping("/cancel/nice")
-    public ResponseMessage cancelOrderNice(@RequestBody OrderDto.Id id) throws IOException, ParseException {
-        orderDailyFoodService.cancelOrderNice(id.getId());
-        return ResponseMessage.builder()
-                .message("주문 전체 취소를 성공했습니다.")
-                .build();
-    }
-
-    @PostMapping("/orderItems/cancel/nice")
-    public ResponseMessage cancelOrderItemNice(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
         orderDailyFoodService.cancelOrderItemsNice(idList.getIdList());
         return ResponseMessage.builder()
                 .message("부분 주문 취소를 성공했습니다.")
                 .build();
     }
-
     @GetMapping("/extra/dailyFoods")
     public ResponseMessage getExtraDailyFoods(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+                                              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+                                              @RequestParam(required = false) BigInteger groupId) {
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.getExtraDailyFoods(startDate, endDate))
+                .data(orderDailyFoodService.getExtraDailyFoods(startDate, endDate, groupId))
                 .message("추가 주문 식단 목록 조회에 성공하였습니다.")
                 .build();
     }
@@ -142,6 +126,22 @@ public class OrderDailyFoodController {
         orderDailyFoodService.refundExtraOrderItems(id.getId());
         return ResponseMessage.builder()
                 .message("추가 주문을 환불하였습니다.")
+                .build();
+    }
+
+    @PostMapping("/cancel/toss")
+    public ResponseMessage cancelOrderNice(@RequestBody OrderDto.Id id) throws IOException, ParseException {
+        orderDailyFoodService.cancelOrderToss(id.getId());
+        return ResponseMessage.builder()
+                .message("주문 전체 취소를 성공했습니다.")
+                .build();
+    }
+
+    @PostMapping("/orderItems/cancel/toss")
+    public ResponseMessage cancelOrderItemNice(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
+        orderDailyFoodService.cancelOrderItemsToss(idList.getIdList());
+        return ResponseMessage.builder()
+                .message("부분 주문 취소를 성공했습니다.")
                 .build();
     }
 }

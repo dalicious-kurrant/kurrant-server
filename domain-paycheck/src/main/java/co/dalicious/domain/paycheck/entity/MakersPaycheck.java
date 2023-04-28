@@ -28,7 +28,7 @@ public class MakersPaycheck {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("메이커스 정산 ID")
-    @Column(columnDefinition = "BIGINT")
+    @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
     @Comment("정산 년월")
@@ -119,13 +119,12 @@ public class MakersPaycheck {
     }
 
     public String getFileName() {
-        return "거래명세서_" + this.yearMonth.getYear() + "-" +
+        return " 거래명세서_" + this.yearMonth.getYear() + "-" +
                 ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
     }
 
     public MakersPaycheck updatePaycheckAdds(List<PaycheckAdd> paycheckAdds) {
-        this.paycheckAdds = paycheckAdds;
-
+        this.paycheckAdds.addAll(paycheckAdds);
         return this;
     }
 
@@ -152,5 +151,9 @@ public class MakersPaycheck {
 
     public BigDecimal getTotalPrice() {
         return getFoodTotalPrice().subtract(getCommissionPrice());
+    }
+
+    public void updateMemo(PaycheckMemo paycheckMemo) {
+        this.paycheckMemos.add(paycheckMemo);
     }
 }

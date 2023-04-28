@@ -27,4 +27,8 @@ public class MakersFoodDetailReqDto {
     private String lunchLastOrderTime;
     private String dinnerLastOrderTime;
     private List<String> images;
+    private Integer calorie;
+    private Integer fat;
+    private Integer protein;
+    private Integer carbohydrate;
 }

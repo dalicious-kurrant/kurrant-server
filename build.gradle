@@ -393,6 +393,8 @@ project(':domain-paycheck') {
         implementation project(':domain-file')
         implementation project(':domain-makers')
         implementation project(':domain-order')
+        implementation project(':domain-user')
+        implementation project(':domain-address')
     }
 }
 

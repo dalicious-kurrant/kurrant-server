@@ -3,9 +3,11 @@ package co.dalicious.domain.order.util;
 import co.dalicious.domain.client.entity.CorporationMealInfo;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.enums.DiningType;
 import exception.ApiException;
@@ -15,19 +17,22 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.time.ZoneId;
+import java.time.format.TextStyle;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
 public class UserSupportPriceUtil {
-    public static BigDecimal getGroupSupportPriceByDiningType(Spot spot, DiningType diningType) {
+    public static BigDecimal getGroupSupportPriceByDiningType(Spot spot, DiningType diningType, LocalDate serviceDay) {
+        String todayOfWeek = serviceDay.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA);
         List<MealInfo> mealInfos = spot.getMealInfos();
         CorporationMealInfo mealInfo = (CorporationMealInfo) mealInfos.stream().filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
-        return mealInfo.getSupportPrice();
+        List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = mealInfo.getServiceDaysAndSupportPrices();
+        ServiceDaysAndSupportPrice serviceDaysAndSupportPrice = serviceDaysAndSupportPriceList.stream().filter(o -> o.getSupportDays().contains(Days.ofString(todayOfWeek))).findAny().orElse(null);
+        return serviceDaysAndSupportPrice == null ? BigDecimal.ZERO : serviceDaysAndSupportPrice.getSupportPrice();
     }
 
     public static BigDecimal getUsedSupportPrice(Spot spot, List<DailyFoodSupportPrice> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
@@ -80,7 +85,7 @@ public class UserSupportPriceUtil {
     public static BigDecimal getUsableSupportPrice(Spot spot, List<DailyFoodSupportPrice> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
         //TODO: 추후 수정
         if(!spot.getGroup().getName().contains("메드트로닉")) {
-            BigDecimal supportPrice =  getGroupSupportPriceByDiningType(spot, diningType);
+            BigDecimal supportPrice =  getGroupSupportPriceByDiningType(spot, diningType, serviceDate);
             BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(spot, userSupportPriceHistories, serviceDate, diningType);
             return supportPrice.subtract(usedSupportPrice);
         } else {

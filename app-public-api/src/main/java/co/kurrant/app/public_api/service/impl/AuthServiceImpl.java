@@ -63,6 +63,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @Service
@@ -94,6 +96,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void mailConfirm(Authentication authentication, MailMessageDto mailMessageDto, String type) throws Exception {
         // 인증을 요청하는 위치 파악하기
+        for(String email : mailMessageDto.getReceivers()) {
+            UserValidator.isValidEmail(email);
+        }
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
         switch (requiredAuth) {
             case SIGNUP -> {
@@ -128,7 +133,7 @@ public class AuthServiceImpl implements AuthService {
 
         String subject = ("[커런트] 회원가입 인증 코드: "); //메일 제목
 
-        if (requiredAuth == RequiredAuth.PAYMENT_PASSWORD_CREATE || type.equals("7")) {
+        if (requiredAuth.equals(RequiredAuth.PAYMENT_PASSWORD_CREATE) || requiredAuth.equals(RequiredAuth.PAYMENT_PASSWORD_CREATE_APPLE)) {
             subject = ("[커런트] 결제 비밀번호 등록 인증 코드: ");
         }
 
@@ -141,28 +146,31 @@ public class AuthServiceImpl implements AuthService {
         content += """
                 <!DOCTYPE html>
                 <html>
-                    <head></head>
-                    <body>
-                        <div>
-                            <div style="width:100%; justify-content: center;  align-items: center; display: flex; flex-direction: column;">
-                                <div style="width:100%; max-width: 481px;">
-                                    <img style="margin-bottom: 32px;" src="https://asset.kurrant.co/img/common/logo.png" />
-                                </div>
-                                <div style="padding: 50px; padding-right: 104px; border:1px solid #E4E3E7; border-radius: 14px; max-width: 481px; min-height: 481px; width: 100%; box-sizing: border-box;">
-                                    <div style="font-size: 26px; font-weight: 600; font-family: ‘Franklin Gothic Medium’, ‘Arial Narrow’, Arial, sans-serif; line-height: 35px; margin-bottom: 32px; color: #343337;">커런트에서 요청하신 인증번호를 발송해 드립니다.</div>
-                                    <div style="font-size: 14px; line-height: 22px; font-weight: 400; color: #343337;">아래 인증번호 6자리를 인증번호 입력창에 입력해주세요</div>
-                                    <div style="color: #343337; font-size: 22px; font-weight: 600; line-height: 30px;">
+                <head></head>
+                <body>
+                <header>
+                    <div style="width:100%; max-width: 481px;">
+                        <img style="margin-bottom: 32px;" src="https://asset.kurrant.co/img/common/logo.png" />
+                    </div>
+                </header>
+                <div>
+                    <div style="width:100%; justify-content: center;  align-items: center; display: flex; flex-direction: column;">
+                
+                        <div style="padding: 50px; padding-right: 104px; border:1px solid #E4E3E7; border-radius: 14px; max-width: 481px; min-height: 481px; width: 100%; box-sizing: border-box;">
+                            <div style="font-size: 26px; font-weight: 600; font-family: ‘Franklin Gothic Medium’, ‘Arial Narrow’, Arial, sans-serif; line-height: 35px; margin-bottom: 32px; color: #343337;">커런트에서 요청하신 인증번호를 발송해 드립니다.</div>
+                            <div style="font-size: 14px; line-height: 22px; font-weight: 400; color: #343337;">아래 인증번호 6자리를 인증번호 입력창에 입력해주세요</div>
+                            <div style="color: #343337; font-size: 22px; font-weight: 600; line-height: 30px;">
                 """;
         content += key;
         content += "</div>\n" + "</div>\n" + "</div>";
         content += """
-                 <footer  style="justify-content: center;  align-items: center; display: flex; flex-direction: column; margin-top: 125px;">
-                                 <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">서울특별시 강남구 테헤란로51길 21 3층</div>
-                                 <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">달리셔스주식회사</div>
-                             </footer>
-                         </div>
-                     </body>
-                 </html>
+                             <footer  style="justify-content: center;  align-items: center; display: flex; flex-direction: column; margin-top: 125px;">
+                                <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">서울특별시 강남구 테헤란로51길 21 3층</div>
+                                <div style="font-size: 12px; line-height: 16px; letter-spacing: -0.5px; font-weight: 400;">달리셔스주식회사</div>
+                            </footer>
+                        </div>
+                </body>
+                </html>
                 """;
 
         // 인증번호 발송

@@ -49,6 +49,12 @@ public class DateUtils {
         return date.format(formatter);
     }
 
+    public static String format(Timestamp timestamp) {
+        SimpleDateFormat sdf;
+        sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return sdf.format(timestamp);
+    }
+
     public static Timestamp localDateToTimestamp(LocalDate localDate) {
         LocalDateTime localDateTime = LocalDateTime.of(localDate.getYear(), localDate.getMonth(), localDate.getDayOfMonth(), 0, 0, 0);
         return Timestamp.valueOf(localDateTime);
@@ -64,7 +70,7 @@ public class DateUtils {
     }
 
     public static String timeToString(LocalTime time) {
-        return time.format(DateTimeFormatter.ofPattern("HH:mm"));
+        return (time == null) ? null : time.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
     public static String timeToStringWithAMPM(LocalTime time) {
