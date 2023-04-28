@@ -24,8 +24,8 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class UserSupportPriceUtil {
-    public static BigDecimal getGroupSupportPriceByDiningType(Spot spot, DiningType diningType) {
-        String todayOfWeek = LocalDate.now(ZoneId.of("Asia/Seoul")).getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA);
+    public static BigDecimal getGroupSupportPriceByDiningType(Spot spot, DiningType diningType, LocalDate serviceDay) {
+        String todayOfWeek = serviceDay.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA);
         List<MealInfo> mealInfos = spot.getMealInfos();
         CorporationMealInfo mealInfo = (CorporationMealInfo) mealInfos.stream().filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
@@ -85,7 +85,7 @@ public class UserSupportPriceUtil {
     public static BigDecimal getUsableSupportPrice(Spot spot, List<DailyFoodSupportPrice> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
         //TODO: 추후 수정
         if(!spot.getGroup().getName().contains("메드트로닉")) {
-            BigDecimal supportPrice =  getGroupSupportPriceByDiningType(spot, diningType);
+            BigDecimal supportPrice =  getGroupSupportPriceByDiningType(spot, diningType, serviceDate);
             BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(spot, userSupportPriceHistories, serviceDate, diningType);
             return supportPrice.subtract(usedSupportPrice);
         } else {
