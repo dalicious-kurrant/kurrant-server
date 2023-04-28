@@ -29,7 +29,7 @@ public class PaycheckController {
     }
 
     @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
-    @PostMapping("/makers/{makersId}")
+    @PostMapping("/makers/excel/{makersId}")
     public ResponseMessage postOneMakersPaycheck(@PathVariable BigInteger makersId) {
         adminPaycheckService.postOneMakersPaycheckExcel(makersId);
         return ResponseMessage.builder()
@@ -38,7 +38,7 @@ public class PaycheckController {
     }
 
     @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
-    @PostMapping("/makers")
+    @PostMapping("/makers/excel")
     public ResponseMessage postMakersPaycheck(@RequestPart(required = false) MultipartFile makersXlsx,
                                               @RequestPart(required = false) MultipartFile makersPdf,
                                               @RequestPart PaycheckDto.MakersRequest paycheckDto) throws IOException {
