@@ -217,14 +217,14 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
+    // TODO: 스팟으로 설정되어 있지만 그룹으로 변경
     public void updateGroupDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
-
-        // 스팟 찾기.
-        Spot spot = spotRepository.findById(updateSpotDetailRequestDto.getSpotId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        // 그룹 찾기.
+        Group group = groupRepository.findById(updateSpotDetailRequestDto.getSpotId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
 
         // 스팟에 해당하는 다이닝 타입 변경
         List<DiningType> updateDiningTypeList = DiningTypesUtils.stringCodeToDiningTypes(updateSpotDetailRequestDto.getDiningTypes());
-        spot.updateDiningTypes(updateDiningTypeList);
+        group.updateDiningTypes(updateDiningTypeList);
 
         List<Days> notSupportDays = updateSpotDetailRequestDto.getNotSupportDays() != null ? DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getNotSupportDays()) : new ArrayList<>();
         List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getServiceDays());
@@ -232,7 +232,7 @@ public class GroupServiceImpl implements GroupService {
         supportDays.removeAll(notSupportDays);
 
         // dining type 체크해서 있으면 업데이트, 없으면 생성
-        List<MealInfo> mealInfoList = spot.getMealInfos();
+        List<MealInfo> mealInfoList = group.getMealInfos();
         List<MealInfo> newMealInfoList = new ArrayList<>();
         for(DiningType diningType : updateDiningTypeList) {
             BigDecimal supportPrice = null;
@@ -245,14 +245,13 @@ public class GroupServiceImpl implements GroupService {
 
             MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
             if(mealInfo == null) {
-                MealInfo newMealInfo = groupMapper.toMealInfo(spot.getGroup(), diningType, "00:00", "00:00", updateSpotDetailRequestDto.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
+                MealInfo newMealInfo = groupMapper.toMealInfo(group, diningType, "00:00", "00:00", updateSpotDetailRequestDto.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
                 newMealInfoList.add(newMealInfo);
             } else {
                 if(mealInfo instanceof  CorporationMealInfo corporationMealInfo) corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDaysAndSupportPriceList);
                 else mealInfo.updateMealInfo(serviceDays);
             }
         }
-        Group group = (Group) Hibernate.unproxy(spot.getGroup());
 
         Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), updateSpotDetailRequestDto.getLocation().equals("없음") ? null : updateSpotDetailRequestDto.getLocation());
 
@@ -267,7 +266,7 @@ public class GroupServiceImpl implements GroupService {
             openGroup.updateOpenSpot(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getManagerId(), updateSpotDetailRequestDto.getEmployeeCount());
         }
         mealInfoRepository.saveAll(newMealInfoList);
-        spot.updateSpot(updateSpotDetailRequestDto);
+        group.updateGroup(updateSpotDetailRequestDto);
     }
 
 

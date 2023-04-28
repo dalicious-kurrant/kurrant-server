@@ -116,6 +116,7 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
     @Override
+    @Transactional
     public ExcelPdfDto createCorporationPaycheckExcel(CorporationPaycheck corporationPaycheck, PaycheckDto.CorporationOrder corporationOrder) {
         Workbook workbook = new XSSFWorkbook();
 
