@@ -106,6 +106,22 @@ public class Food {
     @Comment("커스텀 상품 가격")
     private BigDecimal customPrice;
 
+    @Column(name = "calorie", columnDefinition = "INT")
+    @Comment("칼로리")
+    private Integer calorie;
+
+    @Column(name = "carbohydrate", columnDefinition = "INT")
+    @Comment("탄수화물")
+    private Integer carbohydrate;
+
+    @Column(name = "fat", columnDefinition = "INT")
+    @Comment("지방")
+    private Integer fat;
+
+    @Column(name = "protein", columnDefinition = "INT")
+    @Comment("단백질")
+    private Integer protein;
+
     @Builder
     public Food(FoodStatus foodStatus, String name, BigDecimal supplyPrice, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
         this.foodStatus = foodStatus;
@@ -144,6 +160,10 @@ public class Food {
         this.foodTags = FoodTag.ofCodes(makersFoodDetailReqDto.getFoodTags());
         this.customPrice = makersFoodDetailReqDto.getCustomPrice();
         this.description = makersFoodDetailReqDto.getDescription();
+        this.calorie = makersFoodDetailReqDto.getCalorie();
+        this.fat = makersFoodDetailReqDto.getFat();
+        this.carbohydrate = makersFoodDetailReqDto.getCarbohydrate();
+        this.protein = makersFoodDetailReqDto.getProtein();
     }
 
     public void updateImages(List<Image> images) {
