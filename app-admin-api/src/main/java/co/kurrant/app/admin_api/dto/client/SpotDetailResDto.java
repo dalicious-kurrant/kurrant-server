@@ -43,13 +43,13 @@ public class SpotDetailResDto {
     private List<PrepaidCategory> prepaidCategoryList;
     private List<CategoryPrice> categoryPrices;
 
-    public SpotDetailResDto() {
-        List<CategoryPrice> categoryPrices1 = new ArrayList<>();
-        for (co.dalicious.domain.paycheck.entity.enums.CategoryPrice categoryPrice : co.dalicious.domain.paycheck.entity.enums.CategoryPrice.values()) {
-            categoryPrices.add(new CategoryPrice(categoryPrice));
-        }
-        this.categoryPrices = categoryPrices1;
-    }
+//    public SpotDetailResDto() {
+//        List<CategoryPrice> categoryPrices1 = new ArrayList<>();
+//        for (co.dalicious.domain.paycheck.entity.enums.CategoryPrice categoryPrice : co.dalicious.domain.paycheck.entity.enums.CategoryPrice.values()) {
+//            categoryPrices.add(new CategoryPrice(categoryPrice));
+//        }
+//        this.categoryPrices = categoryPrices1;
+//    }
 
     @Getter
     public static class CategoryPrice {

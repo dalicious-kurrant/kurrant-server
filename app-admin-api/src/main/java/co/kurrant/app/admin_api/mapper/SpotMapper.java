@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class, MealInfo.class})
 public interface SpotMapper {
@@ -230,29 +231,31 @@ public interface SpotMapper {
         }
 
 
-        Set<Days> serviceDays = new HashSet<>();
-        Set<Days> supportDays = new HashSet<>();
-        for (MealInfo mealInfo : mealInfoList) {
-            serviceDays.addAll(mealInfo.getServiceDays());
-            if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
-                List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = corporationMealInfo.getServiceDaysAndSupportPrices();
-                for (ServiceDaysAndSupportPrice serviceDaysAndSupportPrice : serviceDaysAndSupportPriceList) {
-                    BigDecimal supportPrice = serviceDaysAndSupportPrice.getSupportPrice();
-                    supportDays.addAll(serviceDaysAndSupportPrice.getSupportDays());
+        if(mealInfoList != null && ! mealInfoList.isEmpty()) {
+            LinkedHashSet<Days> serviceDays = new LinkedHashSet<>();
+            LinkedHashSet<Days> supportDays = new LinkedHashSet<>();
+            for (MealInfo mealInfo : mealInfoList) {
+                serviceDays.addAll(mealInfo.getServiceDays());
+                if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
+                    List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = corporationMealInfo.getServiceDaysAndSupportPrices();
+                    for (ServiceDaysAndSupportPrice serviceDaysAndSupportPrice : serviceDaysAndSupportPriceList) {
+                        BigDecimal supportPrice = serviceDaysAndSupportPrice.getSupportPrice();
+                        supportDays.addAll(serviceDaysAndSupportPrice.getSupportDays());
 
-                    switch (mealInfo.getDiningType()) {
-                        case MORNING -> spotDetailResDto.setBreakfastSupportPrice(supportPrice);
-                        case LUNCH -> spotDetailResDto.setLunchSupportPrice(supportPrice);
-                        case DINNER -> spotDetailResDto.setDinnerSupportPrice(supportPrice);
+                        switch (mealInfo.getDiningType()) {
+                            case MORNING -> spotDetailResDto.setBreakfastSupportPrice(supportPrice);
+                            case LUNCH -> spotDetailResDto.setLunchSupportPrice(supportPrice);
+                            case DINNER -> spotDetailResDto.setDinnerSupportPrice(supportPrice);
+                        }
                     }
                 }
             }
-        }
-        List<Days> notSupportDays = new ArrayList<>(serviceDays);
-        notSupportDays.retainAll(supportDays);
+            List<Days> notSupportDays = new ArrayList<>(serviceDays);
+            notSupportDays.removeAll(supportDays);
 
-        spotDetailResDto.setMealDay(DaysUtil.serviceDaysSetToString(serviceDays));
-        spotDetailResDto.setNotSupportDays(DaysUtil.serviceDaysToDaysString(notSupportDays));
+            spotDetailResDto.setMealDay(DaysUtil.serviceDaysSetToString(serviceDays));
+            spotDetailResDto.setNotSupportDays(DaysUtil.serviceDaysToDaysString(notSupportDays));
+        }
         return spotDetailResDto;
     }
 }

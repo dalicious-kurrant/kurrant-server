@@ -100,7 +100,7 @@ public class GroupServiceImpl implements GroupService {
             List<Days> notSupportDays = groupInfoList.getNotSupportDays() != null ? DaysUtil.serviceDaysToDaysList(groupInfoList.getNotSupportDays()) : new ArrayList<>();
             List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(groupInfoList.getServiceDays());
             List<Days> supportDays = new ArrayList<>(serviceDays);
-            supportDays.retainAll(notSupportDays);
+            supportDays.removeAll(notSupportDays);
 
             // group 없으면
             if(group == null) {

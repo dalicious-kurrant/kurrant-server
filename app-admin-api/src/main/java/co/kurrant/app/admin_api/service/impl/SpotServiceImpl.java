@@ -232,7 +232,7 @@ public class SpotServiceImpl implements SpotService {
         List<Days> notSupportDays = updateSpotDetailRequestDto.getNotSupportDays() != null ? DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getNotSupportDays()) : new ArrayList<>();
         List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getServiceDays());
         List<Days> supportDays = new ArrayList<>(serviceDays);
-        supportDays.retainAll(notSupportDays);
+        supportDays.removeAll(notSupportDays);
 
         // dining type 체크해서 있으면 업데이트, 없으면 생성
         List<MealInfo> mealInfoList = spot.getMealInfos();
