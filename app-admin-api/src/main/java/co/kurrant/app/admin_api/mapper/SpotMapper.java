@@ -253,6 +253,7 @@ public interface SpotMapper {
             List<Days> notSupportDays = new ArrayList<>(serviceDays);
             notSupportDays.removeAll(supportDays);
 
+            spotDetailResDto.setSupportDays(DaysUtil.serviceDaysSetToString(supportDays));
             spotDetailResDto.setMealDay(DaysUtil.serviceDaysSetToString(serviceDays));
             spotDetailResDto.setNotSupportDays(DaysUtil.serviceDaysToDaysString(notSupportDays));
         }
