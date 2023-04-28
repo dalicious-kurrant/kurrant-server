@@ -199,20 +199,20 @@ public class GroupServiceImpl implements GroupService {
     @Transactional(readOnly = true)
     public UpdateSpotDetailResponseDto getGroupDetail(Integer spotId) {
         //spotId로 spot 조회
-        Spot spot = spotRepository.findById(BigInteger.valueOf(spotId))
-                .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        Group group = groupRepository.findById(BigInteger.valueOf(spotId))
+                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
 
-        if (spot instanceof CorporationSpot corporationSpot){
-            List<MealInfo> mealInfoList = corporationSpot.getMealInfos();
+        if (group instanceof Corporation){
+            List<MealInfo> mealInfoList = group.getMealInfos();
 
-            if (spot.getGroup().getManagerId() != null) {
-                User manager = userRepository.findById(spot.getGroup().getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MANAGER));
-                return spotMapper.toDetailDto(spot, manager, mealInfoList);
+            if (group.getManagerId() != null) {
+                User manager = userRepository.findById(group.getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MANAGER));
+                return spotMapper.toDetailDto(group, manager, mealInfoList);
             }
-            return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), mealInfoList);
+            return spotMapper.toDetailDto(group, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), mealInfoList);
         }
 
-        return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), null);
+        return spotMapper.toDetailDto(group, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), null);
     }
 
     @Override

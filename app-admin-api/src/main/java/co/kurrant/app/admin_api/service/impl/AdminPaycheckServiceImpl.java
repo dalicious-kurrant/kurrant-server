@@ -284,10 +284,10 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public void postOneCorporationPaycheckExcel(BigInteger corporationId) {
+    public void postOneCorporationPaycheckExcel(BigInteger corporationId, String yearMonthStr) {
         Corporation corporation = corporationRepository.findById(corporationId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-        YearMonth yearMonth = YearMonth.now();
+        YearMonth yearMonth = DateUtils.stringToYearMonth(yearMonthStr);
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
         List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth);
         CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPrices);
@@ -456,10 +456,10 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public void postOneMakersPaycheckExcel(BigInteger makersId) {
+    public void postOneMakersPaycheckExcel(BigInteger makersId, String yearMonthStr) {
         Makers makers = makersRepository.findById(makersId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
-        YearMonth yearMonth = YearMonth.now();
+        YearMonth yearMonth = DateUtils.stringToYearMonth(yearMonthStr);
         LocalDate start = yearMonth.atDay(1);
         LocalDate end = yearMonth.atEndOfMonth();
         List<Integer> diningTypes = List.of(1, 2, 3);
