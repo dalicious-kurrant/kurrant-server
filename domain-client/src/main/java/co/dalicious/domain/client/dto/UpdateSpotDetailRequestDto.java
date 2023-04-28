@@ -29,6 +29,8 @@ public class UpdateSpotDetailRequestDto {
     private String diningTypes;
     @Schema(description = "식사 요일")
     private String serviceDays;
+    @Schema(description = "지원금이 있는 요일")
+    private String supportDays;
     @Schema(description = "지원금이 없는 요일")
     private String notSupportDays;
     @Schema(description = "우편 번호")
