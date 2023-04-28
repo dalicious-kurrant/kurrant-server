@@ -38,5 +38,6 @@ public interface AdminPaycheckService {
     void postSparkplusLog(Integer log);
     List<SparkPlusLog> getSpartplusLog();
     List<MakersPaycheck> postMakersPaycheckExcel();
+    void postOneMakersPaycheckExcel(BigInteger makersId);
 
 }

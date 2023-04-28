@@ -53,7 +53,7 @@ public class GroupController {
     @GetMapping("/detail")
     public ResponseMessage getSpotDetail(@RequestParam Integer spotId) {
         return ResponseMessage.builder()
-                .message("기업  상세 정보를 조회했습니다.")
+                .message("기업 상세 정보를 조회했습니다.")
                 .data(groupService.getGroupDetail(spotId))
                 .build();
     }

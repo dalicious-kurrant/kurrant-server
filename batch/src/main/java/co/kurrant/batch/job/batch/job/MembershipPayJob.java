@@ -8,6 +8,8 @@ import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.kurrant.batch.job.batch.listener.MatchingMembershipIdsListener;
+import co.kurrant.batch.service.MembershipService;
+import exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -31,6 +33,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,34 +47,14 @@ public class MembershipPayJob {
     private final EntityManagerFactory entityManagerFactory;
     private final EntityManager entityManager;
     private final OrderService orderService;
-    private final MatchingMembershipIdsListener matchingMembershipIdsListener;
+    private final MembershipService membershipService;
     private final int CHUNK_SIZE = 100;
-
-    private List<BigInteger> membershipIds = null;
-
-    private List<BigInteger> getMembershipIds() {
-        if (membershipIds == null) {
-            String queryString = "SELECT m.id FROM Membership m " +
-                    "JOIN m.user u " +
-                    "WHERE m.endDate <= NOW() " +
-                    "AND m.autoPayment = true " +
-                    "AND m.createdDateTime = (" +
-                    "   SELECT MAX(m2.createdDateTime) FROM Membership m2 WHERE m2.user = u" +
-                    ")";
-
-            TypedQuery<BigInteger> query = entityManager.createQuery(queryString, BigInteger.class);
-
-            return query.getResultList();
-        }
-
-        return membershipIds;
-    }
 
     @Bean(name = "membershipPayJob1")
     public Job membershipPayJob1() {
         return jobBuilderFactory.get("membershipPayJob1")
                 .start(membershipPayJob_step1())
-                .start(membershipPayJob_step2())
+                .next(membershipPayJob_step2())
                 .build();
     }
 
@@ -84,6 +67,9 @@ public class MembershipPayJob {
                 .reader(membershipReader())
                 .processor(membershipProcessor())
                 .writer(membershipWriter())
+                .faultTolerant()
+                .skip(ApiException.class) // Add the exception classes you want to skip
+                .skip(RuntimeException.class)
                 .build();
     }
 
@@ -92,26 +78,32 @@ public class MembershipPayJob {
     public JpaPagingItemReader<Membership> membershipReader() {
         log.info("[Membership 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
-        List<BigInteger> membershipIds = getMembershipIds();
+        List<BigInteger> membershipIds = membershipService.getMembershipIds();
 
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("membershipIds", membershipIds);
 
 
         if (membershipIds.isEmpty()) {
-            return null;
+            // Return an empty reader if membershipIds is empty
+            return new JpaPagingItemReaderBuilder<Membership>()
+                    .name("EmptyMembershipReader")
+                    .build();
         }
 
         String queryString = "SELECT m FROM OrderItemMembership om\n" +
                 "INNER JOIN Order o ON om.order = o\n" +
                 "INNER JOIN Membership m ON om.membership = m\n" +
+                "JOIN FETCH m.user u " + // Add JOIN FETCH here for the User entity
                 "WHERE o.orderType = 3 and o.paymentType = 1 AND om.membership.id IN :membershipIds";
+
 
         return new JpaPagingItemReaderBuilder<Membership>()
                 .entityManagerFactory(entityManagerFactory)
                 .pageSize(100)
                 .queryString(queryString)
                 .name("JpaPagingItemReader")
+                .parameterValues(Collections.singletonMap("membershipIds", membershipIds))
                 .build();
     }
 
@@ -148,11 +140,10 @@ public class MembershipPayJob {
 
     @Bean
     public Step membershipPayJob_step2() {
-        // 탈퇴하는 유저의 OAuth 아이디를 삭제한다.
         return stepBuilderFactory.get("membershipPayJob_step2")
                 .tasklet((contribution, chunkContext) -> {
 
-                    List<BigInteger> membershipIds = getMembershipIds();
+                    List<BigInteger> membershipIds = membershipService.getMembershipIds();
 
                     Map<String, Object> parameterValues = new HashMap<>();
                     parameterValues.put("membershipIds", membershipIds);

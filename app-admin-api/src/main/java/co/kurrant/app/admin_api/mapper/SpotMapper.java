@@ -12,7 +12,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 
 import co.dalicious.system.util.DaysUtil;
-import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class, MealInfo.class})
 public interface SpotMapper {
@@ -186,10 +185,10 @@ public interface SpotMapper {
     OpenGroupSpot toOpenGroupSpotEntity(Group group);
 
 
-    default SpotDetailResDto toDetailDto(Spot spot, User manager, List<MealInfo> mealInfoList) {
-        SpotDetailResDto spotDetailResDto = new SpotDetailResDto();
+    default UpdateSpotDetailResponseDto toDetailDto(Spot spot, User manager, List<MealInfo> mealInfoList) {
+        UpdateSpotDetailResponseDto spotDetailResDto = new UpdateSpotDetailResponseDto();
 
-        spotDetailResDto.setGroupId(spot.getGroup().getId());
+        spotDetailResDto.setSpotId(spot.getGroup().getId());
         spotDetailResDto.setSpotName(spot.getName());
         spotDetailResDto.setManagerId(manager.getId());
         spotDetailResDto.setManagerName(manager.getName());
@@ -225,20 +224,20 @@ public interface SpotMapper {
 
         if (Hibernate.unproxy(spot.getGroup()) instanceof Corporation corporation) {
             spotDetailResDto.setCode(corporation.getCode());
-            spotDetailResDto.setExpectedCount(corporation.getEmployeeCount());
+            spotDetailResDto.setEmployeeCount(corporation.getEmployeeCount());
             spotDetailResDto.setIsSetting(corporation.getIsSetting());
             spotDetailResDto.setIsHotStorage(corporation.getIsHotStorage());
             spotDetailResDto.setIsGarbage(corporation.getIsGarbage());
             spotDetailResDto.setIsMembershipSupport(corporation.getIsMembershipSupport());
             spotDetailResDto.setIsPrepaid(corporation.getIsPrepaid());
 
-            if(corporation.getIsPrepaid() && (corporation.getPrepaidCategories() != null || !corporation.getPrepaidCategories().isEmpty())) {
+            if (corporation.getIsPrepaid() != null && corporation.getIsPrepaid() && corporation.getPrepaidCategories() != null && !corporation.getPrepaidCategories().isEmpty()) {
                 spotDetailResDto.setPrepaidCategoryList(toPrepaidCategoryDtos(corporation.getPrepaidCategories()));
             }
             if (corporation.getMinimumSpend() != null)
-                spotDetailResDto.setMinPrice(corporation.getMinimumSpend().intValue());
+                spotDetailResDto.setMinPrice(corporation.getMinimumSpend());
             if (corporation.getMaximumSpend() != null)
-                spotDetailResDto.setMaxPrice(corporation.getMaximumSpend().intValue());
+                spotDetailResDto.setMaxPrice(corporation.getMaximumSpend());
         }
 
 
@@ -265,29 +264,38 @@ public interface SpotMapper {
             notSupportDays.removeAll(supportDays);
 
             spotDetailResDto.setSupportDays(DaysUtil.serviceDaysSetToString(supportDays));
-            spotDetailResDto.setMealDay(DaysUtil.serviceDaysSetToString(serviceDays));
+            spotDetailResDto.setServiceDays(DaysUtil.serviceDaysSetToString(serviceDays));
             spotDetailResDto.setNotSupportDays(DaysUtil.serviceDaysToDaysString(notSupportDays));
         }
         return spotDetailResDto;
     }
 
-    default SpotDetailResDto.PrepaidCategory toPrepaidCategoryDto(PrepaidCategory prepaidCategory) {
-        return SpotDetailResDto.PrepaidCategory.builder()
-                .paycheckCategoryItem(prepaidCategory.getPaycheckCategoryItem().getPaycheckCategoryItem())
+    default UpdateSpotDetailResponseDto.PrepaidCategory toPrepaidCategoryDto(PrepaidCategory prepaidCategory) {
+        return UpdateSpotDetailResponseDto.PrepaidCategory.builder()
+                .code(prepaidCategory.getPaycheckCategoryItem().getCode())
                 .count(prepaidCategory.getCount())
                 .price(prepaidCategory.getPrice() == null ? null : prepaidCategory.getPrice().intValue())
                 .totalPrice(prepaidCategory.getTotalPrice() == null ? null : prepaidCategory.getTotalPrice().intValue())
                 .build();
     }
 
-    default List<SpotDetailResDto.PrepaidCategory> toPrepaidCategoryDtos(List<PrepaidCategory> prepaidCategoryList) {
-        return prepaidCategoryList.stream()
-                .map(this::toPrepaidCategoryDto)
+    default List<UpdateSpotDetailResponseDto.PrepaidCategory> toPrepaidCategoryDtos(List<PrepaidCategory> prepaidCategoryList) {
+        List<UpdateSpotDetailResponseDto.PrepaidCategory> prepaidCategories = new ArrayList<>();
+        List<PaycheckCategoryItem> paycheckCategoryItems = new ArrayList<>(List.of(PaycheckCategoryItem.values()));
+        for (PrepaidCategory prepaidCategory : prepaidCategoryList) {
+            paycheckCategoryItems.remove(prepaidCategory.getPaycheckCategoryItem());
+            prepaidCategories.add(toPrepaidCategoryDto(prepaidCategory));
+        }
+        for (PaycheckCategoryItem paycheckCategoryItem : paycheckCategoryItems) {
+            prepaidCategories.add(new UpdateSpotDetailResponseDto.PrepaidCategory(paycheckCategoryItem.getCode(), null, null, null));
+        }
+        prepaidCategories = prepaidCategories.stream().sorted(Comparator.comparing(UpdateSpotDetailResponseDto.PrepaidCategory::getCode))
                 .toList();
+        return prepaidCategories;
     }
 
     default PrepaidCategory toPrepaidCategory(UpdateSpotDetailRequestDto.PrepaidCategory prepaidCategoryDto) {
-        return new PrepaidCategory(PaycheckCategoryItem.ofCode(prepaidCategoryDto.getCode()), prepaidCategoryDto.getCount(), BigDecimal.valueOf(prepaidCategoryDto.getPrice()), BigDecimal.valueOf(prepaidCategoryDto.getTotalPrice()));
+        return new PrepaidCategory(PaycheckCategoryItem.ofCode(prepaidCategoryDto.getCode()), prepaidCategoryDto.getCount(), prepaidCategoryDto.getPrice() == null ? null : BigDecimal.valueOf(prepaidCategoryDto.getPrice()), prepaidCategoryDto.getTotalPrice() == null ? null : BigDecimal.valueOf(prepaidCategoryDto.getTotalPrice()));
     }
 
     default List<PrepaidCategory> toPrepaidCategories(List<UpdateSpotDetailRequestDto.PrepaidCategory> prepaidCategoryDtos) {

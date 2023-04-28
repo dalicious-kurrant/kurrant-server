@@ -133,7 +133,7 @@ public class MakersPaycheck {
                 .map(df -> df.getSupplyPrice().multiply(BigDecimal.valueOf(df.getCount())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal issuePrice = this.paycheckAdds.stream()
+        BigDecimal issuePrice = this.paycheckAdds == null ? BigDecimal.ZERO : this.paycheckAdds.stream()
                 .map(PaycheckAdd::getPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
