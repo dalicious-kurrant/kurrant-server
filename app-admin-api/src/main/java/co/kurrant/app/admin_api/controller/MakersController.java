@@ -52,7 +52,4 @@ public class MakersController {
                 .message("메이커스 정보 수정에 성공했습니다.")
                 .build();
     }
-
-
-
 }

@@ -65,7 +65,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         // 추가 요청 헤더 생성
         List<PaycheckAdd> paycheckAdds = makersPaycheck.getPaycheckAdds();
-        if (!paycheckAdds.isEmpty()) {
+        if (paycheckAdds != null && !paycheckAdds.isEmpty()) {
             Row row = sheet.createRow(++currentRow);
             createDailyFoodAddHeader(workbook, sheet, row);
             currentRow++;
@@ -100,19 +100,9 @@ public class ExcelServiceImpl implements ExcelService {
         try {
             // Load the Excel workbook
             com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
-
-            // Create a new workbook for the invoice sheet
-            com.aspose.cells.Workbook invoice = new com.aspose.cells.Workbook();
-            Worksheet invoiceSheet = invoice.getWorksheets().add("Invoice");
-
-            // Copy the data and formatting from the "인보이스" sheet to the new worksheet
-            Worksheet sourceSheet = asposeWorkbook.getWorksheets().get("인보이스");
-            invoiceSheet.copy(sourceSheet);
-
-            // Save the invoice workbook to PDF
             PdfSaveOptions options = new PdfSaveOptions();
             options.setOnePagePerSheet(true);
-            invoice.save(pdfOutputStream, options);
+            asposeWorkbook.save(pdfOutputStream, options);
         } catch (Exception e) {
             e.printStackTrace();
         }

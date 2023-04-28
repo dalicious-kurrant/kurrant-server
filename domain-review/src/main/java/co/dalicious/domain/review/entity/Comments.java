@@ -27,7 +27,7 @@ public class Comments {
     @Comment("댓글 PK")
     private BigInteger id;
 
-    @Column(name = "content" ,nullable = false)
+    @Column(name = "content" ,nullable = false, columnDefinition = "TEXT")
     @Comment("댓글 내용-최소 10자 이상")
     private String content;
 

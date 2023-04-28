@@ -43,6 +43,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -73,6 +74,7 @@ public class OrderServiceImpl implements OrderService {
     private final MembershipDiscountEvent membershipDiscountEvent;
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final PointUtil pointUtil;
+    private final EntityManager entityManager;
     private final ConcurrentHashMap<User, Object> tossItemsLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<User, Object> tossItemLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<User, Object> niceItemsLocks = new ConcurrentHashMap<>();
@@ -214,7 +216,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
     public void payMembership(User user, MembershipSubscriptionType membershipSubscriptionType, PeriodDto periodDto, PaymentType paymentType) {
         BigDecimal defaultPrice = membershipSubscriptionType.getPrice();
         BigDecimal yearDescriptionDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, membershipSubscriptionType.getDiscountRate());
@@ -303,6 +304,14 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException(e);
         }
         user.changeMembershipStatus(true);
+    }
+
+    @Override
+    @Transactional
+    public void updateFailedMembershipPayment(Membership membership) {
+        membership.changeAutoPaymentStatus(false);
+        membership.getUser().changeMembershipStatus(false);
+        entityManager.merge(membership);
     }
 
     @Override

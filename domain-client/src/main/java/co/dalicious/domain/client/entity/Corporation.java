@@ -19,6 +19,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 @DynamicInsert
@@ -171,7 +172,9 @@ public class Corporation extends Group{
     }
 
     public void updatePrepaidCategories(List<PrepaidCategory> prepaidCategories) {
-        this.prepaidCategories = prepaidCategories;
+        List<PrepaidCategory> mutablePrepaidCategories = new ArrayList<>(prepaidCategories);
+        mutablePrepaidCategories.removeIf(prepaidCategory -> prepaidCategory.getCount() == null && prepaidCategory.getPrice() == null && prepaidCategory.getTotalPrice() == null);
+        this.prepaidCategories = mutablePrepaidCategories;
     }
 
     public void updatePrepaid(Boolean prepaid) {

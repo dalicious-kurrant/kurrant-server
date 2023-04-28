@@ -140,6 +140,9 @@ public class DateUtils {
         return String.format("%01d %tk:%tM", leftDay, remainingTime, remainingTime);
     }
 
+    public static YearMonth stringToYearMonth(String startYearMonth) {
+        return YearMonth.parse(startYearMonth.substring(0, 4) + "-" + startYearMonth.substring(4));
+    }
     public static String toISOLocalDateAndWeekOfDay(Timestamp ts) {
         SimpleDateFormat sdf = new SimpleDateFormat("MM월 dd일 E", Locale.KOREA);
         return sdf.format(ts);
