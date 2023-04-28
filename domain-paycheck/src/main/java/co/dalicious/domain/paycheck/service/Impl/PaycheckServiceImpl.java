@@ -10,6 +10,7 @@ import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
+import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.*;
@@ -75,9 +76,11 @@ public class PaycheckServiceImpl implements PaycheckService {
             MakersPaycheck makersPaycheck = makersPaycheckMapper.toInitiateEntity(paycheckDailyFoodMap.get(makers), makers);
             makersPaycheck = makersPaycheckRepository.save(makersPaycheck);
             // 정산 엑셀 생성
-            ImageResponseDto imageResponseDto = excelService.createMakersPaycheckExcel(makersPaycheck);
-            Image excelFile = new Image(imageResponseDto);
+            ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+            Image excelFile = new Image(excelPdfDto.getExcelDto());
+            Image pdfFile = new Image(excelPdfDto.getPdfDto());
             makersPaycheck.updateExcelFile(excelFile);
+            makersPaycheck.updatePdfFile(pdfFile);
         }
         return makersPaycheckRepository.findAllByYearMonth(YearMonth.now());
     }

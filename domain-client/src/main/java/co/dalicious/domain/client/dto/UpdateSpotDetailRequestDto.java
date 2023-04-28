@@ -15,12 +15,16 @@ public class UpdateSpotDetailRequestDto {
 
     @Schema(description = "스팟 ID")
     private BigInteger spotId;
+    @Schema(description = "코드")
+    private String code;
     @Schema(description = "스팟 이름")
     private String spotName;
     @Schema(description = "담당자 이름")
     private String managerName;
     @Schema(description = "담당자 ID")
     private BigInteger managerId;
+    @Schema(description = "사원수")
+    private Integer employeeCount;
     @Schema(description = "담당자 전화번호")
     private String managerPhone;
     @Schema(description = "스팟 타입")
@@ -57,6 +61,8 @@ public class UpdateSpotDetailRequestDto {
     private Boolean isGarbage;
     @Schema(description = "온장고 대여 서비스")
     private Boolean isHotStorage;
+    @Schema(description = "선불정산 여부 체크")
+    private Boolean isPrepaid;
     @Schema(description = "메모")
     private String memo;
     @Schema(description = "정산 선불 정보")

@@ -1,16 +1,18 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
-import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.PrepaidCategory;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.service.ImageService;
-import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.*;
 import co.dalicious.domain.paycheck.service.ExcelService;
 
 import co.dalicious.system.util.DateUtils;
+import com.aspose.cells.PdfSaveOptions;
+import com.aspose.cells.SaveFormat;
+import com.aspose.cells.Worksheet;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Font;
@@ -36,7 +38,7 @@ public class ExcelServiceImpl implements ExcelService {
 
     @Override
     @Transactional
-    public ImageResponseDto createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
+    public ExcelPdfDto createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("MakersPaycheck");
 
@@ -91,25 +93,46 @@ public class ExcelServiceImpl implements ExcelService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        // Convert Excel to HTML and then to PDF
-//        pdfService.excelToPdf(workbook);
-//
-//        // Save the PDF file locally
-//        try (FileOutputStream pdfFileOutputStream = new FileOutputStream(fileName2)) {
-//            pdfOutputStream.writeTo(pdfFileOutputStream);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        return imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+
+        // Convert Excel to PDF using Aspose.Cells
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
+        try {
+            // Load the Excel workbook
+            com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
+
+            // Create a new workbook for the invoice sheet
+            com.aspose.cells.Workbook invoice = new com.aspose.cells.Workbook();
+            Worksheet invoiceSheet = invoice.getWorksheets().add("Invoice");
+
+            // Copy the data and formatting from the "인보이스" sheet to the new worksheet
+            Worksheet sourceSheet = asposeWorkbook.getWorksheets().get("인보이스");
+            invoiceSheet.copy(sourceSheet);
+
+            // Save the invoice workbook to PDF
+            PdfSaveOptions options = new PdfSaveOptions();
+            options.setOnePagePerSheet(true);
+            invoice.save(pdfOutputStream, options);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Save PDF to S3
+        ImageResponseDto pdfResponse = imageService.fileUpload(pdfOutputStream.toByteArray(), dirName, fileName2);
+
+        ImageResponseDto excelResponse = imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+
+        return new ExcelPdfDto(pdfResponse, excelResponse);
     }
 
     @Override
-    public ImageResponseDto createCorporationPaycheckExcel(CorporationPaycheck corporationPaycheck, PaycheckDto.CorporationOrder corporationOrder) {
+    public ExcelPdfDto createCorporationPaycheckExcel(CorporationPaycheck corporationPaycheck, PaycheckDto.CorporationOrder corporationOrder) {
         Workbook workbook = new XSSFWorkbook();
 
         String dirName = "paycheck/corporations/" + corporationPaycheck.getCorporation().getId().toString() + "/" + corporationPaycheck.getYearAndMonthString() + "/";
 
         String fileName = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".xlsx";
+        String fileName2 = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".pdf";
 
         createCorporationPaycheckOrderExcel(corporationPaycheck, workbook);
         createCorporationPaycheckInvoiceExcel(corporationOrder, workbook);
@@ -121,21 +144,36 @@ public class ExcelServiceImpl implements ExcelService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        // Convert Excel to HTML and then to PDF
-//        pdfService.excelToPdf(workbook);
-//
-//        // Save the PDF file locally
-//        try (FileOutputStream pdfFileOutputStream = new FileOutputStream(fileName2)) {
-//            pdfOutputStream.writeTo(pdfFileOutputStream);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        return imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
-    }
 
-    public void convertExcelToPdf(Workbook workbook, String pdfFilePath) throws Exception {
-        // Save the Excel file as a PDF
+        // Convert Excel to PDF using Aspose.Cells
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
+        try {
+            // Load the Excel workbook
+            com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
 
+            // Create a new workbook for the invoice sheet
+            com.aspose.cells.Workbook invoice = new com.aspose.cells.Workbook();
+            Worksheet invoiceSheet = invoice.getWorksheets().add("Invoice");
+
+            // Copy the data and formatting from the "인보이스" sheet to the new worksheet
+            Worksheet sourceSheet = asposeWorkbook.getWorksheets().get("인보이스");
+            invoiceSheet.copy(sourceSheet);
+
+            // Save the invoice workbook to PDF
+            PdfSaveOptions options = new PdfSaveOptions();
+            options.setOnePagePerSheet(true);
+            invoice.save(pdfOutputStream, options);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Save PDF to S3
+        ImageResponseDto pdfResponse = imageService.fileUpload(pdfOutputStream.toByteArray(), dirName, fileName2);
+
+        ImageResponseDto excelResponse = imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+
+        return new ExcelPdfDto(pdfResponse, excelResponse);
     }
 
     public void createCorporationPaycheckOrderExcel(CorporationPaycheck corporationPaycheck, Workbook workbook) {

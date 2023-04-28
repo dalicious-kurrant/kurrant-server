@@ -2,6 +2,7 @@ package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.system.enums.FoodTag;
@@ -117,8 +118,22 @@ public class Corporation extends Group{
         this.isGarbage = useOrNotUse(groupInfoList.getIsGarbage());
         this.isHotStorage = useOrNotUse(groupInfoList.getIsHotStorage());
         this.isSetting = useOrNotUse(groupInfoList.getIsSetting());
+        this.isPrepaid = useOrNotUse(groupInfoList.getIsPrepaid());
         this.minimumSpend = (groupInfoList.getMinimumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMinimumSpend());
         this.maximumSpend = (groupInfoList.getMaximumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMaximumSpend());
+    }
+
+    public void updateCorporation(UpdateSpotDetailRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
+        updateGroup(address, diningTypeList, groupInfoList.getSpotName(), groupInfoList.getManagerId());
+        this.code = groupInfoList.getCode();
+        this.employeeCount = groupInfoList.getEmployeeCount();
+        this.isMembershipSupport = !groupInfoList.getIsMembershipSupport().equals("미지원");
+        this.isGarbage = groupInfoList.getIsGarbage();
+        this.isHotStorage = groupInfoList.getIsHotStorage();
+        this.isSetting = groupInfoList.getIsSetting();
+        this.isPrepaid = groupInfoList.getIsPrepaid();
+        this.minimumSpend = (groupInfoList.getMinPrice() == null) ? null : groupInfoList.getMinPrice();
+        this.maximumSpend = (groupInfoList.getMaxPrice() == null) ? null : groupInfoList.getMaxPrice();
     }
 
 
@@ -137,5 +152,29 @@ public class Corporation extends Group{
                 .filter(v -> v.getPaycheckCategoryItem().equals(paycheckCategoryItem))
                 .findAny()
                 .orElse(null);
+    }
+
+    public void updateMembershipSupport(Boolean membershipSupport) {
+        isMembershipSupport = membershipSupport;
+    }
+
+    public void updateGarbage(Boolean garbage) {
+        isGarbage = garbage;
+    }
+
+    public void updateHotStorage(Boolean hotStorage) {
+        isHotStorage = hotStorage;
+    }
+
+    public void updateSetting(Boolean setting) {
+        isSetting = setting;
+    }
+
+    public void updatePrepaidCategories(List<PrepaidCategory> prepaidCategories) {
+        this.prepaidCategories = prepaidCategories;
+    }
+
+    public void updatePrepaid(Boolean prepaid) {
+        isPrepaid = prepaid;
     }
 }

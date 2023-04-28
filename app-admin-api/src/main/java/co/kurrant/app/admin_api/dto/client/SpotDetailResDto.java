@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.dto.client;
 import co.dalicious.domain.paycheck.entity.enums.CategoryPrice;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -39,17 +40,18 @@ public class SpotDetailResDto {
     private Boolean isSetting;
     private Boolean isGarbage;
     private Boolean isHotStorage;
+    private Boolean isPrepaid;
     private String memo;
     private List<PrepaidCategory> prepaidCategoryList;
     private List<CategoryPrice> categoryPrices;
 
-//    public SpotDetailResDto() {
-//        List<CategoryPrice> categoryPrices1 = new ArrayList<>();
-//        for (co.dalicious.domain.paycheck.entity.enums.CategoryPrice categoryPrice : co.dalicious.domain.paycheck.entity.enums.CategoryPrice.values()) {
-//            categoryPrices.add(new CategoryPrice(categoryPrice));
-//        }
-//        this.categoryPrices = categoryPrices1;
-//    }
+    public SpotDetailResDto() {
+        List<CategoryPrice> categoryPrices1 = new ArrayList<>();
+        for (co.dalicious.domain.paycheck.entity.enums.CategoryPrice categoryPrice : co.dalicious.domain.paycheck.entity.enums.CategoryPrice.values()) {
+            categoryPrices1.add(new CategoryPrice(categoryPrice));
+        }
+        this.categoryPrices = categoryPrices1;
+    }
 
     @Getter
     public static class CategoryPrice {
@@ -70,6 +72,14 @@ public class SpotDetailResDto {
         private Integer count;
         private Integer price;
         private Integer totalPrice;
+
+        @Builder
+        public PrepaidCategory(String paycheckCategoryItem, Integer count, Integer price, Integer totalPrice) {
+            this.paycheckCategoryItem = paycheckCategoryItem;
+            this.count = count;
+            this.price = price;
+            this.totalPrice = totalPrice;
+        }
     }
 
 }

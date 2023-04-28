@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.kurrant.app.admin_api.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,6 +46,24 @@ public class GroupController {
         return ResponseMessage.builder()
                 .message("기업 정보를 조회했습니다.")
                 .data(groupService.getAllGroupForExcel())
+                .build();
+    }
+
+    @Operation(summary = "기업 정보 상세 조회", description = "기업 의 상세정보를 조회합니다.")
+    @GetMapping("/detail")
+    public ResponseMessage getSpotDetail(@RequestParam Integer spotId) {
+        return ResponseMessage.builder()
+                .message("기업  상세 정보를 조회했습니다.")
+                .data(groupService.getGroupDetail(spotId))
+                .build();
+    }
+
+    @Operation(summary = "기업 정보 상세 수정", description = "기업 의 상세정보를 수정합니다.")
+    @PatchMapping("/detail")
+    public ResponseMessage updateSpotDetail(@RequestBody UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
+        groupService.updateGroupDetail(updateSpotDetailRequestDto);
+        return ResponseMessage.builder()
+                .message("기업  상세 정보를 수정했습니다.")
                 .build();
     }
 

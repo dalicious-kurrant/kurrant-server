@@ -31,6 +31,7 @@ public class GroupExcelRequestDto {
     private String isSetting;
     private String isGarbage;
     private String isHotStorage;
+    private String isPrepaid;
     private Integer morningSupportPrice;
     private Integer lunchSupportPrice;
     private Integer dinnerSupportPrice;

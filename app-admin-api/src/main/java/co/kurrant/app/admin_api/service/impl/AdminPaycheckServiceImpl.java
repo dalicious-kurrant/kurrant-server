@@ -12,6 +12,7 @@ import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
+import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
@@ -190,11 +191,11 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
             imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
         }
         // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
-        ImageResponseDto imageResponseDto = excelService.createMakersPaycheckExcel(makersPaycheck);
-        Image image = new Image(imageResponseDto);
-        makersPaycheck.updateExcelFile(image);
-
-        // TODO: 추후 PDF 파일 추가
+        ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+        Image excel = new Image(excelPdfDto.getExcelDto());
+        Image pdf = new Image(excelPdfDto.getPdfDto());
+        makersPaycheck.updateExcelFile(excel);
+        makersPaycheck.updatePdfFile(pdf);
     }
 
     @Override
@@ -398,9 +399,11 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
             imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
         }
         // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
-        ImageResponseDto imageResponseDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
-        Image image = new Image(imageResponseDto);
-        corporationPaycheck.updateExcelFile(image);
+        ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
+        Image excel = new Image(excelPdfDto.getExcelDto());
+        Image pdf = new Image(excelPdfDto.getPdfDto());
+        corporationPaycheck.updateExcelFile(excel);
+        corporationPaycheck.updatePdfFile(pdf);
     }
 
     @Override

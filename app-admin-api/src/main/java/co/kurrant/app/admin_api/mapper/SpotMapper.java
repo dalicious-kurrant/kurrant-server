@@ -2,8 +2,10 @@ package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.SpotResponseDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
+import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
@@ -13,6 +15,7 @@ import co.dalicious.system.util.DaysUtil;
 import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import org.hibernate.Hibernate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
@@ -112,6 +115,7 @@ public interface SpotMapper {
         }
         return null;
     }
+
 
     @Named("createdTimeFormat")
     default String createdTimeFormat(Timestamp time) {
@@ -219,11 +223,16 @@ public interface SpotMapper {
 
         spotDetailResDto.setMemo(spot.getMemo());
 
-        if (spot.getGroup() instanceof Corporation corporation) {
+        if (Hibernate.unproxy(spot.getGroup()) instanceof Corporation corporation) {
             spotDetailResDto.setIsSetting(corporation.getIsSetting());
             spotDetailResDto.setIsHotStorage(corporation.getIsHotStorage());
             spotDetailResDto.setIsGarbage(corporation.getIsGarbage());
             spotDetailResDto.setIsMembershipSupport(corporation.getIsMembershipSupport());
+            spotDetailResDto.setIsPrepaid(corporation.getIsPrepaid());
+
+            if(corporation.getIsPrepaid() && (corporation.getPrepaidCategories() != null || !corporation.getPrepaidCategories().isEmpty())) {
+                spotDetailResDto.setPrepaidCategoryList(toPrepaidCategoryDtos(corporation.getPrepaidCategories()));
+            }
             if (corporation.getMinimumSpend() != null)
                 spotDetailResDto.setMinPrice(corporation.getMinimumSpend().intValue());
             if (corporation.getMaximumSpend() != null)
@@ -257,6 +266,31 @@ public interface SpotMapper {
             spotDetailResDto.setNotSupportDays(DaysUtil.serviceDaysToDaysString(notSupportDays));
         }
         return spotDetailResDto;
+    }
+
+    default SpotDetailResDto.PrepaidCategory toPrepaidCategoryDto(PrepaidCategory prepaidCategory) {
+        return SpotDetailResDto.PrepaidCategory.builder()
+                .paycheckCategoryItem(prepaidCategory.getPaycheckCategoryItem().getPaycheckCategoryItem())
+                .count(prepaidCategory.getCount())
+                .price(prepaidCategory.getPrice() == null ? null : prepaidCategory.getPrice().intValue())
+                .totalPrice(prepaidCategory.getTotalPrice() == null ? null : prepaidCategory.getTotalPrice().intValue())
+                .build();
+    }
+
+    default List<SpotDetailResDto.PrepaidCategory> toPrepaidCategoryDtos(List<PrepaidCategory> prepaidCategoryList) {
+        return prepaidCategoryList.stream()
+                .map(this::toPrepaidCategoryDto)
+                .toList();
+    }
+
+    default PrepaidCategory toPrepaidCategory(UpdateSpotDetailRequestDto.PrepaidCategory prepaidCategoryDto) {
+        return new PrepaidCategory(PaycheckCategoryItem.ofCode(prepaidCategoryDto.getCode()), prepaidCategoryDto.getCount(), BigDecimal.valueOf(prepaidCategoryDto.getPrice()), BigDecimal.valueOf(prepaidCategoryDto.getTotalPrice()));
+    }
+
+    default List<PrepaidCategory> toPrepaidCategories(List<UpdateSpotDetailRequestDto.PrepaidCategory> prepaidCategoryDtos) {
+        return prepaidCategoryDtos.stream()
+                .map(this::toPrepaidCategory)
+                .toList();
     }
 }
 

@@ -5,6 +5,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.apache.poi:poi:5.2.2'
     implementation 'org.apache.poi:poi-ooxml:5.2.2'
+    implementation files('path/to/aspose-cells-23.4.jar')
 
     runtimeOnly 'mysql:mysql-connector-java'
     implementation 'com.querydsl:querydsl-jpa:4.4.0'
@@ -13,3 +14,4 @@ dependencies {
     runtimeOnly 'mysql:mysql-connector-java'
     implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.6.11'
 }
+
