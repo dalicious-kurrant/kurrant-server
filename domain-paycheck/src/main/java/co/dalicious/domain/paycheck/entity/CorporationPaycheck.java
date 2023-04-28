@@ -1,7 +1,6 @@
 package co.dalicious.domain.paycheck.entity;
 
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.PaycheckCategory;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.paycheck.converter.PaycheckStatusConverter;
 import co.dalicious.domain.paycheck.converter.YearMonthAttributeConverter;
@@ -177,13 +176,22 @@ public class CorporationPaycheck {
                 ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
     }
 
-    public String getFileName() {
-        return "거래명세서_" + this.yearMonth.getYear() + "-" +
+    public String getOrdersFileName() {
+        return " 식수내역_" + this.yearMonth.getYear() + "-" +
+                ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
+    }
+
+    public String getInvoiceFileName() {
+        return " 인보이스_" + this.yearMonth.getYear() + "-" +
                 ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
     }
 
     public CorporationPaycheck updatePaycheckAdds(List<PaycheckAdd> paycheckAdds) {
         this.paycheckAdds.addAll(paycheckAdds);
         return this;
+    }
+
+    public void updateMemo(PaycheckMemo paycheckMemos) {
+        this.paycheckMemos.add(paycheckMemos);
     }
 }

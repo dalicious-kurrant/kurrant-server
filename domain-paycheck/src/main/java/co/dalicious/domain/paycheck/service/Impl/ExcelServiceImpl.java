@@ -1,20 +1,19 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.PaycheckCategory;
+import co.dalicious.domain.client.entity.PrepaidCategory;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.service.ImageService;
+import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
+import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.*;
 import co.dalicious.domain.paycheck.service.ExcelService;
 
 import co.dalicious.system.util.DateUtils;
+import com.aspose.cells.PdfSaveOptions;
+import com.aspose.cells.SaveFormat;
+import com.aspose.cells.Worksheet;
 import lombok.RequiredArgsConstructor;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -22,7 +21,6 @@ import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +28,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -41,19 +38,16 @@ public class ExcelServiceImpl implements ExcelService {
 
     @Override
     @Transactional
-    public ImageResponseDto createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
+    public ExcelPdfDto createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("MakersPaycheck");
 
         sheet.setColumnWidth(0, 2 * 256);
         String dirName = "paycheck/makers/" + makersPaycheck.getMakers().getId().toString() + "/" + makersPaycheck.getYearAndMonthString() + "/" + makersPaycheck.getMakers().getId().toString();
 
-        String fileName = makersPaycheck.getFileName() +
-                "_" + makersPaycheck.getMakers().getName() + ".xlsx";
+        String fileName = makersPaycheck.getMakers().getName() + makersPaycheck.getFileName() + ".xlsx";
 
-        String fileName2 = "C:\\Users\\minji\\Downloads\\" + makersPaycheck.getYearMonth().getYear() +
-                ((makersPaycheck.getYearMonth().getMonthValue() < 10) ? "0" + String.valueOf(makersPaycheck.getYearMonth().getMonthValue()) : String.valueOf(makersPaycheck.getYearMonth().getMonthValue())) +
-                "_" + makersPaycheck.getMakers().getName() + ".pdf";
+        String fileName2 = makersPaycheck.getMakers().getName() + makersPaycheck.getFileName() + ".pdf";
 
         // Create header rows
         createHeaderRows(workbook, sheet, makersPaycheck.getMakers().getName(), makersPaycheck.getYearMonth());
@@ -99,29 +93,93 @@ public class ExcelServiceImpl implements ExcelService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        // Convert Excel to HTML and then to PDF
-//        pdfService.excelToPdf(workbook);
-//
-//        // Save the PDF file locally
-//        try (FileOutputStream pdfFileOutputStream = new FileOutputStream(fileName2)) {
-//            pdfOutputStream.writeTo(pdfFileOutputStream);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        return imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+
+        // Convert Excel to PDF using Aspose.Cells
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
+        try {
+            // Load the Excel workbook
+            com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
+
+            // Create a new workbook for the invoice sheet
+            com.aspose.cells.Workbook invoice = new com.aspose.cells.Workbook();
+            Worksheet invoiceSheet = invoice.getWorksheets().add("Invoice");
+
+            // Copy the data and formatting from the "인보이스" sheet to the new worksheet
+            Worksheet sourceSheet = asposeWorkbook.getWorksheets().get("인보이스");
+            invoiceSheet.copy(sourceSheet);
+
+            // Save the invoice workbook to PDF
+            PdfSaveOptions options = new PdfSaveOptions();
+            options.setOnePagePerSheet(true);
+            invoice.save(pdfOutputStream, options);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Save PDF to S3
+        ImageResponseDto pdfResponse = imageService.fileUpload(pdfOutputStream.toByteArray(), dirName, fileName2);
+
+        ImageResponseDto excelResponse = imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+
+        return new ExcelPdfDto(pdfResponse, excelResponse);
     }
 
     @Override
-    public ImageResponseDto createCorporationPaycheckExcel(CorporationPaycheck corporationPaycheck) {
+    public ExcelPdfDto createCorporationPaycheckExcel(CorporationPaycheck corporationPaycheck, PaycheckDto.CorporationOrder corporationOrder) {
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("MakersPaycheck");
 
-        sheet.setColumnWidth(0, 2 * 256);
         String dirName = "paycheck/corporations/" + corporationPaycheck.getCorporation().getId().toString() + "/" + corporationPaycheck.getYearAndMonthString() + "/";
 
-        String fileName = corporationPaycheck.getFileName() +
-                "_" + corporationPaycheck.getCorporation().getName() + ".xlsx";
+        String fileName = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".xlsx";
+        String fileName2 = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".pdf";
 
+        createCorporationPaycheckOrderExcel(corporationPaycheck, workbook);
+        createCorporationPaycheckInvoiceExcel(corporationOrder, workbook);
+
+        // Save the file locally
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            workbook.write(outputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Convert Excel to PDF using Aspose.Cells
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
+        try {
+            // Load the Excel workbook
+            com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
+
+            // Create a new workbook for the invoice sheet
+            com.aspose.cells.Workbook invoice = new com.aspose.cells.Workbook();
+            Worksheet invoiceSheet = invoice.getWorksheets().add("Invoice");
+
+            // Copy the data and formatting from the "인보이스" sheet to the new worksheet
+            Worksheet sourceSheet = asposeWorkbook.getWorksheets().get("인보이스");
+            invoiceSheet.copy(sourceSheet);
+
+            // Save the invoice workbook to PDF
+            PdfSaveOptions options = new PdfSaveOptions();
+            options.setOnePagePerSheet(true);
+            invoice.save(pdfOutputStream, options);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Save PDF to S3
+        ImageResponseDto pdfResponse = imageService.fileUpload(pdfOutputStream.toByteArray(), dirName, fileName2);
+
+        ImageResponseDto excelResponse = imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+
+        return new ExcelPdfDto(pdfResponse, excelResponse);
+    }
+
+    public void createCorporationPaycheckOrderExcel(CorporationPaycheck corporationPaycheck, Workbook workbook) {
+        Sheet sheet = workbook.createSheet("인보이스");
+
+        sheet.setColumnWidth(0, 2 * 256);
 
         // 거래명세서 헤더(달리셔스 정보) 생성
         createHeaderRows(workbook, sheet, corporationPaycheck.getCorporation().getName(), corporationPaycheck.getYearMonth());
@@ -149,11 +207,11 @@ public class ExcelServiceImpl implements ExcelService {
         currentRow = createHeaderContext(workbook, sheet, currentRow, "실비");
 
         BigDecimal totalPrice = BigDecimal.ZERO;
-        for (PaycheckCategory paycheckCategory : paycheckCategories) {
+        for (PaycheckCategory prepaidCategory : paycheckCategories) {
             Row row = sheet.createRow(currentRow);
-            writePaycheckCategory(workbook, row, paycheckCategory);
+            writePaycheckCategory(workbook, row, prepaidCategory);
             sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 6, 7));
-            totalPrice = totalPrice.add(paycheckCategory.getTotalPrice());
+            totalPrice = totalPrice.add(prepaidCategory.getTotalPrice());
             currentRow++;
         }
         currentRow = createCategoryTotalPrice(sheet, currentRow, totalPrice);
@@ -162,7 +220,7 @@ public class ExcelServiceImpl implements ExcelService {
         // 추가 요청 헤더 생성
         List<PaycheckAdd> paycheckAdds = corporationPaycheck.getPaycheckAdds();
         if (!paycheckAdds.isEmpty()) {
-            currentRow = createHeaderTitle(workbook, sheet, currentRow, "추가이슈");
+            currentRow = createHeaderTitle(workbook, sheet, currentRow, 1,7, "추가이슈");
             Row row = sheet.createRow(currentRow);
             createDailyFoodAddHeader(workbook, sheet, row);
             currentRow++;
@@ -186,26 +244,32 @@ public class ExcelServiceImpl implements ExcelService {
         for (int i = 0; i < 11; i++) {
             sheet.autoSizeColumn(i);
         }
-
-        // Save the file locally
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
-            workbook.write(outputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-//        // Convert Excel to HTML and then to PDF
-//        pdfService.excelToPdf(workbook);
-//
-//        // Save the PDF file locally
-//        try (FileOutputStream pdfFileOutputStream = new FileOutputStream(fileName2)) {
-//            pdfOutputStream.writeTo(pdfFileOutputStream);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        return imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
     }
 
+    public void createCorporationPaycheckInvoiceExcel(PaycheckDto.CorporationOrder corporationOrder, Workbook workbook) {
+        Sheet sheet = workbook.createSheet("식수내역");
+
+        sheet.setColumnWidth(0, 2 * 256);
+
+        int currantRow = 0;
+
+        currantRow = createHeaderTitle(workbook, sheet, currantRow, 0, 7, "식수 개요");
+
+        currantRow = createOrderSummary(workbook, sheet, currantRow, corporationOrder.getCorporationInfo());
+
+        currantRow++;
+
+        currantRow = createHeaderTitle(workbook, sheet, currantRow, 0,7, "식수 내역");
+
+        currantRow = createOrderHeader(workbook, sheet, currantRow);
+
+        currantRow = createDailyFood(workbook, sheet, currantRow,corporationOrder.getCorporationOrderItems());
+
+        // Adjust column widths
+        for (int i = 0; i < 11; i++) {
+            sheet.autoSizeColumn(i);
+        }
+    }
 
     @Override
     public void addImageToWorkbook(Workbook workbook, Sheet sheet, byte[] imageBytes, int col1, int row1, double scaleX, double scaleY) {
@@ -222,31 +286,6 @@ public class ExcelServiceImpl implements ExcelService {
 
         Picture picture = drawing.createPicture(anchor, pictureIndex);
         picture.resize(scaleX, scaleY);
-    }
-
-    // FIXME: 정우님에게 물어보기
-
-    private ByteArrayOutputStream imageToPdf(BufferedImage bufferedImage) {
-        PDDocument document = new PDDocument();
-        PDPage page = new PDPage(new PDRectangle(bufferedImage.getWidth(), bufferedImage.getHeight()));
-        document.addPage(page);
-
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-            PDImageXObject image = PDImageXObject.createFromByteArray(document, bufferedImageToByteArray(bufferedImage), "excel");
-            contentStream.drawImage(image, 0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
-            contentStream.close();
-            document.save(byteArrayOutputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                document.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return byteArrayOutputStream;
     }
 
     private byte[] bufferedImageToByteArray(BufferedImage bufferedImage) {
@@ -382,18 +421,18 @@ public class ExcelServiceImpl implements ExcelService {
         }
     }
 
-    private Integer createHeaderTitle(Workbook workbook, Sheet sheet, Integer rowNum, String title) {
+    private Integer createHeaderTitle(Workbook workbook, Sheet sheet, Integer rowNum, Integer firstCol, Integer lastCol, String title) {
         Row row = sheet.createRow(rowNum);
         Cell cell = row.createCell(1);
         cell.setCellValue(title);
-        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, 1, 7));
+        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, firstCol, lastCol));
         cell.setCellStyle(titleHeader(workbook));
 
         return ++rowNum;
     }
 
     private Integer createHeaderContext(Workbook workbook, Sheet sheet, Integer rowNum, String title) {
-        Integer currantRow = createHeaderTitle(workbook, sheet, rowNum, title);
+        Integer currantRow = createHeaderTitle(workbook, sheet, rowNum, 1, 7, title);
 
         // 거래 내역 헤더
         Row row = sheet.createRow(currantRow);
@@ -412,6 +451,126 @@ public class ExcelServiceImpl implements ExcelService {
             cell.setCellValue(headers[i - 1]);
 
             cell.setCellStyle(dataHeader(workbook));
+        }
+        return ++currantRow;
+    }
+
+    private Integer createOrderHeader(Workbook workbook, Sheet sheet, Integer currantRow) {
+        // 식수 내역 헤더
+        Row row = sheet.createRow(currantRow);
+        String[] headers = {"날짜", "식사타입", "메이커스", "상품", "사용지원금", "개수", "구매자", "이메일"};
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = row.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(dataHeader(workbook));
+        }
+        return ++currantRow;
+    }
+
+    private Integer createOrderSummary(Workbook workbook, Sheet sheet, Integer currantRow, PaycheckDto.CorporationInfo corporationInfo) {
+        Row row1 = sheet.createRow(currantRow);
+        Cell titleCell1 = row1.createCell(0);
+        Cell contextCell1 = row1.createCell(4);
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 0, 3));
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 4, 7));
+
+        titleCell1.setCellValue("고객사 이름");
+        titleCell1.setCellStyle(boldCenterGray(workbook));
+        contextCell1.setCellValue(corporationInfo.getName());
+        contextCell1.setCellStyle(center(workbook));
+
+        Row row2 = sheet.createRow(++currantRow);
+        Cell titleCell2 = row2.createCell(0);
+        Cell contextCell2 = row2.createCell(4);
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 0, 3));
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 4, 7));
+
+        titleCell2.setCellValue("기간");
+        titleCell2.setCellStyle(boldCenterGray(workbook));
+        contextCell2.setCellValue(corporationInfo.getPeriod());
+        contextCell2.setCellStyle(center(workbook));
+
+        Row row3 = sheet.createRow(++currantRow);
+        Cell titleCell3 = row3.createCell(0);
+        Cell contextCell3 = row3.createCell(4);
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 0, 3));
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 4, 7));
+
+        titleCell3.setCellValue("아침 총 식수");
+        titleCell3.setCellStyle(boldCenterGray(workbook));
+        contextCell3.setCellValue(corporationInfo.getMorningCount());
+        contextCell3.setCellStyle(center(workbook));
+
+        Row row4 = sheet.createRow(++currantRow);
+        Cell titleCell4 = row4.createCell(0);
+        Cell contextCell4 = row4.createCell(4);
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 0, 3));
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 4, 7));
+
+        titleCell4.setCellValue("점심 총 식수");
+        titleCell4.setCellStyle(boldCenterGray(workbook));
+        contextCell4.setCellValue(corporationInfo.getLunchCount());
+        contextCell4.setCellStyle(center(workbook));
+
+        Row row5 = sheet.createRow(++currantRow);
+        Cell titleCell5 = row5.createCell(0);
+        Cell contextCell5 = row5.createCell(4);
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 0, 3));
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 4, 7));
+
+        titleCell5.setCellValue("저녁 총 식수");
+        titleCell5.setCellStyle(boldCenterGray(workbook));
+        contextCell5.setCellValue(corporationInfo.getDinnerCount());
+        contextCell5.setCellStyle(center(workbook));
+
+        Row row6 = sheet.createRow(++currantRow);
+        Cell titleCell6 = row6.createCell(0);
+        Cell contextCell6 = row6.createCell(4);
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 0, 3));
+        sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 4, 7));
+
+        titleCell6.setCellValue("총액(VAT 포함)");
+        titleCell6.setCellStyle(boldCenterGray(workbook));
+        contextCell6.setCellValue(corporationInfo.getTotalPrice());
+        contextCell6.setCellStyle(priceStyle(workbook));
+
+        return ++currantRow;
+    }
+
+    private Integer createDailyFood(Workbook workbook, Sheet sheet, Integer currantRow, List<PaycheckDto.CorporationOrderItem> corporationOrderItems) {
+        for (PaycheckDto.CorporationOrderItem corporationOrderItem : corporationOrderItems) {
+            Row row = sheet.createRow(currantRow++);
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(corporationOrderItem.getServiceDate());
+            cell0.setCellStyle(center(workbook));
+
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(corporationOrderItem.getDiningType());
+            cell1.setCellStyle(center(workbook));
+
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(corporationOrderItem.getMakers());
+            cell2.setCellStyle(center(workbook));
+
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(corporationOrderItem.getFood());
+            cell3.setCellStyle(center(workbook));
+
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue(corporationOrderItem.getSupportPrice());
+            cell4.setCellStyle(priceStyle(workbook));
+
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(corporationOrderItem.getCount());
+            cell5.setCellStyle(center(workbook));
+
+            Cell cell6 = row.createCell(6);
+            cell6.setCellValue(corporationOrderItem.getUser());
+            cell6.setCellStyle(center(workbook));
+
+            Cell cell7 = row.createCell(7);
+            cell7.setCellValue(corporationOrderItem.getEmail());
+            cell7.setCellStyle(center(workbook));
         }
         return ++currantRow;
     }
@@ -439,11 +598,46 @@ public class ExcelServiceImpl implements ExcelService {
 
         //TODO: 수정 필요
         Cell cell5 = row.createCell(5);
-        cell5.setCellValue(0);
+        if (paycheckCategory.getDays() == null) {
+            cell5.setBlank();
+        } else {
+            cell5.setCellValue(paycheckCategory.getDays());
+        }
+
         cell5.setCellStyle(dataCellStyle);
 
         Cell cell6 = row.createCell(6);
         cell6.setCellValue(paycheckCategory.getTotalPrice().intValue());
+        cell6.setCellStyle(priceCellStyle);
+    }
+
+    private static void writePrepaidCategory(Workbook workBook, Row row, PrepaidCategory prepaidCategory) {
+        CellStyle dataCellStyle = center(workBook);
+        CellStyle priceCellStyle = priceStyle(workBook);
+
+        Cell cell2 = row.createCell(2);
+        cell2.setCellValue(prepaidCategory.getPaycheckCategoryItem().getPaycheckCategoryItem());
+        cell2.setCellStyle(dataCellStyle);
+
+        Cell cell3 = row.createCell(3);
+        Integer priceValue = (prepaidCategory.getPrice() != null) ? prepaidCategory.getPrice().intValue() : null;
+        if (priceValue != null) {
+            cell3.setCellValue(priceValue);
+        } else {
+            cell3.setBlank();
+        }
+        cell3.setCellStyle(dataCellStyle);
+
+        Cell cell4 = row.createCell(4);
+        cell4.setCellValue(prepaidCategory.getCount());
+        cell4.setCellStyle(dataCellStyle);
+
+        //TODO: 수정 필요
+        Cell cell5 = row.createCell(5);
+        cell5.setCellStyle(dataCellStyle);
+
+        Cell cell6 = row.createCell(6);
+        cell6.setCellValue(prepaidCategory.getTotalPrice().intValue());
         cell6.setCellStyle(priceCellStyle);
     }
 
@@ -614,8 +808,7 @@ public class ExcelServiceImpl implements ExcelService {
                 cellStyle.setBorderTop(BorderStyle.THIN);
                 cellStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
                 cell.setCellStyle(cellStyle);
-            }
-            else {
+            } else {
                 row.getCell(i).setCellStyle(borderStyle);
             }
         }
@@ -638,8 +831,7 @@ public class ExcelServiceImpl implements ExcelService {
                 cellStyle.setBorderTop(BorderStyle.THIN);
                 cellStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
                 cell.setCellStyle(cellStyle);
-            }
-            else {
+            } else {
                 row.getCell(i).setCellStyle(borderStyle);
             }
         }
@@ -691,6 +883,22 @@ public class ExcelServiceImpl implements ExcelService {
         boldFont.setBold(true);
         center.setFont(boldFont);
         return center;
+    }
+
+    private static CellStyle boldCenterGray(Workbook workbook) {
+        XSSFCellStyle titleHeader = (XSSFCellStyle) workbook.createCellStyle();
+        byte[] customColor = new byte[]{(byte) 230, (byte) 230, (byte) 230};
+        XSSFColor xssfColor = new XSSFColor(customColor, new DefaultIndexedColorMap());
+        titleHeader.setFillForegroundColor(xssfColor);
+        titleHeader.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        titleHeader.setAlignment(HorizontalAlignment.CENTER);
+        titleHeader.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        Font boldFont = workbook.createFont();
+        boldFont.setBold(true);
+        titleHeader.setFont(boldFont);
+        return titleHeader;
     }
 
     private static CellStyle bold(Workbook workbook) {

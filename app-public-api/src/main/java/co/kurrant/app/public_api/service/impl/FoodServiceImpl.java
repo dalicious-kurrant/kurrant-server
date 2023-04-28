@@ -114,11 +114,11 @@ public class FoodServiceImpl implements FoodService {
                 // 이용가능 날짜
                 switch (diningType) {
                     case MORNING ->
-                            serviceDays.setMorningServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                            serviceDays.setMorningServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
                     case LUNCH ->
-                            serviceDays.setLunchServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                            serviceDays.setLunchServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
                     case DINNER ->
-                            serviceDays.setDinnerServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                            serviceDays.setDinnerServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
                 }
             }
             // 결과값을 담아줄 LIST 생성

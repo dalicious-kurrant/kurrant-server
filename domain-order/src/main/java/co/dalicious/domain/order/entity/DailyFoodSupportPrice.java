@@ -161,7 +161,7 @@ public class DailyFoodSupportPrice {
                 for(int j = 1; j <= orderItemDailyFood.getCount(); j++) {
                     BigDecimal discountedPrice = orderItemDailyFood.getDiscountedPrice();
                     if(discountedPrice.multiply(BigDecimal.valueOf(j)).compareTo(supportPrice) >= 0) {
-                        i += j;
+                        return i + j;
                     }
                 }
             }

@@ -12,11 +12,13 @@ import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
+import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.PaycheckAdd;
+import co.dalicious.domain.paycheck.entity.PaycheckMemo;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
@@ -189,11 +191,11 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
             imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
         }
         // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
-        ImageResponseDto imageResponseDto = excelService.createMakersPaycheckExcel(makersPaycheck);
-        Image image = new Image(imageResponseDto);
-        makersPaycheck.updateExcelFile(image);
-
-        // TODO: 추후 PDF 파일 추가
+        ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+        Image excel = new Image(excelPdfDto.getExcelDto());
+        Image pdf = new Image(excelPdfDto.getPdfDto());
+        makersPaycheck.updateExcelFile(excel);
+        makersPaycheck.updatePdfFile(pdf);
     }
 
     @Override
@@ -209,6 +211,16 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         for (MakersPaycheck makersPaycheck : makersPaychecks) {
             makersPaycheck.updatePaycheckStatus(paycheckStatus);
         }
+    }
+
+    @Override
+    @Transactional
+    public void postMakersMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto) {
+        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(paycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        String writer = "커런트";
+        PaycheckMemo paycheckMemo = new PaycheckMemo(writer, memoDto.getMemo());
+        makersPaycheck.updateMemo(paycheckMemo);
     }
 
     //    @Override
@@ -262,7 +274,18 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public List<PaycheckDto.CorporationResponse> getCorporationPaychecks(Map<String, Object> parameters) {
+    public void postOneCorporationPaycheckExcel(BigInteger corporationId) {
+        Corporation corporation = corporationRepository.findById(corporationId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        YearMonth yearMonth = YearMonth.now();
+        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+        List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth);
+        paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+    }
+
+    @Override
+    @Transactional
+    public PaycheckDto.CorporationMain getCorporationPaychecks(Map<String, Object> parameters) {
         String startYearMonth = !parameters.containsKey("startYearMonth") || parameters.get("startYearMonth") == null ? null : String.valueOf(parameters.get("startYearMonth"));
         String endYearMonth = !parameters.containsKey("endYearMonth") || parameters.get("endYearMonth") == null ? null : String.valueOf(parameters.get("endYearMonth"));
         List<BigInteger> corporationIds = !parameters.containsKey("corporationIds") || parameters.get("corporationIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("corporationIds"));
@@ -274,7 +297,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
 
         List<CorporationPaycheck> corporationPaychecks = qCorporationPaycheckRepository.getCorporationPaychecksByFilter(start, end, corporationIds, PaycheckStatus.ofCode(status), hasRequest);
-        return corporationPaycheckMapper.toDtos(corporationPaychecks);
+        return corporationPaycheckMapper.toListDto(corporationPaychecks);
     }
 
     @Override
@@ -365,16 +388,32 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(corporationPaycheckId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         List<PaycheckAdd> paycheckAdds = corporationPaycheckMapper.toMemoPaycheckAdds(paycheckAddDtos);
+        Corporation corporation = corporationPaycheck.getCorporation();
         corporationPaycheck = corporationPaycheck.updatePaycheckAdds(paycheckAdds);
+
+        YearMonth yearMonth = corporationPaycheck.getYearMonth();
+        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
 
         // 요청 Body에 파일이 존재하지 않는다면 삭제
         if (corporationPaycheck.getExcelFile() != null) {
             imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
         }
         // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
-        ImageResponseDto imageResponseDto = excelService.createCorporationPaycheckExcel(corporationPaycheck);
-        Image image = new Image(imageResponseDto);
-        corporationPaycheck.updateExcelFile(image);
+        ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
+        Image excel = new Image(excelPdfDto.getExcelDto());
+        Image pdf = new Image(excelPdfDto.getPdfDto());
+        corporationPaycheck.updateExcelFile(excel);
+        corporationPaycheck.updatePdfFile(pdf);
+    }
+
+    @Override
+    @Transactional
+    public void postCorporationMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto) {
+        CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(paycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        String writer = "커런트";
+        PaycheckMemo paycheckMemo = new PaycheckMemo(writer, memoDto.getMemo());
+        corporationPaycheck.updateMemo(paycheckMemo);
     }
 
     @Override
