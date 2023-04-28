@@ -7,7 +7,7 @@ import co.dalicious.domain.order.dto.DailySupportPriceDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.paycheck.entity.PaycheckCategory;
-import co.dalicious.domain.paycheck.entity.enums.CategoryPrice;
+import co.dalicious.system.enums.CategoryPrice;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckType;
 import org.springframework.stereotype.Component;
 

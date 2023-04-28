@@ -12,7 +12,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 
 import co.dalicious.system.util.DaysUtil;
-import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class, MealInfo.class})
 public interface SpotMapper {
@@ -186,8 +185,8 @@ public interface SpotMapper {
     OpenGroupSpot toOpenGroupSpotEntity(Group group);
 
 
-    default UpdateSpotDetailRequestDto toDetailDto(Spot spot, User manager, List<MealInfo> mealInfoList) {
-        UpdateSpotDetailRequestDto spotDetailResDto = new UpdateSpotDetailRequestDto();
+    default UpdateSpotDetailResponseDto toDetailDto(Spot spot, User manager, List<MealInfo> mealInfoList) {
+        UpdateSpotDetailResponseDto spotDetailResDto = new UpdateSpotDetailResponseDto();
 
         spotDetailResDto.setSpotId(spot.getGroup().getId());
         spotDetailResDto.setSpotName(spot.getName());
@@ -232,7 +231,7 @@ public interface SpotMapper {
             spotDetailResDto.setIsMembershipSupport(corporation.getIsMembershipSupport());
             spotDetailResDto.setIsPrepaid(corporation.getIsPrepaid());
 
-            if(corporation.getIsPrepaid() && (corporation.getPrepaidCategories() != null || !corporation.getPrepaidCategories().isEmpty())) {
+            if (corporation.getIsPrepaid() != null && corporation.getIsPrepaid() && corporation.getPrepaidCategories() != null && !corporation.getPrepaidCategories().isEmpty()) {
                 spotDetailResDto.setPrepaidCategoryList(toPrepaidCategoryDtos(corporation.getPrepaidCategories()));
             }
             if (corporation.getMinimumSpend() != null)
@@ -271,8 +270,8 @@ public interface SpotMapper {
         return spotDetailResDto;
     }
 
-    default UpdateSpotDetailRequestDto.PrepaidCategory toPrepaidCategoryDto(PrepaidCategory prepaidCategory) {
-        return UpdateSpotDetailRequestDto.PrepaidCategory.builder()
+    default UpdateSpotDetailResponseDto.PrepaidCategory toPrepaidCategoryDto(PrepaidCategory prepaidCategory) {
+        return UpdateSpotDetailResponseDto.PrepaidCategory.builder()
                 .code(prepaidCategory.getPaycheckCategoryItem().getCode())
                 .count(prepaidCategory.getCount())
                 .price(prepaidCategory.getPrice() == null ? null : prepaidCategory.getPrice().intValue())
@@ -280,17 +279,17 @@ public interface SpotMapper {
                 .build();
     }
 
-    default List<UpdateSpotDetailRequestDto.PrepaidCategory> toPrepaidCategoryDtos(List<PrepaidCategory> prepaidCategoryList) {
-        List<UpdateSpotDetailRequestDto.PrepaidCategory> prepaidCategories = new ArrayList<>();
+    default List<UpdateSpotDetailResponseDto.PrepaidCategory> toPrepaidCategoryDtos(List<PrepaidCategory> prepaidCategoryList) {
+        List<UpdateSpotDetailResponseDto.PrepaidCategory> prepaidCategories = new ArrayList<>();
         List<PaycheckCategoryItem> paycheckCategoryItems = new ArrayList<>(List.of(PaycheckCategoryItem.values()));
         for (PrepaidCategory prepaidCategory : prepaidCategoryList) {
             paycheckCategoryItems.remove(prepaidCategory.getPaycheckCategoryItem());
             prepaidCategories.add(toPrepaidCategoryDto(prepaidCategory));
         }
         for (PaycheckCategoryItem paycheckCategoryItem : paycheckCategoryItems) {
-            prepaidCategories.add(new UpdateSpotDetailRequestDto.PrepaidCategory(paycheckCategoryItem.getCode(), null, null, null));
+            prepaidCategories.add(new UpdateSpotDetailResponseDto.PrepaidCategory(paycheckCategoryItem.getCode(), null, null, null));
         }
-        prepaidCategories = prepaidCategories.stream().sorted(Comparator.comparing(UpdateSpotDetailRequestDto.PrepaidCategory::getCode))
+        prepaidCategories = prepaidCategories.stream().sorted(Comparator.comparing(UpdateSpotDetailResponseDto.PrepaidCategory::getCode))
                 .toList();
         return prepaidCategories;
     }

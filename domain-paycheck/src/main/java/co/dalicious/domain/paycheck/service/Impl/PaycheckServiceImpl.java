@@ -124,8 +124,7 @@ public class PaycheckServiceImpl implements PaycheckService {
         }
 
         paycheckDailyFoods = paycheckDailyFoods.stream().sorted(Comparator.comparing(PaycheckDailyFood::getServiceDate).thenComparing(v -> v.getDiningType().getCode())).toList();
-
-        return makersPaycheckMapper.toInitiateEntity(makers, null, null, paycheckDailyFoods);
+        return makersPaycheckRepository.save(makersPaycheckMapper.toInitiateEntity(makers, null, null, paycheckDailyFoods));
     }
 
     /*
