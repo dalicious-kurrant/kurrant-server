@@ -7,19 +7,23 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
+import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
-import co.dalicious.domain.paycheck.entity.MakersPaycheck;
-import co.dalicious.domain.paycheck.entity.PaycheckDailyFood;
+import co.dalicious.domain.paycheck.entity.*;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckType;
 import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
+import co.dalicious.domain.paycheck.repository.CorporationPaycheckRepository;
+import co.dalicious.domain.paycheck.repository.ExpectedPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
 import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
-import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.paycheck.util.PaycheckUtils;
+import co.dalicious.domain.user.repository.QUserRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +43,11 @@ public class PaycheckServiceImpl implements PaycheckService {
     private final MakersPaycheckRepository makersPaycheckRepository;
     private final ExcelService excelService;
     private final DeliveryFeePolicy deliveryFeePolicy;
+    private final CorporationPaycheckMapper corporationPaycheckMapper;
+    private final QUserRepository qUserRepository;
+    private final CorporationPaycheckRepository corporationPaycheckRepository;
+    private final ExpectedPaycheckRepository expectedPaycheckRepository;
+
     @Override
     public TransactionInfoDefault getTransactionInfoDefault() {
         return TransactionInfoDefault.builder()
@@ -67,9 +76,11 @@ public class PaycheckServiceImpl implements PaycheckService {
             MakersPaycheck makersPaycheck = makersPaycheckMapper.toInitiateEntity(paycheckDailyFoodMap.get(makers), makers);
             makersPaycheck = makersPaycheckRepository.save(makersPaycheck);
             // 정산 엑셀 생성
-            ImageResponseDto imageResponseDto = excelService.createMakersPaycheckExcel(makersPaycheck);
-            Image excelFile = new Image(imageResponseDto);
+            ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+            Image excelFile = new Image(excelPdfDto.getExcelDto());
+            Image pdfFile = new Image(excelPdfDto.getPdfDto());
             makersPaycheck.updateExcelFile(excelFile);
+            makersPaycheck.updatePdfFile(pdfFile);
         }
         return makersPaycheckRepository.findAllByYearMonth(YearMonth.now());
     }
@@ -117,35 +128,39 @@ public class PaycheckServiceImpl implements PaycheckService {
         return makersPaycheckMapper.toInitiateEntity(makers, null, null, paycheckDailyFoods);
     }
 
+    /*
+     * 현재 DailyFoodSupportPrice에는
+     * 1. 일반 지원금 결제
+     * 2. 추가 주문
+     * 이 존재한다. 정산에서는 PaymentType에 따라 구분하였지만, 식사 구매에서 더 많은 예외 상황이 생긴다면, 구분이 필요하다.
+     */
     @Override
-    public PaycheckType getPaycheckType(Corporation corporation) {
-        Boolean isMembershipSupport = corporation.getIsMembershipSupport();
-        Boolean isPrepaid = corporation.getIsPrepaid();
+    @Transactional
+    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
+        // 1. 매니저 계정 확인
 
-        if(!isMembershipSupport) {
-            return PaycheckType.NO_MEMBERSHIP;
-        }
-        if(!isPrepaid) {
-            return PaycheckType.POSTPAID_MEMBERSHIP;
-        }
-        // TODO: 예외 멤버십 선불 추가
-        if(corporation.getName().contains("메드트로닉")) {
-            return PaycheckType.PREPAID_MEMBERSHIP_EXCEPTION_MEDTRONIC;
-        }
+        // 2. CorporationPaycheck 생성
+        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+        corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
 
-        return PaycheckType.PREPAID_MEMBERSHIP;
+        // 선불 정산인 경우 체크
+        PaycheckType paycheckType = PaycheckUtils.getPaycheckType(corporation);
+        ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation, corporationPaycheck);
+        if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
+        return null;
     }
 
     public BigDecimal getCorporationDeliveryFee(Corporation corporation) {
-        // TODO: 정산시 사용, 앱에서는 0원으로 지정
-        PaycheckType paycheckType = getPaycheckType(corporation);
+        PaycheckType paycheckType = PaycheckUtils.getPaycheckType(corporation);
         if (paycheckType.equals(PaycheckType.POSTPAID_MEMBERSHIP) || paycheckType.equals(PaycheckType.PREPAID_MEMBERSHIP)) {
             return deliveryFeePolicy.getMembershipCorporationDeliveryFee();
         } else if (corporation.getEmployeeCount() >= 50) {
-            return deliveryFeePolicy.getNoMembershipCorporationDeliveryFeeUpper50(corporation.getAddress());
+            return deliveryFeePolicy.getNoMembershipCorporationDeliveryFeeUpper50(corporation);
         } else if (corporation.getEmployeeCount() > 0) {
             return deliveryFeePolicy.getNoMembershipCorporationDeliveryFeeLower50();
         }
         throw new ApiException(ExceptionEnum.IS_NOT_APPROPRIATE_EMPLOYEE_COUNT);
     }
+
+
 }

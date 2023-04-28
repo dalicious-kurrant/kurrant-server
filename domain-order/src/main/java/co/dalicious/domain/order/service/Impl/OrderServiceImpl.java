@@ -37,6 +37,7 @@ import co.dalicious.system.util.PeriodDto;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -52,7 +53,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Slf4j
 public class OrderServiceImpl implements OrderService {
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;

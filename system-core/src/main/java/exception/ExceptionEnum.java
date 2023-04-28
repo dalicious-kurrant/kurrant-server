@@ -55,6 +55,8 @@ public enum ExceptionEnum {
 	ADMIN_USER_SHOULD_BE_UNIQUE(HttpStatus.BAD_REQUEST, "E4000104", "관리자 계정은 유일해야 합니다."),
 	ALREADY_WRITE_COMMENT_REVIEW(HttpStatus.BAD_REQUEST, "E4000106", "이미 댓글을 작성한 리뷰입니다."),
 	ALREADY_DELETED_REVIEW(HttpStatus.BAD_REQUEST, "E4000106", "삭제된 리뷰입니다."),
+	ALREADY_USED_DAYS(HttpStatus.BAD_REQUEST, "E4000107", "이미 서비스를 제공하고 있는 요일입니다."),
+	NOT_VALID_EMAIL(HttpStatus.BAD_REQUEST, "E4000100", "잘못된 이메일 주소입니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
@@ -111,10 +113,12 @@ public enum ExceptionEnum {
 	NOT_FOUND_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040036", "삭제할 테스트 데이터 ID를 입력하지 않았습니다."),
 	NOT_MATCHED_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040037", "존재하지 않는 테스트 데이터 ID 입니다."),
 	ALREADY_NOT_ACTIVE(HttpStatus.NOT_FOUND, "E4040038", "이미 비활성화 상태입니다."),
+	NOT_FOUND_FOOD_IMAGE(HttpStatus.NOT_FOUND, "E4040039", "음식 이미지를 찾을 수 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
 	ALREADY_EXISTING_GROUP(HttpStatus.CONFLICT, "E4090001", "이미 그룹에 가입된 유저입니다."),
+
 
   	/* E500 */
 	FAIL_TO_SEND_CERTIFICATION_NUMBER(HttpStatus.INTERNAL_SERVER_ERROR, "E5000001", "failToSendCertificationNumber"),

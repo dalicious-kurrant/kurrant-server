@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.CorporationRepository;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
@@ -8,17 +9,22 @@ import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
+import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
+import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
 import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.PaycheckAdd;
+import co.dalicious.domain.paycheck.entity.PaycheckMemo;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import co.dalicious.domain.paycheck.mapper.CorporationPaycheckMapper;
 import co.dalicious.domain.paycheck.mapper.MakersPaycheckMapper;
 import co.dalicious.domain.paycheck.repository.CorporationPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
+import co.dalicious.domain.paycheck.repository.QCorporationPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.QMakersPaycheckRepository;
 import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
@@ -35,17 +41,17 @@ import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -64,6 +70,8 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final SparkPlusLogRepository sparkPlusLogRepository;
     private final ExcelService excelService;
     private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
+    private final QMembershipSupportPriceRepository qMembershipSupportPriceRepository;
+    private final QCorporationPaycheckRepository qCorporationPaycheckRepository;
 
     @Override
     @Transactional
@@ -88,13 +96,13 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         String dirName = "paycheck/makers/" + paycheckDto.getMakersId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
 
         Image excelFile = null;
-        if(makersXlsx != null && !makersXlsx.isEmpty()) {
+        if (makersXlsx != null && !makersXlsx.isEmpty()) {
             ImageResponseDto excelFileDto = imageService.upload(makersXlsx, dirName);
             excelFile = new Image(excelFileDto);
         }
 
         Image pdfFile = null;
-        if(makersXlsx != null && !makersPdf.isEmpty()) {
+        if (makersXlsx != null && !makersPdf.isEmpty()) {
             ImageResponseDto pdfFileDto = imageService.upload(makersPdf, dirName);
             pdfFile = new Image(pdfFileDto);
         }
@@ -172,7 +180,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public void postPaycheckAdd(BigInteger makersPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
+    public void postMakersPaycheckAdd(BigInteger makersPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
         MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(makersPaycheckId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         List<PaycheckAdd> paycheckAdds = makersPaycheckMapper.toPaycheckAdds(paycheckAddDtos);
@@ -183,11 +191,11 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
             imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
         }
         // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
-        ImageResponseDto imageResponseDto = excelService.createMakersPaycheckExcel(makersPaycheck);
-        Image image = new Image(imageResponseDto);
-        makersPaycheck.updateExcelFile(image);
-
-        // TODO: 추후 PDF 파일 추가
+        ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+        Image excel = new Image(excelPdfDto.getExcelDto());
+        Image pdf = new Image(excelPdfDto.getPdfDto());
+        makersPaycheck.updateExcelFile(excel);
+        makersPaycheck.updatePdfFile(pdf);
     }
 
     @Override
@@ -207,33 +215,89 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public void postCorporationPaycheck(MultipartFile corporationXlsx, MultipartFile corporationPdf, PaycheckDto.CorporationRequest paycheckDto) throws IOException {
-        Corporation corporation = corporationRepository.findById(paycheckDto.getCorporationId())
-                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+    public void postMakersMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto) {
+        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(paycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        String writer = "커런트";
+        PaycheckMemo paycheckMemo = new PaycheckMemo(writer, memoDto.getMemo());
+        makersPaycheck.updateMemo(paycheckMemo);
+    }
 
-        String dirName = "paycheck/corporations/" + paycheckDto.getCorporationId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
+    //    @Override
+//    @Transactional
+//    public void postCorporationPaycheck(MultipartFile corporationXlsx, MultipartFile corporationPdf, PaycheckDto.CorporationRequest paycheckDto) throws IOException {
+//        Corporation corporation = corporationRepository.findById(paycheckDto.getCorporationId())
+//                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+//
+//        String dirName = "paycheck/corporations/" + paycheckDto.getCorporationId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
+//
+//        Image excelFile = null;
+//        if(corporationXlsx != null && !corporationXlsx.isEmpty()) {
+//            ImageResponseDto excelFileDto = imageService.upload(corporationXlsx, dirName);
+//            excelFile = new Image(excelFileDto);
+//        }
+//
+//        Image pdfFile = null;
+//        if(corporationPdf != null && !corporationPdf.isEmpty()) {
+//            ImageResponseDto pdfFileDto = imageService.upload(corporationPdf, dirName);
+//            pdfFile = new Image(pdfFileDto);
+//        }
+//
+//        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toEntity(paycheckDto, corporation, excelFile, pdfFile);
+//        corporationPaycheckRepository.save(corporationPaycheck);
+//    }
+    @Override
+    @Transactional
+    public void postCorporationPaycheckExcel() {
+        YearMonth yearMonth = YearMonth.now();
+        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByPeriod(yearMonth);
+        List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByPeriod(yearMonth);
 
-        Image excelFile = null;
-        if(corporationXlsx != null && !corporationXlsx.isEmpty()) {
-            ImageResponseDto excelFileDto = imageService.upload(corporationXlsx, dirName);
-            excelFile = new Image(excelFileDto);
+        MultiValueMap<Group, DailyFoodSupportPrice> dailyFoodSupportPriceMap = new LinkedMultiValueMap<>();
+        MultiValueMap<Group, MembershipSupportPrice> membershipSupportPriceMap = new LinkedMultiValueMap<>();
+
+        Set<Group> groups = new HashSet<>();
+
+        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
+            dailyFoodSupportPriceMap.add(dailyFoodSupportPrice.getGroup(), dailyFoodSupportPrice);
+            groups.add(dailyFoodSupportPrice.getGroup());
         }
 
-        Image pdfFile = null;
-        if(corporationPdf != null && !corporationPdf.isEmpty()) {
-            ImageResponseDto pdfFileDto = imageService.upload(corporationPdf, dirName);
-            pdfFile = new Image(pdfFileDto);
+        for (MembershipSupportPrice membershipSupportPrice : membershipSupportPrices) {
+            membershipSupportPriceMap.add(membershipSupportPrice.getGroup(), membershipSupportPrice);
         }
 
-        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toEntity(paycheckDto, corporation, excelFile, pdfFile);
-        corporationPaycheckRepository.save(corporationPaycheck);
+        for (Group group : groups) {
+            paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group));
+        }
     }
 
     @Override
     @Transactional
-    public List<PaycheckDto.CorporationResponse> getCorporationPaychecks() {
-        List<CorporationPaycheck> corporationPaychecks = corporationPaycheckRepository.findAll();
-        return corporationPaycheckMapper.toDtos(corporationPaychecks);
+    public void postOneCorporationPaycheckExcel(BigInteger corporationId) {
+        Corporation corporation = corporationRepository.findById(corporationId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        YearMonth yearMonth = YearMonth.now();
+        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+        List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth);
+        paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+    }
+
+    @Override
+    @Transactional
+    public PaycheckDto.CorporationMain getCorporationPaychecks(Map<String, Object> parameters) {
+        String startYearMonth = !parameters.containsKey("startYearMonth") || parameters.get("startYearMonth") == null ? null : String.valueOf(parameters.get("startYearMonth"));
+        String endYearMonth = !parameters.containsKey("endYearMonth") || parameters.get("endYearMonth") == null ? null : String.valueOf(parameters.get("endYearMonth"));
+        List<BigInteger> corporationIds = !parameters.containsKey("corporationIds") || parameters.get("corporationIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("corporationIds"));
+        Integer status = !parameters.containsKey("status") || parameters.get("status") == null ? null : Integer.parseInt(String.valueOf(parameters.get("status")));
+        Boolean hasRequest = !parameters.containsKey("hasRequest") || parameters.get("hasRequest") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("hasRequest")));
+
+        YearMonth start = startYearMonth == null ? null : YearMonth.parse(startYearMonth.substring(0, 4) + "-" + startYearMonth.substring(4));
+        YearMonth end = endYearMonth == null ? null : YearMonth.parse(endYearMonth.substring(0, 4) + "-" + endYearMonth.substring(4));
+
+
+        List<CorporationPaycheck> corporationPaychecks = qCorporationPaycheckRepository.getCorporationPaychecksByFilter(start, end, corporationIds, PaycheckStatus.ofCode(status), hasRequest);
+        return corporationPaycheckMapper.toListDto(corporationPaychecks);
     }
 
     @Override
@@ -245,6 +309,18 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         YearMonth yearMonth = corporationPaycheck.getYearMonth();
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
         return corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices);
+    }
+
+    @Override
+    @Transactional
+    public PaycheckDto.Invoice getCorporationInvoice(BigInteger corporationPaycheckId) {
+        CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(corporationPaycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        PaycheckDto.Invoice invoice = corporationPaycheckMapper.toInvoice(corporationPaycheck, 0);
+        TransactionInfoDefault transactionInfoDefault = paycheckService.getTransactionInfoDefault();
+        transactionInfoDefault.setYearMonth(DateUtils.YearMonthToString(corporationPaycheck.getYearMonth()));
+        invoice.setTransactionInfoDefault(transactionInfoDefault);
+        return invoice;
     }
 
     @Override
@@ -308,9 +384,43 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
+    public void postCorporationPaycheckAdd(BigInteger corporationPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos) {
+        CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(corporationPaycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        List<PaycheckAdd> paycheckAdds = corporationPaycheckMapper.toMemoPaycheckAdds(paycheckAddDtos);
+        Corporation corporation = corporationPaycheck.getCorporation();
+        corporationPaycheck = corporationPaycheck.updatePaycheckAdds(paycheckAdds);
+
+        YearMonth yearMonth = corporationPaycheck.getYearMonth();
+        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+
+        // 요청 Body에 파일이 존재하지 않는다면 삭제
+        if (corporationPaycheck.getExcelFile() != null) {
+            imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
+        }
+        // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
+        ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
+        Image excel = new Image(excelPdfDto.getExcelDto());
+        Image pdf = new Image(excelPdfDto.getPdfDto());
+        corporationPaycheck.updateExcelFile(excel);
+        corporationPaycheck.updatePdfFile(pdf);
+    }
+
+    @Override
+    @Transactional
+    public void postCorporationMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto) {
+        CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(paycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        String writer = "커런트";
+        PaycheckMemo paycheckMemo = new PaycheckMemo(writer, memoDto.getMemo());
+        corporationPaycheck.updateMemo(paycheckMemo);
+    }
+
+    @Override
+    @Transactional
     public void postSparkplusLog(Integer log) {
         SparkPlusLogType sparkPlusLogType = SparkPlusLogType.ofCode(log);
-        SparkPlusLog sparkPlusLog =  sparkPlusLogRepository.findOneBySparkPlusLogType(sparkPlusLogType)
+        SparkPlusLog sparkPlusLog = sparkPlusLogRepository.findOneBySparkPlusLogType(sparkPlusLogType)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
 
         sparkPlusLog.addCount();
@@ -331,7 +441,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     public String getImagePrefix(Image image) {
         StringBuilder preifx = new StringBuilder();
         String[] str = image.getLocation().split("/");
-        for(int i = 3; i < str.length - 1; i ++) {
+        for (int i = 3; i < str.length - 1; i++) {
             preifx.append(str[i]).append("/");
         }
         return preifx.toString();

@@ -12,7 +12,8 @@ public enum PaycheckStatus {
     WAITING_CONFIRM("거래명세서 확정 대기", 1),
     PAYMENT_COMPLETE("정산금 입금 완료", 2),
     ADD_REQUEST_COMPLETE("추가 요청 처리 완료", 3),
-    TRANSACTION_CONFIRM("거래명세서 확정", 4);
+    TRANSACTION_CONFIRM("거래명세서 확정", 4),
+    COMPLETE("정산 완료", 5);
 
     private final String paycheckStatus;
     private final Integer code;

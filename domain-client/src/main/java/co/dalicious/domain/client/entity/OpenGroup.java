@@ -33,8 +33,8 @@ public class OpenGroup extends Group{
         this.openGroupUserCount = openGroupUserCount;
     }
 
-    public void updateOpenSpot(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
-        updateGroup(address, diningTypeList, groupInfoList.getName(), groupInfoList.getManagerId());
-        this.openGroupUserCount = groupInfoList.getEmployeeCount();
+    public void updateOpenSpot(Address address, List<DiningType> diningTypeList, String name, BigInteger managerId, Integer openGroupUserCount) {
+        updateGroup(address, diningTypeList, name, managerId);
+        this.openGroupUserCount = openGroupUserCount;
     }
 }
