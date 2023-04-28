@@ -273,7 +273,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         }
 
         for (Group group : groups) {
-            CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group));
+            CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.save(paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group)));
             ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder((Corporation) Hibernate.unproxy(group), dailyFoodSupportPrices));
             Image excel = new Image(excelPdfDto.getExcelDto());
             Image pdf = new Image(excelPdfDto.getPdfDto());
@@ -291,12 +291,14 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
         List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth);
         CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPrices);
-        ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
-        Image excel = new Image(excelPdfDto.getExcelDto());
-        Image pdf = new Image(excelPdfDto.getPdfDto());
-        corporationPaycheck.updateExcelFile(excel);
-        corporationPaycheck.updatePdfFile(pdf);
-
+        if(corporationPaycheck != null) {
+            corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
+            ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
+            Image excel = new Image(excelPdfDto.getExcelDto());
+            Image pdf = new Image(excelPdfDto.getPdfDto());
+            corporationPaycheck.updateExcelFile(excel);
+            corporationPaycheck.updatePdfFile(pdf);
+        }
     }
 
     @Override
