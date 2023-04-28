@@ -199,7 +199,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional(readOnly = true)
-    public SpotDetailResDto getGroupDetail(Integer spotId) {
+    public UpdateSpotDetailRequestDto getGroupDetail(Integer spotId) {
         //spotId로 spot 조회
         Spot spot = spotRepository.findById(BigInteger.valueOf(spotId))
                 .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
@@ -225,7 +225,7 @@ public class GroupServiceImpl implements GroupService {
         Spot spot = spotRepository.findById(updateSpotDetailRequestDto.getSpotId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
 
         // 스팟에 해당하는 다이닝 타입 변경
-        List<DiningType> updateDiningTypeList = DiningTypesUtils.stringToDiningTypes(updateSpotDetailRequestDto.getDiningTypes());
+        List<DiningType> updateDiningTypeList = DiningTypesUtils.stringCodeToDiningTypes(updateSpotDetailRequestDto.getDiningTypes());
         spot.updateDiningTypes(updateDiningTypeList);
 
         List<Days> notSupportDays = updateSpotDetailRequestDto.getNotSupportDays() != null ? DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getNotSupportDays()) : new ArrayList<>();
@@ -243,7 +243,7 @@ public class GroupServiceImpl implements GroupService {
             else if(diningType.equals(DiningType.DINNER)) supportPrice = updateSpotDetailRequestDto.getDinnerSupportPrice();
 
             List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
-            if(supportPrice.compareTo(BigDecimal.valueOf(0)) != 0) serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, supportPrice));
+            if(supportPrice != null && supportPrice.compareTo(BigDecimal.valueOf(0)) != 0) serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, supportPrice));
 
             MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
             if(mealInfo == null) {
@@ -256,7 +256,7 @@ public class GroupServiceImpl implements GroupService {
         }
         Group group = (Group) Hibernate.unproxy(spot.getGroup());
 
-        Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), updateSpotDetailRequestDto.getLocation());
+        Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), updateSpotDetailRequestDto.getLocation().equals("없음") ? null : updateSpotDetailRequestDto.getLocation());
 
         if(group instanceof Corporation corporation) {
             corporation.updateCorporation(updateSpotDetailRequestDto, address, updateDiningTypeList);
