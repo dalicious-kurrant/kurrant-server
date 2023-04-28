@@ -25,6 +25,7 @@ public class SpotDetailResDto {
     private String spotType;
     private String diningTypes;
     private String mealDay;
+    private String supportDays;
     private String notSupportDays;
     private String zipCode;
     private Boolean isMembershipSupport;
