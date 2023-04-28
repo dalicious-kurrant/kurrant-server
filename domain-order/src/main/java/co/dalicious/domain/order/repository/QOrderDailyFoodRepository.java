@@ -105,7 +105,7 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
-    public List<OrderItemDailyFood> findAllByGroupFilter(LocalDate startDate, LocalDate endDate, Group group, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers) {
+    public List<OrderItemDailyFood> findAllByGroupFilter(LocalDate startDate, LocalDate endDate, Group group, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers, OrderStatus orderStatus) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (startDate != null) {
@@ -134,6 +134,10 @@ public class QOrderDailyFoodRepository {
 
         if (group != null) {
             whereClause.and(orderItemDailyFood.dailyFood.group.eq(group));
+        }
+
+        if (orderStatus != null) {
+            whereClause.and(orderItemDailyFood.orderStatus.eq(orderStatus));
         }
 
         return queryFactory.selectFrom(orderItemDailyFood)
