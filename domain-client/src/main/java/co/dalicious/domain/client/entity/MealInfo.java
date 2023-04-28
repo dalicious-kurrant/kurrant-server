@@ -2,9 +2,12 @@ package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.client.converter.DayAndTimeConverter;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.system.converter.DaysListConverter;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DaysUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -21,6 +24,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -55,10 +59,10 @@ public class MealInfo {
     @Comment("주문 마감 시간")
     private DayAndTime lastOrderTime;
 
-    @Size(max = 255)
+    @Convert(converter = DaysListConverter.class)
     @Column(name = "emb_use_days")
     @Comment("서비스 이용 요일")
-    private String serviceDays;
+    private List<Days> serviceDays;
 
 
     @CreationTimestamp
@@ -79,7 +83,7 @@ public class MealInfo {
     @Comment("스팟")
     private Group group;
 
-    public MealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, String serviceDays, Group group) {
+    public MealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
         this.membershipBenefitTime = membershipBenefitTime;
@@ -88,7 +92,7 @@ public class MealInfo {
         this.group = group;
     }
 
-    public void updateMealInfo(String serviceDays) {
+    public void updateMealInfo(List<Days> serviceDays) {
         this.serviceDays = serviceDays;
     }
 
@@ -97,6 +101,25 @@ public class MealInfo {
         this.membershipBenefitTime = mealInfo.getMembershipBenefitTime();
         this.lastOrderTime = mealInfo.getLastOrderTime();
         this.serviceDays = mealInfo.getServiceDays();
+    }
+
+    public void updateMealInfo(MealInfo updateMealInfo, MealInfo mealInfo) {
+        this.deliveryTime = updateMealInfo.getDeliveryTime();
+        this.membershipBenefitTime = updateMealInfo.getMembershipBenefitTime();
+        this.lastOrderTime = updateMealInfo.getLastOrderTime();
+        this.serviceDays = updateMealInfo.getServiceDays();
+
+        if(mealInfo instanceof CorporationMealInfo corporationMealInfo) {
+            corporationMealInfo.updateSupportDays(this.getServiceDays());
+        }
+    }
+
+    public void updateMealInfo(List<Days> serviceDays, MealInfo mealInfo) {
+        this.serviceDays = serviceDays;
+
+        if(mealInfo instanceof CorporationMealInfo corporationMealInfo) {
+            corporationMealInfo.updateSupportDays(this.getServiceDays());
+        }
     }
 
     public String dayAndTimeToString() {

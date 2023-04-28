@@ -49,4 +49,25 @@ public class QCorporationPaycheckRepository {
                 .orderBy(corporationPaycheck.createdDateTime.asc())
                 .fetch();
     }
+    public List<CorporationPaycheck> getCorporationPaychecksByFilter(Corporation corporation, YearMonth startYearMonth, YearMonth endYearMonth, PaycheckStatus paycheckStatus, Boolean hasRequest) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        whereClause.and(whereClause.and(corporationPaycheck.corporation.eq(corporation)));
+
+        if(startYearMonth != null) {
+            whereClause.and(corporationPaycheck.yearMonth.goe(startYearMonth));
+        }
+        if(endYearMonth != null) {
+            whereClause.and(corporationPaycheck.yearMonth.loe(endYearMonth));
+        }
+        if(paycheckStatus != null) {
+            whereClause.and(corporationPaycheck.paycheckStatus.eq(paycheckStatus));
+        }
+        if(hasRequest != null) {
+            whereClause.and(hasRequest ? corporationPaycheck.paycheckMemos.isNotEmpty() : corporationPaycheck.paycheckMemos.isEmpty());
+        }
+        return queryFactory.selectFrom(corporationPaycheck)
+                .where(whereClause)
+                .orderBy(corporationPaycheck.createdDateTime.asc())
+                .fetch();
+    }
 }

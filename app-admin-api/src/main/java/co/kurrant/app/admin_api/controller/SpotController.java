@@ -60,26 +60,4 @@ public class SpotController {
                 .message("선택한 스팟를 비활성 처리했습니다.")
                 .build();
     }
-
-
-    @Operation(summary = "스팟정보 상세 조회", description = "스팟의 상세정보를 조회합니다.")
-    @GetMapping("/spot/detail")
-    public ResponseMessage getSpotDetail(@RequestParam(required = true) Integer spotId) {
-        return ResponseMessage.builder()
-                .message("스팟 상세 정보를 조회했습니다.")
-                .data(spotService.getSpotDetail(spotId))
-                .build();
-    }
-
-    @Operation(summary = "스팟정보 상세 수정", description = "스팟의 상세정보를 수정합니다.")
-    @PatchMapping("/spot/detail")
-    public ResponseMessage updateSpotDetail(@RequestBody UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
-        spotService.updateSpotDetail(updateSpotDetailRequestDto);
-        return ResponseMessage.builder()
-                .message("스팟 상세 정보를 수정했습니다.")
-                .build();
-    }
-
-
-
 }

@@ -63,6 +63,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @Service
@@ -94,6 +96,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void mailConfirm(Authentication authentication, MailMessageDto mailMessageDto, String type) throws Exception {
         // 인증을 요청하는 위치 파악하기
+        for(String email : mailMessageDto.getReceivers()) {
+            UserValidator.isValidEmail(email);
+        }
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
         switch (requiredAuth) {
             case SIGNUP -> {
