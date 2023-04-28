@@ -206,7 +206,7 @@ public class GroupServiceImpl implements GroupService {
             List<MealInfo> mealInfoList = group.getMealInfos();
 
             if (group.getManagerId() != null) {
-                User manager = userRepository.findById(group.getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MANAGER));
+                User manager = userRepository.findById(group.getManagerId()).orElse(null);
                 return spotMapper.toDetailDto(group, manager, mealInfoList);
             }
             return spotMapper.toDetailDto(group, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), mealInfoList);

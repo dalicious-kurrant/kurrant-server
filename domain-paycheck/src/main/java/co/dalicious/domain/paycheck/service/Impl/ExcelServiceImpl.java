@@ -99,6 +99,7 @@ public class ExcelServiceImpl implements ExcelService {
         ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
         try {
             // Load the Excel workbook
+            com.aspose.cells.FontConfigs.setDefaultFontName("Malgun Gothic");
             com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
             PdfSaveOptions options = new PdfSaveOptions();
             options.setOnePagePerSheet(true);
