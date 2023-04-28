@@ -190,9 +190,9 @@ public interface SpotMapper {
 
         spotDetailResDto.setSpotId(group.getId());
         spotDetailResDto.setSpotName(group.getName());
-        spotDetailResDto.setManagerId(manager.getId());
-        spotDetailResDto.setManagerName(manager.getName());
-        spotDetailResDto.setManagerPhone(manager.getPhone());
+        spotDetailResDto.setManagerId(manager == null ? null : manager.getId());
+        spotDetailResDto.setManagerName(manager == null ? null : manager.getName());
+        spotDetailResDto.setManagerPhone(manager == null ? null : manager.getPhone());
         spotDetailResDto.setSpotName(group.getName());
         spotDetailResDto.setZipCode(group.getAddress().getZipCode());
         spotDetailResDto.setAddress1(group.getAddress().getAddress1());
