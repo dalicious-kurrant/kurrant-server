@@ -98,8 +98,13 @@ public class ExcelServiceImpl implements ExcelService {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
         ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
         try {
-            // Load the Excel workbook
+            // Set the font directory (if required)
+            String fontDir = "path/font";
+            com.aspose.cells.FontConfigs.setFontFolder(fontDir, true);
+
+            // Set default font to Malgun Gothic
             com.aspose.cells.FontConfigs.setDefaultFontName("Malgun Gothic");
+            
             com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
             PdfSaveOptions options = new PdfSaveOptions();
             options.setOnePagePerSheet(true);
