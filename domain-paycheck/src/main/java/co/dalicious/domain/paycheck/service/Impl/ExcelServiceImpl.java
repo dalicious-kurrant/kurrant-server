@@ -152,6 +152,13 @@ public class ExcelServiceImpl implements ExcelService {
             Worksheet sourceSheet = asposeWorkbook.getWorksheets().get("인보이스");
             invoiceSheet.copy(sourceSheet);
 
+            // Set the font directory (if required)
+            String fontDir = "path/font";
+            com.aspose.cells.FontConfigs.setFontFolder(fontDir, true);
+
+            // Set default font to Malgun Gothic
+            com.aspose.cells.FontConfigs.setDefaultFontName("Malgun Gothic");
+
             // Save the invoice workbook to PDF
             PdfSaveOptions options = new PdfSaveOptions();
             options.setOnePagePerSheet(true);
@@ -335,7 +342,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         Cell cell6_5 = row6.createCell(5);
         cell6_5.setCellValue(transactionInfoDefault.getAddress1());
-        sheet.addMergedRegion(new CellRangeAddress(6, 6, 5, 6));
+        sheet.addMergedRegion(new CellRangeAddress(6, 6, 5, 7));
 
         Row row7 = sheet.createRow(7);
         Cell cell7_1 = row7.createCell(1);
@@ -347,7 +354,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         Cell cell7_5 = row7.createCell(5);
         cell7_5.setCellValue(transactionInfoDefault.getAddress2());
-        sheet.addMergedRegion(new CellRangeAddress(7, 7, 5, 6));
+        sheet.addMergedRegion(new CellRangeAddress(7, 7, 5, 7));
 
         // 도장 추가
         addImageToWorkbook(workbook, sheet, getStamp(), 3, 7, 0.8, 2);
@@ -781,7 +788,7 @@ public class ExcelServiceImpl implements ExcelService {
             mergedCell.setCellStyle(cellStyle);
         }
 
-        cell4.setCellValue(1.1 * (totalPrice + paycheckAddPrice - prepaidTotalPrice));
+        cell4.setCellValue(1.1 * (totalPrice - prepaidTotalPrice));
 
 
         return ++startRow;
@@ -854,7 +861,6 @@ public class ExcelServiceImpl implements ExcelService {
 
         Font font = workbook.createFont();
         font.setFontHeightInPoints((short) 18);
-        font.setFontName("Calibri");
         titleStyle.setFont(font);
         return titleStyle;
     }
