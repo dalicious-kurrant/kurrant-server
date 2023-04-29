@@ -104,10 +104,11 @@ public class ExcelServiceImpl implements ExcelService {
 
             // Set default font to Malgun Gothic
             com.aspose.cells.FontConfigs.setDefaultFontName("Malgun Gothic");
-            
+
             com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
             PdfSaveOptions options = new PdfSaveOptions();
             options.setOnePagePerSheet(true);
+            options.setEmbedStandardWindowsFonts(true);
             asposeWorkbook.save(pdfOutputStream, options);
         } catch (Exception e) {
             e.printStackTrace();
@@ -167,6 +168,7 @@ public class ExcelServiceImpl implements ExcelService {
             // Save the invoice workbook to PDF
             PdfSaveOptions options = new PdfSaveOptions();
             options.setOnePagePerSheet(true);
+            options.setEmbedStandardWindowsFonts(true);
             invoice.save(pdfOutputStream, options);
         } catch (Exception e) {
             e.printStackTrace();
@@ -770,7 +772,7 @@ public class ExcelServiceImpl implements ExcelService {
         cell.setCellValue("실비 총액");
 
         Cell cell2 = row.createCell(6);
-        cell2.setCellValue(totalPrice + paycheckAddPrice);
+        cell2.setCellValue(totalPrice);
         cell2.setCellStyle(priceStyle(sheet.getWorkbook()));
         sheet.addMergedRegion(new CellRangeAddress(startRow, startRow, 6, 7));
 
