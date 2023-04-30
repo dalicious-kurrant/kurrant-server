@@ -103,7 +103,7 @@ public class ExcelServiceImpl implements ExcelService {
             com.aspose.cells.FontConfigs.setFontFolder(fontDir, true);
 
             // Set default font to Malgun Gothic
-            com.aspose.cells.FontConfigs.setDefaultFontName("Malgun Gothic");
+            com.aspose.cells.FontConfigs.setDefaultFontName("NanumGothic");
 
             com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
             PdfSaveOptions options = new PdfSaveOptions();
