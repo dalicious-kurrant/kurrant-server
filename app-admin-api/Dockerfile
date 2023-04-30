@@ -1,7 +1,10 @@
 FROM openjdk:17-jdk-slim
+
 ARG JAR_FILE=build/libs/*.jar
 COPY ${JAR_FILE} app-admin-api.jar
+
 RUN apt-get update \
+    && apt-get install -y --no-install-recommends apt-utils \
     && apt-get install -y fontconfig libfreetype6 wget unzip \
     && mkdir -p /usr/share/fonts/nanumgothic \
     && cd /usr/share/fonts/nanumgothic \
@@ -12,4 +15,5 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
 ENTRYPOINT ["java","-Duser.timezone=Asia/Seoul","-Djava.awt.headless=true","-jar","/app-admin-api.jar"]
