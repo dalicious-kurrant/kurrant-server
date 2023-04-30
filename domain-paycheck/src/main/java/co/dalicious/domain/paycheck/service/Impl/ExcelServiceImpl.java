@@ -10,6 +10,7 @@ import co.dalicious.domain.paycheck.entity.*;
 import co.dalicious.domain.paycheck.service.ExcelService;
 
 import co.dalicious.system.util.DateUtils;
+import com.aspose.cells.FontConfigs;
 import com.aspose.cells.PdfSaveOptions;
 import com.aspose.cells.SaveFormat;
 import com.aspose.cells.Worksheet;
@@ -29,6 +30,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigDecimal;
 import java.time.YearMonth;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -99,11 +101,15 @@ public class ExcelServiceImpl implements ExcelService {
         ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
         try {
             // Set the font directory (if required)
-            String fontDir = "/usr/share/fonts/";
+            String fontDir = "/usr/share/fonts/nanum";
             com.aspose.cells.FontConfigs.setFontFolder(fontDir, true);
 
             // Set default font to Malgun Gothic
             com.aspose.cells.FontConfigs.setDefaultFontName("NanumGothic");
+
+            System.out.println("com.aspose.cells.FontConfigs.getDefaultFontName(); = " + com.aspose.cells.FontConfigs.getDefaultFontName());
+            System.out.println("com.aspose.cells.FontConfigs.isFontAvailable(\"NanumGothic\"); = " + com.aspose.cells.FontConfigs.isFontAvailable("NanumGothic"));
+            System.out.println("com.aspose.cells.FontConfigs.getFontSources() = " + Arrays.toString(FontConfigs.getFontSources()));
 
             com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
             PdfSaveOptions options = new PdfSaveOptions();
