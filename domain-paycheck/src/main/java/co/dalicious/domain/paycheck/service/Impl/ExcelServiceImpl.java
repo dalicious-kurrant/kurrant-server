@@ -99,7 +99,7 @@ public class ExcelServiceImpl implements ExcelService {
         ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
         try {
             // Set the font directory (if required)
-            String fontDir = "path/font";
+            String fontDir = "/usr/share/fonts/";
             com.aspose.cells.FontConfigs.setFontFolder(fontDir, true);
 
             // Set default font to Malgun Gothic
