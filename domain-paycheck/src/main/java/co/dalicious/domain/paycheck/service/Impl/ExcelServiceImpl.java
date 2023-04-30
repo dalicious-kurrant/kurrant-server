@@ -102,7 +102,7 @@ public class ExcelServiceImpl implements ExcelService {
         ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
         try {
             // Set the font directory (if required)
-            String fontDir = "path/font";
+            String fontDir = "/usr/share/fonts/nanumgothic";
             com.aspose.cells.FontConfigs.setFontFolder(fontDir, true);
 
             com.aspose.cells.FontConfigs.setDefaultFontName("NanumGothic");
