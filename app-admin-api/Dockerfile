@@ -8,8 +8,9 @@ RUN apt-get update \
     && apt-get install -y fontconfig libfreetype6 wget unzip \
     && mkdir -p /usr/share/fonts/nanumgothic \
     && cd /usr/share/fonts/nanumgothic \
-    && wget https://github.com/naver/nanumfont/raw/master/NanumGothic/NanumGothic-Bold.ttf \
-    && wget https://github.com/naver/nanumfont/raw/master/NanumGothic/NanumGothic-Regular.ttf \
+    && wget -O nanumgothic.zip https://fonts.google.com/download?family=Nanum%20Gothic \
+    && unzip nanumgothic.zip \
+    && rm nanumgothic.zip \
     && fc-cache -fv \
     && apt-get remove -y wget unzip \
     && apt-get autoremove -y \
