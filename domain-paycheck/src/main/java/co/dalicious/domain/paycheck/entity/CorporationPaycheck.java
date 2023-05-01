@@ -147,7 +147,7 @@ public class CorporationPaycheck {
         for (PaycheckCategory paycheckCategory : paycheckCategories) {
             totalPrice = totalPrice.add(paycheckCategory.getTotalPrice());
         }
-        return totalPrice;
+        return totalPrice.add(getPaycheckAddsTotalPrice());
     }
 
     public BigDecimal getExpectedTotalPrice() {

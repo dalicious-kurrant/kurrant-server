@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.locationtech.jts.io.ParseException;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -127,5 +129,16 @@ public class Group {
         this.diningTypes = diningTypeList;
         this.name = name;
         this.managerId = managerId;
+    }
+
+    public void updateDiningTypes(List<DiningType> diningTypes) {
+        this.diningTypes = diningTypes;
+    }
+
+    public void updateGroup(UpdateSpotDetailRequestDto spotResponseDto) throws ParseException {
+        // TODO: Location 추가
+        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        this.name = spotResponseDto.getSpotName();
+        this.address = address;
     }
 }

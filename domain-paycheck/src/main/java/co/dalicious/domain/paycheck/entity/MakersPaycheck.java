@@ -149,8 +149,8 @@ public class MakersPaycheck {
         return getFoodTotalPrice().multiply(BigDecimal.valueOf(getCommission() / 100));
     }
 
-    public BigDecimal getTotalPrice() {
-        return getFoodTotalPrice().subtract(getCommissionPrice());
+    public Integer getTotalPrice() {
+        return getFoodTotalPrice().intValue() + getCommissionPrice().intValue();
     }
 
     public void updateMemo(PaycheckMemo paycheckMemo) {
