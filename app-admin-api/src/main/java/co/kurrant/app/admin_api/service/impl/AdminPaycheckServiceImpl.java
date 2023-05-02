@@ -254,7 +254,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     @Override
     @Transactional
     public void postCorporationPaycheckExcel() {
-        YearMonth yearMonth = YearMonth.now();
+        YearMonth yearMonth = YearMonth.now().minusMonths(1);
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByPeriod(yearMonth);
         List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByPeriod(yearMonth);
 
