@@ -254,7 +254,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     @Override
     @Transactional
     public void postCorporationPaycheckExcel() {
-        YearMonth yearMonth = YearMonth.now();
+        YearMonth yearMonth = YearMonth.now().minusMonths(1);
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByPeriod(yearMonth);
         List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByPeriod(yearMonth);
 
@@ -273,7 +273,8 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         }
 
         for (Group group : groups) {
-            CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.save(paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group)));
+//            CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.save(paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group)));
+            CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group));
             ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder((Corporation) Hibernate.unproxy(group), dailyFoodSupportPrices));
             Image excel = new Image(excelPdfDto.getExcelDto());
             Image pdf = new Image(excelPdfDto.getPdfDto());
