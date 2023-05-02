@@ -38,7 +38,7 @@ public interface MakersPaycheckMapper {
     MakersPaycheck toInitiateEntity(List<PaycheckDailyFood> paycheckDailyFoods, Makers makers);
 
     @Mapping(source = "makers", target = "makers")
-    @Mapping(target = "yearMonth", expression = "java(YearMonth.now())")
+    @Mapping(target = "yearMonth", expression = "java(YearMonth.now().minusMonths(1))")
     @Mapping(target = "paycheckStatus", constant = "REGISTER")
     @Mapping(source = "excelFile", target = "excelFile")
     @Mapping(source = "pdfFile", target = "pdfFile")
