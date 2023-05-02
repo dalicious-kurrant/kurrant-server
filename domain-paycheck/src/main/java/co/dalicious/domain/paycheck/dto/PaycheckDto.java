@@ -197,6 +197,7 @@ public class PaycheckDto {
             this.supportPrice = supportPrice.intValue();
             this.user = orderItemDailyFood.getOrder().getUser().getName();
             this.email = orderItemDailyFood.getOrder().getUser().getEmail();
+            this.count = orderItemDailyFood.getCount();
 
             // 음식을 여러개 주문 하였을 경우
             // FIXME: 메드트로닉은 다른 로직

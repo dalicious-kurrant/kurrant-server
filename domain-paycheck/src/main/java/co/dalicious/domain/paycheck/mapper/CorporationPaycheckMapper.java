@@ -317,7 +317,7 @@ public interface CorporationPaycheckMapper {
         if (paycheckCategories1 != null) addedPaycheckCategories.addAll(paycheckCategories1);
 
         return CorporationPaycheck.builder()
-                .yearMonth(YearMonth.now())
+                .yearMonth(YearMonth.now().minusMonths(1))
                 .paycheckStatus(PaycheckStatus.REGISTER)
                 .managerName(null)
                 .phone(null)
@@ -339,9 +339,9 @@ public interface CorporationPaycheckMapper {
     }
 
     @Mapping(source = "paycheckCategoryItem.paycheckCategoryItem", target = "category")
-    @Mapping(target = "price", expression = "java(paycheckCategory.getPrice().intValue())")
+    @Mapping(target = "price", expression = "java(paycheckCategory.getPrice() == null ? null : paycheckCategory.getPrice().intValue())")
     @Mapping(source = "days", target = "days")
-    @Mapping(target = "totalPrice", expression = "java(paycheckCategory.getTotalPrice().intValue())")
+    @Mapping(target = "totalPrice", expression = "java(paycheckCategory.getTotalPrice() == null ? null : paycheckCategory.getTotalPrice().intValue())")
     PaycheckDto.PaycheckCategory toExpectedPaycheckCategoryDto(PaycheckCategory paycheckCategory);
 
     default List<PaycheckDto.PaycheckCategory> toExpectedPaycheckCategoryDtos(List<PaycheckCategory> paycheckCategories, Integer days) {
