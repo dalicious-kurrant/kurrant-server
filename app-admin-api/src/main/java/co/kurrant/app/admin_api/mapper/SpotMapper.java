@@ -185,44 +185,33 @@ public interface SpotMapper {
     OpenGroupSpot toOpenGroupSpotEntity(Group group);
 
 
-    default UpdateSpotDetailResponseDto toDetailDto(Spot spot, User manager, List<MealInfo> mealInfoList) {
+    default UpdateSpotDetailResponseDto toDetailDto(Group group, User manager, List<MealInfo> mealInfoList) {
         UpdateSpotDetailResponseDto spotDetailResDto = new UpdateSpotDetailResponseDto();
 
-        spotDetailResDto.setSpotId(spot.getGroup().getId());
-        spotDetailResDto.setSpotName(spot.getName());
-        spotDetailResDto.setManagerId(manager.getId());
-        spotDetailResDto.setManagerName(manager.getName());
-        spotDetailResDto.setManagerPhone(manager.getPhone());
-        spotDetailResDto.setSpotName(spot.getName());
-        spotDetailResDto.setZipCode(spot.getAddress().getZipCode());
-        spotDetailResDto.setAddress1(spot.getAddress().getAddress1());
-        spotDetailResDto.setAddress2(spot.getAddress().getAddress2());
-        if (spot.getAddress().getLocation() == null) {
+        spotDetailResDto.setSpotId(group.getId());
+        spotDetailResDto.setSpotName(group.getName());
+        spotDetailResDto.setManagerId(manager == null ? null : manager.getId());
+        spotDetailResDto.setManagerName(manager == null ? null : manager.getName());
+        spotDetailResDto.setManagerPhone(manager == null ? null : manager.getPhone());
+        spotDetailResDto.setSpotName(group.getName());
+        spotDetailResDto.setZipCode(group.getAddress().getZipCode());
+        spotDetailResDto.setAddress1(group.getAddress().getAddress1());
+        spotDetailResDto.setAddress2(group.getAddress().getAddress2());
+        if (group.getAddress().getLocation() == null) {
             spotDetailResDto.setLocation("없음");
         } else {
-            spotDetailResDto.setLocation(spot.getAddress().getLocation().toString().substring(7, (spot.getAddress().getLocation().toString().length() - 1)));
+            spotDetailResDto.setLocation(group.getAddress().getLocation().toString().substring(7, (group.getAddress().getLocation().toString().length() - 1)));
         }
-        spotDetailResDto.setMemo(spot.getMemo());
+        spotDetailResDto.setMemo(group.getMemo());
 
         List<Integer> types = new ArrayList<>();
-        for (DiningType type : spot.getDiningTypes()) {
+        for (DiningType type : group.getDiningTypes()) {
             types.add(type.getCode());
         }
         spotDetailResDto.setDiningTypes(types.toString().substring(1, types.toString().length() - 1));
 
-        if (spot instanceof CorporationSpot) {
+        if (group instanceof Corporation corporation) {
             spotDetailResDto.setSpotType("Corporation");
-        } else if (spot instanceof OpenGroupSpot) {
-            spotDetailResDto.setSpotType("OpenGroup");
-        } else if (spot instanceof ApartmentSpot) {
-            spotDetailResDto.setSpotType("Apartment");
-        } else {
-            spotDetailResDto.setSpotType("없음");
-        }
-
-        spotDetailResDto.setMemo(spot.getMemo());
-
-        if (Hibernate.unproxy(spot.getGroup()) instanceof Corporation corporation) {
             spotDetailResDto.setCode(corporation.getCode());
             spotDetailResDto.setEmployeeCount(corporation.getEmployeeCount());
             spotDetailResDto.setIsSetting(corporation.getIsSetting());
@@ -238,7 +227,15 @@ public interface SpotMapper {
                 spotDetailResDto.setMinPrice(corporation.getMinimumSpend());
             if (corporation.getMaximumSpend() != null)
                 spotDetailResDto.setMaxPrice(corporation.getMaximumSpend());
+        } else if (group instanceof OpenGroup) {
+            spotDetailResDto.setSpotType("OpenGroup");
+        } else if (group instanceof Apartment) {
+            spotDetailResDto.setSpotType("Apartment");
+        } else {
+            spotDetailResDto.setSpotType("없음");
         }
+
+        spotDetailResDto.setMemo(group.getMemo());
 
 
         if(mealInfoList != null && ! mealInfoList.isEmpty()) {

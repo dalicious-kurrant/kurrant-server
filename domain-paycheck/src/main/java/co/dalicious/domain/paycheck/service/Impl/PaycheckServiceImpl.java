@@ -143,10 +143,9 @@ public class PaycheckServiceImpl implements PaycheckService {
         corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
 
         // 선불 정산인 경우 체크
-        PaycheckType paycheckType = PaycheckUtils.getPaycheckType(corporation);
         ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation, corporationPaycheck);
         if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
-        return null;
+        return corporationPaycheck;
     }
 
     public BigDecimal getCorporationDeliveryFee(Corporation corporation) {
