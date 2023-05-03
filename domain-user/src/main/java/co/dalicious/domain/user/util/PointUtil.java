@@ -139,6 +139,8 @@ public class PointUtil {
         return foundersPointPolicyList.stream().map(pointMapper::toReviewPointPolicyResponseDto).collect(Collectors.toList());
     }
 
-    // 지난 파운더스 포인트 적립 list
+//    // 지난 파운더스 포인트 적립 list
 //    public
+
+    // 파운더스 포인트 적립
 }
