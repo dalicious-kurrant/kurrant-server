@@ -39,6 +39,7 @@ public class MakersPaycheck {
     @Convert(converter = PaycheckStatusConverter.class)
     private PaycheckStatus paycheckStatus;
 
+    @Embedded
     @Comment("엑셀 파일")
     @AttributeOverrides({
             @AttributeOverride(name = "key", column = @Column(name = "excel_s3_key", length = 1024)),
@@ -47,6 +48,7 @@ public class MakersPaycheck {
     })
     private Image excelFile;
 
+    @Embedded
     @Comment("PDF 파일")
     @AttributeOverrides({
             @AttributeOverride(name = "key", column = @Column(name = "pdf_s3_key", length = 1024)),
@@ -150,7 +152,7 @@ public class MakersPaycheck {
     }
 
     public Integer getTotalPrice() {
-        return getFoodTotalPrice().intValue() + getCommissionPrice().intValue();
+        return getFoodTotalPrice().intValue() - getCommissionPrice().intValue();
     }
 
     public void updateMemo(PaycheckMemo paycheckMemo) {
