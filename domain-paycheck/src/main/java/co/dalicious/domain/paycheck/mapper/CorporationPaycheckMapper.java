@@ -294,14 +294,14 @@ public interface CorporationPaycheckMapper {
     default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
         // 2. 식비 계산 (추가 주문은 제외함.)
         List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
-        List<DailyFoodSupportPrice> removeDailyFoodSupportPrice = new ArrayList<>();
-        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
-            if (dailyFoodSupportPrice.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE)) {
-                orderItemDailyFoods.addAll(dailyFoodSupportPrice.getOrderItemDailyFoodGroup().getOrderDailyFoods());
-                removeDailyFoodSupportPrice.add(dailyFoodSupportPrice);
-            }
-        }
-        dailyFoodSupportPrices.removeAll(removeDailyFoodSupportPrice);
+//        List<DailyFoodSupportPrice> removeDailyFoodSupportPrice = new ArrayList<>();
+//        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
+//            if (dailyFoodSupportPrice.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE)) {
+//                orderItemDailyFoods.addAll(dailyFoodSupportPrice.getOrderItemDailyFoodGroup().getOrderDailyFoods());
+//                removeDailyFoodSupportPrice.add(dailyFoodSupportPrice);
+//            }
+//        }
+//        dailyFoodSupportPrices.removeAll(removeDailyFoodSupportPrice);
 
         List<PaycheckCategory> paycheckCategories = toPaycheckDailyFood(dailyFoodSupportPrices);
 
