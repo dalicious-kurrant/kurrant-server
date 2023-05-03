@@ -64,7 +64,7 @@ public interface ExtraOrderMapper {
                     groupDto.setGroupName(group.getName());
                     groupDtos.add(groupDto);
 
-                    if (group instanceof  Corporation) {
+                    if (group instanceof  Corporation corporation && corporation.getIsMembershipSupport()) {
                         discountDto = DiscountDto.getDiscount(food);
                     }
                     else {
@@ -100,7 +100,7 @@ public interface ExtraOrderMapper {
 
 
     default ExtraOrderDto.Response toExtraOrderDto(OrderItemDailyFood orderItemDailyFood) {
-        DiscountDto discountDto = DiscountDto.getDiscountWithoutMembership(orderItemDailyFood.getDailyFood().getFood());
+//        DiscountDto discountDto = DiscountDto.getDiscountWithoutMembership(orderItemDailyFood.getDailyFood().getFood());
         return ExtraOrderDto.Response.builder()
                 .foodName(orderItemDailyFood.getName())
                 .orderItemDailyFoodId(orderItemDailyFood.getId())
@@ -112,7 +112,7 @@ public interface ExtraOrderMapper {
                 .spotName(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpotName())
                 .groupId(orderItemDailyFood.getDailyFood().getGroup().getId())
                 .groupName(orderItemDailyFood.getDailyFood().getGroup().getName())
-                .price(discountDto.getDiscountedPrice())
+                .price(orderItemDailyFood.getDiscountedPrice())
                 .count(orderItemDailyFood.getCount())
                 .totalPrice(orderItemDailyFood.getOrderItemTotalPrice())
                 .dailyFoodStatus(orderItemDailyFood.getDailyFood().getDailyFoodStatus().getStatus())
