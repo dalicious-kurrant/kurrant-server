@@ -313,9 +313,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     assert dailyFood != null;
 
                     // 멤버십이 가입된 기업은 할인된 가격으로 적용하기
-                    Corporation group = (Corporation) spot.getGroup();
                     DiscountDto discountDto;
-                    if(group.getIsMembershipSupport()){
+                    if(Hibernate.unproxy(spot.getGroup()) instanceof Corporation corporation && corporation.getIsMembershipSupport()){
                         discountDto = DiscountDto.getDiscount(dailyFood.getFood());
                     }
                     else {
