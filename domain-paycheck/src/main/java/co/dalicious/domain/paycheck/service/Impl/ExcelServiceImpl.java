@@ -74,7 +74,8 @@ public class ExcelServiceImpl implements ExcelService {
             currentRow++;
             for (PaycheckAdd paycheckAdd : paycheckAdds) {
                 writeDailyFoodAdd(workbook, sheet, currentRow, paycheckAdd);
-                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 6));
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 5));
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 6, 7));
                 currentRow++;
             }
         }
@@ -138,8 +139,8 @@ public class ExcelServiceImpl implements ExcelService {
         String fileName = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".xlsx";
         String fileName2 = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".pdf";
 
-        createCorporationPaycheckOrderExcel(corporationPaycheck, workbook);
-        createCorporationPaycheckInvoiceExcel(corporationOrder, workbook);
+        createCorporationPaycheckInvoiceExcel(corporationPaycheck, workbook);
+        createCorporationPaycheckOrderExcel(corporationOrder, workbook);
 
         // Save the file locally
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -188,7 +189,7 @@ public class ExcelServiceImpl implements ExcelService {
         return new ExcelPdfDto(pdfResponse, excelResponse);
     }
 
-    public void createCorporationPaycheckOrderExcel(CorporationPaycheck corporationPaycheck, Workbook workbook) {
+    public void createCorporationPaycheckInvoiceExcel(CorporationPaycheck corporationPaycheck, Workbook workbook) {
         Sheet sheet = workbook.createSheet("인보이스");
 
         sheet.setColumnWidth(0, 2 * 256);
@@ -240,7 +241,8 @@ public class ExcelServiceImpl implements ExcelService {
             BigDecimal addPrice = BigDecimal.ZERO;
             for (PaycheckAdd paycheckAdd : paycheckAdds) {
                 writeDailyFoodAdd(workbook, sheet, currentRow, paycheckAdd);
-                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 6));
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 5));
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 6, 7));
                 addPrice = addPrice.add(paycheckAdd.getPrice());
                 currentRow++;
             }
@@ -258,7 +260,7 @@ public class ExcelServiceImpl implements ExcelService {
         }
     }
 
-    public void createCorporationPaycheckInvoiceExcel(PaycheckDto.CorporationOrder corporationOrder, Workbook workbook) {
+    public void createCorporationPaycheckOrderExcel(PaycheckDto.CorporationOrder corporationOrder, Workbook workbook) {
         Sheet sheet = workbook.createSheet("식수내역");
 
         sheet.setColumnWidth(0, 2 * 256);
@@ -689,11 +691,12 @@ public class ExcelServiceImpl implements ExcelService {
             if (i == 2) {
                 cell = row.createCell(2);
                 cell.setCellValue(headers[1]);
-                sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 2, 6));
+                sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 2, 5));
             }
             if (i == 3) {
-                cell = row.createCell(7);
+                cell = row.createCell(6);
                 cell.setCellValue(headers[2]);
+                sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 6, 7));
             }
             cell.setCellStyle(dataHeader(workBook));
         }
@@ -712,7 +715,7 @@ public class ExcelServiceImpl implements ExcelService {
         cell2.setCellValue(paycheckAdd.getMemo());
         cell2.setCellStyle(priceCellStyle);
 
-        Cell cell3 = row.createCell(7);
+        Cell cell3 = row.createCell(6);
         cell3.setCellValue(paycheckAdd.getPrice().intValue());
         cell3.setCellStyle(priceCellStyle);
     }
@@ -824,8 +827,8 @@ public class ExcelServiceImpl implements ExcelService {
                 row.getCell(i).setCellStyle(borderStyle);
             }
         }
-        sheet.addMergedRegion(new CellRangeAddress(rowNumber, rowNumber, 6, 7));
         Cell cell = row.getCell(6);
+        sheet.addMergedRegion(new CellRangeAddress(rowNumber, rowNumber, 6, 7));
         cell.setCellValue(totalPrice.intValue());
         return ++rowNumber;
     }
@@ -838,7 +841,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         for (int i = 1; i <= 7; i++) {
             Cell cell = row.createCell(i);
-            if (i == 7) {
+            if (i == 6 || i == 7) {
                 CellStyle cellStyle = boldPriceStyle(sheet.getWorkbook());
                 cellStyle.setBorderTop(BorderStyle.THIN);
                 cellStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
@@ -847,8 +850,9 @@ public class ExcelServiceImpl implements ExcelService {
                 row.getCell(i).setCellStyle(borderStyle);
             }
         }
-        Cell cell = row.getCell(7);
+        Cell cell = row.getCell(6);
         cell.setCellValue(totalPrice.intValue());
+        sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 6, 7));
         return ++rowNumber;
     }
 
