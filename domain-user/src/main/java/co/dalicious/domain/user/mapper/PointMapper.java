@@ -1,10 +1,12 @@
 package co.dalicious.domain.user.mapper;
 
 import co.dalicious.domain.user.dto.PointPolicyReqDto;
-import co.dalicious.domain.user.dto.PointPolicyResDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.FoundersPointPolicyDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.PointPolicyResDto;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.FoundersPointPolicy;
 import co.dalicious.domain.user.entity.enums.PointCondition;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
@@ -89,4 +91,15 @@ public interface PointMapper {
     @Mapping(source = "pointStatus", target = "pointStatus")
     @Mapping(target = "leftPoint", expression = "java(PointStatus.rewardStatus().contains(pointStatus) ? user.getPoint().add(point) : user.getPoint().subtract(point))")
     PointHistory createPointHistoryByOthers(User user, BigInteger id, PointStatus pointStatus, BigDecimal point);
+
+    default FoundersPointPolicyDto toReviewPointPolicyResponseDto(FoundersPointPolicy foundersPointPolicy) {
+        FoundersPointPolicyDto dto = new FoundersPointPolicyDto();
+
+        dto.setMaxPoint(BigDecimal.valueOf(Long.parseLong(foundersPointPolicy.getMaxPoint())));
+        dto.setMinPoint(BigDecimal.valueOf(Long.parseLong(foundersPointPolicy.getMinPoint())));
+        dto.setValue(foundersPointPolicy.getValue());
+
+        return dto;
+    }
+
 }
