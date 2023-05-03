@@ -1,24 +1,21 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.user.dto.PointPolicyReqDto;
-import co.dalicious.domain.user.dto.PointPolicyResDto;
-import co.dalicious.domain.user.entity.PointHistory;
+import co.dalicious.domain.user.dto.pointPolicyResponse.FoundersPointPolicyDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.PointPolicyResDto;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointCondition;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.PointMapper;
 import co.dalicious.domain.user.repository.PointPolicyRepository;
-import co.dalicious.domain.user.repository.QPointPolicyRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.service.PointService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -116,4 +113,11 @@ public class PointServiceImpl implements PointService {
             pointUtil.createPointHistoryByOthers(user, null, PointStatus.ofCode(requestDto.getPointStatus()), BigDecimal.valueOf(requestDto.getRewardPoint()));
         }
     }
+
+    @Override
+    public List<FoundersPointPolicyDto> findFoundersPointPolicy() {
+        return pointUtil.findFoundersPointPolicyDto();
+    }
+
+
 }

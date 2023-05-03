@@ -1,4 +1,4 @@
-package co.dalicious.domain.user.dto;
+package co.dalicious.domain.user.dto.pointPolicyResponse;
 
 import co.dalicious.domain.user.entity.enums.PointCondition;
 import lombok.Builder;
@@ -7,7 +7,6 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.util.List;
 
 @Getter
