@@ -272,7 +272,8 @@ public interface CorporationPaycheckMapper {
         // 중간에 멤버십 가격이 변동될 수 있으므로 금액을 구분해서 확인
         MultiValueMap<BigDecimal, MembershipSupportPrice> membershipMap = new LinkedMultiValueMap<>();
         for (MembershipSupportPrice membershipSupportPrice : membershipSupportPrices) {
-            membershipMap.add(membershipSupportPrice.getUsingSupportPrice(), membershipSupportPrice);
+//            membershipMap.add(membershipSupportPrice.getUsingSupportPrice(), membershipSupportPrice);
+            membershipMap.add(BigDecimal.valueOf(10000), membershipSupportPrice);
         }
 
         for (BigDecimal bigDecimal : membershipMap.keySet()) {

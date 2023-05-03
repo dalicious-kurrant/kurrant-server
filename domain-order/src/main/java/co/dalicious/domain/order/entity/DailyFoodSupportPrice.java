@@ -172,4 +172,21 @@ public class DailyFoodSupportPrice {
     public Order getOrder() {
         return this.orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder();
     }
+
+    public Integer getCountForGarbage() {
+        BigDecimal supportPrice = this.usingSupportPrice;
+
+        List<OrderItemDailyFood> orderItemDailyFoods = this.orderItemDailyFoodGroup.getOrderDailyFoods();
+        // 주문 완료인 상품들만 추출
+        orderItemDailyFoods = orderItemDailyFoods.stream()
+                .filter(v -> OrderStatus.completePayment().contains(v.getOrderStatus()))
+                .sorted(Comparator.comparing(OrderItemDailyFood::getOrderItemTotalPrice))
+                .toList();
+
+        int count = 0;
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            count += orderItemDailyFood.getCount();
+        }
+        return count;
+    }
 }
