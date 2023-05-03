@@ -53,4 +53,15 @@ public class FoodController {
                 .message("상품 상세정보 조회 성공!")
                 .build();
     }
+
+    @Operation(summary = "메뉴 상세 리뷰 불러오기", description = "특정 메뉴의 리뷰를 불러온다.")
+    @GetMapping("/{dailyFoodId}/review")
+    public ResponseMessage getFoodReview(Authentication authentication, @PathVariable BigInteger dailyFoodId){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(foodService.getFoodReview(dailyFoodId, securityUser))
+                .message("상품 리뷰 조회 성공!")
+                .build();
+    }
+
 }
