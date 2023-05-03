@@ -152,7 +152,7 @@ public class MakersPaycheck {
     }
 
     public Integer getTotalPrice() {
-        return getFoodTotalPrice().intValue() + getCommissionPrice().intValue();
+        return getFoodTotalPrice().intValue() - getCommissionPrice().intValue();
     }
 
     public void updateMemo(PaycheckMemo paycheckMemo) {
