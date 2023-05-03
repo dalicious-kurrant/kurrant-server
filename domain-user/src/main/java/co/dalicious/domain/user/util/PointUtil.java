@@ -1,9 +1,11 @@
 package co.dalicious.domain.user.util;
 
-import co.dalicious.domain.user.dto.PointPolicyResDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.FoundersPointPolicyDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.PointPolicyResDto;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.FoundersPointPolicy;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.domain.user.mapper.PointMapper;
@@ -130,4 +132,13 @@ public class PointUtil {
 
         return point;
     }
+
+    // 파운더스 포인트 정책 전제 조회
+    public List<FoundersPointPolicyDto> findFoundersPointPolicyDto() {
+        List<FoundersPointPolicy> foundersPointPolicyList = List.of(FoundersPointPolicy.class.getEnumConstants());
+        return foundersPointPolicyList.stream().map(pointMapper::toReviewPointPolicyResponseDto).collect(Collectors.toList());
+    }
+
+    // 지난 파운더스 포인트 적립 list
+//    public
 }
