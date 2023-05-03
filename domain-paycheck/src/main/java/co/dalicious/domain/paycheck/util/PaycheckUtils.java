@@ -157,26 +157,29 @@ public class PaycheckUtils {
         BigDecimal under50TotalPrice = BigDecimal.ZERO;
 
         Integer over50 = 0;
-        Integer under50 = 0;
+//        Integer under50 = 0;
         Integer countOver50 = 0;
         for (ServiceDiningDto serviceDiningDto : serviceDiningTypeMap.keySet()) {
             Integer count = serviceDiningTypeMap.get(serviceDiningDto);
-            if (count >= 50) {
-                over50TotalPrice = over50TotalPrice.add(GARBAGE_PER_ITEM.multiply(BigDecimal.valueOf(count)));
-                countOver50 += count;
-                over50++;
-            } else {
-                under50TotalPrice = under50TotalPrice.add(GARBAGE_PER_BELOW_50);
-                under50++;
-            }
+//            if (count >= 50) {
+//                over50TotalPrice = over50TotalPrice.add(GARBAGE_PER_ITEM.multiply(BigDecimal.valueOf(count)));
+//                countOver50 += count;
+//                over50++;
+//            } else {
+//                under50TotalPrice = under50TotalPrice.add(GARBAGE_PER_BELOW_50);
+//                under50++;
+//            }
+            over50TotalPrice = over50TotalPrice.add(GARBAGE_PER_ITEM.multiply(BigDecimal.valueOf(count)));
+            countOver50 += count;
+            over50++;
         }
 
         if (over50 != 0) {
             paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.GARBAGE, over50, countOver50, GARBAGE_PER_ITEM, over50TotalPrice));
         }
-        if (under50 != 0) {
-            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.GARBAGE, under50, under50, GARBAGE_PER_BELOW_50, under50TotalPrice));
-        }
+//        if (under50 != 0) {
+//            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.GARBAGE, under50, under50, GARBAGE_PER_BELOW_50, under50TotalPrice));
+//        }
         return paycheckCategories;
     }
 
