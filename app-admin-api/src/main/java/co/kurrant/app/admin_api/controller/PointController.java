@@ -72,4 +72,13 @@ public class PointController {
                 .message("유저의 포인트 적립에 성공했습니다.")
                 .build();
     }
+
+    @Operation(summary = "포인트 정책 조회", description = "파운더스 포인트 정책을 조회합니다.")
+    @GetMapping("/policy/founders")
+    public ResponseMessage findFoundersPointPolicy() {
+        return ResponseMessage.builder()
+                .data(pointService.findFoundersPointPolicy())
+                .message("파운더스 포인트 정책 조회에 성공하였습니다.")
+                .build();
+    }
 }
