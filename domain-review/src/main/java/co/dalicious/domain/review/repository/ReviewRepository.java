@@ -12,4 +12,8 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Reviews, BigInteger> {
 
     public List<Reviews> findByUser(User user);
+
+    Reviews findByFoodId(BigInteger id);
+
+    List<Reviews> findAllByFoodId(BigInteger id);
 }
