@@ -237,7 +237,7 @@ public class FoodServiceImpl implements FoodService {
 
         //리뷰와 유저정보 가져오기
         List<Reviews> reviewsList = new ArrayList<>();
-        if (sort != null && sort != 0 ){
+        if ((sort != null && sort != 0) || (photo != null && photo != 0) || (starFilter != null && starFilter != 0)){
              reviewsList = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), sort, photo, starFilter);
         } else {
             reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());

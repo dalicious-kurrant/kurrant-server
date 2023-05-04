@@ -267,14 +267,20 @@ public class QReviewRepository {
     public List<Reviews> findAllByfoodIdSort(BigInteger id, Integer sort, Integer photo, Integer starFilter) {
         List<Reviews> reviewsList = new ArrayList<>();
 
-        if (sort == 1){
+        if (sort == null){
+            reviewsList = queryFactory.selectFrom(reviews)
+                    .where(reviews.food.id.eq(id))
+                    .fetch();
+        }
+
+        if (sort != null && sort == 1){
             // sort 0은 베스트순 , 1은 최신순, 2는 리뷰 추천순
              reviewsList = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
                     .orderBy(reviews.createdDateTime.desc())
                     .fetch();
         }
-        else if(sort == 2){
+        else if(sort != null && sort == 2){
             reviewsList = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
                     .orderBy(reviews.like.desc())
@@ -286,11 +292,11 @@ public class QReviewRepository {
                     .fetch();
         }
 
-        if (photo == 1){
+        if (photo != null && photo == 1){
             reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
         }
 
-        if (starFilter != 0){
+        if (starFilter != null && starFilter != 0){
             reviewsList = reviewsList.stream().filter(v -> v.getSatisfaction().equals(starFilter)).toList();
         }
 
