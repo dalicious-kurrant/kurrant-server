@@ -56,10 +56,14 @@ public class FoodController {
 
     @Operation(summary = "메뉴 상세 리뷰 불러오기", description = "특정 메뉴의 리뷰를 불러온다.")
     @GetMapping("/{dailyFoodId}/review")
-    public ResponseMessage getFoodReview(Authentication authentication, @PathVariable BigInteger dailyFoodId){
+    public ResponseMessage getFoodReview(Authentication authentication, @PathVariable BigInteger dailyFoodId,
+                                         @RequestParam (required = false) Integer sort,
+                                         @RequestParam (required = false) Integer photo,
+                                         @RequestParam (required = false) Integer starFilter
+                                         ){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(foodService.getFoodReview(dailyFoodId, securityUser))
+                .data(foodService.getFoodReview(dailyFoodId, securityUser, sort, photo, starFilter))
                 .message("상품 리뷰 조회 성공!")
                 .build();
     }

@@ -24,6 +24,7 @@ import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.review.mapper.ReviewMapper;
 import co.dalicious.domain.review.repository.CommentsRepository;
+import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.review.repository.ReviewRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
@@ -65,6 +66,7 @@ public class FoodServiceImpl implements FoodService {
     private final QUserRecommendRepository qUserRecommendRepository;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final ReviewRepository reviewRepository;
+    private final QReviewRepository qReviewRepository;
     private final ReviewMapper reviewMapper;
     private final UserRepository userRepository;
 
@@ -228,17 +230,20 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser) {
+    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, Integer starFilter) {
 
         //유저와 DailyFood 정보 가져오기
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
 
         //리뷰와 유저정보 가져오기
-        List<Reviews> reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
-
+        List<Reviews> reviewsList = new ArrayList<>();
+        if (sort != null && sort != 0 ){
+             reviewsList = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), sort, photo, starFilter);
+        } else {
+            reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+        }
 
         List<FoodReviewListDto> foodReviewListDtoList = new ArrayList<>();
-
         for (Reviews reviews : reviewsList){
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
