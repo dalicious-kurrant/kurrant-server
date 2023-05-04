@@ -6,8 +6,6 @@ import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.domain.order.dto.DailySupportPriceDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
-import co.dalicious.domain.order.service.DeliveryFeePolicy;
-import co.dalicious.domain.order.service.Impl.DeliveryFeePolicyImpl;
 import co.dalicious.domain.paycheck.entity.PaycheckCategory;
 import co.dalicious.system.enums.CategoryPrice;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckType;
@@ -23,9 +21,9 @@ import java.util.*;
 public class PaycheckUtils {
     private static final BigDecimal DELIVERY_FEE_PER_ITEM = CategoryPrice.DELIVERY_FEE_PER_ITEM.getPrice();
     private static final BigDecimal DELIVERY_FEE_BELOW_50 = CategoryPrice.DELIVERY_FEE_BELOW_50.getPrice();
-    private static final BigDecimal DELIVERY_FEE_7500 = BigDecimal.valueOf(7500);
-    private static final BigDecimal DELIVERY_FEE_15000 = BigDecimal.valueOf(15000);
-    private static final BigDecimal DELIVERY_FEE_20000 = BigDecimal.valueOf(20000);
+    private static final BigDecimal FEE_7500 = BigDecimal.valueOf(7500);
+    private static final BigDecimal FEE_15000 = BigDecimal.valueOf(15000);
+    private static final BigDecimal FEE_20000 = BigDecimal.valueOf(20000);
     private static final BigDecimal GARBAGE_PER_ITEM = CategoryPrice.GARBAGE_PER_ITEM.getPrice();
     private static final BigDecimal GARBAGE_PER_BELOW_50 = CategoryPrice.GARBAGE_PER_BELOW_50.getPrice();
     private static final BigDecimal HOT_STORAGE = CategoryPrice.HOT_STORAGE.getPrice();
@@ -133,11 +131,11 @@ public class PaycheckUtils {
         BigDecimal deliveryFee = null;
 
         if (deliveryFee7500.contains(corporationId)) {
-            deliveryFee = DELIVERY_FEE_7500;
+            deliveryFee = FEE_7500;
         } else if (deliveryFee15000.contains(corporationId)) {
-            deliveryFee = DELIVERY_FEE_15000;
+            deliveryFee = FEE_15000;
         } else if (deliveryFee20000.contains(corporationId)) {
-            deliveryFee = DELIVERY_FEE_20000;
+            deliveryFee = FEE_20000;
         }
 
         if (deliveryFee != null) {
@@ -148,9 +146,25 @@ public class PaycheckUtils {
             paycheckCategories.addAll(getDeliveryFee(serviceDiningTypeMap));
         }
 
-        if(corporation.getIsGarbage()) {
+        // 수거비
+        List<BigInteger> garbage7500 = Arrays.asList(BigInteger.valueOf(103), BigInteger.valueOf(133));
+        List<BigInteger> garbage15000 = List.of(BigInteger.valueOf(95));
+
+        Integer countForGarbage = serviceDiningTypeMapForGarbage.size();
+        BigDecimal garbageFee;
+
+        if (corporation.getId().equals(BigInteger.valueOf(97))) {
+            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.GARBAGE, 0, 0, BigDecimal.ZERO, BigDecimal.ZERO));
+        } else if (garbage7500.contains(corporationId)) {
+            garbageFee = FEE_7500;
+            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.GARBAGE, countForGarbage, countForGarbage, garbageFee, garbageFee.multiply(BigDecimal.valueOf(countForGarbage))));
+        } else if (garbage15000.contains(corporationId)) {
+            garbageFee = FEE_15000;
+            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.GARBAGE, countForGarbage, countForGarbage, garbageFee, garbageFee.multiply(BigDecimal.valueOf(countForGarbage))));
+        } else if (corporation.getIsGarbage()) {
             paycheckCategories.addAll(getGarbageCharge(serviceDiningTypeMapForGarbage));
         }
+
         if(corporation.getPrepaidCategory(PaycheckCategoryItem.HOT_STORAGE) != null) {
             paycheckCategories.add(getHotStorageCharge(corporation.getPrepaidCategory(PaycheckCategoryItem.HOT_STORAGE)));
         }
