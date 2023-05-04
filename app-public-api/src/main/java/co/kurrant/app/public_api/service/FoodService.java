@@ -12,5 +12,5 @@ public interface FoodService {
     FoodDetailDto getFoodDetail(BigInteger dailyFoodId, SecurityUser securityUser);
     RetrieveDiscountDto getFoodDiscount(BigInteger dailyFoodId);
 
-    Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser);
+    Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, Integer starFilter);
 }

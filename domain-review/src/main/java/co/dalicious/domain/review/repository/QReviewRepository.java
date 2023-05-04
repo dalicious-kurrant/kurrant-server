@@ -26,8 +26,11 @@ import org.springframework.util.MultiValueMap;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
@@ -258,5 +261,39 @@ public class QReviewRepository {
                         whereCause)
                 .fetchCount();
 
+    }
+
+
+    public List<Reviews> findAllByfoodIdSort(BigInteger id, Integer sort, Integer photo, Integer starFilter) {
+        List<Reviews> reviewsList = new ArrayList<>();
+
+        if (sort == 1){
+            // sort 0은 베스트순 , 1은 최신순, 2는 리뷰 추천순
+             reviewsList = queryFactory.selectFrom(reviews)
+                    .where(reviews.food.id.eq(id))
+                    .orderBy(reviews.createdDateTime.desc())
+                    .fetch();
+        }
+        else if(sort == 2){
+            reviewsList = queryFactory.selectFrom(reviews)
+                    .where(reviews.food.id.eq(id))
+                    .orderBy(reviews.like.desc())
+                    .fetch();
+        }else {
+            reviewsList = queryFactory.selectFrom(reviews)
+                    .where(reviews.food.id.eq(id))
+                    .orderBy(reviews.satisfaction.desc())
+                    .fetch();
+        }
+
+        if (photo == 1){
+            reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
+        }
+
+        if (starFilter != 0){
+            reviewsList = reviewsList.stream().filter(v -> v.getSatisfaction().equals(starFilter)).toList();
+        }
+
+    return reviewsList;
     }
 }
