@@ -24,6 +24,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
@@ -267,20 +268,31 @@ public interface CorporationPaycheckMapper {
         return paycheckAdds.stream().map(this::toPaycheckAddDto).toList();
     }
 
-    default List<PaycheckCategory> toMembership(List<MembershipSupportPrice> membershipSupportPrices) {
+    default List<PaycheckCategory> toMembership(Integer membershipSupportPrices) {
         List<PaycheckCategory> paycheckCategories = new ArrayList<>();
-        // 중간에 멤버십 가격이 변동될 수 있으므로 금액을 구분해서 확인
-        MultiValueMap<BigDecimal, MembershipSupportPrice> membershipMap = new LinkedMultiValueMap<>();
-        for (MembershipSupportPrice membershipSupportPrice : membershipSupportPrices) {
-            membershipMap.add(membershipSupportPrice.getUsingSupportPrice(), membershipSupportPrice);
-        }
 
-        for (BigDecimal bigDecimal : membershipMap.keySet()) {
-            BigDecimal totalPrice = bigDecimal.multiply(BigDecimal.valueOf(membershipMap.get(bigDecimal).size()));
-            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.MEMBERSHIP, null, membershipMap.get(bigDecimal).size(), bigDecimal, totalPrice));
-        }
+        BigDecimal membershipPrice = BigDecimal.valueOf(10000);
+        BigDecimal totalPrice = membershipPrice.multiply(BigDecimal.valueOf(membershipSupportPrices));
+
+        paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.MEMBERSHIP, null, membershipSupportPrices, membershipPrice, totalPrice));
+
         return paycheckCategories;
     }
+//    default List<PaycheckCategory> toMembership(List<MembershipSupportPrice> membershipSupportPrices) {
+//        List<PaycheckCategory> paycheckCategories = new ArrayList<>();
+//        // 중간에 멤버십 가격이 변동될 수 있으므로 금액을 구분해서 확인
+//        MultiValueMap<BigDecimal, MembershipSupportPrice> membershipMap = new LinkedMultiValueMap<>();
+//        for (MembershipSupportPrice membershipSupportPrice : membershipSupportPrices) {
+////            membershipMap.add(membershipSupportPrice.getUsingSupportPrice(), membershipSupportPrice);
+//            membershipMap.add(BigDecimal.valueOf(10000), membershipSupportPrice);
+//        }
+//
+//        for (BigDecimal bigDecimal : membershipMap.keySet()) {
+//            BigDecimal totalPrice = bigDecimal.multiply(BigDecimal.valueOf(membershipMap.get(bigDecimal).size()));
+//            paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.MEMBERSHIP, null, membershipMap.get(bigDecimal).size(), bigDecimal, totalPrice));
+//        }
+//        return paycheckCategories;
+//    }
 
     @Mapping(source = "createdDateTime", target = "issueDate")
     @Mapping(source = "discountedPrice", target = "price")
@@ -291,17 +303,18 @@ public interface CorporationPaycheckMapper {
         return PaycheckUtils.getAdditionalPaycheckCategories(corporation, dailyFoodSupportPrices);
     }
 
-    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
+//    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
+    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer membershipSupportPrices) {
         // 2. 식비 계산 (추가 주문은 제외함.)
         List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
-        List<DailyFoodSupportPrice> removeDailyFoodSupportPrice = new ArrayList<>();
-        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
-            if (dailyFoodSupportPrice.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE)) {
-                orderItemDailyFoods.addAll(dailyFoodSupportPrice.getOrderItemDailyFoodGroup().getOrderDailyFoods());
-                removeDailyFoodSupportPrice.add(dailyFoodSupportPrice);
-            }
-        }
-        dailyFoodSupportPrices.removeAll(removeDailyFoodSupportPrice);
+//        List<DailyFoodSupportPrice> removeDailyFoodSupportPrice = new ArrayList<>();
+//        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
+//            if (dailyFoodSupportPrice.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE)) {
+//                orderItemDailyFoods.addAll(dailyFoodSupportPrice.getOrderItemDailyFoodGroup().getOrderDailyFoods());
+//                removeDailyFoodSupportPrice.add(dailyFoodSupportPrice);
+//            }
+//        }
+//        dailyFoodSupportPrices.removeAll(removeDailyFoodSupportPrice);
 
         List<PaycheckCategory> paycheckCategories = toPaycheckDailyFood(dailyFoodSupportPrices);
 

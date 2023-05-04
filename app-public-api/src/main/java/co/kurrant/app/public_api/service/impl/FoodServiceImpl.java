@@ -1,7 +1,9 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
@@ -15,10 +17,19 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.recommend.dto.UserRecommendWhereData;
 import co.dalicious.domain.recommend.entity.UserRecommends;
 import co.dalicious.domain.recommend.repository.QUserRecommendRepository;
+import co.dalicious.domain.review.dto.ReviewAdminResDto;
+import co.dalicious.domain.review.dto.ReviewListDto;
+import co.dalicious.domain.review.dto.ReviewsForUserResDto;
+import co.dalicious.domain.review.entity.Comments;
+import co.dalicious.domain.review.entity.Reviews;
+import co.dalicious.domain.review.mapper.ReviewMapper;
+import co.dalicious.domain.review.repository.CommentsRepository;
+import co.dalicious.domain.review.repository.ReviewRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.order.mapper.FoodMapper;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.system.util.DaysUtil;
@@ -37,6 +48,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,7 +64,11 @@ public class FoodServiceImpl implements FoodService {
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QUserRecommendRepository qUserRecommendRepository;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
+    private final ReviewRepository reviewRepository;
+    private final ReviewMapper reviewMapper;
+    private final UserRepository userRepository;
 
+    private final CommentsRepository commentsRepository;
 
     @Override
     @Transactional
@@ -208,5 +224,36 @@ public class FoodServiceImpl implements FoodService {
 //        DiscountDto discountDto = DiscountDto.getDiscount(dailyFood);
         DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
         return new RetrieveDiscountDto(discountDto);
+    }
+
+    @Override
+    @Transactional
+    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser) {
+
+        //유저와 DailyFood 정보 가져오기
+        DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+
+        //리뷰와 유저정보 가져오기
+        List<Reviews> reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+
+
+        List<FoodReviewListDto> foodReviewListDtoList = new ArrayList<>();
+
+        for (Reviews reviews : reviewsList){
+            Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
+            List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
+            FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList);
+            foodReviewListDtoList.add(foodReviewListDto);
+        }
+
+        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList);
+
+
+        //등록된 리뷰가 없다면
+        if (getFoodReviewResponseDto == null) {
+            return "등록된 리뷰가 없습니다.";
+        }
+
+        return getFoodReviewResponseDto;
     }
 }

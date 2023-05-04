@@ -256,7 +256,11 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     public void postCorporationPaycheckExcel() {
         YearMonth yearMonth = YearMonth.now().minusMonths(1);
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByPeriod(yearMonth);
-        List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByPeriod(yearMonth);
+//        List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByPeriod(yearMonth);
+
+        // 주문 내역 중 유저가 한번이라도 구매한 적이 있는 기업의 경우 멤버십 가입 기업이라면 카운트
+        MultiValueMap<Group, OrderItemDailyFood> membershipSupportPriceCountMap = qOrderDailyFoodRepository.findUsingMembershipUserCount(yearMonth);
+
 
         MultiValueMap<Group, DailyFoodSupportPrice> dailyFoodSupportPriceMap = new LinkedMultiValueMap<>();
         MultiValueMap<Group, MembershipSupportPrice> membershipSupportPriceMap = new LinkedMultiValueMap<>();
@@ -268,12 +272,15 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
             groups.add(dailyFoodSupportPrice.getGroup());
         }
 
-        for (MembershipSupportPrice membershipSupportPrice : membershipSupportPrices) {
-            membershipSupportPriceMap.add(membershipSupportPrice.getGroup(), membershipSupportPrice);
-        }
+//        for (MembershipSupportPrice membershipSupportPrice : membershipSupportPrices) {
+//            membershipSupportPriceMap.add(membershipSupportPrice.getGroup(), membershipSupportPrice);
+//        }
 
         for (Group group : groups) {
-            CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.save(paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group)));
+            Integer membershipSupportPriceCount = membershipSupportPriceCountMap.get(group) != null ? membershipSupportPriceCountMap.get(group).size() : null;
+//            CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.save(paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group)));
+//            CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group));
+            CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceCount);
             ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group)));
             Image excel = new Image(excelPdfDto.getExcelDto());
             Image pdf = new Image(excelPdfDto.getPdfDto());
@@ -289,10 +296,17 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         YearMonth yearMonth = DateUtils.stringToYearMonth(yearMonthStr);
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
-        List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth);
-        CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+//        List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth);
+
+        // 주문 내역 중 유저가 한번이라도 구매한 적이 있는 기업의 경우 멤버십 가입 기업이라면 카운트
+        Integer membershipSupportPriceCount = null;
+        if(corporation.getIsMembershipSupport()){
+            membershipSupportPriceCount = qOrderDailyFoodRepository.findUsingMembershipUserCountByGroup(corporation, yearMonth);
+        }
+//        CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+        CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPriceCount);
         if(corporationPaycheck != null) {
-            corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
+//            corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
             ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
             Image excel = new Image(excelPdfDto.getExcelDto());
             Image pdf = new Image(excelPdfDto.getPdfDto());

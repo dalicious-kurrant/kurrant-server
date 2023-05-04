@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.ApartmentRepository;
@@ -310,7 +311,15 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                             .orElse(null);
 
                     assert dailyFood != null;
-                    DiscountDto discountDto = DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
+
+                    // 멤버십이 가입된 기업은 할인된 가격으로 적용하기
+                    DiscountDto discountDto;
+                    if(Hibernate.unproxy(spot.getGroup()) instanceof Corporation corporation && corporation.getIsMembershipSupport()){
+                        discountDto = DiscountDto.getDiscount(dailyFood.getFood());
+                    }
+                    else {
+                        discountDto = DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
+                    }
 
                     // 8. 주문 상품(OrderItemDailyFood) 저장
                     OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
