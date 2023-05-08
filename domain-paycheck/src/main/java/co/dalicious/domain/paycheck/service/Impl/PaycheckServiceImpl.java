@@ -134,26 +134,11 @@ public class PaycheckServiceImpl implements PaycheckService {
      * 이 존재한다. 정산에서는 PaymentType에 따라 구분하였지만, 식사 구매에서 더 많은 예외 상황이 생긴다면, 구분이 필요하다.
      */
 
-    @Override
-    @Transactional
-    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer membershipSupportPriceCount) {
-
-        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPriceCount);
-        corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
-
-        // 선불 정산인 경우 체크
-        ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation, corporationPaycheck);
-        if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
-        return corporationPaycheck;
-    }
-
 //    @Override
 //    @Transactional
-//    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
-//        // 1. 매니저 계정 확인
+//    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer membershipSupportPriceCount) {
 //
-//        // 2. CorporationPaycheck 생성
-//        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+//        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPriceCount);
 //        corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
 //
 //        // 선불 정산인 경우 체크
@@ -161,6 +146,21 @@ public class PaycheckServiceImpl implements PaycheckService {
 //        if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
 //        return corporationPaycheck;
 //    }
+
+    @Override
+    @Transactional
+    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
+        // 1. 매니저 계정 확인
+
+        // 2. CorporationPaycheck 생성
+        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+        corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
+
+        // 선불 정산인 경우 체크
+        ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation, corporationPaycheck);
+        if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
+        return corporationPaycheck;
+    }
 
     public BigDecimal getCorporationDeliveryFee(Corporation corporation) {
         PaycheckType paycheckType = PaycheckUtils.getPaycheckType(corporation);

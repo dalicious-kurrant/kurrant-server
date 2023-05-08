@@ -207,6 +207,7 @@ public class PaycheckUtils {
     }
 
     // 고객사 쓰레기 수거
+    // FIXME: 50개 이하 쓰레기 수거는 존재하지 않음?
     public static List<PaycheckCategory> getGarbageCharge(Map<ServiceDiningDto, Integer> serviceDiningTypeMap) {
         List<PaycheckCategory> paycheckCategories = new ArrayList<>();
 

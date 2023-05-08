@@ -2,14 +2,21 @@ package co.dalicious.domain.banner.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
+import java.util.Arrays;
+
+@Getter
 public enum BannerSection {
-  TIE("띠"), HERO("히어로");
+  ADVERTISEMENT("광고", 1),
+  NOTICE("공지", 2);
 
-  private String label;
+  private final String label;
+  private final Integer code;
 
-  BannerSection(String label) {
+  BannerSection(String label, Integer code) {
     this.label = label;
+    this.code = code;
   }
 
   @JsonCreator
@@ -20,6 +27,13 @@ public enum BannerSection {
       }
     }
     return null;
+  }
+
+  public static BannerSection ofCode(Integer code) {
+    return Arrays.stream(BannerSection.values())
+            .filter(v -> v.getCode().equals(code))
+            .findAny()
+            .orElse(null);
   }
 
   @JsonValue
