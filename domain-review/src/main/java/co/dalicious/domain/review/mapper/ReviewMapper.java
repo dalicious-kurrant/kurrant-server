@@ -308,10 +308,11 @@ public interface ReviewMapper {
         return imageList.isEmpty() ? null : imageList.get(0).getLocation();
     }
 
-    default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList){
+    default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Integer starEverage){
         GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
 
         getFoodReviewResponseDto.setItems(foodReviewListDtoList);
+        getFoodReviewResponseDto.setStarEverage(starEverage);
 
         return getFoodReviewResponseDto;
 

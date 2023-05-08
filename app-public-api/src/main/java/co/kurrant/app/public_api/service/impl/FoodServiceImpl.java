@@ -243,15 +243,21 @@ public class FoodServiceImpl implements FoodService {
             reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
         }
 
+
+
         List<FoodReviewListDto> foodReviewListDtoList = new ArrayList<>();
+        Integer starEverage = null;
+        int sumstar = 0;
         for (Reviews reviews : reviewsList){
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
             FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList);
             foodReviewListDtoList.add(foodReviewListDto);
+            sumstar += reviews.getSatisfaction();
         }
+        starEverage = sumstar / reviewsList.size();
 
-        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList);
+        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starEverage);
 
 
         //등록된 리뷰가 없다면
