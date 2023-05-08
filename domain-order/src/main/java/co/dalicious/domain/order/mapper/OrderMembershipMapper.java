@@ -45,7 +45,7 @@ public interface OrderMembershipMapper {
 
     @Mapping(source = "membership", target = "membership")
     @Mapping(source = "membership.membershipSubscriptionType.membershipSubscriptionType", target = "membershipSubscriptionType")
-    @Mapping(source = "membership.membershipSubscriptionType.price", target = "price")
+    @Mapping(target = "price", constant = "10000")
     @Mapping(target = "discountPrice", expression = "java(order.getDiscountPrice())")
     @Mapping(target = "orderStatus", constant = "COMPLETED")
     OrderItemMembership toOrderItemMembership(Order order, Membership membership);

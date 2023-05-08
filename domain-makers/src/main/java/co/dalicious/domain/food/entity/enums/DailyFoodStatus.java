@@ -3,6 +3,7 @@ package co.dalicious.domain.food.entity.enums;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Getter
 public enum DailyFoodStatus {
@@ -29,4 +30,13 @@ public enum DailyFoodStatus {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 식사 타입입니다."));
     }
 
+    public static List<DailyFoodStatus> cancelableStatus() {
+        return Arrays.asList(SALES, SOLD_OUT);
+    }
+
+    public static List<DailyFoodStatus> notCancelableStatus() {
+        List<DailyFoodStatus> dailyFoodStatuses = new java.util.ArrayList<>(List.of(DailyFoodStatus.values()));
+        dailyFoodStatuses.removeAll(cancelableStatus());
+        return dailyFoodStatuses;
+    }
 }

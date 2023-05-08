@@ -144,13 +144,6 @@ public class FoodServiceImpl implements FoodService {
             dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(group, selectedDate);
             // 값이 있다면 결과값으로 담아준다.
             for (DailyFood dailyFood : dailyFoodList) {
-                /* FIXME: Spring Batch 서버 구현 완료
-                MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
-                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
-                if ((LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate())) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
-                    dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
-                }
-                 */
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
                 dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
