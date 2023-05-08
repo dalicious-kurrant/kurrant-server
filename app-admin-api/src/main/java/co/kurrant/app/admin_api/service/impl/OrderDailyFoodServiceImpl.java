@@ -221,7 +221,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
 
                 if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
-                    orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
+                    orderService.adminCancelOrderItemDailyFood(orderItemDailyFood, user);
                 }
 
             } catch (Exception e) {

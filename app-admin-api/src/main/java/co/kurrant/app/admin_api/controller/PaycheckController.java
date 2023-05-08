@@ -104,14 +104,14 @@ public class PaycheckController {
 //                .build();
 //    }
 
-//    @Operation(summary = "메이커스 정산 삭제", description = "메이커스 정산 삭제")
-//    @DeleteMapping("/makers")
-//    public ResponseMessage deleteMakersPaycheck(@RequestBody List<BigInteger> ids) {
-//        adminPaycheckService.deleteMakersPaycheck(ids);
-//        return ResponseMessage.builder()
-//                .message("메이커스 정산 상태 변경에 성공하였습니다.")
-//                .build();
-//    }
+    @Operation(summary = "메이커스 정산 삭제", description = "메이커스 정산 삭제")
+    @DeleteMapping("/makers")
+    public ResponseMessage deleteMakersPaycheck(@RequestBody List<BigInteger> ids) {
+        adminPaycheckService.deleteMakersPaycheck(ids);
+        return ResponseMessage.builder()
+                .message("메이커스 정산 상태 변경에 성공하였습니다.")
+                .build();
+    }
 
 //    @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
 //    @PostMapping("/corporations")

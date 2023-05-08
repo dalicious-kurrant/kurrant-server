@@ -24,6 +24,7 @@ import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.review.mapper.ReviewMapper;
 import co.dalicious.domain.review.repository.CommentsRepository;
+import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.review.repository.ReviewRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
@@ -65,6 +66,7 @@ public class FoodServiceImpl implements FoodService {
     private final QUserRecommendRepository qUserRecommendRepository;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final ReviewRepository reviewRepository;
+    private final QReviewRepository qReviewRepository;
     private final ReviewMapper reviewMapper;
     private final UserRepository userRepository;
 
@@ -142,13 +144,6 @@ public class FoodServiceImpl implements FoodService {
             dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(group, selectedDate);
             // 값이 있다면 결과값으로 담아준다.
             for (DailyFood dailyFood : dailyFoodList) {
-                /* FIXME: Spring Batch 서버 구현 완료
-                MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
-                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
-                if ((LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate())) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
-                    dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
-                }
-                 */
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
                 dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
@@ -228,25 +223,34 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser) {
+    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, Integer starFilter) {
 
         //유저와 DailyFood 정보 가져오기
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
 
         //리뷰와 유저정보 가져오기
-        List<Reviews> reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+        List<Reviews> reviewsList = new ArrayList<>();
+        if ((sort != null && sort != 0) || (photo != null && photo != 0) || (starFilter != null && starFilter != 0)){
+             reviewsList = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), sort, photo, starFilter);
+        } else {
+            reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+        }
+
 
 
         List<FoodReviewListDto> foodReviewListDtoList = new ArrayList<>();
-
+        Integer starEverage = null;
+        int sumstar = 0;
         for (Reviews reviews : reviewsList){
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
             FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList);
             foodReviewListDtoList.add(foodReviewListDto);
+            sumstar += reviews.getSatisfaction();
         }
+        starEverage = sumstar / reviewsList.size();
 
-        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList);
+        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starEverage);
 
 
         //등록된 리뷰가 없다면
