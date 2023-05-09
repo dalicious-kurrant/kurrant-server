@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.food.dto.*;
+import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 
 import java.math.BigInteger;
@@ -13,4 +14,8 @@ public interface FoodService {
     RetrieveDiscountDto getFoodDiscount(BigInteger dailyFoodId);
 
     Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, Integer starFilter);
+
+    String foodReviewLike(SecurityUser securityUser, FoodReviewLikeDto foodReviewLikeDto);
+
+    boolean foodReviewLikeCheck(SecurityUser securityUser, BigInteger reviewId);
 }
