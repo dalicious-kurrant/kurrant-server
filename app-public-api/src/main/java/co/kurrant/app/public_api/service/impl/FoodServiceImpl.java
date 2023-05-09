@@ -21,11 +21,11 @@ import co.dalicious.domain.review.dto.ReviewAdminResDto;
 import co.dalicious.domain.review.dto.ReviewListDto;
 import co.dalicious.domain.review.dto.ReviewsForUserResDto;
 import co.dalicious.domain.review.entity.Comments;
+import co.dalicious.domain.review.entity.Like;
 import co.dalicious.domain.review.entity.Reviews;
+import co.dalicious.domain.review.mapper.LikeMapper;
 import co.dalicious.domain.review.mapper.ReviewMapper;
-import co.dalicious.domain.review.repository.CommentsRepository;
-import co.dalicious.domain.review.repository.QReviewRepository;
-import co.dalicious.domain.review.repository.ReviewRepository;
+import co.dalicious.domain.review.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.order.mapper.FoodMapper;
@@ -34,6 +34,7 @@ import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.system.util.DaysUtil;
+import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -71,6 +72,10 @@ public class FoodServiceImpl implements FoodService {
     private final UserRepository userRepository;
 
     private final CommentsRepository commentsRepository;
+
+    private final LikeRepository likeRepository;
+    private final LikeMapper likeMapper;
+    private final QLikeRepository qLikeRepository;
 
     @Override
     @Transactional
@@ -235,29 +240,56 @@ public class FoodServiceImpl implements FoodService {
         } else {
             reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
         }
+        if (reviewsList.size() == 0){
+            return "리뷰없음";
+        }
 
-
-
+        //대댓글과 별점 추가
         List<FoodReviewListDto> foodReviewListDtoList = new ArrayList<>();
-        Integer starEverage = null;
-        int sumstar = 0;
+        double starEverage = 0;
+        double sumStar = 0.0;    //별점 계산을 위한 총 별점
         for (Reviews reviews : reviewsList){
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
             FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList);
             foodReviewListDtoList.add(foodReviewListDto);
-            sumstar += reviews.getSatisfaction();
+            sumStar += (double) reviews.getSatisfaction();
         }
-        starEverage = sumstar / reviewsList.size();
-
-        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starEverage);
-
-
-        //등록된 리뷰가 없다면
-        if (getFoodReviewResponseDto == null) {
-            return "등록된 리뷰가 없습니다.";
-        }
+        starEverage =  Math.round(sumStar / (double) reviewsList.size() * 100) / 100.0;
+        Integer total = reviewsList.size();
+        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starEverage, total);
 
         return getFoodReviewResponseDto;
+    }
+
+    @Override
+    @Transactional
+    public String foodReviewLike(SecurityUser securityUser, FoodReviewLikeDto foodReviewLikeDto) {
+        //유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        List<Like> likes = qLikeRepository.checkLike(user.getId(), foodReviewLikeDto.getReviewId());
+        if (!likes.isEmpty()){
+            return "이미 처리되었습니다.";
+        }
+
+        Like like = likeMapper.toEntity(user, foodReviewLikeDto.getReviewId());
+
+        //review_like 테이블에 저장 후 review__review 테이블에 like를 +1 해준다.
+        likeRepository.save(like);
+        qReviewRepository.plusLike(foodReviewLikeDto.getReviewId());
+
+        return "도움이 돼요 +1";
+    }
+
+    @Override
+    public boolean foodReviewLikeCheck(SecurityUser securityUser, BigInteger reviewId) {
+
+        User user = userUtil.getUser(securityUser);
+
+        Like likes = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), reviewId);
+        if (likes == null) return false;
+
+        return true;
     }
 }

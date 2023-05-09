@@ -272,7 +272,7 @@ public class QReviewRepository {
                     .where(reviews.food.id.eq(id))
                     .fetch();
         }
-
+        // 1. 최신순
         if (sort != null && sort == 1){
             // sort 0은 베스트순 , 1은 최신순, 2는 리뷰 추천순
              reviewsList = queryFactory.selectFrom(reviews)
@@ -280,12 +280,15 @@ public class QReviewRepository {
                     .orderBy(reviews.createdDateTime.desc())
                     .fetch();
         }
-        else if(sort != null && sort == 2){
+        // 2.좋아요순
+        if(sort != null && sort == 2){
             reviewsList = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
                     .orderBy(reviews.like.desc())
                     .fetch();
-        }else {
+        }
+        // 0. 베스트(별점높은) 순
+        if (sort != null && sort == 1){
             reviewsList = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
                     .orderBy(reviews.satisfaction.desc())
@@ -301,5 +304,12 @@ public class QReviewRepository {
         }
 
     return reviewsList;
+    }
+
+    public void plusLike(BigInteger reviewId) {
+        queryFactory.update(reviews)
+                .set(reviews.like, reviews.like.add(1))
+                .where(reviews.id.eq(reviewId))
+                .execute();
     }
 }
