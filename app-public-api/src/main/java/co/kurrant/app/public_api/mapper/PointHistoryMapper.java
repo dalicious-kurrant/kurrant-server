@@ -9,6 +9,7 @@ import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.PaymentCancelHistory;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.dto.PointResponseDto;
+import co.dalicious.domain.user.entity.Founders;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.system.util.DateUtils;
@@ -21,24 +22,24 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface PointHistoryMapper {
 
     default PointResponseDto.PointHistoryDto toPointRequestDto(PointHistory pointHistory, List<Reviews> reviewsList, List<Order> orderList,
-                                                               List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList) {
+                                                               List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList, Founders founders) {
         PointResponseDto.PointHistoryDto pointRequestDto = new PointResponseDto.PointHistoryDto();
 
         pointRequestDto.setRewardDate(DateUtils.toISOLocalDateAndWeekOfDay(pointHistory.getCreatedDateTime()));
         pointRequestDto.setPoint(pointHistory.getPoint());
         pointRequestDto.setLeftPoint(pointHistory.getLeftPoint());
         pointRequestDto.setPointStatus(pointHistory.getPointStatus().getCode());
-        getNameAndSetIdsAndMakersName(reviewsList, orderList, noticeList, cancelHistoryList, pointRequestDto, pointHistory);
+        getNameAndSetIdsAndMakersName(reviewsList, orderList, noticeList, cancelHistoryList, pointRequestDto, pointHistory, founders);
 
         return pointRequestDto;
     }
 
     default void getNameAndSetIdsAndMakersName(List<Reviews> reviewsList, List<Order> orderList, List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList,
-                                               PointResponseDto.PointHistoryDto pointRequestDto, PointHistory pointHistory) {
+                                               PointResponseDto.PointHistoryDto pointRequestDto, PointHistory pointHistory, Founders founders) {
 
         StringBuilder name = new StringBuilder();
         BigInteger id = null;
@@ -102,6 +103,10 @@ public interface PointHistoryMapper {
                 name.append(foodName);
             }
             id = cancelHistory.getOrder().getId();
+        }
+        else if(pointHistory.getPointStatus().equals(PointStatus.ACCUMULATED_FOUNDERS_POINT)) {
+            name.append(DateUtils.format(founders.getMembership().getStartDate())).append(" ~ ");
+            name.append(DateUtils.format(pointHistory.getCreatedDateTime().toLocalDateTime().toLocalDate()));
         }
 
         pointRequestDto.setName(String.valueOf(name));
