@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.review.dto.CommentReqDto;
+import co.dalicious.domain.review.dto.ReviewKeywordSaveReqDto;
 import co.kurrant.app.admin_api.dto.IdDto;
 import co.kurrant.app.admin_api.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -86,5 +87,16 @@ public class ReviewsController {
                 .message("댓글 삭제를 완료했습니다.")
                 .build();
     }
+
+    @Operation(summary = "상품 상세 리뷰 키워드 추가", description = "상품 상세 리뷰에 키워드를 추가합니다.")
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/keyword")
+    public ResponseMessage reviewKeywordSave(@RequestBody ReviewKeywordSaveReqDto keywordDto) {
+        reviewService.reviewKeywordSave(keywordDto);
+        return ResponseMessage.builder()
+                .message("키워드를 추가했습니다.")
+                .build();
+    }
+
 
 }

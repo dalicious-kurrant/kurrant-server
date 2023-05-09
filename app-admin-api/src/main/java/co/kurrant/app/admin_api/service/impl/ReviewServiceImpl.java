@@ -7,10 +7,8 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.review.dto.CommentReqDto;
 import co.dalicious.domain.review.dto.ReviewAdminResDto;
-import co.dalicious.domain.review.entity.AdminComments;
-import co.dalicious.domain.review.entity.Comments;
-import co.dalicious.domain.review.entity.MakersComments;
-import co.dalicious.domain.review.entity.Reviews;
+import co.dalicious.domain.review.dto.ReviewKeywordSaveReqDto;
+import co.dalicious.domain.review.entity.*;
 import co.dalicious.domain.review.mapper.ReviewMapper;
 import co.dalicious.domain.review.repository.CommentsRepository;
 import co.dalicious.domain.review.repository.QReviewRepository;
@@ -157,5 +155,14 @@ public class ReviewServiceImpl implements ReviewService {
         else if(comments instanceof AdminComments adminComments) {
             adminComments.updateIsDelete(true);
         }
+    }
+
+    @Override
+    @Transactional
+    public void reviewKeywordSave(ReviewKeywordSaveReqDto keywordDto) {
+
+
+
+
     }
 }

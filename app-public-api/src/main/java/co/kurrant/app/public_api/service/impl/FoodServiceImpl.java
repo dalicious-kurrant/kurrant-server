@@ -265,14 +265,17 @@ public class FoodServiceImpl implements FoodService {
 
         //정렬
         List<FoodReviewListDto> sortedFoodReviewListDtoList = new ArrayList<>();
-        if (sort == 0){ //별점 많은순(베스트순)
-             sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction).reversed()).collect(Collectors.toList());
+        if (sort == 0){ //별점 많은순(베스트순) 별점 같을 경우 최신순
+             sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction).reversed()
+                     .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList());
         }
-        if (sort == 1){ //최신순
-            sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList());
+        if (sort == 1){ //최신순 같을 경우 별점순
+            sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate).reversed()
+                    .thenComparing(FoodReviewListDto::getSatisfaction).reversed()).collect(Collectors.toList());
         }
-        if (sort == 2){ //좋아요(도움이돼요)순
-            sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getLike).reversed()).collect(Collectors.toList());
+        if (sort == 2){ //좋아요(도움이돼요)순 같을 경우 최신순
+            sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getLike).reversed()
+                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList());
         }
         starEverage =  Math.round(sumStar / (double) reviewsList.size() * 100) / 100.0;
         Integer total = reviewsList.size();
@@ -286,13 +289,20 @@ public class FoodServiceImpl implements FoodService {
         //유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
-        List<Like> likes = qLikeRepository.checkLike(user.getId(), foodReviewLikeDto.getReviewId());
-        if (!likes.isEmpty()){
-            qReviewRepository.minusLike(foodReviewLikeDto.getReviewId());
+        Optional<Like> optionalLike = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), foodReviewLikeDto.getReviewId());
+
+        if (optionalLike.isPresent()){
+            Optional<Reviews> optionalReviews = reviewRepository.findById(optionalLike.get().getReviewId().getId());
+            if (optionalReviews.get().getLike() > 0) { //like가 0보다 클떄만 minus 처리
+                qReviewRepository.minusLike(foodReviewLikeDto.getReviewId());
+            }
+            qReviewRepository.deleteLike(foodReviewLikeDto.getReviewId(), user.getId());
             return "도움이 돼요 취소";
         }
 
-        Like like = likeMapper.toEntity(user, foodReviewLikeDto.getReviewId());
+        Optional<Reviews> optionalReviews = reviewRepository.findById(foodReviewLikeDto.getReviewId());
+
+        Like like = likeMapper.toEntity(user, optionalReviews.get());
 
         //review_like 테이블에 저장 후 review__review 테이블에 like를 +1 해준다.
         likeRepository.save(like);
