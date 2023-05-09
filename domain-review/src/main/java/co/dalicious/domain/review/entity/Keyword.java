@@ -1,6 +1,7 @@
 package co.dalicious.domain.review.entity;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -32,6 +33,9 @@ public class Keyword {
     @Column(name = "keyword_count", columnDefinition = "INT")
     private Integer count;
 
-
-
+    @Builder
+    public Keyword(String name, Integer count) {
+        this.name = name;
+        this.count = count;
+    }
 }

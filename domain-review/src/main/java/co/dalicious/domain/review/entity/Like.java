@@ -29,13 +29,14 @@ public class Like {
     private BigInteger id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("좋아요 누른 유저")
     private User user;
 
-    @Column(columnDefinition = "")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "review_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("리뷰 아이디")
-    private BigInteger reviewId;
+    private Reviews reviewId;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -44,7 +45,7 @@ public class Like {
     @Comment("생성일")
     private Timestamp createdDateTime;
 
-    public Like(User user, BigInteger reviewId) {
+    public Like(User user, Reviews reviewId) {
         this.user = user;
         this.reviewId = reviewId;
     }

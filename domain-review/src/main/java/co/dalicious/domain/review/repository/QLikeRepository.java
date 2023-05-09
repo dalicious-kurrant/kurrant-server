@@ -2,6 +2,8 @@ package co.dalicious.domain.review.repository;
 
 
 import co.dalicious.domain.review.entity.Like;
+import co.dalicious.domain.review.entity.Reviews;
+import com.querydsl.core.types.Expression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -18,17 +20,11 @@ public class QLikeRepository {
     private final JPAQueryFactory queryFactory;
 
 
-    public List<Like> checkLike(BigInteger userId, BigInteger reviewId) {
-        return queryFactory.selectFrom(like)
-                .where(like.user.id.eq(userId),
-                        like.reviewId.eq(reviewId))
-                .fetch();
-    }
 
     public Optional<Like> foodReviewLikeCheckByUserId(BigInteger userId, BigInteger reviewId) {
         return Optional.ofNullable(queryFactory.selectFrom(like)
                 .where(like.user.id.eq(userId),
-                        like.reviewId.eq(reviewId))
+                        like.reviewId.id.eq(reviewId))
                 .fetchOne());
     }
 }
