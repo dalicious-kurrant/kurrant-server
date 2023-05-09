@@ -89,8 +89,8 @@ public class PointController {
     @PatchMapping("/founders")
     public ResponseMessage updateFoundersPoint() {
 //        LocalDate date = DateUtils.stringToDate(selectDate);
-        pointService.AccumulatedFoundersPointSave(LocalDate.now(ZoneId.of("Asia/Seoul")));
         return ResponseMessage.builder()
+                .data(pointService.AccumulatedFoundersPointSave(LocalDate.now(ZoneId.of("Asia/Seoul"))))
                 .message("지난 파운더스 포인트 적립에 성공하였습니다.")
                 .build();
     }

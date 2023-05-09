@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.service;
 
 import co.dalicious.domain.user.dto.PointPolicyReqDto;
+import co.dalicious.domain.user.dto.pointDto.AccumulatedFoundersPointDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.FoundersPointPolicyDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.PointPolicyResDto;
 
@@ -16,5 +17,7 @@ public interface PointService {
     void deleteEventPointPolicy(BigInteger policyId);
     void addPointsToUser(PointPolicyReqDto.AddPointToUser requestDto);
     List<FoundersPointPolicyDto> findFoundersPointPolicy();
-    void AccumulatedFoundersPointSave(LocalDate selectDate);
+
+    // 지난 파운더스 포인트 적립
+    List<AccumulatedFoundersPointDto> AccumulatedFoundersPointSave(LocalDate selectDate);
 }

@@ -111,6 +111,7 @@ public class PointUtil {
     }
 
     // 리뷰 수정 시 포인트 산정
+    @Transactional
     public BigDecimal findReviewPointWhenUpdate(User user, BigInteger reviewId) {
         List<PointHistory> pointHistory = qPointHistoryRepository.findByContentId(user, reviewId, PointStatus.REVIEW_REWARD);
 
@@ -141,8 +142,16 @@ public class PointUtil {
     }
 
     // 파운더스 적립 포인트
-    public BigDecimal findFoundersPoint() {
+    @Transactional(readOnly = true)
+    public BigDecimal findFoundersPoint(User user) {
+        List<PointHistory> pointHistoryList = qPointHistoryRepository.findPointHistoryByPointStatusAndUser(user, PointStatus.FOUNDERS_REWARD);
+
+        if(!pointHistoryList.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
         List<FoundersPointPolicyDto> foundersPointPolicyDtos = findFoundersPointPolicyDto();
+
         return foundersPointPolicyDtos.get(0).getMaxPoint();
     }
 }

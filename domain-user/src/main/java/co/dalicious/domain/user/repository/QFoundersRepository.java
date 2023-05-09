@@ -20,4 +20,10 @@ public class QFoundersRepository {
                 .where(founders.user.in(userList))
                 .fetch();
     }
+
+    public Founders findFoundersByUser(User user) {
+        return queryFactory.selectFrom(founders)
+                .where(founders.user.eq(user))
+                .fetchOne();
+    }
 }

@@ -64,7 +64,7 @@ public class QPointHistoryRepository {
     public Page<PointHistory> findAllPointHistoryByUseStatus(User user, Pageable pageable) {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.eq(PointStatus.USED))
+                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.userStatus()))
                 .orderBy(pointHistory.id.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
@@ -91,6 +91,12 @@ public class QPointHistoryRepository {
 
         return jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), whereCause)
+                .fetch();
+    }
+
+    public List<PointHistory> findPointHistoryByPointStatusAndUser(User user, PointStatus pointStatus) {
+        return jpaQueryFactory.selectFrom(pointHistory)
+                .where(pointHistory.user.eq(user), pointHistory.pointStatus.eq(pointStatus))
                 .fetch();
     }
 }

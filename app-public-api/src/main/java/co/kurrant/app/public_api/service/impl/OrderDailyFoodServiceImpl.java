@@ -34,6 +34,7 @@ import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipRepository;
+import co.dalicious.domain.user.repository.QFoundersRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.system.enums.DiningType;
@@ -106,8 +107,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final FoundersUtil foundersUtil;
     private final OrderService orderService;
     private final PointUtil pointUtil;
+    private final QFoundersRepository qFoundersRepository;
     private final CartDailyFoodRepository cartDailyFoodRepository;
-    private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
 
 
     @Override
@@ -377,6 +378,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             return orderDailyFood.getId();
         }
     }
+
+    private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
 
     @Override
     @Transactional
@@ -890,6 +893,16 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         if (orderItemDailyFood == null) throw new ApiException(ExceptionEnum.ORDER_NOT_FOUND);
 
         orderItemDailyFood.updateOrderStatus(OrderStatus.RECEIPT_COMPLETE);
+
+        // 유저가 파운더스이고 멤버십을 유지하고 있으며 오늘 수령확인을 처음 진행하는 거라면
+        Founders foundersUser = qFoundersRepository.findFoundersByUser(user);
+        if(user.getIsMembership() && foundersUser != null) {
+            BigDecimal point = pointUtil.findFoundersPoint(user);
+            if(point.compareTo(BigDecimal.ZERO) != 0) {
+                pointUtil.createPointHistoryByOthers(user, null, PointStatus.FOUNDERS_REWARD, point);
+                user.updatePoint(point);
+            }
+        }
     }
 }
 

@@ -1,9 +1,9 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.order.dto.point.FoundersPointDto;
-import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.user.dto.PointPolicyReqDto;
+import co.dalicious.domain.user.dto.pointDto.AccumulatedFoundersPointDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.FoundersPointPolicyDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.PointPolicyResDto;
 import co.dalicious.domain.user.entity.Founders;
@@ -125,9 +125,9 @@ public class PointServiceImpl implements PointService {
         return pointUtil.findFoundersPointPolicyDto();
     }
 
-    // 지난 파운더스 포인트 적립 list
+    @Override
     @Transactional
-    public void AccumulatedFoundersPointSave(LocalDate selectDate) {
+    public List<AccumulatedFoundersPointDto> AccumulatedFoundersPointSave(LocalDate selectDate) {
         //founders 가입 유저 list
         List<FoundersPointDto> foundersPointDtoList = qOrderDailyFoodRepository.findOrderItemDailyFoodBySelectDate(selectDate);
         foundersPointDtoList = foundersPointDtoList.stream().sorted(Comparator.comparing(FoundersPointDto::getUserId)).toList();
@@ -147,12 +147,17 @@ public class PointServiceImpl implements PointService {
             orderStatusReceiptCompleteCount.put(foundersPointDto.getUser(), count);
         }
 
+        List<AccumulatedFoundersPointDto> accumulatedFoundersPointDtoList = new ArrayList<>();
         for(User user : orderStatusReceiptCompleteCount.keySet()) {
-            BigDecimal point = pointUtil.findFoundersPoint().multiply(BigDecimal.valueOf(orderStatusReceiptCompleteCount.get(user)));
-            pointUtil.createPointHistoryByOthers(user, null, PointStatus.FOUNDERS_REWARD, point);
-            user.updatePoint(point);
+            BigDecimal point = pointUtil.findFoundersPoint(user).multiply(BigDecimal.valueOf(orderStatusReceiptCompleteCount.get(user)));
+//            pointUtil.createPointHistoryByOthers(user, null, PointStatus.ACCUMULATED_FOUNDERS_POINT, point);
+//            user.updatePoint(point);
+
+            FoundersPointDto foundersUser = foundersPointDtoList.stream().filter(foundersPointDto -> foundersPointDto.getUser().equals(user)).findAny().orElse(null);
+            accumulatedFoundersPointDtoList.add(pointMapper.toAccumulatedFoundersPointDto(user, Objects.requireNonNull(foundersUser).getFoundersStartDate(), orderStatusReceiptCompleteCount.get(user), point));
         }
 
+        return accumulatedFoundersPointDtoList;
     }
 
 }
