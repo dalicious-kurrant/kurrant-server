@@ -160,7 +160,7 @@ public class GroupServiceImpl implements GroupService {
                         MealInfo newMealInfo = groupMapper.toMealInfo(group, diningType, "00:00", "00:00", groupInfoList.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
                         newMealInfoList.add(newMealInfo);
                     } else {
-                        if(mealInfo instanceof  CorporationMealInfo corporationMealInfo) corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDaysAndSupportPriceList);
+                        if(mealInfo instanceof  CorporationMealInfo corporationMealInfo) corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays, serviceDaysAndSupportPriceList);
                         else mealInfo.updateMealInfo(serviceDays);
                     }
                 }
@@ -248,7 +248,7 @@ public class GroupServiceImpl implements GroupService {
                 MealInfo newMealInfo = groupMapper.toMealInfo(group, diningType, "00:00", "00:00", updateSpotDetailRequestDto.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
                 newMealInfoList.add(newMealInfo);
             } else {
-                if(mealInfo instanceof  CorporationMealInfo corporationMealInfo) corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDaysAndSupportPriceList);
+                if(mealInfo instanceof  CorporationMealInfo corporationMealInfo) corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays,serviceDaysAndSupportPriceList);
                 else mealInfo.updateMealInfo(serviceDays);
             }
         }
