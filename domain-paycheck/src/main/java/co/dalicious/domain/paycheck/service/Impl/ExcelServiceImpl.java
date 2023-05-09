@@ -415,7 +415,7 @@ public class ExcelServiceImpl implements ExcelService {
     private void createDailyFoodHeader(Workbook workbook, Sheet sheet) {
         // 거래 내역 헤더
         Row row12 = sheet.createRow(12);
-        String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat별도)"};
+        String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat포함)"};
         for (int i = 1; i <= headers.length; i++) {
             Cell cell13 = null;
             if (i < 2) {

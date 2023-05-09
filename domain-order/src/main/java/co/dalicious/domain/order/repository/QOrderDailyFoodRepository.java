@@ -7,6 +7,7 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
+import co.dalicious.domain.order.dto.point.FoundersPointDto;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
@@ -46,6 +47,7 @@ import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
+import static co.dalicious.domain.user.entity.QFounders.founders;
 import static co.dalicious.domain.user.entity.QUser.user;
 
 
@@ -383,6 +385,29 @@ public class QOrderDailyFoodRepository {
                 .fetchOne();
     }
 
+
+    public List<FoundersPointDto> findOrderItemDailyFoodBySelectDate(LocalDate selectDate) {
+
+        List<Tuple> queryResult = queryFactory.select(order.user, dailyFood.serviceDate, founders.membership.startDate)
+                .from(orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(orderItemDailyFood.order, order)
+                .leftJoin(founders).on(order.user.eq(founders.user))
+                .where(order.user.isMembership.eq(true),
+                        dailyFood.serviceDate.loe(selectDate),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.RECEIPT_COMPLETE, OrderStatus.WRITTEN_REVIEW))
+                .groupBy(dailyFood.serviceDate, order.user)
+                .fetch();
+
+        List<FoundersPointDto> foundersPointDtoList = new ArrayList<>();
+
+        for(Tuple result : queryResult) {
+            foundersPointDtoList.add(FoundersPointDto.create(result.get(order.user), result.get(dailyFood.serviceDate), result.get(founders.membership.startDate)));
+        }
+
+        return foundersPointDtoList;
+    }
+  
     public Integer findUsingMembershipUserCountByGroup(Corporation corporation, YearMonth yearMonth) {
         LocalDate startDate = yearMonth.atDay(1);
         LocalDate endDate = yearMonth.atEndOfMonth();

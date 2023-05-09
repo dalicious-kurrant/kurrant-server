@@ -11,9 +11,11 @@ import co.dalicious.domain.order.repository.QPaymentCancelHistoryRepository;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.user.dto.PointResponseDto;
+import co.dalicious.domain.user.entity.Founders;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointStatus;
+import co.dalicious.domain.user.repository.QFoundersRepository;
 import co.dalicious.domain.user.repository.QPointHistoryRepository;
 import co.kurrant.app.public_api.mapper.PointHistoryMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -39,6 +41,7 @@ public class PointServiceImpl implements PointService {
     private final QNoticeRepository qNoticeRepository;
     private final QPaymentCancelHistoryRepository qPaymentCancelHistoryRepository;
     private final PointHistoryMapper pointMapper;
+    private final QFoundersRepository qFoundersRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -84,9 +87,10 @@ public class PointServiceImpl implements PointService {
         List<Order> orderList = orderIds.isEmpty() ? null : qOrderRepository.findAllByIds(orderIds);
         List<Notice> noticeList = boardIds.isEmpty() ? null : qNoticeRepository.findAllByIds(boardIds);
         List<PaymentCancelHistory> cancelList = cancelIds.isEmpty() ? null : qPaymentCancelHistoryRepository.findAllByIds(cancelIds);
+        Founders founders = qFoundersRepository.findFoundersByUser(user);
 
         for(PointHistory pointHistory : pointHistoryPage) {
-            PointResponseDto.PointHistoryDto pointRequestDto = pointMapper.toPointRequestDto(pointHistory, reviewsList, orderList, noticeList, cancelList);
+            PointResponseDto.PointHistoryDto pointRequestDto = pointMapper.toPointRequestDto(pointHistory, reviewsList, orderList, noticeList, cancelList, founders);
 
             pointHistoryDtoList.add(pointRequestDto);
         }

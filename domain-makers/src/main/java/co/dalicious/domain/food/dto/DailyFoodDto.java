@@ -21,6 +21,7 @@ public class DailyFoodDto {
     private String serviceDate;
     private String makersName;
     private String spicy;
+    private String vegan;
     private String image;
     private String description;
     private BigDecimal price;

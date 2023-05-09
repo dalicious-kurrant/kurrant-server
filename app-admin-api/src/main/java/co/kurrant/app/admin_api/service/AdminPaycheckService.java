@@ -21,11 +21,11 @@ public interface AdminPaycheckService {
     PaycheckDto.MakersResponse getMakersPaychecks(Map<String, Object> parameters);
     PaycheckDto.MakersDetail getMakersPaycheckDetail(BigInteger makersPaycheckId);
 //    void updateMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersResponse paycheckDto) throws IOException;
-//    void deleteMakersPaycheck(List<BigInteger> ids);
+    void deleteMakersPaycheck(List<BigInteger> ids);
     void postMakersPaycheckAdd(BigInteger makersPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos);
     void updateMakersPaycheckStatus(Integer status, List<BigInteger> ids);
     void postMakersMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto);
-    void postCorporationPaycheckExcel();
+    void postCorporationPaycheckExcel(String yearMonth);
     void postOneCorporationPaycheckExcel(BigInteger corporationId, String yearMonth);
     PaycheckDto.CorporationMain getCorporationPaychecks(Map<String, Object> parameters);
     PaycheckDto.CorporationOrder getCorporationOrderHistory(BigInteger corporationPaycheckId);
@@ -37,7 +37,7 @@ public interface AdminPaycheckService {
     void postCorporationMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto);
     void postSparkplusLog(Integer log);
     List<SparkPlusLog> getSpartplusLog();
-    List<MakersPaycheck> postMakersPaycheckExcel();
+    List<MakersPaycheck> postMakersPaycheckExcel(String yearMonth);
     void postOneMakersPaycheckExcel(BigInteger makersId, String yearMonth);
 
 }
