@@ -26,5 +26,6 @@ public interface OrderService {
     void cancelOrderItemDailyFoodNice(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException;
     void adminCancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException;
 
+    void payMembershipNice(Membership membership, PaymentType ofCode) throws IOException, ParseException;
     void payMembershipNice(User user, MembershipSubscriptionType membershipSubscriptionType, PeriodDto periodDto, PaymentType ofCode) throws IOException, ParseException;
 }

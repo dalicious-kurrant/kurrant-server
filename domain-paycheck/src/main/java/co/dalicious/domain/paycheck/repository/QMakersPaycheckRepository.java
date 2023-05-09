@@ -33,10 +33,9 @@ import static co.dalicious.domain.paycheck.entity.QMakersPaycheck.makersPaycheck
 public class QMakersPaycheckRepository {
     private final JPAQueryFactory queryFactory;
 
-    public List<PaycheckDto.PaycheckDailyFood> getPaycheckDto() {
-        LocalDate now = LocalDate.now();
-        LocalDate startOfMonth = now.withDayOfMonth(1);
-        LocalDate endOfMonth = now.withDayOfMonth(now.lengthOfMonth());
+    public List<PaycheckDto.PaycheckDailyFood> getPaycheckDto(YearMonth yearMonth) {
+        LocalDate startOfMonth = yearMonth.atDay(1);
+        LocalDate endOfMonth = yearMonth.atEndOfMonth();
 
         SimpleExpression<Integer> countSumExpression = orderItemDailyFood.count.sum();
         Coalesce<BigDecimal> supplyPriceCoalesce = new Coalesce<BigDecimal>().add(dailyFood.supplyPrice).add(food.supplyPrice);
