@@ -5,6 +5,7 @@ import co.dalicious.domain.user.dto.pointPolicyResponse.FoundersPointPolicyDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.PointPolicyResDto;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface PointService {
@@ -15,4 +16,5 @@ public interface PointService {
     void deleteEventPointPolicy(BigInteger policyId);
     void addPointsToUser(PointPolicyReqDto.AddPointToUser requestDto);
     List<FoundersPointPolicyDto> findFoundersPointPolicy();
+    void AccumulatedFoundersPointSave(LocalDate selectDate);
 }

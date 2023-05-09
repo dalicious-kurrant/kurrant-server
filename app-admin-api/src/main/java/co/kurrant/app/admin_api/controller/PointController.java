@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.user.dto.PointPolicyReqDto;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.service.PointService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -9,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Tag(name = "Point")
 @RequiredArgsConstructor
@@ -79,6 +82,16 @@ public class PointController {
         return ResponseMessage.builder()
                 .data(pointService.findFoundersPointPolicy())
                 .message("파운더스 포인트 정책 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "지난 파운더스 포인트 적립", description = "지난 파운더스 포인트를 적립합니다.")
+    @PatchMapping("/founders")
+    public ResponseMessage updateFoundersPoint() {
+//        LocalDate date = DateUtils.stringToDate(selectDate);
+        pointService.AccumulatedFoundersPointSave(LocalDate.now(ZoneId.of("Asia/Seoul")));
+        return ResponseMessage.builder()
+                .message("지난 파운더스 포인트 적립에 성공하였습니다.")
                 .build();
     }
 }

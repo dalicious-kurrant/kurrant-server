@@ -4,6 +4,7 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.Getter;
 
+import javax.swing.plaf.ComponentInputMapUIResource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +16,8 @@ public enum PointStatus {
     CANCEL("환불", 2),
     USED("사용", 3),
     ADMIN_REWARD("운영자 적립", 4),
-    ADMIN_POINTS_RECOVERED("운영자 차감", 5);
+    ADMIN_POINTS_RECOVERED("운영자 차감", 5),
+    FOUNDERS_REWARD("파운더스 적립", 6);
 
     private final String type;
     private final Integer code;
@@ -38,6 +40,7 @@ public enum PointStatus {
         pointStatusList.add(PointStatus.EVENT_REWARD);
         pointStatusList.add(PointStatus.CANCEL);
         pointStatusList.add(PointStatus.ADMIN_REWARD);
+        pointStatusList.add(PointStatus.FOUNDERS_REWARD);
 
         return pointStatusList;
     }

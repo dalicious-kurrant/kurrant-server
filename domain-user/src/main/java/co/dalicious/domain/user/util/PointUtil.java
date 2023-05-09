@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -139,8 +140,9 @@ public class PointUtil {
         return foundersPointPolicyList.stream().map(pointMapper::toReviewPointPolicyResponseDto).collect(Collectors.toList());
     }
 
-//    // 지난 파운더스 포인트 적립 list
-//    public
-
-    // 파운더스 포인트 적립
+    // 파운더스 적립 포인트
+    public BigDecimal findFoundersPoint() {
+        List<FoundersPointPolicyDto> foundersPointPolicyDtos = findFoundersPointPolicyDto();
+        return foundersPointPolicyDtos.get(0).getMaxPoint();
+    }
 }
