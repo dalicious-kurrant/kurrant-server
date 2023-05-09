@@ -267,33 +267,9 @@ public class QReviewRepository {
     public List<Reviews> findAllByfoodIdSort(BigInteger id, Integer sort, Integer photo, Integer starFilter) {
         List<Reviews> reviewsList = new ArrayList<>();
 
-        if (sort == null){
-            reviewsList = queryFactory.selectFrom(reviews)
+        reviewsList = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
                     .fetch();
-        }
-        // 1. 최신순
-        if (sort != null && sort == 1){
-            // sort 0은 베스트순 , 1은 최신순, 2는 리뷰 추천순
-             reviewsList = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id))
-                    .orderBy(reviews.createdDateTime.desc())
-                    .fetch();
-        }
-        // 2.좋아요순
-        if(sort != null && sort == 2){
-            reviewsList = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id))
-                    .orderBy(reviews.like.desc())
-                    .fetch();
-        }
-        // 0. 베스트(별점높은) 순
-        if (sort != null && sort == 1){
-            reviewsList = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id))
-                    .orderBy(reviews.satisfaction.desc())
-                    .fetch();
-        }
 
         if (photo != null && photo == 1){
             reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
@@ -309,6 +285,13 @@ public class QReviewRepository {
     public void plusLike(BigInteger reviewId) {
         queryFactory.update(reviews)
                 .set(reviews.like, reviews.like.add(1))
+                .where(reviews.id.eq(reviewId))
+                .execute();
+    }
+
+    public void minusLike(BigInteger reviewId) {
+        queryFactory.update(reviews)
+                .set(reviews.like, reviews.like.subtract(1))
                 .where(reviews.id.eq(reviewId))
                 .execute();
     }

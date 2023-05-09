@@ -52,6 +52,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -235,7 +236,7 @@ public class FoodServiceImpl implements FoodService {
 
         //리뷰와 유저정보 가져오기
         List<Reviews> reviewsList = new ArrayList<>();
-        if ((sort != null && sort != 0) || (photo != null && photo != 0) || (starFilter != null && starFilter != 0)){
+        if ((photo != null && photo != 0) || (starFilter != null && starFilter != 0)){
              reviewsList = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), sort, photo, starFilter);
         } else {
             reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
@@ -246,20 +247,37 @@ public class FoodServiceImpl implements FoodService {
 
         //대댓글과 별점 추가
         List<FoodReviewListDto> foodReviewListDtoList = new ArrayList<>();
-        double starEverage = 0;
+        double starEverage;
         double sumStar = 0.0;    //별점 계산을 위한 총 별점
         for (Reviews reviews : reviewsList){
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
-            FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList);
+
+            //좋아요 눌렀는지 여부 조회
+            boolean isLike = false;
+            Optional<Like> like = qLikeRepository.foodReviewLikeCheckByUserId(optionalUser.get().getId(), reviews.getId());
+            if (like.isPresent()) isLike = true;
+
+            FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList, isLike);
             foodReviewListDtoList.add(foodReviewListDto);
             sumStar += (double) reviews.getSatisfaction();
         }
+
+        //정렬
+        List<FoodReviewListDto> sortedFoodReviewListDtoList = new ArrayList<>();
+        if (sort == 0){ //별점 많은순(베스트순)
+             sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction).reversed()).collect(Collectors.toList());
+        }
+        if (sort == 1){ //최신순
+            sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList());
+        }
+        if (sort == 2){ //좋아요(도움이돼요)순
+            sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getLike).reversed()).collect(Collectors.toList());
+        }
         starEverage =  Math.round(sumStar / (double) reviewsList.size() * 100) / 100.0;
         Integer total = reviewsList.size();
-        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starEverage, total);
 
-        return getFoodReviewResponseDto;
+        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starEverage, total);
     }
 
     @Override
@@ -270,7 +288,8 @@ public class FoodServiceImpl implements FoodService {
 
         List<Like> likes = qLikeRepository.checkLike(user.getId(), foodReviewLikeDto.getReviewId());
         if (!likes.isEmpty()){
-            return "이미 처리되었습니다.";
+            qReviewRepository.minusLike(foodReviewLikeDto.getReviewId());
+            return "도움이 돼요 취소";
         }
 
         Like like = likeMapper.toEntity(user, foodReviewLikeDto.getReviewId());
@@ -287,8 +306,8 @@ public class FoodServiceImpl implements FoodService {
 
         User user = userUtil.getUser(securityUser);
 
-        Like likes = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), reviewId);
-        if (likes == null) return false;
+        Optional<Like> like = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), reviewId);
+        if (like.isEmpty()) return false;
 
         return true;
     }

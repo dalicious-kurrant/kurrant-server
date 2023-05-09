@@ -74,6 +74,7 @@ public interface ReviewMapper {
     ReviewListDto toReviewListDto(Reviews reviews);
 
 
+    @Mapping(source = "isLike", target = "isLike")
     @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocations")
     @Mapping(source = "reviews.comments", target = "commentList", qualifiedByName = "setCommentList2")
     @Mapping(source = "reviews.createdDateTime", target = "createDate", qualifiedByName = "getCreateDate")
@@ -81,7 +82,7 @@ public interface ReviewMapper {
     @Mapping(source = "user.name", target = "userName")
     @Mapping(source = "reviews.like", target = "like")
     @Mapping(source = "reviews.id", target = "reviewId")
-    FoodReviewListDto toFoodReviewListDto(Reviews reviews, User user, List<Comments> commentsList);
+    FoodReviewListDto toFoodReviewListDto(Reviews reviews, User user, List<Comments> commentsList, boolean isLike);
 
     @Named("getCreateDate")
     default String getCreateDate(Timestamp createdDateTime){
@@ -272,7 +273,6 @@ public interface ReviewMapper {
         if(imageList != null && !imageList.isEmpty()) {
             return imageList.stream().map(Image::getLocation).toList();
         }
-        nullList.add("");
         return nullList;
     }
 

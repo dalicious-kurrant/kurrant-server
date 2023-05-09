@@ -9,6 +9,7 @@ import static co.dalicious.domain.review.entity.QLike.like;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -24,10 +25,10 @@ public class QLikeRepository {
                 .fetch();
     }
 
-    public Like foodReviewLikeCheckByUserId(BigInteger userId, BigInteger reviewId) {
-        return queryFactory.selectFrom(like)
+    public Optional<Like> foodReviewLikeCheckByUserId(BigInteger userId, BigInteger reviewId) {
+        return Optional.ofNullable(queryFactory.selectFrom(like)
                 .where(like.user.id.eq(userId),
                         like.reviewId.eq(reviewId))
-                .fetchOne();
+                .fetchOne());
     }
 }
