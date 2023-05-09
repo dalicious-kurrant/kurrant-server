@@ -20,9 +20,9 @@ public class PaycheckController {
     private final AdminPaycheckService adminPaycheckService;
 
     @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
-    @PostMapping("/makers")
-    public ResponseMessage postMakersPaycheck() {
-        adminPaycheckService.postMakersPaycheckExcel();
+    @PostMapping("/makers/{yearMonth}")
+    public ResponseMessage postMakersPaycheck(@PathVariable String yearMonth) {
+        adminPaycheckService.postMakersPaycheckExcel(yearMonth);
         return ResponseMessage.builder()
                 .message("메이커스 정산 등록에 성공하였습니다.")
                 .build();
@@ -125,9 +125,9 @@ public class PaycheckController {
 //    }
 
     @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
-    @PostMapping("/corporations")
-    public ResponseMessage postCorporationPaycheck() {
-        adminPaycheckService.postCorporationPaycheckExcel();
+    @PostMapping("/corporations/{yearMonth}")
+    public ResponseMessage postCorporationPaycheck(@PathVariable String yearMonth) {
+        adminPaycheckService.postCorporationPaycheckExcel(yearMonth);
         return ResponseMessage.builder()
                 .message("기업 정산 등록에 성공하였습니다.")
                 .build();

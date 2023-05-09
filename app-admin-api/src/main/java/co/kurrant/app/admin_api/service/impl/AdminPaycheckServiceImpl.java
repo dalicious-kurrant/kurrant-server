@@ -253,8 +253,8 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 //    }
     @Override
     @Transactional
-    public void postCorporationPaycheckExcel() {
-        YearMonth yearMonth = YearMonth.now().minusMonths(1);
+    public void postCorporationPaycheckExcel(String yearMonthStr) {
+        YearMonth yearMonth = DateUtils.stringToYearMonth(yearMonthStr);
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByPeriod(yearMonth);
         List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByPeriod(yearMonth);
 
@@ -466,8 +466,9 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public List<MakersPaycheck> postMakersPaycheckExcel() {
-        return paycheckService.generateAllMakersPaycheck(qMakersPaycheckRepository.getPaycheckDto());
+    public List<MakersPaycheck> postMakersPaycheckExcel(String yearMonthStr) {
+        YearMonth yearMonth = DateUtils.stringToYearMonth(yearMonthStr);
+        return paycheckService.generateAllMakersPaycheck(qMakersPaycheckRepository.getPaycheckDto(yearMonth));
     }
 
     @Override

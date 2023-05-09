@@ -315,7 +315,7 @@ public interface CorporationPaycheckMapper {
         if (paycheckCategories1 != null) addedPaycheckCategories.addAll(paycheckCategories1);
 
         return CorporationPaycheck.builder()
-                .yearMonth(YearMonth.now().minusMonths(1))
+                .yearMonth(YearMonth.now())
                 .paycheckStatus(PaycheckStatus.REGISTER)
                 .managerName(null)
                 .phone(null)
