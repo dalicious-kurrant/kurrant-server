@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.repository;
 
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
@@ -13,6 +14,7 @@ import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.PeriodDto;
 import com.querydsl.core.BooleanBuilder;
@@ -22,6 +24,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.weaver.ast.Or;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -32,15 +36,19 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.*;
 
+import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
+import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static co.dalicious.domain.user.entity.QFounders.founders;
+import static co.dalicious.domain.user.entity.QUser.user;
 
 
 @Repository
@@ -108,7 +116,7 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
-    public List<OrderItemDailyFood> findAllByGroupFilter(LocalDate startDate, LocalDate endDate, Group group, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers) {
+    public List<OrderItemDailyFood> findAllByGroupFilter(LocalDate startDate, LocalDate endDate, Group group, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers, OrderStatus orderStatus) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (startDate != null) {
@@ -137,6 +145,10 @@ public class QOrderDailyFoodRepository {
 
         if (group != null) {
             whereClause.and(orderItemDailyFood.dailyFood.group.eq(group));
+        }
+
+        if (orderStatus != null) {
+            whereClause.and(orderItemDailyFood.orderStatus.eq(orderStatus));
         }
 
         return queryFactory.selectFrom(orderItemDailyFood)
@@ -373,6 +385,7 @@ public class QOrderDailyFoodRepository {
                 .fetchOne();
     }
 
+
     public List<FoundersPointDto> findOrderItemDailyFoodBySelectDate(LocalDate selectDate) {
 
         List<Tuple> queryResult = queryFactory.select(order.user, dailyFood.serviceDate, founders.membership.startDate)
@@ -394,5 +407,51 @@ public class QOrderDailyFoodRepository {
 
         return foundersPointDtoList;
     }
+  
+    public Integer findUsingMembershipUserCountByGroup(Corporation corporation, YearMonth yearMonth) {
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
 
+        long result =  queryFactory.selectFrom(orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(dailyFood.group, group)
+                .leftJoin(orderItem).on(orderItemDailyFood.id.eq(orderItem.id))
+                .leftJoin(orderItem.order, order)
+                .leftJoin(order.user, user)
+                .where(dailyFood.serviceDate.between(startDate, endDate),
+                        group.eq(corporation),
+                        orderItem.orderStatus.in(OrderStatus.completePayment()),
+                        user.role.eq(Role.USER))
+                .groupBy(user)
+                .fetchCount();
+
+        return Math.toIntExact(result);
+    }
+
+    public MultiValueMap<Group, OrderItemDailyFood> findUsingMembershipUserCount(YearMonth yearMonth) {
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        List<OrderItemDailyFood> result = queryFactory.selectFrom(orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(orderItem).on(orderItemDailyFood.id.eq(orderItem.id))
+                .leftJoin(dailyFood.group, group)
+                .leftJoin(orderItem.order, order)
+                .leftJoin(order.user, user)
+                .where(dailyFood.serviceDate.between(startDate, endDate),
+                        orderItem.orderStatus.in(OrderStatus.completePayment()),
+                        user.role.eq(Role.USER))
+                .groupBy(group, user)
+                .fetch();
+
+        MultiValueMap<Group, OrderItemDailyFood> usingMembershipUserCountMap = new LinkedMultiValueMap<>();
+
+        for(OrderItemDailyFood orderItemDailyFood1 : result) {
+            Group g = orderItemDailyFood1.getDailyFood().getGroup();
+            if(Hibernate.unproxy(g) instanceof Corporation corporation && corporation.getIsMembershipSupport()) {
+                usingMembershipUserCountMap.add(g, orderItemDailyFood1);
+            }
+        }
+        return usingMembershipUserCountMap;
+    }
 }

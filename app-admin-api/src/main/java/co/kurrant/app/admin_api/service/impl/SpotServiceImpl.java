@@ -2,31 +2,22 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.client.dto.SpotResponseDto;
-import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.repository.*;
-import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
-import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
-import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.DiningTypesUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
-import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.SpotService;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -197,66 +188,5 @@ public class SpotServiceImpl implements SpotService {
         createAddressRequestDto.setZipCode(zipCode);
         return createAddressRequestDto;
 
-    }
-
-    @Override
-    public SpotDetailResDto getSpotDetail(Integer spotId) {
-        //spotId로 spot 조회
-        Spot spot = spotRepository.findById(BigInteger.valueOf(spotId))
-                .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-
-        if (spot instanceof CorporationSpot corporationSpot){
-            List<MealInfo> mealInfoList = corporationSpot.getMealInfos();
-
-            if (spot.getGroup().getManagerId() != null) {
-                User manager = userRepository.findById(spot.getGroup().getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MANAGER));
-                return spotMapper.toDetailDto(spot, manager, mealInfoList);
-            }
-            return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), mealInfoList);
-        }
-
-        return spotMapper.toDetailDto(spot, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), null);
-    }
-
-    @Override
-    @Transactional
-    public void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
-
-        // 스팟 찾기.
-        Spot spot = spotRepository.findById(updateSpotDetailRequestDto.getSpotId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-
-        // 스팟에 해당하는 다이닝 타입 변경
-        List<DiningType> updateDiningTypeList = DiningTypesUtils.stringToDiningTypes(updateSpotDetailRequestDto.getDiningTypes());
-        spot.updateDiningTypes(updateDiningTypeList);
-
-        List<Days> notSupportDays = updateSpotDetailRequestDto.getNotSupportDays() != null ? DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getNotSupportDays()) : new ArrayList<>();
-        List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getServiceDays());
-        List<Days> supportDays = new ArrayList<>(serviceDays);
-        supportDays.removeAll(notSupportDays);
-
-        // dining type 체크해서 있으면 업데이트, 없으면 생성
-        List<MealInfo> mealInfoList = spot.getMealInfos();
-        List<MealInfo> newMealInfoList = new ArrayList<>();
-        for(DiningType diningType : updateDiningTypeList) {
-            BigDecimal supportPrice = null;
-            if(diningType.equals(DiningType.MORNING)) supportPrice = updateSpotDetailRequestDto.getBreakfastSupportPrice();
-            else if(diningType.equals(DiningType.LUNCH)) supportPrice = updateSpotDetailRequestDto.getLunchSupportPrice();
-            else if(diningType.equals(DiningType.DINNER)) supportPrice = updateSpotDetailRequestDto.getDinnerSupportPrice();
-
-            List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
-            if(supportPrice.compareTo(BigDecimal.valueOf(0)) != 0) serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, supportPrice));
-
-            MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
-            if(mealInfo == null) {
-                MealInfo newMealInfo = groupMapper.toMealInfo(spot.getGroup(), diningType, "00:00", "00:00", updateSpotDetailRequestDto.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
-                newMealInfoList.add(newMealInfo);
-            } else {
-                if(mealInfo instanceof  CorporationMealInfo corporationMealInfo) corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDaysAndSupportPriceList);
-                else mealInfo.updateMealInfo(serviceDays);
-            }
-        }
-
-        mealInfoRepository.saveAll(newMealInfoList);
-        spot.updateSpot(updateSpotDetailRequestDto);
     }
 }

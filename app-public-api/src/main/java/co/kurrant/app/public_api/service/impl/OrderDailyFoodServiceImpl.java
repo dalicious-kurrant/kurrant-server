@@ -45,11 +45,13 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -686,9 +688,19 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 OrderItemDailyFood orderItemDailyFood = null;
                 // 4. 주문 음식 가격이 일치하는지 검증 및 주문 저장
                 for (CartDailyFoodDto.DailyFood cartDailyFood : cartDailyFoodDto.getCartDailyFoods()) {
-                    CartDailyFood selectedCartDailyFood = cartDailyFoods.stream().filter(v -> v.getId().equals(cartDailyFood.getId()))
-                            .findAny()
-                            .orElseThrow(() -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND));
+                    CartDailyFood selectedCartDailyFood = null;
+                    for (CartDailyFood dailyFood : cartDailyFoods) {
+                        if(dailyFood.getId().equals(cartDailyFood.getDailyFoodId())) {
+                            selectedCartDailyFood = dailyFood;
+                        }
+                        if(selectedCartDailyFood != null && !selectedCartDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SALES)) {
+                            throw new CustomException(HttpStatus.NOT_FOUND, "CE4000002", "주문 불가한 상품입니다.");
+                        }
+                    }
+                    // 일치하는 상품을 찾을 수 없을 경우
+                    if(selectedCartDailyFood == null) {
+                        throw new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND);
+                    }
                     // 주문 수량이 일치하는지 확인
                     if (!selectedCartDailyFood.getCount().equals(cartDailyFood.getCount())) {
                         throw new ApiException(ExceptionEnum.NOT_MATCHED_ITEM_COUNT);

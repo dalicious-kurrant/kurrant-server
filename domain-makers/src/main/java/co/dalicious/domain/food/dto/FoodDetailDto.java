@@ -23,6 +23,7 @@ public class FoodDetailDto {
     private Integer periodDiscountedRate;
     private List<String> imageList;
     private String spicy;
+    private String vegan;
     private String description;
     private List<OriginDto> origins;
     private List<String> allergies;

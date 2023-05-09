@@ -21,14 +21,32 @@ public class PaycheckController {
 
     @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
     @PostMapping("/makers")
-    public ResponseMessage postMakersPaycheck(@RequestPart(required = false) MultipartFile makersXlsx,
-                                              @RequestPart(required = false) MultipartFile makersPdf,
-                                              @RequestPart PaycheckDto.MakersRequest paycheckDto) throws IOException {
-        adminPaycheckService.postMakersPaycheck(makersXlsx, makersPdf, paycheckDto);
+    public ResponseMessage postMakersPaycheck() {
+        adminPaycheckService.postMakersPaycheckExcel();
         return ResponseMessage.builder()
                 .message("메이커스 정산 등록에 성공하였습니다.")
                 .build();
     }
+
+    @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
+    @PostMapping("/makers/excel/{makersId}/{yearMonth}")
+    public ResponseMessage postOneMakersPaycheck(@PathVariable BigInteger makersId, @PathVariable String yearMonth) {
+        adminPaycheckService.postOneMakersPaycheckExcel(makersId, yearMonth);
+        return ResponseMessage.builder()
+                .message("메이커스 정산 등록에 성공하였습니다.")
+                .build();
+    }
+
+//    @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
+//    @PostMapping("/makers/excel")
+//    public ResponseMessage postMakersPaycheck(@RequestPart(required = false) MultipartFile makersXlsx,
+//                                              @RequestPart(required = false) MultipartFile makersPdf,
+//                                              @RequestPart PaycheckDto.MakersRequest paycheckDto) throws IOException {
+//        adminPaycheckService.postMakersPaycheck(makersXlsx, makersPdf, paycheckDto);
+//        return ResponseMessage.builder()
+//                .message("메이커스 정산 등록에 성공하였습니다.")
+//                .build();
+//    }
 
     @Operation(summary = "메이커스 정산 조회", description = "메이커스 정산 조회")
     @GetMapping("/makers")
@@ -86,14 +104,14 @@ public class PaycheckController {
 //                .build();
 //    }
 
-//    @Operation(summary = "메이커스 정산 삭제", description = "메이커스 정산 삭제")
-//    @DeleteMapping("/makers")
-//    public ResponseMessage deleteMakersPaycheck(@RequestBody List<BigInteger> ids) {
-//        adminPaycheckService.deleteMakersPaycheck(ids);
-//        return ResponseMessage.builder()
-//                .message("메이커스 정산 상태 변경에 성공하였습니다.")
-//                .build();
-//    }
+    @Operation(summary = "메이커스 정산 삭제", description = "메이커스 정산 삭제")
+    @DeleteMapping("/makers")
+    public ResponseMessage deleteMakersPaycheck(@RequestBody List<BigInteger> ids) {
+        adminPaycheckService.deleteMakersPaycheck(ids);
+        return ResponseMessage.builder()
+                .message("메이커스 정산 상태 변경에 성공하였습니다.")
+                .build();
+    }
 
 //    @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
 //    @PostMapping("/corporations")
@@ -116,9 +134,9 @@ public class PaycheckController {
     }
 
     @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
-    @PostMapping("/corporations/{corporationId}")
-    public ResponseMessage postOneCorporationPaycheck(@PathVariable BigInteger corporationId) {
-        adminPaycheckService.postOneCorporationPaycheckExcel(corporationId);
+    @PostMapping("/corporations/{corporationId}/{yearMonth}")
+    public ResponseMessage postOneCorporationPaycheck(@PathVariable BigInteger corporationId, @PathVariable String yearMonth) {
+        adminPaycheckService.postOneCorporationPaycheckExcel(corporationId, yearMonth);
         return ResponseMessage.builder()
                 .message("기업 정산 등록에 성공하였습니다.")
                 .build();

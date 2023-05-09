@@ -10,6 +10,7 @@ import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
+import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.*;
@@ -64,7 +65,7 @@ public class PaycheckServiceImpl implements PaycheckService {
 
     @Override
     @Transactional
-    public List<MakersPaycheck> generateAllMakersPaycheck(List<PaycheckDto.PaycheckDailyFood> paycheckDailyFoodDtos) {
+    public List<MakersPaycheck> generateAllMakersPaycheck(List<? extends PaycheckDto.PaycheckDailyFood> paycheckDailyFoodDtos) {
         MultiValueMap<Makers, PaycheckDailyFood> paycheckDailyFoodMap = new LinkedMultiValueMap<>();
         for (PaycheckDto.PaycheckDailyFood paycheckDailyFoodDto : paycheckDailyFoodDtos) {
             PaycheckDailyFood paycheckDailyFood = makersPaycheckMapper.toPaycheckDailyFood(paycheckDailyFoodDto);
@@ -75,9 +76,11 @@ public class PaycheckServiceImpl implements PaycheckService {
             MakersPaycheck makersPaycheck = makersPaycheckMapper.toInitiateEntity(paycheckDailyFoodMap.get(makers), makers);
             makersPaycheck = makersPaycheckRepository.save(makersPaycheck);
             // 정산 엑셀 생성
-            ImageResponseDto imageResponseDto = excelService.createMakersPaycheckExcel(makersPaycheck);
-            Image excelFile = new Image(imageResponseDto);
+            ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+            Image excelFile = new Image(excelPdfDto.getExcelDto());
+            Image pdfFile = new Image(excelPdfDto.getPdfDto());
             makersPaycheck.updateExcelFile(excelFile);
+            makersPaycheck.updatePdfFile(pdfFile);
         }
         return makersPaycheckRepository.findAllByYearMonth(YearMonth.now());
     }
@@ -121,8 +124,7 @@ public class PaycheckServiceImpl implements PaycheckService {
         }
 
         paycheckDailyFoods = paycheckDailyFoods.stream().sorted(Comparator.comparing(PaycheckDailyFood::getServiceDate).thenComparing(v -> v.getDiningType().getCode())).toList();
-
-        return makersPaycheckMapper.toInitiateEntity(makers, null, null, paycheckDailyFoods);
+        return makersPaycheckRepository.save(makersPaycheckMapper.toInitiateEntity(makers, null, null, paycheckDailyFoods));
     }
 
     /*
@@ -131,6 +133,20 @@ public class PaycheckServiceImpl implements PaycheckService {
      * 2. 추가 주문
      * 이 존재한다. 정산에서는 PaymentType에 따라 구분하였지만, 식사 구매에서 더 많은 예외 상황이 생긴다면, 구분이 필요하다.
      */
+
+//    @Override
+//    @Transactional
+//    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer membershipSupportPriceCount) {
+//
+//        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPriceCount);
+//        corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
+//
+//        // 선불 정산인 경우 체크
+//        ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation, corporationPaycheck);
+//        if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
+//        return corporationPaycheck;
+//    }
+
     @Override
     @Transactional
     public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
@@ -141,10 +157,9 @@ public class PaycheckServiceImpl implements PaycheckService {
         corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
 
         // 선불 정산인 경우 체크
-        PaycheckType paycheckType = PaycheckUtils.getPaycheckType(corporation);
         ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation, corporationPaycheck);
         if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
-        return null;
+        return corporationPaycheck;
     }
 
     public BigDecimal getCorporationDeliveryFee(Corporation corporation) {

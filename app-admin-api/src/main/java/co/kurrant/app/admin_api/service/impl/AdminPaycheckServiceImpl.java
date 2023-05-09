@@ -10,8 +10,12 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.QOrderItemDailyFood;
 import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
+import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
@@ -49,6 +53,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
 
@@ -71,6 +76,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
     private final QMembershipSupportPriceRepository qMembershipSupportPriceRepository;
     private final QCorporationPaycheckRepository qCorporationPaycheckRepository;
+    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
 
     @Override
     @Transactional
@@ -170,12 +176,12 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 //        makersPaycheck.updateMakersPaycheck(YearMonth.of(paycheckDto.getYear(), paycheckDto.getMonth()), PaycheckStatus.ofString(paycheckDto.getPaycheckStatus()));
 //    }
 
-//    메이커스 정산 삭제
-//    @Override
-//    public void deleteMakersPaycheck(List<BigInteger> ids) {
-//        List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByIdIn(ids);
-//        makersPaycheckRepository.deleteAll(makersPaychecks);
-//    }
+    //메이커스 정산 삭제
+    @Override
+    public void deleteMakersPaycheck(List<BigInteger> ids) {
+        List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByIdIn(ids);
+        makersPaycheckRepository.deleteAll(makersPaychecks);
+    }
 
     @Override
     @Transactional
@@ -190,11 +196,11 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
             imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
         }
         // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
-        ImageResponseDto imageResponseDto = excelService.createMakersPaycheckExcel(makersPaycheck);
-        Image image = new Image(imageResponseDto);
-        makersPaycheck.updateExcelFile(image);
-
-        // TODO: 추후 PDF 파일 추가
+        ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+        Image excel = new Image(excelPdfDto.getExcelDto());
+        Image pdf = new Image(excelPdfDto.getPdfDto());
+        makersPaycheck.updateExcelFile(excel);
+        makersPaycheck.updatePdfFile(pdf);
     }
 
     @Override
@@ -248,9 +254,13 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     @Override
     @Transactional
     public void postCorporationPaycheckExcel() {
-        YearMonth yearMonth = YearMonth.now();
+        YearMonth yearMonth = YearMonth.now().minusMonths(1);
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByPeriod(yearMonth);
         List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByPeriod(yearMonth);
+
+        // 주문 내역 중 유저가 한번이라도 구매한 적이 있는 기업의 경우 멤버십 가입 기업이라면 카운트
+//        MultiValueMap<Group, OrderItemDailyFood> membershipSupportPriceCountMap = qOrderDailyFoodRepository.findUsingMembershipUserCount(yearMonth);
+
 
         MultiValueMap<Group, DailyFoodSupportPrice> dailyFoodSupportPriceMap = new LinkedMultiValueMap<>();
         MultiValueMap<Group, MembershipSupportPrice> membershipSupportPriceMap = new LinkedMultiValueMap<>();
@@ -267,19 +277,42 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         }
 
         for (Group group : groups) {
-            paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group));
+//            Integer membershipSupportPriceCount = membershipSupportPriceCountMap.get(group) != null ? membershipSupportPriceCountMap.get(group).size() : null;
+//            CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.save(paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group)));
+//            CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceCount);
+            CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group));
+            ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group)));
+            Image excel = new Image(excelPdfDto.getExcelDto());
+            Image pdf = new Image(excelPdfDto.getPdfDto());
+            corporationPaycheck.updateExcelFile(excel);
+            corporationPaycheck.updatePdfFile(pdf);
         }
     }
 
     @Override
     @Transactional
-    public void postOneCorporationPaycheckExcel(BigInteger corporationId) {
+    public void postOneCorporationPaycheckExcel(BigInteger corporationId, String yearMonthStr) {
         Corporation corporation = corporationRepository.findById(corporationId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-        YearMonth yearMonth = YearMonth.now();
+        YearMonth yearMonth = DateUtils.stringToYearMonth(yearMonthStr);
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
         List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth);
-        paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+
+        // 주문 내역 중 유저가 한번이라도 구매한 적이 있는 기업의 경우 멤버십 가입 기업이라면 카운트
+        Integer membershipSupportPriceCount = null;
+        if(corporation.getIsMembershipSupport()){
+            membershipSupportPriceCount = qOrderDailyFoodRepository.findUsingMembershipUserCountByGroup(corporation, yearMonth);
+        }
+        CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+//        CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck(corporation, dailyFoodSupportPrices, membershipSupportPriceCount);
+        if(corporationPaycheck != null) {
+//            corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
+            ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
+            Image excel = new Image(excelPdfDto.getExcelDto());
+            Image pdf = new Image(excelPdfDto.getPdfDto());
+            corporationPaycheck.updateExcelFile(excel);
+            corporationPaycheck.updatePdfFile(pdf);
+        }
     }
 
     @Override
@@ -398,9 +431,11 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
             imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
         }
         // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
-        ImageResponseDto imageResponseDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
-        Image image = new Image(imageResponseDto);
-        corporationPaycheck.updateExcelFile(image);
+        ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
+        Image excel = new Image(excelPdfDto.getExcelDto());
+        Image pdf = new Image(excelPdfDto.getPdfDto());
+        corporationPaycheck.updateExcelFile(excel);
+        corporationPaycheck.updatePdfFile(pdf);
     }
 
     @Override
@@ -433,6 +468,25 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     @Transactional
     public List<MakersPaycheck> postMakersPaycheckExcel() {
         return paycheckService.generateAllMakersPaycheck(qMakersPaycheckRepository.getPaycheckDto());
+    }
+
+    @Override
+    @Transactional
+    public void postOneMakersPaycheckExcel(BigInteger makersId, String yearMonthStr) {
+        Makers makers = makersRepository.findById(makersId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+        YearMonth yearMonth = DateUtils.stringToYearMonth(yearMonthStr);
+        LocalDate start = yearMonth.atDay(1);
+        LocalDate end = yearMonth.atEndOfMonth();
+        List<Integer> diningTypes = List.of(1, 2, 3);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByMakersFilter(start, end, makers, diningTypes);
+        MakersPaycheck makersPaycheck = paycheckService.generateMakersPaycheck(makers, orderItemDailyFoods);
+        // 정산 엑셀 생성
+        ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
+        Image excelFile = new Image(excelPdfDto.getExcelDto());
+        Image pdfFile = new Image(excelPdfDto.getPdfDto());
+        makersPaycheck.updateExcelFile(excelFile);
+        makersPaycheck.updatePdfFile(pdfFile);
     }
 
     public String getImagePrefix(Image image) {

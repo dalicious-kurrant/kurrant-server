@@ -2,6 +2,7 @@ package co.dalicious.domain.order.service;
 
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
@@ -18,10 +19,12 @@ public interface OrderService {
     void cancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException;
     // 멤버십 결제를 한다.
     void payMembership(User user, MembershipSubscriptionType membershipSubscriptionType, PeriodDto periodDto, PaymentType paymentType);
+    void updateFailedMembershipPayment(Membership membership);
 
     void cancelOrderDailyFoodNice(OrderDailyFood orderDailyFood, User user) throws IOException, ParseException;
 
     void cancelOrderItemDailyFoodNice(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException;
+    void adminCancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException;
 
     void payMembershipNice(User user, MembershipSubscriptionType membershipSubscriptionType, PeriodDto periodDto, PaymentType ofCode) throws IOException, ParseException;
 }

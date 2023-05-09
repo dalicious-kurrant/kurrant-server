@@ -20,4 +20,17 @@ public class DiningTypesUtils {
         }
         return diningTypes;
     }
+
+    public static List<DiningType> stringCodeToDiningTypes(String strDiningTypes) {
+        if (strDiningTypes == null || strDiningTypes.isEmpty()) {
+            return null;
+        }
+        String[] diningTypeStrings = strDiningTypes.split(",");
+        List<DiningType> diningTypes = new ArrayList<>();
+
+        for(String diningTypeString : diningTypeStrings) {
+            diningTypes.add(DiningType.ofStringCode(diningTypeString.trim()));
+        }
+        return diningTypes;
+    }
 }

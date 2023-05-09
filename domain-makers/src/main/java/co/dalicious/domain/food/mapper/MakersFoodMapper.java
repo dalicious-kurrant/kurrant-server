@@ -26,6 +26,10 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring", imports = {Image.class, DiningType.class, DayAndTime.class})
 public interface MakersFoodMapper {
 
+    @Mapping(source = "food.calorie", target = "calorie")
+    @Mapping(source = "food.fat", target = "fat")
+    @Mapping(source = "food.protein", target = "protein")
+    @Mapping(source = "food.carbohydrate", target = "carbohydrate")
     @Mapping(source = "food.id", target = "foodId")
     @Mapping(source = "food.makers.name", target = "makersName")
     @Mapping(source = "food.makers.id", target = "makersId")

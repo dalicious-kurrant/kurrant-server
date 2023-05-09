@@ -1,6 +1,8 @@
 package co.dalicious.domain.review.mapper;
 
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.food.dto.FoodReviewListDto;
+import co.dalicious.domain.food.dto.GetFoodReviewResponseDto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -9,10 +11,14 @@ import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.Reviews;
+import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.repository.QUserRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import jdk.jfr.Name;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -20,13 +26,16 @@ import org.mapstruct.Named;
 import org.springframework.util.MultiValueMap;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, Math.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, Math.class, UserRepository.class})
 public interface ReviewMapper {
 
     @Mapping(source = "imageList", target = "images")
@@ -64,6 +73,21 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.comments", target = "commentList", qualifiedByName = "setCommentList")
     ReviewListDto toReviewListDto(Reviews reviews);
 
+
+    @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocations")
+    @Mapping(source = "commentsList", target = "commentList")
+    @Mapping(source = "reviews.createdDateTime", target = "createDate", qualifiedByName = "getCreateDate")
+    @Mapping(source = "reviews.satisfaction", target = "satisfaction")
+    @Mapping(source = "user.name", target = "userName")
+    @Mapping(source = "reviews.like", target = "like")
+    @Mapping(source = "reviews.id", target = "reviewId")
+    FoodReviewListDto toFoodReviewListDto(Reviews reviews, User user, List<Comments> commentsList);
+
+    @Named("getCreateDate")
+    default String getCreateDate(Timestamp createdDateTime){
+        return createdDateTime.toString().substring(0,10);
+    }
+
     @Named("setCommentList")
     default List<ReviewListDto.Comment> setCommentList(List<Comments> commentsList) {
         List<ReviewListDto.Comment> commentList = new ArrayList<>();
@@ -90,6 +114,7 @@ public interface ReviewMapper {
         }
         return commentList;
     }
+
 
     @Mapping(source = "reviews.id", target = "reviewId")
     @Mapping(source = "reviews.orderItem", target = "serviceDate", qualifiedByName = "getServiceDate")
@@ -283,4 +308,24 @@ public interface ReviewMapper {
         return imageList.isEmpty() ? null : imageList.get(0).getLocation();
     }
 
+    default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Integer starEverage){
+        GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
+
+        getFoodReviewResponseDto.setItems(foodReviewListDtoList);
+        getFoodReviewResponseDto.setStarEverage(starEverage);
+
+        return getFoodReviewResponseDto;
+
+    };
+
+
+
+    /* point쪽 무한스크롤 참고해서 만들기
+    * private BigInteger reviewId;
+    private String userName;
+    private String content;
+    private String writeDate;
+    private Integer like;
+    *
+    * */
 }

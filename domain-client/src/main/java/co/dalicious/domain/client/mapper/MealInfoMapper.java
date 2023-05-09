@@ -1,7 +1,7 @@
 //package co.dalicious.domain.client.mapper;
 //
 //import co.dalicious.domain.client.dto.SpotResponseDto;
-//import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
+//import co.kurrant.app.admin_api.dto.client.UpdateSpotDetailRequestDto;
 //import co.dalicious.domain.client.entity.*;
 //import co.dalicious.system.enums.DiningType;
 //import jdk.jfr.Name;
