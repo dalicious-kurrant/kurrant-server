@@ -198,8 +198,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             orderItemDailyFood.updateOrderStatus(orderStatus);
             userIds.add(orderItemDailyFood.getOrder().getUser().getId());
         }
-        userIdsMap.put("userIds", userIds);
-        pushUtil.sendToType(userIdsMap, PushCondition.DELIVERED_ORDER_ITEM, null, null, null);
+        if(OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
+            userIdsMap.put("userIds", userIds);
+            pushUtil.sendToType(userIdsMap, PushCondition.DELIVERED_ORDER_ITEM, null, null, null);
+        }
     }
 
     @Override
