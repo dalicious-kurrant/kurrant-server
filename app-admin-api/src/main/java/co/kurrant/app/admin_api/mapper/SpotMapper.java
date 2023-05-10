@@ -2,17 +2,20 @@ package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.SpotResponseDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
+import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 
 import co.dalicious.system.util.DaysUtil;
-import co.kurrant.app.admin_api.dto.client.SpotDetailResDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import org.hibernate.Hibernate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
@@ -112,6 +115,7 @@ public interface SpotMapper {
         return null;
     }
 
+
     @Named("createdTimeFormat")
     default String createdTimeFormat(Timestamp time) {
         return DateUtils.format(time, "yyyy-MM-dd");
@@ -181,79 +185,120 @@ public interface SpotMapper {
     OpenGroupSpot toOpenGroupSpotEntity(Group group);
 
 
-    default SpotDetailResDto toDetailDto(Spot spot, User manager, List<MealInfo> mealInfoList) {
-        SpotDetailResDto spotDetailResDto = new SpotDetailResDto();
+    default UpdateSpotDetailResponseDto toDetailDto(Group group, User manager, List<MealInfo> mealInfoList) {
+        UpdateSpotDetailResponseDto spotDetailResDto = new UpdateSpotDetailResponseDto();
 
-        spotDetailResDto.setGroupId(spot.getGroup().getId());
-        spotDetailResDto.setSpotName(spot.getName());
-        spotDetailResDto.setManagerId(manager.getId());
-        spotDetailResDto.setManagerName(manager.getName());
-        spotDetailResDto.setManagerPhone(manager.getPhone());
-        spotDetailResDto.setSpotName(spot.getName());
-        spotDetailResDto.setZipCode(spot.getAddress().getZipCode());
-        spotDetailResDto.setAddress1(spot.getAddress().getAddress1());
-        spotDetailResDto.setAddress2(spot.getAddress().getAddress2());
-        if (spot.getAddress().getLocation() == null) {
+        spotDetailResDto.setSpotId(group.getId());
+        spotDetailResDto.setSpotName(group.getName());
+        spotDetailResDto.setManagerId(manager == null ? null : manager.getId());
+        spotDetailResDto.setManagerName(manager == null ? null : manager.getName());
+        spotDetailResDto.setManagerPhone(manager == null ? null : manager.getPhone());
+        spotDetailResDto.setSpotName(group.getName());
+        spotDetailResDto.setZipCode(group.getAddress().getZipCode());
+        spotDetailResDto.setAddress1(group.getAddress().getAddress1());
+        spotDetailResDto.setAddress2(group.getAddress().getAddress2());
+        if (group.getAddress().getLocation() == null) {
             spotDetailResDto.setLocation("없음");
         } else {
-            spotDetailResDto.setLocation(spot.getAddress().getLocation().toString().substring(7, (spot.getAddress().getLocation().toString().length() - 1)));
+            spotDetailResDto.setLocation(group.getAddress().getLocation().toString().substring(7, (group.getAddress().getLocation().toString().length() - 1)));
         }
-        spotDetailResDto.setMemo(spot.getMemo());
+        spotDetailResDto.setMemo(group.getMemo());
 
         List<Integer> types = new ArrayList<>();
-        for (DiningType type : spot.getDiningTypes()) {
+        for (DiningType type : group.getDiningTypes()) {
             types.add(type.getCode());
         }
         spotDetailResDto.setDiningTypes(types.toString().substring(1, types.toString().length() - 1));
 
-        if (spot instanceof CorporationSpot) {
+        if (group instanceof Corporation corporation) {
             spotDetailResDto.setSpotType("Corporation");
-        } else if (spot instanceof OpenGroupSpot) {
+            spotDetailResDto.setCode(corporation.getCode());
+            spotDetailResDto.setEmployeeCount(corporation.getEmployeeCount());
+            spotDetailResDto.setIsSetting(corporation.getIsSetting());
+            spotDetailResDto.setIsHotStorage(corporation.getIsHotStorage());
+            spotDetailResDto.setIsGarbage(corporation.getIsGarbage());
+            spotDetailResDto.setIsMembershipSupport(corporation.getIsMembershipSupport());
+            spotDetailResDto.setIsPrepaid(corporation.getIsPrepaid());
+
+            if (corporation.getIsPrepaid() != null && corporation.getIsPrepaid() && corporation.getPrepaidCategories() != null && !corporation.getPrepaidCategories().isEmpty()) {
+                spotDetailResDto.setPrepaidCategoryList(toPrepaidCategoryDtos(corporation.getPrepaidCategories()));
+            }
+            if (corporation.getMinimumSpend() != null)
+                spotDetailResDto.setMinPrice(corporation.getMinimumSpend());
+            if (corporation.getMaximumSpend() != null)
+                spotDetailResDto.setMaxPrice(corporation.getMaximumSpend());
+        } else if (group instanceof OpenGroup) {
             spotDetailResDto.setSpotType("OpenGroup");
-        } else if (spot instanceof ApartmentSpot) {
+        } else if (group instanceof Apartment) {
             spotDetailResDto.setSpotType("Apartment");
         } else {
             spotDetailResDto.setSpotType("없음");
         }
 
-        spotDetailResDto.setMemo(spot.getMemo());
-
-        if (spot.getGroup() instanceof Corporation corporation) {
-            spotDetailResDto.setIsSetting(corporation.getIsSetting());
-            spotDetailResDto.setIsHotStorage(corporation.getIsHotStorage());
-            spotDetailResDto.setIsGarbage(corporation.getIsGarbage());
-            spotDetailResDto.setIsMembershipSupport(corporation.getIsMembershipSupport());
-            if (corporation.getMinimumSpend() != null)
-                spotDetailResDto.setMinPrice(corporation.getMinimumSpend().intValue());
-            if (corporation.getMaximumSpend() != null)
-                spotDetailResDto.setMaxPrice(corporation.getMaximumSpend().intValue());
-        }
+        spotDetailResDto.setMemo(group.getMemo());
 
 
-        Set<Days> serviceDays = new HashSet<>();
-        Set<Days> supportDays = new HashSet<>();
-        for (MealInfo mealInfo : mealInfoList) {
-            serviceDays.addAll(mealInfo.getServiceDays());
-            if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
-                List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = corporationMealInfo.getServiceDaysAndSupportPrices();
-                for (ServiceDaysAndSupportPrice serviceDaysAndSupportPrice : serviceDaysAndSupportPriceList) {
-                    BigDecimal supportPrice = serviceDaysAndSupportPrice.getSupportPrice();
-                    supportDays.addAll(serviceDaysAndSupportPrice.getSupportDays());
+        if(mealInfoList != null && ! mealInfoList.isEmpty()) {
+            LinkedHashSet<Days> serviceDays = new LinkedHashSet<>();
+            LinkedHashSet<Days> supportDays = new LinkedHashSet<>();
+            for (MealInfo mealInfo : mealInfoList) {
+                serviceDays.addAll(mealInfo.getServiceDays());
+                if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
+                    List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = corporationMealInfo.getServiceDaysAndSupportPrices();
+                    for (ServiceDaysAndSupportPrice serviceDaysAndSupportPrice : serviceDaysAndSupportPriceList) {
+                        BigDecimal supportPrice = serviceDaysAndSupportPrice.getSupportPrice();
+                        supportDays.addAll(serviceDaysAndSupportPrice.getSupportDays());
 
-                    switch (mealInfo.getDiningType()) {
-                        case MORNING -> spotDetailResDto.setBreakfastSupportPrice(supportPrice);
-                        case LUNCH -> spotDetailResDto.setLunchSupportPrice(supportPrice);
-                        case DINNER -> spotDetailResDto.setDinnerSupportPrice(supportPrice);
+                        switch (mealInfo.getDiningType()) {
+                            case MORNING -> spotDetailResDto.setBreakfastSupportPrice(supportPrice);
+                            case LUNCH -> spotDetailResDto.setLunchSupportPrice(supportPrice);
+                            case DINNER -> spotDetailResDto.setDinnerSupportPrice(supportPrice);
+                        }
                     }
                 }
             }
-        }
-        List<Days> notSupportDays = new ArrayList<>(serviceDays);
-        notSupportDays.retainAll(supportDays);
+            List<Days> notSupportDays = new ArrayList<>(serviceDays);
+            notSupportDays.removeAll(supportDays);
 
-        spotDetailResDto.setMealDay(DaysUtil.serviceDaysSetToString(serviceDays));
-        spotDetailResDto.setNotSupportDays(DaysUtil.serviceDaysToDaysString(notSupportDays));
+            spotDetailResDto.setSupportDays(DaysUtil.serviceDaysSetToString(supportDays));
+            spotDetailResDto.setServiceDays(DaysUtil.serviceDaysSetToString(serviceDays));
+            spotDetailResDto.setNotSupportDays(DaysUtil.serviceDaysToDaysString(notSupportDays));
+        }
         return spotDetailResDto;
+    }
+
+    default UpdateSpotDetailResponseDto.PrepaidCategory toPrepaidCategoryDto(PrepaidCategory prepaidCategory) {
+        return UpdateSpotDetailResponseDto.PrepaidCategory.builder()
+                .code(prepaidCategory.getPaycheckCategoryItem().getCode())
+                .count(prepaidCategory.getCount())
+                .price(prepaidCategory.getPrice() == null ? null : prepaidCategory.getPrice().intValue())
+                .totalPrice(prepaidCategory.getTotalPrice() == null ? null : prepaidCategory.getTotalPrice().intValue())
+                .build();
+    }
+
+    default List<UpdateSpotDetailResponseDto.PrepaidCategory> toPrepaidCategoryDtos(List<PrepaidCategory> prepaidCategoryList) {
+        List<UpdateSpotDetailResponseDto.PrepaidCategory> prepaidCategories = new ArrayList<>();
+        List<PaycheckCategoryItem> paycheckCategoryItems = new ArrayList<>(List.of(PaycheckCategoryItem.values()));
+        for (PrepaidCategory prepaidCategory : prepaidCategoryList) {
+            paycheckCategoryItems.remove(prepaidCategory.getPaycheckCategoryItem());
+            prepaidCategories.add(toPrepaidCategoryDto(prepaidCategory));
+        }
+        for (PaycheckCategoryItem paycheckCategoryItem : paycheckCategoryItems) {
+            prepaidCategories.add(new UpdateSpotDetailResponseDto.PrepaidCategory(paycheckCategoryItem.getCode(), null, null, null));
+        }
+        prepaidCategories = prepaidCategories.stream().sorted(Comparator.comparing(UpdateSpotDetailResponseDto.PrepaidCategory::getCode))
+                .toList();
+        return prepaidCategories;
+    }
+
+    default PrepaidCategory toPrepaidCategory(UpdateSpotDetailRequestDto.PrepaidCategory prepaidCategoryDto) {
+        return new PrepaidCategory(PaycheckCategoryItem.ofCode(prepaidCategoryDto.getCode()), prepaidCategoryDto.getCount(), prepaidCategoryDto.getPrice() == null ? null : BigDecimal.valueOf(prepaidCategoryDto.getPrice()), prepaidCategoryDto.getTotalPrice() == null ? null : BigDecimal.valueOf(prepaidCategoryDto.getTotalPrice()));
+    }
+
+    default List<PrepaidCategory> toPrepaidCategories(List<UpdateSpotDetailRequestDto.PrepaidCategory> prepaidCategoryDtos) {
+        return prepaidCategoryDtos.stream()
+                .map(this::toPrepaidCategory)
+                .toList();
     }
 }
 

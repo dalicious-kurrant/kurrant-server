@@ -3,16 +3,19 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
+import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.review.dto.CommentReqDto;
 import co.dalicious.domain.review.dto.ReviewAdminResDto;
-import co.dalicious.domain.review.entity.AdminComments;
-import co.dalicious.domain.review.entity.Comments;
-import co.dalicious.domain.review.entity.MakersComments;
-import co.dalicious.domain.review.entity.Reviews;
+import co.dalicious.domain.review.dto.ReviewKeywordSaveReqDto;
+import co.dalicious.domain.review.entity.*;
+import co.dalicious.domain.review.mapper.KeywordMapper;
 import co.dalicious.domain.review.mapper.ReviewMapper;
 import co.dalicious.domain.review.repository.CommentsRepository;
+import co.dalicious.domain.review.repository.KeywordRepository;
+import co.dalicious.domain.review.repository.QKeywordRepository;
 import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.system.util.DateUtils;
@@ -37,6 +40,11 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final MakersRepository makersRepository;
     private final PushUtil pushUtil;
+
+    private final KeywordRepository keywordRepository;
+    private final KeywordMapper keywordMapper;
+    private final QKeywordRepository qKeywordRepository;
+    private final FoodRepository foodRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -157,5 +165,21 @@ public class ReviewServiceImpl implements ReviewService {
         else if(comments instanceof AdminComments adminComments) {
             adminComments.updateIsDelete(true);
         }
+    }
+
+    @Override
+    @Transactional
+    public void reviewKeywordSave(ReviewKeywordSaveReqDto keywordDto) {
+
+        Food food = foodRepository.findById(keywordDto.getFoodId())
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+
+        keywordRepository.deleteAllByFoodId(food.getId());
+
+        for (String name : keywordDto.getNames()) {
+            Keyword keyword = keywordMapper.toEntity(name, 0, food);
+            keywordRepository.save(keyword);
+        }
+
     }
 }

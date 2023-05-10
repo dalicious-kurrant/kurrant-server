@@ -50,9 +50,16 @@ public class FoodListDto {
         private BigDecimal resultPrice;
         private String description;
         private List<String> foodTags;
+        private Integer calorie;
+        private Integer fat;
+        private Integer protein;
+        private Integer carbohydrate;
 
         @Builder
-        public FoodList(BigInteger foodId, String makersName, BigInteger makersId, String foodName, String foodImage, String foodStatus, BigDecimal supplyPrice, BigDecimal defaultPrice, Integer membershipDiscount, Integer makersDiscount, Integer eventDiscount, BigDecimal resultPrice, String description, List<String> foodTags) {
+        public FoodList(BigInteger foodId, String makersName, BigInteger makersId, String foodName, String foodImage,
+                        String foodStatus, BigDecimal supplyPrice, BigDecimal defaultPrice, Integer membershipDiscount, Integer makersDiscount,
+                        Integer eventDiscount, BigDecimal resultPrice, String description, List<String> foodTags, Integer calorie,
+                        Integer fat, Integer protein, Integer carbohydrate) {
             this.foodId = foodId;
             this.makersName = makersName;
             this.makersId = makersId;
@@ -67,6 +74,10 @@ public class FoodListDto {
             this.resultPrice = resultPrice;
             this.description = description;
             this.foodTags = foodTags;
+            this.calorie = calorie;
+            this.fat = fat;
+            this.carbohydrate = carbohydrate;
+            this.protein = protein;
         }
     }
 

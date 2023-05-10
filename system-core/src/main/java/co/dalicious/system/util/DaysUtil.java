@@ -37,6 +37,7 @@ public class DaysUtil {
     public static List<Days> serviceDaysToDaysList(String serviceDays) {
         String[]  serviceDayArr = serviceDays.split(", |,");
         List<Days> serviceDaysList = new ArrayList<>();
+        if(serviceDays.isEmpty()) return serviceDaysList;
         for(String serviceDay : serviceDayArr) {
             serviceDaysList.add(Days.ofString(serviceDay));
         }
@@ -45,6 +46,7 @@ public class DaysUtil {
 
     public static String serviceDaysToDaysString(List<Days> daysList) {
         StringBuilder stringBuilder = new StringBuilder();
+        if(daysList == null || daysList.isEmpty()) return String.valueOf(stringBuilder);
         for(Days days : daysList) {
             stringBuilder.append(days.getDays()).append(", ");
         }
@@ -52,11 +54,15 @@ public class DaysUtil {
     }
 
     public static List<String> serviceDaysToDaysStringList(List<Days> daysList) {
-        return daysList.stream().map(Days::getDays).collect(Collectors.toList());
+        List<String> daysStringList = new ArrayList<>();
+        if(daysList == null || daysList.isEmpty()) return daysStringList;
+        daysStringList = daysList.stream().map(Days::getDays).collect(Collectors.toList());
+        return daysStringList;
     }
 
     public static String serviceDaysSetToString(Set<Days> daysList) {
         StringBuilder stringBuilder = new StringBuilder();
+        if(daysList == null || daysList.isEmpty()) return String.valueOf(stringBuilder);
         for(Days days : daysList) {
             stringBuilder.append(days.getDays()).append(", ");
         }

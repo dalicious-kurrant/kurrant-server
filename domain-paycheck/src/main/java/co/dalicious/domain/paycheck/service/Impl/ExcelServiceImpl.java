@@ -1,19 +1,23 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
-import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.PrepaidCategory;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.service.ImageService;
-import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.*;
 import co.dalicious.domain.paycheck.service.ExcelService;
 
 import co.dalicious.system.util.DateUtils;
+import com.aspose.cells.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Picture;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -27,6 +31,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigDecimal;
 import java.time.YearMonth;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -36,7 +41,7 @@ public class ExcelServiceImpl implements ExcelService {
 
     @Override
     @Transactional
-    public ImageResponseDto createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
+    public ExcelPdfDto createMakersPaycheckExcel(MakersPaycheck makersPaycheck) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("MakersPaycheck");
 
@@ -63,13 +68,14 @@ public class ExcelServiceImpl implements ExcelService {
 
         // 추가 요청 헤더 생성
         List<PaycheckAdd> paycheckAdds = makersPaycheck.getPaycheckAdds();
-        if (!paycheckAdds.isEmpty()) {
+        if (paycheckAdds != null && !paycheckAdds.isEmpty()) {
             Row row = sheet.createRow(++currentRow);
             createDailyFoodAddHeader(workbook, sheet, row);
             currentRow++;
             for (PaycheckAdd paycheckAdd : paycheckAdds) {
                 writeDailyFoodAdd(workbook, sheet, currentRow, paycheckAdd);
-                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 6));
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 5));
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 6, 7));
                 currentRow++;
             }
         }
@@ -91,28 +97,50 @@ public class ExcelServiceImpl implements ExcelService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        // Convert Excel to HTML and then to PDF
-//        pdfService.excelToPdf(workbook);
-//
-//        // Save the PDF file locally
-//        try (FileOutputStream pdfFileOutputStream = new FileOutputStream(fileName2)) {
-//            pdfOutputStream.writeTo(pdfFileOutputStream);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        return imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+
+        // Convert Excel to PDF using Aspose.Cells
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
+        try {
+            // Set the font directory (if required)
+            String fontDir = "/usr/share/fonts/nanumgothic";
+            com.aspose.cells.FontConfigs.setFontFolder(fontDir, true);
+
+            com.aspose.cells.FontConfigs.setDefaultFontName("NanumGothic");
+
+            System.out.println("com.aspose.cells.FontConfigs.getDefaultFontName(); = " + com.aspose.cells.FontConfigs.getDefaultFontName());
+            System.out.println("com.aspose.cells.FontConfigs.isFontAvailable(\"NanumGothic\"); = " + com.aspose.cells.FontConfigs.isFontAvailable("NanumGothic.ttf"));
+            System.out.println("com.aspose.cells.FontConfigs.getFontSources() = " + Arrays.toString(FontConfigs.getFontSources()));
+
+            com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
+            PdfSaveOptions options = new PdfSaveOptions();
+            options.setOnePagePerSheet(true);
+            options.setEmbedStandardWindowsFonts(true);
+            asposeWorkbook.save(pdfOutputStream, options);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Save PDF to S3
+        ImageResponseDto pdfResponse = imageService.fileUpload(pdfOutputStream.toByteArray(), dirName, fileName2);
+
+        ImageResponseDto excelResponse = imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+
+        return new ExcelPdfDto(pdfResponse, excelResponse);
     }
 
     @Override
-    public ImageResponseDto createCorporationPaycheckExcel(CorporationPaycheck corporationPaycheck, PaycheckDto.CorporationOrder corporationOrder) {
+    @Transactional
+    public ExcelPdfDto createCorporationPaycheckExcel(CorporationPaycheck corporationPaycheck, PaycheckDto.CorporationOrder corporationOrder) {
         Workbook workbook = new XSSFWorkbook();
 
         String dirName = "paycheck/corporations/" + corporationPaycheck.getCorporation().getId().toString() + "/" + corporationPaycheck.getYearAndMonthString() + "/";
 
         String fileName = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".xlsx";
+        String fileName2 = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".pdf";
 
-        createCorporationPaycheckOrderExcel(corporationPaycheck, workbook);
-        createCorporationPaycheckInvoiceExcel(corporationOrder, workbook);
+        createCorporationPaycheckInvoiceExcel(corporationPaycheck, workbook);
+        createCorporationPaycheckOrderExcel(corporationOrder, workbook);
 
         // Save the file locally
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -121,24 +149,47 @@ public class ExcelServiceImpl implements ExcelService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        // Convert Excel to HTML and then to PDF
-//        pdfService.excelToPdf(workbook);
-//
-//        // Save the PDF file locally
-//        try (FileOutputStream pdfFileOutputStream = new FileOutputStream(fileName2)) {
-//            pdfOutputStream.writeTo(pdfFileOutputStream);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        return imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+
+        // Convert Excel to PDF using Aspose.Cells
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
+        try {
+            // Load the Excel workbook
+            com.aspose.cells.Workbook asposeWorkbook = new com.aspose.cells.Workbook(inputStream);
+
+            // Create a new workbook for the invoice sheet
+            com.aspose.cells.Workbook invoice = new com.aspose.cells.Workbook();
+            Worksheet invoiceSheet = invoice.getWorksheets().add("Invoice");
+
+            // Copy the data and formatting from the "인보이스" sheet to the new worksheet
+            Worksheet sourceSheet = asposeWorkbook.getWorksheets().get("인보이스");
+            invoiceSheet.copy(sourceSheet);
+
+            // Set the font directory (if required)
+            String fontDir = "path/font";
+            com.aspose.cells.FontConfigs.setFontFolder(fontDir, true);
+
+            // Set default font to Malgun Gothic
+            com.aspose.cells.FontConfigs.setDefaultFontName("Malgun Gothic");
+
+            // Save the invoice workbook to PDF
+            PdfSaveOptions options = new PdfSaveOptions();
+            options.setOnePagePerSheet(true);
+            options.setEmbedStandardWindowsFonts(true);
+            invoice.save(pdfOutputStream, options);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Save PDF to S3
+        ImageResponseDto pdfResponse = imageService.fileUpload(pdfOutputStream.toByteArray(), dirName, fileName2);
+
+        ImageResponseDto excelResponse = imageService.fileUpload(outputStream.toByteArray(), dirName, fileName);
+
+        return new ExcelPdfDto(pdfResponse, excelResponse);
     }
 
-    public void convertExcelToPdf(Workbook workbook, String pdfFilePath) throws Exception {
-        // Save the Excel file as a PDF
-
-    }
-
-    public void createCorporationPaycheckOrderExcel(CorporationPaycheck corporationPaycheck, Workbook workbook) {
+    public void createCorporationPaycheckInvoiceExcel(CorporationPaycheck corporationPaycheck, Workbook workbook) {
         Sheet sheet = workbook.createSheet("인보이스");
 
         sheet.setColumnWidth(0, 2 * 256);
@@ -190,7 +241,8 @@ public class ExcelServiceImpl implements ExcelService {
             BigDecimal addPrice = BigDecimal.ZERO;
             for (PaycheckAdd paycheckAdd : paycheckAdds) {
                 writeDailyFoodAdd(workbook, sheet, currentRow, paycheckAdd);
-                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 6));
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 5));
+                sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 6, 7));
                 addPrice = addPrice.add(paycheckAdd.getPrice());
                 currentRow++;
             }
@@ -208,7 +260,7 @@ public class ExcelServiceImpl implements ExcelService {
         }
     }
 
-    public void createCorporationPaycheckInvoiceExcel(PaycheckDto.CorporationOrder corporationOrder, Workbook workbook) {
+    public void createCorporationPaycheckOrderExcel(PaycheckDto.CorporationOrder corporationOrder, Workbook workbook) {
         Sheet sheet = workbook.createSheet("식수내역");
 
         sheet.setColumnWidth(0, 2 * 256);
@@ -305,7 +357,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         Cell cell6_5 = row6.createCell(5);
         cell6_5.setCellValue(transactionInfoDefault.getAddress1());
-        sheet.addMergedRegion(new CellRangeAddress(6, 6, 5, 6));
+        sheet.addMergedRegion(new CellRangeAddress(6, 6, 5, 7));
 
         Row row7 = sheet.createRow(7);
         Cell cell7_1 = row7.createCell(1);
@@ -317,7 +369,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         Cell cell7_5 = row7.createCell(5);
         cell7_5.setCellValue(transactionInfoDefault.getAddress2());
-        sheet.addMergedRegion(new CellRangeAddress(7, 7, 5, 6));
+        sheet.addMergedRegion(new CellRangeAddress(7, 7, 5, 7));
 
         // 도장 추가
         addImageToWorkbook(workbook, sheet, getStamp(), 3, 7, 0.8, 2);
@@ -363,7 +415,7 @@ public class ExcelServiceImpl implements ExcelService {
     private void createDailyFoodHeader(Workbook workbook, Sheet sheet) {
         // 거래 내역 헤더
         Row row12 = sheet.createRow(12);
-        String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat별도)"};
+        String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat포함)"};
         for (int i = 1; i <= headers.length; i++) {
             Cell cell13 = null;
             if (i < 2) {
@@ -639,11 +691,12 @@ public class ExcelServiceImpl implements ExcelService {
             if (i == 2) {
                 cell = row.createCell(2);
                 cell.setCellValue(headers[1]);
-                sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 2, 6));
+                sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 2, 5));
             }
             if (i == 3) {
-                cell = row.createCell(7);
+                cell = row.createCell(6);
                 cell.setCellValue(headers[2]);
+                sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 6, 7));
             }
             cell.setCellStyle(dataHeader(workBook));
         }
@@ -662,7 +715,7 @@ public class ExcelServiceImpl implements ExcelService {
         cell2.setCellValue(paycheckAdd.getMemo());
         cell2.setCellStyle(priceCellStyle);
 
-        Cell cell3 = row.createCell(7);
+        Cell cell3 = row.createCell(6);
         cell3.setCellValue(paycheckAdd.getPrice().intValue());
         cell3.setCellStyle(priceCellStyle);
     }
@@ -728,7 +781,7 @@ public class ExcelServiceImpl implements ExcelService {
         cell.setCellValue("실비 총액");
 
         Cell cell2 = row.createCell(6);
-        cell2.setCellValue(totalPrice + paycheckAddPrice);
+        cell2.setCellValue(totalPrice);
         cell2.setCellStyle(priceStyle(sheet.getWorkbook()));
         sheet.addMergedRegion(new CellRangeAddress(startRow, startRow, 6, 7));
 
@@ -751,7 +804,7 @@ public class ExcelServiceImpl implements ExcelService {
             mergedCell.setCellStyle(cellStyle);
         }
 
-        cell4.setCellValue(1.1 * (totalPrice + paycheckAddPrice - prepaidTotalPrice));
+        cell4.setCellValue(1.1 * (totalPrice - prepaidTotalPrice));
 
 
         return ++startRow;
@@ -774,8 +827,8 @@ public class ExcelServiceImpl implements ExcelService {
                 row.getCell(i).setCellStyle(borderStyle);
             }
         }
-        sheet.addMergedRegion(new CellRangeAddress(rowNumber, rowNumber, 6, 7));
         Cell cell = row.getCell(6);
+        sheet.addMergedRegion(new CellRangeAddress(rowNumber, rowNumber, 6, 7));
         cell.setCellValue(totalPrice.intValue());
         return ++rowNumber;
     }
@@ -788,7 +841,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         for (int i = 1; i <= 7; i++) {
             Cell cell = row.createCell(i);
-            if (i == 7) {
+            if (i == 6 || i == 7) {
                 CellStyle cellStyle = boldPriceStyle(sheet.getWorkbook());
                 cellStyle.setBorderTop(BorderStyle.THIN);
                 cellStyle.setTopBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
@@ -797,8 +850,9 @@ public class ExcelServiceImpl implements ExcelService {
                 row.getCell(i).setCellStyle(borderStyle);
             }
         }
-        Cell cell = row.getCell(7);
+        Cell cell = row.getCell(6);
         cell.setCellValue(totalPrice.intValue());
+        sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), 6, 7));
         return ++rowNumber;
     }
 
@@ -824,7 +878,6 @@ public class ExcelServiceImpl implements ExcelService {
 
         Font font = workbook.createFont();
         font.setFontHeightInPoints((short) 18);
-        font.setFontName("Calibri");
         titleStyle.setFont(font);
         return titleStyle;
     }

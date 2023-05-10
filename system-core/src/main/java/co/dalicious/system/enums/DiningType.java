@@ -31,4 +31,11 @@ public enum DiningType {
                 .findAny()
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 식사 타입입니다."));
     }
+
+    public static DiningType ofStringCode(String diningType) {
+        return Arrays.stream(DiningType.values())
+                .filter(v -> v.getCode().equals(Integer.parseInt(diningType)))
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 식사 타입입니다."));
+    }
 }

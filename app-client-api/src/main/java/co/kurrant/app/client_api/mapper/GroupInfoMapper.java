@@ -12,6 +12,7 @@ import co.dalicious.system.util.DaysUtil;
 import org.mapstruct.Mapper;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, DiningType.class})
@@ -63,8 +64,8 @@ public interface GroupInfoMapper {
         groupInfoList.setIsSetting((isCorporation) ? ((Corporation) group).getIsSetting() : null);
 
         List<MealInfo> mealInfoList = group.getMealInfos();
-        List<Days> serviceDays = null;
-        List<Days> notSupportDays = null;
+        List<Days> serviceDays = new ArrayList<>();
+        List<Days> notSupportDays = new ArrayList<>();
         BigDecimal morningSupportPrice = BigDecimal.ZERO;
         BigDecimal lunchSupportPrice = BigDecimal.ZERO;
         BigDecimal dinnerSupportPrice = BigDecimal.ZERO;
@@ -87,8 +88,13 @@ public interface GroupInfoMapper {
                 }
             }
         }
-        groupInfoList.setServiceDays(serviceDays != null ? DaysUtil.serviceDaysToDaysString(serviceDays) : null);
-        groupInfoList.setNotSupportDays(notSupportDays != null ? DaysUtil.serviceDaysToDaysString(notSupportDays) : null);
+
+        List<Days> supportDays = new ArrayList<>(serviceDays);
+        supportDays.removeAll(notSupportDays);
+
+        groupInfoList.setServiceDays(DaysUtil.serviceDaysToDaysString(serviceDays));
+        groupInfoList.setSupportDays(DaysUtil.serviceDaysToDaysString(supportDays));
+        groupInfoList.setNotSupportDays(DaysUtil.serviceDaysToDaysString(notSupportDays));
         groupInfoList.setMorningSupportPrice(morningSupportPrice);
         groupInfoList.setLunchSupportPrice(lunchSupportPrice);
         groupInfoList.setDinnerSupportPrice(dinnerSupportPrice);

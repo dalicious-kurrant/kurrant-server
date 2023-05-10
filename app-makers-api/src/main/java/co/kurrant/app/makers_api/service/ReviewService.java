@@ -16,7 +16,7 @@ public interface ReviewService {
     // 리뷰 조회 - 미답변 리뷰 조회, 삭제 제외
     ItemPageableResponseDto<ReviewMakersResDto> getUnansweredReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable);
     //리뷰 조히 - 전체 조회, 삭제 제외
-    ListItemResponseDto<ReviewMakersResDto.ReviewListDto> getAllReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable);
+    ItemPageableResponseDto<ReviewMakersResDto> getAllReview(SecurityUser securityUser, String foodName, Integer limit, Integer page, OffsetBasedPageRequest pageable);
     // 리뷰 상세 조회
     ReviewMakersResDto.ReviewDetail getReviewDetail(BigInteger reviewId);
     // 댓글 수정

@@ -30,6 +30,7 @@ public class GroupListDto {
         private String location;
         private List<Integer> diningTypes;
         private String serviceDays;
+        private String supportDays;
         private String notSupportDays;
         private BigInteger managerId;
         private String managerName;
@@ -39,6 +40,7 @@ public class GroupListDto {
         private Boolean isSetting;
         private Boolean isGarbage;
         private Boolean isHotStorage;
+        private Boolean isPrepaid;
         private BigDecimal morningSupportPrice;
         private BigDecimal lunchSupportPrice;
         private BigDecimal dinnerSupportPrice;

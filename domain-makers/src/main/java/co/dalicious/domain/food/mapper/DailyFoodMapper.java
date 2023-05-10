@@ -91,6 +91,7 @@ public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.serviceDate", target = "serviceDate", qualifiedByName = "serviceDateToString")
       @Mapping(source = "dailyFood", target = "makersName", qualifiedByName = "getMakersName")
       @Mapping(source = "dailyFood", target = "spicy", qualifiedByName = "getSpicy")
+      @Mapping(source = "dailyFood", target = "vegan", qualifiedByName = "getVegan")
       @Mapping(target = "image", expression = "java(dailyFood.getFood().getImages() == null || dailyFood.getFood().getImages().isEmpty() ? null : dailyFood.getFood().getImages().get(0).getLocation())")
       @Mapping(source = "dailyFood.food.description", target = "description")
       @Mapping(source = "dailyFood.food.price", target = "price")
@@ -124,8 +125,15 @@ public interface DailyFoodMapper {
       @Named("getSpicy")
       default String getSpicy(DailyFood dailyFood) {
             List<FoodTag> foodTags = dailyFood.getFood().getFoodTags();
-            Optional<FoodTag> foodTag = foodTags.stream().filter(v -> v.getCategory().equals("맵기")).findAny();
+            Optional<FoodTag> foodTag = foodTags.stream().filter(v -> v.getCategory().equals("맵기") && !v.getCode().equals(10001)).findAny();
             return foodTag.map(FoodTag::getTag).orElse(null);
+      }
+
+      @Named("getVegan")
+      default String getVegan(DailyFood dailyFood) {
+            List<FoodTag> foodTags = dailyFood.getFood().getFoodTags();
+            Optional<FoodTag> foodTag = foodTags.stream().filter(v -> v.getCode().equals(9001)).findAny();
+            return (foodTag.isPresent()) ? "Vegan" : null;
       }
 
       @Named("getMakersName")

@@ -1,9 +1,11 @@
 package co.dalicious.domain.user.util;
 
-import co.dalicious.domain.user.dto.PointPolicyResDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.FoundersPointPolicyDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.PointPolicyResDto;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.FoundersPointPolicy;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.domain.user.mapper.PointMapper;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -108,6 +111,7 @@ public class PointUtil {
     }
 
     // 리뷰 수정 시 포인트 산정
+    @Transactional
     public BigDecimal findReviewPointWhenUpdate(User user, BigInteger reviewId) {
         List<PointHistory> pointHistory = qPointHistoryRepository.findByContentId(user, reviewId, PointStatus.REVIEW_REWARD);
 
@@ -129,5 +133,25 @@ public class PointUtil {
         }
 
         return point;
+    }
+
+    // 파운더스 포인트 정책 전제 조회
+    public List<FoundersPointPolicyDto> findFoundersPointPolicyDto() {
+        List<FoundersPointPolicy> foundersPointPolicyList = List.of(FoundersPointPolicy.class.getEnumConstants());
+        return foundersPointPolicyList.stream().map(pointMapper::toReviewPointPolicyResponseDto).collect(Collectors.toList());
+    }
+
+    // 파운더스 적립 포인트
+    @Transactional(readOnly = true)
+    public BigDecimal findFoundersPoint(User user) {
+        List<PointHistory> pointHistoryList = qPointHistoryRepository.findPointHistoryByPointStatusAndUser(user, PointStatus.FOUNDERS_REWARD);
+
+        if(!pointHistoryList.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        List<FoundersPointPolicyDto> foundersPointPolicyDtos = findFoundersPointPolicyDto();
+
+        return foundersPointPolicyDtos.get(0).getMaxPoint();
     }
 }

@@ -2,6 +2,7 @@ package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.system.enums.FoodTag;
@@ -18,6 +19,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 @DynamicInsert
@@ -117,15 +119,29 @@ public class Corporation extends Group{
         this.isGarbage = useOrNotUse(groupInfoList.getIsGarbage());
         this.isHotStorage = useOrNotUse(groupInfoList.getIsHotStorage());
         this.isSetting = useOrNotUse(groupInfoList.getIsSetting());
+        this.isPrepaid = useOrNotUse(groupInfoList.getIsPrepaid());
         this.minimumSpend = (groupInfoList.getMinimumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMinimumSpend());
         this.maximumSpend = (groupInfoList.getMaximumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMaximumSpend());
+    }
+
+    public void updateCorporation(UpdateSpotDetailRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
+        updateGroup(address, diningTypeList, groupInfoList.getSpotName(), groupInfoList.getManagerId());
+        this.code = groupInfoList.getCode();
+        this.employeeCount = groupInfoList.getEmployeeCount();
+        this.isMembershipSupport = !groupInfoList.getIsMembershipSupport().equals("미지원");
+        this.isGarbage = groupInfoList.getIsGarbage();
+        this.isHotStorage = groupInfoList.getIsHotStorage();
+        this.isSetting = groupInfoList.getIsSetting();
+        this.isPrepaid = groupInfoList.getIsPrepaid();
+        this.minimumSpend = (groupInfoList.getMinPrice() == null) ? null : groupInfoList.getMinPrice();
+        this.maximumSpend = (groupInfoList.getMaxPrice() == null) ? null : groupInfoList.getMaxPrice();
     }
 
 
     private Boolean useOrNotUse(String data) {
         Boolean use = null;
-        if(data.equals("미사용")) use = false;
-        else if(data.equals("사용")) use = true;
+        if(data.equals("미사용") || data.equals("false")) use = false;
+        else if(data.equals("사용") || data.equals("true")) use = true;
         return use;
     }
 
@@ -137,5 +153,31 @@ public class Corporation extends Group{
                 .filter(v -> v.getPaycheckCategoryItem().equals(paycheckCategoryItem))
                 .findAny()
                 .orElse(null);
+    }
+
+    public void updateMembershipSupport(Boolean membershipSupport) {
+        isMembershipSupport = membershipSupport;
+    }
+
+    public void updateGarbage(Boolean garbage) {
+        isGarbage = garbage;
+    }
+
+    public void updateHotStorage(Boolean hotStorage) {
+        isHotStorage = hotStorage;
+    }
+
+    public void updateSetting(Boolean setting) {
+        isSetting = setting;
+    }
+
+    public void updatePrepaidCategories(List<PrepaidCategory> prepaidCategories) {
+        List<PrepaidCategory> mutablePrepaidCategories = new ArrayList<>(prepaidCategories);
+        mutablePrepaidCategories.removeIf(prepaidCategory -> prepaidCategory.getCount() == null && prepaidCategory.getPrice() == null && prepaidCategory.getTotalPrice() == null);
+        this.prepaidCategories = mutablePrepaidCategories;
+    }
+
+    public void updatePrepaid(Boolean prepaid) {
+        isPrepaid = prepaid;
     }
 }

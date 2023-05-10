@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -34,7 +35,8 @@ public class CorporationMealInfo extends MealInfo{
         this.serviceDaysAndSupportPrices = mealInfo.getServiceDaysAndSupportPrices();
     }
 
-    public void updateServiceDaysAndSupportPrice(List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
+    public void updateServiceDaysAndSupportPrice(List<Days> serviceDays, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
+        super.updateMealInfo(serviceDays);
         this.serviceDaysAndSupportPrices = serviceDaysAndSupportPrices;
     }
 

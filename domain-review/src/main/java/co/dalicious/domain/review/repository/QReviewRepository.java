@@ -26,14 +26,18 @@ import org.springframework.util.MultiValueMap;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static co.dalicious.domain.review.entity.QComments.comments;
+import static co.dalicious.domain.review.entity.QLike.like;
 import static co.dalicious.domain.review.entity.QReviews.reviews;
 
 @Repository
@@ -239,5 +243,65 @@ public class QReviewRepository {
         return queryFactory.selectFrom(reviews)
                 .where(reviews.comments.isEmpty())
                 .fetchCount();
+    }
+
+    public long countReviewByMakers(Makers makers, Boolean isComment) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(makers != null && isComment) {
+            JPQLQuery<Long> makersCommentsQuery = JPAExpressions.select(makersComments.count())
+                    .from(makersComments)
+                    .where(makersComments.reviews.eq(reviews), makersComments.instanceOf(MakersComments.class));
+            whereCause.and(makersCommentsQuery.lt(Long.valueOf(1)));
+        }
+
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.food.makers.eq(makers),
+                        reviews.isDelete.ne(true),
+                        reviews.isReports.ne(true),
+                        whereCause)
+                .fetchCount();
+
+    }
+
+
+    public List<Reviews> findAllByfoodIdSort(BigInteger id, Integer sort, Integer photo, Integer starFilter) {
+        List<Reviews> reviewsList = new ArrayList<>();
+
+        reviewsList = queryFactory.selectFrom(reviews)
+                    .where(reviews.food.id.eq(id))
+                    .fetch();
+
+        if (photo != null && photo == 1){
+            reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
+        }
+
+        if (starFilter != null && starFilter != 0){
+            reviewsList = reviewsList.stream().filter(v -> v.getSatisfaction().equals(starFilter)).toList();
+        }
+
+    return reviewsList;
+    }
+
+    public void plusLike(BigInteger reviewId) {
+        queryFactory.update(reviews)
+                .set(reviews.like, reviews.like.add(1))
+                .where(reviews.id.eq(reviewId))
+                .execute();
+    }
+
+    public void minusLike(BigInteger reviewId) {
+
+        queryFactory.update(reviews)
+                .set(reviews.like, reviews.like.subtract(1))
+                .where(reviews.id.eq(reviewId))
+                .execute();
+    }
+
+    public void deleteLike(BigInteger reviewId, BigInteger id) {
+        queryFactory.delete(like)
+                .where(like.reviewId.id.eq(reviewId),
+                        like.user.id.eq(id))
+                .execute();
     }
 }
