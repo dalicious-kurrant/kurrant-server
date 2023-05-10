@@ -1,5 +1,6 @@
 package co.dalicious.domain.review.entity;
 
+import co.dalicious.domain.food.entity.Food;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,9 +34,15 @@ public class Keyword {
     @Column(name = "keyword_count", columnDefinition = "INT")
     private Integer count;
 
+    @Comment("음식 아이디")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "food_id", columnDefinition = "BIGINT UNSIGNED")
+    private Food food;
+
     @Builder
-    public Keyword(String name, Integer count) {
+    public Keyword(String name, Integer count, Food food) {
         this.name = name;
         this.count = count;
+        this.food = food;
     }
 }
