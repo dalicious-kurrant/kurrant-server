@@ -25,7 +25,7 @@ public class ReviewService {
     private final EntityManager entityManager;
 
     public List<BigInteger> findOrderItemByReviewDeadline() {
-        LocalDate limitDay = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7);
+
         // order status -> RECEIPT_COMPLETE 이고 남은 리뷰 작성 기한이 0일이면서 현재시간이 deliveryTime 보다 전일때.
         String queryString = "SELECT oi.id, df.serviceDate, mi.deliveryTime\n" +
                 "FROM OrderItem oi\n" +
@@ -33,9 +33,11 @@ public class ReviewService {
                 "JOIN oidf.dailyFood df\n" +
                 "JOIN df.group g\n" +
                 "JOIN MealInfo mi ON g.id = mi.group.id AND df.diningType = mi.diningType\n" +
-                "WHERE oi.orderStatus = 11L";
+                "WHERE oi.orderStatus = 11L AND df.serviceDate > :limitDay";
 
+        LocalDate limitDay = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(3);
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
+        query.setParameter("limitDay", limitDay);
         List<Object[]> results = query.getResultList();
 
         List<BigInteger> orderIds = new ArrayList<>();
@@ -46,8 +48,8 @@ public class ReviewService {
 
             if(serviceDate == null) continue;
             if(deliveryTime == null) deliveryTime = LocalTime.MAX;
-
-            String reviewableDate = DateUtils.calculatedDDayAndTime(LocalDateTime.of(serviceDate, deliveryTime));
+            LocalDateTime reviewableDateTime = serviceDate.plusDays(3).atTime(deliveryTime);
+            String reviewableDate = DateUtils.calculatedDDayAndTime(reviewableDateTime);
             String day = reviewableDate.split(" ")[0];
             LocalTime time = DateUtils.stringToLocalTime(reviewableDate.split(" ")[1]);
 
