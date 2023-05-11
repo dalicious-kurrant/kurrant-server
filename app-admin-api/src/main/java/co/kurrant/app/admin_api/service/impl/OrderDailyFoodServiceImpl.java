@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.util.KakaoUtil;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
@@ -100,6 +101,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushUtil pushUtil;
+    private final KakaoUtil kaKaoUtil;
     private final PushService pushService;
 
     @Override
@@ -189,12 +191,15 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) {
+    public void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) throws IOException, ParseException {
         OrderStatus orderStatus = OrderStatus.ofCode(statusAndIdList.getStatus());
         if (!OrderStatus.completePayment().contains(orderStatus)) {
             throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
         }
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
+        Map<String, Set<BigInteger>> userIdsMap = new HashMap<>();
+        Set<BigInteger> userIds = new HashSet<>();
+        Set<String> userPhoneNumber = new HashSet<>();
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -202,6 +207,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
             }
             orderItemDailyFood.updateOrderStatus(orderStatus);
+            userIds.add(orderItemDailyFood.getOrder().getUser().getId());
+            Optional<User> optionalUser = userRepository.findById(orderItemDailyFood.getOrder().getUser().getId());
+            if (optionalUser.isPresent()) userPhoneNumber.add(optionalUser.get().getPhone());
             // 배송완료 푸시 알림 전송
             if (OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
                 PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
@@ -216,6 +224,22 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
             }
         }
+        userIdsMap.put("userIds", userIds);
+        pushUtil.sendToType(userIdsMap, PushCondition.DELIVERED_ORDER_ITEM, null, null, null);
+        String content = "안녕하세요!\n" +
+                "조식 서비스를 운영 중인 커런트입니다.\n" +
+                "\n" +
+                "회원 가입 시, 동호수가 입력되지 않았습니다.\n" +
+                "커런트 어플 내 왼쪽 상단바 (실선 3개) - 개인정보 - 이름(동호수) 정보 변경 부탁드립니다.\n" +
+                "\n" +
+                "동호수 미기입 시에는 배송이 누락될 수 있습니다.\n" +
+                "\n" +
+                "감사합니다.";
+        for (String phone : userPhoneNumber){
+            kaKaoUtil.sendAlimTalk(phone, content, "50074");
+            System.out.println(phone + " phoneNumber");
+        }
+
         pushService.sendToPush(pushRequestDtoByUsers);
     }
 

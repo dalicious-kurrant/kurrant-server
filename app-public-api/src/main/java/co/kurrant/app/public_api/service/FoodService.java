@@ -18,4 +18,6 @@ public interface FoodService {
     String foodReviewLike(SecurityUser securityUser, FoodReviewLikeDto foodReviewLikeDto);
 
     boolean foodReviewLikeCheck(SecurityUser securityUser, BigInteger reviewId);
+
+    List<String> foodReviewKeyword(BigInteger dailyFoodId);
 }

@@ -21,6 +21,7 @@ import co.dalicious.domain.review.dto.ReviewAdminResDto;
 import co.dalicious.domain.review.dto.ReviewListDto;
 import co.dalicious.domain.review.dto.ReviewsForUserResDto;
 import co.dalicious.domain.review.entity.Comments;
+import co.dalicious.domain.review.entity.Keyword;
 import co.dalicious.domain.review.entity.Like;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.review.mapper.LikeMapper;
@@ -77,6 +78,9 @@ public class FoodServiceImpl implements FoodService {
     private final LikeRepository likeRepository;
     private final LikeMapper likeMapper;
     private final QLikeRepository qLikeRepository;
+
+    private final QKeywordRepository qKeywordRepository;
+
 
     @Override
     @Transactional
@@ -320,5 +324,14 @@ public class FoodServiceImpl implements FoodService {
         if (like.isEmpty()) return false;
 
         return true;
+    }
+
+    @Override
+    public List<String> foodReviewKeyword(BigInteger dailyFoodId) {
+
+        DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+
+        return qKeywordRepository.findAllByFoodId(dailyFood.getFood().getId());
     }
 }
