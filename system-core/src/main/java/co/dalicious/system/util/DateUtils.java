@@ -137,7 +137,7 @@ public class DateUtils {
 
         LocalTime remainingTime = LocalTime.of((int) hoursLeft, (int) minutesLeft);
 
-        return String.format("%01d %tk:%tM", leftDay, remainingTime, remainingTime);
+        return String.format("%01d %tH:%tM", leftDay, remainingTime, remainingTime);
     }
 
     public static YearMonth stringToYearMonth(String startYearMonth) {
