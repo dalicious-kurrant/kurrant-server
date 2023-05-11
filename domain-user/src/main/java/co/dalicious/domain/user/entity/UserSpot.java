@@ -16,6 +16,7 @@ import java.math.BigInteger;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "user__user_spot")
 public class UserSpot {
     @Id
