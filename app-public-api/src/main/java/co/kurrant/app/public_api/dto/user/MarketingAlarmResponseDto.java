@@ -11,22 +11,22 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MarketingAlarmResponseDto {
-//    private String marketingAgreedDateTime;
-//
-//    private Boolean marketingAgree;
-//
-//    private Boolean marketingAlarm;
-//
-//    private Boolean orderAlarm;
-//
-//    @Builder
-//    public MarketingAlarmResponseDto(String marketingAgreedDateTime, Boolean marketingAgree, Boolean marketingAlarm, Boolean orderAlarm) {
-//        this.marketingAgreedDateTime = marketingAgreedDateTime;
-//        this.marketingAgree = marketingAgree;
-//        this.marketingAlarm = marketingAlarm;
-//        this.orderAlarm = orderAlarm;
-//    }
-    private Integer code;
-    private String condition;
-    private Boolean isActive;
+    private String marketingAgreedDateTime;
+
+    private Boolean marketingAgree;
+
+    private Boolean marketingAlarm;
+
+    private Boolean orderAlarm;
+
+    @Builder
+    public MarketingAlarmResponseDto(String marketingAgreedDateTime, Boolean marketingAgree, Boolean marketingAlarm, Boolean orderAlarm) {
+        this.marketingAgreedDateTime = marketingAgreedDateTime;
+        this.marketingAgree = marketingAgree;
+        this.marketingAlarm = marketingAlarm;
+        this.orderAlarm = orderAlarm;
+    }
+//    private Integer code;
+//    private String condition;
+//    private Boolean isActive;
 }
