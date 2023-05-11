@@ -37,6 +37,7 @@ import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static co.dalicious.domain.review.entity.QComments.comments;
+import static co.dalicious.domain.review.entity.QLike.like;
 import static co.dalicious.domain.review.entity.QReviews.reviews;
 
 @Repository
@@ -267,30 +268,9 @@ public class QReviewRepository {
     public List<Reviews> findAllByfoodIdSort(BigInteger id, Integer sort, Integer photo, Integer starFilter) {
         List<Reviews> reviewsList = new ArrayList<>();
 
-        if (sort == null){
-            reviewsList = queryFactory.selectFrom(reviews)
+        reviewsList = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
                     .fetch();
-        }
-
-        if (sort != null && sort == 1){
-            // sort 0은 베스트순 , 1은 최신순, 2는 리뷰 추천순
-             reviewsList = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id))
-                    .orderBy(reviews.createdDateTime.desc())
-                    .fetch();
-        }
-        else if(sort != null && sort == 2){
-            reviewsList = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id))
-                    .orderBy(reviews.like.desc())
-                    .fetch();
-        }else {
-            reviewsList = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id))
-                    .orderBy(reviews.satisfaction.desc())
-                    .fetch();
-        }
 
         if (photo != null && photo == 1){
             reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
@@ -301,5 +281,27 @@ public class QReviewRepository {
         }
 
     return reviewsList;
+    }
+
+    public void plusLike(BigInteger reviewId) {
+        queryFactory.update(reviews)
+                .set(reviews.like, reviews.like.add(1))
+                .where(reviews.id.eq(reviewId))
+                .execute();
+    }
+
+    public void minusLike(BigInteger reviewId) {
+
+        queryFactory.update(reviews)
+                .set(reviews.like, reviews.like.subtract(1))
+                .where(reviews.id.eq(reviewId))
+                .execute();
+    }
+
+    public void deleteLike(BigInteger reviewId, BigInteger id) {
+        queryFactory.delete(like)
+                .where(like.reviewId.id.eq(reviewId),
+                        like.user.id.eq(id))
+                .execute();
     }
 }

@@ -31,6 +31,7 @@ import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
+import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.util.PeriodDto;
@@ -521,6 +522,107 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    public void payMembershipNice(Membership preMembership, PaymentType paymentType) throws IOException, ParseException {
+
+        PeriodDto periodDto = (preMembership.getMembershipSubscriptionType().equals(MembershipSubscriptionType.MONTH)) ?
+                MembershipUtil.getStartAndEndDateMonthly(preMembership.getEndDate()) :
+                MembershipUtil.getStartAndEndDateYearly(preMembership.getEndDate().plusMonths(1));
+
+        User user = preMembership.getUser();
+        MembershipSubscriptionType membershipSubscriptionType = preMembership.getMembershipSubscriptionType();
+
+        BigDecimal defaultPrice = membershipSubscriptionType.getPrice();
+        BigDecimal yearDescriptionDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, membershipSubscriptionType.getDiscountRate());
+        // 기간 할인 가격이 일치하는지 확인
+        BigDecimal periodDiscountPrice = BigDecimal.ZERO;
+        Integer periodDiscountRate = 0;
+        // 베스핀글로벌 멤버십 첫 결제 할인
+        if (membershipDiscountEvent.isBespinGlobal(user) && membershipSubscriptionType.equals(MembershipSubscriptionType.MONTH)) {
+            periodDiscountRate = 50;
+            periodDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, periodDiscountRate);
+        } else if (membershipDiscountEvent.isBespinGlobal(user) && membershipSubscriptionType.equals(MembershipSubscriptionType.YEAR)) {
+            periodDiscountRate = 30;
+            periodDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, periodDiscountRate);
+        }
+        BigDecimal totalPrice = defaultPrice.subtract(yearDescriptionDiscountPrice).subtract(periodDiscountPrice);
+
+        // 멤버십 등록
+        Membership membership = membershipRepository.save(orderMembershipMapper.toMembership(membershipSubscriptionType, user, periodDto));
+
+        // 연간 구독 구매자라면, 할인 정책 저장.
+        if (membershipSubscriptionType.equals(MembershipSubscriptionType.YEAR)) {
+            MembershipDiscountPolicy yearDescriptionDiscountPolicy = orderMembershipMapper.toMembershipDiscountPolicy(membership, DiscountType.YEAR_DESCRIPTION_DISCOUNT, MembershipSubscriptionType.YEAR.getDiscountRate());
+            membershipDiscountPolicyRepository.save(yearDescriptionDiscountPolicy);
+        }
+
+        // TODO: 할인 혜택을 가지고 있는 유저인지 확인 후 할인 정책 저장.
+        if (periodDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
+            MembershipDiscountPolicy periodDiscountPolicy = orderMembershipMapper.toMembershipDiscountPolicy(membership, DiscountType.PERIOD_DISCOUNT, periodDiscountRate);
+            membershipDiscountPolicyRepository.save(periodDiscountPolicy);
+        }
+
+        //카드정보 가져오기
+        Optional<CreditCardInfo> creditCardInfo = qCreditCardInfoRepository.findOneByUser(user);
+        if (creditCardInfo.isEmpty()) {
+            throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
+        }
+        CreditCardValidator.isValidCreditCard(creditCardInfo.get(), user);
+
+        // 멤버십 결제 요청
+        OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
+        OrderMembership order = orderMembershipRepository.save(orderMembershipMapper.toOrderMembership(orderUserInfoDto, creditCardInfo.get(), membershipSubscriptionType, BigDecimal.ZERO, totalPrice, paymentType, membership));
+
+        // 멤버십 결제 내역 등록(진행중 상태)
+        OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership, periodDiscountRate));
+
+        // 파운더스 확인
+        if (!foundersUtil.isFounders(user) && !foundersUtil.isOverFoundersLimit()) {
+            Founders founders = foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber() + 1);
+            foundersUtil.saveFounders(founders);
+        }
+
+        // 결제 진행. 실패시 오류 날림
+        BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
+
+        String billingKey = creditCardInfo.get().getNiceBillingKey();
+
+        //String billingKey, Integer amount, String orderId, String token, String orderName
+        String token = niceUtil.getToken();
+        JSONObject payResult = niceUtil.niceBilling(billingKey, totalPrice.intValue(), orderItemMembership.getOrder().getCode(), token, orderItemMembership.getMembershipSubscriptionType());
+
+        try {
+            if (payResult == null) throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+            Long code = (Long) payResult.get("code");
+            JSONObject JSONResult = (JSONObject) payResult.get("response");
+            String status = JSONResult.get("status").toString();
+            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
+            if (code == 0 && !status.equals("failed")) {
+                orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(totalPrice));
+                orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
+
+                //Order 테이블에 paymentKey와 receiptUrl 업데이트
+                String receiptUrl = JSONResult.get("receipt_url").toString();
+
+                String paymentKey = JSONResult.get("imp_uid").toString();
+                order.updatePaymentKey(paymentKey);
+                order.updateReceiptUrl(receiptUrl);
+
+                order.updateOrderMembershipAfterPayment(receiptUrl, paymentKey, orderItemMembership.getOrder().getCode(), creditCardInfo.get());
+            } else {
+                orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
+                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+            }
+        }
+        // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
+        catch (Exception e) {
+            preMembership.changeAutoPaymentStatus(false);
+            preMembership.getUser().changeMembershipStatus(false);
+            log.info("[Membership 결제 실패] : {}", preMembership.getId());
+        }
+    }
+
+    @Override
+    @Transactional
     public void payMembershipNice(User user, MembershipSubscriptionType membershipSubscriptionType, PeriodDto periodDto, PaymentType paymentType) throws IOException, ParseException {
         BigDecimal defaultPrice = membershipSubscriptionType.getPrice();
         BigDecimal yearDescriptionDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, membershipSubscriptionType.getDiscountRate());
@@ -581,12 +683,13 @@ public class OrderServiceImpl implements OrderService {
         String token = niceUtil.getToken();
         JSONObject payResult = niceUtil.niceBilling(billingKey, totalPrice.intValue(), orderItemMembership.getOrder().getCode(), token, orderItemMembership.getMembershipSubscriptionType());
 
+
+        if (payResult == null) throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
         Long code = (Long) payResult.get("code");
         JSONObject JSONResult = (JSONObject) payResult.get("response");
-
-
+        String status = JSONResult.get("status").toString();
         // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-        if (code == 0) {
+        if (code == 0 && !status.equals("failed")) {
             orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(totalPrice));
             orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
 
@@ -598,13 +701,10 @@ public class OrderServiceImpl implements OrderService {
             order.updateReceiptUrl(receiptUrl);
 
             order.updateOrderMembershipAfterPayment(receiptUrl, paymentKey, orderItemMembership.getOrder().getCode(), creditCardInfo.get());
-        }
-        // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
-        else {
+        } else {
             orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
         }
-
-        user.changeMembershipStatus(true);
     }
+
 }

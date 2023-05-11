@@ -12,5 +12,6 @@ import java.util.List;
 public class GetFoodReviewResponseDto {
 
     private List<FoodReviewListDto> items;
-    private Integer starEverage;
+    private Double starEverage;
+    private Integer total;
 }

@@ -2,6 +2,7 @@ package co.dalicious.client.alarm.mapper;
 
 import co.dalicious.client.alarm.dto.AutoPushAlarmDto;
 import co.dalicious.client.alarm.dto.PushRequestDto;
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
 
 import org.mapstruct.Mapper;
@@ -24,14 +25,23 @@ public interface PushAlarmMapper {
         return autoPushAlarmList;
     }
 
-    default PushRequestDto toPushRequestDto(List<String> firebaseToken, String title , String message, String page, Map<String, String> keys) {
+    default PushRequestDto toPushRequestDto(List<String> tokenList, String title, String message, String page, Map<String, String> keys) {
         PushRequestDto pushRequestDto = new PushRequestDto();
-
-        pushRequestDto.setTokenList(firebaseToken);
+        pushRequestDto.setTokenList(tokenList);
         pushRequestDto.setTitle(title);
-        pushRequestDto.setContent(message);
+        pushRequestDto.setMessage(message);
         pushRequestDto.setPage(page);
         pushRequestDto.setKeys(keys);
+
+        return pushRequestDto;
+    }
+
+    default PushRequestDtoByUser toPushRequestDtoByUser(String token, String title, String message, String page) {
+        PushRequestDtoByUser pushRequestDto = new PushRequestDtoByUser();
+        pushRequestDto.setToken(token);
+        pushRequestDto.setTitle(title);
+        pushRequestDto.setMessage(message);
+        pushRequestDto.setPage(page);
 
         return pushRequestDto;
     }

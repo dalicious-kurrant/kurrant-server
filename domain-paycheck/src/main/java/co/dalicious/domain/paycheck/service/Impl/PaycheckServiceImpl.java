@@ -149,11 +149,11 @@ public class PaycheckServiceImpl implements PaycheckService {
 
     @Override
     @Transactional
-    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
+    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices, YearMonth yearMonth) {
         // 1. 매니저 계정 확인
 
         // 2. CorporationPaycheck 생성
-        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices, yearMonth);
         corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
 
         // 선불 정산인 경우 체크
