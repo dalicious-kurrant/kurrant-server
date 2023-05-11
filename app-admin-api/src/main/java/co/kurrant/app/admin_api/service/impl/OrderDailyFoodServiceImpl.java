@@ -1,6 +1,10 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.alarm.util.KakaoUtil;
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
+import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
@@ -95,8 +99,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
     private final QUserRepository qUserRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
+    private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushUtil pushUtil;
     private final KakaoUtil kaKaoUtil;
+    private final PushService pushService;
 
     @Override
     @Transactional
@@ -194,6 +200,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Map<String, Set<BigInteger>> userIdsMap = new HashMap<>();
         Set<BigInteger> userIds = new HashSet<>();
         Set<String> userPhoneNumber = new HashSet<>();
+        List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
+
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             if (!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
                 throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
@@ -202,6 +210,19 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             userIds.add(orderItemDailyFood.getOrder().getUser().getId());
             Optional<User> optionalUser = userRepository.findById(orderItemDailyFood.getOrder().getUser().getId());
             if (optionalUser.isPresent()) userPhoneNumber.add(optionalUser.get().getPhone());
+            // 배송완료 푸시 알림 전송
+            if (OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
+                PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
+                User user = orderItemDailyFood.getOrder().getUser();
+                String userName = user.getName();
+                String foodName = orderItemDailyFood.getName();
+                String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
+                String message = PushUtil.getContextDeliveredOrderItem(pushAlarms.getMessage(), userName, foodName, spotName);
+                PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(user, PushCondition.DELIVERED_ORDER_ITEM, message);
+                if (pushRequestDtoByUser != null) {
+                    pushRequestDtoByUsers.add(pushRequestDtoByUser);
+                }
+            }
         }
         userIdsMap.put("userIds", userIds);
         pushUtil.sendToType(userIdsMap, PushCondition.DELIVERED_ORDER_ITEM, null, null, null);
@@ -219,6 +240,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             System.out.println(phone + " phoneNumber");
         }
 
+        pushService.sendToPush(pushRequestDtoByUsers);
     }
 
     @Override
@@ -333,10 +355,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
                     // 멤버십이 가입된 기업은 할인된 가격으로 적용하기
                     DiscountDto discountDto;
-                    if(Hibernate.unproxy(spot.getGroup()) instanceof Corporation corporation && corporation.getIsMembershipSupport()){
+                    if (Hibernate.unproxy(spot.getGroup()) instanceof Corporation corporation && corporation.getIsMembershipSupport()) {
                         discountDto = DiscountDto.getDiscount(dailyFood.getFood());
-                    }
-                    else {
+                    } else {
                         discountDto = DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
                     }
 
