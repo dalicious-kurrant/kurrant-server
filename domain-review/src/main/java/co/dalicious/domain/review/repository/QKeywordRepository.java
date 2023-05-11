@@ -1,5 +1,6 @@
 package co.dalicious.domain.review.repository;
 
+import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.review.entity.Keyword;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -23,5 +24,18 @@ public class QKeywordRepository {
                 .where(keyword.food.id.eq(foodId))
                 .orderBy(keyword.count.desc())
                 .fetch();
+    }
+
+    public void plusKeyword(List<String> keywordList, BigInteger foodId, String content) {
+        //해당되는 키워드에 +1
+        for (String word : keywordList){
+            if (content.contains(word)){
+                queryFactory.update(keyword)
+                        .set(keyword.count, keyword.count.add(1))
+                        .where(keyword.food.id.eq(foodId), keyword.name.eq(word))
+                        .execute();
+            }
+        }
+
     }
 }

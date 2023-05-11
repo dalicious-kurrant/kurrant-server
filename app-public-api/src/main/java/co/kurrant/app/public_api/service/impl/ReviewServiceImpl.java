@@ -13,6 +13,7 @@ import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.QOrderItemRepository;
+import co.dalicious.domain.review.repository.QKeywordRepository;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.review.dto.*;
@@ -63,6 +64,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final NotificationHashRepository notificationHashRepository;
     private final SseService sseService;
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
+    private final QKeywordRepository qKeywordRepository;
 
     @Override
     @Transactional
@@ -126,6 +128,11 @@ public class ReviewServiceImpl implements ReviewService {
                 if (!rewardPoint.equals(BigDecimal.ZERO))
                     pointUtil.createPointHistoryByOthers(user, reviews.getId(), PointStatus.REVIEW_REWARD, rewardPoint);
             }
+            //키워드 검색 후 해당되는 키워드 언급시 +1처리
+            List<String> keywordList = qKeywordRepository.findAllByFoodId(((OrderItemDailyFood) orderItem).getDailyFood().getFood().getId());
+            qKeywordRepository.plusKeyword(keywordList, ((OrderItemDailyFood) orderItem).getDailyFood().getFood().getId(), reviewDto.getContent());
+
+
         }
     }
 
@@ -152,9 +159,11 @@ public class ReviewServiceImpl implements ReviewService {
 //            if(reviewOrderItem.contains(item)) continue;
 
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
+
                 MealInfo mealInfos = orderItemDailyFood.getDailyFood().getGroup().getMealInfos().stream()
                         .filter(m -> m.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType()))
                         .findAny().orElse(null);
+
                 LocalTime deliveryTime = mealInfos != null ? mealInfos.getDeliveryTime() : LocalTime.MAX;
 
                 LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
