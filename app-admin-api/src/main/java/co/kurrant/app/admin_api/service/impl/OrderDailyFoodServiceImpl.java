@@ -226,6 +226,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
         userIdsMap.put("userIds", userIds);
         pushUtil.sendToType(userIdsMap, PushCondition.DELIVERED_ORDER_ITEM, null, null, null);
+
+        /*
         String content = "안녕하세요!\n" +
                 "조식 서비스를 운영 중인 커런트입니다.\n" +
                 "\n" +
@@ -239,6 +241,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             kaKaoUtil.sendAlimTalk(phone, content, "50074");
             System.out.println(phone + " phoneNumber");
         }
+        */
 
         pushService.sendToPush(pushRequestDtoByUsers);
     }
