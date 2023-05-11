@@ -220,6 +220,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         }
 
+        MultiValueMap<Group, DailyFood> groupMap = new LinkedMultiValueMap<>();
         dailyFoods.forEach(dailyFood -> {
             FoodDto.DailyFood dailyFoodDto = dailyFoodList.stream()
                     .filter(v -> v.getDailyFoodId().equals(dailyFood.getId()))
@@ -230,7 +231,15 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             if (!group.getDiningTypes().contains(DiningType.ofCode(dailyFoodDto.getDiningType()))) {
                 throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
             }
+            // 푸시 알림 전송을 위해 등록대기였던 식단 추가
+            DailyFood waitingDailyFood = null;
+            if(dailyFood.getDailyFoodStatus().equals(DailyFoodStatus.WAITING_SALE)) {
+                waitingDailyFood = dailyFood;
+            }
             dailyFood.updateFoodStatus(DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()));
+            if(!DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()).equals(DailyFoodStatus.SALES)) {
+                waitingDailyFood = null;
+            }
 
             if (!Objects.equals(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), dailyFood.getDailyFoodGroup().getPickupTime())) {
                 dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()));
@@ -244,6 +253,9 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 dailyFood.updateFood(food);
                 dailyFood.updateDailyFoodPrice(food);
                 dailyFood.updateGroup(group);
+            }
+            if(waitingDailyFood != null) {
+                groupMap.add(waitingDailyFood.getGroup(),waitingDailyFood);
             }
         });
 
@@ -282,24 +294,20 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         newDailyFoods = dailyFoodRepository.saveAll(newDailyFoods);
 
         // 식단이 생성 됐을 때 푸시알림
-        List<DailyFood> sellingDailyFoods = newDailyFoods.stream()
-                .filter(v -> v.getDailyFoodStatus().equals(DailyFoodStatus.SALES))
-                .toList();
-        Map<Group, Optional<LocalDate>> earliestDatesByGroup = sellingDailyFoods.stream()
-                .collect(Collectors.groupingBy(DailyFood::getGroup,
-                        Collectors.mapping(DailyFood::getServiceDate,
-                                Collectors.minBy(Comparator.naturalOrder()))));
+        Map<Group, Optional<LocalDate>> earliestDatesByGroup = groupMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> e.getValue().stream().min(Comparator.comparing(DailyFood::getServiceDate)).map(DailyFood::getServiceDate)));
 
-        Map<Group, Optional<LocalDate>> latestDatesByGroup = sellingDailyFoods.stream()
-                .collect(Collectors.groupingBy(DailyFood::getGroup,
-                        Collectors.mapping(DailyFood::getServiceDate,
-                                Collectors.maxBy(Comparator.naturalOrder()))));
+        Map<Group, Optional<LocalDate>> latestDatesByGroup = groupMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> e.getValue().stream().max(Comparator.comparing(DailyFood::getServiceDate)).map(DailyFood::getServiceDate)));
 
+
+        // 등록대기 -> 판매중으로 변경된 식단들만 푸시 알림 보내기
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
-        Map<User, Group> userGroupMap = qUserGroupRepository.findUserGroupFirebaseToken(groups.stream().map(Group::getId).collect(Collectors.toSet()));
+        Map<User, Group> userGroupMap = qUserGroupRepository.findUserGroupFirebaseTokenByGroup(groupMap.keySet());
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.NEW_DAILYFOOD);
         for (User user : userGroupMap.keySet()) {
-            // 판매중으로 저장된 식단들만 푸시 알림 보내기
             if (!earliestDatesByGroup.isEmpty() && !latestDatesByGroup.isEmpty() &&
                     earliestDatesByGroup.get(userGroupMap.get(user)).isPresent() &&
                     latestDatesByGroup.get(userGroupMap.get(user)).isPresent()) {

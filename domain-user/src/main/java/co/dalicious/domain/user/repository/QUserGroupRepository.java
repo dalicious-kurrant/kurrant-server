@@ -94,4 +94,22 @@ public class QUserGroupRepository {
 
         return userGroupMap;
     }
+
+    public Map<User, Group> findUserGroupFirebaseTokenByGroup(Set<Group> groups) {
+        List<Tuple> results = queryFactory.select(user, userGroup.group)
+                .from(userGroup)
+                .leftJoin(userGroup.user, user)
+                .where(userGroup.group.in(groups), user.firebaseToken.isNotNull())
+                .fetch();
+
+        Map<User, Group> userGroupMap = new HashMap<>();
+
+        for (Tuple result : results) {
+            User user = result.get(0, User.class);
+            Group group = result.get(1, Group.class);
+            userGroupMap.put(user, group);
+        }
+
+        return userGroupMap;
+    }
 }
