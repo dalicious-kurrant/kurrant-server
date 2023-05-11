@@ -1,5 +1,7 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.GroupRepository;
@@ -67,6 +69,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final QFoodRepository qFoodRepository;
     private final DailyFoodGroupRepository dailyFoodGroupRepository;
     private final PushUtil pushUtil;
+    private final QPushAlarmsRepository qPushAlarmsRepository;
 
     @Override
     @Transactional
@@ -108,9 +111,11 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             presetMakersDailyFood.updateConfirmStatus(ConfirmStatus.COMPLETE);
         }
 
+        // Push 알림
         Map<String, Set<BigInteger>> groupIds = Collections.singletonMap("groupIds", groupIdSet);
-        // 식단이 생성 됐을 때 푸시알림
-        pushUtil.sendToType(groupIds, PushCondition.NEW_DAILYFOOD, null, "date", LocalDate.now(ZoneId.of("Asia/Seoul")));
+        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.NEW_DAILYFOOD);
+        String message = PushUtil.getContextNewDailyFood(pushAlarms.getMessage(), periodDto.getStartDate(), periodDto.getEndDate());
+        pushUtil.sendToType(groupIds, PushCondition.NEW_DAILYFOOD, null, "date", message);
     }
 
     @Override
@@ -255,7 +260,17 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         for (FoodDto.DailyFood dailyFood : newDailyFoodDtos) {
             dailyFoodGroupDtoMap.add(new DailyFoodGroupDto(dailyFood), dailyFood);
         }
+        LocalDate startDate = null;
+        LocalDate endDate = null;
+
         for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupDtoMap.keySet()) {
+            LocalDate currentServiceDate = dailyFoodGroupDto.getServiceDate();
+            if (startDate == null || currentServiceDate.isBefore(startDate)) {
+                startDate = currentServiceDate;
+            }
+            if (endDate == null || currentServiceDate.isAfter(endDate)) {
+                endDate = currentServiceDate;
+            }
             List<FoodDto.DailyFood> dailyFoodDtos = dailyFoodGroupDtoMap.get(dailyFoodGroupDto);
             DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(dailyFoodGroupDtoMap.get(dailyFoodGroupDto).get(0)));
             newDailyFoodGroupMap.put(dailyFoodGroup, dailyFoodDtos);
@@ -266,6 +281,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         Map<String, Set<BigInteger>> groupIds = Collections.singletonMap("groupIds", groups.stream().map(Group::getId).collect(Collectors.toSet()));
         // 식단이 생성 됐을 때 푸시알림
-        pushUtil.sendToType(groupIds, PushCondition.NEW_DAILYFOOD, null, "date", LocalDate.now(ZoneId.of("Asia/Seoul")));
+        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.NEW_DAILYFOOD);
+        String message = PushUtil.getContextNewDailyFood(pushAlarms.getMessage(), startDate, endDate);
+        pushUtil.sendToType(groupIds, PushCondition.NEW_DAILYFOOD, null, null, message);
     }
 }

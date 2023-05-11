@@ -232,7 +232,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         // 추가 요청 헤더 생성
         List<PaycheckAdd> paycheckAdds = corporationPaycheck.getPaycheckAdds();
-        if (!paycheckAdds.isEmpty()) {
+        if (paycheckAdds != null && !paycheckAdds.isEmpty()) {
             currentRow = createHeaderTitle(workbook, sheet, currentRow, 1,7, "추가이슈");
             Row row = sheet.createRow(currentRow);
             createDailyFoodAddHeader(workbook, sheet, row);

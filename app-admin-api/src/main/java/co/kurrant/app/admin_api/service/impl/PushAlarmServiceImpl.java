@@ -27,7 +27,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,9 +53,9 @@ public class PushAlarmServiceImpl implements PushAlarmService {
         List<PushAlarms> pushAlarmsList = pushAlarmRepository.findAll();
 
         List<AutoPushAlarmDto.AutoPushAlarmList> pushAlarmListDtoList = new ArrayList<>();
-        if(pushAlarmsList.isEmpty()) return pushAlarmListDtoList;
+        if (pushAlarmsList.isEmpty()) return pushAlarmListDtoList;
 
-        for(PushAlarms pushAlarms : pushAlarmsList) {
+        for (PushAlarms pushAlarms : pushAlarmsList) {
             AutoPushAlarmDto.AutoPushAlarmList pushAlarmListDto = pushAlarmMapper.toAutoPushAlarmListDto(pushAlarms);
             pushAlarmListDtoList.add(pushAlarmListDto);
         }
@@ -98,15 +100,13 @@ public class PushAlarmServiceImpl implements PushAlarmService {
     @Transactional(readOnly = true)
     public List<HandlePushAlarmDto.HandlePushAlarm> findAllListByType(Integer type) {
         List<HandlePushAlarmDto.HandlePushAlarm> handlePushAlarmByTypeList = new ArrayList<>();
-        if(HandlePushAlarmType.GROUP.equals(HandlePushAlarmType.ofCode(type))) {
+        if (HandlePushAlarmType.GROUP.equals(HandlePushAlarmType.ofCode(type))) {
             List<Group> groupList = groupRepository.findAll();
             handlePushAlarmByTypeList = groupList.stream().map(g -> pushAlarmTypeMapper.toHandlePushAlarmByType(g, null, null)).collect(Collectors.toList());
-        }
-        else if(HandlePushAlarmType.SPOT.equals(HandlePushAlarmType.ofCode(type))) {
+        } else if (HandlePushAlarmType.SPOT.equals(HandlePushAlarmType.ofCode(type))) {
             List<Spot> spotList = spotRepository.findAll();
             handlePushAlarmByTypeList = spotList.stream().map(s -> pushAlarmTypeMapper.toHandlePushAlarmByType(null, s, null)).collect(Collectors.toList());
-        }
-        else if(HandlePushAlarmType.USER.equals(HandlePushAlarmType.ofCode(type))) {
+        } else if (HandlePushAlarmType.USER.equals(HandlePushAlarmType.ofCode(type))) {
             List<User> userList = userRepository.findAll();
             handlePushAlarmByTypeList = userList.stream().map(u -> pushAlarmTypeMapper.toHandlePushAlarmByType(null, null, u)).collect(Collectors.toList());
         }
@@ -118,26 +118,23 @@ public class PushAlarmServiceImpl implements PushAlarmService {
     @Transactional
     public void createHandlePushAlarmList(List<HandlePushAlarmDto.HandlePushAlarmReqDto> reqDtoList) {
         List<PushRequestDto> pushRequestDtoList = new ArrayList<>();
-
-        for(HandlePushAlarmDto.HandlePushAlarmReqDto reqDto : reqDtoList) {
-            if(HandlePushAlarmType.ALL.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
+        // TODO: 유저마다 다른 타입의 메세지를 보낼 경우 수정 필요
+        for (HandlePushAlarmDto.HandlePushAlarmReqDto reqDto : reqDtoList) {
+            if (HandlePushAlarmType.ALL.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
                 List<String> allUserFcmToken = qUserRepository.findAllUserFirebaseToken();
                 PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserFcmToken, null, reqDto.getMessage(), reqDto.getPage(), null);
                 pushRequestDtoList.add(pushRequestDto);
-            }
-            else if(HandlePushAlarmType.GROUP.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
+            } else if (HandlePushAlarmType.GROUP.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
                 List<String> allUserGroupFcmToken = qUserGroupRepository.findUserGroupFirebaseToken(reqDto.getGroupIds());
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserGroupFcmToken, null, reqDto.getMessage(), reqDto.getPage(),null);
+                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserGroupFcmToken, null, reqDto.getMessage(), reqDto.getPage(), null);
                 pushRequestDtoList.add(pushRequestDto);
-            }
-            else if(HandlePushAlarmType.SPOT.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
+            } else if (HandlePushAlarmType.SPOT.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
                 List<String> allUserSpotFcmToken = qUserSpotRepository.findAllUserSpotFirebaseToken(reqDto.getSpotIds());
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserSpotFcmToken, null, reqDto.getMessage(), reqDto.getPage(),null);
+                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserSpotFcmToken, null, reqDto.getMessage(), reqDto.getPage(), null);
                 pushRequestDtoList.add(pushRequestDto);
-            }
-            else if(HandlePushAlarmType.USER.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
+            } else if (HandlePushAlarmType.USER.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
                 List<String> userFirebaseToken = qUserRepository.findUserFirebaseToken(reqDto.getUserIds());
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(userFirebaseToken, null, reqDto.getMessage(), reqDto.getPage(),null);
+                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(userFirebaseToken, null, reqDto.getMessage(), reqDto.getPage(), null);
                 pushRequestDtoList.add(pushRequestDto);
             }
         }

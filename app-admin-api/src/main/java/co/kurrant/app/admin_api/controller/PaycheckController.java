@@ -37,16 +37,16 @@ public class PaycheckController {
                 .build();
     }
 
-//    @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
-//    @PostMapping("/makers/excel")
-//    public ResponseMessage postMakersPaycheck(@RequestPart(required = false) MultipartFile makersXlsx,
-//                                              @RequestPart(required = false) MultipartFile makersPdf,
-//                                              @RequestPart PaycheckDto.MakersRequest paycheckDto) throws IOException {
-//        adminPaycheckService.postMakersPaycheck(makersXlsx, makersPdf, paycheckDto);
-//        return ResponseMessage.builder()
-//                .message("메이커스 정산 등록에 성공하였습니다.")
-//                .build();
-//    }
+    @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
+    @PostMapping("/makers/file")
+    public ResponseMessage postMakersPaycheck(@RequestPart(required = false) MultipartFile makersXlsx,
+                                              @RequestPart(required = false) MultipartFile makersPdf,
+                                              @RequestPart PaycheckDto.MakersRequest paycheckDto) throws IOException {
+        adminPaycheckService.postMakersPaycheck(makersXlsx, makersPdf, paycheckDto);
+        return ResponseMessage.builder()
+                .message("메이커스 정산 등록에 성공하였습니다.")
+                .build();
+    }
 
     @Operation(summary = "메이커스 정산 조회", description = "메이커스 정산 조회")
     @GetMapping("/makers")
