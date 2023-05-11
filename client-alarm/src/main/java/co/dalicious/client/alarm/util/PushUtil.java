@@ -32,7 +32,6 @@ public class PushUtil {
     private final PushAlarmMapper pushAlarmMapper;
 
     public void sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, String customMessage) {
-        Set<BigInteger> groupIds = !ids.containsKey("groupIds") || ids.get("groupIds") == null ? null : ids.get("groupIds");
         Set<BigInteger> spotIds = !ids.containsKey("spotIds") || ids.get("spotIds") == null ? null : ids.get("spotIds");
         Set<BigInteger> userIds = !ids.containsKey("userIds") || ids.get("userIds") == null ? null : ids.get("userIds");
 
@@ -43,10 +42,6 @@ public class PushUtil {
 
         List<User> userList = new ArrayList<>();
 
-        if (groupIds != null && !groupIds.isEmpty()) {
-            //해당 그룹 유저의 fcm token 찾기
-            userList = qUserGroupRepository.findUserGroupFirebaseToken(groupIds);
-        }
         if (spotIds != null && !spotIds.isEmpty()) {
             //해당 스팟 유저의 fcm token 찾기
             userList = qUserSpotRepository.findAllUserSpotFirebaseToken(spotIds);
@@ -111,9 +106,10 @@ public class PushUtil {
         return pushRequestDto;
     }
 
-    public static String getContextNewDailyFood(String template, LocalDate startDate, LocalDate endDate) {
+    public static String getContextNewDailyFood(String template, String spotName, LocalDate startDate, LocalDate endDate) {
         // 식단이 생성 됐을 때 푸시알림
         Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("spotName", spotName);
         valuesMap.put("startDate", DateUtils.format(startDate));
         valuesMap.put("endDate", DateUtils.format(endDate));
 

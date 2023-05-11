@@ -825,9 +825,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
                 Long code = (Long) jsonObject.get("code");
                 JSONObject response = (JSONObject) jsonObject.get("response");
+                String status = response.get("status").toString();
 
                 // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-                if (code == 0) {
+                if (code == 0 && !status.equals("failed")) {
                     // 주문서 내용 업데이트 및 사용 포인트 차감
                     System.out.println(code + " code");
                     orderDailyFood.updateDefaultPrice(defaultPrice);

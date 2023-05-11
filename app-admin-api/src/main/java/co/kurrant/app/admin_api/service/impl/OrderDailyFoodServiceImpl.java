@@ -197,8 +197,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
         }
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
-        Map<String, Set<BigInteger>> userIdsMap = new HashMap<>();
-        Set<BigInteger> userIds = new HashSet<>();
         Set<String> userPhoneNumber = new HashSet<>();
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
 
@@ -207,9 +205,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
             }
             orderItemDailyFood.updateOrderStatus(orderStatus);
-            userIds.add(orderItemDailyFood.getOrder().getUser().getId());
             Optional<User> optionalUser = userRepository.findById(orderItemDailyFood.getOrder().getUser().getId());
-            if (optionalUser.isPresent()) userPhoneNumber.add(optionalUser.get().getPhone());
+            optionalUser.ifPresent(user -> userPhoneNumber.add(user.getPhone()));
             // 배송완료 푸시 알림 전송
             if (OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
                 PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
@@ -224,8 +221,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
             }
         }
-        userIdsMap.put("userIds", userIds);
-        pushUtil.sendToType(userIdsMap, PushCondition.DELIVERED_ORDER_ITEM, null, null, null);
+        pushService.sendToPush(pushRequestDtoByUsers);
 
         /*
         String content = "안녕하세요!\n" +
@@ -242,8 +238,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             System.out.println(phone + " phoneNumber");
         }
         */
-
-        pushService.sendToPush(pushRequestDtoByUsers);
     }
 
     @Override
