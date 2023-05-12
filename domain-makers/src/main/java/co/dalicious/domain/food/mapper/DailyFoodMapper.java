@@ -22,17 +22,16 @@ import java.util.*;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
 public interface DailyFoodMapper {
-      @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.diningType", target = "diningType")
-      @Mapping(target = "dailyFoodStatus", constant = "WAITING")
-      @Mapping(source = "presetGroupDailyFood.presetMakersDailyFood.serviceDate", target = "serviceDate")
-      @Mapping(source = "food", target = "food")
-      @Mapping(source = "presetGroupDailyFood.group", target = "group")
-      @Mapping(target = "dailyFoodGroup", expression = "java(toDailyFoodGroup(presetGroupDailyFood))")
       default DailyFood toDailyFood(PresetDailyFood presetDailyFood, DailyFoodGroup dailyFoodGroup) {
             return DailyFood.builder()
                     .diningType(presetDailyFood.getPresetGroupDailyFood().getPresetMakersDailyFood().getDiningType())
                     .dailyFoodStatus(DailyFoodStatus.WAITING_SALE)
                     .serviceDate(presetDailyFood.getPresetGroupDailyFood().getPresetMakersDailyFood().getServiceDate())
+                    .supplyPrice(presetDailyFood.getFood().getSupplyPrice())
+                    .defaultPrice(presetDailyFood.getFood().getPrice())
+                    .membershipDiscountRate(presetDailyFood.getFood().getFoodDiscountRate(DiscountType.MEMBERSHIP_DISCOUNT))
+                    .makersDiscountRate(presetDailyFood.getFood().getFoodDiscountRate(DiscountType.MAKERS_DISCOUNT))
+                    .periodDiscountRate(presetDailyFood.getFood().getFoodDiscountRate(DiscountType.PERIOD_DISCOUNT))
                     .food(presetDailyFood.getFood())
                     .group(presetDailyFood.getPresetGroupDailyFood().getGroup())
                     .dailyFoodGroup(dailyFoodGroup)
@@ -74,6 +73,11 @@ public interface DailyFoodMapper {
                     .dailyFoodStatus(DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()))
                     .diningType(DiningType.ofCode(dailyFoodDto.getDiningType()))
                     .serviceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()))
+                    .supplyPrice(food.getSupplyPrice())
+                    .defaultPrice(food.getPrice())
+                    .membershipDiscountRate(food.getFoodDiscountRate(DiscountType.MEMBERSHIP_DISCOUNT))
+                    .makersDiscountRate(food.getFoodDiscountRate(DiscountType.MAKERS_DISCOUNT))
+                    .periodDiscountRate(food.getFoodDiscountRate(DiscountType.PERIOD_DISCOUNT))
                     .food(food)
                     .group(group)
                     .build();
@@ -87,6 +91,7 @@ public interface DailyFoodMapper {
       @Mapping(source = "dailyFood.serviceDate", target = "serviceDate", qualifiedByName = "serviceDateToString")
       @Mapping(source = "dailyFood", target = "makersName", qualifiedByName = "getMakersName")
       @Mapping(source = "dailyFood", target = "spicy", qualifiedByName = "getSpicy")
+      @Mapping(source = "dailyFood", target = "vegan", qualifiedByName = "getVegan")
       @Mapping(target = "image", expression = "java(dailyFood.getFood().getImages() == null || dailyFood.getFood().getImages().isEmpty() ? null : dailyFood.getFood().getImages().get(0).getLocation())")
       @Mapping(source = "dailyFood.food.description", target = "description")
       @Mapping(source = "dailyFood.food.price", target = "price")
@@ -120,8 +125,15 @@ public interface DailyFoodMapper {
       @Named("getSpicy")
       default String getSpicy(DailyFood dailyFood) {
             List<FoodTag> foodTags = dailyFood.getFood().getFoodTags();
-            Optional<FoodTag> foodTag = foodTags.stream().filter(v -> v.getCategory().equals("맵기")).findAny();
+            Optional<FoodTag> foodTag = foodTags.stream().filter(v -> v.getCategory().equals("맵기") && !v.getCode().equals(10001)).findAny();
             return foodTag.map(FoodTag::getTag).orElse(null);
+      }
+
+      @Named("getVegan")
+      default String getVegan(DailyFood dailyFood) {
+            List<FoodTag> foodTags = dailyFood.getFood().getFoodTags();
+            Optional<FoodTag> foodTag = foodTags.stream().filter(v -> v.getCode().equals(9001)).findAny();
+            return (foodTag.isPresent()) ? "Vegan" : null;
       }
 
       @Named("getMakersName")

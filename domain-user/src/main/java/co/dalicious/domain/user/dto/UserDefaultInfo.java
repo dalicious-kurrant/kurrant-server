@@ -1,11 +1,14 @@
 package co.dalicious.domain.user.dto;
 
+import co.dalicious.domain.user.converter.JobTypeConverter;
 import co.dalicious.domain.user.entity.enums.BirthPlace;
 import co.dalicious.domain.user.entity.enums.JobType;
-import co.dalicious.domain.user.entity.enums.Nation;
+import co.dalicious.domain.user.entity.enums.Country;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
+
+import javax.persistence.Convert;
 
 @Getter
 @Setter
@@ -21,10 +24,10 @@ public class UserDefaultInfo {
     @Schema(description = "성별")
     private Integer gender;
     @Schema(description = "국적")
-    private Nation nation;
-    @Schema(description = "출생지")
-    private BirthPlace birthPlace;
+    private String country;
     @Schema(description = "직종")
-    private JobType jobType;
+    private String jobType;
+    @Schema(description = "상세직종")
+    private String detailJobType;
 
 }

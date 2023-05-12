@@ -121,6 +121,18 @@ public class QSpotRepository {
                     .execute();
         }
 
+        /*
+        //DiningTypes
+        if (updateSpotDetailRequestDto.getDiningTypes() != null && !updateSpotDetailRequestDto.getDiningTypes().equals("")){
+
+            List<DiningType> diningTypeList = Arrays.stream(updateSpotDetailRequestDto.getDiningTypes().split(",")).map(DiningType::ofString).toList();
+
+            queryFactory.update(spot)
+                    .set(spot.diningTypes, diningTypeList)
+                    .where(spot.id.eq(updateSpotDetailRequestDto.getSpotId()))
+                    .execute();
+        }*/
+
 
     }
 

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
@@ -77,6 +76,14 @@ public class QGroupRepository {
                     .where(group.id.eq(groupId))
                     .execute();
         }
+        //메모수정
+        if (updateSpotDetailRequestDto.getMemo() != null){
+            queryFactory.update(group)
+                    .set(group.memo, updateSpotDetailRequestDto.getMemo())
+                    .where(group.id.eq(groupId))
+                    .execute();
+        }
+
     }
 
     public BigInteger findById(BigInteger groupId) {

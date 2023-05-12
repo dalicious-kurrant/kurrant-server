@@ -94,30 +94,30 @@ public interface GroupMapper {
         groupDto.setUsers(usersToDtos(users, withDrawlUsers));
         return groupDto;
     }
-    @Mapping(source = "group.id", target = "id")
-    @Mapping(source = "group", target = "groupType", qualifiedByName = "getGroupDataType")
-    @Mapping(source = "group", target = "code", qualifiedByName = "getGroupCode")
-    @Mapping(source = "group.name", target = "name")
-    @Mapping(source = "group.address.zipCode", target = "zipCode")
-    @Mapping(source = "group.address.address1", target = "address1")
-    @Mapping(source = "group.address.address2", target = "address2")
-    @Mapping(source = "group", target = "location", qualifiedByName = "getLocation")
-    @Mapping(source = "group.diningTypes", target = "diningTypes", qualifiedByName = "getDiningCodeList")
-    @Mapping(source = "group.spots", target = "serviceDays", qualifiedByName = "serviceDayToString")
-    @Mapping(source = "managerUser.id", target = "managerId")
-    @Mapping(source = "managerUser.name", target = "managerName")
-    @Mapping(source = "managerUser.phone", target = "managerPhone")
-    @Mapping(source = "group", target = "isMembershipSupport", qualifiedByName = "getIsMembershipSupport")
-    @Mapping(source = "group", target = "employeeCount", qualifiedByName = "getEmployeeCount")
-    @Mapping(source = "group", target = "isSetting", qualifiedByName = "getIsSetting")
-    @Mapping(source = "group", target = "isGarbage", qualifiedByName = "getIsGarbage")
-    @Mapping(source = "group", target = "isHotStorage", qualifiedByName = "getIsHotStorage")
-    @Mapping(target = "morningSupportPrice", expression = "java(getSupportPrice(group, DiningType.MORNING))")
-    @Mapping(target = "lunchSupportPrice", expression = "java(getSupportPrice(group, DiningType.LUNCH))")
-    @Mapping(target = "dinnerSupportPrice", expression = "java(getSupportPrice(group, DiningType.DINNER))")
-    @Mapping(source = "group", target = "minimumSpend", qualifiedByName = "getMinimumSpend")
-    @Mapping(source = "group", target = "maximumSpend", qualifiedByName = "getMaximumSpend")
-    GroupListDto.GroupInfoList toCorporationListDto(Group group, User managerUser);
+//    @Mapping(source = "group.id", target = "id")
+//    @Mapping(source = "group", target = "groupType", qualifiedByName = "getGroupDataType")
+//    @Mapping(source = "group", target = "code", qualifiedByName = "getGroupCode")
+//    @Mapping(source = "group.name", target = "name")
+//    @Mapping(source = "group.address.zipCode", target = "zipCode")
+//    @Mapping(source = "group.address.address1", target = "address1")
+//    @Mapping(source = "group.address.address2", target = "address2")
+//    @Mapping(source = "group", target = "location", qualifiedByName = "getLocation")
+//    @Mapping(source = "group.diningTypes", target = "diningTypes", qualifiedByName = "getDiningCodeList")
+//    @Mapping(source = "group.spots", target = "serviceDays", qualifiedByName = "serviceDayToString")
+//    @Mapping(source = "managerUser.id", target = "managerId")
+//    @Mapping(source = "managerUser.name", target = "managerName")
+//    @Mapping(source = "managerUser.phone", target = "managerPhone")
+//    @Mapping(source = "group", target = "isMembershipSupport", qualifiedByName = "getIsMembershipSupport")
+//    @Mapping(source = "group", target = "employeeCount", qualifiedByName = "getEmployeeCount")
+//    @Mapping(source = "group", target = "isSetting", qualifiedByName = "getIsSetting")
+//    @Mapping(source = "group", target = "isGarbage", qualifiedByName = "getIsGarbage")
+//    @Mapping(source = "group", target = "isHotStorage", qualifiedByName = "getIsHotStorage")
+//    @Mapping(target = "morningSupportPrice", expression = "java(getSupportPrice(group, DiningType.MORNING))")
+//    @Mapping(target = "lunchSupportPrice", expression = "java(getSupportPrice(group, DiningType.LUNCH))")
+//    @Mapping(target = "dinnerSupportPrice", expression = "java(getSupportPrice(group, DiningType.DINNER))")
+//    @Mapping(source = "group", target = "minimumSpend", qualifiedByName = "getMinimumSpend")
+//    @Mapping(source = "group", target = "maximumSpend", qualifiedByName = "getMaximumSpend")
+//    GroupListDto.GroupInfoList toCorporationListDto(Group group, User managerUser);
 
     @Named("getLocation")
     default String getLocation(Group group) {
@@ -154,46 +154,46 @@ public interface GroupMapper {
         return maximumSpend;
     }
 
-    @Named("getSupportPrice")
-    default BigDecimal getSupportPrice(Group group, DiningType type) {
-        if(group instanceof Corporation) {
-            List<Spot> spotList = group.getSpots();
-            for(Spot spot : spotList) {
-                List<MealInfo> mealInfoList = spot.getMealInfos();
-                for(MealInfo mealInfo : mealInfoList) {
-                    if(mealInfo.getDiningType().equals(type)) return ((CorporationMealInfo) mealInfo).getSupportPrice();
-                }
-            }
-        }
-        return null;
-    }
+//    @Named("getSupportPrice")
+//    default BigDecimal getSupportPrice(Group group, DiningType type) {
+//        if(group instanceof Corporation) {
+//            List<Spot> spotList = group.getSpots();
+//            for(Spot spot : spotList) {
+//                List<MealInfo> mealInfoList = spot.getMealInfos();
+//                for(MealInfo mealInfo : mealInfoList) {
+//                    if(mealInfo.getDiningType().equals(type)) return ((CorporationMealInfo) mealInfo).getSupportPrice();
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
     @Named("getDiningCodeList")
     default List<Integer> getDiningCodeList(List<DiningType> diningTypeList) {
         return diningTypeList.stream().map(DiningType::getCode).toList();
     }
 
-    @Named("serviceDayToString")
-    default String serviceDayToString(List<Spot> spotList) {
-        StringBuilder mealInfoBuilder = new StringBuilder();
-        List<String> serviceDayList = new ArrayList<>();
-        for (Spot spot : spotList) {
-            List<MealInfo> mealInfoList = spot.getMealInfos();
-            for (MealInfo mealInfo : mealInfoList) {
-                if (mealInfo.getServiceDays() == null || mealInfo.getServiceDays().isEmpty() || mealInfo.getServiceDays().isBlank()) {
-                    continue;
-                }
-                List<String> useDays = List.of(mealInfo.getServiceDays().split(", |,"));
-                serviceDayList.addAll(useDays);
-            }
-        }
-        serviceDayList.stream().distinct().forEach(day -> mealInfoBuilder.append(day).append(", "));
-        if(mealInfoBuilder.length() != 0) {
-            return String.valueOf(mealInfoBuilder).substring(0, mealInfoBuilder.length() - 2);
-        }
-        return null;
-
-    }
+//    @Named("serviceDayToString")
+//    default String serviceDayToString(List<Spot> spotList) {
+//        StringBuilder mealInfoBuilder = new StringBuilder();
+//        List<String> serviceDayList = new ArrayList<>();
+//        for (Spot spot : spotList) {
+//            List<MealInfo> mealInfoList = spot.getMealInfos();
+//            for (MealInfo mealInfo : mealInfoList) {
+//                if (mealInfo.getServiceDays() == null || mealInfo.getServiceDays().isEmpty() || mealInfo.getServiceDays().isBlank()) {
+//                    continue;
+//                }
+//                List<String> useDays = List.of(mealInfo.getServiceDays().split(", |,"));
+//                serviceDayList.addAll(useDays);
+//            }
+//        }
+//        serviceDayList.stream().distinct().forEach(day -> mealInfoBuilder.append(day).append(", "));
+//        if(mealInfoBuilder.length() != 0) {
+//            return String.valueOf(mealInfoBuilder).substring(0, mealInfoBuilder.length() - 2);
+//        }
+//        return null;
+//
+//    }
 
     @Named("getGroupCode")
     default String getGroupCode(Group group) {

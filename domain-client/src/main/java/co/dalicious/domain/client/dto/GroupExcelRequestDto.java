@@ -22,6 +22,8 @@ public class GroupExcelRequestDto {
     private List<String> diningTypes;
     @NotNull
     private String serviceDays;
+    private String supportDays;
+    private String notSupportDays;
     private BigInteger managerId;
     private String managerName;
     private String managerPhone;
@@ -30,6 +32,7 @@ public class GroupExcelRequestDto {
     private String isSetting;
     private String isGarbage;
     private String isHotStorage;
+    private String isPrepaid;
     private Integer morningSupportPrice;
     private Integer lunchSupportPrice;
     private Integer dinnerSupportPrice;

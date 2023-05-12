@@ -36,8 +36,8 @@ public class Apartment extends Group{
         this.familyCount = familyCount;
     }
 
-    public void updateApartment(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
-        updateGroup(address, diningTypeList, groupInfoList.getName(), groupInfoList.getManagerId());
-        this.familyCount = groupInfoList.getEmployeeCount();
+    public void updateApartment(Address address, List<DiningType> diningTypeList, String name, BigInteger managerId, Integer familyCount) {
+        updateGroup(address, diningTypeList, name, managerId);
+        this.familyCount = familyCount;
     }
 }

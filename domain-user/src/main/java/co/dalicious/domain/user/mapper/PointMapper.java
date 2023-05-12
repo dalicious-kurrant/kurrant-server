@@ -1,10 +1,14 @@
 package co.dalicious.domain.user.mapper;
 
 import co.dalicious.domain.user.dto.PointPolicyReqDto;
-import co.dalicious.domain.user.dto.PointPolicyResDto;
+import co.dalicious.domain.user.dto.pointDto.AccumulatedFoundersPointDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.FoundersPointPolicyDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.PointPolicyResDto;
+import co.dalicious.domain.user.entity.Founders;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.FoundersPointPolicy;
 import co.dalicious.domain.user.entity.enums.PointCondition;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
@@ -16,6 +20,9 @@ import org.mapstruct.Mapping;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+
+import static java.math.BigDecimal.valueOf;
 
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface PointMapper {
@@ -25,8 +32,8 @@ public interface PointMapper {
 
         dto.setMaxPrice(reviewPointPolicy.getMaxPrice().equals("~") ? null : Integer.valueOf(reviewPointPolicy.getMaxPrice()));
         dto.setMinPrice(reviewPointPolicy.getMinPrice().equals("~") ? null : Integer.valueOf(reviewPointPolicy.getMinPrice()));
-        dto.setImagePoint(BigDecimal.valueOf(Integer.parseInt(reviewPointPolicy.getImagePrice())));
-        dto.setContentPoint(BigDecimal.valueOf(Integer.parseInt(reviewPointPolicy.getContentPoint())));
+        dto.setImagePoint(valueOf(Integer.parseInt(reviewPointPolicy.getImagePrice())));
+        dto.setContentPoint(valueOf(Integer.parseInt(reviewPointPolicy.getContentPoint())));
 
         return dto;
     }
@@ -42,6 +49,7 @@ public interface PointMapper {
         dto.setEventEndDate(pointPolicy.getEventEndDate() == null ? null : DateUtils.localDateToString(pointPolicy.getEventEndDate()));
         dto.setCompletedConditionCount(pointPolicy.getCompletedConditionCount());
         dto.setAccountCompletionLimit(pointPolicy.getAccountCompletionLimit());
+        dto.setBoardId(pointPolicy.getBoardId());
 
         return dto;
     }
@@ -51,9 +59,10 @@ public interface PointMapper {
                 .pointCondition(PointCondition.ofCode(eventPointPolicy.getPointCondition()))
                 .completedConditionCount(eventPointPolicy.getCompletedConditionCount())
                 .accountCompletionLimit(eventPointPolicy.getAccountCompletionLimit())
-                .rewardPoint(BigDecimal.valueOf(eventPointPolicy.getRewardPoint()))
+                .rewardPoint(valueOf(eventPointPolicy.getRewardPoint()))
                 .eventStartDate(eventPointPolicy.getEventStartDate() == null ? null : DateUtils.stringToDate(eventPointPolicy.getEventStartDate()))
                 .eventEndDate(eventPointPolicy.getEventEndDate() == null ? null : DateUtils.stringToDate(eventPointPolicy.getEventEndDate()))
+                .boardId(eventPointPolicy.getBoardId())
                 .build();
     }
 
@@ -87,4 +96,25 @@ public interface PointMapper {
     @Mapping(source = "pointStatus", target = "pointStatus")
     @Mapping(target = "leftPoint", expression = "java(PointStatus.rewardStatus().contains(pointStatus) ? user.getPoint().add(point) : user.getPoint().subtract(point))")
     PointHistory createPointHistoryByOthers(User user, BigInteger id, PointStatus pointStatus, BigDecimal point);
+
+    default FoundersPointPolicyDto toReviewPointPolicyResponseDto(FoundersPointPolicy foundersPointPolicy) {
+        FoundersPointPolicyDto dto = new FoundersPointPolicyDto();
+
+        dto.setMaxPoint(valueOf(Long.parseLong(foundersPointPolicy.getMaxPoint())));
+        dto.setMinPoint(valueOf(Long.parseLong(foundersPointPolicy.getMinPoint())));
+        dto.setValue(foundersPointPolicy.getValue());
+
+        return dto;
+    }
+
+    default AccumulatedFoundersPointDto toAccumulatedFoundersPointDto(User user, LocalDate foundersStartDate, int count, BigDecimal totalPoint) {
+        return AccumulatedFoundersPointDto.builder()
+                .userId(user.getId())
+                .userName(user.getName())
+                .foundersStartDate(DateUtils.format(foundersStartDate))
+                .count(count)
+                .point(BigDecimal.valueOf(80))
+                .totalPoint(totalPoint)
+                .build();
+    }
 }

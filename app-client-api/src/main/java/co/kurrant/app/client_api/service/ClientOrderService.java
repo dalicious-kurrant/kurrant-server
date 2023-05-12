@@ -19,5 +19,5 @@ public interface ClientOrderService {
     List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(SecurityUser securityUser, LocalDate startDate, LocalDate endDate);
     void postExtraOrderItems(SecurityUser securityUser, List<ExtraOrderDto.Request> orderDtos);
     List<ExtraOrderDto.Response> getExtraOrders(SecurityUser securityUser, Map<String, Object> parameters);
-    void refundExtraOrderItems(SecurityUser securityUser, BigInteger id);
+    void refundExtraOrderItems(SecurityUser securityUser, OrderDto.Id id);
 }

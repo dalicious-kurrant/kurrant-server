@@ -15,6 +15,7 @@ public class ReviewableItemListDto {
     private String imageLocation;
     private String makersName;
     private String foodName;
+    private String foodDescription;
+    private Integer foodCount;
     private String reviewDDay;
-
 }

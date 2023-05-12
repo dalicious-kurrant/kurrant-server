@@ -2,10 +2,8 @@ package co.dalicious.system.util;
 
 import co.dalicious.system.enums.Days;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class DaysUtil {
     public static String serviceDaysToDbData(List<Integer> days) {
@@ -34,5 +32,40 @@ public class DaysUtil {
             daysList.add(day);
         }
         return daysList;
+    }
+
+    public static List<Days> serviceDaysToDaysList(String serviceDays) {
+        String[]  serviceDayArr = serviceDays.split(", |,");
+        List<Days> serviceDaysList = new ArrayList<>();
+        if(serviceDays.isEmpty()) return serviceDaysList;
+        for(String serviceDay : serviceDayArr) {
+            serviceDaysList.add(Days.ofString(serviceDay));
+        }
+        return serviceDaysList;
+    }
+
+    public static String serviceDaysToDaysString(List<Days> daysList) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if(daysList == null || daysList.isEmpty()) return String.valueOf(stringBuilder);
+        for(Days days : daysList) {
+            stringBuilder.append(days.getDays()).append(", ");
+        }
+        return stringBuilder.substring(0, stringBuilder.length() - 2);
+    }
+
+    public static List<String> serviceDaysToDaysStringList(List<Days> daysList) {
+        List<String> daysStringList = new ArrayList<>();
+        if(daysList == null || daysList.isEmpty()) return daysStringList;
+        daysStringList = daysList.stream().map(Days::getDays).collect(Collectors.toList());
+        return daysStringList;
+    }
+
+    public static String serviceDaysSetToString(Set<Days> daysList) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if(daysList == null || daysList.isEmpty()) return String.valueOf(stringBuilder);
+        for(Days days : daysList) {
+            stringBuilder.append(days.getDays()).append(", ");
+        }
+        return stringBuilder.substring(0, stringBuilder.length() - 2);
     }
 }

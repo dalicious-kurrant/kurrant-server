@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.food;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -53,4 +54,54 @@ public class FoodController {
                 .message("상품 상세정보 조회 성공!")
                 .build();
     }
+
+    @Operation(summary = "메뉴 상세 리뷰 불러오기", description = "특정 메뉴의 리뷰를 불러온다.")
+    @GetMapping("/{dailyFoodId}/review")
+    public ResponseMessage getFoodReview(Authentication authentication, @PathVariable BigInteger dailyFoodId,
+                                         @RequestParam (required = false) Integer sort,
+                                         @RequestParam (required = false) Integer photo,
+                                         @RequestParam (required = false) Integer starFilter
+                                         ){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        Object foodReview = foodService.getFoodReview(dailyFoodId, securityUser, sort, photo, starFilter);
+        String message = "상품 리뷰 조회 성공!";
+            //리뷰없을경우 message 내용변경
+            if (foodReview.equals("리뷰없음")) message = "등록된 리뷰가 없습니다.";
+
+        return ResponseMessage.builder()
+                .data(foodReview)
+                .message(message)
+                .build();
+    }
+
+
+    @Operation(summary = "메뉴 상세 리뷰 도움이 돼요", description = "리뷰에 도움이 돼요 누르기")
+    @PostMapping("/review/like")
+    public ResponseMessage foodReviewLike(Authentication authentication, @RequestBody FoodReviewLikeDto foodReviewLikeDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String message = foodService.foodReviewLike(securityUser, foodReviewLikeDto);
+        return ResponseMessage.builder()
+                .message(message)
+                .build();
+    }
+
+    @Operation(summary = "도움이 돼요 확인", description = "도움이 돼요 눌렀는지 확인용")
+    @GetMapping("/review/like")
+    public ResponseMessage foodReviewLikeCheck(Authentication authentication,@RequestParam BigInteger reviewId){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(foodService.foodReviewLikeCheck(securityUser, reviewId))
+                .message("도움이 돼요 눌렀는지 여부 확인")
+                .build();
+    }
+
+    @Operation(summary = "메뉴 상세 리뷰 키워드 조회", description = "상품의 리뷰 키워드를 조회한다.")
+    @GetMapping("/{dailyFoodId}/review/keyword")
+    public ResponseMessage getFoodReview(@PathVariable BigInteger dailyFoodId) {
+        return ResponseMessage.builder()
+                .data(foodService.foodReviewKeyword(dailyFoodId))
+                .message("리뷰 키워드 조회")
+                .build();
+    }
+
 }

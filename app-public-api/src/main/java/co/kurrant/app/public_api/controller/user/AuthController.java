@@ -12,8 +12,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -30,8 +32,8 @@ public class AuthController {
 
     @Operation(summary = "이메일 인증번호 발송", description = "이메일 인증번호를 발송한다.")
     @PostMapping("/certification/email")
-    public ResponseMessage mailConfirm(@RequestBody MailMessageDto mailMessageDto, @RequestParam("type") String type) throws Exception {
-        authService.mailConfirm(mailMessageDto, type);
+    public ResponseMessage mailConfirm(Authentication authentication, @RequestBody MailMessageDto mailMessageDto, @RequestParam("type") String type) throws Exception {
+        authService.mailConfirm(authentication, mailMessageDto, type);
         return ResponseMessage.builder()
                 .message("인증번호가 발송되었습니다.")
                 .build();

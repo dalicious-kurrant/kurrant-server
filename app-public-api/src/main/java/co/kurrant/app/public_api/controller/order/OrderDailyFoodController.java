@@ -1,8 +1,7 @@
 package co.kurrant.app.public_api.controller.order;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.order.dto.OrderCreateBillingKeyReqDto;
-import co.dalicious.domain.order.dto.OrderCreateBillingKeySecondReqDto;
+import co.dalicious.domain.payment.dto.OrderCreateBillingKeySecondReqDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodByNiceReqDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
 import co.kurrant.app.public_api.dto.order.IdDto;
@@ -93,16 +92,6 @@ public class OrderDailyFoodController {
                 .build();
     }
 
-    @Operation(summary = "빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
-    @PostMapping("/nice/create/billing")
-    public ResponseMessage createBillingKey(Authentication authentication, @RequestBody OrderCreateBillingKeySecondReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(orderDailyFoodService.createNiceBillingKey(securityUser, orderCreateBillingKeyReqDto))
-                .message("빌링키 발급에 성공하였습니다.")
-                .build();
-    }
-
     @Operation(summary = "정기 식사 주문하기(나이스빌링)", description = "정기 식사를 구매한다.")
     @PostMapping("/nice")
     public ResponseMessage userOrderByDateNice(Authentication authentication, @RequestBody OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException {
@@ -142,14 +131,4 @@ public class OrderDailyFoodController {
                 .message("주문의 상태를 수령 완료로 변경했습니다.")
                 .build();
     }
-    @Operation(summary = "첫번째 빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
-    @PostMapping("/nice/create/billing/first")
-    public ResponseMessage createBillingKeyFirst(Authentication authentication, @RequestBody OrderCreateBillingKeyReqDto orderCreateBillingKeyReqDto) throws IOException, ParseException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(orderDailyFoodService.createNiceBillingKeyFirst(securityUser, orderCreateBillingKeyReqDto))
-                .message("빌링키 발급에 성공하였습니다.")
-                .build();
-    }
-
 }

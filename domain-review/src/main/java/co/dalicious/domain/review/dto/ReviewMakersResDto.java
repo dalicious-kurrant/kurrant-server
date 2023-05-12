@@ -26,6 +26,7 @@ public class ReviewMakersResDto {
         private String writer;
         private String orderItemName;
         private Boolean isReport;
+        private Boolean isMakersComments;
     }
 
     @Getter

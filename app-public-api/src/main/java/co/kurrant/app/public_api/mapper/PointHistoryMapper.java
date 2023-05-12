@@ -9,6 +9,7 @@ import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.PaymentCancelHistory;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.dto.PointResponseDto;
+import co.dalicious.domain.user.entity.Founders;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.system.util.DateUtils;
@@ -21,24 +22,24 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface PointHistoryMapper {
 
     default PointResponseDto.PointHistoryDto toPointRequestDto(PointHistory pointHistory, List<Reviews> reviewsList, List<Order> orderList,
-                                                               List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList) {
+                                                               List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList, Founders founders) {
         PointResponseDto.PointHistoryDto pointRequestDto = new PointResponseDto.PointHistoryDto();
 
-        pointRequestDto.setRewardDate(DateUtils.toISOLocalDate(pointHistory.getCreatedDateTime()));
+        pointRequestDto.setRewardDate(DateUtils.toISOLocalDateAndWeekOfDay(pointHistory.getCreatedDateTime()));
         pointRequestDto.setPoint(pointHistory.getPoint());
         pointRequestDto.setLeftPoint(pointHistory.getLeftPoint());
         pointRequestDto.setPointStatus(pointHistory.getPointStatus().getCode());
-        getNameAndSetIdsAndMakersName(reviewsList, orderList, noticeList, cancelHistoryList, pointRequestDto, pointHistory);
+        getNameAndSetIdsAndMakersName(reviewsList, orderList, noticeList, cancelHistoryList, pointRequestDto, pointHistory, founders);
 
         return pointRequestDto;
     }
 
     default void getNameAndSetIdsAndMakersName(List<Reviews> reviewsList, List<Order> orderList, List<Notice> noticeList, List<PaymentCancelHistory> cancelHistoryList,
-                                               PointResponseDto.PointHistoryDto pointRequestDto, PointHistory pointHistory) {
+                                               PointResponseDto.PointHistoryDto pointRequestDto, PointHistory pointHistory, Founders founders) {
 
         StringBuilder name = new StringBuilder();
         BigInteger id = null;
@@ -47,7 +48,8 @@ public interface PointHistoryMapper {
         if(pointHistory.getPointStatus().equals(PointStatus.REVIEW_REWARD)) {
             Reviews reviews = reviewsList.stream()
                     .filter(r -> pointHistory.getReviewId().equals(r.getId())).findFirst()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.REVIEW_NOT_FOUND));
+                    .orElse(null);
+            if(reviews == null) return;
             OrderItem orderItem = (OrderItem) Hibernate.unproxy(reviews.getOrderItem());
             if(orderItem instanceof  OrderItemDailyFood orderItemDailyFood) {
                 Food food = orderItemDailyFood.getDailyFood().getFood();
@@ -60,7 +62,8 @@ public interface PointHistoryMapper {
         else if(pointHistory.getPointStatus().equals(PointStatus.USED)) {
             Order order = orderList.stream()
                     .filter(o -> pointHistory.getOrderId().equals(o.getId())).findFirst()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
+                    .orElse(null);
+            if(order == null) return;
             List<OrderItem> orderItems = order.getOrderItems();
             for(OrderItem orderItem : orderItems) {
                 if(Hibernate.unproxy(orderItem) instanceof OrderItemDailyFood orderItemDailyFood) {
@@ -80,7 +83,8 @@ public interface PointHistoryMapper {
         else if(pointHistory.getPointStatus().equals(PointStatus.EVENT_REWARD)) {
             Notice notice = noticeList.stream()
                     .filter(n -> pointHistory.getBoardId().equals(n.getId())).findFirst()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
+                    .orElse(null);
+            if(notice == null) return;
 
             name.append(notice.getTitle());
             id = notice.getId();
@@ -89,7 +93,8 @@ public interface PointHistoryMapper {
         else if(pointHistory.getPointStatus().equals(PointStatus.CANCEL)) {
             PaymentCancelHistory cancelHistory = cancelHistoryList.stream()
                     .filter(c -> pointHistory.getPaymentCancelHistoryId().equals(c.getId())).findFirst()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.CANCLE_HISTORY_NOT_FOUND));
+                    .orElse(null);
+            if(cancelHistory == null) return;
             OrderItem orderItem = (OrderItem) Hibernate.unproxy(cancelHistory.getOrderItem());
             if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                 makersName = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
@@ -98,6 +103,10 @@ public interface PointHistoryMapper {
                 name.append(foodName);
             }
             id = cancelHistory.getOrder().getId();
+        }
+        else if(pointHistory.getPointStatus().equals(PointStatus.ACCUMULATED_FOUNDERS_POINT)) {
+            name.append(DateUtils.format(founders.getMembership().getStartDate())).append(" ~ ");
+            name.append(DateUtils.format(pointHistory.getCreatedDateTime().toLocalDateTime().toLocalDate()));
         }
 
         pointRequestDto.setName(String.valueOf(name));

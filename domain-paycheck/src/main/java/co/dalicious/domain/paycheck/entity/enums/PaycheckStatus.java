@@ -10,7 +10,10 @@ import java.util.Arrays;
 public enum PaycheckStatus {
     REGISTER("정산 신청 완료", 0),
     WAITING_CONFIRM("거래명세서 확정 대기", 1),
-    PAYMENT_COMPLETE("정산금 입금 완료", 2);
+    PAYMENT_COMPLETE("정산금 입금 완료", 2),
+    ADD_REQUEST_COMPLETE("추가 요청 처리 완료", 3),
+    TRANSACTION_CONFIRM("거래명세서 확정", 4),
+    COMPLETE("정산 완료", 5);
 
     private final String paycheckStatus;
     private final Integer code;
@@ -21,10 +24,11 @@ public enum PaycheckStatus {
     }
 
     public static PaycheckStatus ofCode(Integer dbData) {
+        if(dbData == null) return null;
         return Arrays.stream(PaycheckStatus.values())
                 .filter(v -> v.getCode().equals(dbData))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+                .orElseThrow(null);
     }
 
     public static PaycheckStatus ofString(String paycheckStatus) {

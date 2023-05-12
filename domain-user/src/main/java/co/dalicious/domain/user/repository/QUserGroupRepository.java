@@ -2,23 +2,17 @@ package co.dalicious.domain.user.repository;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
-import com.querydsl.core.QueryResults;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
+import static co.dalicious.domain.user.entity.QUser.user;
 import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
 
 @Repository
@@ -73,5 +67,49 @@ public class QUserGroupRepository {
         }
 
         return groupIntegerMap;
+    }
+
+    public List<String> findUserGroupFirebaseToken(List<BigInteger> groupIds) {
+        return queryFactory.select(user.firebaseToken)
+                .from(userGroup)
+                .leftJoin(userGroup.user, user)
+                .where(userGroup.group.id.in(groupIds), user.firebaseToken.isNotNull())
+                .fetch();
+    }
+
+    public Map<User, Group> findUserGroupFirebaseToken(Set<BigInteger> groupIds) {
+        List<Tuple> results = queryFactory.select(user, userGroup.group)
+                .from(userGroup)
+                .leftJoin(userGroup.user, user)
+                .where(userGroup.group.id.in(groupIds), user.firebaseToken.isNotNull())
+                .fetch();
+
+        Map<User, Group> userGroupMap = new HashMap<>();
+
+        for (Tuple result : results) {
+            User user = result.get(0, User.class);
+            Group group = result.get(1, Group.class);
+            userGroupMap.put(user, group);
+        }
+
+        return userGroupMap;
+    }
+
+    public Map<User, Group> findUserGroupFirebaseTokenByGroup(Set<Group> groups) {
+        List<Tuple> results = queryFactory.select(user, userGroup.group)
+                .from(userGroup)
+                .leftJoin(userGroup.user, user)
+                .where(userGroup.group.in(groups), user.firebaseToken.isNotNull())
+                .fetch();
+
+        Map<User, Group> userGroupMap = new HashMap<>();
+
+        for (Tuple result : results) {
+            User user = result.get(0, User.class);
+            Group group = result.get(1, Group.class);
+            userGroupMap.put(user, group);
+        }
+
+        return userGroupMap;
     }
 }

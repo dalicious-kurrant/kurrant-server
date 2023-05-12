@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.review.dto.CommentReqDto;
 import co.dalicious.domain.review.dto.ReviewAdminResDto;
+import co.dalicious.domain.review.dto.ReviewKeywordSaveReqDto;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigInteger;
@@ -25,4 +26,6 @@ public interface ReviewService {
     void reportReview(BigInteger reviewId);
     // 댓글 삭제
     void deleteComment(BigInteger commentId);
+
+    void reviewKeywordSave(ReviewKeywordSaveReqDto keywordDto);
 }

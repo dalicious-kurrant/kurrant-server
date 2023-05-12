@@ -93,9 +93,9 @@ public class ClientOrderController {
 
     @PostMapping("/extra/refund")
     public ResponseMessage refundExtraOrderItems(Authentication authentication,
-                                               @RequestBody BigInteger orderId) {
+                                               @RequestBody OrderDto.Id id) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        clientOrderService.refundExtraOrderItems(securityUser, orderId);
+        clientOrderService.refundExtraOrderItems(securityUser, id);
         return ResponseMessage.builder()
                 .message("추가 주문에 성공하였습니다.")
                 .build();

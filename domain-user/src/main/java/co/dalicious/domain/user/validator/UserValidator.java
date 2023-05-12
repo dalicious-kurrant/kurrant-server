@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
@@ -30,7 +31,16 @@ public class UserValidator {
     public void isEmailValid(Provider provider, String email) {
         Optional<ProviderEmail> providerEmail = providerEmailRepository.findOneByProviderAndEmail(provider, email);
         if(providerEmail.isPresent()) {
-            throw new ApiException(ExceptionEnum.ALREADY_EXISTING_USER);
+            throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
+        }
+    }
+
+    public void isEmailValid(User user, String email) {
+        List<ProviderEmail> providerEmails = providerEmailRepository.findAllByEmail(email);
+        for (ProviderEmail providerEmail : providerEmails) {
+            if(!providerEmail.getUser().equals(user)) {
+                throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
+            }
         }
     }
 
@@ -54,6 +64,16 @@ public class UserValidator {
         }
     }
 
+    public static void isValidEmail(String email) {
+        boolean err = false;
+        String regex = "^[_a-zA-Z0-9-]+(.[_a-zA-Z0-9-]+)*@(?:\\w+\\.)+\\w+$";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(email);
+        if(!m.matches()) {
+            throw new ApiException(ExceptionEnum.NOT_VALID_EMAIL);
+        }
+    }
+
     public User getExistingUser(String email) {
         List<ProviderEmail> providerEmails = providerEmailRepository.findAllByEmail(email);
         if(!providerEmails.isEmpty()) {
@@ -72,7 +92,18 @@ public class UserValidator {
         }
     }
 
+    public static void isAuthorizedUser(User user) {
+        user.getProviderEmails().stream().filter(v -> v.getProvider().equals(Provider.GENERAL))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
+    }
+
     public boolean adminExists() {
         return userRepository.existsByRole(Role.ADMIN);
+    }
+
+    public Boolean isPhoneValidBoolean(String phone) {
+        Optional<User> user = userRepository.findOneByPhone(phone);
+        return user.isPresent();
     }
 }

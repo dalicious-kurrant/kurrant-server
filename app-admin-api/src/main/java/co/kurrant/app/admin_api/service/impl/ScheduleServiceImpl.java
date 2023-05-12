@@ -274,7 +274,6 @@ public class ScheduleServiceImpl implements ScheduleService {
                             deliveryTimes.add(mealInfo.getDeliveryTime());
                         });
                     }
-                    deliveryTimes.forEach(System.out::println);
                     String pickupTime = DateTimeFormatter.ofPattern("HH:mm").format(deliveryTimes.stream().min(LocalTime::compareTo).orElseThrow(
                             () -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO)).minusMinutes(40));
 

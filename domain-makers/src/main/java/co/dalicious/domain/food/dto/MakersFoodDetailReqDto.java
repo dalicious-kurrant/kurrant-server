@@ -22,5 +22,13 @@ public class MakersFoodDetailReqDto {
     private Integer morningCapacity;
     private Integer lunchCapacity;
     private Integer dinnerCapacity;
+
+    private String morningLastOrderTime;
+    private String lunchLastOrderTime;
+    private String dinnerLastOrderTime;
     private List<String> images;
+    private Integer calorie;
+    private Integer fat;
+    private Integer protein;
+    private Integer carbohydrate;
 }

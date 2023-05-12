@@ -79,4 +79,19 @@ public class CreditCardInfo {
     public CreditCardInfo(Integer status) {
         this.status = status;
     }
+
+    public Boolean isSameCard(String cardNumber, String cardCompany) {
+        if(this.niceBillingKey == null) {
+            return false;
+        }
+        return this.cardNumber.equals(cardNumber) && this.cardCompany.equals(cardCompany);
+    }
+
+    public void updateNiceBillingKey(String niceBillingKey) {
+        this.niceBillingKey = niceBillingKey;
+    }
+
+    public void updateStatus(Integer status) {
+        this.status = status;
+    }
 }

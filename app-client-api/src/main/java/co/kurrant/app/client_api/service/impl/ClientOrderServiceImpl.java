@@ -8,7 +8,7 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
-import co.dalicious.domain.order.dto.DiningTypeServiceDateDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.order.entity.*;
@@ -19,6 +19,7 @@ import co.dalicious.domain.order.mapper.DailyFoodSupportPriceMapper;
 import co.dalicious.domain.order.mapper.ExtraOrderMapper;
 import co.dalicious.domain.order.mapper.OrderMapper;
 import co.dalicious.domain.order.repository.*;
+import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
@@ -47,7 +48,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -65,7 +65,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     private final OrderItemDailyFoodGroupRepository orderItemDailyFoodGroupRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
-    private final QOrderRepository qOrderRepository;
+    private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
 
@@ -95,7 +95,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         Makers makers = (makersId != null) ? makersRepository.findById(makersId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
 
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, corporation, spotIds, diningTypeCode, userId, makers);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, corporation, spotIds, diningTypeCode, userId, makers, null);
         return orderMapper.toGroupOrderDto(orderItemDailyFoods);
     }
 
@@ -134,7 +134,8 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(SecurityUser securityUser, LocalDate startDate, LocalDate endDate) {
         Corporation corporation = userUtil.getCorporation(securityUser);
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, Collections.singletonList(corporation.getId()), null);
-        return extraOrderMapper.toDailyFoodList(dailyFoods);
+        Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
+        return extraOrderMapper.toDailyFoodList(dailyFoods, remainFoodCount);
     }
 
     @Override
@@ -148,18 +149,22 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         if(users.size() != 1) throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
 
         // 추가하고자 하는 식단 리스트 가져오기
-        Set<DiningTypeServiceDateDto> diningTypeServiceDateDtos = new HashSet<>();
+        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
         MultiValueMap<BigInteger, ExtraOrderDto.Request> requestMap = new LinkedMultiValueMap<>();
         for (ExtraOrderDto.Request orderDto : orderDtos) {
             requestMap.add(orderDto.getSpotId(), orderDto);
 
             LocalDate serviceDate = DateUtils.stringToDate(orderDto.getServiceDate());
             DiningType diningType = DiningType.ofString(orderDto.getDiningType());
-            DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(serviceDate, diningType);
-            diningTypeServiceDateDtos.add(diningTypeServiceDateDto);
+            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(serviceDate, diningType);
+            serviceDiningDtos.add(serviceDiningDto);
         }
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(diningTypeServiceDateDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(periodDto.getStartDate(), periodDto.getEndDate(), Collections.singletonList(corporation.getId()), null);
+
+        dailyFoods.stream().filter(v -> v.getDailyFoodStatus().equals(DailyFoodStatus.SALES))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.SOLD_OUT));
 
         // 식단을 스팟별로 정렬
         for (BigInteger bigInteger : requestMap.keySet()) {
@@ -179,16 +184,16 @@ public class ClientOrderServiceImpl implements ClientOrderService {
             assert requestsBySpot != null;
 
             // 식사일정별로 DailyFood 묶기 (OrderItemDailyFoodGroup)
-            MultiValueMap<DiningTypeServiceDateDto, ExtraOrderDto.Request> orderDailyFoodGroupMap = new LinkedMultiValueMap<>();
+            MultiValueMap<ServiceDiningDto, ExtraOrderDto.Request> orderDailyFoodGroupMap = new LinkedMultiValueMap<>();
             for (ExtraOrderDto.Request request : requestsBySpot) {
-                DiningTypeServiceDateDto diningTypeServiceDateDto = new DiningTypeServiceDateDto(DateUtils.stringToDate(request.getServiceDate()), DiningType.ofString(request.getDiningType()));
-                orderDailyFoodGroupMap.add(diningTypeServiceDateDto, request);
+                ServiceDiningDto serviceDiningDto = new ServiceDiningDto(DateUtils.stringToDate(request.getServiceDate()), DiningType.ofString(request.getDiningType()));
+                orderDailyFoodGroupMap.add(serviceDiningDto, request);
             }
 
-            for (DiningTypeServiceDateDto diningTypeServiceDateDto : orderDailyFoodGroupMap.keySet()) {
-                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.save(orderMapper.toOrderItemDailyFoodGroup(diningTypeServiceDateDto));
+            for (ServiceDiningDto serviceDiningDto : orderDailyFoodGroupMap.keySet()) {
+                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.save(orderMapper.toOrderItemDailyFoodGroup(serviceDiningDto));
 
-                List<ExtraOrderDto.Request> requests = orderDailyFoodGroupMap.get(diningTypeServiceDateDto);
+                List<ExtraOrderDto.Request> requests = orderDailyFoodGroupMap.get(serviceDiningDto);
                 List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
                 assert requests != null;
                 BigDecimal supportPrice = BigDecimal.ZERO;
@@ -226,21 +231,21 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
 
         Corporation corporation = userUtil.getCorporation(securityUser);
-        List<User> users = qUserRepository.findManagerByGroupIds(Collections.singleton(corporation.getId()));
+        List<User> users = qUserRepository.findAdminAndManagerByGroupIds(Collections.singleton(corporation.getId()));
         List<BigInteger> userIds = users.stream()
                 .map(User::getId)
                 .toList();
-        List<OrderItemDailyFood> orderDailyFoods =  qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate);
+        List<OrderItemDailyFood> orderDailyFoods =  qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate, null);
 
         return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
     }
 
     @Override
     @Transactional
-    public void refundExtraOrderItems(SecurityUser securityUser, BigInteger id) {
-        List<User> users = qUserRepository.findManagerByGroupIds(Collections.singleton(securityUser.getId()));
+    public void refundExtraOrderItems(SecurityUser securityUser, OrderDto.Id id) {
+        List<User> users = qUserRepository.findAdminAndManagerByGroupIds(Collections.singleton(securityUser.getId()));
 
-        OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(id)
+        OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(id.getId())
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
 
         if (!users.contains(orderItemDailyFood.getOrder().getUser())) {

@@ -1,5 +1,9 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.repository.NotificationHashRepository;
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.service.ImageService;
@@ -9,6 +13,7 @@ import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.QOrderItemRepository;
+import co.dalicious.domain.review.repository.QKeywordRepository;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.review.dto.*;
@@ -18,6 +23,7 @@ import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.review.repository.ReviewRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserRepository;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ReviewService;
@@ -40,6 +46,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,6 +61,10 @@ public class ReviewServiceImpl implements ReviewService {
     private final ImageService imageService;
     private final QUserRepository qUserRepository;
     private final PointUtil pointUtil;
+    private final NotificationHashRepository notificationHashRepository;
+    private final SseService sseService;
+    private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
+    private final QKeywordRepository qKeywordRepository;
 
     @Override
     @Transactional
@@ -61,58 +72,67 @@ public class ReviewServiceImpl implements ReviewService {
         // 파일의 최대 갯수는 6개 이다.
         if(fileList != null && fileList.size() > 6) throw new ApiException(ExceptionEnum.REQUEST_OVER_IMAGE_FILE);
 
-        // 필요한 정보 가져오기 - 유저, 상품
         User user = userUtil.getUser(securityUser);
-        OrderItem orderItem = qOrderItemRepository.findByUserAndOrderId(user, reviewDto.getOrderItemId());
-        List<Reviews> reviewsList = qReviewRepository.findByUserAndOrderItem(user, orderItem);
-        if(orderItem == null) throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
+        synchronized (userLocks.computeIfAbsent(user, u -> new Object())) {
+            // 필요한 정보 가져오기 - 상품
+            OrderItem orderItem = qOrderItemRepository.findByUserAndOrderId(user, reviewDto.getOrderItemId());
+            List<Reviews> reviewsList = qReviewRepository.findByUserAndOrderItem(user, orderItem);
+            if (orderItem == null) throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
 
-        validate(reviewDto.getSatisfaction(), reviewDto.getContent());
+            validate(reviewDto.getSatisfaction(), reviewDto.getContent());
 
-        // 찾은 주문 상품이 dailyfood이면
-        DailyFood dailyFood = null;
-        Food food = null;
-        Integer membershipDiscountRate = 0;
-        Integer count = 0;
-        if(orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
-            dailyFood = orderItemDailyFood.getDailyFood();
-            food = dailyFood.getFood();
-            membershipDiscountRate = orderItemDailyFood.getMembershipDiscountRate();
-            count = orderItemDailyFood.getCount();
-        }
+            // 찾은 주문 상품이 dailyfood이면
+            DailyFood dailyFood = null;
+            Food food = null;
+            Integer membershipDiscountRate = 0;
+            Integer count = 0;
+            if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
+                dailyFood = orderItemDailyFood.getDailyFood();
+                food = dailyFood.getFood();
+                membershipDiscountRate = orderItemDailyFood.getMembershipDiscountRate();
+                count = orderItemDailyFood.getCount();
+            }
 
-        // 이미 review를 작성한 건인지 검증
-        if(reviewsList != null && !reviewsList.isEmpty()) {
-            reviewsList.stream().filter(r -> r.getIsDelete().equals(false))
-                    .findFirst()
-                    .orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_WRITING_REVIEW));
-        }
-        // 리뷰 가능 일이 맞는지 검증
-        LocalDate reviewableDate = Objects.requireNonNull(dailyFood).getServiceDate().plusDays(7);
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        if(reviewableDate.isBefore(today)) {
-            throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
-        }
+            // 이미 review를 작성한 건인지 검증
+            if (reviewsList != null && !reviewsList.isEmpty()) {
+                reviewsList.stream().filter(r -> r.getIsDelete().equals(false))
+                        .findFirst()
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_WRITING_REVIEW));
+            }
+            // 리뷰 가능 일이 맞는지 검증
+            LocalDate reviewableDate = Objects.requireNonNull(dailyFood).getServiceDate().plusDays(7);
+            LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+            if (reviewableDate.isBefore(today)) {
+                throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
+            }
 
 
-        List<Image> images = new ArrayList<>();
-        if(fileList != null && !fileList.isEmpty()) {
-            List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
-            images.addAll(Image.toImages(imageResponseDtos));
-        }
+            List<Image> images = new ArrayList<>();
+            if (fileList != null && !fileList.isEmpty()) {
+                List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
+                images.addAll(Image.toImages(imageResponseDtos));
+            }
 
-        // review 생성
-        Reviews reviews = reviewMapper.toEntity(reviewDto, user, orderItem, food, images);
-        // review 저장
-        reviewRepository.save(reviews);
-        qReviewRepository.updateDefault(reviews);
+            // review 생성
+            Reviews reviews = reviewMapper.toEntity(reviewDto, user, orderItem, food, images);
+            // review 저장
+            reviewRepository.save(reviews);
+            qReviewRepository.updateDefault(reviews);
+            orderItem.updateOrderStatus(OrderStatus.WRITTEN_REVIEW);
 
-        // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
-        if(user.getIsMembership() || membershipDiscountRate != 0) {
-            //음식 수량 많큼 포인트 지급
-            BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice(), count);
-            qUserRepository.updateUserPoint(user.getId(), rewardPoint);
-            if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByOthers(user, reviews.getId(), PointStatus.REVIEW_REWARD, rewardPoint);
+            // 포인트 적립 - 멤버십이 있거나 상품 구매 시점에 멤버십이 있었으면 적립
+            if (user.getIsMembership() || membershipDiscountRate != 0) {
+                //음식 수량 많큼 포인트 지급
+                BigDecimal rewardPoint = pointUtil.findReviewPoint((fileList != null && !fileList.isEmpty()), dailyFood.getFood().getPrice(), count);
+                qUserRepository.updateUserPoint(user.getId(), rewardPoint, PointStatus.REVIEW_REWARD);
+                if (!rewardPoint.equals(BigDecimal.ZERO))
+                    pointUtil.createPointHistoryByOthers(user, reviews.getId(), PointStatus.REVIEW_REWARD, rewardPoint);
+            }
+            //키워드 검색 후 해당되는 키워드 언급시 +1처리
+            List<String> keywordList = qKeywordRepository.findAllByFoodId(((OrderItemDailyFood) orderItem).getDailyFood().getFood().getId());
+            qKeywordRepository.plusKeyword(keywordList, ((OrderItemDailyFood) orderItem).getDailyFood().getFood().getId(), reviewDto.getContent());
+
+
         }
     }
 
@@ -136,26 +156,36 @@ public class ReviewServiceImpl implements ReviewService {
         MultiValueMap<LocalDate, OrderItemDailyFood> orderItemDailyFoodByServiceDateMap = new LinkedMultiValueMap<>();
         for(OrderItem item : receiptCompleteItem) {
 
-            if(reviewOrderItem.contains(item)) continue;
+//            if(reviewOrderItem.contains(item)) continue;
 
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
+
+                MealInfo mealInfos = orderItemDailyFood.getDailyFood().getGroup().getMealInfos().stream()
+                        .filter(m -> m.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType()))
+                        .findAny().orElse(null);
+
+                LocalTime deliveryTime = mealInfos != null ? mealInfos.getDeliveryTime() : LocalTime.MAX;
+
                 LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
                 //리뷰 가능일 구하기
-                LocalDateTime reviewableDate = serviceDate.plusDays(5).atTime(LocalTime.MAX);
+                LocalDateTime reviewableDate = serviceDate.plusDays(5).atTime(deliveryTime);
+                System.out.println("reviewableDate = " + reviewableDate);
                 //리뷰 작성 가능일이 이미 지났으면 패스
                 if(reviewableDate.isBefore(today)) continue;
+                System.out.println("item = " + ((OrderItemDailyFood) item).getName());
 
                 orderItemDailyFoodByServiceDateMap.add(serviceDate, orderItemDailyFood);
 
                 // d-day 구하기
                 String leftDayAndTime = DateUtils.calculatedDDayAndTime(reviewableDate);
+                System.out.println("leftDayAndTime = " + leftDayAndTime);
                 String day = leftDayAndTime.split(" ")[0];
                 String time = leftDayAndTime.split(" ")[1];
 
                 String leftDay;
                 if(day.equals("0")) leftDay = time;
                 else leftDay = day;
-
+                System.out.println("leftDay = " + leftDay);
                 // 적립 가능한 포인트 조회
                 BigDecimal itemPrice = orderItemDailyFood.getDailyFood().getFood().getPrice();
                 int count = orderItemDailyFood.getCount();
@@ -185,6 +215,11 @@ public class ReviewServiceImpl implements ReviewService {
 
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
         //TODO: sse 보내기
+
+        List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 3, true);
+        if(notificationHashList == null || notificationHashList.isEmpty()) {
+            sseService.send(user.getId(), 3, "리뷰를 작성해야하는 상품이 있습니다.");
+        }
 
         return ReviewableItemResDto.create(orderFoodList, redeemablePoints, size);
     }
@@ -248,9 +283,14 @@ public class ReviewServiceImpl implements ReviewService {
         if(fileList != null && !fileList.isEmpty()) {
             List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
             imageList.addAll(Image.toImages(imageResponseDtos));
+            // 기존 리뷰가 사진이 없다가 수정시 사진을 넣으면 포인트 지급
+            BigDecimal rewardPoint = pointUtil.findReviewPointWhenUpdate(user, reviews.getId());
+            qUserRepository.updateUserPoint(user.getId(), rewardPoint, PointStatus.REVIEW_REWARD);
+            if(!rewardPoint.equals(BigDecimal.ZERO)) pointUtil.createPointHistoryByOthers(user, reviews.getId(), PointStatus.REVIEW_REWARD, rewardPoint);
         }
 
         reviews.updatedReviews(updateReqDto, imageList);
+
     }
 
     @Override

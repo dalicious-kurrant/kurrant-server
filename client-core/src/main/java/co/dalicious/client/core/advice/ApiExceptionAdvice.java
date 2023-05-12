@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import co.dalicious.client.core.dto.response.ErrorItemResponseDto;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,20 @@ public class ApiExceptionAdvice {
                         .build();
 
         return ResponseEntity.status(e.getError().getStatus()).body(List.of(errors));
+    }
+
+    @ExceptionHandler({CustomException.class})
+    public ResponseEntity<List<ErrorItemResponseDto>> exceptionHandler(HttpServletRequest request,
+                                                                       final CustomException e) {
+        e.printStackTrace();
+
+        ErrorItemResponseDto errors =
+                ErrorItemResponseDto.builder()
+                        .code(e.getCode())
+                        .message(e.getError())
+                        .build();
+
+        return ResponseEntity.status(e.getStatus()).body(List.of(errors));
     }
 
     @ExceptionHandler({RuntimeException.class})

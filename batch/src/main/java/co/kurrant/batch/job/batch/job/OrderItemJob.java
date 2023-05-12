@@ -1,9 +1,9 @@
 package co.kurrant.batch.job.batch.job;
 
-import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.DateUtils;
+import co.kurrant.batch.service.OrderItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -16,19 +16,15 @@ import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -38,8 +34,8 @@ public class OrderItemJob {
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory entityManagerFactory;
-    private final EntityManager entityManager;
-    private final int CHUNK_SIZE = 100;
+    private final OrderItemService orderItemService;
+    private final int CHUNK_SIZE = 500;
 
     @Bean("orderStatusToDeliveringJob")
     public Job orderStatusToDeliveringJob() {
@@ -61,7 +57,7 @@ public class OrderItemJob {
         // pickup time 지나면 order status -> OrderStatus.DELIVERING
         return stepBuilderFactory.get("orderStatusToDeliveringJob_step")
                 .<OrderItem, OrderItem>chunk(CHUNK_SIZE)
-                .reader(forChangingStatusToDeliveringInOrderItemReader(matchingOrderStatusByWaitDelivery()))
+                .reader(forChangingStatusToDeliveringInOrderItemReader())
                 .processor(OrderStatusToDeliveringProcessor())
                 .writer(forChangingStatusInOrderItemWriter())
                 .build();
@@ -73,78 +69,16 @@ public class OrderItemJob {
         // pickup time 지나면 order status -> OrderStatus.DELIVERED
         return stepBuilderFactory.get("orderStatusToDeliveredJob_step")
                 .<OrderItem, OrderItem>chunk(CHUNK_SIZE)
-                .reader(forChangingStatusToDeliveredInOrderItemReader(matchingOrderStatusByWaitDelivering()))
+                .reader(forChangingStatusToDeliveredInOrderItemReader())
                 .processor(OrderStatusToDeliveredProcessor())
                 .writer(forChangingStatusInOrderItemWriter())
                 .build();
     }
 
-    @Bean(name = "matchingOrderItemIdsByWaitDelivery")
-    List<BigInteger> matchingOrderStatusByWaitDelivery() {
-        log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
-
-        // list up order item daily food by order status = delivering
-        String queryString = "SELECT df.serviceDate, dfg.pickupTime, oi.id " +
-                "FROM OrderItem oi " +
-                "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
-                "JOIN oidf.dailyFood df " +
-                "JOIN df.dailyFoodGroup dfg " +
-                "WHERE oi.orderStatus = 6L";
-
-        TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
-        List<Object[]> results = query.getResultList();
-
-        LocalDate today  = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        LocalTime now = LocalTime.now(ZoneId.of("Asia/Seoul"));
-
-        List<BigInteger> orderItemIds = new ArrayList<>();
-        for(Object[] objects : results) {
-            LocalDate serviceDate = (LocalDate) objects[0];
-            LocalTime pickupTime = (LocalTime) objects[1];
-            BigInteger orderItemId = (BigInteger) objects[2];
-            if(serviceDate.equals(today) && pickupTime.isBefore(now)) {
-                orderItemIds.add(orderItemId);
-            }
-        }
-
-        return orderItemIds;
-    }
-
-    @Bean(name = "matchingOrderItemIdsByDelivering")
-    List<BigInteger> matchingOrderStatusByWaitDelivering() {
-        log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
-
-        // list up order item daily food by order status = delivering
-        String queryString = "SELECT oi.id, df.serviceDate, mi.deliveryTime " +
-                "FROM OrderItem oi " +
-                "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
-                "JOIN oidf.dailyFood df " +
-                "JOIN df.group g " +
-                "JOIN MealInfo mi ON g.id = mi.group.id AND df.diningType = mi.diningType " +
-                "WHERE oi.orderStatus = 9L";
-
-        TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
-        List<Object[]> results = query.getResultList();
-
-        LocalDate today  = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        LocalTime now = LocalTime.now(ZoneId.of("Asia/Seoul"));
-
-        List<BigInteger> orderItemIds = new ArrayList<>();
-        for(Object[] objects : results) {
-            BigInteger orderItemId = (BigInteger) objects[0];
-            LocalDate serviceDate = (LocalDate) objects[1];
-            LocalTime deliveryTime = (LocalTime) objects[2];
-            if(serviceDate.equals(today) && deliveryTime.isBefore(now)) {
-                orderItemIds.add(orderItemId);
-            }
-        }
-
-        return orderItemIds;
-    }
-
     @Bean
     @JobScope
-    public JpaPagingItemReader<OrderItem> forChangingStatusToDeliveringInOrderItemReader(@Qualifier("matchingOrderItemIdsByWaitDelivery") List<BigInteger> orderItemIds) {
+    public JpaPagingItemReader<OrderItem> forChangingStatusToDeliveringInOrderItemReader() {
+        List<BigInteger> orderItemIds = orderItemService.matchingOrderStatusByWaitDelivery();
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("orderItemIds", orderItemIds);
@@ -164,7 +98,8 @@ public class OrderItemJob {
 
     @Bean
     @JobScope
-    public JpaPagingItemReader<OrderItem> forChangingStatusToDeliveredInOrderItemReader(@Qualifier("matchingOrderItemIdsByDelivering") List<BigInteger> orderItemIds) {
+    public JpaPagingItemReader<OrderItem> forChangingStatusToDeliveredInOrderItemReader() {
+        List<BigInteger> orderItemIds = orderItemService.matchingOrderStatusByWaitDelivering();
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("orderItemIds", orderItemIds);

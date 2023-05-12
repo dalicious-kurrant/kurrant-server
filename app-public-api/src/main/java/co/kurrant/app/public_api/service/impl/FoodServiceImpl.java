@@ -1,7 +1,9 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
@@ -15,13 +17,25 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.recommend.dto.UserRecommendWhereData;
 import co.dalicious.domain.recommend.entity.UserRecommends;
 import co.dalicious.domain.recommend.repository.QUserRecommendRepository;
+import co.dalicious.domain.review.dto.ReviewAdminResDto;
+import co.dalicious.domain.review.dto.ReviewListDto;
+import co.dalicious.domain.review.dto.ReviewsForUserResDto;
+import co.dalicious.domain.review.entity.Comments;
+import co.dalicious.domain.review.entity.Keyword;
+import co.dalicious.domain.review.entity.Like;
+import co.dalicious.domain.review.entity.Reviews;
+import co.dalicious.domain.review.mapper.LikeMapper;
+import co.dalicious.domain.review.mapper.ReviewMapper;
+import co.dalicious.domain.review.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.order.mapper.FoodMapper;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.system.util.DaysUtil;
+import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -37,7 +51,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +68,18 @@ public class FoodServiceImpl implements FoodService {
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QUserRecommendRepository qUserRecommendRepository;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
+    private final ReviewRepository reviewRepository;
+    private final QReviewRepository qReviewRepository;
+    private final ReviewMapper reviewMapper;
+    private final UserRepository userRepository;
+
+    private final CommentsRepository commentsRepository;
+
+    private final LikeRepository likeRepository;
+    private final LikeMapper likeMapper;
+    private final QLikeRepository qLikeRepository;
+
+    private final QKeywordRepository qKeywordRepository;
 
 
     @Override
@@ -78,14 +106,6 @@ public class FoodServiceImpl implements FoodService {
             dailyFoodList = qDailyFoodRepository.findAllByGroupAndSelectedDateAndDiningType(group, selectedDate, diningType);
 
             for (DailyFood dailyFood : dailyFoodList) {
-                /* FIXME: Spring Batch 서버 구현 완료
-                MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
-                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
-                if(LocalDate.now().equals(dailyFood.getServiceDate()) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
-                    dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
-                }
-               */
-
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
                 dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
@@ -122,11 +142,11 @@ public class FoodServiceImpl implements FoodService {
                 // 이용가능 날짜
                 switch (diningType) {
                     case MORNING ->
-                            serviceDays.setMorningServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                            serviceDays.setMorningServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
                     case LUNCH ->
-                            serviceDays.setLunchServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                            serviceDays.setLunchServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
                     case DINNER ->
-                            serviceDays.setDinnerServiceDays(DaysUtil.serviceDaysToStringList(group.getMealInfo(diningType).getServiceDays()));
+                            serviceDays.setDinnerServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
                 }
             }
             // 결과값을 담아줄 LIST 생성
@@ -134,13 +154,6 @@ public class FoodServiceImpl implements FoodService {
             dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(group, selectedDate);
             // 값이 있다면 결과값으로 담아준다.
             for (DailyFood dailyFood : dailyFoodList) {
-                /* FIXME: Spring Batch 서버 구현 완료
-                MealInfo mealInfo = group.getMealInfo(dailyFood.getDiningType());
-                LocalDateTime lastOrderDateTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(mealInfo.getLastOrderTime().getDay()), mealInfo.getLastOrderTime().getTime());
-                if ((LocalDate.now().equals(dailyFood.getServiceDate()) || LocalDate.now().isAfter(dailyFood.getServiceDate())) && LocalDateTime.now().isAfter(lastOrderDateTime)) {
-                    dailyFood.updateFoodStatus(DailyFoodStatus.SOLD_OUT);
-                }
-                 */
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
                 DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spotId, dailyFood, discountDto);
                 dailyFoodDto.setCapacity(orderDailyFoodUtil.getRemainFoodCount(dailyFood).getRemainCount());
@@ -212,9 +225,113 @@ public class FoodServiceImpl implements FoodService {
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
-
-        Food food = dailyFood.getFood();
-        DiscountDto discountDto = DiscountDto.getDiscount(food);
+        // TODO: 식단에 가격 업데이트 적용이 되는 시점부터 주석 해제
+//        DiscountDto discountDto = DiscountDto.getDiscount(dailyFood);
+        DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
         return new RetrieveDiscountDto(discountDto);
+    }
+
+    @Override
+    @Transactional
+    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, Integer starFilter) {
+
+        //유저와 DailyFood 정보 가져오기
+        DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+
+        //리뷰와 유저정보 가져오기
+        List<Reviews> reviewsList = new ArrayList<>();
+        if ((photo != null && photo != 0) || (starFilter != null && starFilter != 0)){
+             reviewsList = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), sort, photo, starFilter);
+        } else {
+            reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+        }
+        if (reviewsList.size() == 0){
+            return "리뷰없음";
+        }
+
+        //대댓글과 별점 추가
+        List<FoodReviewListDto> foodReviewListDtoList = new ArrayList<>();
+        double starEverage;
+        double sumStar = 0.0;    //별점 계산을 위한 총 별점
+        for (Reviews reviews : reviewsList){
+            Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
+            List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
+
+            //좋아요 눌렀는지 여부 조회
+            boolean isLike = false;
+            Optional<Like> like = qLikeRepository.foodReviewLikeCheckByUserId(optionalUser.get().getId(), reviews.getId());
+            if (like.isPresent()) isLike = true;
+
+            FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList, isLike);
+            foodReviewListDtoList.add(foodReviewListDto);
+            sumStar += (double) reviews.getSatisfaction();
+        }
+
+        //정렬
+        List<FoodReviewListDto> sortedFoodReviewListDtoList = new ArrayList<>();
+        if (sort == 0){ //별점 많은순(베스트순) 별점 같을 경우 최신순
+             sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction).reversed()
+                     .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList());
+        }
+        if (sort == 1){ //최신순 같을 경우 별점순
+            sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate).reversed()
+                    .thenComparing(FoodReviewListDto::getSatisfaction).reversed()).collect(Collectors.toList());
+        }
+        if (sort == 2){ //좋아요(도움이돼요)순 같을 경우 최신순
+            sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getLike).reversed()
+                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList());
+        }
+        starEverage =  Math.round(sumStar / (double) reviewsList.size() * 100) / 100.0;
+        Integer total = reviewsList.size();
+
+        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starEverage, total);
+    }
+
+    @Override
+    @Transactional
+    public String foodReviewLike(SecurityUser securityUser, FoodReviewLikeDto foodReviewLikeDto) {
+        //유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+
+        Optional<Like> optionalLike = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), foodReviewLikeDto.getReviewId());
+
+        if (optionalLike.isPresent()){
+            Optional<Reviews> optionalReviews = reviewRepository.findById(optionalLike.get().getReviewId().getId());
+            if (optionalReviews.get().getLike() > 0) { //like가 0보다 클떄만 minus 처리
+                qReviewRepository.minusLike(foodReviewLikeDto.getReviewId());
+            }
+            qReviewRepository.deleteLike(foodReviewLikeDto.getReviewId(), user.getId());
+            return "도움이 돼요 취소";
+        }
+
+        Optional<Reviews> optionalReviews = reviewRepository.findById(foodReviewLikeDto.getReviewId());
+
+        Like like = likeMapper.toEntity(user, optionalReviews.get());
+
+        //review_like 테이블에 저장 후 review__review 테이블에 like를 +1 해준다.
+        likeRepository.save(like);
+        qReviewRepository.plusLike(foodReviewLikeDto.getReviewId());
+
+        return "도움이 돼요 +1";
+    }
+
+    @Override
+    public boolean foodReviewLikeCheck(SecurityUser securityUser, BigInteger reviewId) {
+
+        User user = userUtil.getUser(securityUser);
+
+        Optional<Like> like = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), reviewId);
+        if (like.isEmpty()) return false;
+
+        return true;
+    }
+
+    @Override
+    public List<String> foodReviewKeyword(BigInteger dailyFoodId) {
+
+        DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+
+        return qKeywordRepository.findAllByFoodId(dailyFood.getFood().getId());
     }
 }

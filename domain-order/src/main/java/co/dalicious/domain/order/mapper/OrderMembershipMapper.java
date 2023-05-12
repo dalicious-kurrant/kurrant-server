@@ -45,7 +45,7 @@ public interface OrderMembershipMapper {
 
     @Mapping(source = "membership", target = "membership")
     @Mapping(source = "membership.membershipSubscriptionType.membershipSubscriptionType", target = "membershipSubscriptionType")
-    @Mapping(source = "membership.membershipSubscriptionType.price", target = "price")
+    @Mapping(target = "price", constant = "10000")
     @Mapping(target = "discountPrice", expression = "java(order.getDiscountPrice())")
     @Mapping(target = "orderStatus", constant = "COMPLETED")
     OrderItemMembership toOrderItemMembership(Order order, Membership membership);
@@ -66,13 +66,13 @@ public interface OrderMembershipMapper {
 
     @Mapping(source = "user", target = "user")
     @Mapping(source = "group", target = "group")
-    @Mapping(source = "orderItemMembership", target = "usingSupportPrice" ,qualifiedByName = "getUsingSupportPrice")
+    @Mapping(source = "orderItemMembership", target = "usingSupportPrice", qualifiedByName = "getUsingSupportPrice")
     @Mapping(target = "monetaryStatus", constant = "DEDUCTION")
     @Mapping(source = "orderItemMembership", target = "orderItemMembership")
     MembershipSupportPrice toMembershipSupportPrice(User user, Group group, OrderItemMembership orderItemMembership);
 
     @Named("getUsingSupportPrice")
     default BigDecimal getUsingSupportPrice(OrderItemMembership orderItemMembership) {
-        return orderItemMembership.getPrice().subtract(orderItemMembership.getDiscountPrice());
+        return orderItemMembership.getPrice();
     }
 }

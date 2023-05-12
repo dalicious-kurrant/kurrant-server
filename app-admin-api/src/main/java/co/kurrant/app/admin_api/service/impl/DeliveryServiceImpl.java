@@ -84,7 +84,10 @@ public class DeliveryServiceImpl implements DeliveryService {
                     List<OrderItemDailyFood> orderItemDailyFoodList = spotOrderItemDailyFoodMultiValueMap.get(spot);
 
                     // daily food 추출
-                    Set<DailyFood> dailyFoodSet = Objects.requireNonNull(orderItemDailyFoodList).stream().map(OrderItemDailyFood::getDailyFood).collect(Collectors.toSet());
+                    Set<DailyFood> dailyFoodSet = Objects.requireNonNull(orderItemDailyFoodList).stream()
+                            .map(OrderItemDailyFood::getDailyFood)
+                            .filter(dailyFood -> dailyFood.getServiceDate().equals(serviceDate))
+                            .collect(Collectors.toSet());
                     for(DailyFood dailyFood : dailyFoodSet) {
                         spotDailyFoodMap.add(spot, dailyFood);
                     }

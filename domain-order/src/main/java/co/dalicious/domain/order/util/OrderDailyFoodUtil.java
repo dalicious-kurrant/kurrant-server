@@ -6,16 +6,14 @@ import co.dalicious.domain.food.repository.QFoodScheduleRepository;
 import co.dalicious.domain.food.repository.QMakersScheduleRepository;
 import co.dalicious.domain.food.entity.MakersSchedule;
 import co.dalicious.domain.order.dto.FoodCountDto;
+import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -24,35 +22,19 @@ public class OrderDailyFoodUtil {
     private final QMakersScheduleRepository qMakersScheduleRepository;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
 
-    public Map<DailyFood, Integer> getRemainFoodsCount(List<DailyFood> dailyFoods) {
-        Map<DailyFood, Integer> dailyFoodIntegerMap = new HashMap<>();
-        // 1. 한정 판매 수량인지 확인한다.
-        List<FoodSchedule> foodSchedules = qFoodScheduleRepository.findAllByDailyFoods(dailyFoods);
+
+    public ServiceDateBy.MakersAndFood getMakersCapacity(List<DailyFood> dailyFoods, ServiceDateBy.MakersAndFood makersOrderCount) {
         // 2. 메이커스에서 값을 설정했는지 가져온다.
         List<MakersSchedule> makersSchedules = qMakersScheduleRepository.findAllByDailyFoods(dailyFoods);
-        // 3. 총 주문 수량을 가져온다.
+        Map<ServiceDateBy.Makers, Integer> makersIntegerMap = new LinkedHashMap<>();
+        ServiceDateBy.MakersAndFood makersAndFood = new ServiceDateBy.MakersAndFood();
         for (DailyFood dailyFood : dailyFoods) {
-            Integer foodCount = 0;
             Integer makersCount = 0;
 
-            Optional<FoodSchedule> foodScheduleOptional = foodSchedules.stream().filter(v -> v.getFood().equals(dailyFood.getFood())
-                            && v.getServiceDate().equals(dailyFood.getServiceDate())
-                            && v.getDiningType().equals(dailyFood.getDiningType()))
-                    .findAny();
             Optional<MakersSchedule> makersScheduleOptional = makersSchedules.stream()
                     .filter(v -> v.getServiceDate().equals(dailyFood.getServiceDate())
                             && v.getDiningType().equals(dailyFood.getDiningType()))
                     .findAny();
-
-            if (foodScheduleOptional.isPresent()) {
-                foodCount = foodScheduleOptional.get().getCapacity();
-            } else {
-                foodCount = dailyFood.getFood().getFoodCapacities().stream()
-                        .filter(v -> v.getDiningType().equals(dailyFood.getDiningType()))
-                        .findAny()
-                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND))
-                        .getCapacity();
-            }
 
             if (makersScheduleOptional.isPresent()) {
                 makersCount = makersScheduleOptional.get().getCapacity();
@@ -63,8 +45,70 @@ public class OrderDailyFoodUtil {
                         .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND))
                         .getCapacity();
             }
-            Integer makersBuyCount = qOrderDailyFoodRepository.getMakersCount(dailyFood);
-            Integer foodBuyCount = qOrderDailyFoodRepository.getFoodCount(dailyFood);
+            Integer makersBuyCount = makersOrderCount.getMakersCount(dailyFood);
+            ServiceDateBy.Makers makers = new ServiceDateBy.Makers();
+            makers.setServiceDate(dailyFood.getServiceDate());
+            makers.setDiningType(dailyFood.getDiningType());
+            makers.setMakers(dailyFood.getFood().getMakers());
+            makersIntegerMap.put(makers, makersCount - makersBuyCount);
+        }
+        makersAndFood.setMakersCountMap(makersIntegerMap);
+        makersAndFood.setFoodCountMap(makersOrderCount.getFoodCountMap());
+        return makersAndFood;
+    }
+
+    public Map<DailyFood, Integer> getRemainFoodsCount(List<DailyFood> dailyFoods) {
+        // 존재하는 식단이 없을 경우 빈 Map을 리턴한다.
+        if(dailyFoods.isEmpty()) return new HashMap<>();
+
+        Map<DailyFood, Integer> dailyFoodIntegerMap = new HashMap<>();
+        // 1. 한정 판매 수량인지 확인한다.
+        List<FoodSchedule> foodSchedules = qFoodScheduleRepository.findAllByDailyFoods(dailyFoods);
+        // 2. 메이커스에서 값을 설정했는지 가져온다.
+        List<MakersSchedule> makersSchedules = qMakersScheduleRepository.findAllByDailyFoods(dailyFoods);
+        // 3. 메이커스별/음식별 주문 수량을 가져온다
+        ServiceDateBy.MakersAndFood makersAndFood = qOrderDailyFoodRepository.getMakersCounts(dailyFoods);
+        // 4. 총 주문 수량을 가져온다.
+        for (DailyFood dailyFood : dailyFoods) {
+            Integer foodCount = 0;
+            Integer makersCount = 0;
+
+            // Find FoodSchedule and MakersSchedule for this DailyFood
+            List<FoodSchedule> matchingFoodSchedules = foodSchedules.stream()
+                    .filter(v -> v.getFood().equals(dailyFood.getFood())
+                            && v.getServiceDate().equals(dailyFood.getServiceDate())
+                            && v.getDiningType().equals(dailyFood.getDiningType()))
+                    .toList();
+
+            List<MakersSchedule> matchingMakersSchedules = makersSchedules.stream()
+                    .filter(v -> v.getServiceDate().equals(dailyFood.getServiceDate())
+                            && v.getDiningType().equals(dailyFood.getDiningType()))
+                    .toList();
+
+            // Calculate foodCount and makersCount
+            if (!matchingFoodSchedules.isEmpty()) {
+                foodCount = matchingFoodSchedules.get(0).getCapacity();
+            } else {
+                foodCount = dailyFood.getFood().getFoodCapacities().stream()
+                        .filter(v -> v.getDiningType().equals(dailyFood.getDiningType()))
+                        .findAny()
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND))
+                        .getCapacity();
+            }
+
+            if (!matchingMakersSchedules.isEmpty()) {
+                makersCount = matchingMakersSchedules.get(0).getCapacity();
+            } else {
+                makersCount = dailyFood.getFood().getMakers().getMakersCapacities().stream()
+                        .filter(v -> v.getDiningType().equals(dailyFood.getDiningType()))
+                        .findAny()
+                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND))
+                        .getCapacity();
+            }
+
+            // Calculate sellableCount
+            Integer makersBuyCount = makersAndFood.getMakersCount(dailyFood);
+            Integer foodBuyCount = makersAndFood.getFoodCount(dailyFood);
             Integer sellableCount = Math.min(makersCount - makersBuyCount, foodCount - foodBuyCount);
             dailyFoodIntegerMap.put(dailyFood, sellableCount);
         }

@@ -1,7 +1,6 @@
 package co.kurrant.app.admin_api.service;
 
 import co.dalicious.domain.client.dto.SpotResponseDto;
-import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
 import org.locationtech.jts.io.ParseException;
@@ -15,9 +14,6 @@ public interface SpotService {
     void saveSpotList(SaveSpotList saveSpotList) throws ParseException;
 
     void deleteSpot(List<BigInteger> spotIdList);
+    
     List<GroupDto.Group> getGroupList();
-
-    Object getSpotDetail(Integer spotId);
-
-    void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException;
 }

@@ -11,9 +11,11 @@ import co.dalicious.domain.order.repository.QPaymentCancelHistoryRepository;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.user.dto.PointResponseDto;
+import co.dalicious.domain.user.entity.Founders;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointStatus;
+import co.dalicious.domain.user.repository.QFoundersRepository;
 import co.dalicious.domain.user.repository.QPointHistoryRepository;
 import co.kurrant.app.public_api.mapper.PointHistoryMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -39,25 +41,26 @@ public class PointServiceImpl implements PointService {
     private final QNoticeRepository qNoticeRepository;
     private final QPaymentCancelHistoryRepository qPaymentCancelHistoryRepository;
     private final PointHistoryMapper pointMapper;
+    private final QFoundersRepository qFoundersRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public ItemPageableResponseDto<PointResponseDto> findAllPointLogs(SecurityUser securityUser, Integer condition, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+    public ItemPageableResponseDto<PointResponseDto> findAllPointLogs(SecurityUser securityUser, Integer condition, OffsetBasedPageRequest pageable) { //, Integer limit, Integer page
         User user = userUtil.getUser(securityUser);
 
         //포인트 히스토리를 찾는다. - 유저가 같고 포인트가 영이 아닌 것.
         Page<PointHistory> pointHistoryPage = null;
         // 전체 내역
         if(condition == 0) {
-            pointHistoryPage = qPointHistoryRepository.findAllPointHistory(user, limit, page, pageable);
+            pointHistoryPage = qPointHistoryRepository.findAllPointHistory(user, pageable);
         }
         // 적립 내역
         else if (condition == 1) {
-            pointHistoryPage = qPointHistoryRepository.findAllPointHistoryByRewardStatus(user, limit, page, pageable);
+            pointHistoryPage = qPointHistoryRepository.findAllPointHistoryByRewardStatus(user, pageable);
         }
         // 사용 내역
         else if (condition == 2) {
-            pointHistoryPage = qPointHistoryRepository.findAllPointHistoryByUseStatus(user, limit, page, pageable);
+            pointHistoryPage = qPointHistoryRepository.findAllPointHistoryByUseStatus(user, pageable);
         }
         List<PointResponseDto.PointHistoryDto> pointHistoryDtoList = new ArrayList<>();
         PointResponseDto pointResponseDto;
@@ -84,9 +87,10 @@ public class PointServiceImpl implements PointService {
         List<Order> orderList = orderIds.isEmpty() ? null : qOrderRepository.findAllByIds(orderIds);
         List<Notice> noticeList = boardIds.isEmpty() ? null : qNoticeRepository.findAllByIds(boardIds);
         List<PaymentCancelHistory> cancelList = cancelIds.isEmpty() ? null : qPaymentCancelHistoryRepository.findAllByIds(cancelIds);
+        Founders founders = qFoundersRepository.findFoundersByUser(user);
 
         for(PointHistory pointHistory : pointHistoryPage) {
-            PointResponseDto.PointHistoryDto pointRequestDto = pointMapper.toPointRequestDto(pointHistory, reviewsList, orderList, noticeList, cancelList);
+            PointResponseDto.PointHistoryDto pointRequestDto = pointMapper.toPointRequestDto(pointHistory, reviewsList, orderList, noticeList, cancelList, founders);
 
             pointHistoryDtoList.add(pointRequestDto);
         }
@@ -94,6 +98,6 @@ public class PointServiceImpl implements PointService {
         pointResponseDto = PointResponseDto.create(user.getPoint(), pointHistoryDtoList);
 
         return ItemPageableResponseDto.<PointResponseDto>builder().items(pointResponseDto).count(pointHistoryPage.getNumberOfElements())
-                .total(pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).build();
+                .total(pointHistoryPage.getTotalPages()).limit(pageable.getPageSize()).isLast(pointHistoryPage.isLast()).build();
     }
 }

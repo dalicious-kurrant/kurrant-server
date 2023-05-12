@@ -4,8 +4,7 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.file.service.ImageService;
 import co.kurrant.app.admin_api.dto.ExcelExample;
-import co.kurrant.app.admin_api.service.ExcelService;
-import co.kurrant.app.admin_api.util.UserUtil;
+import co.kurrant.app.admin_api.service.AdminExcelService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,7 +16,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tika.Tika;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,7 +31,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins="*", allowedHeaders = "*")
 public class FileController {
-    private final ExcelService excelService;
+    private final AdminExcelService adminExcelService;
     private final ImageService imageService;
 
 
@@ -94,7 +92,7 @@ public class FileController {
 //    UserUtil.securityUser(authentication);
 //    return ResponseMessage.builder()
 //            .message("엑셀 불러오기를 완료했습닌다.")
-//            .data(excelService.allFoodExcel(file))
+//            .data(adminExcelService.allFoodExcel(file))
 //            .build();
 //
 //  }
@@ -105,7 +103,7 @@ public class FileController {
 //    UserUtil.securityUser(authentication);
 //    return ResponseMessage.builder()
 //            .message("엑셀 불러오기를 완료했습닌다.")
-//            .data(excelService.makersFoodExcel(file))
+//            .data(adminExcelService.makersFoodExcel(file))
 //            .build();
 //
 //  }

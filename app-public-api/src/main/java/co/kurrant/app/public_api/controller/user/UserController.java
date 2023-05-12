@@ -1,8 +1,10 @@
 package co.kurrant.app.public_api.controller.user;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserService;
@@ -11,14 +13,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.asm.Advice;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -126,10 +131,9 @@ public class UserController {
     @GetMapping("/setting")
     public ResponseMessage getAlarmSetting(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        MarketingAlarmResponseDto MarketingDto = userService.getAlarmSetting(securityUser);
         return ResponseMessage.builder()
                 .message("알림 설정 조회에 성공하였습니다.")
-                .data(MarketingDto)
+                .data(userService.getAlarmSetting(securityUser))
                 .build();
     }
 
@@ -137,56 +141,9 @@ public class UserController {
     @PostMapping("/setting")
     public ResponseMessage changeAlarmSetting(Authentication authentication, @RequestBody MarketingAlarmRequestDto marketingAlarmDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        MarketingAlarmResponseDto changeMarketingDto = userService.changeAlarmSetting(securityUser, marketingAlarmDto);
         return ResponseMessage.builder()
                 .message("마케팅 수신 정보 변경에 성공하였습니다.")
-                .data(changeMarketingDto)
-                .build();
-    }
-
-    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
-    @PostMapping("/cards")
-    public ResponseMessage saveCreditCard(Authentication authentication,
-                                      @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
-        if (result == 2){
-            return ResponseMessage.builder()
-                    .message("같은 카드가 이미 등록되어 있습니다.")
-                    .build();
-        }
-        return ResponseMessage.builder()
-                .message("결제 카드 등록에 성공하셨습니다.")
-                .build();
-
-    }
-
-    @Operation(summary = "결제 카드 조회", description = "결제 카드를 조회한다.")
-    @GetMapping("/cards")
-    public ResponseMessage getCardList(Authentication authentication){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .message("결제 카드 목록 조회에 성공했습니다.")
-                .data(userService.getCardList(securityUser))
-                .build();
-    }
-
-    @Operation(summary = "디폴트타입 변경", description = "디폴트 타입을 변경한다")
-    @PatchMapping("/cards/setting")
-    public ResponseMessage patchDefaultCard(Authentication authentication, @RequestBody CreditCardDefaultSettingDto creditCardDefaultSettingDto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.patchDefaultCard(securityUser, creditCardDefaultSettingDto);
-        return ResponseMessage.builder()
-                .message("카드 디폴트타입 변경을 완료했습니다.")
-                .build();
-    }
-
-    @Operation(summary = "결제 카드 삭제", description = "결제 카드를 삭제한다.")
-    @PatchMapping("/cards")
-    public ResponseMessage deleteCard(@RequestBody DeleteCreditCardDto deleteCreditCardDto){
-        userService.deleteCard(deleteCreditCardDto);
-        return ResponseMessage.builder()
-                .message("결제 카드를 삭제 했습니다.")
+                .data(userService.changeAlarmSetting(securityUser, marketingAlarmDto))
                 .build();
     }
 
@@ -230,23 +187,52 @@ public class UserController {
                 .build();
     }
 
-    @PostMapping("/payment/password")
-    @Operation(summary = "결제 비밀번호 등록하기", description = "결제 비밀번호 등록")
-    public ResponseMessage savePaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+    @Operation(summary = "이메일 가리기 유저인지 확인", description = "카드 등록시 이메일 가리기 유저인지 확인한다.")
+    @GetMapping("/check/hideEmail")
+    public ResponseMessage isHideEmail(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        String result = userService.savePaymentPassword(securityUser, savePaymentPasswordDto);
         return ResponseMessage.builder()
-                .message(result)
+                .data(userService.isHideEmail(securityUser))
+                .message("이메일 가리기 유저 확인에 성공하였습니다.")
                 .build();
     }
 
-    @PostMapping("/payment/password/check")
-    @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
-    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+    @Operation(summary = "첫번째 빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
+    @PostMapping("/cards/types/{typeId}")
+    public ResponseMessage createBillingKeyFirst(Authentication authentication, @PathVariable Integer typeId, @RequestBody BillingKeyDto billingKeyDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
         return ResponseMessage.builder()
-                .message(result)
+                .data(userService.createNiceBillingKeyFirst(securityUser, typeId, billingKeyDto))
+                .message("빌링키 발급에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "결제 카드 조회", description = "결제 카드를 조회한다.")
+    @GetMapping("/cards")
+    public ResponseMessage getCardList(Authentication authentication){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .message("결제 카드 목록 조회에 성공했습니다.")
+                .data(userService.getCardList(securityUser))
+                .build();
+    }
+
+    @Operation(summary = "디폴트타입 변경", description = "디폴트 타입을 변경한다")
+    @PatchMapping("/cards/setting")
+    public ResponseMessage patchDefaultCard(Authentication authentication, @RequestBody CreditCardDefaultSettingDto creditCardDefaultSettingDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.patchDefaultCard(securityUser, creditCardDefaultSettingDto);
+        return ResponseMessage.builder()
+                .message("카드 디폴트타입 변경을 완료했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "결제 카드 삭제", description = "결제 카드를 삭제한다.")
+    @PatchMapping("/cards")
+    public ResponseMessage deleteCard(@RequestBody DeleteCreditCardDto deleteCreditCardDto){
+        userService.deleteCard(deleteCreditCardDto);
+        return ResponseMessage.builder()
+                .message("결제 카드를 삭제 했습니다.")
                 .build();
     }
 
@@ -269,4 +255,106 @@ public class UserController {
                 .message("결제 비밀번호 재설정 성공!")
                 .build();
     }
+
+    @PostMapping("/preference")
+    @Operation(summary = "회원 정보 입력", description = "회원 정보 입력 저장")
+    public ResponseMessage userPreferenceSave(Authentication authentication, @RequestBody UserPreferenceDto userPreferenceDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String message = userService.userPreferenceSave(securityUser, userPreferenceDto);
+        return ResponseMessage.builder()
+                .message(message)
+                .build();
+    }
+
+    @GetMapping("/preference/check")
+    @Operation(summary = "회원정보 입력 여부")
+    public ResponseMessage userPreferenceCheck(Authentication authentication){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.userPreferenceCheck(securityUser))
+                .message("회원정보 입력 여부 조회 성공")
+                .build();
+    }
+
+    @GetMapping("/country")
+    @Operation(summary = "국가 정보 조회", description = "국가정보를 조회한다.")
+    public ResponseMessage getCountry(){
+        return ResponseMessage.builder()
+                .data(userService.getCountry())
+                .message("국가 정보 조회 성공")
+                .build();
+    }
+
+    @GetMapping("/tags")
+    @Operation(summary = "푸드태그 조회", description = "푸드태그 정보를 조회한다.")
+    public ResponseMessage getFavoriteCountryFoods(@RequestParam Integer code){
+        return ResponseMessage.builder()
+                .data(userService.getFavoriteCountryFoods(code))
+                .message("조회 성공!")
+                .build();
+    }
+
+    @GetMapping("/jobs")
+    @Operation(summary = "직종 조회", description = "직종을 조회한다.")
+    public ResponseMessage getJobType(@RequestParam Integer category, @RequestParam (required = false) String code){
+        return ResponseMessage.builder()
+                .data(userService.getJobType(category, code))
+                .message("조회 성공!")
+                .build();
+    }
+
+    @GetMapping("/preference/foods")
+    @Operation(summary = "음식 TestData 조회", description = "음식 테스트 데이터을 조회한다.")
+    public ResponseMessage getTestData(){
+        return ResponseMessage.builder()
+                .data(userService.getTestData())
+                .message("조회 성공!")
+                .build();
+    }
+
+    @GetMapping("/preference/foods/images")
+    @Operation(summary = "회원정보 입력 중 음식 이미지 불러오기", description = "foodId로 음식 이미지를 불러온다.")
+    public ResponseMessage getFoodImage(@RequestParam List<BigInteger> foodId){
+        return ResponseMessage.builder()
+                .data(userService.getFoodImage(foodId))
+                .message("이미지 조회 성공!")
+                .build();
+    }
+
+    @PostMapping("/payment/password/check")
+    @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
+    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
+        return ResponseMessage.builder()
+                .message(result)
+                .build();
+    }
+
+//
+//    @PostMapping("/payment/password")
+//    @Operation(summary = "결제 비밀번호 등록하기", description = "결제 비밀번호 등록")
+//    public ResponseMessage savePaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+//        SecurityUser securityUser = UserUtil.securityUser(authentication);
+//        String result = userService.savePaymentPassword(securityUser, savePaymentPasswordDto);
+//        return ResponseMessage.builder()
+//                .message(result)
+//                .build();
+//    }
+//    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
+//    @PostMapping("/cards")
+//    public ResponseMessage saveCreditCard(Authentication authentication,
+//                                          @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
+//        SecurityUser securityUser = UserUtil.securityUser(authentication);
+//        Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
+//        if (result == 2){
+//            return ResponseMessage.builder()
+//                    .message("같은 카드가 이미 등록되어 있습니다.")
+//                    .build();
+//        }
+//        return ResponseMessage.builder()
+//                .message("결제 카드 등록에 성공하셨습니다.")
+//                .build();
+//
+//    }
 }

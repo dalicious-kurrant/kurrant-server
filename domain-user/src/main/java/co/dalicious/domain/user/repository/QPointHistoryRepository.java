@@ -4,6 +4,7 @@ import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointStatus;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
 import static co.dalicious.domain.user.entity.QPointHistory.pointHistory;
@@ -35,42 +37,66 @@ public class QPointHistoryRepository {
                 .fetch();
     }
 
-    public Page<PointHistory> findAllPointHistory(User user, Integer limit, Integer page, Pageable pageable) {
-        int offset = limit * (page -1);
+    public Page<PointHistory> findAllPointHistory(User user, Pageable pageable) {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
                 .orderBy(pointHistory.id.desc())
-                .limit(limit)
-                .offset(offset)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<PointHistory> findAllPointHistoryByRewardStatus(User user, Integer limit, Integer page, Pageable pageable) {
-        int offset = limit * (page -1);
+    public Page<PointHistory> findAllPointHistoryByRewardStatus(User user, Pageable pageable) {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.rewardStatus()))
                 .orderBy(pointHistory.id.desc())
-                .limit(limit)
-                .offset(offset)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<PointHistory> findAllPointHistoryByUseStatus(User user, Integer limit, Integer page, Pageable pageable) {
-        int offset = limit * (page -1);
+    public Page<PointHistory> findAllPointHistoryByUseStatus(User user, Pageable pageable) {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.eq(PointStatus.USED))
+                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.userStatus()))
                 .orderBy(pointHistory.id.desc())
-                .limit(limit)
-                .offset(offset)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public List<PointHistory> findByContentId(User user, BigInteger id, PointStatus pointStatus) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(pointStatus.equals(PointStatus.REVIEW_REWARD)) {
+            whereCause.and(pointHistory.reviewId.eq(id));
+        }
+        if(pointStatus.equals(PointStatus.EVENT_REWARD)) {
+            whereCause.and(pointHistory.boardId.eq(id));
+        }
+        if(pointStatus.equals(PointStatus.CANCEL)) {
+            whereCause.and(pointHistory.paymentCancelHistoryId.eq(id));
+        }
+        if(pointStatus.equals(PointStatus.USED)) {
+            whereCause.and(pointHistory.orderId.eq(id));
+        }
+
+        return jpaQueryFactory.selectFrom(pointHistory)
+                .where(pointHistory.user.eq(user), whereCause)
+                .fetch();
+    }
+
+    public List<PointHistory> findPointHistoryByPointStatusAndUser(User user, PointStatus pointStatus) {
+        return jpaQueryFactory.selectFrom(pointHistory)
+                .where(pointHistory.user.eq(user), pointHistory.pointStatus.eq(pointStatus))
+                .fetch();
     }
 }
