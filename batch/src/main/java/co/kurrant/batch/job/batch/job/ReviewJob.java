@@ -77,28 +77,27 @@ public class ReviewJob {
     public JpaPagingItemReader<User> reviewReader() {
         log.info("[user 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
-        List<BigInteger> orderItemIds = reviewService.findOrderItemByReviewDeadline();
+        List<BigInteger> userIds = reviewService.findUserIds();
 
         Map<String, Object> parameterValues = new HashMap<>();
-        parameterValues.put("orderItemIds", orderItemIds);
+        parameterValues.put("userIds", userIds);
 
 
-        if (orderItemIds.isEmpty()) {
+        if (userIds.isEmpty()) {
             // Return an empty reader if orderItemIds is empty
             return new JpaPagingItemReaderBuilder<User>()
                     .name("EmptyReviewReader")
                     .build();
         }
 
-        String queryString = "SELECT u FROM OrderItem oi JOIN Order o ON oi.order = o JOIN User u ON o.user = u WHERE oi.id in :orderItemIds";
-
+        String queryString = "SELECT u FROM User u WHERE u.id in :userIds";
 
         return new JpaPagingItemReaderBuilder<User>()
                 .entityManagerFactory(entityManagerFactory)
                 .pageSize(100)
                 .queryString(queryString)
                 .name("JpaPagingItemReader")
-                .parameterValues(Collections.singletonMap("orderItemIds", orderItemIds))
+                .parameterValues(Collections.singletonMap("userIds", userIds))
                 .build();
     }
 

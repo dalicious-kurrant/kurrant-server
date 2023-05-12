@@ -6,18 +6,20 @@ import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.mapper.PushAlarmMapper;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
+import co.dalicious.domain.user.entity.BatchPushAlarmLog;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
-import co.dalicious.domain.user.repository.QUserGroupRepository;
-import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.QUserSpotRepository;
+import co.dalicious.domain.user.repository.*;
 import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Component
@@ -30,6 +32,8 @@ public class PushUtil {
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushService pushService;
     private final PushAlarmMapper pushAlarmMapper;
+    private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
+    private final QBatchPushAlarmLogRepository qBatchPushAlarmLogRepository;
 
     public void sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, String customMessage) {
         Set<BigInteger> spotIds = !ids.containsKey("spotIds") || ids.get("spotIds") == null ? null : ids.get("spotIds");
@@ -51,7 +55,7 @@ public class PushUtil {
         }
 
         List<String> firebaseTokenList = new ArrayList<>();
-
+        List<BigInteger> pushUserIds = new ArrayList<>();
         userList.forEach(user -> {
             List<PushCondition> pushConditionList = user.getPushConditionList();
             if (pushConditionList == null || pushConditionList.isEmpty()) {
@@ -59,6 +63,7 @@ public class PushUtil {
             }
             if (pushConditionList.contains(pushCondition)) {
                 firebaseTokenList.add(user.getFirebaseToken());
+                pushUserIds.add(user.getId());
             }
         });
 
@@ -75,6 +80,7 @@ public class PushUtil {
         PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(firebaseTokenList, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl(), keys);
 
         pushService.sendToPush(pushRequestDto);
+        saveBatchLog(pushUserIds,  pushCondition);
     }
 
     public PushRequestDtoByUser getPushRequest(User user, PushCondition pushCondition, String customMessage) {
@@ -127,5 +133,28 @@ public class PushUtil {
         StringSubstitutor sub = new StringSubstitutor(valuesMap);
         template = sub.replace(template);
         return template;
+    }
+
+    @Transactional
+    public void saveBatchLog(List<BigInteger> userIds, PushCondition pushCondition) {
+        LocalDateTime logDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+
+        List<BatchPushAlarmLog> existPushAlarmLogList = qBatchPushAlarmLogRepository.findAllBatchAlarmLogByUserIds(userIds);
+        List<BatchPushAlarmLog> pushAlarmLogList = new ArrayList<>();
+
+        // 업데이트 할 아이디와 생성할 아이디 분리
+        if(!existPushAlarmLogList.isEmpty()) {
+            for(BatchPushAlarmLog existPushAlarmLog : existPushAlarmLogList) {
+                existPushAlarmLog.updatePushDateTime(logDateTime);
+                userIds.remove(existPushAlarmLog.getUserId());
+            }
+        }
+
+        if(!userIds.isEmpty()) {
+            for(BigInteger id : userIds) {
+                pushAlarmLogList.add(pushAlarmMapper.toBatchPushAlarmLog(id, pushCondition, logDateTime));
+            }
+            batchPushAlarmLogRepository.saveAll(pushAlarmLogList);
+        }
     }
 }

@@ -2,8 +2,11 @@ package co.dalicious.client.alarm.service.impl;
 
 import co.dalicious.client.alarm.dto.*;
 import co.dalicious.client.alarm.util.KakaoUtil;
+import co.dalicious.domain.user.entity.BatchPushAlarmLog;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.QUserRepository;
+import co.dalicious.domain.user.repository.BatchPushAlarmLogRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.client.alarm.service.PushService;
 import com.google.firebase.FirebaseApp;
@@ -30,6 +33,7 @@ public class PushServiceImpl implements PushService {
     private final KakaoUtil kakaoUtil;
     private final UserRepository userRepository;
     private final QUserRepository qUserRepository;
+    private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
 
     @Override
     public void sendToPush(PushRequestDto pushRequestDto) {
@@ -89,7 +93,7 @@ public class PushServiceImpl implements PushService {
                 System.out.println("List of tokens are not valid FCM token : " + failedTokens);
             }
         } catch(FirebaseMessagingException e) {
-            System.out.println(e.getMessage());
+            System.out.println("전송실패 : " + e.getMessage());
         }
     }
 

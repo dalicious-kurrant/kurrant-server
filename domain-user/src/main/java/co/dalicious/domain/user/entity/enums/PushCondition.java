@@ -44,4 +44,11 @@ public enum PushCondition {
     public static List<PushCondition> getCustomMessageCondition() {
         return Arrays.asList(NEW_DAILYFOOD, DELIVERED_ORDER_ITEM, LAST_ORDER_BY_DAILYFOOD);
     }
+
+    public static PushCondition ofCondition(String message) {
+        return Arrays.stream(PushCondition.values())
+                .filter(v -> v.getCondition().equals(message))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+    }
 }

@@ -5,8 +5,12 @@ import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
 
+import co.dalicious.domain.user.entity.BatchPushAlarmLog;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import org.mapstruct.Mapper;
 
+import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -44,5 +48,13 @@ public interface PushAlarmMapper {
         pushRequestDto.setPage(page);
 
         return pushRequestDto;
+    }
+
+    default BatchPushAlarmLog toBatchPushAlarmLog(BigInteger id, PushCondition pushCondition, LocalDateTime logDatetime) {
+        return BatchPushAlarmLog.builder()
+                .userId(id)
+                .pushDateTime(logDatetime)
+                .pushCondition(pushCondition)
+                .build();
     }
 }
