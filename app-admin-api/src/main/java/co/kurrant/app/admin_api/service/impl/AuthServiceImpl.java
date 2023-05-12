@@ -6,6 +6,7 @@ import co.kurrant.app.admin_api.dto.user.LoginRequestDto;
 import co.kurrant.app.admin_api.dto.user.LoginResponseDto;
 import co.kurrant.app.admin_api.model.Admin;
 import co.kurrant.app.admin_api.service.AuthService;
+import co.kurrant.app.admin_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
