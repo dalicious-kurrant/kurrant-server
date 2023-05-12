@@ -10,6 +10,8 @@ import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -93,14 +95,30 @@ public class DailyFoodSupportPrice {
     public void updateMonetaryStatus(MonetaryStatus monetaryStatus) {
         this.monetaryStatus = monetaryStatus;
     }
-    
-    // FIXME: 정산에 사용할 주문 상품과 개수 계산 -> "메드트로닉"은 예외
+
     public List<DailySupportPriceDto> getOrderItemDailyFoodCount() {
         List<DailySupportPriceDto> dailySupportPriceDtos = new ArrayList<>();
 
         BigDecimal supportPrice = this.usingSupportPrice;
 
         List<OrderItemDailyFood> orderItemDailyFoods = this.orderItemDailyFoodGroup.getOrderDailyFoods();
+
+        // 주문 그룹이 메드트로닉일 경우
+        if(this.group.getId().equals(BigInteger.valueOf(97))) {
+            BigDecimal totalSupportPrice = BigDecimal.ZERO;
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                // 취소된 상품은 제외
+                if(!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) continue;
+                BigDecimal supportPricePerItem = orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5));
+                totalSupportPrice = totalSupportPrice.add(supportPricePerItem);
+                dailySupportPriceDtos.add(new DailySupportPriceDto(orderItemDailyFood, orderItemDailyFood.getCount(), supportPricePerItem));
+            }
+            if(totalSupportPrice.compareTo(this.usingSupportPrice) != 0) {
+                throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
+            }
+        }
+
+        // 주문한 상품의 개수가 1개일 경우
         if(orderItemDailyFoods.size() == 1) {
             OrderItemDailyFood orderItemDailyFood = orderItemDailyFoods.get(0);
             // 지원금을 사용한 상품의 개수 추출
@@ -113,6 +131,7 @@ public class DailyFoodSupportPrice {
             return dailySupportPriceDtos;
         }
 
+        // 주문한 상품의 개수가 1개 이상일 경우 -> 가격이 높은 순으로 정렬
         orderItemDailyFoods = orderItemDailyFoods.stream().sorted(Comparator.comparing(OrderItemDailyFood::getOrderItemTotalPrice))
                 .toList();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -131,16 +150,28 @@ public class DailyFoodSupportPrice {
         }
         return dailySupportPriceDtos;
     }
-
+    
     public Integer getCount() {
         BigDecimal supportPrice = this.usingSupportPrice;
 
         List<OrderItemDailyFood> orderItemDailyFoods = this.orderItemDailyFoodGroup.getOrderDailyFoods();
+
         // 주문 완료인 상품들만 추출
         orderItemDailyFoods = orderItemDailyFoods.stream()
                 .filter(v -> OrderStatus.completePayment().contains(v.getOrderStatus()))
                 .sorted(Comparator.comparing(OrderItemDailyFood::getOrderItemTotalPrice))
                 .toList();
+
+        // 주문 그룹이 메드트로닉일 경우
+        if(this.group.getId().equals(BigInteger.valueOf(97))) {
+            Integer count = 0;
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                count += orderItemDailyFood.getCount();
+            }
+            return count;
+        }
+
+        // 주문 완료한 상품의 개수가 1일 경우
         if(orderItemDailyFoods.size() == 1) {
             OrderItemDailyFood orderItemDailyFood = orderItemDailyFoods.get(0);
             // 지원금을 사용한 상품의 개수 추출
@@ -153,6 +184,7 @@ public class DailyFoodSupportPrice {
         }
 
         int i = 0;
+        // 주문 완료한 상품의 개수가 1 이상일 경우
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             if(supportPrice.compareTo(orderItemDailyFood.getOrderItemTotalPrice()) > 0) {
                 i += orderItemDailyFood.getCount();

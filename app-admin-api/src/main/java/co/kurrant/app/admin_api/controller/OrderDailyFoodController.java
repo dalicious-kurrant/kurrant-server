@@ -81,7 +81,7 @@ public class OrderDailyFoodController {
     }
 
     @PostMapping("/orderItems/status")
-    public ResponseMessage changeStatus(@RequestBody OrderDto.StatusAndIdList statusAndIdList) {
+    public ResponseMessage changeStatus(@RequestBody OrderDto.StatusAndIdList statusAndIdList) throws IOException, ParseException {
         orderDailyFoodService.changeOrderStatus(statusAndIdList);
         return ResponseMessage.builder()
                 .message("주문 상태 변경을 성공했습니다.")

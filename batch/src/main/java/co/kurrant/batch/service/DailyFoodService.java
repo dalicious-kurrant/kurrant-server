@@ -94,7 +94,7 @@ public class DailyFoodService {
                 "         LEFT JOIN DailyFood df ON df.food = ffc.food " +
                 "WHERE df.diningType = ffc.diningType " +
                 "  AND ffc.lastOrderTime IS NOT NULL " +
-                "  AND df.food = ffc " +
+                "  AND df.food = ffc.food " +
                 "  AND (df.dailyFoodStatus = 1 or df.dailyFoodStatus = 2)";
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
         List<Object[]> results = query.getResultList();

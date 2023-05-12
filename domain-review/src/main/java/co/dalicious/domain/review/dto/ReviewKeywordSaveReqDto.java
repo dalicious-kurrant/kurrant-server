@@ -15,6 +15,5 @@ public class ReviewKeywordSaveReqDto {
     private BigInteger foodId;
     private List<String> names;
 
-
 }
 

@@ -95,4 +95,13 @@ public class FoodController {
                 .build();
     }
 
+    @Operation(summary = "메뉴 상세 리뷰 키워드 조회", description = "상품의 리뷰 키워드를 조회한다.")
+    @GetMapping("/{dailyFoodId}/review/keyword")
+    public ResponseMessage getFoodReview(@PathVariable BigInteger dailyFoodId) {
+        return ResponseMessage.builder()
+                .data(foodService.foodReviewKeyword(dailyFoodId))
+                .message("리뷰 키워드 조회")
+                .build();
+    }
+
 }
