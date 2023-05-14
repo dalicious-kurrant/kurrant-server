@@ -251,7 +251,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    @Transactional
     public void cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
         for (OrderItem orderItem : orderItems) {

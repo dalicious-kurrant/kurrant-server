@@ -1,6 +1,6 @@
 package co.dalicious.domain.logs.entity;
 
-import co.dalicious.client.core.converter.ListToStringConverter;
+import co.dalicious.system.converter.ListToStringConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
