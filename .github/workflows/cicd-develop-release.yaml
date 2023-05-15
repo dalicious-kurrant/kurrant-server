@@ -33,7 +33,7 @@ jobs:
           cd resources
           touch ./application.yaml
           echo "${{ secrets.APP_PUBLIC_API_RELEASE_TEST_YML }}" > ./application.yaml
-          touch ./application-prod.yaml
+          touch ./application-dev.yaml
           echo "${{ secrets.APP_PUBLIC_API_RELEASE_TEST_RELEASE_TEST_YML }}" > ./application-dev.yaml
         shell: bash
 
