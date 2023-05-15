@@ -90,9 +90,10 @@ public class OrderDailyFoodController {
 
     @PostMapping("/orderItems/cancel")
     public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
-        orderDailyFoodService.cancelOrderItemsNice(idList.getIdList());
+        String message = orderDailyFoodService.cancelOrderItemsNice(idList.getIdList());
         return ResponseMessage.builder()
                 .message("부분 주문 취소를 성공했습니다.")
+                .data(message.isEmpty() ? null : message)
                 .build();
     }
     @GetMapping("/extra/dailyFoods")
