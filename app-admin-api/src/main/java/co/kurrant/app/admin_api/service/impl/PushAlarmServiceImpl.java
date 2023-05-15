@@ -29,12 +29,13 @@ import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.DateFormatter;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -151,9 +152,17 @@ public class PushAlarmServiceImpl implements PushAlarmService {
     @Override
     public void alimtalkSendTest(AlimtalkTestDto alimtalkTestDto) throws IOException, ParseException {
 
-        LocalDate date = LocalDate.now();
+        LocalDate localDate = LocalDate.now();
+        String date = localDate.format(DateTimeFormatter.ofPattern("yyyy.M.dd"));
 
-        String content = "(정산신청 완료)\n\n안녕하세요. 커런트입니다. \n\n정산신청이 완료되었습니다.\n\n▶입금예정일 : "+date;
+        //50063
+        String content = "(정산신청 완료)\n\n안녕하세요. 커런트입니다. \n\n정산신청이 완료되었습니다.\n\n▶입금예정일: 2023.5.12";
+
+        //50065
+        String makersName = "알렉산더";
+        String content65 = "(입금 완료 안내) \n안녕하세요. 커런트입니다. \n"+makersName+"메이커스의 "+2023+"년 "+5+"월 정산금이 이체되었습니다. \n▶정산금액 : "+5000+"";
+
+        //50074
         String content2 = "안녕하세요!\n" +
                 "조식 서비스를 운영 중인 커런트입니다.\n" +
                 "\n" +
@@ -164,7 +173,7 @@ public class PushAlarmServiceImpl implements PushAlarmService {
                 "\n" +
                 "감사합니다.";
 
-        kakaoUtil.sendAlimTalk(alimtalkTestDto.getPhoneNumber(), content2, alimtalkTestDto.getTemplateId());
+        kakaoUtil.sendAlimTalk(alimtalkTestDto.getPhoneNumber(), content65, alimtalkTestDto.getTemplateId());
 
 
     }
