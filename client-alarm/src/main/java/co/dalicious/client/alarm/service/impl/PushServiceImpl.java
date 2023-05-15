@@ -1,10 +1,13 @@
 package co.dalicious.client.alarm.service.impl;
 
 import co.dalicious.client.alarm.dto.*;
+import co.dalicious.client.alarm.mapper.PushAlarmMapper;
 import co.dalicious.client.alarm.util.KakaoUtil;
+import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.user.entity.BatchPushAlarmLog;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
+import co.dalicious.domain.user.repository.QBatchPushAlarmLogRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.BatchPushAlarmLogRepository;
 import co.dalicious.domain.user.repository.UserRepository;
@@ -20,7 +23,9 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +38,9 @@ public class PushServiceImpl implements PushService {
     private final KakaoUtil kakaoUtil;
     private final UserRepository userRepository;
     private final QUserRepository qUserRepository;
+    private final QBatchPushAlarmLogRepository qBatchPushAlarmLogRepository;
     private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
+    private final PushAlarmMapper pushAlarmMapper;
 
     @Override
     public void sendToPush(PushRequestDto pushRequestDto) {
@@ -142,6 +149,54 @@ public class PushServiceImpl implements PushService {
     }
 
     @Override
+    public void sendToPush(BatchAlarmDto batchAlarmDto, PushCondition pushCondition) {
+        List<String> tokenList = new ArrayList<>(batchAlarmDto.getTokenList().keySet());
+
+        List<Message> messages;
+
+        messages = tokenList.stream().map(token -> Message.builder()
+                .putData("time", LocalDateTime.now().toString())
+                .putData("page", batchAlarmDto.getPage())
+                .setNotification(Notification.builder()
+                        .setTitle(batchAlarmDto.getTitle())
+                        .setBody(batchAlarmDto.getMessage())
+                        .build())
+                .setToken(token)
+                .build()).collect(Collectors.toList());
+
+        if (messages.isEmpty()) return;
+
+        //알림 발송
+        BatchResponse response;
+        try {
+
+            response = FirebaseMessaging.getInstance(FirebaseApp.getInstance("dalicious-v1")).sendAll(messages);
+
+            List<BigInteger> failureIds = new ArrayList<>();
+            //응답처리
+            if (response.getFailureCount() > 0) {
+                List<SendResponse> responses = response.getResponses();
+                List<String> failedTokens = new ArrayList<>();
+
+                for (int i = 0; i < responses.size(); i++) {
+                    if (!responses.get(i).isSuccessful()) {
+                        failedTokens.add(tokenList.get(i));
+                        failureIds.add(batchAlarmDto.getTokenList().get(tokenList.get(i)));
+                    }
+                }
+                System.out.println("List of tokens are not valid FCM token : " + failedTokens);
+            }
+            if(PushCondition.getBatchAlarmCondition().contains(pushCondition)) {
+                List<BigInteger> userIds = new ArrayList<>(batchAlarmDto.getTokenList().values());
+                userIds.removeAll(failureIds);
+                saveBatchLog(userIds, pushCondition);
+            }
+        } catch (FirebaseMessagingException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @Override
     public void sendByTopic(PushByTopicRequestDto pushByTopicRequestDto) {
 
         String title = pushByTopicRequestDto.getTitle();
@@ -204,6 +259,29 @@ public class PushServiceImpl implements PushService {
         long result = qUserRepository.saveFcmToken(pushTokenSaveReqDto.getToken(), user.getId());
         if (result != 1) {
             throw new ApiException(ExceptionEnum.TOKEN_SAVE_FAILED);
+        }
+    }
+
+    @Transactional
+    public void saveBatchLog(List<BigInteger> userIds, PushCondition pushCondition) {
+        LocalDateTime logDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+
+        List<BatchPushAlarmLog> existPushAlarmLogList = qBatchPushAlarmLogRepository.findAllBatchAlarmLogByUserIds(userIds);
+        List<BatchPushAlarmLog> pushAlarmLogList = new ArrayList<>();
+
+        // 업데이트 할 아이디와 생성할 아이디 분리
+        if(!existPushAlarmLogList.isEmpty()) {
+            for(BatchPushAlarmLog existPushAlarmLog : existPushAlarmLogList) {
+                existPushAlarmLog.updatePushDateTime(logDateTime);
+                userIds.remove(existPushAlarmLog.getUserId());
+            }
+        }
+
+        if(!userIds.isEmpty()) {
+            for(BigInteger id : userIds) {
+                pushAlarmLogList.add(pushAlarmMapper.toBatchPushAlarmLog(id, pushCondition, logDateTime));
+            }
+            batchPushAlarmLogRepository.saveAll(pushAlarmLogList);
         }
     }
 }

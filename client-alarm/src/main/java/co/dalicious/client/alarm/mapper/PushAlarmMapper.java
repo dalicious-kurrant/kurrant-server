@@ -1,6 +1,7 @@
 package co.dalicious.client.alarm.mapper;
 
 import co.dalicious.client.alarm.dto.AutoPushAlarmDto;
+import co.dalicious.client.alarm.dto.BatchAlarmDto;
 import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
@@ -56,5 +57,15 @@ public interface PushAlarmMapper {
                 .pushDateTime(logDatetime)
                 .pushCondition(pushCondition)
                 .build();
+    }
+
+    default BatchAlarmDto toBatchAlarmDto(Map<String, BigInteger> tokenList, String title, String page, String message) {
+        BatchAlarmDto batchAlarmDto = new BatchAlarmDto();
+        batchAlarmDto.setMessage(message);
+        batchAlarmDto.setTitle(title);
+        batchAlarmDto.setPage(page);
+        batchAlarmDto.setTokenList(tokenList);
+
+        return batchAlarmDto;
     }
 }
