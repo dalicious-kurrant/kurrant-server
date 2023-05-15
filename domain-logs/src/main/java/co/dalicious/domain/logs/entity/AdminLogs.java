@@ -43,7 +43,7 @@ public class AdminLogs {
     @Column(name = "user_code")
     private String userCode;
 
-    @Column(name = "logs")
+    @Column(name = "logs", columnDefinition = "TEXT")
     @Convert(converter = ListToStringConverter.class)
     private List<String> logs;
 
