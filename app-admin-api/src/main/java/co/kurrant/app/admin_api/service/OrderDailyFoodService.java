@@ -21,9 +21,9 @@ public interface OrderDailyFoodService {
     List<GroupDto.Group> getGroup(Integer clientType);
     GroupDto getGroupInfo(BigInteger groupId);
     List<MakersDto.Makers> getMakers();
-    void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList);
+    void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) throws IOException, ParseException;
     void cancelOrderNice(BigInteger orderId) throws IOException, ParseException;
-    void cancelOrderItemsNice(List<BigInteger> idList) throws IOException, ParseException;
+    String cancelOrderItemsNice(List<BigInteger> idList) throws IOException, ParseException;
 
     List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate, BigInteger groupId);
     void postExtraOrderItems(List<ExtraOrderDto.Request> orderDtos);

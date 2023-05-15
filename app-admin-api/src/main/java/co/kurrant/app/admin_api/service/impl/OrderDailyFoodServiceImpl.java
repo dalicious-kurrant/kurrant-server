@@ -1,5 +1,10 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.util.KakaoUtil;
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
+import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
@@ -53,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -94,7 +100,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
     private final QUserRepository qUserRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
+    private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushUtil pushUtil;
+    private final KakaoUtil kaKaoUtil;
+    private final PushService pushService;
 
     @Override
     @Transactional
@@ -183,23 +192,53 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) {
+    public void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) throws IOException, ParseException {
         OrderStatus orderStatus = OrderStatus.ofCode(statusAndIdList.getStatus());
         if (!OrderStatus.completePayment().contains(orderStatus)) {
             throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
         }
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
-        Map<String, Set<BigInteger>> userIdsMap = new HashMap<>();
-        Set<BigInteger> userIds = new HashSet<>();
+        Set<String> userPhoneNumber = new HashSet<>();
+        List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
+
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             if (!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
                 throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
             }
             orderItemDailyFood.updateOrderStatus(orderStatus);
-            userIds.add(orderItemDailyFood.getOrder().getUser().getId());
+            Optional<User> optionalUser = userRepository.findById(orderItemDailyFood.getOrder().getUser().getId());
+            optionalUser.ifPresent(user -> userPhoneNumber.add(user.getPhone()));
+            // 배송완료 푸시 알림 전송
+            if (OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
+                PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
+                User user = orderItemDailyFood.getOrder().getUser();
+                String userName = user.getName();
+                String foodName = orderItemDailyFood.getName();
+                String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
+                String message = PushUtil.getContextDeliveredOrderItem(pushAlarms.getMessage(), userName, foodName, spotName);
+                PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(user, PushCondition.DELIVERED_ORDER_ITEM, message);
+                if (pushRequestDtoByUser != null) {
+                    pushRequestDtoByUsers.add(pushRequestDtoByUser);
+                }
+            }
         }
-        userIdsMap.put("userIds", userIds);
-        pushUtil.sendToType(userIdsMap, PushCondition.DELIVERED_ORDER_ITEM, null, null, null);
+        pushService.sendToPush(pushRequestDtoByUsers);
+
+        /*
+        String content = "안녕하세요!\n" +
+                "조식 서비스를 운영 중인 커런트입니다.\n" +
+                "\n" +
+                "회원 가입 시, 동호수가 입력되지 않았습니다.\n" +
+                "커런트 어플 내 왼쪽 상단바 (실선 3개) - 개인정보 - 이름(동호수) 정보 변경 부탁드립니다.\n" +
+                "\n" +
+                "동호수 미기입 시에는 배송이 누락될 수 있습니다.\n" +
+                "\n" +
+                "감사합니다.";
+        for (String phone : userPhoneNumber){
+            kaKaoUtil.sendAlimTalk(phone, content, "50074");
+            System.out.println(phone + " phoneNumber");
+        }
+        */
     }
 
     @Override
@@ -213,22 +252,23 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    @Transactional
-    public void cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public String cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
+        StringBuilder failMessage = new StringBuilder();
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
         for (OrderItem orderItem : orderItems) {
+            User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
             try {
-                User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
-
                 if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                     orderService.adminCancelOrderItemDailyFood(orderItemDailyFood, user);
                 }
-
             } catch (Exception e) {
                 // Log the exception or handle it as needed
+                failMessage.append(user.getName()).append("님의 ").append(((OrderItemDailyFood) orderItem).getName()).append(" 상품이 취소되지 않았습니다. \n");
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
+        return failMessage.toString();
     }
 
     @Override
@@ -314,10 +354,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
                     // 멤버십이 가입된 기업은 할인된 가격으로 적용하기
                     DiscountDto discountDto;
-                    if(Hibernate.unproxy(spot.getGroup()) instanceof Corporation corporation && corporation.getIsMembershipSupport()){
+                    if (Hibernate.unproxy(spot.getGroup()) instanceof Corporation corporation && corporation.getIsMembershipSupport()) {
                         discountDto = DiscountDto.getDiscount(dailyFood.getFood());
-                    }
-                    else {
+                    } else {
                         discountDto = DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
                     }
 

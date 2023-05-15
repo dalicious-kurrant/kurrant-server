@@ -159,8 +159,10 @@ public class CorporationPaycheck {
 
     public BigDecimal getPaycheckAddsTotalPrice() {
         BigDecimal totalPrice = BigDecimal.ZERO;
-        for (PaycheckAdd paycheckAdd : this.paycheckAdds) {
-            totalPrice = totalPrice.add(paycheckAdd.getPrice());
+        if(this.paycheckAdds != null) {
+            for (PaycheckAdd paycheckAdd : this.paycheckAdds) {
+                totalPrice = totalPrice.add(paycheckAdd.getPrice());
+            }
         }
         return totalPrice;
     }

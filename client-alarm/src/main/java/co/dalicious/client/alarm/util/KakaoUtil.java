@@ -35,7 +35,7 @@ public class KakaoUtil {
 
         JSONArray jsonArray = new JSONArray();
         Map<String,Object> messages = new HashMap<>();
-        messages.put("no", "1");
+        messages.put("no", "0");
         messages.put("tel_num", phoneNumber);
         messages.put("msg_content", content);
         messages.put("sms_content", content);

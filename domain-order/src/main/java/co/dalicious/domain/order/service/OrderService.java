@@ -8,6 +8,7 @@ import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.util.PeriodDto;
 import org.json.simple.parser.ParseException;
+import org.springframework.transaction.annotation.Propagation;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
@@ -26,5 +27,6 @@ public interface OrderService {
     void cancelOrderItemDailyFoodNice(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException;
     void adminCancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException;
 
+    void payMembershipNice(Membership membership, PaymentType ofCode) throws IOException, ParseException;
     void payMembershipNice(User user, MembershipSubscriptionType membershipSubscriptionType, PeriodDto periodDto, PaymentType ofCode) throws IOException, ParseException;
 }

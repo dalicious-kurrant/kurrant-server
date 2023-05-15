@@ -165,6 +165,7 @@ public interface OrderMapper {
     default List<OrderDto.OrderItemDailyFood> orderItemDailyFoodsToDtos(List<OrderItemDailyFood> orderItemDailyFoods) {
         return orderItemDailyFoods.stream()
                 .map(this::orderItemDailyFoodToDto)
+                .sorted(Comparator.comparing(OrderDto.OrderItemDailyFood::getOrderItemDailyFoodId))
                 .collect(Collectors.toList());
     }
 

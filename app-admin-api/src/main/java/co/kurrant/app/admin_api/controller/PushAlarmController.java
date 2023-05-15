@@ -3,11 +3,14 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.alarm.dto.AutoPushAlarmDto;
 import co.dalicious.client.alarm.dto.HandlePushAlarmDto;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.admin_api.dto.alimtalk.AlimtalkTestDto;
 import co.kurrant.app.admin_api.service.PushAlarmService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.parser.ParseException;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -79,4 +82,14 @@ public class PushAlarmController {
                 .message("수동 푸시 알림을 생성했습니다.")
                 .build();
     }
+
+    @Operation(summary = "카카오 알림톡 테스트", description = "카카오 알림톡을 발송한다")
+    @PostMapping("/alimtalk")
+    public ResponseMessage kakaoAlimtalkTest(@RequestBody AlimtalkTestDto alimtalkTestDto) throws IOException, ParseException {
+        pushAlarmService.alimtalkSendTest(alimtalkTestDto);
+        return ResponseMessage.builder()
+                .message("알림톡 전송 성공")
+                .build();
+    }
+
 }

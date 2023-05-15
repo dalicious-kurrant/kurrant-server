@@ -101,6 +101,7 @@ public class Reviews{
     @Comment("댓글 리스트")
     private List<Comments> comments;
 
+    @ColumnDefault("0")
     @Comment("좋아요")
     @Column(name ="like", columnDefinition = "INT")
     private Integer like;

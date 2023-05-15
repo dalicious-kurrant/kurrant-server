@@ -81,7 +81,7 @@ public class OrderDailyFoodController {
     }
 
     @PostMapping("/orderItems/status")
-    public ResponseMessage changeStatus(@RequestBody OrderDto.StatusAndIdList statusAndIdList) {
+    public ResponseMessage changeStatus(@RequestBody OrderDto.StatusAndIdList statusAndIdList) throws IOException, ParseException {
         orderDailyFoodService.changeOrderStatus(statusAndIdList);
         return ResponseMessage.builder()
                 .message("주문 상태 변경을 성공했습니다.")
@@ -90,9 +90,9 @@ public class OrderDailyFoodController {
 
     @PostMapping("/orderItems/cancel")
     public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
-        orderDailyFoodService.cancelOrderItemsNice(idList.getIdList());
+        String message = orderDailyFoodService.cancelOrderItemsNice(idList.getIdList());
         return ResponseMessage.builder()
-                .message("부분 주문 취소를 성공했습니다.")
+                .message(message.isEmpty() ? "부분 주문 취소를 성공했습니다." : message)
                 .build();
     }
     @GetMapping("/extra/dailyFoods")

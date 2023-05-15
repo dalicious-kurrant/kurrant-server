@@ -144,6 +144,7 @@ subprojects {
 
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter-web:2.6.1'
+        implementation 'org.hibernate:hibernate-envers'
     }
 
 }
@@ -156,6 +157,7 @@ tasks.register('cleanGeneatedDir') {
 project(':app-public-api') {
     dependencies {
         implementation project(':system-core')
+        implementation project(':domain-logs')
         implementation project(':client-core')
         implementation project(':client-oauth')
         implementation project(':domain-user')
@@ -315,6 +317,7 @@ project(':domain-client') {
 project(':domain-order') {
     dependencies {
         implementation project(':system-core')
+        implementation project(':domain-logs')
         implementation project(':domain-user')
         implementation project(':domain-makers')
         implementation project(':domain-file')
@@ -374,6 +377,13 @@ project(':domain-review') {
 }
 
 project(':domain-recommend') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':client-core')
+    }
+}
+
+project(':domain-logs') {
     dependencies {
         implementation project(':system-core')
         implementation project(':client-core')
