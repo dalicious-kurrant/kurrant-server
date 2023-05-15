@@ -92,8 +92,7 @@ public class OrderDailyFoodController {
     public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
         String message = orderDailyFoodService.cancelOrderItemsNice(idList.getIdList());
         return ResponseMessage.builder()
-                .message("부분 주문 취소를 성공했습니다.")
-                .data(message.isEmpty() ? null : message)
+                .message(message.isEmpty() ? "부분 주문 취소를 성공했습니다." : message)
                 .build();
     }
     @GetMapping("/extra/dailyFoods")
