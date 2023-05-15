@@ -1,9 +1,11 @@
 package co.kurrant.batch.service;
 
 import co.dalicious.domain.order.repository.QOrderItemRepository;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -13,9 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -24,42 +24,39 @@ public class ReviewService {
 
     private final EntityManager entityManager;
 
-    public List<BigInteger> findOrderItemByReviewDeadline() {
+    public List<BigInteger> findUserIdsByReviewDeadline() {
 
-        // order status -> RECEIPT_COMPLETE 이고 남은 리뷰 작성 기한이 0일이면서 현재시간이 deliveryTime 보다 전일때.
-        String queryString = "SELECT oi.id, df.serviceDate, mi.deliveryTime\n" +
-                "FROM OrderItem oi\n" +
-                "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id\n" +
-                "JOIN oidf.dailyFood df\n" +
-                "JOIN df.group g\n" +
-                "JOIN MealInfo mi ON g.id = mi.group.id AND df.diningType = mi.diningType\n" +
-                "WHERE oi.orderStatus = 11L AND df.serviceDate > :limitDay";
+        LocalDate limitDay = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(5);
+        LocalDateTime before24ByNow = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(1);
 
-        LocalDate limitDay = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(3);
+        String queryString = "SELECT u.id, bpal.pushDateTime " +
+                "FROM OrderItem oi " +
+                "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
+                "JOIN oidf.dailyFood df " +
+                "JOIN df.group g " +
+                "JOIN MealInfo mi ON g.id = mi.group.id AND df.diningType = mi.diningType " +
+                "JOIN Order o ON oi.order = o " +
+                "JOIN User u ON o.user = u " +
+                "LEFT JOIN BatchPushAlarmLog bpal ON bpal.userId = u.id AND bpal.pushCondition = 2001 " +
+                "WHERE oi.orderStatus = 11L AND df.serviceDate > :limitDay " +
+                "AND u.firebaseToken IS NOT NULL " +
+                "GROUP BY u.id, bpal.pushDateTime";
+
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
         query.setParameter("limitDay", limitDay);
         List<Object[]> results = query.getResultList();
 
-        List<BigInteger> orderIds = new ArrayList<>();
-        for(Object[] result : results) {
-            BigInteger orderItemId = (BigInteger) result[0];
-            LocalDate serviceDate = (LocalDate) result[1];
-            LocalTime deliveryTime = (LocalTime) result[2];
+        List<BigInteger> userIds = new ArrayList<>();
+        for (Object[] result : results) {
+            BigInteger userId = (BigInteger) result[0];
+            LocalDateTime pushDateTime = (LocalDateTime) result[1];
 
-            if(serviceDate == null) continue;
-            if(deliveryTime == null) deliveryTime = LocalTime.MAX;
-            LocalDateTime reviewableDateTime = serviceDate.plusDays(3).atTime(deliveryTime);
-            String reviewableDate = DateUtils.calculatedDDayAndTime(reviewableDateTime);
-            String day = reviewableDate.split(" ")[0];
-            LocalTime time = DateUtils.stringToLocalTime(reviewableDate.split(" ")[1]);
-
-            if(day.equals("1") && Objects.requireNonNull(time).isBefore(LocalTime.MAX)) {
-                orderIds.add(orderItemId);
+            if (pushDateTime == null || pushDateTime.isBefore(before24ByNow)) {
+                userIds.add(userId);
             }
         }
 
-
-        return orderIds;
+        return userIds;
     }
 
 }

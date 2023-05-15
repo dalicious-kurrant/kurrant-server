@@ -1,35 +1,38 @@
 package co.dalicious.client.alarm.util;
 
+import co.dalicious.client.alarm.dto.BatchAlarmDto;
 import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.mapper.PushAlarmMapper;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
+import co.dalicious.domain.user.entity.BatchPushAlarmLog;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
-import co.dalicious.domain.user.repository.QUserGroupRepository;
-import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.QUserSpotRepository;
+import co.dalicious.domain.user.repository.*;
 import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Component
 @RequiredArgsConstructor
 public class PushUtil {
-
-    private final QUserGroupRepository qUserGroupRepository;
     private final QUserSpotRepository qUserSpotRepository;
     private final QUserRepository qUserRepository;
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushService pushService;
     private final PushAlarmMapper pushAlarmMapper;
+    private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
+    private final QBatchPushAlarmLogRepository qBatchPushAlarmLogRepository;
 
     public void sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, String customMessage) {
         Set<BigInteger> spotIds = !ids.containsKey("spotIds") || ids.get("spotIds") == null ? null : ids.get("spotIds");
@@ -51,7 +54,7 @@ public class PushUtil {
         }
 
         List<String> firebaseTokenList = new ArrayList<>();
-
+        List<BigInteger> pushUserIds = new ArrayList<>();
         userList.forEach(user -> {
             List<PushCondition> pushConditionList = user.getPushConditionList();
             if (pushConditionList == null || pushConditionList.isEmpty()) {
@@ -59,6 +62,7 @@ public class PushUtil {
             }
             if (pushConditionList.contains(pushCondition)) {
                 firebaseTokenList.add(user.getFirebaseToken());
+                pushUserIds.add(user.getId());
             }
         });
 
@@ -127,5 +131,32 @@ public class PushUtil {
         StringSubstitutor sub = new StringSubstitutor(valuesMap);
         template = sub.replace(template);
         return template;
+    }
+
+    public void getBatchAlarmDto(User user, PushCondition pushCondition) {
+        // 활성화 된 자동 알람을 불러오기
+        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
+        // 비활성인 경우 알람 안보냄
+        if (pushAlarms == null) return;
+
+        Map<String, BigInteger> token = new HashMap<>();
+        BatchAlarmDto pushRequestDto = null;
+
+        List<PushCondition> pushConditionList = user.getPushConditionList();
+        if (pushConditionList == null || pushConditionList.isEmpty()) {
+            return;
+        }
+        if (pushConditionList.contains(pushCondition)) {
+            token.put(user.getFirebaseToken(), user.getId());
+        }
+
+        String message = pushAlarms.getMessage();
+        if (!token.isEmpty()) {
+            pushRequestDto = pushAlarmMapper.toBatchAlarmDto(token, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl());
+        }
+
+        if(pushRequestDto != null) {
+            pushService.sendToPush(pushRequestDto, pushCondition);
+        }
     }
 }

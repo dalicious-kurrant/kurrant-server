@@ -19,6 +19,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
+import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -34,6 +35,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+//@Audited
 @Table(name = "food__food", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "makers_id"})})
 public class Food {
     // TODO: 추후 Item 상속 추가

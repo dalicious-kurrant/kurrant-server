@@ -58,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -251,22 +252,23 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    @Transactional
-    public void cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public String cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
+        StringBuilder failMessage = new StringBuilder();
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
         for (OrderItem orderItem : orderItems) {
+            User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
             try {
-                User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
-
                 if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                     orderService.adminCancelOrderItemDailyFood(orderItemDailyFood, user);
                 }
-
             } catch (Exception e) {
                 // Log the exception or handle it as needed
+                failMessage.append(user.getName()).append("님의 ").append(((OrderItemDailyFood) orderItem).getName()).append(" 상품이 취소되지 않았습니다. <br>");
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
+        return failMessage.toString();
     }
 
     @Override

@@ -32,9 +32,9 @@ jobs:
           mkdir resources
           cd resources
           touch ./application.yaml
-          echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application.yaml
+          echo "${{ secrets.APP_PUBLIC_API_DEV_YAML }}" > ./application.yaml
           touch ./application-prod.yaml
-          echo "${{ secrets.APP_PUBLIC_API_PROD_PROD_YAML }}" > ./application-prod.yaml
+          echo "${{ secrets.APP_PUBLIC_API_DEV_DEV_YAML }}" > ./application-prod.yaml
         shell: bash
 
       - name: client-core application-jwt.properties 생성
@@ -79,7 +79,7 @@ jobs:
           mkdir resources
           cd resources
           touch ./application-payment.properties
-          echo "${{ secrets.DOMAIN_PAYMENT_PROD_PROPERTIES }}" > ./application-payment.properties
+          echo "${{ secrets.DOMAIN_PAYMENT_DEV_PROPERTIES }}" > ./application-payment.properties
         shell: bash
 
       - name: domain-file application-s3.properties 생성

@@ -40,4 +40,5 @@ include 'data-redis'
 include 'batch'
 include 'domain-paycheck'
 include 'domain-event'
+include 'domain-logs'
 
