@@ -1,5 +1,6 @@
 package co.dalicious.client.alarm.util;
 
+import co.dalicious.client.alarm.dto.BatchAlarmDto;
 import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
@@ -25,8 +26,6 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class PushUtil {
-
-    private final QUserGroupRepository qUserGroupRepository;
     private final QUserSpotRepository qUserSpotRepository;
     private final QUserRepository qUserRepository;
     private final QPushAlarmsRepository qPushAlarmsRepository;
@@ -80,7 +79,6 @@ public class PushUtil {
         PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(firebaseTokenList, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl(), keys);
 
         pushService.sendToPush(pushRequestDto);
-        saveBatchLog(pushUserIds,  pushCondition);
     }
 
     public PushRequestDtoByUser getPushRequest(User user, PushCondition pushCondition, String customMessage) {
@@ -135,26 +133,30 @@ public class PushUtil {
         return template;
     }
 
-    @Transactional
-    public void saveBatchLog(List<BigInteger> userIds, PushCondition pushCondition) {
-        LocalDateTime logDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+    public void getBatchAlarmDto(User user, PushCondition pushCondition) {
+        // 활성화 된 자동 알람을 불러오기
+        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
+        // 비활성인 경우 알람 안보냄
+        if (pushAlarms == null) return;
 
-        List<BatchPushAlarmLog> existPushAlarmLogList = qBatchPushAlarmLogRepository.findAllBatchAlarmLogByUserIds(userIds);
-        List<BatchPushAlarmLog> pushAlarmLogList = new ArrayList<>();
+        Map<String, BigInteger> token = new HashMap<>();
+        BatchAlarmDto pushRequestDto = null;
 
-        // 업데이트 할 아이디와 생성할 아이디 분리
-        if(!existPushAlarmLogList.isEmpty()) {
-            for(BatchPushAlarmLog existPushAlarmLog : existPushAlarmLogList) {
-                existPushAlarmLog.updatePushDateTime(logDateTime);
-                userIds.remove(existPushAlarmLog.getUserId());
-            }
+        List<PushCondition> pushConditionList = user.getPushConditionList();
+        if (pushConditionList == null || pushConditionList.isEmpty()) {
+            return;
+        }
+        if (pushConditionList.contains(pushCondition)) {
+            token.put(user.getFirebaseToken(), user.getId());
         }
 
-        if(!userIds.isEmpty()) {
-            for(BigInteger id : userIds) {
-                pushAlarmLogList.add(pushAlarmMapper.toBatchPushAlarmLog(id, pushCondition, logDateTime));
-            }
-            batchPushAlarmLogRepository.saveAll(pushAlarmLogList);
+        String message = pushAlarms.getMessage();
+        if (!token.isEmpty()) {
+            pushRequestDto = pushAlarmMapper.toBatchAlarmDto(token, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl());
+        }
+
+        if(pushRequestDto != null) {
+            pushService.sendToPush(pushRequestDto, pushCondition);
         }
     }
 }
