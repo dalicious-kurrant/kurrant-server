@@ -1,42 +1,79 @@
 package co.dalicious.domain.logs.entity.listener;
 
-import co.dalicious.client.core.filter.provider.RequestPortHolder;
+import co.dalicious.client.core.filter.provider.RequestContextHolder;
+import co.dalicious.domain.logs.entity.AdminLogs;
+import co.dalicious.domain.logs.entity.enums.LogType;
+import co.dalicious.domain.logs.repository.AdminLogsRepository;
 import co.dalicious.domain.logs.util.NetworkUtils;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.Embeddable;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Component
+@RequiredArgsConstructor
 public class CustomPostUpdateEventListener implements PostUpdateEventListener {
     private static final int ADMIN_PORT = 8888;
+    private final AdminLogsRepository adminLogsRepository;
 
     private boolean isAdminRequest() {
-        Integer currentPort = RequestPortHolder.getCurrentPort();
+        Integer currentPort = RequestContextHolder.getCurrentPort();
         return currentPort != null && currentPort == ADMIN_PORT;
     }
 
 
     @Override
     public void onPostUpdate(PostUpdateEvent event) {
+        // 백오피스가 아니라면 로그를 저장하지 않음
+        if (!isAdminRequest()) return;
+
         String hardwareName = NetworkUtils.getLocalMacAddress();
         Object entity = event.getEntity();
-        // And you can access the old and new state of the entity:
         Object[] oldState = event.getOldState();
         Object[] newState = event.getState();
-        // You can also access the names of the properties:
         String[] properties = event.getPersister().getPropertyNames();
-        // Now you can compare the old and new state and create log entries
+        List<String> logs = new ArrayList<>();
         for (int i = 0; i < properties.length; i++) {
             if (!Objects.equals(oldState[i], newState[i]) && !properties[i].equals("updatedDateTime")) {
-                // The property has changed, create a log entry
-                String logEntry = hardwareName + " 기기에서 " + event.getId() + "번 " + entity.getClass().getSimpleName() + " 엔티티의 속성 " + properties[i] + "를 " + oldState[i] + "에서 " + newState[i] + "로 변경하였습니다.";
-                // Now you can save this logEntry somewhere
-                System.out.println(logEntry);  // For testing, just print it
+                // 필드가 Embeddable 속성인지 체크
+                if (oldState[i] != null && newState[i] != null && oldState[i].getClass().getAnnotation(Embeddable.class) != null) {
+                    Field[] fields = oldState[i].getClass().getDeclaredFields();
+                    for (Field field : fields) {
+                        field.setAccessible(true);
+                        try {
+                            Object oldValue = field.get(oldState[i]);
+                            Object newValue = field.get(newState[i]);
+                            if (!Objects.equals(oldValue, newValue)) {
+                                String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 " + field.getName() + "값이 " + '"' + oldValue + '"' + "에서 " + '"' + newValue + '"' + "로 변경.";
+                                logs.add(logEntry);
+                                System.out.println(logEntry);
+                            }
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } else {
+                    String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 값이 " + '"' + oldState[i] + '"' + "에서 " + '"' + newState[i] + '"' + "로 변경.";
+                    logs.add(logEntry);
+                    System.out.println(logEntry);
+                }
             }
         }
+        adminLogsRepository.save(AdminLogs.builder()
+                .logType(LogType.UPDATE)
+                .baseUrl(RequestContextHolder.getCurrentBaseUrl())
+                .endPoint(RequestContextHolder.getCurrentEndpoint())
+                .entityName(entity.getClass().getSimpleName())
+                .userCode(hardwareName)
+                .logs(logs)
+                .build());
     }
 
     @Override
