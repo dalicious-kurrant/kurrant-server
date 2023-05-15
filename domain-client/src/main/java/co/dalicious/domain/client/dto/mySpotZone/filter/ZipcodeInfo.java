@@ -7,4 +7,8 @@ import lombok.Setter;
 @Setter
 public class ZipcodeInfo {
     private String zipcode;
+
+    public ZipcodeInfo(String zipcode) {
+        this.zipcode = zipcode;
+    }
 }

@@ -33,7 +33,7 @@ public class RequestedMySpotZones {
     private String county;
 
     @Column(name = "village")
-    @Comment("동/읍/라")
+    @Comment("동/읍/리")
     private String village;
 
     @Column(name = "waiting_user_count")

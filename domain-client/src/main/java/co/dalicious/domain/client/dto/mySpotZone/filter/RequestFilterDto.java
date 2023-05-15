@@ -5,10 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CountyInfo {
+public class RequestFilterDto {
+    private String city;
     private String county;
-
-    public CountyInfo(String county) {
-        this.county = county;
-    }
+    private String village;
+    private String zipcode;
 }

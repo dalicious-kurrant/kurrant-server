@@ -7,4 +7,8 @@ import lombok.Setter;
 @Setter
 public class VillageInfo {
     private String village;
+
+    public VillageInfo(String village) {
+        this.village = village;
+    }
 }

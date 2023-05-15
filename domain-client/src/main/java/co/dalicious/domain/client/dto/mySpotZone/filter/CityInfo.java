@@ -7,4 +7,8 @@ import lombok.Setter;
 @Setter
 public class CityInfo {
     private String cityName;
+
+    public CityInfo(String cityName) {
+        this.cityName = cityName;
+    }
 }
