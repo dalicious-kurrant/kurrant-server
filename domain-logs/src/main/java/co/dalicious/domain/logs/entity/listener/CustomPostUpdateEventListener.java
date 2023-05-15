@@ -13,13 +13,6 @@ import java.util.Objects;
 public class CustomPostUpdateEventListener implements PostUpdateEventListener {
     private static final int ADMIN_PORT = 8888;
 
-    public void newRevision(Object revisionEntity) {
-        // Skip if not admin request
-        if (!isAdminRequest()) {
-            return;
-        }
-    }
-
     private boolean isAdminRequest() {
         Integer currentPort = RequestPortHolder.getCurrentPort();
         return currentPort != null && currentPort == ADMIN_PORT;
@@ -37,9 +30,9 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
         String[] properties = event.getPersister().getPropertyNames();
         // Now you can compare the old and new state and create log entries
         for (int i = 0; i < properties.length; i++) {
-            if (!Objects.equals(oldState[i], newState[i])) {
+            if (!Objects.equals(oldState[i], newState[i]) && !properties[i].equals("updatedDateTime")) {
                 // The property has changed, create a log entry
-                String logEntry = hardwareName + " 기기에서 속성명 " + properties[i] + "가 " + oldState[i] + "에서 " + newState[i] + "로 변경되었습니다.";
+                String logEntry = hardwareName + " 기기에서 " + event.getId() + "번 " + entity.getClass().getSimpleName() + " 엔티티의 속성 " + properties[i] + "를 " + oldState[i] + "에서 " + newState[i] + "로 변경하였습니다.";
                 // Now you can save this logEntry somewhere
                 System.out.println(logEntry);  // For testing, just print it
             }

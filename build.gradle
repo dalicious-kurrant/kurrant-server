@@ -157,6 +157,7 @@ tasks.register('cleanGeneatedDir') {
 project(':app-public-api') {
     dependencies {
         implementation project(':system-core')
+        implementation project(':domain-logs')
         implementation project(':client-core')
         implementation project(':client-oauth')
         implementation project(':domain-user')
@@ -316,6 +317,7 @@ project(':domain-client') {
 project(':domain-order') {
     dependencies {
         implementation project(':system-core')
+        implementation project(':domain-logs')
         implementation project(':domain-user')
         implementation project(':domain-makers')
         implementation project(':domain-file')
