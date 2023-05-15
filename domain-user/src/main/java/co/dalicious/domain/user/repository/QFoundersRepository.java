@@ -23,7 +23,7 @@ public class QFoundersRepository {
 
     public Founders findFoundersByUser(User user) {
         return queryFactory.selectFrom(founders)
-                .where(founders.user.eq(user))
+                .where(founders.user.eq(user), founders.isActive.eq(true))
                 .fetchOne();
     }
 }

@@ -8,6 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
 @Component
 @RequiredArgsConstructor
 public class UserUtil {
@@ -24,5 +29,4 @@ public class UserUtil {
         }
         return (SecurityUser) authentication.getPrincipal();
     }
-
 }

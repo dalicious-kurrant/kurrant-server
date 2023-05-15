@@ -21,6 +21,7 @@ public interface OrderItemDailyFoodListMapper {
         orderItemDto.setId(orderItemDailyFood.getId());
         orderItemDto.setDailyFoodId(orderItemDailyFood.getDailyFood().getId());
         orderItemDto.setName(orderItemDailyFood.getDailyFood().getFood().getName());
+        orderItemDto.setDailyFoodStatus(orderItemDailyFood.getDailyFood().getDailyFoodStatus().getCode());
         orderItemDto.setOrderStatus(Math.toIntExact(orderItemDailyFood.getOrderStatus().getCode()));
         orderItemDto.setMakers(orderItemDailyFood.getDailyFood().getFood().getMakers().getName());
         orderItemDto.setImage(orderItemDailyFood.getDailyFood().getFood().getImages() == null || orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty() ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation());
