@@ -264,7 +264,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
             } catch (Exception e) {
                 // Log the exception or handle it as needed
-                failMessage.append(user.getName()).append("님의 ").append(((OrderItemDailyFood) orderItem).getName()).append(" 상품이 취소되지 않았습니다. <br>");
+                failMessage.append(user.getName()).append("님의 ").append(((OrderItemDailyFood) orderItem).getName()).append(" 상품이 취소되지 않았습니다. \n");
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
