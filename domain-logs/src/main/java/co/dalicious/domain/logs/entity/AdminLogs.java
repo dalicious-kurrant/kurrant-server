@@ -34,7 +34,7 @@ public class AdminLogs {
     private LogType logType;
 
     @Convert(converter = ControllerTypeConverter.class)
-    @Comment("사용 컨트롤러 타입 ")
+    @Comment("사용 컨트롤러 타입")
     private ControllerType controllerType;
 
     @Column(name = "request_url")

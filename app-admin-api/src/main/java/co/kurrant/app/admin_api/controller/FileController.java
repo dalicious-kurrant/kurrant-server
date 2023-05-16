@@ -1,7 +1,9 @@
 package co.kurrant.app.admin_api.controller;
 
 
+import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.file.service.ImageService;
 import co.kurrant.app.admin_api.dto.ExcelExample;
 import co.kurrant.app.admin_api.service.AdminExcelService;
@@ -34,6 +36,7 @@ public class FileController {
     private final ImageService imageService;
 
 
+    @ControllerMarker(ControllerType.FILE)
     @Operation(summary = "이미지 업로드 경로 요청", description = "이미지 업로드 경로 요청한다.")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/images")
@@ -44,6 +47,7 @@ public class FileController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.FILE)
     @Operation(summary = "엑셀 파일 작업 연습", description = "엑셀 파일 읽고 쓰는 연슴용")
     @PostMapping("/excel")
     public List<ExcelExample> excelPractice(@RequestParam("file") MultipartFile file, Model model) throws IOException {
@@ -82,6 +86,7 @@ public class FileController {
         return dataList;
     }
 
+    @ControllerMarker(ControllerType.FILE)
     private boolean isAllowedMIMEType(String mimeType) {
         return mimeType.equals("application/x-tika-ooxml");
     }
