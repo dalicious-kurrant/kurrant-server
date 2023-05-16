@@ -31,13 +31,13 @@ public class Apartment extends Group{
 
 
     @Builder
-    public Apartment(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer familyCount, String memo) {
-        super(address, diningTypes, name, managerId, memo);
+    public Apartment(Address address, List<DiningType> diningTypes, String name, Integer familyCount, String memo) {
+        super(address, diningTypes, name, memo);
         this.familyCount = familyCount;
     }
 
-    public void updateApartment(Address address, List<DiningType> diningTypeList, String name, BigInteger managerId, Integer familyCount) {
-        updateGroup(address, diningTypeList, name, managerId);
+    public void updateApartment(Address address, List<DiningType> diningTypeList, String name, Integer familyCount) {
+        updateGroup(address, diningTypeList, name);
         this.familyCount = familyCount;
     }
 }

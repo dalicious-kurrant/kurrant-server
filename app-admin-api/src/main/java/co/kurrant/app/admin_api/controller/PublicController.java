@@ -1,6 +1,8 @@
 package co.kurrant.app.admin_api.controller;
 
+import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.core.enums.ControllerType;
 import co.kurrant.app.admin_api.service.GroupService;
 import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +20,8 @@ import java.math.BigInteger;
 public class PublicController {
     private final AdminPaycheckService adminPaycheckService;
     private final GroupService groupService;
+
+    @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "메이커스 조회", description = "메이커스 조회")
     @GetMapping("/makersInfos")
     public ResponseMessage getMakers() {
@@ -27,6 +31,7 @@ public class PublicController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "상세스팟 조회", description = "프라이빗 스팟 조회")
     @GetMapping("/groups/{groupId}/spots")
     public ResponseMessage getSpotDetail(@PathVariable BigInteger groupId) {
@@ -36,6 +41,7 @@ public class PublicController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "프라이빗 스팟 조회", description = "프라이빗 스팟 조회")
     @GetMapping("/corporationInfos")
     public ResponseMessage getCorporations() {
@@ -45,6 +51,7 @@ public class PublicController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "스파크플러스 로그 추가", description = "스파크플러스 로그 추가")
     @GetMapping("/sparkplus/logs/{log}")
     public ResponseMessage postSparkplusLog(@PathVariable Integer log) {
@@ -54,6 +61,7 @@ public class PublicController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "스파크플러스 로그 조회", description = "스파크플러스 로그 조회")
     @GetMapping("/sparkplus/logs")
     public ResponseMessage getSparkplusLog() {

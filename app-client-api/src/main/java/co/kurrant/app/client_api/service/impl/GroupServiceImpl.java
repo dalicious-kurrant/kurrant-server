@@ -1,6 +1,7 @@
 package co.kurrant.app.client_api.service.impl;
 
 import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.GroupRepository;
@@ -45,7 +46,7 @@ public class GroupServiceImpl implements GroupService {
 
         // 기업 정보 dto 맵핑하기
         User managerUser = null;
-        if(group.getManagerId() != null) { managerUser = userRepository.findById(group.getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));}
+        if(group instanceof Corporation corporation && corporation.getManagerId() != null) { managerUser = userRepository.findById(corporation.getManagerId()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));}
         return groupInfoMapper.toCorporationListDto(group, managerUser);
     }
 

@@ -1,6 +1,8 @@
 package co.kurrant.app.admin_api.controller;
 
+import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.core.enums.ControllerType;
 import co.kurrant.app.admin_api.dto.client.SaveSpotList;
 import co.kurrant.app.admin_api.service.SpotService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +23,7 @@ public class SpotController {
 
     private final SpotService spotService;
 
+    @ControllerMarker(ControllerType.SPOT)
     @Operation(summary = "그룹 리스트 조회", description = "존재하는 그룹의 리스트를 조회한다.")
     @GetMapping("/spots")
     public ResponseMessage getSpotList() {
@@ -30,6 +33,7 @@ public class SpotController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.SPOT)
     @Operation(summary = "스팟정보 전체 조회", description = "존재하는 스팟을 모두 조회합니다.")
     @GetMapping("/spot/all")
     public ResponseMessage getAllSpotList(@RequestParam(required = false) Integer status) {
@@ -39,7 +43,7 @@ public class SpotController {
                 .build();
     }
 
-
+    @ControllerMarker(ControllerType.SPOT)
     @Operation(summary = "저장하기", description = "수정사항을 저장한다.")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("")
@@ -50,6 +54,7 @@ public class SpotController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.SPOT)
     @Operation(summary = "스팟 삭제하기", description = "선택한 스팟을 삭제한다.")
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("")

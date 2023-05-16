@@ -7,7 +7,8 @@ import java.util.Arrays;
 @Getter
 public enum LogType {
     CREATE("생성", 1),
-    UPDATE("수정", 2);
+    UPDATE("수정", 2),
+    DELETE("삭제", 3);
 
     private final String logType;
     private final Integer code;
