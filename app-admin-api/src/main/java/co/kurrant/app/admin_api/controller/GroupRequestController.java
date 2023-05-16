@@ -71,7 +71,7 @@ public class GroupRequestController {
     @ControllerMarker(ControllerType.GROUP_REQUEST)
     @Operation(summary = "마이 스팟 신청 삭제", description = "마이 스팟 신청을 삭제합니다.")
     @DeleteMapping("")
-    public ResponseMessage deleteMySpotRequest(@RequestBody List<IdDto> ids) {
+    public ResponseMessage deleteMySpotRequest(@RequestBody List<BigInteger> ids) {
         groupRequestService.deleteMySpotRequest(ids);
         return ResponseMessage.builder()
                 .message("마이 스팟 신청을 삭제했습니다.")
@@ -81,7 +81,7 @@ public class GroupRequestController {
     @ControllerMarker(ControllerType.GROUP_REQUEST)
     @Operation(summary = "마이 스팟 생성", description = "마이 스팟을 추가합니다.")
     @PostMapping("/create/zone")
-    public ResponseMessage createMySpotZonesFromRequest(@RequestBody List<IdDto> ids) {
+    public ResponseMessage createMySpotZonesFromRequest(@RequestBody List<BigInteger> ids) {
         groupRequestService.createMySpotZonesFromRequest(ids);
         return ResponseMessage.builder()
                 .message("마이 스팟 생성을 성공했습니다.")

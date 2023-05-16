@@ -104,10 +104,9 @@ public class GroupRequestServiceImpl implements GroupRequestService {
 
     @Override
     @Transactional
-    public void deleteMySpotRequest(List<IdDto> ids) {
-        List<BigInteger> idList = ids.stream().map(IdDto::getId).toList();
+    public void deleteMySpotRequest(List<BigInteger> ids) {
 
-        List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(idList);
+        List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
 
         // requestedMySpotZone을 가지고 있는 muSpot을 수정
         List<MySpot> mySpotList = qMySpotRepository.findMySpotByRequestedMySpotZones(existRequestedMySpotZones);
@@ -121,15 +120,14 @@ public class GroupRequestServiceImpl implements GroupRequestService {
 
     @Override
     @Transactional
-    public void createMySpotZonesFromRequest(List<IdDto> ids) {
+    public void createMySpotZonesFromRequest(List<BigInteger> ids) {
 
-        List<BigInteger> idList = ids.stream().map(IdDto::getId).toList();
-
-        List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(idList);
+        List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
 
         // 마이스팟 생성
         MySpotZone mySpotZone = requestedMySpotZonesMapper.toMySpotZone(existRequestedMySpotZones);
 
+        // mealInfo 생성
 
 
         mySpotZoneRepository.save(mySpotZone);
