@@ -58,6 +58,7 @@ public enum ExceptionEnum {
 	ALREADY_DELETED_REVIEW(HttpStatus.BAD_REQUEST, "E4000106", "삭제된 리뷰입니다."),
 	ALREADY_USED_DAYS(HttpStatus.BAD_REQUEST, "E4000107", "이미 서비스를 제공하고 있는 요일입니다."),
 	NOT_VALID_EMAIL(HttpStatus.BAD_REQUEST, "E4000100", "잘못된 이메일 주소입니다."),
+	ALREADY_EXIST_REQUEST(HttpStatus.BAD_REQUEST, "E4000108", "요청하신 우편번호와 동일한 마이 스팟 신청내역이 존재합니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
