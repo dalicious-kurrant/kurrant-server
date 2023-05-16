@@ -80,4 +80,4 @@ public class RedisConfig {
 //        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(CertificationHash.class));
 //        return redisTemplate;
 //    }
-}
+//}
