@@ -31,7 +31,6 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins="*", allowedHeaders = "*")
 public class FileController {
-    private final AdminExcelService adminExcelService;
     private final ImageService imageService;
 
 

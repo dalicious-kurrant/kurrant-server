@@ -116,6 +116,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Override
     @Transactional
     public BigInteger orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
+        throw new ApiException(ExceptionEnum.NEED_TO_UPDATE);
+        /*
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
@@ -379,6 +381,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
             return orderDailyFood.getId();
         }
+         */
     }
 
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();

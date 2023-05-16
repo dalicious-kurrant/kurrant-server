@@ -1,6 +1,8 @@
 package co.dalicious.domain.logs.entity;
 
+import co.dalicious.client.core.converter.ControllerTypeConverter;
 import co.dalicious.domain.logs.entity.converter.LogTypeConverter;
+import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.logs.entity.enums.LogType;
 import co.dalicious.system.converter.ListToStringConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -28,8 +30,12 @@ public class AdminLogs {
     private BigInteger id;
 
     @Convert(converter = LogTypeConverter.class)
-    @Comment("로그 타입 1. 생성 2. 수정")
+    @Comment("로그 타입 1. 생성 2. 수정 3. 삭제")
     private LogType logType;
+
+    @Convert(converter = ControllerTypeConverter.class)
+    @Comment("사용 컨트롤러 타입 ")
+    private ControllerType controllerType;
 
     @Column(name = "request_url")
     private String baseUrl;
@@ -54,8 +60,9 @@ public class AdminLogs {
     private Timestamp createdDateTime;
 
     @Builder
-    public AdminLogs(LogType logType, String baseUrl, String endPoint, String entityName, String userCode, List<String> logs) {
+    public AdminLogs(LogType logType, ControllerType controllerType, String baseUrl, String endPoint, String entityName, String userCode, List<String> logs) {
         this.logType = logType;
+        this.controllerType = controllerType;
         this.baseUrl = baseUrl;
         this.endPoint = endPoint;
         this.entityName = entityName;

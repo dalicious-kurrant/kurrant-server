@@ -1,4 +1,4 @@
-package co.dalicious.domain.logs.entity.listener;
+package co.dalicious.domain.logs.listener;
 
 import co.dalicious.client.core.filter.provider.RequestContextHolder;
 import co.dalicious.domain.logs.entity.AdminLogs;
@@ -15,7 +15,6 @@ import javax.persistence.Embeddable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -31,6 +30,10 @@ public class CustomPostInsertEventListener implements PostInsertEventListener {
     @Override
     public void onPostInsert(PostInsertEvent event) {
         if (!isAdminRequest()) {
+            return;
+        }
+
+        if (event.getEntity() instanceof AdminLogs) {
             return;
         }
 
@@ -63,6 +66,7 @@ public class CustomPostInsertEventListener implements PostInsertEventListener {
             }
             adminLogsRepository.save(AdminLogs.builder()
                     .logType(LogType.CREATE)
+                    .controllerType(RequestContextHolder.getCurrentControllerType())
                     .baseUrl(RequestContextHolder.getCurrentBaseUrl())
                     .endPoint(RequestContextHolder.getCurrentEndpoint())
                     .entityName(entity.getClass().getSimpleName())
