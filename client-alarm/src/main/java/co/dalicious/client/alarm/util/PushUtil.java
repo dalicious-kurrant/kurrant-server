@@ -152,7 +152,7 @@ public class PushUtil {
 
         String message = pushAlarms.getMessage();
         if (!token.isEmpty()) {
-            pushRequestDto = pushAlarmMapper.toBatchAlarmDto(token, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl());
+            pushRequestDto = pushAlarmMapper.toBatchAlarmDto(token, pushCondition.getTitle(), pushAlarms.getRedirectUrl(), message);
         }
 
         if(pushRequestDto != null) {
