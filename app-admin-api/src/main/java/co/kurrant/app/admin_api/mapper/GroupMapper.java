@@ -179,7 +179,6 @@ public interface GroupMapper {
                     .address(address)
                     .diningTypes(diningTypeList)
                     .name(groupInfoList.getName())
-                    .managerId(groupInfoList.getManagerId())
                     .familyCount(groupInfoList.getEmployeeCount())
                     .build();
         }
@@ -188,7 +187,6 @@ public interface GroupMapper {
                     .address(address)
                     .diningTypes(diningTypeList)
                     .name(groupInfoList.getName())
-                    .managerId(groupInfoList.getManagerId())
                     .openGroupUserCount(groupInfoList.getEmployeeCount())
                     .build();
         }

@@ -9,8 +9,8 @@ import java.util.List;
 @Setter
 public class FilterDto {
 
-    private List<CityInfo> cityInfos;
-    private List<CountyInfo> countyInfos;
-    private List<VillageInfo> villageInfos;
-    private List<ZipcodeInfo> zipcodeInfos;
+    private List<String> cityInfos;
+    private List<String> countyInfos;
+    private List<String> villageInfos;
+    private List<String> zipcodeInfos;
 }

@@ -1,6 +1,8 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -39,4 +41,30 @@ public class RequestedMySpotZones {
     @Column(name = "waiting_user_count")
     @Comment("신청 유저 수")
     private Integer waitingUserCount;
+
+    @Column(name = "memo")
+    @Comment("메모")
+    private String memo;
+
+    @Builder
+    public RequestedMySpotZones(String zipcode, String city, String county, String village, Integer waitingUserCount, String memo) {
+        this.zipcode = zipcode;
+        this.city = city;
+        this.county = county;
+        this.village = village;
+        this.waitingUserCount = waitingUserCount;
+        this.memo = memo;
+    }
+
+    public void updateRequestedMySpotZones(RequestedMySpotDetailDto updateRequestDto) {
+        this.zipcode = updateRequestDto.getZipcode();
+        this.city = updateRequestDto.getCity();
+        this.county = updateRequestDto.getCounty();
+        this.village = updateRequestDto.getVillage();
+        this.waitingUserCount = updateRequestDto.getRequestUserCount();
+        this.memo = updateRequestDto.getMemo();
+    }
+
+
+
 }

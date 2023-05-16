@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
@@ -15,6 +16,7 @@ import java.math.BigInteger;
 
 @Entity
 @Getter
+@SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "user__user_spot")
@@ -63,7 +65,6 @@ public class UserSpot {
         this.clientType = clientType;
     }
 
-    @Builder
     public UserSpot(User user, ClientType clientType, Spot spot, Boolean isDefault) {
         this.user = user;
         this.clientType = clientType;

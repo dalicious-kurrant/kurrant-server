@@ -1,11 +1,14 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.converter.CountriesConverter;
 import co.dalicious.domain.client.converter.MysSpotZoneStatusConverter;
 import co.dalicious.domain.client.converter.VillagesConverter;
 import co.dalicious.domain.client.converter.ZipcodesConverter;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
+import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -59,4 +62,17 @@ public class MySpotZone extends Group{
     @Column(name = "my_spot_zone_user_count")
     @Comment("이용 유저 수")
     private Integer mySpotZoneUserCount;
+
+    @Builder
+    public MySpotZone(Address address, List<DiningType> diningTypes, String name, String memo, MySpotZoneStatus mySpotZoneStatus, List<String> zipcodes, LocalDate openStartDate, LocalDate openCloseDate, String city, List<String> countries, List<String> villages, Integer mySpotZoneUserCount) {
+        super(address, diningTypes, name, memo);
+        this.mySpotZoneStatus = mySpotZoneStatus;
+        this.zipcodes = zipcodes;
+        this.openStartDate = openStartDate;
+        this.openCloseDate = openCloseDate;
+        this.city = city;
+        this.countries = countries;
+        this.villages = villages;
+        this.mySpotZoneUserCount = mySpotZoneUserCount;
+    }
 }
