@@ -23,7 +23,8 @@ public enum ControllerType {
     SCHEDULE("ScheduleController", "메이커스 식단 일정", 14),
     SPOT("SpotController", "스팟", 15),
     USER("UserController", "유저", 16),
-    LOGS("LogController", "로그", 17);
+    LOGS("LogController", "로그", 17),
+    GROUP_REQUEST("GroupRequestController", "스팟 신청", 18);
     private final String controller;
     private final String type;
     private final Integer code;
