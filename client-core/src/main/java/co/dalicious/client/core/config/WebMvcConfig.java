@@ -1,6 +1,10 @@
 package co.dalicious.client.core.config;
 
 import java.util.List;
+
+import co.dalicious.client.core.filter.PortFilter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.PageableArgumentResolver;
@@ -9,30 +13,32 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import co.dalicious.client.core.resolver.CorrettoPageableHandlerMethodArgumentResolver;
 import co.dalicious.client.core.resolver.CorrettoSortHandlerMethodArgumentResolver;
 
 @Configuration
+@RequiredArgsConstructor
 @EnableWebMvc
 public class WebMvcConfig implements WebMvcConfigurer {
-  @Bean
-  BCryptPasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+    private final PortFilter portFilter;
 
-//  @Override
-//  public void addCorsMappings(CorsRegistry registry) {
-//    registry.addMapping("/v1/**")
-//            .allowedMethods("GET", "POST", "PATCH", "DELETE")
-//            .allowedOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "http://kurrant.co");
-//  }
+    @Bean
+    BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-  @Override
-  public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-    PageableArgumentResolver pageableResolver = new CorrettoPageableHandlerMethodArgumentResolver(
-        new CorrettoSortHandlerMethodArgumentResolver());
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        PageableArgumentResolver pageableResolver = new CorrettoPageableHandlerMethodArgumentResolver(
+                new CorrettoSortHandlerMethodArgumentResolver());
 
-    argumentResolvers.add(pageableResolver);
-  }
+        argumentResolvers.add(pageableResolver);
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(portFilter);
+    }
 }

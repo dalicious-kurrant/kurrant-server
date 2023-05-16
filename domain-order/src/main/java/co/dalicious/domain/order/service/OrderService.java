@@ -8,6 +8,7 @@ import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.util.PeriodDto;
 import org.json.simple.parser.ParseException;
+import org.springframework.transaction.annotation.Propagation;
 
 import javax.transaction.Transactional;
 import java.io.IOException;

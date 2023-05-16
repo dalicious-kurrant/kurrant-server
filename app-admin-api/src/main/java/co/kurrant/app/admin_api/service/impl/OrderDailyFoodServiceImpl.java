@@ -58,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -197,8 +198,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
         }
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
-        Map<String, Set<BigInteger>> userIdsMap = new HashMap<>();
-        Set<BigInteger> userIds = new HashSet<>();
         Set<String> userPhoneNumber = new HashSet<>();
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
 
@@ -207,9 +206,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
             }
             orderItemDailyFood.updateOrderStatus(orderStatus);
-            userIds.add(orderItemDailyFood.getOrder().getUser().getId());
             Optional<User> optionalUser = userRepository.findById(orderItemDailyFood.getOrder().getUser().getId());
-            if (optionalUser.isPresent()) userPhoneNumber.add(optionalUser.get().getPhone());
+            optionalUser.ifPresent(user -> userPhoneNumber.add(user.getPhone()));
             // 배송완료 푸시 알림 전송
             if (OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
                 PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
@@ -224,8 +222,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
             }
         }
-        userIdsMap.put("userIds", userIds);
-        pushUtil.sendToType(userIdsMap, PushCondition.DELIVERED_ORDER_ITEM, null, null, null);
+        pushService.sendToPush(pushRequestDtoByUsers);
 
         /*
         String content = "안녕하세요!\n" +
@@ -242,8 +239,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             System.out.println(phone + " phoneNumber");
         }
         */
-
-        pushService.sendToPush(pushRequestDtoByUsers);
     }
 
     @Override
@@ -257,22 +252,23 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    @Transactional
-    public void cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public String cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
+        StringBuilder failMessage = new StringBuilder();
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
         for (OrderItem orderItem : orderItems) {
+            User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
             try {
-                User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
-
                 if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                     orderService.adminCancelOrderItemDailyFood(orderItemDailyFood, user);
                 }
-
             } catch (Exception e) {
                 // Log the exception or handle it as needed
+                failMessage.append(user.getName()).append("님의 ").append(((OrderItemDailyFood) orderItem).getName()).append(" 상품이 취소되지 않았습니다. \n");
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
+        return failMessage.toString();
     }
 
     @Override

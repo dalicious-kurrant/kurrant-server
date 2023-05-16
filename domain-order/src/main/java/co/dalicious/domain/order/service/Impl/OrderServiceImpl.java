@@ -30,6 +30,7 @@ import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.util.PointUtil;
@@ -43,6 +44,7 @@ import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
@@ -57,6 +59,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Slf4j
 public class OrderServiceImpl implements OrderService {
+    private final OrderItemDailyFoodGroupRepository orderItemDailyFoodGroupRepository;
+    private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
+    private final UserRepository userRepository;
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final DailyFoodSupportPriceMapper dailyFoodSupportPriceMapper;
@@ -452,7 +457,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(propagation = Propagation.REQUIRES_NEW)
     public void adminCancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException {
         Order order = orderItemDailyFood.getOrder();
         User orderUser = (User) Hibernate.unproxy(order.getUser());
@@ -477,7 +482,7 @@ public class OrderServiceImpl implements OrderService {
             if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉")) {
                 refundPriceDto = OrderUtil.getMedtronicRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
-                refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+                refundPriceDto = OrderUtil.getRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             }
 
 
@@ -485,6 +490,7 @@ public class OrderServiceImpl implements OrderService {
                 List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
                 for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
                     dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
+                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
                 }
                 DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
                 if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
@@ -512,11 +518,18 @@ public class OrderServiceImpl implements OrderService {
 
 
             user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
+            userRepository.save(user);
             orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
+            orderItemDailyFoodRepository.save(orderItemDailyFood);
 
             if (refundPriceDto.getIsLastItemOfGroup()) {
-                orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
+                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
+                orderItemDailyFoodGroup.updateOrderStatus(OrderStatus.CANCELED);
+                orderItemDailyFoodGroupRepository.save(orderItemDailyFoodGroup);
             }
+
+            entityManager.flush();
+            entityManager.clear();
         }
     }
 
