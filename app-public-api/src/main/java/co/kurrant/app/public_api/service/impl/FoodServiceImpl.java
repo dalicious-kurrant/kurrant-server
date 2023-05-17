@@ -226,8 +226,8 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
         // TODO: 식단에 가격 업데이트 적용이 되는 시점부터 주석 해제
-//        DiscountDto discountDto = DiscountDto.getDiscount(dailyFood);
-        DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
+        DiscountDto discountDto = DiscountDto.getDiscount(dailyFood);
+//        DiscountDto discountDto = DiscountDto.getDiscount(dailyFood.getFood());
         return new RetrieveDiscountDto(discountDto);
     }
 

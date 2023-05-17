@@ -25,17 +25,17 @@ public class PushAlarmHash {
     @Indexed
     BigInteger userId;
 
-    String redirectUrl;
+    String type;
     LocalDateTime createdDateTime;
     Boolean isRead;
     BigInteger reviewId;
 
     @Builder
-    public PushAlarmHash(String title, String message, BigInteger userId, String redirectUrl, Boolean isRead, BigInteger reviewId) {
+    public PushAlarmHash(String title, String message, BigInteger userId, String type, Boolean isRead, BigInteger reviewId) {
         this.title = title;
         this.message = message;
         this.userId = userId;
-        this.redirectUrl = redirectUrl;
+        this.type = type;
         this.createdDateTime = LocalDateTime.now();
         this.isRead = isRead;
         this.reviewId = reviewId;

@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.util.KakaoUtil;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
@@ -229,7 +230,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                         .isRead(false)
                         .message(message)
                         .userId(user.getId())
-                        .redirectUrl(pushAlarms.getRedirectUrl())
+                        .type(AlarmType.ORDER_STATUS.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
             }

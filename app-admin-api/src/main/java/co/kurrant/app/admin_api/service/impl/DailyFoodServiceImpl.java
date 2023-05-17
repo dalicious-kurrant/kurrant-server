@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
@@ -135,7 +136,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                     .isRead(false)
                     .message(message)
                     .userId(user.getId())
-                    .redirectUrl(pushAlarms.getRedirectUrl())
+                    .type(AlarmType.MEAL.getAlarmType())
                     .build();
             pushAlarmHashes.add(pushAlarmHash);
         }
@@ -336,7 +337,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                         .isRead(false)
                         .message(message)
                         .userId(user.getId())
-                        .redirectUrl(pushAlarms.getRedirectUrl())
+                        .type(AlarmType.MEAL.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
             }

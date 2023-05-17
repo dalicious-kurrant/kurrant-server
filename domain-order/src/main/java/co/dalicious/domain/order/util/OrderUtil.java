@@ -84,13 +84,11 @@ public class OrderUtil {
     }
 
     public static Boolean isMembership(User user, Group group) {
-        if (user.getIsMembership()) {
-            return true;
-        }
         if (group instanceof Corporation corporation) {
-            return corporation.getIsMembershipSupport();
+            return corporation.getIsMembershipSupport() &&
+                    (corporation.getMembershipEndDate() == null || !corporation.getMembershipEndDate().isBefore(LocalDate.now()));
         }
-        return false;
+        return user.getIsMembership();
     }
 
     // TODO: 식단에 가격 업데이트 적용이 되는 시점부터 주석 해제
@@ -102,12 +100,12 @@ public class OrderUtil {
             LocalDateTime membershipBenefitTime = LocalDateTime.of(dailyFood.getServiceDate().minusDays(spot.getMembershipBenefitTime(dailyFood.getDiningType()).getDay()), spot.getMembershipBenefitTime(dailyFood.getDiningType()).getTime());
             if (spot.getDeliveryTime(dailyFood.getDiningType()) == null || LocalDateTime.now().isBefore(membershipBenefitTime)) {
 
-//                return DiscountDto.getDiscount(dailyFood);
-                return DiscountDto.getDiscount(dailyFood.getFood());
+                return DiscountDto.getDiscount(dailyFood);
+//                return DiscountDto.getDiscount(dailyFood.getFood());
             }
         }
-//        return DiscountDto.getDiscountWithoutMembership(dailyFood);
-        return DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
+        return DiscountDto.getDiscountWithoutMembership(dailyFood);
+//        return DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
     }
 
     public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {

@@ -1,6 +1,7 @@
 package co.kurrant.app.makers_api.service.impl;
 
 import co.dalicious.client.alarm.dto.PushRequestDto;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
@@ -79,7 +80,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .isRead(false)
                 .message(pushRequestDto.getMessage())
                 .userId(userId)
-                .redirectUrl(pushRequestDto.getPage())
+                .type(AlarmType.REVIEW.getAlarmType())
                 .reviewId(reviews.getId())
                 .build();
         pushAlarmHashRepository.save(pushAlarmHash);

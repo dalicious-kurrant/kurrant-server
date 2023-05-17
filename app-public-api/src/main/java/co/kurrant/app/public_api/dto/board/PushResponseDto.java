@@ -14,20 +14,20 @@ import java.math.BigInteger;
 public class PushResponseDto {
     private String id;
     private String title;
-    private String message;
+    private String content;
     private BigInteger userId;
-    private String redirectUrl;
-    private String createdDateTime;
+    private String type;
+    private String created;
     private Boolean isRead;
     private BigInteger reviewId;
 
     public PushResponseDto(PushAlarmHash pushAlarmHash) {
         this.id = pushAlarmHash.getId();
         this.title = pushAlarmHash.getTitle();
-        this.message = pushAlarmHash.getMessage();
+        this.content = pushAlarmHash.getMessage();
         this.userId = pushAlarmHash.getUserId();
-        this.redirectUrl = pushAlarmHash.getRedirectUrl();
-        this.createdDateTime = DateUtils.localDateTimeToString(pushAlarmHash.getCreatedDateTime());
+        this.type = pushAlarmHash.getType();
+        this.created = DateUtils.localDateTimeToString(pushAlarmHash.getCreatedDateTime());
         this.isRead = pushAlarmHash.getIsRead();
         this.reviewId = pushAlarmHash.getReviewId();
     }

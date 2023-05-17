@@ -1,9 +1,8 @@
 package co.kurrant.app.public_api.service;
 
-import co.dalicious.domain.board.entity.Alarm;
-import co.kurrant.app.public_api.dto.board.AlarmResponseDto;
 import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
 import co.kurrant.app.public_api.dto.board.NoticeDto;
+import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 
 import java.math.BigInteger;
@@ -14,7 +13,7 @@ public interface BoardService {
 
     List<CustomerServiceDto> customerBoardList();
 
-    List<AlarmResponseDto> alarmBoardList(SecurityUser securityUser);
+    List<PushResponseDto> alarmBoardList(SecurityUser securityUser);
 
-    Long deleteAllAlarm(SecurityUser securityUser);
+    void deleteAllAlarm(SecurityUser securityUser);
 }

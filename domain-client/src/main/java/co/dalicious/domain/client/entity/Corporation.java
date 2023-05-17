@@ -8,6 +8,7 @@ import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.converter.IdListConverter;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,6 +20,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,12 +30,15 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "client__corporation")
-public class Corporation extends Group{
+public class Corporation extends Group {
     @Comment("그룹 코드")
     private String code;
 
     @Comment("정산 선불 여부")
     private Boolean isPrepaid;
+
+    @Comment("멤버십 계약 종료 날짜")
+    private LocalDate membershipEndDate;
 
     @ElementCollection
     @Comment("지불 항목 내역")
@@ -103,10 +108,11 @@ public class Corporation extends Group{
     private BigInteger managerId;
 
     @Builder
-    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, String memo, String code, Boolean isPrepaid, List<PrepaidCategory> prepaidCategories, Boolean isMembershipSupport, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, Boolean isSaladRequired, List<FoodTag> requiredFoodTags, List<FoodTag> excludedFoodTags, List<BigInteger> requiredMakers, List<BigInteger> excludedMakers, List<BigInteger> requiredFood, List<BigInteger> excludedFood, BigDecimal minimumSpend, BigDecimal maximumSpend) {
+    public Corporation(Address address, LocalDate membershipEndDate, List<DiningType> diningTypes, String name, BigInteger managerId, String memo, String code, Boolean isPrepaid, List<PrepaidCategory> prepaidCategories, Boolean isMembershipSupport, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, Boolean isSaladRequired, List<FoodTag> requiredFoodTags, List<FoodTag> excludedFoodTags, List<BigInteger> requiredMakers, List<BigInteger> excludedMakers, List<BigInteger> requiredFood, List<BigInteger> excludedFood, BigDecimal minimumSpend, BigDecimal maximumSpend) {
         super(address, diningTypes, name, memo);
         this.code = code;
         this.isPrepaid = isPrepaid;
+        this.membershipEndDate = membershipEndDate;
         this.prepaidCategories = prepaidCategories;
         this.isMembershipSupport = isMembershipSupport;
         this.employeeCount = employeeCount;
@@ -127,6 +133,7 @@ public class Corporation extends Group{
 
     public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
         updateGroup(address, diningTypeList, groupInfoList.getName());
+        this.membershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
         this.code = groupInfoList.getCode();
         this.employeeCount = groupInfoList.getEmployeeCount();
         this.isMembershipSupport = !groupInfoList.getIsMembershipSupport().equals("미지원");
@@ -148,6 +155,7 @@ public class Corporation extends Group{
         this.isHotStorage = groupInfoList.getIsHotStorage();
         this.isSetting = groupInfoList.getIsSetting();
         this.isPrepaid = groupInfoList.getIsPrepaid();
+        this.membershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
         this.minimumSpend = (groupInfoList.getMinPrice() == null) ? null : groupInfoList.getMinPrice();
         this.maximumSpend = (groupInfoList.getMaxPrice() == null) ? null : groupInfoList.getMaxPrice();
         this.managerId = groupInfoList.getManagerId();
@@ -156,13 +164,13 @@ public class Corporation extends Group{
 
     private Boolean useOrNotUse(String data) {
         Boolean use = null;
-        if(data.equals("미사용") || data.equals("false")) use = false;
-        else if(data.equals("사용") || data.equals("true")) use = true;
+        if (data.equals("미사용") || data.equals("false")) use = false;
+        else if (data.equals("사용") || data.equals("true")) use = true;
         return use;
     }
 
     public PrepaidCategory getPrepaidCategory(PaycheckCategoryItem paycheckCategoryItem) {
-        if(this.prepaidCategories == null || this.prepaidCategories.isEmpty()) {
+        if (this.prepaidCategories == null || this.prepaidCategories.isEmpty()) {
             return null;
         }
         return this.prepaidCategories.stream()

@@ -25,6 +25,7 @@ public class GroupExcelRequestDto {
     private String supportDays;
     private String notSupportDays;
     private BigInteger managerId;
+    private String membershipEndDate;
     private String managerName;
     private String managerPhone;
     private String isMembershipSupport;
