@@ -1,4 +1,4 @@
-package co.dalicious.client.core.filter.provider;
+package co.dalicious.client.core.interceptor.holder;
 
 import co.dalicious.client.core.enums.ControllerType;
 

@@ -17,6 +17,6 @@ public interface GroupRequestService {
     ListItemResponseDto<ListResponseDto> getAllMySpotRequestList(Map<String, Object> parameters, Integer limit, Integer page, OffsetBasedPageRequest pageable);
     void createMySpotRequest(CreateRequestDto createRequestDto);
     void updateMySpotRequest(RequestedMySpotDetailDto requestedMySpotDetailDto);
-    void deleteMySpotRequest(List<IdDto> ids);
-    void createMySpotZonesFromRequest(List<IdDto> ids);
+    void deleteMySpotRequest(List<BigInteger> ids);
+    void createMySpotZonesFromRequest(List<BigInteger> ids);
 }

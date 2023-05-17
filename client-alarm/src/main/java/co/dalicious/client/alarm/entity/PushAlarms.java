@@ -31,7 +31,7 @@ public class PushAlarms {
 
     @Convert(converter = PushStatusConverter.class)
     @Column(name = "e_push_status")
-    @Comment("푸시알림 상태 - 0. 활성 / 1. 비활성")
+    @Comment("푸시알림 상태 - 0. 비활성 / 1. 활성")
     private PushStatus pushStatus;
 
     @Convert(converter = PushConditionConverter.class)
