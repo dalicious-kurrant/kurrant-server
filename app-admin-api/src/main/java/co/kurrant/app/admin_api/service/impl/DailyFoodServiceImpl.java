@@ -2,9 +2,12 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -74,6 +77,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final PushUtil pushUtil;
     private final PushService pushService;
     private final QPushAlarmsRepository qPushAlarmsRepository;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
 
     @Override
     @Transactional
@@ -117,7 +121,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         // TODO: 메이커스 승인 완료 하면 Push 알림 구현
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
-        Map<User, Group> userGroupMap = qUserGroupRepository.findUserGroupFirebaseToken(groupIdSet);
+        List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
+         Map<User, Group> userGroupMap = qUserGroupRepository.findUserGroupFirebaseToken(groupIdSet);
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.NEW_DAILYFOOD);
         for (User user : userGroupMap.keySet()) {
             String message = PushUtil.getContextNewDailyFood(pushAlarms.getMessage(), userGroupMap.get(user).getName(), periodDto.getStartDate(), periodDto.getEndDate());
@@ -125,8 +130,18 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             if (pushRequestDtoByUser != null) {
                 pushRequestDtoByUsers.add(pushRequestDtoByUser);
             }
+
+            PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                    .title(PushCondition.NEW_DAILYFOOD.getTitle())
+                    .isRead(false)
+                    .message(message)
+                    .userId(user.getId())
+                    .type(AlarmType.MEAL.getAlarmType())
+                    .build();
+            pushAlarmHashes.add(pushAlarmHash);
         }
         pushService.sendToPush(pushRequestDtoByUsers);
+        pushAlarmHashRepository.saveAll(pushAlarmHashes);
     }
 
     @Override
@@ -305,6 +320,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         // 등록대기 -> 판매중으로 변경된 식단들만 푸시 알림 보내기
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
+        List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
         Map<User, Group> userGroupMap = qUserGroupRepository.findUserGroupFirebaseTokenByGroup(groupMap.keySet());
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.NEW_DAILYFOOD);
         for (User user : userGroupMap.keySet()) {
@@ -316,8 +332,17 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 if (pushRequestDtoByUser != null) {
                     pushRequestDtoByUsers.add(pushRequestDtoByUser);
                 }
+                PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                        .title(PushCondition.NEW_DAILYFOOD.getTitle())
+                        .isRead(false)
+                        .message(message)
+                        .userId(user.getId())
+                        .type(AlarmType.MEAL.getAlarmType())
+                        .build();
+                pushAlarmHashes.add(pushAlarmHash);
             }
         }
         pushService.sendToPush(pushRequestDtoByUsers);
+        pushAlarmHashRepository.saveAll(pushAlarmHashes);
     }
 }

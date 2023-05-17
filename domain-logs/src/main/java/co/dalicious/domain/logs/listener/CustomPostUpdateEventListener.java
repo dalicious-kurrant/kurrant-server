@@ -1,6 +1,6 @@
-package co.dalicious.domain.logs.entity.listener;
+package co.dalicious.domain.logs.listener;
 
-import co.dalicious.client.core.filter.provider.RequestContextHolder;
+import co.dalicious.client.core.interceptor.holder.RequestContextHolder;
 import co.dalicious.domain.logs.entity.AdminLogs;
 import co.dalicious.domain.logs.entity.enums.LogType;
 import co.dalicious.domain.logs.repository.AdminLogsRepository;
@@ -66,8 +66,10 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
                 }
             }
         }
+        if(logs.isEmpty()) return;
         adminLogsRepository.save(AdminLogs.builder()
                 .logType(LogType.UPDATE)
+                .controllerType(RequestContextHolder.getCurrentControllerType())
                 .baseUrl(RequestContextHolder.getCurrentBaseUrl())
                 .endPoint(RequestContextHolder.getCurrentEndpoint())
                 .entityName(entity.getClass().getSimpleName())

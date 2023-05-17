@@ -83,6 +83,10 @@ public interface MakersFoodMapper {
     @Mapping(source = "food",target = "morningLastOrderTime", qualifiedByName = "getMorningLastOrderTime")
     @Mapping(source = "food",target = "lunchLastOrderTime", qualifiedByName = "getLunchLastOrderTime")
     @Mapping(source = "food",target = "dinnerLastOrderTime", qualifiedByName = "getDinnerLastOrderTime")
+    @Mapping(source = "food.calorie", target ="calorie")
+    @Mapping(source = "food.carbohydrate", target ="carbohydrate")
+    @Mapping(source = "food.fat", target ="fat")
+    @Mapping(source = "food.protein", target ="protein")
     MakersFoodDetailDto toFoodManagingDto(Food food, DiscountDto discountDto);
     @Named("getAllFoodList")
     default List<String> getAllFoodList(List<FoodTag> foodTags) {

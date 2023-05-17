@@ -2,9 +2,11 @@ package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.food.dto.FoodStatusUpdateDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
+import co.dalicious.client.core.annotation.ControllerMarker;
 import co.kurrant.app.admin_api.service.FoodService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class FoodController {
 
     private final FoodService foodService;
 
+    @ControllerMarker(ControllerType.FOOD)
     @Operation(summary = "상품 전체 조회", description = "존재하는 상품을 모두 조회합니다.")
     @GetMapping("/all")
     public ResponseMessage getAllFoodList(@RequestParam(required = false) BigInteger makersId, @RequestParam(required = false) Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
@@ -31,6 +34,7 @@ public class FoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.FOOD)
     @Operation(summary = "상품 상세 조회", description = "상품을 상세 조회합니다.")
     @GetMapping("")
     public ResponseMessage getFoodDetail(@RequestParam(name = "foodId") BigInteger foodId, @RequestParam(name = "makersId") BigInteger makersId) {
@@ -40,6 +44,7 @@ public class FoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.FOOD)
     @Operation(summary = "상품 상태 수정", description = "선택된 상품의 상태를 변경합니다.")
     @PostMapping("/status")
     public ResponseMessage updateFood(@RequestBody List<FoodStatusUpdateDto> foodStatusUpdateDtos) {
@@ -49,6 +54,7 @@ public class FoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.FOOD)
     @Operation(summary = "대량 상품 수정", description = "엑셀로 상품을 대량 수정합니다.")
     @PostMapping("/mass")
     public ResponseMessage updateFoodMass(@RequestBody List<FoodListDto.FoodList> foodListDto) {
@@ -58,6 +64,7 @@ public class FoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.FOOD)
     @Operation(summary = "상품 수정", description = "상품을 수정합니다.")
     @PatchMapping("")
     public ResponseMessage updateFood(@RequestPart(required = false) List<MultipartFile> files, @RequestPart MakersFoodDetailReqDto contents) throws IOException {
@@ -67,6 +74,7 @@ public class FoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.FOOD)
     @Operation(summary = "엑셀 내보내기 용 조회", description = "엑셀 내보내기를 위해 전체 조회")
     @GetMapping("/excels")
     public ResponseMessage getAllFoodForExcel() {

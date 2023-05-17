@@ -83,6 +83,7 @@ public interface GroupMapper {
         if(group instanceof Corporation corporation) {
             groupType = GroupDataType.CORPORATION.getCode();
             employeeCount = corporation.getEmployeeCount();
+            groupInfoList.setMembershipEndDate(DateUtils.format(corporation.getMembershipEndDate()));
             groupInfoList.setIsPrepaid(corporation.getIsPrepaid());
             groupInfoList.setMinimumSpend(corporation.getMinimumSpend());
             groupInfoList.setMaximumSpend(corporation.getMaximumSpend());
@@ -163,6 +164,7 @@ public interface GroupMapper {
                     .address(address)
                     .diningTypes(diningTypeList)
                     .name(groupInfoList.getName())
+                    .membershipEndDate(DateUtils.stringToDate(groupInfoList.getMembershipEndDate()))
                     .managerId(groupInfoList.getManagerId())
                     .code(createCode(groupInfoList.getCode()))
                     .isMembershipSupport(!groupInfoList.getIsMembershipSupport().equals("미지원"))
@@ -179,7 +181,6 @@ public interface GroupMapper {
                     .address(address)
                     .diningTypes(diningTypeList)
                     .name(groupInfoList.getName())
-                    .managerId(groupInfoList.getManagerId())
                     .familyCount(groupInfoList.getEmployeeCount())
                     .build();
         }
@@ -188,7 +189,6 @@ public interface GroupMapper {
                     .address(address)
                     .diningTypes(diningTypeList)
                     .name(groupInfoList.getName())
-                    .managerId(groupInfoList.getManagerId())
                     .openGroupUserCount(groupInfoList.getEmployeeCount())
                     .build();
         }

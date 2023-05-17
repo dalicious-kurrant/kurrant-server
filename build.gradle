@@ -157,7 +157,6 @@ tasks.register('cleanGeneatedDir') {
 project(':app-public-api') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':domain-logs')
         implementation project(':client-core')
         implementation project(':client-oauth')
         implementation project(':domain-user')
@@ -181,6 +180,7 @@ project(':app-public-api') {
 
 project(':app-admin-api') {
     dependencies {
+        implementation project(':domain-logs')
         implementation project(':system-core')
         implementation project(':client-core')
         implementation project(':domain-address')
@@ -194,6 +194,7 @@ project(':app-admin-api') {
         implementation project(':domain-review')
         implementation project(':domain-paycheck')
         implementation project(':client-alarm')
+        implementation project(':data-redis')
     }
 }
 
@@ -317,7 +318,6 @@ project(':domain-client') {
 project(':domain-order') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':domain-logs')
         implementation project(':domain-user')
         implementation project(':domain-makers')
         implementation project(':domain-file')

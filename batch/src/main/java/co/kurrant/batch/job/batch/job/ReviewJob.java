@@ -94,7 +94,7 @@ public class ReviewJob {
         String queryString = "SELECT u FROM User u WHERE u.id in :userIds";
 
         return new JpaPagingItemReaderBuilder<User>()
-                .entityManagerFactory(entityManagerFactory)
+                .entityManagerFactory(entityManagerFactory) // Use the injected entityManagerFactory
                 .pageSize(100)
                 .queryString(queryString)
                 .name("JpaPagingItemReader")
