@@ -34,8 +34,16 @@ public class MakersFoodDetailDto {
     private List<Integer> foodTags;
     private String description;
     private BigDecimal customPrice;
+    private Integer calorie;
+    private Integer carbohydrate;
+    private Integer fat;
+    private Integer protein;
 
-    public MakersFoodDetailDto(String makersName, BigInteger foodId, String foodName, Integer morningCapacity, Integer lunchCapacity, Integer dinnerCapacity, String morningLastOrderTime, String lunchLastOrderTime, String dinnerLastOrderTime, BigDecimal supplyPrice, BigDecimal foodPrice, List<String> foodImages, BigDecimal makersDiscountPrice, Integer makersDiscountRate, BigDecimal membershipDiscountPrice, Integer membershipDiscountRate, BigDecimal periodDiscountPrice, Integer periodDiscountRate, List<Integer> foodTags, String description, BigDecimal customPrice) {
+    public MakersFoodDetailDto(String makersName, BigInteger foodId, String foodName, Integer morningCapacity, Integer lunchCapacity,
+                               Integer dinnerCapacity, String morningLastOrderTime, String lunchLastOrderTime, String dinnerLastOrderTime, BigDecimal supplyPrice,
+                               BigDecimal foodPrice, List<String> foodImages, BigDecimal makersDiscountPrice, Integer makersDiscountRate, BigDecimal membershipDiscountPrice,
+                               Integer membershipDiscountRate, BigDecimal periodDiscountPrice, Integer periodDiscountRate, List<Integer> foodTags, String description,
+                               BigDecimal customPrice, Integer calorie, Integer carbohydrate, Integer fat, Integer protein) {
         this.makersName = makersName;
         this.foodId = foodId;
         this.foodName = foodName;
@@ -57,5 +65,9 @@ public class MakersFoodDetailDto {
         this.foodTags = foodTags;
         this.description = description;
         this.customPrice = customPrice;
+        this.calorie = calorie;
+        this.carbohydrate = carbohydrate;
+        this.fat = fat;
+        this.protein = protein;
     }
 }
