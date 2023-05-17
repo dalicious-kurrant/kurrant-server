@@ -25,7 +25,7 @@ public class CorporationMealInfo extends MealInfo{
     private List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices;
 
     @Builder
-    public CorporationMealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
+    public CorporationMealInfo(DiningType diningType, List<LocalTime> deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
         super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, group);
         this.serviceDaysAndSupportPrices = serviceDaysAndSupportPrices;
     }

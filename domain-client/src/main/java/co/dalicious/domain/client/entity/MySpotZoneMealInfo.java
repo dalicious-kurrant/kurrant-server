@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
@@ -17,7 +18,7 @@ import java.util.List;
 public class MySpotZoneMealInfo extends MealInfo{
 
     @Builder
-    public MySpotZoneMealInfo(DiningType diningType, List<LocalTime> deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
-        super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, group);
+    public MySpotZoneMealInfo(DiningType diningType, List<DeliverySchedule> deliveryScheduleList, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
+        super(diningType, deliveryScheduleList, membershipBenefitTime, lastOrderTime, serviceDays, group);
     }
 }

@@ -5,6 +5,7 @@ import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.CreateR
 import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.ListResponseDto;
 import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -90,17 +91,19 @@ public interface RequestedMySpotZonesMapper {
                 .build();
     }
 
-    default MealInfo toMealInfo(Group group, DiningType diningType, String lastOrderTime, String deliveryTime, String useDays, String membershipBenefitTime) {
+    default MealInfo toMealInfo(Group group, DiningType diningType, String lastOrderTime, String useDays, String membershipBenefitTime) {
         // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
-        if (lastOrderTime == null || deliveryTime == null || useDays == null) {
+        if (lastOrderTime == null || useDays == null) {
             return null;
         }
 
-        return My.builder()
-                .group(corporation)
+        DeliverySchedule deliverySchedule = DeliverySchedule.builder().deliveryTime(deliveryTime).pickupTime("00:00").build();
+
+        return MySpotZoneMealInfo.builder()
+                .group(group)
                 .diningType(diningType)
                 .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                .deliveryScheduleList()
                 .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                 .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                 .build();

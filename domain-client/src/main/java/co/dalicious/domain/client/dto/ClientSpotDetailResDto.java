@@ -12,6 +12,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalTime;
 import java.util.List;
 
 @Getter
