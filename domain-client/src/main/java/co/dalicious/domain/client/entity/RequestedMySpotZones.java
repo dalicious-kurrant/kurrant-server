@@ -61,7 +61,7 @@ public class RequestedMySpotZones {
         this.city = updateRequestDto.getCity();
         this.county = updateRequestDto.getCounty();
         this.village = updateRequestDto.getVillage();
-        this.waitingUserCount = updateRequestDto.getRequestUserCount();
+        this.waitingUserCount = updateRequestDto.getWaitingUserCount();
         this.memo = updateRequestDto.getMemo();
     }
 

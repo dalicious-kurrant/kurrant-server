@@ -4,10 +4,12 @@ import co.dalicious.domain.client.dto.mySpotZone.filter.*;
 import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.ListResponseDto;
 import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.RequestedMySpotDetailDto;
-import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.domain.client.entity.RequestedMySpotZones;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DaysUtil;
+import co.dalicious.system.util.GenerateRandomNumber;
 import org.geolatte.geom.M;
 import org.mapstruct.Mapper;
 
@@ -78,7 +80,7 @@ public interface RequestedMySpotZonesMapper {
 
         return MySpotZone.builder()
                 .diningTypes(List.of(DiningType.MORNING, DiningType.LUNCH, DiningType.DINNER))
-                .name(requestedMySpotZonesList.get(0).getCity() + "_(임시)")
+                .name("(임시)_" + GenerateRandomNumber.create6DigitKey())
                 .mySpotZoneStatus(MySpotZoneStatus.WAITE)
                 .zipcodes(zipcodes)
                 .city(requestedMySpotZonesList.get(0).getCity())
@@ -86,5 +88,22 @@ public interface RequestedMySpotZonesMapper {
                 .villages(villages)
                 .mySpotZoneUserCount(count)
                 .build();
+    }
+
+    default MealInfo toMealInfo(Group group, DiningType diningType, String lastOrderTime, String deliveryTime, String useDays, String membershipBenefitTime) {
+        // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
+        if (lastOrderTime == null || deliveryTime == null || useDays == null) {
+            return null;
+        }
+
+        return My.builder()
+                .group(corporation)
+                .diningType(diningType)
+                .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
+                .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
+                .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
+                .build();
+
     }
 }

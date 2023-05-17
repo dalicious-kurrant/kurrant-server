@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.client.converter.DayAndTimeConverter;
+import co.dalicious.domain.client.converter.DeliveryTimesConverter;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.system.converter.DaysListConverter;
 import co.dalicious.system.enums.Days;
@@ -45,9 +46,10 @@ public class MealInfo {
     private DiningType diningType;
 
     @NotNull
+    @Convert(converter = DeliveryTimesConverter.class)
     @Column(name = "delivery_time", nullable = false)
     @Comment("배송 시간")
-    private LocalTime deliveryTime;
+    private List<LocalTime> deliveryTime;
 
     @Column(name = "membership_benefit_time")
     @Convert(converter = DayAndTimeConverter.class)
@@ -83,7 +85,7 @@ public class MealInfo {
     @Comment("스팟")
     private Group group;
 
-    public MealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
+    public MealInfo(DiningType diningType, List<LocalTime> deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
         this.membershipBenefitTime = membershipBenefitTime;
@@ -91,6 +93,7 @@ public class MealInfo {
         this.serviceDays = serviceDays;
         this.group = group;
     }
+
 
     public void updateMealInfo(List<Days> serviceDays) {
         this.serviceDays = serviceDays;

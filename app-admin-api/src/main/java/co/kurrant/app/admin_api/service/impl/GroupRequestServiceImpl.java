@@ -6,6 +6,7 @@ import co.dalicious.domain.client.dto.mySpotZone.filter.FilterDto;
 import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.ListResponseDto;
 import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.RequestedMySpotDetailDto;
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.RequestedMySpotZones;
 import co.dalicious.domain.client.mapper.RequestedMySpotZonesMapper;
@@ -14,6 +15,7 @@ import co.dalicious.domain.client.repository.QRequestedMySpotZonesRepository;
 import co.dalicious.domain.client.repository.RequestedMySpotZonesRepository;
 import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.repository.QMySpotRepository;
+import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.admin_api.dto.IdDto;
 import co.kurrant.app.admin_api.service.GroupRequestService;
 import exception.ApiException;
@@ -121,14 +123,21 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     @Override
     @Transactional
     public void createMySpotZonesFromRequest(List<BigInteger> ids) {
-
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
 
         // 마이스팟 생성
         MySpotZone mySpotZone = requestedMySpotZonesMapper.toMySpotZone(existRequestedMySpotZones);
 
         // mealInfo 생성
+        List<MealInfo> mealInfoList = new ArrayList<>();
 
+        List<DiningType> diningTypeList = mySpotZone.getDiningTypes();
+
+        for(DiningType diningType : diningTypeList) {
+            switch (diningType) {
+                case MORNING -> MealInfo morningMealInfo =
+            }
+        }
 
         mySpotZoneRepository.save(mySpotZone);
 

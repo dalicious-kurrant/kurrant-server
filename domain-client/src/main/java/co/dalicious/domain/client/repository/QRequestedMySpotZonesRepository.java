@@ -96,10 +96,10 @@ public class QRequestedMySpotZonesRepository {
             whereCause.and(requestedMySpotZones.zipcode.in(zipcodes));
         }
         if (min != null) {
-            whereCause.and(requestedMySpotZones.waitingUserCount.goe(min));
+            whereCause.and(requestedMySpotZones.waitingUserCount.loe(min));
         }
         if (max != null) {
-            whereCause.and(requestedMySpotZones.waitingUserCount.loe(max));
+            whereCause.and(requestedMySpotZones.waitingUserCount.goe(max));
         }
 
         int offset = limit * (page - 1);
