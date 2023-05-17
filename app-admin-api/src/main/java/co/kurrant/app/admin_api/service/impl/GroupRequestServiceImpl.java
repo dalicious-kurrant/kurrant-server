@@ -8,6 +8,7 @@ import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.ListRes
 import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.MySpotZone;
+import co.dalicious.domain.client.entity.MySpotZoneMealInfo;
 import co.dalicious.domain.client.entity.RequestedMySpotZones;
 import co.dalicious.domain.client.mapper.RequestedMySpotZonesMapper;
 import co.dalicious.domain.client.repository.MySpotZoneRepository;
@@ -16,6 +17,7 @@ import co.dalicious.domain.client.repository.RequestedMySpotZonesRepository;
 import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.repository.QMySpotRepository;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.IdDto;
 import co.kurrant.app.admin_api.service.GroupRequestService;
 import exception.ApiException;
@@ -135,7 +137,7 @@ public class GroupRequestServiceImpl implements GroupRequestService {
 
         for(DiningType diningType : diningTypeList) {
             switch (diningType) {
-                case MORNING -> MealInfo morningMealInfo =
+                case MORNING -> MySpotZoneMealInfo morningMealInfo = requestedMySpotZonesMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime("08:00"),"00:00", "월, 화, 수, 목, 금, 토, 일", )
             }
         }
 

@@ -14,7 +14,9 @@ import co.dalicious.system.util.GenerateRandomNumber;
 import org.geolatte.geom.M;
 import org.mapstruct.Mapper;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -91,19 +93,19 @@ public interface RequestedMySpotZonesMapper {
                 .build();
     }
 
-    default MealInfo toMealInfo(Group group, DiningType diningType, String lastOrderTime, String useDays, String membershipBenefitTime) {
+    default MealInfo toMealInfo(Group group, DiningType diningType, LocalTime deliveryTime, String lastOrderTime, String useDays, String membershipBenefitTime) {
         // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
         if (lastOrderTime == null || useDays == null) {
             return null;
         }
 
-        DeliverySchedule deliverySchedule = DeliverySchedule.builder().deliveryTime(deliveryTime).pickupTime("00:00").build();
+        List<DeliverySchedule> deliveryScheduleList = Collections.singletonList(DeliverySchedule.builder().deliveryTime(deliveryTime).pickupTime(DateUtils.stringToLocalTime("00:00")).build());
 
         return MySpotZoneMealInfo.builder()
                 .group(group)
                 .diningType(diningType)
                 .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                .deliveryScheduleList()
+                .deliveryScheduleList(deliveryScheduleList)
                 .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                 .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                 .build();
