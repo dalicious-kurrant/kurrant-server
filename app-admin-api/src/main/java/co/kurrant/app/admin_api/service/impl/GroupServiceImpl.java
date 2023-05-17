@@ -64,7 +64,11 @@ public class GroupServiceImpl implements GroupService {
         // 기업 정보 dto 맵핑하기
         List<GroupListDto.GroupInfoList> groupListDtoList = new ArrayList<>();
         if(groupList != null && !groupList.isEmpty()) {
-            List<BigInteger> managerIds = groupList.stream().map(group -> ((Corporation) group).getManagerId() ).filter(Objects::nonNull).toList();
+            List<BigInteger> managerIds = groupList.stream()
+                    .filter(group -> group instanceof Corporation)
+                    .map(group -> ((Corporation) group).getManagerId())
+                    .filter(Objects::nonNull)
+                    .toList();
             List<User> users = (managerIds.isEmpty()) ? null : qUserRepository.getUserAllById(managerIds);
             for(Group group : groupList) {
                 User managerUser = null;
@@ -181,7 +185,11 @@ public class GroupServiceImpl implements GroupService {
 
         if(groupAllList.isEmpty()) { return groupListDtoList; }
 
-        List<BigInteger> managerIds = groupAllList.stream().map(group -> ((Corporation) group).getManagerId()).filter(Objects::nonNull).toList();
+        List<BigInteger> managerIds = groupAllList.stream()
+                .filter(group -> group instanceof Corporation)
+                .map(group -> ((Corporation) group).getManagerId())
+                .filter(Objects::nonNull)
+                .toList();
         List<User> users = (managerIds.isEmpty()) ? null : qUserRepository.getUserAllById(managerIds);
         for(Group group : groupAllList) {
             User managerUser = null;
