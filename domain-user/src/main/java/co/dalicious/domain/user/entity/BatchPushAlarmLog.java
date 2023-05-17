@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "user__review_deadline_push_alarm_log")
+@Table(name = "user__batch_push_alarm_log")
 public class BatchPushAlarmLog {
 
     @Id
