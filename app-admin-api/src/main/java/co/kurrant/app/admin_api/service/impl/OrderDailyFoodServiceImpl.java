@@ -6,6 +6,8 @@ import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
@@ -75,6 +77,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
+    private final PushAlarmHashRepository pushAlarmHashRepository;
     private final GroupRepository groupRepository;
     private final ApartmentRepository apartmentRepository;
     private final CorporationRepository corporationRepository;
@@ -200,6 +203,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
         Set<String> userPhoneNumber = new HashSet<>();
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
+        List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             if (!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
@@ -220,9 +224,18 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (pushRequestDtoByUser != null) {
                     pushRequestDtoByUsers.add(pushRequestDtoByUser);
                 }
+                PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                        .title(PushCondition.DELIVERED_ORDER_ITEM.getTitle())
+                        .isRead(false)
+                        .message(message)
+                        .userId(user.getId())
+                        .redirectUrl(pushAlarms.getRedirectUrl())
+                        .build();
+                pushAlarmHashes.add(pushAlarmHash);
             }
         }
         pushService.sendToPush(pushRequestDtoByUsers);
+        pushAlarmHashRepository.saveAll(pushAlarmHashes);
 
         /*
         String content = "안녕하세요!\n" +

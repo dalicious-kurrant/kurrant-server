@@ -194,6 +194,7 @@ project(':app-admin-api') {
         implementation project(':domain-review')
         implementation project(':domain-paycheck')
         implementation project(':client-alarm')
+        implementation project(':data-redis')
     }
 }
 

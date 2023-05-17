@@ -3,11 +3,13 @@ package co.dalicious.data.redis.entity;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.mapstruct.ap.shaded.freemarker.template.utility.DateUtil;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
 
 import javax.persistence.Id;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 
 @Getter
@@ -24,17 +26,18 @@ public class PushAlarmHash {
     BigInteger userId;
 
     String redirectUrl;
-    String createdDateTime;
+    LocalDateTime createdDateTime;
+    Boolean isRead;
     BigInteger reviewId;
 
     @Builder
-
-    public PushAlarmHash(String title, String message, BigInteger userId, String redirectUrl, String createdDateTime, BigInteger reviewId) {
+    public PushAlarmHash(String title, String message, BigInteger userId, String redirectUrl, Boolean isRead, BigInteger reviewId) {
         this.title = title;
         this.message = message;
         this.userId = userId;
         this.redirectUrl = redirectUrl;
-        this.createdDateTime = createdDateTime;
+        this.createdDateTime = LocalDateTime.now();
+        this.isRead = isRead;
         this.reviewId = reviewId;
     }
 }
