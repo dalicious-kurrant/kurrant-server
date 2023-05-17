@@ -1,6 +1,6 @@
 package co.dalicious.domain.logs.listener;
 
-import co.dalicious.client.core.filter.provider.RequestContextHolder;
+import co.dalicious.client.core.interceptor.holder.RequestContextHolder;
 import co.dalicious.domain.logs.entity.AdminLogs;
 import co.dalicious.domain.logs.entity.enums.LogType;
 import co.dalicious.domain.logs.repository.AdminLogsRepository;
@@ -46,7 +46,7 @@ public class CustomPostDeleteEventListener implements PostDeleteEventListener {
                 System.out.println(logEntry);
             }
         }
-
+        if(logs.isEmpty()) return;
         adminLogsRepository.save(AdminLogs.builder()
                 .logType(LogType.DELETE)
                 .controllerType(RequestContextHolder.getCurrentControllerType())
