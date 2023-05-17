@@ -18,7 +18,6 @@ import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.repository.QMySpotRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.admin_api.dto.IdDto;
 import co.kurrant.app.admin_api.service.GroupRequestService;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -40,7 +39,6 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     private final RequestedMySpotZonesRepository requestedMySpotZonesRepository;
     private final QMySpotRepository qMySpotRepository;
     private final MySpotZoneRepository mySpotZoneRepository;
-
     @Override
     @Transactional(readOnly = true)
     public FilterDto getAllListForFilter(Map<String, Object> parameters) {
@@ -137,11 +135,20 @@ public class GroupRequestServiceImpl implements GroupRequestService {
 
         for(DiningType diningType : diningTypeList) {
             switch (diningType) {
-                case MORNING -> MySpotZoneMealInfo morningMealInfo = requestedMySpotZonesMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime("08:00"),"00:00", "월, 화, 수, 목, 금, 토, 일", )
+                case MORNING -> {
+                    mealInfoList.add(requestedMySpotZonesMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime("08:00"), "00:00", "월, 화, 수, 목, 금, 토, 일", "00:00"));
+                }
+                case LUNCH -> {
+                    mealInfoList.add(requestedMySpotZonesMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime("12:00"), "00:00", "월, 화, 수, 목, 금, 토, 일", "00:00"));
+                }
+                case DINNER -> {
+                    mealInfoList.add(requestedMySpotZonesMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime("19:00"), "00:00", "월, 화, 수, 목, 금, 토, 일", "00:00"));
+                }
             }
         }
 
         mySpotZoneRepository.save(mySpotZone);
+//        mySpotZoneM
 
         // requestedMySpotZone을 가지고 있는 muSpot을 수정
         List<MySpot> mySpotList = qMySpotRepository.findMySpotByRequestedMySpotZones(existRequestedMySpotZones);

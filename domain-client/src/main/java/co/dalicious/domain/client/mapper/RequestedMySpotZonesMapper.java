@@ -93,7 +93,7 @@ public interface RequestedMySpotZonesMapper {
                 .build();
     }
 
-    default MealInfo toMealInfo(Group group, DiningType diningType, LocalTime deliveryTime, String lastOrderTime, String useDays, String membershipBenefitTime) {
+    default MySpotZoneMealInfo toMealInfo(Group group, DiningType diningType, LocalTime deliveryTime, String lastOrderTime, String useDays, String membershipBenefitTime) {
         // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
         if (lastOrderTime == null || useDays == null) {
             return null;
