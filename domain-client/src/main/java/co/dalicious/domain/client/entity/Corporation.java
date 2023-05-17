@@ -98,21 +98,35 @@ public class Corporation extends Group{
     @Comment("최대 구매 가능 금액")
     private BigDecimal maximumSpend;
 
+    @Column(name = "manager_id")
+    @Comment("담당자 유저 id")
+    private BigInteger managerId;
+
     @Builder
-    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String code, Boolean isMembershipSupport, BigDecimal minimumSpend, BigDecimal maximumSpend, String memo) {
-        super(address, diningTypes, name, managerId, memo);
+    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, String memo, String code, Boolean isPrepaid, List<PrepaidCategory> prepaidCategories, Boolean isMembershipSupport, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, Boolean isSaladRequired, List<FoodTag> requiredFoodTags, List<FoodTag> excludedFoodTags, List<BigInteger> requiredMakers, List<BigInteger> excludedMakers, List<BigInteger> requiredFood, List<BigInteger> excludedFood, BigDecimal minimumSpend, BigDecimal maximumSpend) {
+        super(address, diningTypes, name, memo);
         this.code = code;
-        this.employeeCount = employeeCount;
+        this.isPrepaid = isPrepaid;
+        this.prepaidCategories = prepaidCategories;
         this.isMembershipSupport = isMembershipSupport;
+        this.employeeCount = employeeCount;
         this.isGarbage = isGarbage;
         this.isHotStorage = isHotStorage;
         this.isSetting = isSetting;
+        this.isSaladRequired = isSaladRequired;
+        this.requiredFoodTags = requiredFoodTags;
+        this.excludedFoodTags = excludedFoodTags;
+        this.requiredMakers = requiredMakers;
+        this.excludedMakers = excludedMakers;
+        this.requiredFood = requiredFood;
+        this.excludedFood = excludedFood;
         this.minimumSpend = minimumSpend;
         this.maximumSpend = maximumSpend;
+        this.managerId = managerId;
     }
 
     public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
-        updateGroup(address, diningTypeList, groupInfoList.getName(), groupInfoList.getManagerId());
+        updateGroup(address, diningTypeList, groupInfoList.getName());
         this.code = groupInfoList.getCode();
         this.employeeCount = groupInfoList.getEmployeeCount();
         this.isMembershipSupport = !groupInfoList.getIsMembershipSupport().equals("미지원");
@@ -122,10 +136,11 @@ public class Corporation extends Group{
         this.isPrepaid = useOrNotUse(groupInfoList.getIsPrepaid());
         this.minimumSpend = (groupInfoList.getMinimumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMinimumSpend());
         this.maximumSpend = (groupInfoList.getMaximumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMaximumSpend());
+        this.managerId = groupInfoList.getManagerId();
     }
 
     public void updateCorporation(UpdateSpotDetailRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
-        updateGroup(address, diningTypeList, groupInfoList.getSpotName(), groupInfoList.getManagerId());
+        updateGroup(address, diningTypeList, groupInfoList.getSpotName());
         this.code = groupInfoList.getCode();
         this.employeeCount = groupInfoList.getEmployeeCount();
         this.isMembershipSupport = !groupInfoList.getIsMembershipSupport().equals("미지원");
@@ -135,6 +150,7 @@ public class Corporation extends Group{
         this.isPrepaid = groupInfoList.getIsPrepaid();
         this.minimumSpend = (groupInfoList.getMinPrice() == null) ? null : groupInfoList.getMinPrice();
         this.maximumSpend = (groupInfoList.getMaxPrice() == null) ? null : groupInfoList.getMaxPrice();
+        this.managerId = groupInfoList.getManagerId();
     }
 
 

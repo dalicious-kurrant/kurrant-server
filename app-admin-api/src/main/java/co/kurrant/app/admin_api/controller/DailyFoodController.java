@@ -1,6 +1,8 @@
 package co.kurrant.app.admin_api.controller;
 
+import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.domain.food.dto.FoodDto;
 import co.kurrant.app.admin_api.service.DailyFoodService;
@@ -16,6 +18,8 @@ import java.util.Map;
 @RequestMapping(value = "/v1/dailyFoods")
 public class DailyFoodController {
     private final DailyFoodService dailyFoodService;
+
+    @ControllerMarker(ControllerType.DAILY_FOOD)
     @Operation(summary = "식단 승인", description = "식사 예정 날짜를 기준으로 식단은 승인한다.")
     @PostMapping("/approval")
     public ResponseMessage approveSchedule(@RequestBody PeriodDto.PeriodStringDto periodDto) {
@@ -25,6 +29,7 @@ public class DailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.DAILY_FOOD)
     @Operation(summary = "그룹과 메이커스 조회", description = "그룹과 메이커스 리스트를 조회한다.")
     @GetMapping("/groupsAndMakers")
     public ResponseMessage getGroupAndMakers() {
@@ -34,6 +39,7 @@ public class DailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.DAILY_FOOD)
     @Operation(summary = "식단 조회", description = "")
     @GetMapping("")
     public ResponseMessage getDailyFoods(@RequestParam Map<String, Object> parameters) {
@@ -43,6 +49,7 @@ public class DailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.DAILY_FOOD)
     @Operation(summary = "식단 엑셀 저장 및 수정", description = "식단을 엑셀 파일을 통해 수정하거나 저장한다.")
     @PostMapping("/excel")
     public ResponseMessage excelDailyFood(@RequestBody List<FoodDto.DailyFood> dailyFoodList) {

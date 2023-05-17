@@ -1,9 +1,13 @@
-package co.dalicious.client.core.filter.provider;
+package co.dalicious.client.core.interceptor.holder;
+
+import co.dalicious.client.core.enums.ControllerType;
 
 public class RequestContextHolder {
     private static final ThreadLocal<Integer> currentPort = new ThreadLocal<>();
     private static final ThreadLocal<String> currentEndpoint = new ThreadLocal<>();
     private static final ThreadLocal<String> currentBaseUrl = new ThreadLocal<>();
+    private static final ThreadLocal<ControllerType> currentControllerType = new ThreadLocal<>();
+
 
     public static void setCurrentPort(Integer port) {
         currentPort.set(port);
@@ -25,6 +29,14 @@ public class RequestContextHolder {
         currentBaseUrl.set(baseUrl);
     }
 
+    public static void setCurrentControllerType(ControllerType controllerType) {
+        currentControllerType.set(controllerType);
+    }
+
+    public static ControllerType getCurrentControllerType() {
+        return currentControllerType.get();
+    }
+
     public static String getCurrentBaseUrl() {
         return currentBaseUrl.get();
     }
@@ -33,5 +45,6 @@ public class RequestContextHolder {
         currentPort.remove();
         currentEndpoint.remove();
         currentBaseUrl.remove();
+        currentControllerType.remove();
     }
 }

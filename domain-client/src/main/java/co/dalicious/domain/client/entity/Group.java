@@ -50,10 +50,6 @@ public class Group {
     @Comment("그룹 이름")
     private String name;
 
-    @Column(name = "manager_id")
-    @Comment("담당자 유저 id")
-    private BigInteger managerId;
-
     @Comment("계약 시작 날짜")
     private LocalDate contractStartDate;
 
@@ -85,11 +81,10 @@ public class Group {
     @Column(name="memo", columnDefinition = "text")
     private String memo;
 
-    public Group(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, String memo) {
+    public Group(Address address, List<DiningType> diningTypes, String name, String memo) {
         this.address = address;
         this.diningTypes = diningTypes;
         this.name = name;
-        this.managerId = managerId;
         this.memo = memo;
     }
 
@@ -124,11 +119,10 @@ public class Group {
                 .orElse(null);
     }
 
-    public void updateGroup(Address address, List<DiningType> diningTypeList, String name, BigInteger managerId) {
+    public void updateGroup(Address address, List<DiningType> diningTypeList, String name) {
         this.address = address;
         this.diningTypes = diningTypeList;
         this.name = name;
-        this.managerId = managerId;
     }
 
     public void updateDiningTypes(List<DiningType> diningTypes) {

@@ -297,14 +297,12 @@ public interface GroupMapper {
     @Mapping(source = "address", target = "address")
     @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
     @Mapping(source = "groupInfoList.name", target = "name")
-    @Mapping(source = "groupInfoList.managerId", target = "managerId")
     @Mapping(source = "groupInfoList.employeeCount", target = "familyCount")
     Apartment groupInfoListToApartmentEntity(GroupExcelRequestDto groupInfoList, Address address);
 
     @Mapping(source = "address", target = "address")
     @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
     @Mapping(source = "groupInfoList.name", target = "name")
-    @Mapping(source = "groupInfoList.managerId", target = "managerId")
     @Mapping(source = "groupInfoList.employeeCount", target = "openGroupUserCount")
     OpenGroup groupInfoListToOpenGroupEntity(GroupExcelRequestDto groupInfoList, Address address);
 

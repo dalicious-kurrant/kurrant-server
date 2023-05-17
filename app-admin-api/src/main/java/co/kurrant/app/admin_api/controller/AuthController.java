@@ -1,6 +1,8 @@
 package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.client.core.annotation.ControllerMarker;
 import co.kurrant.app.admin_api.dto.user.LoginRequestDto;
 import co.kurrant.app.admin_api.service.AuthService;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ public class AuthController {
 
   private final AuthService authService;
 
+  @ControllerMarker(ControllerType.AUTH)
   @Operation(summary = "로그인", description = "로그인을 수행한다.")
   @PostMapping("/login")
   public ResponseMessage login(@RequestBody LoginRequestDto dto) {

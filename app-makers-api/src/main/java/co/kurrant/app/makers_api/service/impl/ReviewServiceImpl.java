@@ -1,9 +1,13 @@
 package co.kurrant.app.makers_api.service.impl;
 
+import co.dalicious.client.alarm.dto.PushRequestDto;
+import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.review.dto.CommentReqDto;
@@ -43,6 +47,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final CommentsRepository commentsRepository;
     private final UserUtil userUtil;
     private final PushUtil pushUtil;
+    private final PushService pushService;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
 
     @Override
     @Transactional
@@ -65,8 +71,18 @@ public class ReviewServiceImpl implements ReviewService {
         BigInteger userId = reviews.getUser().getId();
         Map<String, Set<BigInteger>> userIdsMap = Collections.singletonMap("userIds", new HashSet<>(Collections.singletonList(userId)));
 
-        pushUtil.sendToType(userIdsMap, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
+        PushRequestDto pushRequestDto = pushUtil.sendToType(userIdsMap, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
+        pushService.sendToPush(pushRequestDto);
 
+        PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                .title(pushRequestDto.getTitle())
+                .isRead(false)
+                .message(pushRequestDto.getMessage())
+                .userId(userId)
+                .redirectUrl(pushRequestDto.getPage())
+                .reviewId(reviews.getId())
+                .build();
+        pushAlarmHashRepository.save(pushAlarmHash);
     }
 
     @Override
