@@ -39,6 +39,7 @@ import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
+import com.sun.jdi.IntegerValue;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -48,10 +49,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -233,58 +231,63 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, Integer starFilter) {
+    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter) {
+
+        User user = userUtil.getUser(securityUser);
+
+        List<FoodReviewListDto> foodReviewListDtoList = new ArrayList<>();
+        List<FoodReviewListDto> sortedFoodReviewListDtoList = new ArrayList<>();
 
         //유저와 DailyFood 정보 가져오기
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
 
         //리뷰와 유저정보 가져오기
         List<Reviews> reviewsList = new ArrayList<>();
-        if ((photo != null && photo != 0) || (starFilter != null && starFilter != 0)){
-             reviewsList = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), sort, photo, starFilter);
+        List<Reviews> totalReviewsList = new ArrayList<>();
+        totalReviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+
+
+        if ((photo != null && photo != 0) || (starFilter != null && starFilter.length() != 0)){
+             reviewsList = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), photo, starFilter);
         } else {
-            reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+            reviewsList = totalReviewsList;
         }
-        if (reviewsList.size() == 0){
-            return "리뷰없음";
+
+        if (totalReviewsList.size() == 0){
+            return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort);
         }
 
         //대댓글과 별점 추가
-        List<FoodReviewListDto> foodReviewListDtoList = new ArrayList<>();
         double starEverage;
-        double sumStar = 0.0;    //별점 계산을 위한 총 별점
+        double sumStar = 0;    //별점 계산을 위한 총 별점
         for (Reviews reviews : reviewsList){
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
 
+
             //좋아요 눌렀는지 여부 조회
             boolean isLike = false;
-            Optional<Like> like = qLikeRepository.foodReviewLikeCheckByUserId(optionalUser.get().getId(), reviews.getId());
+            //조회한 유저가 리뷰 작성자인지 여부
+            boolean isWriter = optionalUser.get().getId() == user.getId() ? true : false;
+            Optional<Like> like = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), reviews.getId());
             if (like.isPresent()) isLike = true;
-
-            FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList, isLike);
+            FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList, isLike, isWriter);
             foodReviewListDtoList.add(foodReviewListDto);
-            sumStar += (double) reviews.getSatisfaction();
+        }
+        for (Reviews reviews : totalReviewsList){
+            sumStar += reviews.getSatisfaction();
         }
 
-        //정렬
-        List<FoodReviewListDto> sortedFoodReviewListDtoList = new ArrayList<>();
-        if (sort == 0){ //별점 많은순(베스트순) 별점 같을 경우 최신순
-             sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction).reversed()
-                     .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList());
-        }
-        if (sort == 1){ //최신순 같을 경우 별점순
-            sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate).reversed()
-                    .thenComparing(FoodReviewListDto::getSatisfaction).reversed()).collect(Collectors.toList());
-        }
-        if (sort == 2){ //좋아요(도움이돼요)순 같을 경우 최신순
-            sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getLike).reversed()
-                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList());
-        }
-        starEverage =  Math.round(sumStar / (double) reviewsList.size() * 100) / 100.0;
-        Integer total = reviewsList.size();
+        //기본 정렬
 
-        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starEverage, total);
+        sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction)
+                     .thenComparing(FoodReviewListDto::getCreateDate)).collect(Collectors.toList());
+
+
+        Integer totalReviewSize = totalReviewsList.size();
+        starEverage =  Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
+
+        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starEverage, totalReviewSize, dailyFood.getFood().getId(), sort);
     }
 
     @Override
@@ -293,10 +296,10 @@ public class FoodServiceImpl implements FoodService {
         //유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
-        Optional<Like> optionalLike = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), foodReviewLikeDto.getReviewId());
+        Optional<Like> like = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), foodReviewLikeDto.getReviewId());
 
-        if (optionalLike.isPresent()){
-            Optional<Reviews> optionalReviews = reviewRepository.findById(optionalLike.get().getReviewId().getId());
+        if (like.isPresent()){
+            Optional<Reviews> optionalReviews = reviewRepository.findById(like.get().getReviewId().getId());
             if (optionalReviews.get().getLike() > 0) { //like가 0보다 클떄만 minus 처리
                 qReviewRepository.minusLike(foodReviewLikeDto.getReviewId());
             }
@@ -306,10 +309,10 @@ public class FoodServiceImpl implements FoodService {
 
         Optional<Reviews> optionalReviews = reviewRepository.findById(foodReviewLikeDto.getReviewId());
 
-        Like like = likeMapper.toEntity(user, optionalReviews.get());
+        Like saveLike = likeMapper.toEntity(user, optionalReviews.get());
 
         //review_like 테이블에 저장 후 review__review 테이블에 like를 +1 해준다.
-        likeRepository.save(like);
+        likeRepository.save(saveLike);
         qReviewRepository.plusLike(foodReviewLikeDto.getReviewId());
 
         return "도움이 돼요 +1";

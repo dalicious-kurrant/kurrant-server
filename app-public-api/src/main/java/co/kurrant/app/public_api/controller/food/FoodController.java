@@ -60,7 +60,7 @@ public class FoodController {
     public ResponseMessage getFoodReview(Authentication authentication, @PathVariable BigInteger dailyFoodId,
                                          @RequestParam (required = false) Integer sort,
                                          @RequestParam (required = false) Integer photo,
-                                         @RequestParam (required = false) Integer starFilter
+                                         @RequestParam (required = false) String starFilter
                                          ){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         Object foodReview = foodService.getFoodReview(dailyFoodId, securityUser, sort, photo, starFilter);
