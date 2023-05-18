@@ -1,4 +1,4 @@
-package co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin;
+package co.dalicious.domain.application_form.dto.requestMySpotZone.admin;
 
 import lombok.Getter;
 import lombok.Setter;

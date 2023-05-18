@@ -1,8 +1,7 @@
 package co.dalicious.domain.user.repository;
 
-import co.dalicious.domain.client.entity.RequestedMySpotZones;
+import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.user.entity.MySpot;
-import com.querydsl.core.QueryFactory;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

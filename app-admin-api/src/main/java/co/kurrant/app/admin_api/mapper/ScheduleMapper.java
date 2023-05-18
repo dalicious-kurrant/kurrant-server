@@ -1,7 +1,9 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
@@ -49,7 +51,7 @@ public interface ScheduleMapper {
                     List<ScheduleDto.FoodSchedule> foodSchedules = new ArrayList<>();
                     List<DailyFood> makersDailyFoods = makersDailyFoodMap.get(makers);
                     Integer makersCount = makersCapacities.getMakersCount(makersDailyFoods.get(0));
-                    LocalTime makersPickupTime = makersDailyFoods.get(0).getDailyFoodGroup().getPickupTime();
+                    LocalTime makersPickupTime = makersDailyFoods.get(0).getDailyFoodGroup().getDeliverySchedule().getPickupTime();
                     for (DailyFood makersDailyFood : makersDailyFoods) {
                         Integer count = dailyFoodMap.get(makersDailyFood);
                         ScheduleDto.FoodSchedule foodSchedule = toFoodSchedule(makersDailyFood, count);
@@ -64,7 +66,7 @@ public interface ScheduleMapper {
                 groupSchedule.setDiningType(serviceDiningDto.getDiningType().getCode());
                 groupSchedule.setGroupName(group.getName());
                 groupSchedule.setGroupCapacity(userGroupCount.get(group));
-                groupSchedule.setDeliveryTime(getEarliestDeliveryTime(group, serviceDiningDto.getDiningType()));
+                groupSchedule.setDeliveryTime(group.getMealInfo(serviceDiningDto.getDiningType()).getDeliveryScheduleList().stream().map(DeliverySchedule::getDeliveryTime).map(DateUtils::timeToString).toList());
                 groupSchedule.setMakersSchedules(makersSchedules);
 
                 groupSchedules.add(groupSchedule);
@@ -81,22 +83,22 @@ public interface ScheduleMapper {
         return makersCapacityOptional.get().getCapacity();
     }
 
-    default String getEarliestDeliveryTime(Group group, DiningType diningType) {
-        List<Spot> spots = group.getSpots();
-        LocalTime earliestDeliveryTime = LocalTime.MAX; // initialize to a value later than any possible delivery time
-
-        for (Spot spot : spots) {
-            LocalTime deliveryTime = spot.getDeliveryTime(diningType);
-            if(deliveryTime == null) {
-                return null;
-            }
-            if (deliveryTime.isBefore(earliestDeliveryTime)) {
-                earliestDeliveryTime = deliveryTime;
-            }
-        }
-
-        return DateUtils.timeToString(earliestDeliveryTime);
-    }
+//    default String getEarliestDeliveryTime(Group group, DiningType diningType) {
+//        List<Spot> spots = group.getSpots();
+//        LocalTime earliestDeliveryTime = LocalTime.MAX; // initialize to a value later than any possible delivery time
+//
+//        for (Spot spot : spots) {
+//            LocalTime deliveryTime = spot.getDeliveryTime(diningType);
+//            if(deliveryTime == null) {
+//                return null;
+//            }
+//            if (deliveryTime.isBefore(earliestDeliveryTime)) {
+//                earliestDeliveryTime = deliveryTime;
+//            }
+//        }
+//
+//        return DateUtils.timeToString(earliestDeliveryTime);
+//    }
 
     default ScheduleDto.FoodSchedule toFoodSchedule(DailyFood dailyFood, Integer count) {
         ScheduleDto.FoodSchedule foodSchedule = new ScheduleDto.FoodSchedule();

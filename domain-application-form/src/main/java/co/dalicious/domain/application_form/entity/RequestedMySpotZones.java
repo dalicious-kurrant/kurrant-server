@@ -1,6 +1,6 @@
-package co.dalicious.domain.client.entity;
+package co.dalicious.domain.application_form.entity;
 
-import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.RequestedMySpotDetailDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,7 +31,7 @@ public class RequestedMySpotZones {
     private String city;
 
     @Column(name = "county")
-    @Comment("군/구")
+    @Comment("시/군/구")
     private String county;
 
     @Column(name = "village")
@@ -61,7 +61,7 @@ public class RequestedMySpotZones {
         this.city = updateRequestDto.getCity();
         this.county = updateRequestDto.getCounty();
         this.village = updateRequestDto.getVillage();
-        this.waitingUserCount = updateRequestDto.getWaitingUserCount();
+        this.waitingUserCount = updateRequestDto.getRequestUserCount();
         this.memo = updateRequestDto.getMemo();
     }
 

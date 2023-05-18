@@ -29,4 +29,12 @@ public class DeliverySchedule {
         this.deliveryTime = deliveryTime;
         this.pickupTime = pickupTime;
     }
+
+    public void updateDeliveryTime(LocalTime deliveryTime) {
+        this.deliveryTime = deliveryTime;
+    }
+
+    public void updatePickupTime(LocalTime pickupTime) {
+        this.pickupTime = pickupTime;
+    }
 }

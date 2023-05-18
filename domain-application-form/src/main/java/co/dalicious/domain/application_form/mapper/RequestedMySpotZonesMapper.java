@@ -1,9 +1,12 @@
-package co.dalicious.domain.client.mapper;
+package co.dalicious.domain.application_form.mapper;
 
-import co.dalicious.domain.client.dto.mySpotZone.filter.*;
-import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.CreateRequestDto;
-import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.ListResponseDto;
-import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.RequestedMySpotDetailDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
+import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
+
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
@@ -11,19 +14,17 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.GenerateRandomNumber;
-import org.geolatte.geom.M;
 import org.mapstruct.Mapper;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Mapper(componentModel = "spring")
 public interface RequestedMySpotZonesMapper {
 
-    default FilterDto toFilterDto(List<String> cityList, List<String> countyList, List<String> villageList, List<String> zipcodeList) {
+    default FilterDto toFilterDto(List<FilterInfo> cityList, List<FilterInfo> countyList, List<FilterInfo> villageList, List<FilterInfo> zipcodeList) {
 
         FilterDto filterDto = new FilterDto();
         filterDto.setCityInfos(cityList);

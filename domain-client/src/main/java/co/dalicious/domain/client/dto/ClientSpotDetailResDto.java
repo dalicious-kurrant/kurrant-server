@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.dto;
 
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.util.DateUtils;
@@ -13,6 +14,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -34,7 +36,7 @@ public class ClientSpotDetailResDto {
         private String serviceDays;
         private String membershipBenefitTime;
         private String lastOrderTime;
-        private String deliveryTime;
+        private List<String> deliveryTime;
         private BigDecimal supportPrice;
 
         @Builder
@@ -60,7 +62,10 @@ public class ClientSpotDetailResDto {
             this.serviceDays = String.valueOf(serviceDays);
             this.membershipBenefitTime = DayAndTime.dayAndTimeToString(mealInfo.getMembershipBenefitTime());
             this.lastOrderTime = DayAndTime.dayAndTimeToString(mealInfo.getLastOrderTime());
-            this.deliveryTime =  DateUtils.timeToString(mealInfo.getDeliveryTime());
+            this.deliveryTime = mealInfo.getDeliveryScheduleList().stream()
+                    .map(DeliverySchedule::getDeliveryTime)
+                    .map(DateUtils::timeToString)
+                    .toList();
             this.supportPrice = !(mealInfo instanceof CorporationMealInfo) ? bigDecimal : null;
         }
     }

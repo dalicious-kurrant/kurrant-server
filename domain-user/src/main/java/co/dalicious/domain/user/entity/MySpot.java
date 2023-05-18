@@ -1,12 +1,11 @@
 package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.domain.client.entity.RequestedMySpotZones;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.user.entity.enums.ClientType;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;

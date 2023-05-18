@@ -1,4 +1,4 @@
-package co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin;
+package co.dalicious.domain.application_form.dto.requestMySpotZone.admin;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,12 +7,12 @@ import java.math.BigInteger;
 
 @Getter
 @Setter
-public class RequestedMySpotDetailDto {
+public class ListResponseDto {
     private BigInteger id;
-    private String zipcode;
     private String city;
     private String county;
     private String village;
+    private String zipcode;
     private Integer requestUserCount;
     private String memo;
 }

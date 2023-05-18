@@ -160,11 +160,7 @@ public class ReviewServiceImpl implements ReviewService {
 
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
 
-                MealInfo mealInfos = orderItemDailyFood.getDailyFood().getGroup().getMealInfos().stream()
-                        .filter(m -> m.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType()))
-                        .findAny().orElse(null);
-
-                LocalTime deliveryTime = mealInfos != null ? mealInfos.getDeliveryTime() : LocalTime.MAX;
+                LocalTime deliveryTime = orderItemDailyFood.getOrderItemDailyFoodGroup().getDeliveryTime() != null ? orderItemDailyFood.getOrderItemDailyFoodGroup().getDeliveryTime() : LocalTime.MAX;
 
                 LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
                 //리뷰 가능일 구하기

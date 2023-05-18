@@ -1,5 +1,6 @@
 package co.dalicious.domain.food.entity;
 
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -25,19 +26,23 @@ public class DailyFoodGroup {
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
-    @Column(name = "pickup_time")
-    @Comment("픽업시간")
-    private LocalTime pickupTime;
+    @Embedded
+    @Comment("배송 시간")
+    private DeliverySchedule deliverySchedule;
 
     @OneToMany(mappedBy = "dailyFoodGroup")
     @JsonBackReference(value = "daily_food_group_fk")
     private List<DailyFood> dailyFoods;
 
-    public DailyFoodGroup(LocalTime pickupTime) {
-        this.pickupTime = pickupTime;
+    public DailyFoodGroup(DeliverySchedule deliverySchedule) {
+        this.deliverySchedule = deliverySchedule;
+    }
+
+    public void updateDeliverySchedule(DeliverySchedule deliverySchedule) {
+        this.deliverySchedule = deliverySchedule;
     }
 
     public void updatePickupTime(LocalTime pickupTime) {
-        this.pickupTime = pickupTime;
+        this.deliverySchedule.updatePickupTime(pickupTime);
     }
 }
