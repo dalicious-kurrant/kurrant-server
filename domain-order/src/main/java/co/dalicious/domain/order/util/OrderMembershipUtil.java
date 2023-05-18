@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.util;
 
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
@@ -39,11 +40,13 @@ public class OrderMembershipUtil {
     private final FoundersMapper foundersMapper;
 
     // 기업 멤버십 가입 로직
-    public void joinCorporationMembership(User user, Group group) {
+    public void joinCorporationMembership(User user, Corporation corporation) {
         // 멤버십을 지원하는 기업의 식사를 주문하면서, 멤버십에 가입되지 않은 회원이라면 멤버십 가입.
         LocalDate now = LocalDate.now();
-        LocalDate membershipStartDate = LocalDate.of(now.getYear(), now.getMonth(), group.getContractStartDate().getDayOfMonth());
-        PeriodDto membershipPeriod = new PeriodDto(membershipStartDate, membershipStartDate.plusMonths(1));
+        LocalDate membershipStartDate = LocalDate.of(now.getYear(), now.getMonth(), corporation.getContractStartDate().getDayOfMonth());
+        LocalDate membershipEndDate = (corporation.getMembershipEndDate() != null && corporation.getMembershipEndDate().isBefore(membershipStartDate.plusMonths(1)))
+                ? corporation.getMembershipEndDate() : membershipStartDate.plusMonths(1);
+        PeriodDto membershipPeriod = new PeriodDto(membershipStartDate, membershipEndDate);
 
         // 멤버십 등록
         Membership membership = orderMembershipMapper.toMembership(MembershipSubscriptionType.MONTH, user, membershipPeriod);
@@ -59,7 +62,7 @@ public class OrderMembershipUtil {
         orderItemMembershipRepository.save(orderItemMembership);
 
         // 지원금 사용 등록
-        MembershipSupportPrice membershipSupportPrice = orderMembershipMapper.toMembershipSupportPrice(user, group, orderItemMembership);
+        MembershipSupportPrice membershipSupportPrice = orderMembershipMapper.toMembershipSupportPrice(user, corporation, orderItemMembership);
         membershipSupportPriceRepository.save(membershipSupportPrice);
 
         // 파운더스 확인

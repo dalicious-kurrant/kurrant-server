@@ -9,6 +9,8 @@ import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.converter.IdListConverter;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import exception.ApiException;
+import exception.CustomException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +18,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.http.HttpStatus;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -133,10 +136,14 @@ public class Corporation extends Group {
 
     public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
         updateGroup(address, diningTypeList, groupInfoList.getName());
-        this.membershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
+        LocalDate updateMembershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
+        if(updateMembershipEndDate.isBefore(LocalDate.now())) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000004", "멤버십 종료 날짜는 현재보다 이전 날짜로 설정할 수 없습니다");
+        }
+        this.membershipEndDate = updateMembershipEndDate;
         this.code = groupInfoList.getCode();
         this.employeeCount = groupInfoList.getEmployeeCount();
-        this.isMembershipSupport = !groupInfoList.getIsMembershipSupport().equals("미지원");
+        this.isMembershipSupport = useOrNotUse(groupInfoList.getIsMembershipSupport());
         this.isGarbage = useOrNotUse(groupInfoList.getIsGarbage());
         this.isHotStorage = useOrNotUse(groupInfoList.getIsHotStorage());
         this.isSetting = useOrNotUse(groupInfoList.getIsSetting());
@@ -148,9 +155,13 @@ public class Corporation extends Group {
 
     public void updateCorporation(UpdateSpotDetailRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
         updateGroup(address, diningTypeList, groupInfoList.getSpotName());
+        LocalDate updateMembershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
+        if(updateMembershipEndDate.isBefore(LocalDate.now())) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000004", "멤버십 종료 날짜는 현재보다 이전 날짜로 설정할 수 없습니다");
+        }
         this.code = groupInfoList.getCode();
         this.employeeCount = groupInfoList.getEmployeeCount();
-        this.isMembershipSupport = !groupInfoList.getIsMembershipSupport().equals("미지원");
+        this.isMembershipSupport = groupInfoList.getIsMembershipSupport();
         this.isGarbage = groupInfoList.getIsGarbage();
         this.isHotStorage = groupInfoList.getIsHotStorage();
         this.isSetting = groupInfoList.getIsSetting();
