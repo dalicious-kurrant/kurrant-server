@@ -137,7 +137,7 @@ public class Corporation extends Group {
     public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
         updateGroup(address, diningTypeList, groupInfoList.getName());
         LocalDate updateMembershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
-        if(updateMembershipEndDate.isBefore(LocalDate.now())) {
+        if (updateMembershipEndDate.isBefore(LocalDate.now())) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000004", "멤버십 종료 날짜는 현재보다 이전 날짜로 설정할 수 없습니다");
         }
         this.membershipEndDate = updateMembershipEndDate;
@@ -156,7 +156,7 @@ public class Corporation extends Group {
     public void updateCorporation(UpdateSpotDetailRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
         updateGroup(address, diningTypeList, groupInfoList.getSpotName());
         LocalDate updateMembershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
-        if(updateMembershipEndDate.isBefore(LocalDate.now())) {
+        if (updateMembershipEndDate.isBefore(LocalDate.now())) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000004", "멤버십 종료 날짜는 현재보다 이전 날짜로 설정할 수 없습니다");
         }
         this.code = groupInfoList.getCode();
@@ -175,8 +175,8 @@ public class Corporation extends Group {
 
     private Boolean useOrNotUse(String data) {
         Boolean use = null;
-        if (data.equals("미사용") || data.equals("false")) use = false;
-        else if (data.equals("사용") || data.equals("true")) use = true;
+        if (data.equals("미지원") || data.equals("미사용") || data.equals("false")) use = false;
+        else if (data.equals("지원") || data.equals("사용") || data.equals("true")) use = true;
         return use;
     }
 
