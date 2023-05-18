@@ -263,22 +263,24 @@ public class QReviewRepository {
     }
 
 
-    public List<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter) {
+    public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter, Pageable pageable) {
         List<Reviews> reviewsList = new ArrayList<>();
 
         reviewsList = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
+                    .limit(pageable.getPageSize())
+                    .offset(pageable.getOffset())
                     .fetch();
 
         if (photo != null && photo == 1){
             reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
         }
 
-        if (starFilter.length() != 0){
+        if (starFilter != null && starFilter.length() != 0){
             reviewsList = reviewsList.stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
         }
 
-    return reviewsList;
+    return new PageImpl<>(reviewsList, pageable, reviewsList.size());
     }
 
     public void plusLike(BigInteger reviewId) {
@@ -305,5 +307,27 @@ public class QReviewRepository {
                         like.user.id.eq(id))
                 .execute();
     }
+
+    public Page<Reviews> findAllByFoodId(BigInteger foodId, Pageable pageable) {
+        List<Reviews> reviewsList = queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId))
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+
+
+        return new PageImpl<>(reviewsList, pageable, reviewsList.size());
+    }
+
+     /*
+    *   QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
+                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
+                .orderBy(pointHistory.id.desc())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    * */
 
 }
