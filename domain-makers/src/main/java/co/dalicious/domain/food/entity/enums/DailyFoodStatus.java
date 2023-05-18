@@ -31,10 +31,10 @@ public enum DailyFoodStatus {
     }
 
     public static List<DailyFoodStatus> cancelableStatus() {
-        return Arrays.asList(SALES, SOLD_OUT);
+        return Arrays.asList(SALES, SOLD_OUT, STOP_SALE, PASS_LAST_ORDER_TIME);
     }
 
-    public static List<DailyFoodStatus> notCancelableStatus() {
+    public static List<DailyFoodStatus> notCancelableStatFus() {
         List<DailyFoodStatus> dailyFoodStatuses = new java.util.ArrayList<>(List.of(DailyFoodStatus.values()));
         dailyFoodStatuses.removeAll(cancelableStatus());
         return dailyFoodStatuses;

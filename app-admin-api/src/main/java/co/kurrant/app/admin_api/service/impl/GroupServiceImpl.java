@@ -158,7 +158,7 @@ public class GroupServiceImpl implements GroupService {
                             }
                         }
                         // 멤버십 종료날짜가 기존 날짜 이후로 업데이트 된 경우
-                        if(updateMembershipEndDate.isAfter(membershipEndDate)) {
+                        if(membershipEndDate != null && updateMembershipEndDate.isAfter(membershipEndDate)) {
                             List<Membership> memberships = qmembershipSupportPriceRepository.findAllByGroupAndNow(corporation);
                             for (Membership membership : memberships) {
                                 LocalDate limitEndDate = membership.getStartDate().plusMonths(1);
@@ -306,7 +306,7 @@ public class GroupServiceImpl implements GroupService {
                     }
                 }
                 // 멤버십 종료날짜가 기존 날짜 이후로 업데이트 된 경우
-                if(updateMembershipEndDate.isAfter(membershipEndDate)) {
+                if(membershipEndDate != null && updateMembershipEndDate.isAfter(membershipEndDate)) {
                     List<Membership> memberships = qmembershipSupportPriceRepository.findAllByGroupAndNow(corporation);
                     for (Membership membership : memberships) {
                         LocalDate limitEndDate = membership.getStartDate().plusMonths(1);
@@ -326,7 +326,6 @@ public class GroupServiceImpl implements GroupService {
             openGroup.updateOpenSpot(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getEmployeeCount());
         }
         mealInfoRepository.saveAll(newMealInfoList);
-        group.updateGroup(updateSpotDetailRequestDto);
     }
 
 
