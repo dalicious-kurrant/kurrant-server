@@ -158,6 +158,10 @@ public class Makers {
     @Column(name = "memo", columnDefinition = "VARCHAR(255)")
     private String memo;
 
+    @Column(columnDefinition = "BIT(1) DEFAULT 1")
+    @Comment("활성화 여부")
+    private Boolean isActive;
+
     @Builder
     public Makers(String code, String name, String companyName, String CEO, String CEOPhone, String managerName, String managerPhone, List<MakersCapacity> makersCapacities, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate, Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String fee, String bank, String depositHolder, String accountNumber, List<ImageWithEnum> images, List<Origin> origins, String password, Role role) {
         this.code = code;

@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.util.KakaoUtil;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
@@ -33,6 +34,7 @@ import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
+import co.dalicious.domain.order.util.OrderMembershipUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
@@ -105,7 +107,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushUtil pushUtil;
-    private final KakaoUtil kaKaoUtil;
+    private final OrderMembershipUtil orderMembershipUtil;
     private final PushService pushService;
 
     @Override
@@ -212,10 +214,18 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             orderItemDailyFood.updateOrderStatus(orderStatus);
             Optional<User> optionalUser = userRepository.findById(orderItemDailyFood.getOrder().getUser().getId());
             optionalUser.ifPresent(user -> userPhoneNumber.add(user.getPhone()));
-            // 배송완료 푸시 알림 전송
+
+            // 배송완료 푸시 알림 전송 및 멤버십 추가
             if (OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
-                PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
+                // 멤버십 추가
                 User user = orderItemDailyFood.getOrder().getUser();
+                Group group = (Group) Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup());
+                if (group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+                    orderMembershipUtil.joinCorporationMembership(user, corporation);
+                }
+
+                // 배송 완료 푸시알림 전송
+                PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
                 String userName = user.getName();
                 String foodName = orderItemDailyFood.getName();
                 String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
@@ -229,7 +239,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                         .isRead(false)
                         .message(message)
                         .userId(user.getId())
-                        .redirectUrl(pushAlarms.getRedirectUrl())
+                        .type(AlarmType.ORDER_STATUS.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
             }

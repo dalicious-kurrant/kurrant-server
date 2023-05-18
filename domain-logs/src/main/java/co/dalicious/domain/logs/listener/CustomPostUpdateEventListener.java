@@ -13,9 +13,9 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.Embeddable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -42,20 +42,72 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
         List<String> logs = new ArrayList<>();
         for (int i = 0; i < properties.length; i++) {
             if (!Objects.equals(oldState[i], newState[i]) && !properties[i].equals("updatedDateTime")) {
+                if (oldState[i] instanceof Collection<?> oldCollection && newState[i] instanceof Collection<?> newCollection) {
+
+                    Iterator<?> oldIterator = oldCollection.iterator();
+                    Iterator<?> newIterator = newCollection.iterator();
+                    int index = 0;
+
+                    while (oldIterator.hasNext() && newIterator.hasNext()) {
+                        Object oldElement = oldIterator.next();
+                        Object newElement = newIterator.next();
+                        Field[] fields = oldElement.getClass().getDeclaredFields();
+
+                        for (Field field : fields) {
+                            field.setAccessible(true);
+                            try {
+                                Object oldValue = field.get(oldElement);
+                                Object newValue = field.get(newElement);
+
+                                // Check if both values are of type Number (integer, float, double, etc.)
+                                if (oldValue instanceof Number && newValue instanceof Number) {
+                                    // Convert both numbers to double and compare.
+                                    if (!BigDecimal.valueOf(((Number) oldValue).doubleValue()).setScale(2, RoundingMode.HALF_UP)
+                                            .equals(BigDecimal.valueOf(((Number) newValue).doubleValue()).setScale(2, RoundingMode.HALF_UP))) {
+                                        // Add to logs only if values are numerically different.
+                                        String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "[" + index + "]" + "의 " + field.getName() + "값이 " + '"' + oldValue + '"' + "에서 " + '"' + newValue + '"' + "로 변경.";
+                                        logs.add(logEntry);
+                                        System.out.println(logEntry);
+                                    }
+                                } else if (!Objects.equals(oldValue, newValue)) {
+                                    // If not numbers, compare normally.
+                                    String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "[" + index + "]" + "의 " + field.getName() + "값이 " + '"' + oldValue + '"' + "에서 " + '"' + newValue + '"' + "로 변경.";
+                                    logs.add(logEntry);
+                                    System.out.println(logEntry);
+                                }
+                            }  catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        index++;
+                    }
+                }
                 // 필드가 Embeddable 속성인지 체크
-                if (oldState[i] != null && newState[i] != null && oldState[i].getClass().getAnnotation(Embeddable.class) != null) {
+                else if (oldState[i] != null && newState[i] != null && oldState[i].getClass().getAnnotation(Embeddable.class) != null) {
                     Field[] fields = oldState[i].getClass().getDeclaredFields();
                     for (Field field : fields) {
                         field.setAccessible(true);
                         try {
                             Object oldValue = field.get(oldState[i]);
                             Object newValue = field.get(newState[i]);
-                            if (!Objects.equals(oldValue, newValue)) {
+
+                            // Check if both values are of type Number (integer, float, double, etc.)
+                            if (oldValue instanceof Number && newValue instanceof Number) {
+                                // Convert both numbers to double and compare.
+                                if (!BigDecimal.valueOf(((Number) oldValue).doubleValue()).setScale(2, RoundingMode.HALF_UP)
+                                        .equals(BigDecimal.valueOf(((Number) newValue).doubleValue()).setScale(2, RoundingMode.HALF_UP))) {
+                                    // Add to logs only if values are numerically different.
+                                    String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 " + field.getName() + "값이 " + '"' + oldValue + '"' + "에서 " + '"' + newValue + '"' + "로 변경.";
+                                    logs.add(logEntry);
+                                    System.out.println(logEntry);
+                                }
+                            } else if (!Objects.equals(oldValue, newValue)) {
+                                // If not numbers, compare normally.
                                 String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 " + field.getName() + "값이 " + '"' + oldValue + '"' + "에서 " + '"' + newValue + '"' + "로 변경.";
                                 logs.add(logEntry);
                                 System.out.println(logEntry);
                             }
-                        } catch (IllegalAccessException e) {
+                        }  catch (IllegalAccessException e) {
                             e.printStackTrace();
                         }
                     }

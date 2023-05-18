@@ -331,16 +331,6 @@ public class UserController {
                 .build();
     }
 
-    @Operation(summary = "유저 알람 가져오기", description = "유저 알람 가져오기")
-    @GetMapping("/alarms")
-    public ResponseMessage getAlarms(Authentication authentication) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(userService.getAlarms(securityUser))
-                .message("유저 알람 목록 가져오기에 성공하였습니다")
-                .build();
-    }
-
 //
 //    @PostMapping("/payment/password")
 //    @Operation(summary = "결제 비밀번호 등록하기", description = "결제 비밀번호 등록")
