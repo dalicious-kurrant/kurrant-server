@@ -1,12 +1,10 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.SpotRepository;
-import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
@@ -17,11 +15,7 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.recommend.dto.UserRecommendWhereData;
 import co.dalicious.domain.recommend.entity.UserRecommends;
 import co.dalicious.domain.recommend.repository.QUserRecommendRepository;
-import co.dalicious.domain.review.dto.ReviewAdminResDto;
-import co.dalicious.domain.review.dto.ReviewListDto;
-import co.dalicious.domain.review.dto.ReviewsForUserResDto;
 import co.dalicious.domain.review.entity.Comments;
-import co.dalicious.domain.review.entity.Keyword;
 import co.dalicious.domain.review.entity.Like;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.review.mapper.LikeMapper;
@@ -39,11 +33,12 @@ import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
-import com.sun.jdi.IntegerValue;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -51,7 +46,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -231,7 +225,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter) {
+    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter, OffsetBasedPageRequest pageable) {
 
         User user = userUtil.getUser(securityUser);
 
@@ -243,24 +237,25 @@ public class FoodServiceImpl implements FoodService {
 
         //리뷰와 유저정보 가져오기
         List<Reviews> reviewsList = new ArrayList<>();
-        List<Reviews> totalReviewsList = new ArrayList<>();
-        totalReviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+        Page<Reviews> pageReviews = null;
+        Page<Reviews> totalReviewsList = null;
 
-
+        totalReviewsList = qReviewRepository.findAllByFoodId(dailyFood.getFood().getId(), pageable);
         if ((photo != null && photo != 0) || (starFilter != null && starFilter.length() != 0)){
-             reviewsList = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), photo, starFilter);
+           pageReviews = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), photo, starFilter, pageable);
+
         } else {
-            reviewsList = totalReviewsList;
+            reviewsList = totalReviewsList.stream().toList();
         }
 
-        if (totalReviewsList.size() == 0){
+        if (totalReviewsList.getSize() == 0){
             return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort);
         }
 
         //대댓글과 별점 추가
         double starEverage;
         double sumStar = 0;    //별점 계산을 위한 총 별점
-        for (Reviews reviews : reviewsList){
+        for (Reviews reviews : pageReviews){
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
 
@@ -284,7 +279,7 @@ public class FoodServiceImpl implements FoodService {
                      .thenComparing(FoodReviewListDto::getCreateDate)).collect(Collectors.toList());
 
 
-        Integer totalReviewSize = totalReviewsList.size();
+        Integer totalReviewSize = totalReviewsList.getContent().size();
         starEverage =  Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
 
         return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starEverage, totalReviewSize, dailyFood.getFood().getId(), sort);
