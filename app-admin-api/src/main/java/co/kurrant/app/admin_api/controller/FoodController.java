@@ -75,12 +75,22 @@ public class FoodController {
     }
 
     @ControllerMarker(ControllerType.FOOD)
-    @Operation(summary = "엑셀 내보내기 용 조회", description = "엑셀 내보내기를 위해 전체 조회")
+    @Operation(summary = "엑셀 내보내기용 조회", description = "엑셀 내보내기를 위해 전체 조회")
     @GetMapping("/excels")
     public ResponseMessage getAllFoodForExcel() {
         return ResponseMessage.builder()
                 .message("상품을 조회 했습니다.")
                 .data(foodService.getAllFoodForExcel())
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.FOOD)
+    @Operation(summary = "상품 그룹을 조회", description = "상품 그룹을 조회")
+    @GetMapping("/groups")
+    public ResponseMessage getFoodGroups() {
+        return ResponseMessage.builder()
+                .message("상품 그룹을 조회 했습니다.")
+                .data(foodService.getFoodGroups())
                 .build();
     }
 }

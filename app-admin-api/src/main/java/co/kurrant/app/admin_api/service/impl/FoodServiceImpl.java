@@ -274,4 +274,10 @@ public class FoodServiceImpl implements FoodService {
 
         return responseList;
     }
+
+    @Override
+    public FoodGroupDto.Response getFoodGroups() {
+
+        return null;
+    }
 }

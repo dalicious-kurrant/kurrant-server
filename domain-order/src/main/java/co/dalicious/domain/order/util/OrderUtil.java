@@ -132,6 +132,30 @@ public class OrderUtil {
         return totalPrice;
     }
 
+    public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        // 1. 배송비 추가
+        totalPrice = totalPrice.add(orderItemDailyFoodGroup.getDeliveryFee());
+
+        // 2. 할인된 상품 가격 추가
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
+            if (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
+                totalPrice = totalPrice.add(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())));
+            }
+        }
+        // 3. 지원금 사용 가격 제외
+        BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
+        totalPrice = totalPrice.subtract(usedSupportPrice);
+
+        // 예외. 포인트 사용으로 인해 식사 일정별 환불 가능 금액이 주문 전체 금액이 더 작을 경우
+        Order order = orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder();
+        if (order.getTotalPrice().compareTo(totalPrice) < 0) {
+            return order.getTotalPrice();
+        }
+
+        return totalPrice;
+    }
+
     public static BigDecimal getItemPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
@@ -186,7 +210,7 @@ public class OrderUtil {
     public static RefundPriceDto getRefundPrice(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
         OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
-        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
+        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup);
         if (refundablePrice.compareTo(orderItemDailyFood.getOrder().getTotalPrice()) > 0) {
             refundablePrice = orderItemDailyFood.getOrder().getTotalPrice();
         }
@@ -259,7 +283,7 @@ public class OrderUtil {
     public static RefundPriceDto getRefundPriceAdmin(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
         OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
-        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
+        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup);
         if (refundablePrice.compareTo(orderItemDailyFood.getOrder().getTotalPrice()) > 0) {
             refundablePrice = orderItemDailyFood.getOrder().getTotalPrice();
         }
@@ -378,6 +402,57 @@ public class OrderUtil {
         }
         throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
     }
+
+    public static RefundPriceDto getMedtronicRefundPriceAdmin(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
+        OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
+        // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
+        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup);
+        // 식사 일정에 따른 총 결제 금액
+        BigDecimal itemsPrice = getItemPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup);
+        // 사용한 지원금
+        BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
+        // 환불 요청 금액
+        BigDecimal requestRefundPrice = PriceUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5)));
+        // 배송비
+        BigDecimal deliveryFee = BigDecimal.ZERO;
+        // 업데이트 되어야할 지원금
+        BigDecimal renewSupportPrice = usedSupportPrice;
+        Boolean isLastOrderItemOfGroup = isLastOrderItemOfGroup(orderItemDailyFood);
+
+
+        // 배송비 환불이 필요할 경우에는, 지원금만 계산하기 위해 요청환불 금액에서 배송비는 제외하기
+        renewSupportPrice = itemsPrice.multiply(BigDecimal.valueOf(0.5)).subtract(requestRefundPrice).add(deliveryFee);
+
+        // 3. 환불 가능 금액 > 환불 요청 금액
+        if (refundablePrice.compareTo(requestRefundPrice) >= 0) {
+            if (!paymentCancelHistories.isEmpty()) {
+                paymentCancelHistories = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).collect(Collectors.toList());
+                BigDecimal refundPoint = BigDecimal.ZERO;
+                Optional<PaymentCancelHistory> tempPaymentCancelHistory = paymentCancelHistories.stream().filter(v -> v.getRefundPointPrice().compareTo(BigDecimal.ZERO) > 0).findAny();
+                if (tempPaymentCancelHistory.isPresent()) {
+                    refundPoint = refundPoint.add(tempPaymentCancelHistory.get().getRefundPointPrice());
+                }
+                PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.get(0);
+                BigDecimal tossRefundablePrice = paymentCancelHistory.getRefundablePrice();
+                if (tossRefundablePrice.compareTo(requestRefundPrice) < 0) {
+                    if (tossRefundablePrice.add(usingPoint.subtract(refundPoint)).compareTo(requestRefundPrice) < 0) {
+                        throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+                    }
+                    return new RefundPriceDto(tossRefundablePrice, renewSupportPrice, requestRefundPrice.subtract(tossRefundablePrice), deliveryFee, isLastOrderItemOfGroup);
+                }
+            }
+            return new RefundPriceDto(requestRefundPrice, renewSupportPrice, BigDecimal.ZERO, deliveryFee, isLastOrderItemOfGroup);
+        }
+        // 4. 환불 가능 금액 < 환불 요청 금액
+        if (refundablePrice.compareTo(requestRefundPrice) < 0) {
+            if (requestRefundPrice.subtract(refundablePrice).compareTo(usingPoint) > 0) {
+                throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+            }
+            return new RefundPriceDto(refundablePrice, renewSupportPrice, requestRefundPrice.subtract(refundablePrice), deliveryFee, isLastOrderItemOfGroup);
+        }
+        throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
+    }
+
 
     public OrderDailyFoodDetailDto.RefundDto getRefundReceipt(List<OrderItem> refundItems, List<PaymentCancelHistory> paymentCancelHistories) {
         // TODO: 백오피스 환불 차감 금액 추후 계산
