@@ -25,6 +25,10 @@ public class FoodDetailDto {
     private String spicy;
     private String vegan;
     private String description;
+    private Integer calorie;
+    private Integer fat;
+    private Integer protein;
+    private Integer carbohydrate;
     private List<OriginDto> origins;
     private List<String> allergies;
 }

@@ -215,6 +215,7 @@ public interface SpotMapper {
             spotDetailResDto.setCode(corporation.getCode());
             spotDetailResDto.setEmployeeCount(corporation.getEmployeeCount());
             spotDetailResDto.setIsSetting(corporation.getIsSetting());
+            spotDetailResDto.setMembershipEndDate(DateUtils.format(corporation.getMembershipEndDate()));
             spotDetailResDto.setIsHotStorage(corporation.getIsHotStorage());
             spotDetailResDto.setIsGarbage(corporation.getIsGarbage());
             spotDetailResDto.setIsMembershipSupport(corporation.getIsMembershipSupport());

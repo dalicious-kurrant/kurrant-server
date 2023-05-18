@@ -80,4 +80,13 @@ public class ReviewController {
                 .message("리뷰를 삭제했습니다.")
                 .build();
     }
+
+    @Operation(summary = "리뷰 별점 조회", description = "리뷰의 별점 갯수를 조회한다.")
+    @GetMapping("/satisfaction")
+    public ResponseMessage reviewStarCount(@RequestParam BigInteger dailyFoodId){
+        return ResponseMessage.builder()
+                .data(reviewService.reviewStarCount(dailyFoodId))
+                .message("리뷰 별점 갯수 조회")
+                .build();
+    }
 }

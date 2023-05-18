@@ -52,8 +52,8 @@ public class BoardController {
     @DeleteMapping("alarms")
     public ResponseMessage deleteAllAlarm(Authentication authentication){
         SecurityUser securityUser =  UserUtil.securityUser(authentication);
+        boardService.deleteAllAlarm(securityUser);
         return ResponseMessage.builder()
-                .data(boardService.deleteAllAlarm(securityUser))
                 .message("알림을 모두 지웠습니다.")
                 .build();
     }

@@ -780,36 +780,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
             }
 
-            // 멤버십을 지원하는 기업의 식사를 주문하면서, 멤버십에 가입되지 않은 회원이라면 멤버십 가입.
-            if (OrderUtil.isMembership(user, (Group) Hibernate.unproxy(group)) && !user.getIsMembership()) {
-                LocalDate now = LocalDate.now();
-                LocalDate membershipStartDate = LocalDate.of(now.getYear(), now.getMonth(), group.getContractStartDate().getDayOfMonth());
-                PeriodDto membershipPeriod = new PeriodDto(membershipStartDate, membershipStartDate.plusMonths(1));
-
-                // 멤버십 등록
-                Membership membership = orderMembershipMapper.toMembership(MembershipSubscriptionType.MONTH, user, membershipPeriod);
-                membershipRepository.save(membership);
-
-                // 결제 내역 등록
-                OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
-                OrderMembership order = orderMembershipMapper.toOrderMembership(orderUserInfoDto, null, MembershipSubscriptionType.MONTH, BigDecimal.ZERO, BigDecimal.ZERO, PaymentType.SUPPORT_PRICE, membership);
-                orderMembershipRepository.save(order);
-
-                // 멤버십 결제 내역 등록(진행중 상태)
-                OrderItemMembership orderItemMembership = orderMembershipMapper.toOrderItemMembership(order, membership);
-                orderItemMembershipRepository.save(orderItemMembership);
-
-                // 지원금 사용 등록
-                MembershipSupportPrice membershipSupportPrice = orderMembershipMapper.toMembershipSupportPrice(user, group, orderItemMembership);
-                membershipSupportPriceRepository.save(membershipSupportPrice);
-
-                // 파운더스 확인
-                if (!foundersUtil.isFounders(user) && !foundersUtil.isOverFoundersLimit()) {
-                    Founders founders = foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber() + 1);
-                    foundersUtil.saveFounders(founders);
-                }
-            }
-
             // 결제 금액이 0이 아닐 경우, 나이스페이를 통해 결제
             if (orderItemDailyFoodReqDto.getAmount() != 0) {
                 CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(orderItemDailyFoodReqDto.getCardId()).orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));

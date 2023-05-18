@@ -32,21 +32,12 @@ public class CustomPostDeleteEventListener implements PostDeleteEventListener {
 
         String hardwareName = NetworkUtils.getLocalMacAddress();
         Object entity = event.getEntity();
-        // And you can access the deleted state of the entity:
-        Object[] deletedState = event.getDeletedState();
-        // You can also access the names of the properties:
-        String[] properties = event.getPersister().getPropertyNames();
+
         List<String> logs = new ArrayList<>();
         // Now you can create log entries
-        for (int i = 0; i < properties.length; i++) {
-            if (deletedState[i] != null) {
-                // The property has been deleted, create a log entry
-                String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "가 " + deletedState[i] + "로 삭제.";
-                logs.add(logEntry);
-                System.out.println(logEntry);
-            }
-        }
-        if(logs.isEmpty()) return;
+        String logEntry = hardwareName + " 기기에서 "  + event.getId() + "번 "+ entity.getClass().getSimpleName() + "이 삭제됨.";
+        logs.add(logEntry);
+
         adminLogsRepository.save(AdminLogs.builder()
                 .logType(LogType.DELETE)
                 .controllerType(RequestContextHolder.getCurrentControllerType())
