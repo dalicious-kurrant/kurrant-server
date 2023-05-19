@@ -40,4 +40,6 @@ public class SaveMakersRequestDto {
     private String bank;
     private String depositHolder;
     private String accountNumber;
+    private Boolean isActive;
+    private String serviceDays;
 }

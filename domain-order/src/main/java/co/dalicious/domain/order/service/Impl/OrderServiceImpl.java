@@ -480,11 +480,10 @@ public class OrderServiceImpl implements OrderService {
             RefundPriceDto refundPriceDto = null;
 
             if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉")) {
-                refundPriceDto = OrderUtil.getMedtronicRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+                refundPriceDto = OrderUtil.getMedtronicRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
                 refundPriceDto = OrderUtil.getRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             }
-
 
             if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
                 List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();

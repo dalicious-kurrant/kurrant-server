@@ -42,4 +42,10 @@ public class StringUtils {
         }
         return resultName.substring(0, resultName.length() - 2);
     }
+
+    public static String integerListToString(List<Integer> integers) {
+        return integers == null ? null : integers.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
+    }
 }

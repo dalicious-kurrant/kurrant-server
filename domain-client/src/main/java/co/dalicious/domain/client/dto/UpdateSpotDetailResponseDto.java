@@ -67,6 +67,8 @@ public class UpdateSpotDetailResponseDto {
     private Boolean isHotStorage;
     @Schema(description = "선불정산 여부 체크")
     private Boolean isPrepaid;
+    @Schema(description = "활성화 여부")
+    private Boolean isActive;
     @Schema(description = "멤버십 종료 날짜")
     private String membershipEndDate;
     @Schema(description = "메모")
