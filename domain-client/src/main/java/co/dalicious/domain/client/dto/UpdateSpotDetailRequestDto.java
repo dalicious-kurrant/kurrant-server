@@ -70,6 +70,8 @@ public class UpdateSpotDetailRequestDto {
     private String membershipEndDate;
     @Schema(description = "메모")
     private String memo;
+    @Schema(description = "활성화 여부")
+    private Boolean isActive;
     @Schema(description = "정산 선불 정보")
     private List<PrepaidCategory> prepaidCategoryList;
     @Getter

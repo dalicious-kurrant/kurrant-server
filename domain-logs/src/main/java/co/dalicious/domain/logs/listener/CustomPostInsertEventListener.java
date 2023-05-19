@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.persistence.Embeddable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Component
@@ -47,7 +48,26 @@ public class CustomPostInsertEventListener implements PostInsertEventListener {
         // Now you can create log entries
         for (int i = 0; i < properties.length; i++) {
             if (newState[i] != null) {
-                if (newState[i].getClass().getAnnotation(Embeddable.class) != null) {
+                if (newState[i] instanceof Collection<?> collection) {
+                    int index = 0;
+                    for (Object element : collection) {
+                        if (element.getClass().getAnnotation(Embeddable.class) != null) {
+                            Field[] fields = element.getClass().getDeclaredFields();
+                            for (Field field : fields) {
+                                field.setAccessible(true);
+                                try {
+                                    String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "[" + index + "]" + "의 " + field.getName() + "가 " + '"' + field.get(element) + '"' + "로 설정.";
+                                    logs.add(logEntry);
+                                    System.out.println(logEntry);
+                                } catch (IllegalAccessException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        index++;
+                    }
+                }
+                else if (newState[i].getClass().getAnnotation(Embeddable.class) != null) {
                     Field[] fields = newState[i].getClass().getDeclaredFields();
                     for (Field field : fields) {
                         field.setAccessible(true);

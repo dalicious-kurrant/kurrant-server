@@ -197,6 +197,7 @@ public interface SpotMapper {
         spotDetailResDto.setZipCode(group.getAddress().getZipCode());
         spotDetailResDto.setAddress1(group.getAddress().getAddress1());
         spotDetailResDto.setAddress2(group.getAddress().getAddress2());
+        spotDetailResDto.setIsActive(group.getIsActive());
         if (group.getAddress().getLocation() == null) {
             spotDetailResDto.setLocation("없음");
         } else {

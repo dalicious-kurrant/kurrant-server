@@ -89,4 +89,8 @@ public class Membership {
     public void changeMembershipStatus(MembershipStatus membershipStatus) {
         this.membershipStatus = membershipStatus;
     }
+
+    public void updateEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
 }

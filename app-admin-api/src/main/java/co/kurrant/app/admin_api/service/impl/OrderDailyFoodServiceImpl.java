@@ -220,8 +220,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 // 멤버십 추가
                 User user = orderItemDailyFood.getOrder().getUser();
                 Group group = (Group) Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup());
-                if (OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
-                    orderMembershipUtil.joinCorporationMembership(user, group);
+                if (group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+                    orderMembershipUtil.joinCorporationMembership(user, corporation);
                 }
 
                 // 배송 완료 푸시알림 전송

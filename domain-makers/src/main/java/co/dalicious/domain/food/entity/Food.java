@@ -12,6 +12,7 @@ import co.dalicious.system.enums.FoodTag;
 import co.dalicious.domain.food.converter.FoodStatusConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.AccessLevel;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @DynamicInsert
@@ -35,7 +37,6 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-//@Audited
 @Table(name = "food__food", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "makers_id"})})
 public class Food {
     // TODO: 추후 Item 상속 추가
@@ -87,6 +88,12 @@ public class Food {
     @JoinColumn(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("메이커스 ID")
     private Makers makers;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "food_group_fk")
+    @JoinColumn
+    @Comment("메이커스 ID")
+    private FoodGroup foodGroup;
 
     @Column(name = "description")
     @Comment("설명")
@@ -217,5 +224,11 @@ public class Food {
                 .filter(v -> v.getMakers().getName().equals(makersName) && v.getName().equals(foodName))
                 .findAny()
                 .orElse(null);
+    }
+
+    public List<FoodTag> getFoodGroupTags() {
+        return this.foodTags.stream()
+                .filter(v -> v.getCategory().equals("식품 타입"))
+                .toList();
     }
 }

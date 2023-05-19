@@ -9,8 +9,10 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
 import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DaysUtil;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.dalicious.domain.food.dto.SaveMakersRequestDto;
 import org.locationtech.jts.geom.Geometry;
@@ -24,7 +26,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = DaysUtil.class)
 public interface MakersMapper {
     @Mapping(source = "id", target = "makersId")
     @Mapping(source = "name", target = "makersName")
@@ -74,8 +76,15 @@ public interface MakersMapper {
     @Mapping(source = "makers.name", target = "name")
     @Mapping(source = "makers.code", target = "code")
     @Mapping(source = "makers.id", target = "id")
+    @Mapping(source = "makers.isActive", target = "isActive")
+    @Mapping(source = "makers.serviceDays", target = "serviceDays", qualifiedByName = "daysToString")
     MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<String> diningTypes,
                                 Integer morningCapacity, Integer lunchCapacity, Integer dinnerCapacity);
+
+    @Named("daysToString")
+    default String daysToString(List<Days> days) {
+        return DaysUtil.serviceDaysToDaysString(days);
+    }
 
     @Named("getDinnerLastOrderTime")
     default String getDinnerLastOrderTime(Makers makers) {
@@ -136,6 +145,8 @@ public interface MakersMapper {
     @Mapping(source = "dto.companyName", target = "companyName")
     @Mapping(source = "dto.name", target = "name")
     @Mapping(source = "dto.code", target = "code")
+    @Mapping(source = "dto.isActive", target = "isActive")
+    @Mapping(target = "serviceDays", expression = "java(DaysUtil.serviceDaysToDaysList(dto.getServiceDays()))")
     Makers toEntity(SaveMakersRequestDto dto, Address address);
 
     /*
