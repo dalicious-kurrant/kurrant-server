@@ -135,7 +135,7 @@ public class Corporation extends Group {
     }
 
     public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
-        updateGroup(address, diningTypeList, groupInfoList.getName());
+        updateGroup(address, diningTypeList, groupInfoList.getName(), useOrNotUse(groupInfoList.getIsActive()));
         LocalDate updateMembershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
         if (updateMembershipEndDate != null && updateMembershipEndDate.isBefore(LocalDate.now())) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000004", "멤버십 종료 날짜는 현재보다 이전 날짜로 설정할 수 없습니다");
@@ -154,7 +154,7 @@ public class Corporation extends Group {
     }
 
     public void updateCorporation(UpdateSpotDetailRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
-        updateGroup(address, diningTypeList, groupInfoList.getSpotName());
+        updateGroup(address, diningTypeList, groupInfoList.getSpotName(), getIsActive());
         LocalDate updateMembershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
         if (updateMembershipEndDate != null && updateMembershipEndDate.isBefore(LocalDate.now())) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000004", "멤버십 종료 날짜는 현재보다 이전 날짜로 설정할 수 없습니다");

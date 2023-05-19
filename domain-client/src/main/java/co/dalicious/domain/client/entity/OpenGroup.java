@@ -33,8 +33,8 @@ public class OpenGroup extends Group{
         this.openGroupUserCount = openGroupUserCount;
     }
 
-    public void updateOpenSpot(Address address, List<DiningType> diningTypeList, String name, Integer openGroupUserCount) {
-        updateGroup(address, diningTypeList, name);
+    public void updateOpenSpot(Address address, List<DiningType> diningTypeList, String name, Integer openGroupUserCount, Boolean isActive) {
+        updateGroup(address, diningTypeList, name, isActive);
         this.openGroupUserCount = openGroupUserCount;
     }
 }

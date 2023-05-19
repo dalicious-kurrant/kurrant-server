@@ -48,6 +48,7 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "name", target = "foodName")
     @Mapping(source = "count", target = "count")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
+    @Mapping(source = "dailyFood.dailyFoodStatus.code", target = "dailyFoodStatus")
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())))")
     @Mapping(target = "isBeforeLastOrderTime", expression = "java(!orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT))")
     OrderDailyFoodDetailDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);

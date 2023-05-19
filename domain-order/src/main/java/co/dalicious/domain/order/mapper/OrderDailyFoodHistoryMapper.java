@@ -21,6 +21,7 @@ public interface OrderDailyFoodHistoryMapper {
     @Mapping(source = "count", target = "count")
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())))")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
+    @Mapping(source = "dailyFood.dailyFoodStatus.code", target = "dailyFoodStatus")
     OrderHistoryDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
     @Mapping(source = "order.id", target = "id")

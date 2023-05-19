@@ -99,7 +99,7 @@ public interface GroupMapper {
 
         groupInfoList.setGroupType(groupType);
         groupInfoList.setEmployeeCount(employeeCount);
-
+        groupInfoList.setIsActive(group.getIsActive());
         groupInfoList.setCode((isCorporation) ? ((Corporation) group).getCode() : null);
         groupInfoList.setName(group.getName());
         groupInfoList.setZipCode(group.getAddress().getZipCode());

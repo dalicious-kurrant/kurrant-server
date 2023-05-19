@@ -171,10 +171,10 @@ public class GroupServiceImpl implements GroupService {
                     corporation.updateCorporation(groupInfoList, address, diningTypeList);
                 }
                 else if (group instanceof Apartment apartment) {
-                    apartment.updateApartment(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount());
+                    apartment.updateApartment(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), GroupExcelRequestDto.useOrNotUse(groupInfoList.getIsActive()));
                 }
                 else if (group instanceof  OpenGroup openGroup) {
-                    openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount());
+                    openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), GroupExcelRequestDto.useOrNotUse(groupInfoList.getIsActive()));
                 }
 
                 // dining type 체크해서 있으면 업데이트, 없으면 생성
@@ -320,10 +320,10 @@ public class GroupServiceImpl implements GroupService {
             corporation.updatePrepaidCategories(spotMapper.toPrepaidCategories(updateSpotDetailRequestDto.getPrepaidCategoryList()));
         }
         else if (group instanceof Apartment apartment) {
-            apartment.updateApartment(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getEmployeeCount());
+            apartment.updateApartment(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getEmployeeCount(), updateSpotDetailRequestDto.getIsActive());
         }
         else if (group instanceof  OpenGroup openGroup) {
-            openGroup.updateOpenSpot(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getEmployeeCount());
+            openGroup.updateOpenSpot(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getEmployeeCount(), updateSpotDetailRequestDto.getIsActive());
         }
         mealInfoRepository.saveAll(newMealInfoList);
     }

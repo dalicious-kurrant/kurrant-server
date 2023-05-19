@@ -44,6 +44,7 @@ public class OrderDailyFoodDetailDto {
         private Integer count;
         private BigDecimal price;
         private Integer orderStatus;
+        private Integer dailyFoodStatus;
         private Boolean isBeforeLastOrderTime;
 
     }
