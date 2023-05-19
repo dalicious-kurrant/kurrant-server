@@ -18,5 +18,6 @@ public interface FoodService {
     void updateFoodMass(List<FoodListDto.FoodList> foodListDto);
     void updateFood(List<MultipartFile> files, MakersFoodDetailReqDto foodDetailDto) throws IOException;
     List<FoodListDto.FoodList> getAllFoodForExcel();
-    FoodGroupDto.Response getFoodGroups();
+    List<FoodGroupDto.Response> getFoodGroups();
+    void postFoodGroup(List<FoodGroupDto.Request> requests);
 }
