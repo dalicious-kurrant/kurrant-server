@@ -72,7 +72,6 @@ public class FoodController {
         String message = "상품 리뷰 조회 성공!";
             //리뷰없을경우 message 내용변경
             if (foodReview.equals("리뷰없음")) message = "등록된 리뷰가 없습니다.";
-
         return ResponseMessage.builder()
                 .data(foodReview)
                 .message(message)
