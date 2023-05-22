@@ -23,19 +23,16 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.persistence.EntityManager;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
-import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static co.dalicious.domain.review.entity.QComments.comments;
-import static co.dalicious.domain.review.entity.QLike.like;
+import static co.dalicious.domain.review.entity.QReviewGood.reviewGood;
 import static co.dalicious.domain.review.entity.QReviews.reviews;
 
 @Repository
@@ -285,7 +282,7 @@ public class QReviewRepository {
 
     public void plusLike(BigInteger reviewId) {
         queryFactory.update(reviews)
-                .set(reviews.like, reviews.like.add(1))
+                .set(reviews.good, reviews.good.add(1))
                 .where(reviews.id.eq(reviewId))
                 .execute();
 
@@ -294,7 +291,7 @@ public class QReviewRepository {
     public void minusLike(BigInteger reviewId) {
 
         queryFactory.update(reviews)
-                .set(reviews.like, reviews.like.subtract(1))
+                .set(reviews.good, reviews.good.subtract(1))
                 .where(reviews.id.eq(reviewId))
                 .execute();
 
@@ -302,9 +299,9 @@ public class QReviewRepository {
     }
 
     public void deleteLike(BigInteger reviewId, BigInteger id) {
-        queryFactory.delete(like)
-                .where(like.reviewId.id.eq(reviewId),
-                        like.user.id.eq(id))
+        queryFactory.delete(reviewGood)
+                .where(reviewGood.reviewId.id.eq(reviewId),
+                        reviewGood.user.id.eq(id))
                 .execute();
     }
 
