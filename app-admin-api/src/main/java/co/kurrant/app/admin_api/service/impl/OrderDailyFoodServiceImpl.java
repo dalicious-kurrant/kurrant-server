@@ -1,7 +1,6 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.alarm.entity.enums.AlarmType;
-import co.dalicious.client.alarm.util.KakaoUtil;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;

@@ -5,7 +5,6 @@ import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.dalicious.domain.order.dto.OrderDto;
-import org.geolatte.geom.V;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;

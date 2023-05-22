@@ -5,6 +5,7 @@ import co.dalicious.domain.payment.dto.OrderCreateBillingKeySecondReqDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodByNiceReqDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
 import co.kurrant.app.public_api.dto.order.IdDto;
+import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -131,4 +132,15 @@ public class OrderDailyFoodController {
                 .message("주문의 상태를 수령 완료로 변경했습니다.")
                 .build();
     }
+
+    @Operation(summary = "카드할부 처리를 위한 기능(로컬전용)", description = "카드 할부로 결제한다")
+    @PostMapping("/card/quota")
+    public ResponseMessage OrderCardQuota(Authentication authentication, @RequestBody OrderCardQuotaDto orderCardQuotaDto) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.orderCardQuota(securityUser, orderCardQuotaDto))
+                .message("식사 주문에 성공하였습니다.")
+                .build();
+    }
+
 }
