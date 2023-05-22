@@ -41,6 +41,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
+import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -887,6 +888,18 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 user.updatePoint(point);
             }
         }
+    }
+
+    @Override
+    public Object orderCardQuota(SecurityUser securityUser, OrderCardQuotaDto orderCardQuotaDto) throws IOException, ParseException {
+
+        User user = userUtil.getUser(securityUser);
+
+        String token = niceUtil.getToken();
+        JSONObject jsonObject = niceUtil.niceBillingCardQuota(orderCardQuotaDto.getBillingKey(), orderCardQuotaDto.getAmount(), orderCardQuotaDto.getOrderId(), token, orderCardQuotaDto.getOrderName(), orderCardQuotaDto.getCardQuota());
+        System.out.println(jsonObject);
+
+        return null;
     }
 }
 
