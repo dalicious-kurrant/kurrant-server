@@ -132,7 +132,7 @@ public class Food {
     private Integer protein;
 
     @Builder
-    public Food(FoodStatus foodStatus, String name, BigDecimal supplyPrice, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
+    public Food(FoodStatus foodStatus, String name, BigDecimal supplyPrice, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice, FoodGroup foodGroup) {
         this.foodStatus = foodStatus;
         this.name = name;
         this.price = price;
@@ -141,6 +141,7 @@ public class Food {
         this.makers = makers;
         this.description = description;
         this.customPrice = customPrice;
+        this.foodGroup = foodGroup;
     }
 
     public void updateFoodMass(FoodListDto.FoodList foodListDto, List<FoodTag> foodTags, Makers makers) {

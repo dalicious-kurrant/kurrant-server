@@ -134,9 +134,9 @@ public class FoodServiceImpl implements FoodService {
             // 기존 푸드가 없으면 생성
             if (food == null) {
                 BigDecimal customPrice = BigDecimal.ZERO;
-
+                FoodGroup foodGroup = null;
                 // 푸드 생성
-                Food newFood = foodMapper.toNewEntity(foodListDto, makers, customPrice, foodTags);
+                Food newFood = foodMapper.toNewEntity(foodListDto, makers, customPrice, foodTags, foodGroup);
                 foodRepository.save(newFood);
 
                 // 푸드 할인 정책 생성
@@ -280,6 +280,7 @@ public class FoodServiceImpl implements FoodService {
     }
 
     @Override
+    @Transactional
     public List<FoodGroupDto.Response> getFoodGroups() {
         List<FoodGroup> foodGroups = foodGroupRepository.findAll();
         return foodGroupMapper.toDtos(foodGroups);
@@ -289,7 +290,7 @@ public class FoodServiceImpl implements FoodService {
     @Transactional
     public void postFoodGroup(List<FoodGroupDto.Request> requests) {
         Set<String> makersNames = requests.stream()
-                .map(FoodGroupDto.Request::getName)
+                .map(FoodGroupDto.Request::getMakers)
                 .collect(Collectors.toSet());
         Set<BigInteger> foodGroupIds = requests.stream()
                 .map(FoodGroupDto.Request::getId)

@@ -24,15 +24,15 @@ import static co.dalicious.domain.logs.entity.QAdminLogs.adminLogs;
 public class QAdminLogsRepository {
     private final JPAQueryFactory queryFactory;
 
-    public Page<AdminLogs> findAllByFilter(LogType logType, ControllerType controllerType, LocalDateTime startDateTime, LocalDateTime endDateTime, Integer limit, Integer page, Pageable pageable) {
+    public Page<AdminLogs> findAllByFilter(List<LogType> logType, List<ControllerType> controllerType, LocalDateTime startDateTime, LocalDateTime endDateTime, Integer limit, Integer page, Pageable pageable) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (logType != null) {
-            whereClause.and(adminLogs.logType.eq(logType));
+            whereClause.and(adminLogs.logType.in(logType));
         }
 
         if (controllerType != null) {
-            whereClause.and(adminLogs.controllerType.eq(controllerType));
+            whereClause.and(adminLogs.controllerType.in(controllerType));
         }
 
         if (startDateTime != null) {
