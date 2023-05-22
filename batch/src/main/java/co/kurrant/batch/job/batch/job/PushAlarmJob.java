@@ -23,7 +23,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -41,7 +40,7 @@ public class PushAlarmJob {
     private final int CHUNK_SIZE = 500;
 
     @Bean(name = "pushAlarmJob1")
-    public Job reviewJob1() {
+    public Job pushAlarmJob1() {
         return jobBuilderFactory.get("pushAlarmJob1")
                 .start(pushAlarmJob_step())
                 .build();
@@ -52,9 +51,9 @@ public class PushAlarmJob {
     public Step pushAlarmJob_step() {
         return stepBuilderFactory.get("pushAlarmJob_step1")
                 .<User, User>chunk(CHUNK_SIZE)
-                .reader(reviewReader())
-                .processor(reviewProcessor())
-                .writer(reviewWriter())
+                .reader(lastOrderTimePushAlarmReader())
+                .processor(lastOrderTimePushAlarmProcessor())
+                .writer(lastOrderTimePushAlarmWriter())
                 .faultTolerant()
                 .skip(ApiException.class) // Add the exception classes you want to skip
                 .skip(RuntimeException.class)
@@ -63,10 +62,10 @@ public class PushAlarmJob {
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<User> reviewReader() {
+    public JpaPagingItemReader<User> lastOrderTimePushAlarmReader() {
         log.info("[user 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
-        Set<BigInteger> groupIds = pushAlarmService.getGroupsForOneHourLeftLastOrderTime();
+        List<BigInteger> groupIds = pushAlarmService.getGroupsForOneHourLeftLastOrderTime();
 
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("groupIds", groupIds);
@@ -92,7 +91,7 @@ public class PushAlarmJob {
 
     @Bean
     @JobScope
-    public ItemProcessor<User, User> reviewProcessor() {
+    public ItemProcessor<User, User> lastOrderTimePushAlarmProcessor() {
         return new ItemProcessor<User, User>() {
             @Override
             public User process(User user) throws Exception {
@@ -111,8 +110,9 @@ public class PushAlarmJob {
 
     @Bean
     @JobScope
-    public JpaItemWriter<User> reviewWriter() {
+    public JpaItemWriter<User> lastOrderTimePushAlarmWriter() {
         log.info("리뷰 푸시전송 완료 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
         return new JpaItemWriterBuilder<User>().entityManagerFactory(entityManagerFactory).build();
     }
 }
+
