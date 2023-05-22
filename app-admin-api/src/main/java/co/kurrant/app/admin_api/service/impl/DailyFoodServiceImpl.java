@@ -296,7 +296,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             for(FoodDto.DailyFood dailyFood : Objects.requireNonNull(dailyFoodDtos)) {
                 deliveryScheduleMap.put(dailyFood.getDeliveryTime(), dailyFood.getMakersPickupTime());
             }
-            List<DeliverySchedule> deliveryScheduleList = List
+            List<DeliverySchedule> deliveryScheduleList = deliveryScheduleMap.keySet().stream().map
             DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(dailyFoodGroupDtoMap.get(dailyFoodGroupDto).get(0)));
             newDailyFoodGroupMap.put(dailyFoodGroup, dailyFoodDtos);
         }

@@ -42,7 +42,7 @@ public interface DailyFoodMapper {
       @Mapping(source = "pickupTime", target = "pickupTime")
       DailyFoodGroup toDailyFoodGroup(PresetGroupDailyFood presetGroupDailyFood);
 
-      default DailyFoodGroup toDailyFoodGroup(FoodDto.DailyFood dailyFood) {
+      default DailyFoodGroup toDailyFoodGroup(Map<String, String>) {
             return new DailyFoodGroup(DateUtils.stringToLocalTime(dailyFood.getMakersPickupTime()));
       };
 
