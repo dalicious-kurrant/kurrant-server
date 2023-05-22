@@ -3,6 +3,7 @@ package co.dalicious.client.core.enums;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Getter
 public enum ControllerType {
@@ -47,5 +48,12 @@ public enum ControllerType {
                 .filter(v -> v.getController().equals(controller))
                 .findAny()
                 .orElse(null);
+    }
+
+    public static List<ControllerType> ofCodes(List<Integer> integers) {
+        if(integers == null) return null;
+        return integers.stream()
+                .map(ControllerType::ofCode)
+                .toList();
     }
 }

@@ -4,7 +4,7 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
 import co.dalicious.system.enums.DiscountType;
-import co.dalicious.system.util.PriceUtils;
+import co.dalicious.system.util.NumberUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,19 +42,19 @@ public class DiscountDto {
         // 1. 멤버십 할인
         if (membershipDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((membershipDiscountedRate / 100.0)));
-            membershipDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            membershipDiscountedPrice = NumberUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(subtractPrice);
         }
         // 2. 메이커스 할인
         if (makersDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
-            makersDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            makersDiscountedPrice = NumberUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 3. 기간 할인
         if (periodDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            periodDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            periodDiscountedPrice = NumberUtils.roundToTenDigit(subtractPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
@@ -85,13 +85,13 @@ public class DiscountDto {
         // 1. 메이커스 할인
         if (makersDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
-            makersDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            makersDiscountedPrice = NumberUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 2. 기간 할인
         if (periodDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            periodDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            periodDiscountedPrice = NumberUtils.roundToTenDigit(subtractPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
@@ -122,19 +122,19 @@ public class DiscountDto {
         // 1. 멤버십 할인
         if (membershipDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((membershipDiscountedRate / 100.0)));
-            membershipDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            membershipDiscountedPrice = NumberUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(subtractPrice);
         }
         // 2. 메이커스 할인
         if (makersDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
-            makersDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            makersDiscountedPrice = NumberUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 3. 기간 할인
         if (periodDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            periodDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            periodDiscountedPrice = NumberUtils.roundToTenDigit(subtractPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);
@@ -172,13 +172,13 @@ public class DiscountDto {
         // 1. 메이커스 할인
         if (makersDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((makersDiscountedRate) / 100.0));
-            makersDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            makersDiscountedPrice = NumberUtils.roundToTenDigit(subtractPrice);
             price = price.subtract(makersDiscountedPrice);
         }
         // 2. 기간 할인
         if (periodDiscountedRate != 0) {
             subtractPrice = price.multiply(BigDecimal.valueOf((periodDiscountedRate) / 100.0));
-            periodDiscountedPrice = PriceUtils.roundToTenDigit(subtractPrice);
+            periodDiscountedPrice = NumberUtils.roundToTenDigit(subtractPrice);
         }
         discountDto.setMembershipDiscountRate(membershipDiscountedRate);
         discountDto.setMembershipDiscountPrice(membershipDiscountedPrice);

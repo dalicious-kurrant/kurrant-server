@@ -29,7 +29,7 @@ public class DailyReport {
 
     @Comment("유저 ID")
     @ManyToOne
-    @JoinColumn(name = " user_id", columnDefinition = "BIGINT UNSIGNED")
+    @JoinColumn(name = "user_id", columnDefinition = "BIGINT UNSIGNED")
     private User user;
 
     @Comment("식사 이름")

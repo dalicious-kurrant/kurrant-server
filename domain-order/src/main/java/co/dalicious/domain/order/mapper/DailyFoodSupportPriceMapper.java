@@ -5,7 +5,7 @@ import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
-import co.dalicious.system.util.PriceUtils;
+import co.dalicious.system.util.NumberUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
@@ -15,7 +15,7 @@ import org.mapstruct.Named;
 
 import java.math.BigDecimal;
 
-@Mapper(componentModel = "spring", imports = PriceUtils.class)
+@Mapper(componentModel = "spring", imports = NumberUtils.class)
 public interface DailyFoodSupportPriceMapper {
     @Mapping(source = "orderItemDailyFood.order.user", target = "user")
     @Mapping(source = "orderItemDailyFood.order", target = "group", qualifiedByName = "getGroup")
