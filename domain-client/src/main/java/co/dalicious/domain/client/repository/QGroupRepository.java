@@ -15,7 +15,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
@@ -69,23 +68,23 @@ public class QGroupRepository {
                 .fetch();
     }
 
-    public void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto, BigInteger groupId) {
-        //담당자 수정
-        if (updateSpotDetailRequestDto.getManagerId() != null){
-            queryFactory.update(group)
-                    .set(group.managerId, updateSpotDetailRequestDto.getManagerId())
-                    .where(group.id.eq(groupId))
-                    .execute();
-        }
-        //메모수정
-        if (updateSpotDetailRequestDto.getMemo() != null){
-            queryFactory.update(group)
-                    .set(group.memo, updateSpotDetailRequestDto.getMemo())
-                    .where(group.id.eq(groupId))
-                    .execute();
-        }
-
-    }
+//    public void updateSpotDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto, BigInteger groupId) {
+//        //담당자 수정
+//        if (updateSpotDetailRequestDto.getManagerId() != null){
+//            queryFactory.update(group)
+//                    .set(group.managerId, updateSpotDetailRequestDto.getManagerId())
+//                    .where(group.id.eq(groupId))
+//                    .execute();
+//        }
+//        //메모수정
+//        if (updateSpotDetailRequestDto.getMemo() != null){
+//            queryFactory.update(group)
+//                    .set(group.memo, updateSpotDetailRequestDto.getMemo())
+//                    .where(group.id.eq(groupId))
+//                    .execute();
+//        }
+//
+//    }
 
     public BigInteger findById(BigInteger groupId) {
         return queryFactory.select(group.id)

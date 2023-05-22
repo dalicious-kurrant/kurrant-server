@@ -114,7 +114,7 @@ public interface MakersPaycheckMapper {
         makersDetail.setFoodsPrice(makersPaycheck.getFoodTotalPrice().intValue());
         makersDetail.setCommission(makersPaycheck.getCommission());
         makersDetail.setCommissionPrice(makersPaycheck.getCommissionPrice().intValue());
-        makersDetail.setTotalPrice(makersPaycheck.getTotalPrice().intValue());
+        makersDetail.setTotalPrice(makersPaycheck.getTotalPrice());
         return makersDetail;
     }
 
@@ -166,23 +166,23 @@ public interface MakersPaycheckMapper {
 
     default PaycheckDto.PaycheckPrice toPaycheckPrice(List<MakersPaycheck> makersPaychecks) {
         PaycheckDto.PaycheckPrice paycheckPrice = new PaycheckDto.PaycheckPrice();
-        BigDecimal totalPrice = BigDecimal.ZERO;
-        BigDecimal completePrice = BigDecimal.ZERO;
+        Integer totalPrice = 0;
+        Integer completePrice = 0;
         int completeCount = 0;
         for (MakersPaycheck makersPaycheck : makersPaychecks) {
-            totalPrice = totalPrice.add(makersPaycheck.getTotalPrice());
+            totalPrice += makersPaycheck.getTotalPrice();
 
             if(makersPaycheck.getPaycheckStatus().equals(PaycheckStatus.PAYMENT_COMPLETE)) {
                 completeCount++;
-                completePrice = completePrice.add(makersPaycheck.getTotalPrice());
+                completePrice += makersPaycheck.getTotalPrice();
             }
         }
         paycheckPrice.setTotalCount(makersPaychecks.size());
-        paycheckPrice.setTotalPrice(totalPrice.intValue());
+        paycheckPrice.setTotalPrice(totalPrice);
         paycheckPrice.setCompleteCount(completeCount);
-        paycheckPrice.setCompletePrice(completePrice.intValue());
+        paycheckPrice.setCompletePrice(completePrice);
         paycheckPrice.setLeftCount(makersPaychecks.size() - completeCount);
-        paycheckPrice.setLeftPrice(totalPrice.subtract(completePrice).intValue());
+        paycheckPrice.setLeftPrice(totalPrice - completePrice);
         return paycheckPrice;
     }
 }

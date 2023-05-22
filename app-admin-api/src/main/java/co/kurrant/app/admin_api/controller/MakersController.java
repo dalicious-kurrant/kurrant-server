@@ -1,6 +1,8 @@
 package co.kurrant.app.admin_api.controller;
 
+import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.food.dto.LocationTestDto;
 import co.dalicious.domain.food.dto.SaveMakersRequestDtoList;
 import co.dalicious.domain.food.dto.UpdateMakersReqDto;
@@ -19,6 +21,7 @@ public class MakersController {
 
     private final MakersService makersService;
 
+    @ControllerMarker(ControllerType.MAKERS)
     @GetMapping("")
     public ResponseMessage findAllMakersInfo(){
         return ResponseMessage.builder()
@@ -27,6 +30,7 @@ public class MakersController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.MAKERS)
     @PostMapping("")
     public ResponseMessage saveMakers(@RequestBody SaveMakersRequestDtoList saveMakersRequestDtoList) throws ParseException {
         makersService.saveMakers(saveMakersRequestDtoList);
@@ -35,7 +39,7 @@ public class MakersController {
                 .build();
     }
 
-
+    @ControllerMarker(ControllerType.MAKERS)
     @PatchMapping("/location/test")
     public ResponseMessage updateLocation(@RequestBody LocationTestDto locationTestDto) throws ParseException {
         makersService.locationTest(locationTestDto);
@@ -44,6 +48,7 @@ public class MakersController {
                         .build();
     }
 
+    @ControllerMarker(ControllerType.MAKERS)
     @PatchMapping("")
     @Operation(summary = "메이커스 정보 상세 수정", description = "메이커스의 상세정보를 수정합니다.")
     public ResponseMessage updateMakers(@RequestBody UpdateMakersReqDto updateMakersReqDto) throws ParseException {
@@ -52,7 +57,4 @@ public class MakersController {
                 .message("메이커스 정보 수정에 성공했습니다.")
                 .build();
     }
-
-
-
 }

@@ -17,6 +17,8 @@ import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -24,6 +26,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
@@ -177,6 +180,24 @@ public interface CorporationPaycheckMapper {
         List<PaycheckDto.CorporationOrderItem> corporationOrderItems = new ArrayList<>();
         BigDecimal supportPrice = dailyFoodSupportPrice.getUsingSupportPrice();
         List<OrderItemDailyFood> orderItemDailyFoods = dailyFoodSupportPrice.getOrderItemDailyFoodGroup().getOrderDailyFoods();
+
+        // 주문 그룹이 메드트로닉일 경우
+        if(dailyFoodSupportPrice.getGroup().getId().equals(BigInteger.valueOf(97))) {
+            BigDecimal totalSupportPrice = BigDecimal.ZERO;
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                // 취소된 상품은 제외
+                if(!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) continue;
+                BigDecimal supportPricePerItem = orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5));
+                totalSupportPrice = totalSupportPrice.add(supportPricePerItem);
+                corporationOrderItems.add(new PaycheckDto.CorporationOrderItem(orderItemDailyFood, supportPricePerItem));
+            }
+            if(totalSupportPrice.compareTo(supportPrice) != 0) {
+                throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
+            }
+            return corporationOrderItems;
+        }
+
+
         // 식단 그룹 내에서 음식을 하나만 주문했을 경우
         if (orderItemDailyFoods.size() == 1) {
             OrderItemDailyFood orderItem = orderItemDailyFoods.get(0);
@@ -267,6 +288,16 @@ public interface CorporationPaycheckMapper {
         return paycheckAdds.stream().map(this::toPaycheckAddDto).toList();
     }
 
+//    default List<PaycheckCategory> toMembership(Integer membershipSupportPrices) {
+//        List<PaycheckCategory> paycheckCategories = new ArrayList<>();
+//        // FIXME: 멤버십 가격 10000원?
+//        BigDecimal membershipPrice = BigDecimal.valueOf(10000);
+//        BigDecimal totalPrice = membershipPrice.multiply(BigDecimal.valueOf(membershipSupportPrices));
+//
+//        paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.MEMBERSHIP, null, membershipSupportPrices, membershipPrice, totalPrice));
+//
+//        return paycheckCategories;
+//    }
     default List<PaycheckCategory> toMembership(List<MembershipSupportPrice> membershipSupportPrices) {
         List<PaycheckCategory> paycheckCategories = new ArrayList<>();
         // 중간에 멤버십 가격이 변동될 수 있으므로 금액을 구분해서 확인
@@ -291,25 +322,13 @@ public interface CorporationPaycheckMapper {
         return PaycheckUtils.getAdditionalPaycheckCategories(corporation, dailyFoodSupportPrices);
     }
 
-    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
-        // 2. 식비 계산 (추가 주문은 제외함.)
-        List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
-        List<DailyFoodSupportPrice> removeDailyFoodSupportPrice = new ArrayList<>();
-        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
-            if (dailyFoodSupportPrice.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE)) {
-                orderItemDailyFoods.addAll(dailyFoodSupportPrice.getOrderItemDailyFoodGroup().getOrderDailyFoods());
-                removeDailyFoodSupportPrice.add(dailyFoodSupportPrice);
-            }
-        }
-        dailyFoodSupportPrices.removeAll(removeDailyFoodSupportPrice);
-
+    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices, YearMonth yearMonth) {
+//    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer membershipSupportPrices) {
+        // 1. 정기 식사 구매 계산
         List<PaycheckCategory> paycheckCategories = toPaycheckDailyFood(dailyFoodSupportPrices);
-
-        // 3. 추가 주문 계산
-        List<PaycheckAdd> paycheckAdds = toPaycheckAdds(orderItemDailyFoods);
-        // 4. 멤버십 계산
+        // 2. 멤버십 계산
         List<PaycheckCategory> memberships = (membershipSupportPrices == null) ? null : toMembership(membershipSupportPrices);
-        // 5. 추가 이슈
+        // 3. 추가 이슈
         List<PaycheckCategory> paycheckCategories1 = toPaycheckCategories(corporation, dailyFoodSupportPrices);
 
         List<PaycheckCategory> addedPaycheckCategories = new ArrayList<>(paycheckCategories);
@@ -317,12 +336,11 @@ public interface CorporationPaycheckMapper {
         if (paycheckCategories1 != null) addedPaycheckCategories.addAll(paycheckCategories1);
 
         return CorporationPaycheck.builder()
-                .yearMonth(YearMonth.now())
+                .yearMonth(yearMonth)
                 .paycheckStatus(PaycheckStatus.REGISTER)
                 .managerName(null)
                 .phone(null)
                 .paycheckCategories(addedPaycheckCategories)
-                .paycheckAdds(paycheckAdds)
                 .corporation(corporation)
                 .build();
     }
@@ -339,9 +357,9 @@ public interface CorporationPaycheckMapper {
     }
 
     @Mapping(source = "paycheckCategoryItem.paycheckCategoryItem", target = "category")
-    @Mapping(target = "price", expression = "java(paycheckCategory.getPrice().intValue())")
+    @Mapping(target = "price", expression = "java(paycheckCategory.getPrice() == null ? null : paycheckCategory.getPrice().intValue())")
     @Mapping(source = "days", target = "days")
-    @Mapping(target = "totalPrice", expression = "java(paycheckCategory.getTotalPrice().intValue())")
+    @Mapping(target = "totalPrice", expression = "java(paycheckCategory.getTotalPrice() == null ? null : paycheckCategory.getTotalPrice().intValue())")
     PaycheckDto.PaycheckCategory toExpectedPaycheckCategoryDto(PaycheckCategory paycheckCategory);
 
     default List<PaycheckDto.PaycheckCategory> toExpectedPaycheckCategoryDtos(List<PaycheckCategory> paycheckCategories, Integer days) {

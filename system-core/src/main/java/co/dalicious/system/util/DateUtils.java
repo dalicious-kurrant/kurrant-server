@@ -45,6 +45,7 @@ public class DateUtils {
     }
 
     public static String format(LocalDate date) {
+        if(date == null) return null;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return date.format(formatter);
     }
@@ -78,6 +79,7 @@ public class DateUtils {
     }
 
     public static LocalDate stringToDate(String strLocalDate) {
+        if(strLocalDate == null) return null;
         String[] stringList = strLocalDate.split("-");
         return LocalDate.of(Integer.parseInt(stringList[0]),Integer.parseInt(stringList[1]), Integer.parseInt(stringList[2]));
     }
@@ -137,9 +139,12 @@ public class DateUtils {
 
         LocalTime remainingTime = LocalTime.of((int) hoursLeft, (int) minutesLeft);
 
-        return String.format("%01d %tk:%tM", leftDay, remainingTime, remainingTime);
+        return String.format("%01d %tH:%tM", leftDay, remainingTime, remainingTime);
     }
 
+    public static YearMonth stringToYearMonth(String startYearMonth) {
+        return YearMonth.parse(startYearMonth.substring(0, 4) + "-" + startYearMonth.substring(4));
+    }
     public static String toISOLocalDateAndWeekOfDay(Timestamp ts) {
         SimpleDateFormat sdf = new SimpleDateFormat("MM월 dd일 E", Locale.KOREA);
         return sdf.format(ts);

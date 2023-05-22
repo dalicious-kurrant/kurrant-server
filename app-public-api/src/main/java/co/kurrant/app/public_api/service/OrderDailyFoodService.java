@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.order.dto.*;
+import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import org.json.simple.parser.ParseException;
 
@@ -30,4 +31,6 @@ public interface OrderDailyFoodService {
     void cancelOrderItemDailyFoodNice(SecurityUser securityUser, BigInteger id) throws IOException, ParseException;
 
     void changingOrderItemOrderStatus(SecurityUser securityUser, BigInteger orderItemId);
+
+    Object orderCardQuota(SecurityUser securityUser, OrderCardQuotaDto orderCardQuotaDto) throws IOException, ParseException;
 }

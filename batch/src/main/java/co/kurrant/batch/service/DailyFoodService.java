@@ -34,7 +34,7 @@ public class DailyFoodService {
                 "JOIN df.group g " +
                 "JOIN MealInfo mi ON mi.group.id = g.id " +
                 "WHERE mi.diningType = df.diningType " +
-                "  AND (df.dailyFoodStatus = 1 OR df.dailyFoodStatus = 2)";
+                "AND (df.dailyFoodStatus = 1 OR df.dailyFoodStatus = 2 OR df.dailyFoodStatus = 4)";
 
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
         List<Object[]> results = query.getResultList();
@@ -55,7 +55,7 @@ public class DailyFoodService {
     }
 
     public List<BigInteger> overLastOrderTimeDailyFoodIds() {
-        log.info("[판매중/품절 DailyFood 읽기 시작] : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
+        log.info("[고객사 주문 마감 시간 지난 DailyFood 읽기 시작] : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         String queryString = "SELECT df.id, mi.lastOrderTime, df.serviceDate " +
                 "FROM DailyFood df " +
@@ -94,7 +94,7 @@ public class DailyFoodService {
                 "         LEFT JOIN DailyFood df ON df.food = ffc.food " +
                 "WHERE df.diningType = ffc.diningType " +
                 "  AND ffc.lastOrderTime IS NOT NULL " +
-                "  AND df.food = ffc " +
+                "  AND df.food = ffc.food " +
                 "  AND (df.dailyFoodStatus = 1 or df.dailyFoodStatus = 2)";
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
         List<Object[]> results = query.getResultList();

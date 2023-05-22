@@ -8,6 +8,9 @@ import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.converter.IdListConverter;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
+import exception.ApiException;
+import exception.CustomException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,10 +18,13 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.http.HttpStatus;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @DynamicInsert
@@ -27,12 +33,15 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "client__corporation")
-public class Corporation extends Group{
+public class Corporation extends Group {
     @Comment("그룹 코드")
     private String code;
 
     @Comment("정산 선불 여부")
     private Boolean isPrepaid;
+
+    @Comment("멤버십 계약 종료 날짜")
+    private LocalDate membershipEndDate;
 
     @ElementCollection
     @Comment("지불 항목 내역")
@@ -97,55 +106,82 @@ public class Corporation extends Group{
     @Comment("최대 구매 가능 금액")
     private BigDecimal maximumSpend;
 
+    @Column(name = "manager_id")
+    @Comment("담당자 유저 id")
+    private BigInteger managerId;
+
     @Builder
-    public Corporation(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, String code, Boolean isMembershipSupport, BigDecimal minimumSpend, BigDecimal maximumSpend, String memo) {
-        super(address, diningTypes, name, managerId, memo);
+    public Corporation(Address address, LocalDate membershipEndDate, List<DiningType> diningTypes, String name, BigInteger managerId, String memo, String code, Boolean isPrepaid, List<PrepaidCategory> prepaidCategories, Boolean isMembershipSupport, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, Boolean isSaladRequired, List<FoodTag> requiredFoodTags, List<FoodTag> excludedFoodTags, List<BigInteger> requiredMakers, List<BigInteger> excludedMakers, List<BigInteger> requiredFood, List<BigInteger> excludedFood, BigDecimal minimumSpend, BigDecimal maximumSpend) {
+        super(address, diningTypes, name, memo);
         this.code = code;
-        this.employeeCount = employeeCount;
+        this.isPrepaid = isPrepaid;
+        this.membershipEndDate = membershipEndDate;
+        this.prepaidCategories = prepaidCategories;
         this.isMembershipSupport = isMembershipSupport;
+        this.employeeCount = employeeCount;
         this.isGarbage = isGarbage;
         this.isHotStorage = isHotStorage;
         this.isSetting = isSetting;
+        this.isSaladRequired = isSaladRequired;
+        this.requiredFoodTags = requiredFoodTags;
+        this.excludedFoodTags = excludedFoodTags;
+        this.requiredMakers = requiredMakers;
+        this.excludedMakers = excludedMakers;
+        this.requiredFood = requiredFood;
+        this.excludedFood = excludedFood;
         this.minimumSpend = minimumSpend;
         this.maximumSpend = maximumSpend;
+        this.managerId = managerId;
     }
 
     public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
-        updateGroup(address, diningTypeList, groupInfoList.getName(), groupInfoList.getManagerId());
+        updateGroup(address, diningTypeList, groupInfoList.getName(), useOrNotUse(groupInfoList.getIsActive()));
+        LocalDate updateMembershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
+        if (updateMembershipEndDate != null && updateMembershipEndDate.isBefore(LocalDate.now())) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000004", "멤버십 종료 날짜는 현재보다 이전 날짜로 설정할 수 없습니다");
+        }
+        this.membershipEndDate = updateMembershipEndDate;
         this.code = groupInfoList.getCode();
         this.employeeCount = groupInfoList.getEmployeeCount();
-        this.isMembershipSupport = !groupInfoList.getIsMembershipSupport().equals("미지원");
+        this.isMembershipSupport = useOrNotUse(groupInfoList.getIsMembershipSupport());
         this.isGarbage = useOrNotUse(groupInfoList.getIsGarbage());
         this.isHotStorage = useOrNotUse(groupInfoList.getIsHotStorage());
         this.isSetting = useOrNotUse(groupInfoList.getIsSetting());
         this.isPrepaid = useOrNotUse(groupInfoList.getIsPrepaid());
         this.minimumSpend = (groupInfoList.getMinimumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMinimumSpend());
         this.maximumSpend = (groupInfoList.getMaximumSpend() == null) ? null : BigDecimal.valueOf(groupInfoList.getMaximumSpend());
+        this.managerId = groupInfoList.getManagerId();
     }
 
     public void updateCorporation(UpdateSpotDetailRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
-        updateGroup(address, diningTypeList, groupInfoList.getSpotName(), groupInfoList.getManagerId());
+        updateGroup(address, diningTypeList, groupInfoList.getSpotName(), getIsActive());
+        LocalDate updateMembershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
+        if (updateMembershipEndDate != null && updateMembershipEndDate.isBefore(LocalDate.now())) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000004", "멤버십 종료 날짜는 현재보다 이전 날짜로 설정할 수 없습니다");
+        }
         this.code = groupInfoList.getCode();
         this.employeeCount = groupInfoList.getEmployeeCount();
-        this.isMembershipSupport = !groupInfoList.getIsMembershipSupport().equals("미지원");
+        this.isMembershipSupport = groupInfoList.getIsMembershipSupport();
         this.isGarbage = groupInfoList.getIsGarbage();
         this.isHotStorage = groupInfoList.getIsHotStorage();
         this.isSetting = groupInfoList.getIsSetting();
         this.isPrepaid = groupInfoList.getIsPrepaid();
+        this.membershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
         this.minimumSpend = (groupInfoList.getMinPrice() == null) ? null : groupInfoList.getMinPrice();
         this.maximumSpend = (groupInfoList.getMaxPrice() == null) ? null : groupInfoList.getMaxPrice();
+        this.managerId = groupInfoList.getManagerId();
     }
 
 
     private Boolean useOrNotUse(String data) {
-        Boolean use = null;
-        if(data.equals("미사용") || data.equals("false")) use = false;
-        else if(data.equals("사용") || data.equals("true")) use = true;
-        return use;
+        if(data == null) return null;
+        else if (data.equals("미지원") || data.equals("미사용") || data.equals("false")) return false;
+        else if (data.equals("지원") || data.equals("사용") || data.equals("true")) return true;
+        else return null;
     }
 
     public PrepaidCategory getPrepaidCategory(PaycheckCategoryItem paycheckCategoryItem) {
-        if(this.prepaidCategories == null || this.prepaidCategories.isEmpty()) {
+        if (this.prepaidCategories == null || this.prepaidCategories.isEmpty()) {
             return null;
         }
         return this.prepaidCategories.stream()
@@ -171,7 +207,9 @@ public class Corporation extends Group{
     }
 
     public void updatePrepaidCategories(List<PrepaidCategory> prepaidCategories) {
-        this.prepaidCategories = prepaidCategories;
+        List<PrepaidCategory> mutablePrepaidCategories = new ArrayList<>(prepaidCategories);
+        mutablePrepaidCategories.removeIf(prepaidCategory -> prepaidCategory.getCount() == null && prepaidCategory.getPrice() == null && prepaidCategory.getTotalPrice() == null);
+        this.prepaidCategories = mutablePrepaidCategories;
     }
 
     public void updatePrepaid(Boolean prepaid) {

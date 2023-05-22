@@ -12,6 +12,7 @@ import co.dalicious.system.enums.FoodTag;
 import co.dalicious.domain.food.converter.FoodStatusConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.AccessLevel;
@@ -19,6 +20,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
+import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -27,6 +29,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @DynamicInsert
@@ -86,6 +89,12 @@ public class Food {
     @Comment("메이커스 ID")
     private Makers makers;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "food_group_fk")
+    @JoinColumn
+    @Comment("메이커스 ID")
+    private FoodGroup foodGroup;
+
     @Column(name = "description")
     @Comment("설명")
     private String description;
@@ -123,7 +132,7 @@ public class Food {
     private Integer protein;
 
     @Builder
-    public Food(FoodStatus foodStatus, String name, BigDecimal supplyPrice, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice) {
+    public Food(FoodStatus foodStatus, String name, BigDecimal supplyPrice, BigDecimal price, List<FoodTag> foodTags, Makers makers, String description, BigDecimal customPrice, FoodGroup foodGroup) {
         this.foodStatus = foodStatus;
         this.name = name;
         this.price = price;
@@ -132,9 +141,10 @@ public class Food {
         this.makers = makers;
         this.description = description;
         this.customPrice = customPrice;
+        this.foodGroup = foodGroup;
     }
 
-    public void updateFoodMass(FoodListDto.FoodList foodListDto, List<FoodTag> foodTags, Makers makers) {
+    public void updateFoodMass(FoodListDto.FoodList foodListDto, List<FoodTag> foodTags, Makers makers, FoodGroup foodGroup) {
         this.foodStatus = FoodStatus.ofString(foodListDto.getFoodStatus());
         this.name = foodListDto.getFoodName();
         this.price = foodListDto.getDefaultPrice();
@@ -142,6 +152,7 @@ public class Food {
         this.foodTags = foodTags;
         this.description = foodListDto.getDescription();
         this.makers = makers;
+        this.foodGroup = foodGroup;
     }
 
     public void updateFoodStatus(FoodStatus foodStatus) {
@@ -215,5 +226,17 @@ public class Food {
                 .filter(v -> v.getMakers().getName().equals(makersName) && v.getName().equals(foodName))
                 .findAny()
                 .orElse(null);
+    }
+
+    public List<FoodTag> getFoodGroupTags() {
+        return this.foodTags.stream()
+                .filter(v -> v.getCategory().equals("식품 타입"))
+                .toList();
+    }
+
+    public void updateFoodGroup(FoodGroup foodGroup) {
+        if(!this.makers.equals(foodGroup.getMakers()))
+            throw new ApiException(ExceptionEnum.NOT_MATCHED_MAKERS);
+        this.foodGroup = foodGroup;
     }
 }

@@ -1,7 +1,9 @@
 package co.dalicious.domain.client.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -12,7 +14,6 @@ import java.util.List;
 @Setter
 @Schema(description = "스팟 상세정보를 수정 요청하는 Dto")
 public class UpdateSpotDetailRequestDto {
-
     @Schema(description = "스팟 ID")
     private BigInteger spotId;
     @Schema(description = "코드")
@@ -65,15 +66,27 @@ public class UpdateSpotDetailRequestDto {
     private Boolean isHotStorage;
     @Schema(description = "선불정산 여부 체크")
     private Boolean isPrepaid;
+    @Schema(description = "멤버십 종료 날짜")
+    private String membershipEndDate;
     @Schema(description = "메모")
     private String memo;
+    @Schema(description = "활성화 여부")
+    private Boolean isActive;
     @Schema(description = "정산 선불 정보")
     private List<PrepaidCategory> prepaidCategoryList;
     @Getter
+    @NoArgsConstructor
     public static class PrepaidCategory {
         private Integer code;
         private Integer count;
         private Integer price;
         private Integer totalPrice;
+        @Builder
+        public PrepaidCategory(Integer code, Integer count, Integer price, Integer totalPrice) {
+            this.code = code;
+            this.count = count;
+            this.price = price;
+            this.totalPrice = totalPrice;
+        }
     }
 }

@@ -46,6 +46,7 @@ public class CorporationPaycheck {
     @Comment("담당자 전화번호")
     private String phone;
 
+    @Embedded
     @Comment("엑셀 파일")
     @AttributeOverrides({
             @AttributeOverride(name = "key", column = @Column(name = "excel_s3_key", length = 1024)),
@@ -54,6 +55,7 @@ public class CorporationPaycheck {
     })
     private Image excelFile;
 
+    @Embedded
     @Comment("PDF 파일")
     @AttributeOverrides({
             @AttributeOverride(name = "key", column = @Column(name = "pdf_s3_key", length = 1024)),
@@ -147,7 +149,7 @@ public class CorporationPaycheck {
         for (PaycheckCategory paycheckCategory : paycheckCategories) {
             totalPrice = totalPrice.add(paycheckCategory.getTotalPrice());
         }
-        return totalPrice;
+        return totalPrice.add(getPaycheckAddsTotalPrice());
     }
 
     public BigDecimal getExpectedTotalPrice() {
@@ -157,8 +159,10 @@ public class CorporationPaycheck {
 
     public BigDecimal getPaycheckAddsTotalPrice() {
         BigDecimal totalPrice = BigDecimal.ZERO;
-        for (PaycheckAdd paycheckAdd : this.paycheckAdds) {
-            totalPrice = totalPrice.add(paycheckAdd.getPrice());
+        if(this.paycheckAdds != null) {
+            for (PaycheckAdd paycheckAdd : this.paycheckAdds) {
+                totalPrice = totalPrice.add(paycheckAdd.getPrice());
+            }
         }
         return totalPrice;
     }

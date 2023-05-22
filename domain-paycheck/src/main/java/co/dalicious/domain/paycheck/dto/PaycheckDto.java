@@ -197,6 +197,7 @@ public class PaycheckDto {
             this.supportPrice = supportPrice.intValue();
             this.user = orderItemDailyFood.getOrder().getUser().getName();
             this.email = orderItemDailyFood.getOrder().getUser().getEmail();
+            this.count = orderItemDailyFood.getCount();
 
             // 음식을 여러개 주문 하였을 경우
             // FIXME: 메드트로닉은 다른 로직
@@ -219,6 +220,19 @@ public class PaycheckDto {
         private String foodName;
         private BigDecimal supplyPrice;
         private Integer count;
+
+        public PaycheckDailyFood(Makers makers, DiningType diningType, LocalDate serviceDate, Food food, String foodName, BigDecimal supplyPrice, Integer count) {
+            this.makers = makers;
+            this.diningType = diningType;
+            this.serviceDate = serviceDate;
+            this.food = food;
+            this.foodName = foodName;
+            this.supplyPrice = supplyPrice;
+            this.count = count;
+        }
+
+        public PaycheckDailyFood() {
+        }
     }
 
     @Getter

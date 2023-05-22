@@ -144,6 +144,7 @@ subprojects {
 
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter-web:2.6.1'
+        implementation 'org.hibernate:hibernate-envers'
     }
 
 }
@@ -179,6 +180,7 @@ project(':app-public-api') {
 
 project(':app-admin-api') {
     dependencies {
+        implementation project(':domain-logs')
         implementation project(':system-core')
         implementation project(':client-core')
         implementation project(':domain-address')
@@ -192,6 +194,7 @@ project(':app-admin-api') {
         implementation project(':domain-review')
         implementation project(':domain-paycheck')
         implementation project(':client-alarm')
+        implementation project(':data-redis')
     }
 }
 
@@ -243,6 +246,7 @@ project(':batch') {
         implementation project(':domain-makers')
         implementation project(':domain-client')
         implementation project(':domain-payment')
+        implementation project(':domain-paycheck')
     }
 }
 
@@ -373,6 +377,13 @@ project(':domain-review') {
 }
 
 project(':domain-recommend') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':client-core')
+    }
+}
+
+project(':domain-logs') {
     dependencies {
         implementation project(':system-core')
         implementation project(':client-core')

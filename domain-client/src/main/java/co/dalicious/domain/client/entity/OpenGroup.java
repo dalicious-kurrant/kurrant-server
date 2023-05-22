@@ -28,13 +28,13 @@ public class OpenGroup extends Group{
     private Integer openGroupUserCount;
 
     @Builder
-    public OpenGroup(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, Integer openGroupUserCount, String memo) {
-        super(address, diningTypes, name, managerId, memo);
+    public OpenGroup(Address address, List<DiningType> diningTypes, String name, Integer openGroupUserCount, String memo) {
+        super(address, diningTypes, name, memo);
         this.openGroupUserCount = openGroupUserCount;
     }
 
-    public void updateOpenSpot(Address address, List<DiningType> diningTypeList, String name, BigInteger managerId, Integer openGroupUserCount) {
-        updateGroup(address, diningTypeList, name, managerId);
+    public void updateOpenSpot(Address address, List<DiningType> diningTypeList, String name, Integer openGroupUserCount, Boolean isActive) {
+        updateGroup(address, diningTypeList, name, isActive);
         this.openGroupUserCount = openGroupUserCount;
     }
 }

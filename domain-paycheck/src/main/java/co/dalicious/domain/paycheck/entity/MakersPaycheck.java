@@ -39,6 +39,7 @@ public class MakersPaycheck {
     @Convert(converter = PaycheckStatusConverter.class)
     private PaycheckStatus paycheckStatus;
 
+    @Embedded
     @Comment("엑셀 파일")
     @AttributeOverrides({
             @AttributeOverride(name = "key", column = @Column(name = "excel_s3_key", length = 1024)),
@@ -47,6 +48,7 @@ public class MakersPaycheck {
     })
     private Image excelFile;
 
+    @Embedded
     @Comment("PDF 파일")
     @AttributeOverrides({
             @AttributeOverride(name = "key", column = @Column(name = "pdf_s3_key", length = 1024)),
@@ -133,7 +135,7 @@ public class MakersPaycheck {
                 .map(df -> df.getSupplyPrice().multiply(BigDecimal.valueOf(df.getCount())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal issuePrice = this.paycheckAdds.stream()
+        BigDecimal issuePrice = this.paycheckAdds == null ? BigDecimal.ZERO : this.paycheckAdds.stream()
                 .map(PaycheckAdd::getPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -142,15 +144,15 @@ public class MakersPaycheck {
 
     // TODO: 수정 필요
     public Double getCommission() {
-        return 7.7;
+        return Double.valueOf(this.makers.getFee());
     }
 
     public BigDecimal getCommissionPrice() {
         return getFoodTotalPrice().multiply(BigDecimal.valueOf(getCommission() / 100));
     }
 
-    public BigDecimal getTotalPrice() {
-        return getFoodTotalPrice().subtract(getCommissionPrice());
+    public Integer getTotalPrice() {
+        return getFoodTotalPrice().intValue() - getCommissionPrice().intValue();
     }
 
     public void updateMemo(PaycheckMemo paycheckMemo) {

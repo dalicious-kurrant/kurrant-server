@@ -12,7 +12,10 @@ import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.domain.user.converter.RoleConverter;
 import co.dalicious.domain.user.entity.enums.Role;
+import co.dalicious.system.converter.DaysListConverter;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DaysUtil;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,7 +23,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
-import org.locationtech.jts.io.ParseException;
 
 import javax.persistence.*;
 import java.math.BigInteger;
@@ -122,6 +124,11 @@ public class Makers {
     @Comment("계좌번호")
     private String accountNumber;
 
+    @Convert(converter = DaysListConverter.class)
+    @Column(name = "emb_use_days")
+    @Comment("서비스 이용 요일")
+    private List<Days> serviceDays;
+
     @ElementCollection
     @Comment("이미지 경로")
     @CollectionTable(name = "makers__images")
@@ -158,8 +165,12 @@ public class Makers {
     @Column(name = "memo", columnDefinition = "VARCHAR(255)")
     private String memo;
 
+    @Column(columnDefinition = "BIT(1) DEFAULT 1")
+    @Comment("활성화 여부")
+    private Boolean isActive;
+
     @Builder
-    public Makers(String code, String name, String companyName, String CEO, String CEOPhone, String managerName, String managerPhone, List<MakersCapacity> makersCapacities, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate, Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String fee, String bank, String depositHolder, String accountNumber, List<ImageWithEnum> images, List<Origin> origins, String password, Role role) {
+    public Makers(String code, String name, String companyName, String CEO, String CEOPhone, String managerName, String managerPhone, List<MakersCapacity> makersCapacities, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate, Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String fee, String bank, String depositHolder, String accountNumber, List<Days> serviceDays, List<ImageWithEnum> images, List<Origin> origins, String password, Role role, String memo, Boolean isActive) {
         this.code = code;
         this.name = name;
         this.companyName = companyName;
@@ -183,10 +194,13 @@ public class Makers {
         this.bank = bank;
         this.depositHolder = depositHolder;
         this.accountNumber = accountNumber;
+        this.serviceDays = serviceDays;
         this.images = images;
         this.origins = origins;
         this.password = password;
         this.role = role;
+        this.memo = memo;
+        this.isActive = isActive;
     }
 
     @Builder
@@ -233,6 +247,8 @@ public class Makers {
             this.depositHolder = saveMakersRequestDto.getDepositHolder();
         if (saveMakersRequestDto.getAccountNumber() != null && !saveMakersRequestDto.getAccountNumber().isEmpty())
             this.accountNumber = saveMakersRequestDto.getAccountNumber();
+        if (saveMakersRequestDto.getIsActive() != null)
+            this.isActive = saveMakersRequestDto.getIsActive();
     }
 
     public void updateAddress(Address address) {
@@ -305,6 +321,10 @@ public class Makers {
             this.accountNumber = updateMakersReqDto.getAccountNumber();
         if (updateMakersReqDto.getMemo() != null && !updateMakersReqDto.getMemo().equals(""))
             this.memo = updateMakersReqDto.getMemo();
+        if (updateMakersReqDto.getIsActive() != null)
+            this.isActive = updateMakersReqDto.getIsActive();
+        if (updateMakersReqDto.getServiceDays() != null && !updateMakersReqDto.getServiceDays().equals(""))
+            this.serviceDays = DaysUtil.serviceDaysToDaysList(updateMakersReqDto.getServiceDays());
     }
 
 }

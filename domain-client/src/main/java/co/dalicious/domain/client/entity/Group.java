@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypesConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.locationtech.jts.io.ParseException;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -24,7 +26,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.JOINED)
-@Table(name = "client__group")
+@Table(name = "\"client__group\"")
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,9 +50,9 @@ public class Group {
     @Comment("그룹 이름")
     private String name;
 
-    @Column(name = "manager_id")
-    @Comment("담당자 유저 id")
-    private BigInteger managerId;
+    @Column(columnDefinition = "BIT(1) DEFAULT 1")
+    @Comment("활성화 여부")
+    private Boolean isActive;
 
     @Comment("계약 시작 날짜")
     private LocalDate contractStartDate;
@@ -83,11 +85,10 @@ public class Group {
     @Column(name="memo", columnDefinition = "text")
     private String memo;
 
-    public Group(Address address, List<DiningType> diningTypes, String name, BigInteger managerId, String memo) {
+    public Group(Address address, List<DiningType> diningTypes, String name, String memo) {
         this.address = address;
         this.diningTypes = diningTypes;
         this.name = name;
-        this.managerId = managerId;
         this.memo = memo;
     }
 
@@ -122,10 +123,22 @@ public class Group {
                 .orElse(null);
     }
 
-    public void updateGroup(Address address, List<DiningType> diningTypeList, String name, BigInteger managerId) {
+    public void updateGroup(Address address, List<DiningType> diningTypeList, String name, Boolean isActive) {
+        this.isActive = isActive;
         this.address = address;
         this.diningTypes = diningTypeList;
         this.name = name;
-        this.managerId = managerId;
+    }
+
+    public void updateDiningTypes(List<DiningType> diningTypes) {
+        this.diningTypes = diningTypes;
+    }
+
+    public void updateGroup(UpdateSpotDetailRequestDto spotResponseDto) throws ParseException {
+        // TODO: Location 추가
+        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        this.isActive = spotResponseDto.getIsActive();
+        this.name = spotResponseDto.getSpotName();
+        this.address = address;
     }
 }
