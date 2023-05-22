@@ -33,7 +33,7 @@ public interface UserPersonalInfoMapper {
         }
         return providerEmailDtos;
     }
-    /*
+
     default MarketingAlarmResponseDto toMarketingAlarmResponseDto(List<PushCondition> userPushCondition, PushCondition pushCondition) {
         MarketingAlarmResponseDto responseDto = new MarketingAlarmResponseDto();
 
@@ -50,6 +50,6 @@ public interface UserPersonalInfoMapper {
 
         return responseDto;
     }
-    */
+
 
 }

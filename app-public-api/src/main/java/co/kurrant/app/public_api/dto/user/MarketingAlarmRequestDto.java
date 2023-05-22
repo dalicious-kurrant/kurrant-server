@@ -8,9 +8,9 @@ import lombok.Setter;
 //@NoArgsConstructor
 @Setter
 public class MarketingAlarmRequestDto {
-    private Boolean isMarketingInfoAgree;
-    private Boolean isMarketingAlarmAgree;
-    private Boolean isOrderAlarmAgree;
-//    private Integer code;
-//    private Boolean isActive;
+//    private Boolean isMarketingInfoAgree;
+//    private Boolean isMarketingAlarmAgree;
+//    private Boolean isOrderAlarmAgree;
+    private Integer code;
+    private Boolean isActive;
 }

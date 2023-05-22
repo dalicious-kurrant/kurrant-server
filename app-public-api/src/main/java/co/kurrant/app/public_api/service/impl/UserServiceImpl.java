@@ -300,7 +300,7 @@ public class UserServiceImpl implements UserService {
                 .build();
         providerEmailRepository.save(providerEmail);
     }
-
+/*
     @Override
     @Transactional
     public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
@@ -342,7 +342,7 @@ public class UserServiceImpl implements UserService {
                     .orderAlarm(currantOrderAlarmAgree)
                     .build();
         }
-    /*
+    */
     @Override
     @Transactional
     public List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser) {
@@ -380,7 +380,7 @@ public class UserServiceImpl implements UserService {
         List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
         return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(finalUserPushConditionList, c)).toList();
     }
-    */
+
 
     @Override
     @Transactional
