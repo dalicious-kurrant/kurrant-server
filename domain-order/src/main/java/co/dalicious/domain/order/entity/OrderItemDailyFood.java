@@ -1,9 +1,8 @@
 package co.dalicious.domain.order.entity;
 
-import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.system.util.PriceUtils;
+import co.dalicious.system.util.NumberUtils;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -81,7 +80,7 @@ public class OrderItemDailyFood extends OrderItem {
     }
 
     public BigDecimal getMembershipDiscountPrice() {
-        return PriceUtils.roundToTenDigit(this.price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
+        return NumberUtils.roundToTenDigit(this.price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
     }
 
     public BigDecimal getMakersDiscountPrice() {
@@ -92,7 +91,7 @@ public class OrderItemDailyFood extends OrderItem {
             ;
             price = price.subtract(membershipDiscountedPrice);
         }
-        return PriceUtils.roundToTenDigit(price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
+        return NumberUtils.roundToTenDigit(price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
     }
 
     public BigDecimal getPeriodDiscountPrice() {
@@ -109,7 +108,7 @@ public class OrderItemDailyFood extends OrderItem {
             ;
             price = price.subtract(makersDiscountPrice);
         }
-        return PriceUtils.roundToTenDigit(price.multiply(BigDecimal.valueOf((this.periodDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
+        return NumberUtils.roundToTenDigit(price.multiply(BigDecimal.valueOf((this.periodDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
     }
 
     public BigDecimal getOrderItemTotalPrice() {
@@ -117,6 +116,12 @@ public class OrderItemDailyFood extends OrderItem {
     }
 
     public BigDecimal getOrderItemSupplyPrice() {
-        return (this.getDailyFood().getFood().getSupplyPrice() == null) ? null : this.getDailyFood().getFood().getSupplyPrice().multiply(BigDecimal.valueOf(this.count));
+        if(this.getDailyFood().getSupplyPrice() != null) {
+            return this.getDailyFood().getSupplyPrice().multiply(BigDecimal.valueOf(this.count));
+        }
+        if(this.getDailyFood().getFood().getSupplyPrice() != null) {
+            return this.getDailyFood().getFood().getSupplyPrice().multiply(BigDecimal.valueOf(this.count));
+        }
+        return null;
     }
 }

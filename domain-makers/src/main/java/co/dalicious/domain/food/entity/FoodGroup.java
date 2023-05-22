@@ -1,10 +1,12 @@
 package co.dalicious.domain.food.entity;
 
 import co.dalicious.system.converter.IntegerToStringConverter;
+import co.dalicious.system.enums.FoodTag;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -57,4 +59,26 @@ public class FoodGroup {
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
+
+    public Integer totalFoodCount() {
+        return this.foods.size();
+    }
+
+    public Integer foodTagCount(FoodTag foodTag) {
+        return Math.toIntExact(foods.stream()
+                .filter(v -> v.getFoodTags().contains(foodTag))
+                .count());
+    }
+
+    public void updateFoodGroup(String name, List<Integer> groupNumbers) {
+        this.name = name;
+        this.groupNumbers = groupNumbers;
+    }
+
+    @Builder
+    public FoodGroup(Makers makers, String name, List<Integer> groupNumbers) {
+        this.makers = makers;
+        this.name = name;
+        this.groupNumbers = groupNumbers;
+    }
 }

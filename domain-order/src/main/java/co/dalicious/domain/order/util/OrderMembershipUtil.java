@@ -70,5 +70,7 @@ public class OrderMembershipUtil {
             Founders founders = foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber() + 1);
             foundersUtil.saveFounders(founders);
         }
+
+        user.updateIsMembership(true);
     }
 }

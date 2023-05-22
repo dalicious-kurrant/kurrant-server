@@ -19,7 +19,7 @@ import co.dalicious.domain.user.entity.enums.MembershipStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.util.GenerateRandomNumber;
-import co.dalicious.system.util.PriceUtils;
+import co.dalicious.system.util.NumberUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -362,7 +362,7 @@ public class OrderUtil {
         // 사용한 지원금
         BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
         // 환불 요청 금액
-        BigDecimal requestRefundPrice = PriceUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5)));
+        BigDecimal requestRefundPrice = NumberUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5)));
         // 배송비
         BigDecimal deliveryFee = BigDecimal.ZERO;
         // 업데이트 되어야할 지원금
@@ -412,7 +412,7 @@ public class OrderUtil {
         // 사용한 지원금
         BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
         // 환불 요청 금액
-        BigDecimal requestRefundPrice = PriceUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5)));
+        BigDecimal requestRefundPrice = NumberUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5)));
         // 배송비
         BigDecimal deliveryFee = BigDecimal.ZERO;
         // 업데이트 되어야할 지원금
