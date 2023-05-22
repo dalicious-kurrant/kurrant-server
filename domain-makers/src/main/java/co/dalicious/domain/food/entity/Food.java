@@ -144,7 +144,7 @@ public class Food {
         this.foodGroup = foodGroup;
     }
 
-    public void updateFoodMass(FoodListDto.FoodList foodListDto, List<FoodTag> foodTags, Makers makers) {
+    public void updateFoodMass(FoodListDto.FoodList foodListDto, List<FoodTag> foodTags, Makers makers, FoodGroup foodGroup) {
         this.foodStatus = FoodStatus.ofString(foodListDto.getFoodStatus());
         this.name = foodListDto.getFoodName();
         this.price = foodListDto.getDefaultPrice();
@@ -152,6 +152,7 @@ public class Food {
         this.foodTags = foodTags;
         this.description = foodListDto.getDescription();
         this.makers = makers;
+        this.foodGroup = foodGroup;
     }
 
     public void updateFoodStatus(FoodStatus foodStatus) {
@@ -231,5 +232,11 @@ public class Food {
         return this.foodTags.stream()
                 .filter(v -> v.getCategory().equals("식품 타입"))
                 .toList();
+    }
+
+    public void updateFoodGroup(FoodGroup foodGroup) {
+        if(!this.makers.equals(foodGroup.getMakers()))
+            throw new ApiException(ExceptionEnum.NOT_MATCHED_MAKERS);
+        this.foodGroup = foodGroup;
     }
 }
