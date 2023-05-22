@@ -2,6 +2,7 @@ package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,23 +27,29 @@ public class DailyFoodGroup {
     @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
-    @Embedded
+    @ElementCollection
     @Comment("배송 시간")
-    private DeliverySchedule deliverySchedule;
+    @CollectionTable(name = "client__delivery_schedule")
+    private List<DeliverySchedule> deliverySchedules;
 
     @OneToMany(mappedBy = "dailyFoodGroup")
     @JsonBackReference(value = "daily_food_group_fk")
     private List<DailyFood> dailyFoods;
 
-    public DailyFoodGroup(DeliverySchedule deliverySchedule) {
-        this.deliverySchedule = deliverySchedule;
+    public DailyFoodGroup(List<DeliverySchedule> deliverySchedules) {
+        this.deliverySchedules = deliverySchedules;
     }
 
-    public void updateDeliverySchedule(DeliverySchedule deliverySchedule) {
-        this.deliverySchedule = deliverySchedule;
+    public void updateDeliverySchedules(List<DeliverySchedule> deliverySchedules) {
+        this.deliverySchedules = deliverySchedules;
     }
 
-    public void updatePickupTime(LocalTime pickupTime) {
-        this.deliverySchedule.updatePickupTime(pickupTime);
+    public void updatePickupTime(LocalTime pickupTime, LocalTime deliveryTime) {
+        this.deliverySchedules.forEach(deliverySchedule -> {
+            if(deliverySchedule.getDeliveryTime().equals(deliveryTime)) {
+                deliverySchedule.updatePickupTime(pickupTime);
+            }
+        });
+
     }
 }

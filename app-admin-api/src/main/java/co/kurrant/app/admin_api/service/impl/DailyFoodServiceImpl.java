@@ -6,6 +6,7 @@ import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.dto.DailyFoodGroupDto;
@@ -241,8 +242,12 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 waitingDailyFood = null;
             }
 
-            if (!Objects.equals(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), dailyFood.getDailyFoodGroup().getDeliverySchedule().getPickupTime())) {
-                dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()));
+            DeliverySchedule deliverySchedule = dailyFood.getDailyFoodGroup().getDeliverySchedules().stream()
+                    .filter(deliverySchedule1 -> deliverySchedule1.getDeliveryTime().equals(DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime())))
+                    .findAny().orElse(null);
+
+            if (deliverySchedule != null && !Objects.equals(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), deliverySchedule.getPickupTime())) {
+                dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()));
             }
 
             // 식단을 구매한 사람이 없다면
@@ -286,6 +291,12 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupDtoMap.keySet()) {
             List<FoodDto.DailyFood> dailyFoodDtos = dailyFoodGroupDtoMap.get(dailyFoodGroupDto);
+
+            Map<String, String> deliveryScheduleMap = new HashMap<>();
+            for(FoodDto.DailyFood dailyFood : Objects.requireNonNull(dailyFoodDtos)) {
+                deliveryScheduleMap.put(dailyFood.getDeliveryTime(), dailyFood.getMakersPickupTime());
+            }
+            List<DeliverySchedule> deliveryScheduleList = List
             DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(dailyFoodGroupDtoMap.get(dailyFoodGroupDto).get(0)));
             newDailyFoodGroupMap.put(dailyFoodGroup, dailyFoodDtos);
         }
