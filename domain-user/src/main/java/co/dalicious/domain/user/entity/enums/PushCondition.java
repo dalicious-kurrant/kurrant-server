@@ -53,6 +53,6 @@ public enum PushCondition {
     }
 
     public static List<PushCondition> getBatchAlarmCondition() {
-        return List.of(REVIEW_DEADLINE);
+        return List.of(REVIEW_DEADLINE, LAST_ORDER_BY_DAILYFOOD);
     }
 }

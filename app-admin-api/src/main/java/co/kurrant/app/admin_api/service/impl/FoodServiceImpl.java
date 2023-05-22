@@ -120,8 +120,36 @@ public class FoodServiceImpl implements FoodService {
     @Override
     @Transactional
     public void updateFoodMass(List<FoodListDto.FoodList> foodListDtoList) {
+        Set<BigInteger> foodIds = foodListDtoList.stream()
+                .map(FoodListDto.FoodList::getFoodId)
+                .collect(Collectors.toSet());
+        Set<BigInteger> makersIds = foodListDtoList.stream()
+                .map(FoodListDto.FoodList::getMakersId)
+                .collect(Collectors.toSet());
+        Set<BigInteger> foodGroupIds = foodListDtoList.stream()
+                .map(FoodListDto.FoodList::getFoodGroupId)
+                .collect(Collectors.toSet());
+
+        List<Food> foods = foodRepository.findAllById(foodIds);
+        List<Makers> makers = makersRepository.findAllById(makersIds);
+        List<FoodGroup> foodGroups = foodGroupRepository.findAllById(foodGroupIds);
+
         for (FoodListDto.FoodList foodListDto : foodListDtoList) {
-            Food food = foodRepository.findById(foodListDto.getFoodId()).orElse(null);
+            Food food = foods.stream()
+                    .filter(v -> v.getId().equals(foodListDto.getFoodId()))
+                    .findAny().orElse(null);
+
+            Makers maker = makers.stream()
+                    .filter(v -> v.getId().equals(foodListDto.getMakersId()))
+                    .findAny()
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+
+            FoodGroup foodGroup = foodGroups.stream()
+                    .filter(v -> v.getId().equals(foodListDto.getFoodGroupId()))
+                    .findAny().orElse(null);
+
+            if(foodGroup != null && !foodGroup.getMakers().equals(maker))
+                throw new ApiException(ExceptionEnum.NOT_MATCHED_MAKERS);
 
             List<FoodTag> foodTags = new ArrayList<>();
             List<String> foodTagStrs = foodListDto.getFoodTags();
@@ -129,14 +157,13 @@ public class FoodServiceImpl implements FoodService {
             else {
                 for (String tag : foodTagStrs) foodTags.add(FoodTag.ofString(tag));
             }
-            Makers makers = makersRepository.findById(foodListDto.getMakersId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+
 
             // 기존 푸드가 없으면 생성
             if (food == null) {
                 BigDecimal customPrice = BigDecimal.ZERO;
-                FoodGroup foodGroup = null;
                 // 푸드 생성
-                Food newFood = foodMapper.toNewEntity(foodListDto, makers, customPrice, foodTags, foodGroup);
+                Food newFood = foodMapper.toNewEntity(foodListDto, maker, customPrice, foodTags, foodGroup);
                 foodRepository.save(newFood);
 
                 // 푸드 할인 정책 생성
@@ -149,7 +176,7 @@ public class FoodServiceImpl implements FoodService {
                 foodDiscountPolicyRepository.save(periodDiscount);
 
                 // 푸드 capacity 생성
-                List<MakersCapacity> makersCapacityList = makers.getMakersCapacities();
+                List<MakersCapacity> makersCapacityList = maker.getMakersCapacities();
                 if (makersCapacityList == null) {
                     throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS_CAPACITY);
                 }
@@ -165,7 +192,7 @@ public class FoodServiceImpl implements FoodService {
             // food가 있으면
             else {
                 //food UPDATE
-                food.updateFoodMass(foodListDto, foodTags, makers);
+                food.updateFoodMass(foodListDto, foodTags, maker, foodGroup);
                 foodRepository.save(food);
 
                 //food discount policy UPDATE
@@ -192,6 +219,9 @@ public class FoodServiceImpl implements FoodService {
         Food food = foodRepository.findById(foodDetailDto.getFoodId()).orElseThrow(
                 () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
         );
+
+        FoodGroup foodGroup = foodGroupRepository.findById(foodDetailDto.getFoodGroupId())
+                .orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400006", "일치하는 식품 그룹이 없습니다"));
 
         // 이미지가 삭제되었다면 S3에서도 삭제
         List<Image> images = new ArrayList<>();
@@ -225,6 +255,7 @@ public class FoodServiceImpl implements FoodService {
         // 이미지 및 음식 업데이트
         food.updateImages(images);
         food.updateFood(foodDetailDto);
+        food.updateFoodGroup(foodGroup);
 
         if (food.updateFoodCapacity(DiningType.MORNING, foodDetailDto.getMorningCapacity(), DayAndTime.stringToDayAndTime(foodDetailDto.getMorningLastOrderTime())) != null) {
             foodCapacityRepository.save(food.updateFoodCapacity(DiningType.MORNING, foodDetailDto.getMorningCapacity(), DayAndTime.stringToDayAndTime(foodDetailDto.getMorningLastOrderTime())));
