@@ -4,7 +4,7 @@ package co.dalicious.system.util;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class PriceUtils {
+public class NumberUtils {
     public static BigDecimal roundToOneDigit(BigDecimal bigDecimal) {
         int integer = bigDecimal.intValue();
         integer = (integer + 5) / 10 * 10;
@@ -37,5 +37,15 @@ public class PriceUtils {
                     .multiply(BigDecimal.valueOf(100))
                     .divide(BigDecimal.valueOf(totalCount), 2, RoundingMode.HALF_UP);
         }
+    }
+
+    public static String getPercentString(Integer totalCount, Integer count) {
+        int percent = 0;
+        if (totalCount != null && totalCount != 0) {
+            percent = BigDecimal.valueOf(count)
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(BigDecimal.valueOf(totalCount), 2, RoundingMode.HALF_UP).intValue();
+        }
+        return percent + "%";
     }
 }

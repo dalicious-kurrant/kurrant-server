@@ -98,9 +98,9 @@ public class FoodServiceImpl implements FoodService {
             // 기존 푸드가 없으면 생성
             if(food == null) {
                 BigDecimal customPrice = BigDecimal.ZERO;
-
+                FoodGroup foodGroup = null;
                 // 푸드 생성
-                Food newFood = foodMapper.toNewEntity(foodListDto, makers, customPrice, foodTags);
+                Food newFood = foodMapper.toNewEntity(foodListDto, makers, customPrice, foodTags, foodGroup);
                 foodRepository.save(newFood);
 
                 // 푸드 할인 정책 생성

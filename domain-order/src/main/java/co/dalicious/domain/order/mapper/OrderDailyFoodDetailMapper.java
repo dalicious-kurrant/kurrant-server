@@ -4,7 +4,7 @@ import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.PriceUtils;
+import co.dalicious.system.util.NumberUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, BigDecimal.class, DailyFoodStatus.class, PriceUtils.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, BigDecimal.class, DailyFoodStatus.class, NumberUtils.class})
 public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "orderDailyFood.code", target = "code")
     @Mapping(target = "orderDate", expression = "java(DateUtils.toISOLocalDate(orderDailyFood.getCreatedDateTime()))")

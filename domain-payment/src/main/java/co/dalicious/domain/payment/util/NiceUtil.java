@@ -201,4 +201,40 @@ public class NiceUtil {
 
     }
 
+    public JSONObject niceBillingCardQuota(String billingKey, Integer amount, String orderId, String token, String orderName, Integer cardQuota) throws IOException, ParseException {
+        Base64.Encoder encode = Base64.getEncoder();
+        byte[] encodeByte = encode.encode(secretKey.getBytes("UTF-8"));
+        String authorizations = "Basic " + new String(encodeByte, 0, encodeByte.length);
+
+        URL url = new URL("https://api.iamport.kr/subscribe/payments/again");
+
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestProperty("Authorization", token);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        JSONObject obj = new JSONObject();
+        obj.put("customer_uid", billingKey);
+        obj.put("amount", amount);
+        obj.put("merchant_uid", orderId);
+        obj.put("name", orderName);
+        obj.put("card_quota", cardQuota);
+
+        OutputStream outputStream = connection.getOutputStream();
+        outputStream.write(obj.toString().getBytes("UTF-8"));
+
+        int code = connection.getResponseCode();
+        boolean isSuccess = code == 200 ? true : false;
+
+        InputStream responseStream = isSuccess ? connection.getInputStream() : connection.getErrorStream();
+
+        Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8);
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) parser.parse(reader);
+        responseStream.close();
+        return jsonObject;
+    }
+
+
+
 }

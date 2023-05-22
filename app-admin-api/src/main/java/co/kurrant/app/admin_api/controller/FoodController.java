@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.domain.food.dto.FoodGroupDto;
 import co.dalicious.domain.food.dto.FoodStatusUpdateDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
@@ -91,6 +92,16 @@ public class FoodController {
         return ResponseMessage.builder()
                 .message("상품 그룹을 조회 했습니다.")
                 .data(foodService.getFoodGroups())
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.FOOD)
+    @Operation(summary = "상품 그룹을 생성", description = "상품 그룹을 생성")
+    @PostMapping("/groups")
+    public ResponseMessage postFoodGroups(@RequestBody List<FoodGroupDto.Request> requests) {
+        foodService.postFoodGroup(requests);
+        return ResponseMessage.builder()
+                .message("상품 그룹을 생성 했습니다.")
                 .build();
     }
 }
