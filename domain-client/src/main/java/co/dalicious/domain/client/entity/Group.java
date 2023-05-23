@@ -26,7 +26,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.JOINED)
-@Table(name = "\"client__group\"")
+@Table(name = "client__group")
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -8,6 +8,7 @@ import co.dalicious.domain.food.dto.FoodStatusUpdateDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
 import co.dalicious.client.core.annotation.ControllerMarker;
+import co.dalicious.domain.recommend.dto.FoodRecommendDto;
 import co.kurrant.app.admin_api.service.FoodService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -100,6 +101,27 @@ public class FoodController {
     @PostMapping("/groups")
     public ResponseMessage postFoodGroups(@RequestBody List<FoodGroupDto.Request> requests) {
         foodService.postFoodGroup(requests);
+        return ResponseMessage.builder()
+                .message("상품 그룹을 생성 했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.FOOD)
+    @Operation(summary = "상품 추천 그룹 조회", description = "상품 추천 그룹을 조회한다.")
+    @GetMapping("/recommends")
+    public ResponseMessage getFoodRecommends() {
+
+        return ResponseMessage.builder()
+                .data(foodService.getRecommendsFoodGroup())
+                .message("상품 그룹을 생성 했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.FOOD)
+    @Operation(summary = "상품 추천 그룹 조회", description = "상품 추천 그룹을 조회한다.")
+    @PostMapping("/recommends")
+    public ResponseMessage postFoodRecommends(@RequestBody List<FoodRecommendDto.Response> foodRecommendDtos) {
+        foodService.postRecommendsFoodGroup(foodRecommendDtos);
         return ResponseMessage.builder()
                 .message("상품 그룹을 생성 했습니다.")
                 .build();
