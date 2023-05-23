@@ -19,8 +19,8 @@ import java.sql.Timestamp;
 @DynamicUpdate
 @DynamicInsert
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "review__like")
-public class Like {
+@Table(name = "review__good")
+public class ReviewGood {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,7 +45,7 @@ public class Like {
     @Comment("생성일")
     private Timestamp createdDateTime;
 
-    public Like(User user, Reviews reviewId) {
+    public ReviewGood(User user, Reviews reviewId) {
         this.user = user;
         this.reviewId = reviewId;
     }

@@ -16,7 +16,7 @@ import co.dalicious.domain.recommend.dto.UserRecommendWhereData;
 import co.dalicious.domain.recommend.entity.UserRecommends;
 import co.dalicious.domain.recommend.repository.QUserRecommendRepository;
 import co.dalicious.domain.review.entity.Comments;
-import co.dalicious.domain.review.entity.Like;
+import co.dalicious.domain.review.entity.ReviewGood;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.review.mapper.LikeMapper;
 import co.dalicious.domain.review.mapper.ReviewMapper;
@@ -38,7 +38,6 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -67,9 +66,9 @@ public class FoodServiceImpl implements FoodService {
 
     private final CommentsRepository commentsRepository;
 
-    private final LikeRepository likeRepository;
+    private final ReviewGoodRepository reviewGoodRepository;
     private final LikeMapper likeMapper;
-    private final QLikeRepository qLikeRepository;
+    private final QReviewGoodRepository qReviewGoodRepository;
 
     private final QKeywordRepository qKeywordRepository;
 
@@ -236,7 +235,6 @@ public class FoodServiceImpl implements FoodService {
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
 
         //리뷰와 유저정보 가져오기
-        List<Reviews> reviewsList = new ArrayList<>();
         Page<Reviews> pageReviews = null;
         Page<Reviews> totalReviewsList = null;
 
@@ -245,11 +243,12 @@ public class FoodServiceImpl implements FoodService {
            pageReviews = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), photo, starFilter, pageable);
 
         } else {
-            reviewsList = totalReviewsList.stream().toList();
+            pageReviews = totalReviewsList;
         }
 
         if (totalReviewsList.getSize() == 0){
-            return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort);
+            return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
+                    true,0,0);
         }
 
         //대댓글과 별점 추가
@@ -261,12 +260,12 @@ public class FoodServiceImpl implements FoodService {
 
 
             //좋아요 눌렀는지 여부 조회
-            boolean isLike = false;
+            boolean isGood = false;
             //조회한 유저가 리뷰 작성자인지 여부
             boolean isWriter = optionalUser.get().getId() == user.getId() ? true : false;
-            Optional<Like> like = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), reviews.getId());
-            if (like.isPresent()) isLike = true;
-            FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList, isLike, isWriter);
+            Optional<ReviewGood> reviewGood = qReviewGoodRepository.foodReviewLikeCheckByUserId(user.getId(), reviews.getId());
+            if (reviewGood.isPresent()) isGood = true;
+            FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList, isGood, isWriter);
             foodReviewListDtoList.add(foodReviewListDto);
         }
         for (Reviews reviews : totalReviewsList){
@@ -282,7 +281,8 @@ public class FoodServiceImpl implements FoodService {
         Integer totalReviewSize = totalReviewsList.getContent().size();
         starEverage =  Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
 
-        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starEverage, totalReviewSize, dailyFood.getFood().getId(), sort);
+        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starEverage, totalReviewSize, dailyFood.getFood().getId(), sort,
+                pageReviews.isLast(), pageReviews.getTotalPages(), pageable.getPageSize());
     }
 
     @Override
@@ -291,11 +291,11 @@ public class FoodServiceImpl implements FoodService {
         //유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
-        Optional<Like> like = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), foodReviewLikeDto.getReviewId());
+        Optional<ReviewGood> reviewGood = qReviewGoodRepository.foodReviewLikeCheckByUserId(user.getId(), foodReviewLikeDto.getReviewId());
 
-        if (like.isPresent()){
-            Optional<Reviews> optionalReviews = reviewRepository.findById(like.get().getReviewId().getId());
-            if (optionalReviews.get().getLike() > 0) { //like가 0보다 클떄만 minus 처리
+        if (reviewGood.isPresent()){
+            Optional<Reviews> optionalReviews = reviewRepository.findById(reviewGood.get().getReviewId().getId());
+            if (optionalReviews.get().getGood() > 0) { //like가 0보다 클떄만 minus 처리
                 qReviewRepository.minusLike(foodReviewLikeDto.getReviewId());
             }
             qReviewRepository.deleteLike(foodReviewLikeDto.getReviewId(), user.getId());
@@ -304,10 +304,10 @@ public class FoodServiceImpl implements FoodService {
 
         Optional<Reviews> optionalReviews = reviewRepository.findById(foodReviewLikeDto.getReviewId());
 
-        Like saveLike = likeMapper.toEntity(user, optionalReviews.get());
+        ReviewGood saveReviewGood = likeMapper.toEntity(user, optionalReviews.get());
 
         //review_like 테이블에 저장 후 review__review 테이블에 like를 +1 해준다.
-        likeRepository.save(saveLike);
+        reviewGoodRepository.save(saveReviewGood);
         qReviewRepository.plusLike(foodReviewLikeDto.getReviewId());
 
         return "도움이 돼요 +1";
@@ -318,7 +318,7 @@ public class FoodServiceImpl implements FoodService {
 
         User user = userUtil.getUser(securityUser);
 
-        Optional<Like> like = qLikeRepository.foodReviewLikeCheckByUserId(user.getId(), reviewId);
+        Optional<ReviewGood> like = qReviewGoodRepository.foodReviewLikeCheckByUserId(user.getId(), reviewId);
         if (like.isEmpty()) return false;
 
         return true;
