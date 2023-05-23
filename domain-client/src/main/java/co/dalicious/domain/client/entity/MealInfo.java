@@ -46,10 +46,10 @@ public class MealInfo {
     @Comment("식사 타입")
     private DiningType diningType;
 
-    @ElementCollection
+    @Convert(converter = DeliveryTimesConverter.class)
+    @Column(name = "delivery_time")
     @Comment("배송 시간")
-    @CollectionTable(name = "client__delivery_schedule")
-    private List<DeliverySchedule> deliveryScheduleList;
+    private List<LocalTime> deliveryTimes;
 
     @Column(name = "membership_benefit_time")
     @Convert(converter = DayAndTimeConverter.class)
@@ -85,9 +85,9 @@ public class MealInfo {
     @Comment("스팟")
     private Group group;
 
-    public MealInfo(DiningType diningType, List<DeliverySchedule> deliveryScheduleList, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
+    public MealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
         this.diningType = diningType;
-        this.deliveryScheduleList = deliveryScheduleList;
+        this.deliveryTimes = deliveryTimes;
         this.membershipBenefitTime = membershipBenefitTime;
         this.lastOrderTime = lastOrderTime;
         this.serviceDays = serviceDays;
@@ -99,14 +99,14 @@ public class MealInfo {
     }
 
     public void updateMealInfo(MealInfo mealInfo) {
-        this.deliveryScheduleList = mealInfo.getDeliveryScheduleList();
+        this.deliveryTimes = mealInfo.getDeliveryTimes();
         this.membershipBenefitTime = mealInfo.getMembershipBenefitTime();
         this.lastOrderTime = mealInfo.getLastOrderTime();
         this.serviceDays = mealInfo.getServiceDays();
     }
 
     public void updateMealInfo(MealInfo updateMealInfo, MealInfo mealInfo) {
-        this.deliveryScheduleList = updateMealInfo.getDeliveryScheduleList();
+        this.deliveryTimes = updateMealInfo.getDeliveryTimes();
         this.membershipBenefitTime = updateMealInfo.getMembershipBenefitTime();
         this.lastOrderTime = updateMealInfo.getLastOrderTime();
         this.serviceDays = updateMealInfo.getServiceDays();

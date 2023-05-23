@@ -18,7 +18,7 @@ import java.util.List;
 public class MySpotZoneMealInfo extends MealInfo{
 
     @Builder
-    public MySpotZoneMealInfo(DiningType diningType, List<DeliverySchedule> deliveryScheduleList, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
-        super(diningType, deliveryScheduleList, membershipBenefitTime, lastOrderTime, serviceDays, group);
+    public MySpotZoneMealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
+        super(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group);
     }
 }

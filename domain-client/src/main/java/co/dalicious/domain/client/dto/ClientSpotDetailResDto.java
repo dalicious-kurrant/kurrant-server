@@ -62,8 +62,7 @@ public class ClientSpotDetailResDto {
             this.serviceDays = String.valueOf(serviceDays);
             this.membershipBenefitTime = DayAndTime.dayAndTimeToString(mealInfo.getMembershipBenefitTime());
             this.lastOrderTime = DayAndTime.dayAndTimeToString(mealInfo.getLastOrderTime());
-            this.deliveryTime = mealInfo.getDeliveryScheduleList().stream()
-                    .map(DeliverySchedule::getDeliveryTime)
+            this.deliveryTime = mealInfo.getDeliveryTimes().stream()
                     .map(DateUtils::timeToString)
                     .toList();
             this.supportPrice = !(mealInfo instanceof CorporationMealInfo) ? bigDecimal : null;

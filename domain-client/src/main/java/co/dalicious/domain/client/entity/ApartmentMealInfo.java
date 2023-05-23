@@ -20,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ApartmentMealInfo extends MealInfo {
     @Builder
-    public ApartmentMealInfo(DiningType diningType, List<DeliverySchedule> deliveryScheduleList, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
-        super(diningType, deliveryScheduleList, membershipBenefitTime, lastOrderTime, serviceDays, group);
+    public ApartmentMealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
+        super(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group);
     }
 }

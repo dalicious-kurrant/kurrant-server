@@ -16,6 +16,7 @@ import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import org.mapstruct.*;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -256,11 +257,7 @@ public interface GroupMapper {
             return null;
         }
 
-        List<DeliverySchedule> deliverySchedule = Collections.singletonList(
-                DeliverySchedule.builder()
-                .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
-                .pickupTime(DateUtils.stringToLocalTime("00:00"))
-                .build());
+        List<LocalTime> deliveryTimes = Collections.singletonList(DateUtils.stringToLocalTime(deliveryTime));
 
         // 기업 스팟인 경우
         if (group instanceof Corporation corporation) {
@@ -268,7 +265,7 @@ public interface GroupMapper {
                     .group(corporation)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryScheduleList(deliverySchedule)
+                    .deliveryTimes(deliveryTimes)
                     .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDaysAndSupportPrices(serviceDaysAndSupportPriceList)
@@ -278,7 +275,7 @@ public interface GroupMapper {
                     .group(apartment)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryScheduleList(deliverySchedule)
+                    .deliveryTimes(deliveryTimes)
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .build();
@@ -287,7 +284,7 @@ public interface GroupMapper {
                     .group(openGroup)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryScheduleList(deliverySchedule)
+                    .deliveryTimes(deliveryTimes)
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .build();

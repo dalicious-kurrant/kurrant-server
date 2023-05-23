@@ -51,20 +51,6 @@ public interface RequestedMySpotZonesMapper {
 
     RequestedMySpotZones toRequestedMySpotZones (CreateRequestDto createRequestDto);
 
-    default RequestedMySpotDetailDto toRequestedMySpotDetailDto(RequestedMySpotZones requestedMySpotZones) {
-        RequestedMySpotDetailDto requestedMySpotDetailDto = new RequestedMySpotDetailDto();
-
-        requestedMySpotDetailDto.setId(requestedMySpotDetailDto.getId());
-        requestedMySpotDetailDto.setZipcode(requestedMySpotDetailDto.getZipcode());
-        requestedMySpotDetailDto.setCity(requestedMySpotDetailDto.getCity());
-        requestedMySpotDetailDto.setCounty(requestedMySpotDetailDto.getCounty());
-        requestedMySpotDetailDto.setVillage(requestedMySpotDetailDto.getVillage());
-        requestedMySpotDetailDto.setRequestUserCount(requestedMySpotDetailDto.getRequestUserCount());
-        requestedMySpotDetailDto.setMemo(requestedMySpotDetailDto.getMemo());
-
-        return requestedMySpotDetailDto;
-    }
-
     default MySpotZone toMySpotZone(List<RequestedMySpotZones> requestedMySpotZonesList) {
 
         List<String> zipcodes = new ArrayList<>();
@@ -100,13 +86,11 @@ public interface RequestedMySpotZonesMapper {
             return null;
         }
 
-        List<DeliverySchedule> deliveryScheduleList = Collections.singletonList(DeliverySchedule.builder().deliveryTime(deliveryTime).pickupTime(DateUtils.stringToLocalTime("00:00")).build());
-
         return MySpotZoneMealInfo.builder()
                 .group(group)
                 .diningType(diningType)
                 .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                .deliveryScheduleList(deliveryScheduleList)
+                .deliveryTimes(List.of(deliveryTime))
                 .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                 .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                 .build();

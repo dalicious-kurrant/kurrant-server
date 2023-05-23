@@ -133,15 +133,11 @@ public class Spot {
     }
 
     public List<LocalTime> getDeliveryTime(DiningType diningType) {
-        List<DeliverySchedule> deliveryScheduleList = this.getGroup().getMealInfos().stream()
+        return this.getGroup().getMealInfos().stream()
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
-                .map(MealInfo::getDeliveryScheduleList)
+                .map(MealInfo::getDeliveryTimes)
                 .orElse(null);
-
-        if(deliveryScheduleList == null || deliveryScheduleList.isEmpty()) return null;
-
-        return deliveryScheduleList.stream().map(DeliverySchedule::getDeliveryTime).toList();
     }
 
     public Geometry getLocation(){

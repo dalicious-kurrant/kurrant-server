@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -34,9 +35,10 @@ public class PresetGroupDailyFood {
     @Comment("고객사 별 유저수")
     private Integer capacity;
 
-    @Column(name = "pickup_time")
-    @Comment("픽업 시간")
-    private LocalTime pickupTime;
+    @ElementCollection
+    @Comment("배송 시간")
+    @CollectionTable(name = "makers__preset_delivery_schedule")
+    private List<DeliverySchedule> deliveryScheduleList;
 
     @OneToMany(mappedBy = "presetGroupDailyFood", cascade = CascadeType.ALL)
     @JsonManagedReference(value = "preset_group_daily_food_fk")
@@ -50,11 +52,10 @@ public class PresetGroupDailyFood {
     private PresetMakersDailyFood presetMakersDailyFood;
 
     @Builder
-    public PresetGroupDailyFood(Group group, Integer capacity, LocalTime pickupTime, PresetMakersDailyFood presetMakersDailyFood) {
+    public PresetGroupDailyFood(Group group, Integer capacity, List<DeliverySchedule> deliveryScheduleList, PresetMakersDailyFood presetMakersDailyFood) {
         this.group = group;
         this.capacity = capacity;
-        this.pickupTime = pickupTime;
+        this.deliveryScheduleList = deliveryScheduleList;
         this.presetMakersDailyFood = presetMakersDailyFood;
     }
-
 }

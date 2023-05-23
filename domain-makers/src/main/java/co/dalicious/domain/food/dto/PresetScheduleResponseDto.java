@@ -18,33 +18,23 @@ public class PresetScheduleResponseDto {
     private String diningType;
     private Integer makersCapacity;
     private String deadline;
-    private List<clientSchedule> clientSchedule;
+    private List<ClientSchedule> clientSchedule;
 
 
     @Getter
     @Setter
-    public static class clientSchedule {
+    public static class ClientSchedule {
 
-        private String pickupTime;
+        private List<String> pickupTime;
         private String clientName;
         private Integer clientCapacity;
-        private List<foodSchedule> foodSchedule;
-
-        @Builder
-        public clientSchedule(String pickupTime, String clientName, Integer clientCapacity, List<foodSchedule> foodSchedule) {
-            this.pickupTime = pickupTime;
-            this.clientName = clientName;
-            this.clientCapacity = clientCapacity;
-            this.foodSchedule = foodSchedule;
-        }
-
-
+        private List<FoodSchedule> foodSchedule;
 
     }
 
     @Getter
     @Setter
-    public static class foodSchedule {
+    public static class FoodSchedule {
         private BigInteger presetFoodId;
         private String foodName;
         private String foodStatus;
@@ -52,7 +42,7 @@ public class PresetScheduleResponseDto {
         private Integer scheduleStatus;
 
         @Builder
-        public foodSchedule(BigInteger presetFoodId, String foodName, String foodStatus, Integer foodCapacity, Integer scheduleStatus) {
+        public FoodSchedule(BigInteger presetFoodId, String foodName, String foodStatus, Integer foodCapacity, Integer scheduleStatus) {
             this.presetFoodId = presetFoodId;
             this.foodName = foodName;
             this.foodStatus = foodStatus;
@@ -63,7 +53,7 @@ public class PresetScheduleResponseDto {
 
     @Builder
     public PresetScheduleResponseDto(BigInteger presetMakersId, Integer scheduleStatus, String serviceDate, String makersName,
-                                     String diningType, Integer makersCapacity, String deadline, List<clientSchedule> clientSchedule) {
+                                     String diningType, Integer makersCapacity, String deadline, List<ClientSchedule> clientSchedule) {
 
         this.presetMakersId = presetMakersId;
         this.makersName = makersName;

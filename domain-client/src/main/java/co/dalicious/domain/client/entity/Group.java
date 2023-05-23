@@ -113,10 +113,11 @@ public class Group {
     }
 
     public MealInfo getMealInfo(DiningType diningType) {
-        return this.getMealInfos().stream()
+        MealInfo mealInfo =  this.getMealInfos().stream()
                 .filter(v -> v.getDiningType().equals(diningType))
                 .findAny()
                 .orElse(null);
+        return mealInfo;
     }
 
     public void updateGroup(Address address, List<DiningType> diningTypeList, String name) {

@@ -29,7 +29,7 @@ public class DailyFoodGroup {
 
     @ElementCollection
     @Comment("배송 시간")
-    @CollectionTable(name = "client__delivery_schedule")
+    @CollectionTable(name = "food__delivery_schedule")
     private List<DeliverySchedule> deliverySchedules;
 
     @OneToMany(mappedBy = "dailyFoodGroup")
