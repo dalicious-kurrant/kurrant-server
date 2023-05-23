@@ -3,10 +3,12 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.domain.food.dto.FoodGroupDto;
 import co.dalicious.domain.food.dto.FoodStatusUpdateDto;
 import co.dalicious.domain.food.dto.FoodListDto;
 import co.dalicious.domain.food.dto.MakersFoodDetailReqDto;
 import co.dalicious.client.core.annotation.ControllerMarker;
+import co.dalicious.domain.recommend.dto.FoodRecommendDto;
 import co.kurrant.app.admin_api.service.FoodService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -75,12 +77,53 @@ public class FoodController {
     }
 
     @ControllerMarker(ControllerType.FOOD)
-    @Operation(summary = "엑셀 내보내기 용 조회", description = "엑셀 내보내기를 위해 전체 조회")
+    @Operation(summary = "엑셀 내보내기용 조회", description = "엑셀 내보내기를 위해 전체 조회")
     @GetMapping("/excels")
     public ResponseMessage getAllFoodForExcel() {
         return ResponseMessage.builder()
                 .message("상품을 조회 했습니다.")
                 .data(foodService.getAllFoodForExcel())
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.FOOD)
+    @Operation(summary = "상품 그룹을 조회", description = "상품 그룹을 조회")
+    @GetMapping("/groups")
+    public ResponseMessage getFoodGroups() {
+        return ResponseMessage.builder()
+                .message("상품 그룹을 조회 했습니다.")
+                .data(foodService.getFoodGroups())
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.FOOD)
+    @Operation(summary = "상품 그룹을 생성", description = "상품 그룹을 생성")
+    @PostMapping("/groups")
+    public ResponseMessage postFoodGroups(@RequestBody List<FoodGroupDto.Request> requests) {
+        foodService.postFoodGroup(requests);
+        return ResponseMessage.builder()
+                .message("상품 그룹을 생성 했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.FOOD)
+    @Operation(summary = "상품 추천 그룹 조회", description = "상품 추천 그룹을 조회한다.")
+    @GetMapping("/recommends")
+    public ResponseMessage getFoodRecommends() {
+
+        return ResponseMessage.builder()
+                .data(foodService.getRecommendsFoodGroup())
+                .message("상품 그룹을 생성 했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.FOOD)
+    @Operation(summary = "상품 추천 그룹 조회", description = "상품 추천 그룹을 조회한다.")
+    @PostMapping("/recommends")
+    public ResponseMessage postFoodRecommends(@RequestBody List<FoodRecommendDto.Response> foodRecommendDtos) {
+        foodService.postRecommendsFoodGroup(foodRecommendDtos);
+        return ResponseMessage.builder()
+                .message("상품 그룹을 생성 했습니다.")
                 .build();
     }
 }

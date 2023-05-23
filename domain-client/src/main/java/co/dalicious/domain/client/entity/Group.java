@@ -123,7 +123,8 @@ public class Group {
                 .orElse(null);
     }
 
-    public void updateGroup(Address address, List<DiningType> diningTypeList, String name) {
+    public void updateGroup(Address address, List<DiningType> diningTypeList, String name, Boolean isActive) {
+        this.isActive = isActive;
         this.address = address;
         this.diningTypes = diningTypeList;
         this.name = name;

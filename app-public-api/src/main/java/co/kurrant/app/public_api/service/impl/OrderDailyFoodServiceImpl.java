@@ -35,12 +35,14 @@ import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipRepository;
 import co.dalicious.domain.user.repository.QFoundersRepository;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
+import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -111,13 +113,16 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PointUtil pointUtil;
     private final QFoundersRepository qFoundersRepository;
     private final CartDailyFoodRepository cartDailyFoodRepository;
+    private final QUserRepository qUserRepository;
 
 
     @Override
     @Transactional
     public BigInteger orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
-        throw new ApiException(ExceptionEnum.NEED_TO_UPDATE);
-        /*
+        if(orderItemDailyFoodReqDto.getAmount() != 0) {
+            throw new ApiException(ExceptionEnum.NEED_TO_UPDATE);
+        }
+
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
 
@@ -381,7 +386,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
             return orderDailyFood.getId();
         }
-         */
     }
 
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
@@ -691,14 +695,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 OrderItemDailyFood orderItemDailyFood = null;
                 // 4. 주문 음식 가격이 일치하는지 검증 및 주문 저장
                 for (CartDailyFoodDto.DailyFood cartDailyFood : cartDailyFoodDto.getCartDailyFoods()) {
-                    CartDailyFood selectedCartDailyFood = null;
-                    for (CartDailyFood dailyFood : cartDailyFoods) {
-                        if(dailyFood.getId().equals(cartDailyFood.getDailyFoodId())) {
-                            selectedCartDailyFood = dailyFood;
-                        }
-                        if(selectedCartDailyFood != null && !selectedCartDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SALES)) {
-                            throw new CustomException(HttpStatus.NOT_FOUND, "CE4000002", "주문 불가한 상품입니다.");
-                        }
+                    CartDailyFood selectedCartDailyFood = cartDailyFoods.stream().filter(v -> v.getId().equals(cartDailyFood.getId()))
+                            .findAny()
+                            .orElseThrow(() -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND));
+                    if(selectedCartDailyFood != null && !selectedCartDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SALES)) {
+                        throw new CustomException(HttpStatus.NOT_FOUND, "CE4000002", "주문 불가한 상품입니다.");
                     }
                     // 일치하는 상품을 찾을 수 없을 경우
                     if(selectedCartDailyFood == null) {
@@ -880,15 +881,28 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         orderItemDailyFood.updateOrderStatus(OrderStatus.RECEIPT_COMPLETE);
 
+        LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
         // 유저가 파운더스이고 멤버십을 유지하고 있으며 오늘 수령확인을 처음 진행하는 거라면
         Founders foundersUser = qFoundersRepository.findFoundersByUser(user);
-        if(user.getIsMembership() && foundersUser != null) {
+        if(user.getIsMembership() && foundersUser != null && serviceDate.equals(LocalDate.now())) {
             BigDecimal point = pointUtil.findFoundersPoint(user);
             if(point.compareTo(BigDecimal.ZERO) != 0) {
                 pointUtil.createPointHistoryByOthers(user, null, PointStatus.FOUNDERS_REWARD, point);
-                user.updatePoint(point);
+                qUserRepository.updateUserPoint(user.getId(), point, PointStatus.FOUNDERS_REWARD);
             }
         }
+    }
+
+    @Override
+    public Object orderCardQuota(SecurityUser securityUser, OrderCardQuotaDto orderCardQuotaDto) throws IOException, ParseException {
+
+        User user = userUtil.getUser(securityUser);
+
+        String token = niceUtil.getToken();
+        JSONObject jsonObject = niceUtil.niceBillingCardQuota(orderCardQuotaDto.getBillingKey(), orderCardQuotaDto.getAmount(), orderCardQuotaDto.getOrderId(), token, orderCardQuotaDto.getOrderName(), orderCardQuotaDto.getCardQuota());
+        System.out.println(jsonObject);
+
+        return null;
     }
 }
 

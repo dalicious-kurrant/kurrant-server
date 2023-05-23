@@ -34,9 +34,17 @@ public class GroupExcelRequestDto {
     private String isGarbage;
     private String isHotStorage;
     private String isPrepaid;
+    private String isActive;
     private Integer morningSupportPrice;
     private Integer lunchSupportPrice;
     private Integer dinnerSupportPrice;
     private Integer minimumSpend;
     private Integer maximumSpend;
+
+    public static Boolean useOrNotUse(String data) {
+        if(data == null) return null;
+        else if (data.equals("미지원") || data.equals("미사용") || data.equals("false")) return false;
+        else if (data.equals("지원") || data.equals("사용") || data.equals("true")) return true;
+        else return null;
+    }
 }

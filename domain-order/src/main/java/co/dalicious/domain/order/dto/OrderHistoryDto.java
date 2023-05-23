@@ -30,6 +30,7 @@ public class OrderHistoryDto {
         private Integer diningType;
         private Integer count;
         private BigDecimal price;
+        private Integer dailyFoodStatus;
         private Integer orderStatus;
     }
 }

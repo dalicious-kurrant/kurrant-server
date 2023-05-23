@@ -8,6 +8,7 @@ import co.dalicious.domain.logs.entity.enums.LogType;
 import co.dalicious.domain.logs.mapper.AdminLogsMapper;
 import co.dalicious.domain.logs.repository.QAdminLogsRepository;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.schedules.ItemPageableResponseDto;
 import co.kurrant.app.admin_api.service.LogService;
 import exception.CustomException;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +30,8 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public ItemPageableResponseDto<List<AdminLogsDto>> getLogs(Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
-        Integer logType = !parameters.containsKey("logType") || parameters.get("logType") == null ? null : Integer.parseInt(String.valueOf(parameters.get("logType")));
-        Integer controllerType = !parameters.containsKey("controllerType") || parameters.get("controllerType") == null ? null : Integer.parseInt(String.valueOf(parameters.get("controllerType")));
+        List<Integer> logType = !parameters.containsKey("logType") || parameters.get("logType").equals("") ? null : StringUtils.parseIntegerList((String) parameters.get("logType"));
+        List<Integer> controllerType = !parameters.containsKey("controllerType") || parameters.get("controllerType").equals("") ? null : StringUtils.parseIntegerList((String) parameters.get("controllerType"));
         Integer limit = !parameters.containsKey("limit") || parameters.get("limit") == null ? null : Integer.parseInt(String.valueOf(parameters.get("limit")));
         Integer page = !parameters.containsKey("page") || parameters.get("page") == null ? null : Integer.parseInt(String.valueOf(parameters.get("page")));
         LocalDateTime startDate = !parameters.containsKey("startDate") || parameters.get("startDate") == null ? null : DateUtils.stringToLocalDateTime(String.valueOf(parameters.get("startDate")));
@@ -47,7 +49,7 @@ public class LogServiceImpl implements LogService {
                     missingParams + "에 잘못된 파라미터 값을 넣으셨습니다.");
         }
 
-        Page<AdminLogs> adminLogs =  qAdminLogsRepository.findAllByFilter(LogType.ofCode(logType), ControllerType.ofCode(controllerType), startDate, endDate, limit, page, pageable);
+        Page<AdminLogs> adminLogs =  qAdminLogsRepository.findAllByFilter(LogType.ofCodes(logType), ControllerType.ofCodes(controllerType), startDate, endDate, limit, page, pageable);
         return ItemPageableResponseDto.<List<AdminLogsDto>>builder()
                 .items(adminLogsMapper.toDtos(adminLogs))
                 .limit(pageable.getPageSize()).total((long) adminLogs.getTotalPages())

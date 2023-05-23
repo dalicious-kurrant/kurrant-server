@@ -17,7 +17,7 @@ public class PushResponseDto {
     private String content;
     private BigInteger userId;
     private String type;
-    private String created;
+    private String dateTime;
     private Boolean isRead;
     private BigInteger reviewId;
 
@@ -27,7 +27,7 @@ public class PushResponseDto {
         this.content = pushAlarmHash.getMessage();
         this.userId = pushAlarmHash.getUserId();
         this.type = pushAlarmHash.getType();
-        this.created = DateUtils.localDateTimeToString(pushAlarmHash.getCreatedDateTime());
+        this.dateTime = DateUtils.localDateTimeToString(pushAlarmHash.getCreatedDateTime());
         this.isRead = pushAlarmHash.getIsRead();
         this.reviewId = pushAlarmHash.getReviewId();
     }

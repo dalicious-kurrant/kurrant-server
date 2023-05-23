@@ -26,6 +26,7 @@ public class MakersInfoResponseDto {
     private String serviceType;
     private String serviceForm;
     private Boolean isParentCompany;
+    private Boolean isActive;
     private BigInteger parentCompanyId;
     private String zipCode;
     private String address1;
@@ -51,5 +52,5 @@ public class MakersInfoResponseDto {
     private Integer lunchCapacity;
     private Integer dinnerCapacity;
     private String memo;
-
+    private String serviceDays;
 }

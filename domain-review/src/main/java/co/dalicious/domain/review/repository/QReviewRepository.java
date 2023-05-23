@@ -23,19 +23,16 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.persistence.EntityManager;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
-import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static co.dalicious.domain.review.entity.QComments.comments;
-import static co.dalicious.domain.review.entity.QLike.like;
+import static co.dalicious.domain.review.entity.QReviewGood.reviewGood;
 import static co.dalicious.domain.review.entity.QReviews.reviews;
 
 @Repository
@@ -263,27 +260,29 @@ public class QReviewRepository {
     }
 
 
-    public List<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter) {
+    public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter, Pageable pageable) {
         List<Reviews> reviewsList = new ArrayList<>();
 
         reviewsList = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
+                    .limit(pageable.getPageSize())
+                    .offset(pageable.getOffset())
                     .fetch();
 
         if (photo != null && photo == 1){
             reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
         }
 
-        if (starFilter.length() != 0){
+        if (starFilter != null && starFilter.length() != 0){
             reviewsList = reviewsList.stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
         }
 
-    return reviewsList;
+    return new PageImpl<>(reviewsList, pageable, reviewsList.size());
     }
 
     public void plusLike(BigInteger reviewId) {
         queryFactory.update(reviews)
-                .set(reviews.like, reviews.like.add(1))
+                .set(reviews.good, reviews.good.add(1))
                 .where(reviews.id.eq(reviewId))
                 .execute();
 
@@ -292,7 +291,7 @@ public class QReviewRepository {
     public void minusLike(BigInteger reviewId) {
 
         queryFactory.update(reviews)
-                .set(reviews.like, reviews.like.subtract(1))
+                .set(reviews.good, reviews.good.subtract(1))
                 .where(reviews.id.eq(reviewId))
                 .execute();
 
@@ -300,10 +299,32 @@ public class QReviewRepository {
     }
 
     public void deleteLike(BigInteger reviewId, BigInteger id) {
-        queryFactory.delete(like)
-                .where(like.reviewId.id.eq(reviewId),
-                        like.user.id.eq(id))
+        queryFactory.delete(reviewGood)
+                .where(reviewGood.reviewId.id.eq(reviewId),
+                        reviewGood.user.id.eq(id))
                 .execute();
     }
+
+    public Page<Reviews> findAllByFoodId(BigInteger foodId, Pageable pageable) {
+        List<Reviews> reviewsList = queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId))
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+
+
+        return new PageImpl<>(reviewsList, pageable, reviewsList.size());
+    }
+
+     /*
+    *   QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
+                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
+                .orderBy(pointHistory.id.desc())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    * */
 
 }
