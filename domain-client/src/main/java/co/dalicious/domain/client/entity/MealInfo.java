@@ -47,6 +47,7 @@ public class MealInfo {
     private DiningType diningType;
 
     @Convert(converter = DeliveryTimesConverter.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     @Column(name = "delivery_time")
     @Comment("배송 시간")
     private List<LocalTime> deliveryTimes;
