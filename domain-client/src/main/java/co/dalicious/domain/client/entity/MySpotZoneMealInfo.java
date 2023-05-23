@@ -1,6 +1,5 @@
 package co.dalicious.domain.client.entity;
 
-import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
@@ -16,9 +15,10 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OpenGroupMealInfo extends MealInfo{
+public class MySpotZoneMealInfo extends MealInfo{
+
     @Builder
-    public OpenGroupMealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
+    public MySpotZoneMealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
         super(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group);
     }
 }

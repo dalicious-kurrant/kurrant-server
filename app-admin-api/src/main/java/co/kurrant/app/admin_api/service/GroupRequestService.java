@@ -2,11 +2,10 @@ package co.kurrant.app.admin_api.service;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.client.dto.mySpotZone.filter.FilterDto;
-import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.CreateRequestDto;
-import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.ListResponseDto;
-import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.RequestedMySpotDetailDto;
-import co.kurrant.app.admin_api.dto.IdDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 
 import java.math.BigInteger;
 import java.util.List;

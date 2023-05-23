@@ -1,24 +1,30 @@
-package co.dalicious.domain.client.mapper;
+package co.dalicious.domain.application_form.mapper;
 
-import co.dalicious.domain.client.dto.mySpotZone.filter.*;
-import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.CreateRequestDto;
-import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.ListResponseDto;
-import co.dalicious.domain.client.dto.mySpotZone.requestMySpotZone.admin.RequestedMySpotDetailDto;
-import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.domain.client.entity.RequestedMySpotZones;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
+import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
+
+import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
-import org.geolatte.geom.M;
+import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DaysUtil;
+import co.dalicious.system.util.GenerateRandomNumber;
 import org.mapstruct.Mapper;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Mapper(componentModel = "spring")
 public interface RequestedMySpotZonesMapper {
 
-    default FilterDto toFilterDto(List<String> cityList, List<String> countyList, List<String> villageList, List<String> zipcodeList) {
+    default FilterDto toFilterDto(List<FilterInfo> cityList, List<FilterInfo> countyList, List<FilterInfo> villageList, List<FilterInfo> zipcodeList) {
 
         FilterDto filterDto = new FilterDto();
         filterDto.setCityInfos(cityList);
@@ -45,20 +51,6 @@ public interface RequestedMySpotZonesMapper {
 
     RequestedMySpotZones toRequestedMySpotZones (CreateRequestDto createRequestDto);
 
-    default RequestedMySpotDetailDto toRequestedMySpotDetailDto(RequestedMySpotZones requestedMySpotZones) {
-        RequestedMySpotDetailDto requestedMySpotDetailDto = new RequestedMySpotDetailDto();
-
-        requestedMySpotDetailDto.setId(requestedMySpotDetailDto.getId());
-        requestedMySpotDetailDto.setZipcode(requestedMySpotDetailDto.getZipcode());
-        requestedMySpotDetailDto.setCity(requestedMySpotDetailDto.getCity());
-        requestedMySpotDetailDto.setCounty(requestedMySpotDetailDto.getCounty());
-        requestedMySpotDetailDto.setVillage(requestedMySpotDetailDto.getVillage());
-        requestedMySpotDetailDto.setRequestUserCount(requestedMySpotDetailDto.getRequestUserCount());
-        requestedMySpotDetailDto.setMemo(requestedMySpotDetailDto.getMemo());
-
-        return requestedMySpotDetailDto;
-    }
-
     default MySpotZone toMySpotZone(List<RequestedMySpotZones> requestedMySpotZonesList) {
 
         List<String> zipcodes = new ArrayList<>();
@@ -78,7 +70,7 @@ public interface RequestedMySpotZonesMapper {
 
         return MySpotZone.builder()
                 .diningTypes(List.of(DiningType.MORNING, DiningType.LUNCH, DiningType.DINNER))
-                .name(requestedMySpotZonesList.get(0).getCity() + "_(임시)")
+                .name("(임시)_" + GenerateRandomNumber.create6DigitKey())
                 .mySpotZoneStatus(MySpotZoneStatus.WAITE)
                 .zipcodes(zipcodes)
                 .city(requestedMySpotZonesList.get(0).getCity())
@@ -86,5 +78,22 @@ public interface RequestedMySpotZonesMapper {
                 .villages(villages)
                 .mySpotZoneUserCount(count)
                 .build();
+    }
+
+    default MySpotZoneMealInfo toMealInfo(Group group, DiningType diningType, LocalTime deliveryTime, String lastOrderTime, String useDays, String membershipBenefitTime) {
+        // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
+        if (lastOrderTime == null || useDays == null) {
+            return null;
+        }
+
+        return MySpotZoneMealInfo.builder()
+                .group(group)
+                .diningType(diningType)
+                .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
+                .deliveryTimes(List.of(deliveryTime))
+                .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
+                .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
+                .build();
+
     }
 }

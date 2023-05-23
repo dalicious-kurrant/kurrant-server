@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -19,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ApartmentMealInfo extends MealInfo {
     @Builder
-    public ApartmentMealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
-        super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, group);
+    public ApartmentMealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
+        super(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group);
     }
 }

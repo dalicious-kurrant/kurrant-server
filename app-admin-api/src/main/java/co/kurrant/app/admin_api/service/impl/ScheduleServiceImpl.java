@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.dto.PresetScheduleResponseDto;
@@ -181,16 +182,16 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .map(preset -> preset.stream()
                         .map(makersPreset -> {
                             List<PresetGroupDailyFood> groupDailyFoods = makersPreset.getPresetGroupDailyFoods();
-                            List<PresetScheduleResponseDto.clientSchedule> clientSchedules = new ArrayList<>();
+                            List<PresetScheduleResponseDto.ClientSchedule> clientSchedules = new ArrayList<>();
 
                             groupDailyFoods.forEach(groupPreset -> {
                                 // groupIds 파라미터가 있을 경우 해당 그룹의 PresetDailyFood만 가져옴
                                 if (groupIdList == null || groupIdList.contains(groupPreset.getGroup().getId())) {
                                     List<PresetDailyFood> presetDailyFoods = groupPreset.getPresetDailyFoods();
-                                    List<PresetScheduleResponseDto.foodSchedule> foodSchedules = presetDailyFoods.stream()
+                                    List<PresetScheduleResponseDto.FoodSchedule> foodSchedules = presetDailyFoods.stream()
                                             .map(presetDailyFoodMapper::toFoodScheduleDto)
                                             .collect(Collectors.toList());
-                                    PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupPreset, foodSchedules);
+                                    PresetScheduleResponseDto.ClientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupPreset, foodSchedules);
                                     clientSchedules.add(clientSchedule);
                                 }
                             });
@@ -241,14 +242,14 @@ public class ScheduleServiceImpl implements ScheduleService {
             // 그룹 찾기
             List<BigInteger> groupingGroupIdList = groupingByMakers.get(recommendScheduleDto);
             // preset group schedule dto 과 preset food schedule dto 만들기
-            List<PresetScheduleResponseDto.clientSchedule> clientSchedules = new ArrayList<>();
+            List<PresetScheduleResponseDto.ClientSchedule> clientSchedules = new ArrayList<>();
             if(groupingGroupIdList != null) {
                 for(BigInteger groupId : groupingGroupIdList) {
 
                     //preset food schedule dto 만들기
-                    List<PresetScheduleResponseDto.foodSchedule> foodScheduleList = new ArrayList<>();
+                    List<PresetScheduleResponseDto.FoodSchedule> foodScheduleList = new ArrayList<>();
                     for(Food food : foodListByMakers) {
-                        PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.recommendToFoodScheduleDto(food,recommendScheduleDto);
+                        PresetScheduleResponseDto.FoodSchedule foodSchedule = presetDailyFoodMapper.recommendToFoodScheduleDto(food,recommendScheduleDto);
                         foodScheduleList.add(foodSchedule);
                     }
 
@@ -260,26 +261,23 @@ public class ScheduleServiceImpl implements ScheduleService {
                     // 그룹에 속한 유저의 수 구하기
                     Integer groupCapacity = qUserGroupRepository.userCountInGroup(groupId);
                     // 스팟 중 가장 픽업 시간이 가장 빠른 시간 구해서 40분을 빼기 - 픽업 시간
-                    List<Spot> spotList = group.getSpots();
                     List<LocalTime> deliveryTimes = new ArrayList<>();
-                    for(Spot spot : spotList) {
-                        List<MealInfo> mealInfoList = spot.getMealInfos();
-                        if(mealInfoList == null || mealInfoList.isEmpty()) continue;
-                        mealInfoList.forEach(mealInfo -> {
-                            if(mealInfo.getDeliveryTime() == null) {
-                                if(mealInfo.getDiningType().equals(DiningType.MORNING)) deliveryTimes.add(DateUtils.stringToLocalTime("07:00"));
-                                if(mealInfo.getDiningType().equals(DiningType.LUNCH)) deliveryTimes.add(DateUtils.stringToLocalTime("12:00"));
-                                if(mealInfo.getDiningType().equals(DiningType.DINNER)) deliveryTimes.add(DateUtils.stringToLocalTime("18:00"));
-                            }
-                            deliveryTimes.add(mealInfo.getDeliveryTime());
-                        });
-                    }
-                    String pickupTime = DateTimeFormatter.ofPattern("HH:mm").format(deliveryTimes.stream().min(LocalTime::compareTo).orElseThrow(
-                            () -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO)).minusMinutes(40));
 
+                    List<MealInfo> mealInfoList = group.getMealInfos();
+                    if(mealInfoList == null || mealInfoList.isEmpty()) continue;
+                    mealInfoList.forEach(mealInfo -> {
+                        if(mealInfo.getDeliveryTimes() == null || mealInfo.getDeliveryTimes().isEmpty()) {
+                            if(mealInfo.getDiningType().equals(DiningType.MORNING)) deliveryTimes.add(DateUtils.stringToLocalTime("07:00"));
+                            if(mealInfo.getDiningType().equals(DiningType.LUNCH)) deliveryTimes.add(DateUtils.stringToLocalTime("12:00"));
+                            if(mealInfo.getDiningType().equals(DiningType.DINNER)) deliveryTimes.add(DateUtils.stringToLocalTime("18:00"));
+                        }
+                        deliveryTimes.addAll(mealInfo.getDeliveryTimes());
+                    });
+
+                    List<String> pickupTime = deliveryTimes.stream().map(deliveryTime -> deliveryTime.minusMinutes(40)).map(DateUtils::timeToString).toList();
 
                     // preset group schedule dto 만들기
-                    PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.recommendToClientScheduleDto(group, groupCapacity, pickupTime,foodScheduleList);
+                    PresetScheduleResponseDto.ClientSchedule clientSchedule = presetDailyFoodMapper.recommendToClientScheduleDto(group, groupCapacity, pickupTime,foodScheduleList);
                     clientSchedules.add(clientSchedule);
                 }
             }
@@ -407,10 +405,10 @@ public class ScheduleServiceImpl implements ScheduleService {
             presetGroupDailyFoodListMap.put(presetGroupDailyFood, dailyFood);
         });
 
-        Map<PresetGroupDailyFood, PresetScheduleResponseDto.clientSchedule> clientScheduleMap = new HashMap<>();
+        Map<PresetGroupDailyFood, PresetScheduleResponseDto.ClientSchedule> clientScheduleMap = new HashMap<>();
         for(PresetGroupDailyFood groupDailyFood : presetGroupDailyFoodListMap.keySet()) {
             List<PresetDailyFood> presetDailyFoods = presetGroupDailyFoodListMap.get(groupDailyFood);
-            List<PresetScheduleResponseDto.foodSchedule> foodScheduleList = new ArrayList<>();
+            List<PresetScheduleResponseDto.FoodSchedule> foodScheduleList = new ArrayList<>();
 
             presetDailyFoods.forEach(presetDailyFood -> foodScheduleList.add(presetDailyFoodMapper.toFoodScheduleDto(presetDailyFood)));
             clientScheduleMap.put(groupDailyFood, presetDailyFoodMapper.toClientScheduleDto(groupDailyFood, foodScheduleList));
@@ -419,9 +417,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         for(PresetMakersDailyFood presetMakersDailyFood : presetMakersDailyFoodListMap.keySet()) {
             List<PresetGroupDailyFood> groupDailyFoodList = presetMakersDailyFoodListMap.get(presetMakersDailyFood);
 
-            List<PresetScheduleResponseDto.clientSchedule> clientScheduleList = new ArrayList<>();
+            List<PresetScheduleResponseDto.ClientSchedule> clientScheduleList = new ArrayList<>();
             groupDailyFoodList.forEach(presetGroupDailyFood -> {
-                PresetScheduleResponseDto.clientSchedule clientSchedule = clientScheduleMap.get(presetGroupDailyFood);
+                PresetScheduleResponseDto.ClientSchedule clientSchedule = clientScheduleMap.get(presetGroupDailyFood);
                 clientScheduleList.add(clientSchedule);
             });
 

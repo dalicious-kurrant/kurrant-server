@@ -2,6 +2,7 @@ package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
@@ -167,13 +168,20 @@ public interface OrderDailyFoodByMakersMapper {
                 foodDto.setFoodName(food.getName());
                 foodList.add(foodDto);
             }
-            LocalTime pickupTime = orderItemDailyFoods.get(0).getDailyFood().getDailyFoodGroup().getPickupTime();
+
+            LocalTime deliveryTime = orderItemDailyFoods.get(0).getOrderItemDailyFoodGroup().getDeliveryTime();
+            LocalTime pickupTime = orderItemDailyFoods.get(0).getDailyFood().getDailyFoodGroup().getDeliverySchedules().stream()
+                    .filter(deliverySchedule -> deliverySchedule.getDeliveryTime().equals(deliveryTime))
+                    .findAny()
+                    .map(DeliverySchedule::getPickupTime)
+                    .orElse(LocalTime.parse("00:00"));
+
             OrderDailyFoodByMakersDto.SpotByDateDiningType spotByDateDiningType = new OrderDailyFoodByMakersDto.SpotByDateDiningType();
             spotByDateDiningType.setSpotId(spot.getId());
             spotByDateDiningType.setSpotName(spot.getName());
             spotByDateDiningType.setFoods(foodList);
             spotByDateDiningType.setPickupTime(DateUtils.timeToString(pickupTime));
-            spotByDateDiningType.setDeliveryTime(spot.getDeliveryTime(diningType) == null ? null : DateUtils.timeToString(spot.getDeliveryTime(diningType)));
+            spotByDateDiningType.setDeliveryTime(spot.getDeliveryTime(diningType) == null ? null : spot.getDeliveryTime(diningType).stream().map(DateUtils::timeToString).toList());
             spotByDateDiningTypes.add(spotByDateDiningType);
         }
         return spotByDateDiningTypes;

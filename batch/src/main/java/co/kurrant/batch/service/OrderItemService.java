@@ -57,12 +57,13 @@ public class OrderItemService {
         log.info("[OrderItem id 찾기] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         // list up order item daily food by order status = delivering
-        String queryString = "SELECT oi.id, df.serviceDate, mi.deliveryTime " +
+        String queryString = "SELECT oi.id, df.serviceDate, oidfg.deliveryTime " +
                 "FROM OrderItem oi " +
                 "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
                 "JOIN oidf.dailyFood df " +
                 "JOIN df.group g " +
                 "JOIN MealInfo mi ON g.id = mi.group.id AND df.diningType = mi.diningType " +
+                "JOIN OrderItemDailyFoodGroup oidfg ON oidf.orderItemDailyFoodGroup.id = oidfg.id " +
                 "WHERE oi.orderStatus = 9L";
 
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);

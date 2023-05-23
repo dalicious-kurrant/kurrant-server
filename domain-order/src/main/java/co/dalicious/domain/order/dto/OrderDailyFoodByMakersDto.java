@@ -64,7 +64,7 @@ public class OrderDailyFoodByMakersDto {
     @Setter
     public static class SpotByDateDiningType {
         private String pickupTime;
-        private String deliveryTime;
+        private List<String> deliveryTime;
         private BigInteger spotId;
         private String spotName;
         private List<Food> foods;

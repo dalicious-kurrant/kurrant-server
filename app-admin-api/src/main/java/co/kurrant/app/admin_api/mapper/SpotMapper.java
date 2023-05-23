@@ -25,6 +25,7 @@ import org.mapstruct.Named;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.time.LocalTime;
 import java.util.*;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class, MealInfo.class})
@@ -44,19 +45,19 @@ public interface SpotMapper {
         spotResponseDto.setLocation(getLocation(spot.getAddress().getLocation()));
 
         spotResponseDto.setBreakfastLastOrderTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DayAndTime.dayAndTimeToString(spot.getMealInfo(DiningType.MORNING).getLastOrderTime()));
-        spotResponseDto.setBreakfastDeliveryTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.MORNING).getDeliveryTime()));
+        spotResponseDto.setBreakfastDeliveryTime(spot.getMealInfo(DiningType.MORNING) == null ? null : deliveryTimeToString(spot.getMealInfo(DiningType.MORNING).getDeliveryTimes()));
         spotResponseDto.setBreakfastUseDays(spot.getMealInfo(DiningType.MORNING) == null ? null : DaysUtil.serviceDaysToDaysString(spot.getMealInfo(DiningType.MORNING).getServiceDays()));
         spotResponseDto.setBreakfastSupportPrice(BigDecimal.ZERO);
         spotResponseDto.setBreakfastMembershipBenefitTime(spot.getMealInfo(DiningType.MORNING) == null ? null : spot.getMealInfo(DiningType.MORNING).dayAndTimeToString());
 
         spotResponseDto.setLunchLastOrderTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DayAndTime.dayAndTimeToString(spot.getMealInfo(DiningType.LUNCH).getLastOrderTime()));
-        spotResponseDto.setLunchDeliveryTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.LUNCH).getDeliveryTime()));
+        spotResponseDto.setLunchDeliveryTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : deliveryTimeToString(spot.getMealInfo(DiningType.LUNCH).getDeliveryTimes()));
         spotResponseDto.setLunchUseDays(spot.getMealInfo(DiningType.LUNCH) == null ? null : DaysUtil.serviceDaysToDaysString(spot.getMealInfo(DiningType.LUNCH).getServiceDays()));
         spotResponseDto.setLunchSupportPrice(BigDecimal.ZERO);
         spotResponseDto.setLunchMembershipBenefitTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : spot.getMealInfo(DiningType.LUNCH).dayAndTimeToString());
 
         spotResponseDto.setDinnerLastOrderTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DayAndTime.dayAndTimeToString(spot.getMealInfo(DiningType.DINNER).getLastOrderTime()));
-        spotResponseDto.setDinnerDeliveryTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.DINNER).getDeliveryTime()));
+        spotResponseDto.setDinnerDeliveryTime(spot.getMealInfo(DiningType.DINNER) == null ? null : deliveryTimeToString(spot.getMealInfo(DiningType.DINNER).getDeliveryTimes()));
         spotResponseDto.setDinnerUseDays(spot.getMealInfo(DiningType.DINNER) == null ? null : DaysUtil.serviceDaysToDaysString(spot.getMealInfo(DiningType.DINNER).getServiceDays()));
         spotResponseDto.setDinnerSupportPrice(BigDecimal.ZERO);
         spotResponseDto.setDinnerMembershipBenefitTime((spot.getMealInfo(DiningType.DINNER) == null ? null : spot.getMealInfo(DiningType.DINNER).dayAndTimeToString()));
@@ -82,13 +83,16 @@ public interface SpotMapper {
         if (lastOrderTime == null || deliveryTime == null || useDays == null) {
             return null;
         }
+
+        List<LocalTime> deliveryTimes = Collections.singletonList(DateUtils.stringToLocalTime(deliveryTime));
+
         // 기업 스팟인 경우
         if (group instanceof Corporation corporation) {
             return CorporationMealInfo.builder()
                     .group(corporation)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .deliveryTimes(deliveryTimes)
                     .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .build();
@@ -97,7 +101,7 @@ public interface SpotMapper {
                     .group(apartment)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .deliveryTimes(deliveryTimes)
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .build();
@@ -106,7 +110,7 @@ public interface SpotMapper {
                     .group(openGroup)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .deliveryTimes(deliveryTimes)
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .build();
@@ -301,6 +305,15 @@ public interface SpotMapper {
         return prepaidCategoryDtos.stream()
                 .map(this::toPrepaidCategory)
                 .toList();
+    }
+
+    default String deliveryTimeToString(List<LocalTime> deliveryTimeList) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(LocalTime deliveryTime : deliveryTimeList) {
+            stringBuilder.append(DateUtils.timeToString(deliveryTime)).append(", ");
+        }
+        return stringBuilder.substring(stringBuilder.length(), -2);
     }
 }
 

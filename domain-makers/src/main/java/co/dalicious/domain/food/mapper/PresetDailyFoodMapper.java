@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.food.dto.PresetScheduleDto;
 import co.dalicious.domain.food.dto.PresetScheduleResponseDto;
 import co.dalicious.domain.food.entity.*;
@@ -12,6 +13,7 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -24,13 +26,18 @@ public interface PresetDailyFoodMapper {
     @Mapping(source = "presetDailyFood.food.foodStatus.status", target = "foodStatus")
     @Mapping(source = "presetDailyFood.capacity", target = "foodCapacity")
     @Mapping(source = "presetDailyFood.scheduleStatus.code", target = "scheduleStatus")
-    PresetScheduleResponseDto.foodSchedule toFoodScheduleDto(PresetDailyFood presetDailyFood);
+    PresetScheduleResponseDto.FoodSchedule toFoodScheduleDto(PresetDailyFood presetDailyFood);
 
-    @Mapping(target = "pickupTime", expression = "java(DateUtils.timeToString(presetGroupDailyFood.getPickupTime()))")
-    @Mapping(source = "presetGroupDailyFood.group.name", target = "clientName")
-    @Mapping(source = "presetGroupDailyFood.capacity", target = "clientCapacity")
-    @Mapping(source = "foodSchedules", target = "foodSchedule")
-    PresetScheduleResponseDto.clientSchedule toClientScheduleDto(PresetGroupDailyFood presetGroupDailyFood, List<PresetScheduleResponseDto.foodSchedule> foodSchedules);
+    default PresetScheduleResponseDto.ClientSchedule toClientScheduleDto(PresetGroupDailyFood presetGroupDailyFood, List<PresetScheduleResponseDto.FoodSchedule> foodSchedules){
+        PresetScheduleResponseDto.ClientSchedule clientSchedule = new PresetScheduleResponseDto.ClientSchedule();
+
+        clientSchedule.setFoodSchedule(foodSchedules);
+        clientSchedule.setClientName(presetGroupDailyFood.getGroup().getName());
+        clientSchedule.setClientCapacity(presetGroupDailyFood.getCapacity());
+        clientSchedule.setPickupTime(presetGroupDailyFood.getDeliveryScheduleList().stream().map(DeliverySchedule::getDeliveryTime).map(DateUtils::timeToString).toList());
+
+        return clientSchedule;
+    };
 
     @Mapping(source = "presetMakersDailyFood.id", target = "presetMakersId")
     @Mapping(source = "presetMakersDailyFood.scheduleStatus.code", target = "scheduleStatus")
@@ -40,19 +47,19 @@ public interface PresetDailyFoodMapper {
     @Mapping(target = "deadline", expression = "java(DateUtils.localDateTimeToString(presetMakersDailyFood.getDeadline()))")
     @Mapping(source = "clientSchedule", target = "clientSchedule")
     @Mapping(source = "presetMakersDailyFood.makers.name", target = "makersName")
-    PresetScheduleResponseDto toDto(PresetMakersDailyFood presetMakersDailyFood, List<PresetScheduleResponseDto.clientSchedule> clientSchedule);
+    PresetScheduleResponseDto toDto(PresetMakersDailyFood presetMakersDailyFood, List<PresetScheduleResponseDto.ClientSchedule> clientSchedule);
 
     @Mapping(source = "food.name", target = "foodName")
     @Mapping(source = "food.foodStatus.status", target = "foodStatus")
     @Mapping(target = "foodCapacity", expression = "java(getFoodCapacity(food.getFoodCapacities(), data))")
     @Mapping(target = "scheduleStatus", expression = "java(ScheduleStatus.WAITING.getCode())")
-    PresetScheduleResponseDto.foodSchedule recommendToFoodScheduleDto(Food food, RecommendScheduleDto data);
+    PresetScheduleResponseDto.FoodSchedule recommendToFoodScheduleDto(Food food, RecommendScheduleDto data);
 
     @Mapping(source = "pickupTime", target = "pickupTime")
     @Mapping(source = "group.name", target = "clientName")
     @Mapping(source = "groupCapacity", target = "clientCapacity")
     @Mapping(source = "foodSchedules", target = "foodSchedule")
-    PresetScheduleResponseDto.clientSchedule recommendToClientScheduleDto(Group group, Integer groupCapacity, String pickupTime, List<PresetScheduleResponseDto.foodSchedule> foodSchedules);
+    PresetScheduleResponseDto.ClientSchedule recommendToClientScheduleDto(Group group, Integer groupCapacity, List<String> pickupTime, List<PresetScheduleResponseDto.FoodSchedule> foodSchedules);
 
     @Mapping(target = "scheduleStatus", expression = "java(ScheduleStatus.WAITING.getCode())")
     @Mapping(source = "recommendScheduleDto.serviceDate", target = "serviceDate")
@@ -61,7 +68,7 @@ public interface PresetDailyFoodMapper {
     @Mapping(target = "deadline", ignore = true)
     @Mapping(source = "makers.name", target = "makersName")
     @Mapping(source = "clientSchedule", target = "clientSchedule")
-    PresetScheduleResponseDto recommendToDto(Makers makers, RecommendScheduleDto recommendScheduleDto, List<PresetScheduleResponseDto.clientSchedule> clientSchedule);
+    PresetScheduleResponseDto recommendToDto(Makers makers, RecommendScheduleDto recommendScheduleDto, List<PresetScheduleResponseDto.ClientSchedule> clientSchedule);
 
     default Integer getMakersCapacity(List<MakersCapacity> makersCapacityList, PresetScheduleDto data) {
         MakersCapacity makersCapacity = makersCapacityList.stream()
@@ -83,7 +90,5 @@ public interface PresetDailyFoodMapper {
                 .findFirst().orElseThrow( () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD_CAPACITY));
         return foodCapacity.getCapacity();
     }
-//
-//    default LocalDateTime getDeadLine() { return LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusDays(3); }
 }
 

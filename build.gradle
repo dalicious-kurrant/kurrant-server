@@ -194,6 +194,7 @@ project(':app-admin-api') {
         implementation project(':domain-review')
         implementation project(':domain-paycheck')
         implementation project(':client-alarm')
+        implementation project(':domain-application-form')
         implementation project(':data-redis')
     }
 }
@@ -305,6 +306,7 @@ project(':domain-user') {
         implementation project(':domain-file')
         implementation project(':domain-address')
         implementation project(':domain-client')
+        implementation project(':domain-application-form')
     }
 }
 
@@ -339,7 +341,7 @@ project(':domain-payment') {
 project(':domain-application-form') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':domain-user')
+        implementation project(':domain-client')
         implementation project(':domain-address')
     }
 }

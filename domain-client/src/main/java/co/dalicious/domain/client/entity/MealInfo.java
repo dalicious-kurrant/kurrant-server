@@ -1,7 +1,9 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.client.converter.DayAndTimeConverter;
+import co.dalicious.domain.client.converter.DeliveryTimesConverter;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.system.converter.DaysListConverter;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
@@ -44,10 +46,11 @@ public class MealInfo {
     @Comment("식사 타입")
     private DiningType diningType;
 
-    @NotNull
-    @Column(name = "delivery_time", nullable = false)
+    @Convert(converter = DeliveryTimesConverter.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    @Column(name = "delivery_time")
     @Comment("배송 시간")
-    private LocalTime deliveryTime;
+    private List<LocalTime> deliveryTimes;
 
     @Column(name = "membership_benefit_time")
     @Convert(converter = DayAndTimeConverter.class)
@@ -83,9 +86,9 @@ public class MealInfo {
     @Comment("스팟")
     private Group group;
 
-    public MealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
+    public MealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
         this.diningType = diningType;
-        this.deliveryTime = deliveryTime;
+        this.deliveryTimes = deliveryTimes;
         this.membershipBenefitTime = membershipBenefitTime;
         this.lastOrderTime = lastOrderTime;
         this.serviceDays = serviceDays;
@@ -97,14 +100,14 @@ public class MealInfo {
     }
 
     public void updateMealInfo(MealInfo mealInfo) {
-        this.deliveryTime = mealInfo.getDeliveryTime();
+        this.deliveryTimes = mealInfo.getDeliveryTimes();
         this.membershipBenefitTime = mealInfo.getMembershipBenefitTime();
         this.lastOrderTime = mealInfo.getLastOrderTime();
         this.serviceDays = mealInfo.getServiceDays();
     }
 
     public void updateMealInfo(MealInfo updateMealInfo, MealInfo mealInfo) {
-        this.deliveryTime = updateMealInfo.getDeliveryTime();
+        this.deliveryTimes = updateMealInfo.getDeliveryTimes();
         this.membershipBenefitTime = updateMealInfo.getMembershipBenefitTime();
         this.lastOrderTime = updateMealInfo.getLastOrderTime();
         this.serviceDays = updateMealInfo.getServiceDays();

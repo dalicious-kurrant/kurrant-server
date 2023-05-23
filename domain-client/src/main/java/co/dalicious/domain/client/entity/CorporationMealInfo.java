@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
@@ -25,8 +26,8 @@ public class CorporationMealInfo extends MealInfo{
     private List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices;
 
     @Builder
-    public CorporationMealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
-        super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, group);
+    public CorporationMealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
+        super(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group);
         this.serviceDaysAndSupportPrices = serviceDaysAndSupportPrices;
     }
 

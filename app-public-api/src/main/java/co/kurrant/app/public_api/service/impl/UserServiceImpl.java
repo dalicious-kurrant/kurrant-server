@@ -416,7 +416,7 @@ public class UserServiceImpl implements UserService {
                 if (mealInfo.isEmpty()) {
                     throw new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO);
                 }
-                LocalTime deliveryTime = mealInfo.get().getDeliveryTime();
+                LocalTime deliveryTime = orderItemDailyFood.getOrderItemDailyFoodGroup().getDeliveryTime();
                 if (LocalTime.now().isAfter(deliveryTime)) {
                     continue;
                 }

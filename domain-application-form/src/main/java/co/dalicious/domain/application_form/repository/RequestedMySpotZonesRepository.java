@@ -1,6 +1,6 @@
-package co.dalicious.domain.client.repository;
+package co.dalicious.domain.application_form.repository;
 
-import co.dalicious.domain.client.entity.RequestedMySpotZones;
+import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.math.BigInteger;
