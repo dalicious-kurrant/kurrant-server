@@ -5,6 +5,8 @@ import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.client.core.repository.RefreshTokenRepository;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -35,6 +37,9 @@ import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
+import co.dalicious.system.util.DateUtils;
+import co.kurrant.app.public_api.dto.board.AlarmResponseDto;
+import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
@@ -99,6 +104,7 @@ public class UserServiceImpl implements UserService {
     private final FoodRepository foodRepository;
     private final UserSelectTestDataRepository userSelectTestDataRepository;
     private final UserSelectTestDataMapper userSelectTestDataMapper;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
 
     @Override
     @Transactional
@@ -1063,5 +1069,15 @@ public class UserServiceImpl implements UserService {
         User user = userUtil.getUser(securityUser);
         List<UserPreference> userPreferences = userPreferenceRepository.findAllByUserId(user.getId());
         return !userPreferences.isEmpty();
+    }
+
+    @Override
+    public List<PushResponseDto> getAlarms(SecurityUser securityUser) {
+        List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllByUserIdOrderByCreatedDateTimeDesc(securityUser.getId());
+        List<PushResponseDto> alarmResponseDtos = new ArrayList<>();
+        for (PushAlarmHash pushAlarmHash : pushAlarmHashes) {
+            alarmResponseDtos.add(new PushResponseDto(pushAlarmHash));
+        }
+        return alarmResponseDtos;
     }
 }

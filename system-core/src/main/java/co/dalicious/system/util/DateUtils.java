@@ -45,6 +45,7 @@ public class DateUtils {
     }
 
     public static String format(LocalDate date) {
+        if(date == null) return null;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return date.format(formatter);
     }
@@ -78,6 +79,7 @@ public class DateUtils {
     }
 
     public static LocalDate stringToDate(String strLocalDate) {
+        if(strLocalDate == null) return null;
         String[] stringList = strLocalDate.split("-");
         return LocalDate.of(Integer.parseInt(stringList[0]),Integer.parseInt(stringList[1]), Integer.parseInt(stringList[2]));
     }

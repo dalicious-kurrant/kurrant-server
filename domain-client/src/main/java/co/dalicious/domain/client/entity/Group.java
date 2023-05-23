@@ -50,6 +50,10 @@ public class Group {
     @Comment("그룹 이름")
     private String name;
 
+    @Column(columnDefinition = "BIT(1) DEFAULT 1")
+    @Comment("활성화 여부")
+    private Boolean isActive;
+
     @Comment("계약 시작 날짜")
     private LocalDate contractStartDate;
 
@@ -120,7 +124,8 @@ public class Group {
         return mealInfo;
     }
 
-    public void updateGroup(Address address, List<DiningType> diningTypeList, String name) {
+    public void updateGroup(Address address, List<DiningType> diningTypeList, String name, Boolean isActive) {
+        this.isActive = isActive;
         this.address = address;
         this.diningTypes = diningTypeList;
         this.name = name;
@@ -133,6 +138,7 @@ public class Group {
     public void updateGroup(UpdateSpotDetailRequestDto spotResponseDto) throws ParseException {
         // TODO: Location 추가
         Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        this.isActive = spotResponseDto.getIsActive();
         this.name = spotResponseDto.getSpotName();
         this.address = address;
     }

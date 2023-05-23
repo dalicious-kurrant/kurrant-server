@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {Image.class, DiningType.class, DayAndTime.class})
 public interface MakersFoodMapper {
-
     @Mapping(source = "food.calorie", target = "calorie")
     @Mapping(source = "food.fat", target = "fat")
     @Mapping(source = "food.protein", target = "protein")
@@ -43,6 +42,8 @@ public interface MakersFoodMapper {
     @Mapping(source = "discountDto.periodDiscountRate", target = "eventDiscount")
     @Mapping(source = "resultPrice", target = "resultPrice")
     @Mapping(source = "food.description", target = "description")
+    @Mapping(target = "foodGroupId", expression = "java(food.getFoodGroup() == null ? null : food.getFoodGroup().getId())")
+    @Mapping(target = "foodGroup", expression = "java(food.getFoodGroup() == null ? null : food.getFoodGroup().getName())")
     @Mapping(source = "food.foodTags", target = "foodTags", qualifiedByName = "getAllFoodList")
     FoodListDto.FoodList toAllFoodListDto(Food food, DiscountDto discountDto, BigDecimal resultPrice);
 
@@ -60,11 +61,14 @@ public interface MakersFoodMapper {
     @Mapping(source = "resultPrice", target = "resultPrice")
     @Mapping(source = "food.description", target = "description")
     @Mapping(source = "food.foodTags", target = "foodTags", qualifiedByName = "getAllFoodList")
+    @Mapping(target = "foodGroupId", expression = "java(food.getFoodGroup() == null ? null : food.getFoodGroup().getId())")
+    @Mapping(target = "foodGroup", expression = "java(food.getFoodGroup() == null ? null : food.getFoodGroup().getName())")
     FoodListDto.FoodList toAllFoodListByMakersDto(Food food, DiscountDto discountDto, BigDecimal resultPrice);
 
     @Mapping(source = "food.makers.name", target = "makersName")
     @Mapping(source = "food.id", target = "foodId")
     @Mapping(source = "food.name", target = "foodName")
+    @Mapping(target = "foodGroup", expression = "java(food.getFoodGroup() == null ? null : food.getFoodGroup().getName())")
     @Mapping(source = "food.supplyPrice", target = "supplyPrice")
     @Mapping(source = "food.price", target = "foodPrice")
     @Mapping(target = "foodImages", expression = "java(Image.getImagesLocation(food.getImages()))")
@@ -80,10 +84,15 @@ public interface MakersFoodMapper {
     @Mapping(target = "morningCapacity", expression = "java(food.getFoodCapacity(DiningType.MORNING) == null ? 0 : food.getFoodCapacity(DiningType.MORNING).getCapacity())")
     @Mapping(target = "lunchCapacity", expression = "java(food.getFoodCapacity(DiningType.LUNCH) == null ? 0 : food.getFoodCapacity(DiningType.LUNCH).getCapacity())")
     @Mapping(target = "dinnerCapacity", expression = "java(food.getFoodCapacity(DiningType.DINNER) == null ? 0 : food.getFoodCapacity(DiningType.DINNER).getCapacity())")
-    @Mapping(source = "food",target = "morningLastOrderTime", qualifiedByName = "getMorningLastOrderTime")
-    @Mapping(source = "food",target = "lunchLastOrderTime", qualifiedByName = "getLunchLastOrderTime")
-    @Mapping(source = "food",target = "dinnerLastOrderTime", qualifiedByName = "getDinnerLastOrderTime")
+    @Mapping(source = "food", target = "morningLastOrderTime", qualifiedByName = "getMorningLastOrderTime")
+    @Mapping(source = "food", target = "lunchLastOrderTime", qualifiedByName = "getLunchLastOrderTime")
+    @Mapping(source = "food", target = "dinnerLastOrderTime", qualifiedByName = "getDinnerLastOrderTime")
+    @Mapping(source = "food.calorie", target = "calorie")
+    @Mapping(source = "food.carbohydrate", target = "carbohydrate")
+    @Mapping(source = "food.fat", target = "fat")
+    @Mapping(source = "food.protein", target = "protein")
     MakersFoodDetailDto toFoodManagingDto(Food food, DiscountDto discountDto);
+
     @Named("getAllFoodList")
     default List<String> getAllFoodList(List<FoodTag> foodTags) {
         if (foodTags == null) {
@@ -102,8 +111,8 @@ public interface MakersFoodMapper {
     @Named("getFoodTagList")
     default List<Integer> getFoodTagList(List<FoodTag> foodTags) {
         List<Integer> foodTagList = new ArrayList<>();
-        if(foodTags != null) {
-            for(FoodTag tag : foodTags) {
+        if (foodTags != null) {
+            for (FoodTag tag : foodTags) {
                 foodTagList.add(tag.getCode());
             }
             Collections.sort(foodTagList);
@@ -115,7 +124,7 @@ public interface MakersFoodMapper {
     @Named("customPrice")
     default BigDecimal customPrice(BigDecimal customPrice) {
         BigDecimal bigDecimal = BigDecimal.ZERO;
-        if(customPrice != null) {
+        if (customPrice != null) {
             return bigDecimal = bigDecimal.add(customPrice);
         }
         return bigDecimal;
@@ -124,21 +133,21 @@ public interface MakersFoodMapper {
     @Named("getDinnerLastOrderTime")
     default String getDinnerLastOrderTime(Food food) {
         FoodCapacity foodCapacity = food.getFoodCapacity(DiningType.DINNER);
-        if(foodCapacity == null) return "정보 없음";
+        if (foodCapacity == null) return "정보 없음";
         return DayAndTime.dayAndTimeToString(foodCapacity.getLastOrderTime());
     }
 
     @Named("getLunchLastOrderTime")
     default String getLunchLastOrderTime(Food food) {
         FoodCapacity foodCapacity = food.getFoodCapacity(DiningType.LUNCH);
-        if(foodCapacity == null) return "정보 없음";
+        if (foodCapacity == null) return "정보 없음";
         return DayAndTime.dayAndTimeToString(foodCapacity.getLastOrderTime());
     }
 
     @Named("getMorningLastOrderTime")
     default String getMorningLastOrderTime(Food food) {
         FoodCapacity foodCapacity = food.getFoodCapacity(DiningType.MORNING);
-        if(foodCapacity == null) return "정보 없음";
+        if (foodCapacity == null) return "정보 없음";
         return DayAndTime.dayAndTimeToString(foodCapacity.getLastOrderTime());
     }
 }

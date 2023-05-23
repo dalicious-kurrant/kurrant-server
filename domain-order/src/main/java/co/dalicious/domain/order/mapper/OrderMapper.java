@@ -18,7 +18,7 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.domain.order.dto.OrderDto;
-import co.dalicious.system.util.PriceUtils;
+import co.dalicious.system.util.NumberUtils;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -32,7 +32,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, OrderDailyFood.class, Hibernate.class, OrderUtil.class, UserSupportPriceUtil.class, PriceUtils.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, OrderDailyFood.class, Hibernate.class, OrderUtil.class, UserSupportPriceUtil.class, NumberUtils.class})
 public interface OrderMapper {
     @Mapping(source = "orderCode", target = "code")
     @Mapping(source = "spot.address", target = "address")
@@ -338,8 +338,8 @@ public interface OrderMapper {
             orderItemStatic.setOrderUserCount(orderUsers.size());
             orderItemStatic.setFoodCount(foodCount);
             orderItemStatic.setBuyingUserCount(orderCompleteUsers.size());
-            orderItemStatic.setOrderRate(PriceUtils.getPercent(userCount, orderCompleteUsers.size()));
-            orderItemStatic.setCancelRate(PriceUtils.getPercent(orderUsers.size(), orderUsers.size() - orderCompleteUsers.size()));
+            orderItemStatic.setOrderRate(NumberUtils.getPercent(userCount, orderCompleteUsers.size()));
+            orderItemStatic.setCancelRate(NumberUtils.getPercent(orderUsers.size(), orderUsers.size() - orderCompleteUsers.size()));
             orderItemStatic.setTotalPrice(totalPrice);
 
             orderItemStatics.add(orderItemStatic);

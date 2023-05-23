@@ -34,14 +34,14 @@ public class PushUtil {
     private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
     private final QBatchPushAlarmLogRepository qBatchPushAlarmLogRepository;
 
-    public void sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, String customMessage) {
+    public PushRequestDto sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, String customMessage) {
         Set<BigInteger> spotIds = !ids.containsKey("spotIds") || ids.get("spotIds") == null ? null : ids.get("spotIds");
         Set<BigInteger> userIds = !ids.containsKey("userIds") || ids.get("userIds") == null ? null : ids.get("userIds");
 
         // 활성화 된 자동 알람을 불러오기
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
         // 비활성인 경우 알람 안보냄
-        if (pushAlarms == null) return;
+        if (pushAlarms == null) return null;
 
         List<User> userList = new ArrayList<>();
 
@@ -76,13 +76,10 @@ public class PushUtil {
             message = customMessage;
         }
 
-        PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(firebaseTokenList, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl(), keys);
-
-        pushService.sendToPush(pushRequestDto);
+        return pushAlarmMapper.toPushRequestDto(firebaseTokenList, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl(), keys);
     }
 
     public PushRequestDtoByUser getPushRequest(User user, PushCondition pushCondition, String customMessage) {
-
         // 활성화 된 자동 알람을 불러오기
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
         // 비활성인 경우 알람 안보냄

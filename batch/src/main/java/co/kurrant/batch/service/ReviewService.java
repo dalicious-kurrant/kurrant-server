@@ -26,6 +26,7 @@ public class ReviewService {
 
     public List<BigInteger> findUserIdsByReviewDeadline() {
 
+
         LocalDate limitDay = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(5);
         LocalDateTime before24ByNow = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(1);
 

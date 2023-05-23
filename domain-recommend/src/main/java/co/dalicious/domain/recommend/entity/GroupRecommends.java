@@ -1,6 +1,7 @@
 package co.dalicious.domain.recommend.entity;
 
 import co.dalicious.system.converter.DiningTypeConverter;
+import co.dalicious.system.converter.IdListConverter;
 import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.Comment;
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Entity
@@ -30,6 +32,11 @@ public class GroupRecommends {
     @Column(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("메이커스 Id")
     private BigInteger makersId;
+
+    @Column(name = "foodIds")
+    @Convert(converter = IdListConverter.class)
+    @Comment("음식 id 리스트")
+    private List<BigInteger> foodIds;
 
     @Column(name = "service_date")
     @Comment("서비스 제공 날")

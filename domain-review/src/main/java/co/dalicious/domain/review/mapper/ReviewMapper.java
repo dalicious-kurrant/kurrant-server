@@ -26,6 +26,7 @@ import org.mapstruct.Named;
 import org.springframework.util.MultiValueMap;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -74,15 +75,17 @@ public interface ReviewMapper {
     ReviewListDto toReviewListDto(Reviews reviews);
 
 
-    @Mapping(source = "isLike", target = "isLike")
+    @Mapping(source = "isGood", target = "isGood")
+    @Mapping(source = "isWriter", target = "isWriter")
     @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocations")
     @Mapping(source = "reviews.comments", target = "commentList", qualifiedByName = "setCommentList2")
     @Mapping(source = "reviews.createdDateTime", target = "createDate", qualifiedByName = "getCreateDate")
+    @Mapping(source = "reviews.updatedDateTime", target = "updateDate", qualifiedByName = "getCreateDate")
     @Mapping(source = "reviews.satisfaction", target = "satisfaction")
     @Mapping(source = "user.name", target = "userName")
-    @Mapping(source = "reviews.like", target = "like")
+    @Mapping(source = "reviews.good", target = "good")
     @Mapping(source = "reviews.id", target = "reviewId")
-    FoodReviewListDto toFoodReviewListDto(Reviews reviews, User user, List<Comments> commentsList, boolean isLike);
+    FoodReviewListDto toFoodReviewListDto(Reviews reviews, User user, List<Comments> commentsList, boolean isGood, boolean isWriter);
 
     @Named("getCreateDate")
     default String getCreateDate(Timestamp createdDateTime){
@@ -337,12 +340,31 @@ public interface ReviewMapper {
         return imageList.isEmpty() ? null : imageList.get(0).getLocation();
     }
 
-    default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starEverage, Integer total){
+    default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starEverage, Integer count, BigInteger foodId, Integer sort,
+                                                                boolean isLast, Integer total, Integer limit){
         GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
 
         getFoodReviewResponseDto.setItems(foodReviewListDtoList);
         getFoodReviewResponseDto.setStarEverage(starEverage);
+        getFoodReviewResponseDto.setIsLast(isLast);
+        getFoodReviewResponseDto.setCount(count);
         getFoodReviewResponseDto.setTotal(total);
+        getFoodReviewResponseDto.setLimit(limit);
+        getFoodReviewResponseDto.setFoodId(foodId);
+
+
+        if (sort == 0){ //별점순 같을 경우 최신순
+            getFoodReviewResponseDto.setItems(getFoodReviewResponseDto.getItems().stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction)
+                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList()));
+        }
+        if (sort == 1){ //최신순 같을 경우 별점순
+            getFoodReviewResponseDto.setItems(getFoodReviewResponseDto.getItems().stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate)
+                    .thenComparing(FoodReviewListDto::getSatisfaction).reversed()).collect(Collectors.toList()));
+        }
+        if (sort == 2){ //좋아요(도움이돼요)순 같을 경우 최신순
+            getFoodReviewResponseDto.setItems(getFoodReviewResponseDto.getItems().stream().sorted(Comparator.comparing(FoodReviewListDto::getGood)
+                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList()));
+        }
 
         return getFoodReviewResponseDto;
 

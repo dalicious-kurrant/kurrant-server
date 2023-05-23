@@ -1,22 +1,17 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.board.entity.Alarm;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.board.entity.CustomerService;
 import co.dalicious.domain.board.entity.Notice;
-import co.dalicious.domain.board.repository.QAlarmRepository;
 import co.dalicious.domain.board.repository.QCustomerBoardRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
-import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.user.entity.User;
+import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.kurrant.app.public_api.service.BoardService;
-import co.kurrant.app.public_api.dto.board.AlarmResponseDto;
 import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
 import co.kurrant.app.public_api.dto.board.NoticeDto;
-import co.kurrant.app.public_api.mapper.board.AlarmMapper;
 import co.kurrant.app.public_api.mapper.board.CustomerServiceMapper;
 import co.kurrant.app.public_api.mapper.board.NoticeMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -29,8 +24,8 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +33,8 @@ public class BoardServiceImpl implements BoardService {
 
     private final QNoticeRepository qNoticeRepository;
     private final QCustomerBoardRepository qCustomerBoardRepository;
-    private final QAlarmRepository qAlarmRepository;
     private final NoticeMapper noticeMapper;
-    private final AlarmMapper alarmMapper;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
     private final CustomerServiceMapper customerServiceMapper;
     private final UserUtil userUtil;
     private final QGroupRepository qGroupRepository;
@@ -70,7 +64,7 @@ public class BoardServiceImpl implements BoardService {
         for (Notice notice:noticeList){
            result.add(noticeMapper.toDto(notice));
         }
-        return result;
+        return result.stream().sorted(Comparator.comparing(NoticeDto::getCreated).reversed()).toList();
     }
 
     @Override
@@ -84,20 +78,20 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public List<AlarmResponseDto> alarmBoardList(SecurityUser securityUser) {
-        User user = userUtil.getUser(securityUser);
-        List<AlarmResponseDto> result = new ArrayList<>();
-        List<Alarm> alarmList = qAlarmRepository.findAllByUserId(user.getId());
-        for (Alarm alarm : alarmList){
-           result.add(alarmMapper.toDto(alarm));
+    public List<PushResponseDto> alarmBoardList(SecurityUser securityUser) {
+        List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllByUserIdOrderByCreatedDateTimeDesc(securityUser.getId());
+        List<PushResponseDto> alarmResponseDtos = new ArrayList<>();
+        for (PushAlarmHash pushAlarmHash : pushAlarmHashes) {
+            alarmResponseDtos.add(new PushResponseDto(pushAlarmHash));
         }
-        return result;
+        return alarmResponseDtos;
     }
 
     @Override
     @Transactional
-    public Long deleteAllAlarm(SecurityUser securityUser) {
+    public void deleteAllAlarm(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
-        return qAlarmRepository.deleteAllAlarm(user.getId());
+        List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllByUserIdOrderByCreatedDateTimeDesc(user.getId());
+        pushAlarmHashRepository.deleteAll(pushAlarmHashes);
     }
 }

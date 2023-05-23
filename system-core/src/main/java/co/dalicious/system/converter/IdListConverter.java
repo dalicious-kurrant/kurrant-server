@@ -15,7 +15,7 @@ public class IdListConverter implements AttributeConverter<List<BigInteger>, Str
         if (attribute == null || attribute.isEmpty()) {
             return null;
         }
-        return attribute.stream().map(String::valueOf).collect(Collectors.joining(SEPARATOR));
+        return attribute.stream().map(BigInteger::toString).collect(Collectors.joining(SEPARATOR));
     }
 
     @Override
@@ -24,7 +24,7 @@ public class IdListConverter implements AttributeConverter<List<BigInteger>, Str
             return null;
         }
         return Arrays.stream(dbData.split(SEPARATOR))
-                .map(v -> BigInteger.valueOf(Integer.parseInt(dbData)))
+                .map(BigInteger::new)
                 .collect(Collectors.toList());
     }
 }

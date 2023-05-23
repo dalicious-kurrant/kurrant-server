@@ -3,6 +3,7 @@ package co.dalicious.domain.logs.entity.enums;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Getter
 public enum LogType {
@@ -23,5 +24,12 @@ public enum LogType {
                 .filter(v -> v.getCode().equals(dbData))
                 .findAny()
                 .orElse(null);
+    }
+
+    public static List<LogType> ofCodes(List<Integer> integers) {
+        if(integers == null) return null;
+        return integers.stream()
+                .map(LogType::ofCode)
+                .toList();
     }
 }

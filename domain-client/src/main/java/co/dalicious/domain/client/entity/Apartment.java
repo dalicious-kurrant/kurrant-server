@@ -36,8 +36,8 @@ public class Apartment extends Group{
         this.familyCount = familyCount;
     }
 
-    public void updateApartment(Address address, List<DiningType> diningTypeList, String name, Integer familyCount) {
-        updateGroup(address, diningTypeList, name);
+    public void updateApartment(Address address, List<DiningType> diningTypeList, String name, Integer familyCount, Boolean isActive) {
+        updateGroup(address, diningTypeList, name, isActive);
         this.familyCount = familyCount;
     }
 }

@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.controller.food;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -8,6 +9,7 @@ import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -60,14 +62,16 @@ public class FoodController {
     public ResponseMessage getFoodReview(Authentication authentication, @PathVariable BigInteger dailyFoodId,
                                          @RequestParam (required = false) Integer sort,
                                          @RequestParam (required = false) Integer photo,
-                                         @RequestParam (required = false) Integer starFilter
+                                         @RequestParam (required = false) String starFilter,
+                                         @RequestParam(required = false, defaultValue = "20") Integer limit,
+                                         @RequestParam Integer page
                                          ){
+        OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        Object foodReview = foodService.getFoodReview(dailyFoodId, securityUser, sort, photo, starFilter);
+        Object foodReview = foodService.getFoodReview(dailyFoodId, securityUser, sort, photo, starFilter,pageable);
         String message = "상품 리뷰 조회 성공!";
             //리뷰없을경우 message 내용변경
             if (foodReview.equals("리뷰없음")) message = "등록된 리뷰가 없습니다.";
-
         return ResponseMessage.builder()
                 .data(foodReview)
                 .message(message)

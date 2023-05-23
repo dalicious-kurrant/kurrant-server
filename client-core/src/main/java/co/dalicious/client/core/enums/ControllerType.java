@@ -3,6 +3,7 @@ package co.dalicious.client.core.enums;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Getter
 public enum ControllerType {
@@ -14,17 +15,17 @@ public enum ControllerType {
     FOOD("FoodController", "음식", 6),
     GROUP("GroupController", "기업", 7),
     MAKERS("MakersController", "메이커스", 8),
-    ORDER_DAILY_FOOD("OrderDailyFoodController", "주문", 8),
-    PAYCHECK("PaycheckController", "정산", 9),
-    POINT("PointController", "포인트", 10),
-    PUBLIC("PublicController", "공용", 11),
-    PUSH_ALARM("PushAlarmController", "푸시 알림", 12),
-    REVIEWS("ReviewsController", "리뷰", 13),
-    SCHEDULE("ScheduleController", "메이커스 식단 일정", 14),
-    SPOT("SpotController", "스팟", 15),
-    USER("UserController", "유저", 16),
-    LOGS("LogController", "로그", 17),
-    GROUP_REQUEST("GroupRequestController", "스팟 신청", 18);
+    ORDER_DAILY_FOOD("OrderDailyFoodController", "주문", 9),
+    PAYCHECK("PaycheckController", "정산", 10),
+    POINT("PointController", "포인트", 11),
+    PUBLIC("PublicController", "공용", 12),
+    PUSH_ALARM("PushAlarmController", "푸시 알림", 13),
+    REVIEWS("ReviewsController", "리뷰", 14),
+    SCHEDULE("ScheduleController", "메이커스 식단 일정", 15),
+    SPOT("SpotController", "스팟", 16),
+    USER("UserController", "유저", 17),
+    LOGS("LogController", "로그", 18),
+    GROUP_REQUEST("GroupRequestController", "스팟 신청", 19);
     private final String controller;
     private final String type;
     private final Integer code;
@@ -47,5 +48,12 @@ public enum ControllerType {
                 .filter(v -> v.getController().equals(controller))
                 .findAny()
                 .orElse(null);
+    }
+
+    public static List<ControllerType> ofCodes(List<Integer> integers) {
+        if(integers == null) return null;
+        return integers.stream()
+                .map(ControllerType::ofCode)
+                .toList();
     }
 }

@@ -201,6 +201,7 @@ public interface SpotMapper {
         spotDetailResDto.setZipCode(group.getAddress().getZipCode());
         spotDetailResDto.setAddress1(group.getAddress().getAddress1());
         spotDetailResDto.setAddress2(group.getAddress().getAddress2());
+        spotDetailResDto.setIsActive(group.getIsActive());
         if (group.getAddress().getLocation() == null) {
             spotDetailResDto.setLocation("없음");
         } else {
@@ -219,6 +220,7 @@ public interface SpotMapper {
             spotDetailResDto.setCode(corporation.getCode());
             spotDetailResDto.setEmployeeCount(corporation.getEmployeeCount());
             spotDetailResDto.setIsSetting(corporation.getIsSetting());
+            spotDetailResDto.setMembershipEndDate(DateUtils.format(corporation.getMembershipEndDate()));
             spotDetailResDto.setIsHotStorage(corporation.getIsHotStorage());
             spotDetailResDto.setIsGarbage(corporation.getIsGarbage());
             spotDetailResDto.setIsMembershipSupport(corporation.getIsMembershipSupport());

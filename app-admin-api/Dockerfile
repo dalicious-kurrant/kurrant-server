@@ -17,4 +17,4 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ENTRYPOINT ["java","-Duser.timezone=Asia/Seoul","-Djava.awt.headless=true","-jar","/app-admin-api.jar"]
+ENTRYPOINT ["java","-Duser.timezone=Asia/Seoul","-Djava.awt.headless=true","-Dspring.output.ansi.enabled=NEVER","-jar","/app-admin-api.jar"]

@@ -103,8 +103,8 @@ public class Reviews{
 
     @ColumnDefault("0")
     @Comment("좋아요")
-    @Column(name ="like", columnDefinition = "INT")
-    private Integer like;
+    @Column(name ="good", columnDefinition = "INT")
+    private Integer good;
 
     @Builder
     public Reviews(String content, String contentOrigin, Integer satisfaction, Integer satisfactionOrigin, Boolean forMakers, User user, OrderItem orderItem, Food food, List<Image> images) {
@@ -117,6 +117,10 @@ public class Reviews{
         this.orderItem = orderItem;
         this.food = food;
         this.images = images;
+    }
+
+    public Reviews(Integer good){
+        this.good = good;
     }
 
     public void updatedReviews(ReviewUpdateReqDto updateReqDto, List<Image> images) {

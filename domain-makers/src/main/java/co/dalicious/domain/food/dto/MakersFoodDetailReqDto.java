@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 public class MakersFoodDetailReqDto {
     private BigInteger foodId;
+    private BigInteger foodGroupId;
     private BigDecimal supplyPrice;
     private BigDecimal defaultPrice;
     private Integer membershipDiscountRate;
