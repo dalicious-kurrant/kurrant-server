@@ -21,4 +21,10 @@ public class QFoodGroupRepository {
                 .where(foodGroup.id.in(ids))
                 .fetch();
     }
+
+    public List<FoodGroup> findAllByNames(Set<String> names) {
+        return queryFactory.selectFrom(foodGroup)
+                .where(foodGroup.name.in(names))
+                .fetch();
+    }
 }

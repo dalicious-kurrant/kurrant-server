@@ -3,6 +3,9 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.client.entity.DayAndTime;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.service.ImageService;
@@ -15,6 +18,14 @@ import co.dalicious.domain.food.mapper.FoodGroupMapper;
 import co.dalicious.domain.food.mapper.MakersFoodMapper;
 import co.dalicious.domain.food.repository.*;
 import co.dalicious.domain.order.mapper.FoodMapper;
+import co.dalicious.domain.recommend.dto.FoodRecommendDto;
+import co.dalicious.domain.recommend.entity.FoodGroupRecommend;
+import co.dalicious.domain.recommend.entity.FoodRecommend;
+import co.dalicious.domain.recommend.entity.FoodRecommendType;
+import co.dalicious.domain.recommend.entity.FoodRecommendTypes;
+import co.dalicious.system.enums.Days;
+import co.kurrant.app.admin_api.mapper.FoodRecommendMapper;
+import co.dalicious.domain.recommend.repository.FoodRecommendRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.enums.FoodTag;
@@ -54,6 +65,10 @@ public class FoodServiceImpl implements FoodService {
     private final FoodGroupRepository foodGroupRepository;
     private final QFoodGroupRepository qFoodGroupRepository;
     private final QMakersRepository qMakersRepository;
+    private final GroupRepository groupRepository;
+    private final FoodRecommendRepository foodRecommendRepository;
+    private final FoodRecommendMapper foodRecommendMapper;
+    private final QGroupRepository qGroupRepository;
 
 
     @Override
@@ -148,7 +163,7 @@ public class FoodServiceImpl implements FoodService {
                     .filter(v -> v.getId().equals(foodListDto.getFoodGroupId()))
                     .findAny().orElse(null);
 
-            if(foodGroup != null && !foodGroup.getMakers().equals(maker))
+            if (foodGroup != null && !foodGroup.getMakers().equals(maker))
                 throw new ApiException(ExceptionEnum.NOT_MATCHED_MAKERS);
 
             List<FoodTag> foodTags = new ArrayList<>();
@@ -356,5 +371,96 @@ public class FoodServiceImpl implements FoodService {
         }
 
         foodGroupRepository.saveAll(newFoodGroups);
+    }
+
+    @Override
+    @Transactional
+    public List<FoodRecommendDto.Response> getRecommendsFoodGroup() {
+        List<FoodRecommend> foodRecommends = foodRecommendRepository.findAll();
+        Set<BigInteger> groupIds = foodRecommends.stream()
+                .flatMap(foodRecommend -> foodRecommend.getGroupIds().stream())
+                .collect(Collectors.toSet());
+        Set<BigInteger> foodGroupIds = foodRecommends.stream()
+                .flatMap(foodRecommend -> foodRecommend.getFoodGroupRecommends().stream()
+                        .flatMap(fgRecommend -> fgRecommend.getFoodGroups().stream()))
+                .collect(Collectors.toSet());
+
+        List<Group> groups = groupRepository.findAllById(groupIds);
+        List<FoodGroup> foodGroups = foodGroupRepository.findAllById(foodGroupIds);
+
+        return foodRecommendMapper.toDtos(foodRecommends, groups, foodGroups);
+    }
+
+    @Override
+    @Transactional
+    public void postRecommendsFoodGroup(List<FoodRecommendDto.Response> foodRecommendDtos) {
+        Set<BigInteger> foodRecommendIds = foodRecommendDtos.stream()
+                .map(FoodRecommendDto.Response::getId)
+                .collect(Collectors.toSet());
+        List<FoodRecommend> foodRecommends = foodRecommendRepository.findAllById(foodRecommendIds);
+
+        Set<String> groupNames = foodRecommendDtos.stream()
+                .map(foodRecommendDto -> StringUtils.StringToStringList(foodRecommendDto.getGroups()))
+                .flatMap(List::stream)
+                .collect(Collectors.toSet());
+        List<Group> groups = qGroupRepository.findAllByNames(groupNames);
+
+        Set<String> foodGroupNames = foodRecommendDtos.stream()
+                .flatMap(foodRecommendDto -> foodRecommendDto.getDailyFoodGroups().stream()
+                        .flatMap(dailyFoodGroup -> StringUtils.StringToStringList(dailyFoodGroup.getFoodGroups()).stream()))
+                .collect(Collectors.toSet());
+        List<FoodGroup> foodGroups = qFoodGroupRepository.findAllByNames(foodGroupNames);
+
+        for (FoodRecommendDto.Response foodRecommendDto : foodRecommendDtos) {
+            FoodRecommend foodRecommend = foodRecommends.stream()
+                    .filter(f -> f.getId().equals(foodRecommendDto.getId()))
+                    .findAny()
+                    .orElse(null);
+
+            List<String> selectedGroupNames = StringUtils.StringToStringList(foodRecommendDto.getGroups());
+            List<BigInteger> groupIds = groups.stream()
+                    .filter(v -> selectedGroupNames.contains(v.getName()))
+                    .map(Group::getId)
+                    .toList();
+
+            List<FoodRecommendTypes> foodRecommendTypes = new ArrayList<>();
+            for (FoodRecommendDto.TypeResponse response : foodRecommendDto.getFoodType()) {
+                List<FoodTag> foodTags = FoodTag.ofStrings(StringUtils.StringToStringList(response.getFoodTypes()));
+                List<Integer> importances = StringUtils.parseIntegerList(response.getImportances());
+                List<FoodRecommendType> foodRecommendTypeList = new ArrayList<>();
+                if (foodTags.size() != importances.size()) {
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE400007", "음식 태그 또는 중요도의 입력이 정확하지 않습니다.");
+                }
+
+                for (int i = 0; i < foodTags.size(); i++) {
+                    foodRecommendTypeList.add(new FoodRecommendType(foodTags.get(i), importances.get(i)));
+                }
+                foodRecommendTypes.add(new FoodRecommendTypes(response.getOrder(), foodRecommendTypeList));
+            }
+
+            List<FoodGroupRecommend> foodGroupRecommends = new ArrayList<>();
+            for (FoodRecommendDto.GroupResponse response : foodRecommendDto.getDailyFoodGroups()) {
+                Days days = Days.ofCode(response.getDays());
+                List<String> selectedFoodGroupNames = StringUtils.StringToStringList(response.getFoodGroups());
+                List<BigInteger> foodGroupIds = foodGroups.stream()
+                        .filter(v -> selectedFoodGroupNames.contains(v.getName()))
+                        .map(FoodGroup::getId)
+                        .toList();
+
+                foodGroupRecommends.add(new FoodGroupRecommend(days, foodGroupIds));
+            }
+            // 새로 생성하는 경우
+            if (foodRecommend == null) {
+                foodRecommendRepository.save(FoodRecommend.builder()
+                        .groupIds(groupIds)
+                        .foodRecommendTypes(foodRecommendTypes)
+                        .foodGroupRecommends(foodGroupRecommends)
+                        .build());
+            }
+            // 업데이트 하는 경우
+            else {
+                foodRecommend.updateFoodRecommend(groupIds, foodRecommendTypes, foodGroupRecommends);
+            }
+        }
     }
 }

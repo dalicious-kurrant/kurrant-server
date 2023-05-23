@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.FoodGroup;
+import co.dalicious.domain.recommend.dto.FoodRecommendDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -20,4 +21,6 @@ public interface FoodService {
     List<FoodListDto.FoodList> getAllFoodForExcel();
     List<FoodGroupDto.Response> getFoodGroups();
     void postFoodGroup(List<FoodGroupDto.Request> requests);
+    List<FoodRecommendDto.Response> getRecommendsFoodGroup();
+    void postRecommendsFoodGroup(List<FoodRecommendDto.Response> foodRecommendDtos);
 }

@@ -1,21 +1,19 @@
 package co.dalicious.domain.recommend.entity;
 
-import lombok.AccessLevel;
+import co.dalicious.system.enums.FoodTag;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
-
-import javax.persistence.*;
-import java.math.BigInteger;
+import lombok.ToString;
 
 @Getter
-@Entity
-@Table(name = "recommend__food_recommend_type")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString
+@NoArgsConstructor
 public class FoodRecommendType {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT UNSIGNED")
-    @Comment("ID")
-    private BigInteger id;
+    private FoodTag foodTag;
+    private Integer importance;
+
+    public FoodRecommendType(FoodTag foodTag, Integer importance) {
+        this.foodTag = foodTag;
+        this.importance = importance;
+    }
 }
