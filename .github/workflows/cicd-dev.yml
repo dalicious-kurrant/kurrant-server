@@ -222,8 +222,8 @@ jobs:
             docker stop admin_kurrant_v1
             docker stop kurrant_batch
             sleep 5
-            docker run -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
-            docker run -d --rm --net redis_redis_cluster --name makers_kurrant_v1 -p 8884:8884 makers_kurrant_v1
+            docker run -i -t --log-driver=awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=kurrant/dev --log-opt awslogs-stream=app -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
+            docker run -i -t --log-driver=awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=kurrant/dev --log-opt awslogs-stream=makers -d --rm --net redis_redis_cluster --name makers_kurrant_v1 -p 8884:8884 makers_kurrant_v1 
             docker run -d --rm --net redis_redis_cluster --name client_kurrant_v1 -p 8886:8886 client_kurrant_v1
             docker run -d --rm --net redis_redis_cluster --name admin_kurrant_v1 -p 8888:8888 admin_kurrant_v1
             docker run -d --rm --name kurrant_batch -p 8890:8890 kurrant_batch

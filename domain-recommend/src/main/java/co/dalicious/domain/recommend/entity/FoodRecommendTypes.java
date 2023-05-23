@@ -14,6 +14,7 @@ import java.util.List;
 @Embeddable
 public class FoodRecommendTypes {
     @Comment("식품 타입 번호")
+    @Column(name = "orderNumber")
     private Integer order;
 
     @Convert(converter = FoodRecommendTypeConverter.class)
