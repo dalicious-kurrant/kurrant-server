@@ -135,6 +135,6 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7} admin_kurrant_v1
           docker stop admin_kurrant_v1
           sleep 5
-          docker run -i -t --log-driver=awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=kurrant/prod --log-opt awslogs-stream=admin -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
+          docker run -i -t --log-driver=awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=kurrant/prod --log-opt awslogs-stream=admin -d --rm --net redis_redis_cluster --name admin_kurrant_v1 -p 8882:8882 admin_kurrant_v1
           
 
