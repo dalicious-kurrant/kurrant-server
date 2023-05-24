@@ -26,4 +26,13 @@ public class LogController {
                 .data(logService.getLogs(parameters, pageable))
                 .build();
     }
+
+    @ControllerMarker(ControllerType.LOGS)
+    @GetMapping("/devices")
+    public ResponseMessage getDevices() {
+        return ResponseMessage.builder()
+                .message("기기 조회에 성공하였습니다.")
+                .data(logService.getDevices())
+                .build();
+    }
 }

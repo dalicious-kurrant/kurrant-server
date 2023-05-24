@@ -127,6 +127,4 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/makers_kurrant_v1:${GITHUB_SHA::7} makers_kurrant_v1
           docker stop makers_kurrant_v1
           sleep 5
-          docker run -d --rm --net redis_redis_cluster --name makers_kurrant_v1 -p 8884:8884 makers_kurrant_v1
-          
-
+          docker run -i -t --log-driver=awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=kurrant/prod --log-opt awslogs-stream=makers -d --rm --net redis_redis_cluster --name makers_kurrant_v1 -p 8884:8884 makers_kurrant_v1
