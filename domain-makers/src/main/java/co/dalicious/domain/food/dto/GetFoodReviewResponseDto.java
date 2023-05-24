@@ -19,4 +19,6 @@ public class GetFoodReviewResponseDto {
     private Integer limit;
     private Boolean isLast;
     private BigInteger foodId;
+    private Integer totalReview;
+    private BigInteger reviewWrite;
 }

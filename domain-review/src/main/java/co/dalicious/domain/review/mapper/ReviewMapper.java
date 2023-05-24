@@ -340,17 +340,19 @@ public interface ReviewMapper {
         return imageList.isEmpty() ? null : imageList.get(0).getLocation();
     }
 
-    default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starEverage, Integer count, BigInteger foodId, Integer sort,
-                                                                boolean isLast, Integer total, Integer limit){
+    default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starEverage, Integer totalReview, BigInteger foodId, Integer sort,
+                                                                boolean isLast, Integer total, Integer limit, Integer count, BigInteger reviewWrite){
         GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
 
         getFoodReviewResponseDto.setItems(foodReviewListDtoList);
         getFoodReviewResponseDto.setStarEverage(starEverage);
         getFoodReviewResponseDto.setIsLast(isLast);
         getFoodReviewResponseDto.setCount(count);
+        getFoodReviewResponseDto.setTotalReview(totalReview);
         getFoodReviewResponseDto.setTotal(total);
         getFoodReviewResponseDto.setLimit(limit);
         getFoodReviewResponseDto.setFoodId(foodId);
+        getFoodReviewResponseDto.setReviewWrite(reviewWrite);
 
 
         if (sort == 0){ //별점순 같을 경우 최신순
