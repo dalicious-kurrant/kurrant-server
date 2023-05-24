@@ -22,7 +22,6 @@ import java.util.Objects;
 
 @Getter
 @Setter
-@Builder
 public class DeliveryDto {
     private List<GroupInfo> groupInfoList;
     private List<SpotInfo> spotInfoList;
@@ -101,14 +100,4 @@ public class DeliveryDto {
         }
     }
 
-    public static DeliveryDto create (List<Group> groupList, List<DeliveryInfo> deliveryInfoList, List<Spot> spotList) {
-        List<GroupInfo> groupInfos = groupList.stream().map(group -> GroupInfo.create(group.getId(), group.getName())).toList();
-        List<SpotInfo> spotInfos = spotList.stream().map(spot -> SpotInfo.create(spot.getId(), spot.getName())).toList();
-
-        return DeliveryDto.builder()
-                .groupInfoList(groupInfos)
-                .spotInfoList(spotInfos)
-                .deliveryInfoList(deliveryInfoList)
-                .build();
-    }
 }

@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -56,6 +57,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
         List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
+
 
         MultiValueMap<Spot, OrderItemDailyFood> spotOrderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
         for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -201,6 +203,6 @@ public class DeliveryServiceImpl implements DeliveryService {
             spotAllList = spotAllList.stream().filter(spot -> groups.contains(spot.getGroup())).toList();
         }
 
-        return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
+        return deliveryMapper.toDeliveryDto(groupAllList, spotAllList, dailyFoodList, orderItemDailyFoods);
     }
 }
