@@ -9,7 +9,6 @@ import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.repository.*;
-import co.dalicious.domain.order.repository.MembershipSupportPriceRepository;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
@@ -145,36 +144,13 @@ public class GroupServiceImpl implements GroupService {
 
                 // group update
                 if(group instanceof Corporation corporation) {
-                    LocalDate membershipEndDate = corporation.getMembershipEndDate();
-                    LocalDate updateMembershipEndDate = DateUtils.stringToDate(groupInfoList.getMembershipEndDate());
-                    if(corporation.getIsMembershipSupport() && groupInfoList.getMembershipEndDate() != null && !groupInfoList.getMembershipEndDate().isEmpty()) {
-                        // 멤버십 종료날짜가 새로 생성 또는 기존 날짜보다 이전으로 업데이트 한 경우
-                        if(membershipEndDate == null || updateMembershipEndDate.isBefore(membershipEndDate)) {
-                            List<Membership> memberships = qmembershipSupportPriceRepository.findAllByGroupAndNow(corporation);
-                            for (Membership membership : memberships) {
-                                if(membership.getEndDate().isAfter(updateMembershipEndDate)) {
-                                    membership.updateEndDate(updateMembershipEndDate);
-                                }
-                            }
-                        }
-                        // 멤버십 종료날짜가 기존 날짜 이후로 업데이트 된 경우
-                        if(membershipEndDate != null && updateMembershipEndDate.isAfter(membershipEndDate)) {
-                            List<Membership> memberships = qmembershipSupportPriceRepository.findAllByGroupAndNow(corporation);
-                            for (Membership membership : memberships) {
-                                LocalDate limitEndDate = membership.getStartDate().plusMonths(1);
-                                if(limitEndDate.isBefore(updateMembershipEndDate)) {
-                                    membership.updateEndDate(updateMembershipEndDate);
-                                }
-                            }
-                        }
-                    }
                     corporation.updateCorporation(groupInfoList, address, diningTypeList);
                 }
                 else if (group instanceof Apartment apartment) {
-                    apartment.updateApartment(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), GroupExcelRequestDto.useOrNotUse(groupInfoList.getIsActive()));
+                    apartment.updateApartment(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
                 }
                 else if (group instanceof  OpenGroup openGroup) {
-                    openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), GroupExcelRequestDto.useOrNotUse(groupInfoList.getIsActive()));
+                    openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
                 }
 
                 // dining type 체크해서 있으면 업데이트, 없으면 생성

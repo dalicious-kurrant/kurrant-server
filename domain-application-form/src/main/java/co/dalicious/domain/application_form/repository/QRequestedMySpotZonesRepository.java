@@ -105,7 +105,7 @@ public class QRequestedMySpotZonesRepository {
             FilterInfo filterInfo = new FilterInfo();
 
             filterInfo.setId(result.get(requestedMySpotZones.id));
-            filterInfo.setName(result.get(requestedMySpotZones.county));
+            filterInfo.setName(result.get(requestedMySpotZones.village));
 
             filterInfos.add(filterInfo);
         });
@@ -139,7 +139,7 @@ public class QRequestedMySpotZonesRepository {
             FilterInfo filterInfo = new FilterInfo();
 
             filterInfo.setId(result.get(requestedMySpotZones.id));
-            filterInfo.setName(result.get(requestedMySpotZones.county));
+            filterInfo.setName(result.get(requestedMySpotZones.zipcode));
 
             filterInfos.add(filterInfo);
         });
