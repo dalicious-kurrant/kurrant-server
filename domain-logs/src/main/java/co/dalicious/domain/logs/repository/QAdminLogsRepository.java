@@ -8,6 +8,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.criterion.Projection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +25,7 @@ import static co.dalicious.domain.logs.entity.QAdminLogs.adminLogs;
 public class QAdminLogsRepository {
     private final JPAQueryFactory queryFactory;
 
-    public Page<AdminLogs> findAllByFilter(List<LogType> logType, List<ControllerType> controllerType, LocalDateTime startDateTime, LocalDateTime endDateTime, Integer limit, Integer page, Pageable pageable) {
+    public Page<AdminLogs> findAllByFilter(List<LogType> logType, List<ControllerType> controllerType, LocalDateTime startDateTime, LocalDateTime endDateTime, List<String> devices, Integer limit, Integer page, Pageable pageable) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (logType != null) {
@@ -33,6 +34,10 @@ public class QAdminLogsRepository {
 
         if (controllerType != null) {
             whereClause.and(adminLogs.controllerType.in(controllerType));
+        }
+
+        if (devices != null) {
+            whereClause.and(adminLogs.userCode.in(devices));
         }
 
         if (startDateTime != null) {
@@ -53,5 +58,12 @@ public class QAdminLogsRepository {
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public List<String> findDevices() {
+        return queryFactory.select(adminLogs.userCode)
+                .from(adminLogs)
+                .distinct()
+                .fetch();
     }
 }
