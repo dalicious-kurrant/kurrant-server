@@ -15,6 +15,7 @@ import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
 import co.dalicious.domain.client.repository.MealInfoRepository;
 import co.dalicious.domain.client.repository.MySpotZoneRepository;
+import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.repository.QMySpotRepository;
 import co.dalicious.system.enums.DiningType;
@@ -42,6 +43,7 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     private final QMySpotRepository qMySpotRepository;
     private final MySpotZoneRepository mySpotZoneRepository;
     private final MealInfoRepository mealInfoRepository;
+    private final QMySpotZoneRepository qMySpotZoneRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -92,7 +94,8 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     public void createMySpotRequest(CreateRequestDto createRequestDto) {
         // 이미 동일한 우편번호가 이미 존재하는지 체크
         RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(createRequestDto.getZipcode());
-        if(existRequestedMySpotZones != null) throw new ApiException(ExceptionEnum.ALREADY_EXIST_REQUEST);
+        MySpotZone existMySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(createRequestDto.getZipcode());
+        if(existRequestedMySpotZones != null || existMySpotZone != null ) throw new ApiException(ExceptionEnum.ALREADY_EXIST_REQUEST);
 
         // 동일한 우편번호가 없으면? -> 생성
         RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(createRequestDto);

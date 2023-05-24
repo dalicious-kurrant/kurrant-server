@@ -313,7 +313,7 @@ public interface SpotMapper {
         for(LocalTime deliveryTime : deliveryTimeList) {
             stringBuilder.append(DateUtils.timeToString(deliveryTime)).append(", ");
         }
-        return stringBuilder.substring(stringBuilder.length(), -2);
+        return stringBuilder.substring(0, stringBuilder.length() - 2);
     }
 }
 

@@ -32,8 +32,8 @@ public class MySpotZone extends Group{
     @Comment("스팟 오픈 상태")
     private MySpotZoneStatus mySpotZoneStatus;
 
-    @Convert(converter = ZipcodesConverter.class)
-    @Column(name = "zipcodes")
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "client__my_spot_zone_zipcodes", joinColumns = @JoinColumn(name = "my_spot_zone_id"))
     @Comment("우편 번호")
     private List<String> zipcodes;
 
@@ -49,13 +49,13 @@ public class MySpotZone extends Group{
     @Comment("시/도")
     private String city;
 
-    @Convert(converter = CountriesConverter.class)
-    @Column(name = "coutries")
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "client__my_spot_zone_countries", joinColumns = @JoinColumn(name = "my_spot_zone_id"))
     @Comment("군/구")
     private List<String> countries;
 
-    @Convert(converter = VillagesConverter.class)
-    @Column(name = "villages")
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "client__my_spot_zone_villages", joinColumns = @JoinColumn(name = "my_spot_zone_id"))
     @Comment("동/읍/리")
     private List<String> villages;
 
