@@ -27,15 +27,15 @@ import java.util.Set;
 @Mapper(componentModel = "spring")
 public interface DeliveryMapper {
 
-    default DeliveryDto toDeliveryDto(List<Group> groupList, List<Spot> spotList, List<DailyFood> dailyFoodList, List<OrderItemDailyFood> orderItemDailyFoodList) {
-        DeliveryDto deliveryDto = new DeliveryDto();
-
-        deliveryDto.setGroupInfoList(groupList.stream().map(this::toGroupInfo).toList());
-        deliveryDto.setSpotInfoList(spotList.stream().map(this::toSpotInfo).toList());
+//    default DeliveryDto toDeliveryDto(List<Group> groupList, List<Spot> spotList, List<DailyFood> dailyFoodList, List<OrderItemDailyFood> orderItemDailyFoodList) {
+//        DeliveryDto deliveryDto = new DeliveryDto();
+//
+//        deliveryDto.setGroupInfoList(groupList.stream().map(this::toGroupInfo).toList());
+//        deliveryDto.setSpotInfoList(spotList.stream().map(this::toSpotInfo).toList());
 //        deliveryDto.setDeliveryInfoList(toDeliveryInfo(dailyFoodList, orderItemDailyFoodList));
-
-        return deliveryDto;
-    }
+//
+//        return deliveryDto;
+//    }
 
     @Mapping(source = "group.id", target = "groupId")
     @Mapping(source = "group.name", target = "groupName")
@@ -54,7 +54,10 @@ public interface DeliveryMapper {
 //            serviceDateMap.add(dailyFood.getServiceDate(), dailyFood);
 //        }
 //
-//        d
+//        for(LocalDate serviceDate : serviceDateMap.keySet()) {
+//
+//        }
+//
 //
 //        return deliveryInfoList;
 //    }
