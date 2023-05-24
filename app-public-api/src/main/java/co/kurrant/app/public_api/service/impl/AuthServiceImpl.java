@@ -298,6 +298,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResponseDto login(LoginRequestDto dto) {
+        if(dto.getEmail() == null) {
+            throw new ApiException(ExceptionEnum.NOT_INPUT_USERNAME);
+        }
+        if(dto.getPassword() == null) {
+            throw new ApiException(ExceptionEnum.NOT_INPUT_PASSWORD);
+        }
+
         User user = userRepository.findOneByEmail(dto.getEmail()).orElseThrow(() -> {
             throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
         });

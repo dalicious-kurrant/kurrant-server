@@ -15,6 +15,10 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static co.dalicious.domain.user.entity.QPointHistory.pointHistory;
@@ -95,8 +99,12 @@ public class QPointHistoryRepository {
     }
 
     public List<PointHistory> findPointHistoryByPointStatusAndUser(User user, PointStatus pointStatus) {
+        Timestamp start = Timestamp.valueOf(LocalDate.now(ZoneId.of("Asia/Seoul")).atTime(LocalTime.MIN));
+        Timestamp end = Timestamp.valueOf(LocalDate.now(ZoneId.of("Asia/Seoul")).atTime(LocalTime.MAX));
+
+
         return jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.pointStatus.eq(pointStatus))
+                .where(pointHistory.user.eq(user), pointHistory.pointStatus.eq(pointStatus), pointHistory.createdDateTime.between(start, end))
                 .fetch();
     }
 }

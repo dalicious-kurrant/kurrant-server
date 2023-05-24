@@ -33,7 +33,7 @@ public class FoodRecommend {
 
     @ElementCollection
     @OrderBy(value = "order DESC")
-    @JoinColumn(name = "recommend__food_recommend_types_id")
+    @CollectionTable(name = "recommend__food_group_types")
     private List<FoodRecommendTypes> foodRecommendTypes;
 
     @ElementCollection
