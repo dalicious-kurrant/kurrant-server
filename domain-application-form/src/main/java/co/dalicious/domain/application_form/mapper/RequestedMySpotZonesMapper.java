@@ -64,8 +64,7 @@ public interface RequestedMySpotZonesMapper {
             if(villages.isEmpty() || !villages.contains(requestedMySpotZones.getZipcode())) villages.add(requestedMySpotZones.getVillage());
 
             if (count == null) count = requestedMySpotZones.getWaitingUserCount();
-
-            count = count + requestedMySpotZones.getWaitingUserCount();
+            else count = count + requestedMySpotZones.getWaitingUserCount();
         }
 
         return MySpotZone.builder()
