@@ -235,7 +235,7 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD)
         );
 
-        FoodGroup foodGroup = foodGroupRepository.findById(foodDetailDto.getFoodGroupId())
+        FoodGroup foodGroup = (foodDetailDto.getFoodGroupId() == null) ? null : foodGroupRepository.findById(foodDetailDto.getFoodGroupId())
                 .orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400006", "일치하는 식품 그룹이 없습니다"));
 
         // 이미지가 삭제되었다면 S3에서도 삭제
