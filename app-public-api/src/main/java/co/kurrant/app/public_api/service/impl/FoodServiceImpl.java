@@ -255,9 +255,10 @@ public class FoodServiceImpl implements FoodService {
         }
 
         //대댓글과 별점 추가
-        double starEverage;
+        double starAverage;
         int isReview = 0;
         double sumStar = 0;    //별점 계산을 위한 총 별점
+
         for (Reviews reviews : pageReviews){
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
@@ -277,13 +278,12 @@ public class FoodServiceImpl implements FoodService {
         }
 
         //기본 정렬
-
         sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction)
                      .thenComparing(FoodReviewListDto::getCreateDate)).collect(Collectors.toList());
 
 
         Integer totalReviewSize = totalReviewsList.size();
-        starEverage =  Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
+        starAverage =  Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
 
         //리뷰작성
         BigInteger reviewWrite = null;
@@ -300,7 +300,8 @@ public class FoodServiceImpl implements FoodService {
             reviewWrite = BigInteger.valueOf(0);
         }
 
-        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starEverage, totalReviewSize, dailyFood.getFood().getId(), sort,
+
+        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort,
                 pageReviews.isLast(), pageReviews.getTotalPages(), pageable.getPageSize(), pageReviews.getNumberOfElements(), reviewWrite);
     }
 

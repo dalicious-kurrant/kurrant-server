@@ -2,6 +2,7 @@ package co.dalicious.domain.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
@@ -74,5 +75,17 @@ public class DailyReport {
     @Column(name="type", columnDefinition = "VARCHAR(8)")
     private String type;
 
-
+    @Builder
+    public DailyReport(User user, String foodName, Integer calorie, Integer protein, Integer fat, Integer carbohydrate, LocalDate eatDate, Timestamp createdDateTime, Timestamp updatedDateTime, String type) {
+        this.user = user;
+        this.foodName = foodName;
+        this.calorie = calorie;
+        this.protein = protein;
+        this.fat = fat;
+        this.carbohydrate = carbohydrate;
+        this.eatDate = eatDate;
+        this.createdDateTime = createdDateTime;
+        this.updatedDateTime = updatedDateTime;
+        this.type = type;
+    }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 public class GetFoodReviewResponseDto {
 
     private List<FoodReviewListDto> items;
-    private Double starEverage;
+    private Double starAverage;
     private Integer total;
     private Integer count;
     private Integer limit;
