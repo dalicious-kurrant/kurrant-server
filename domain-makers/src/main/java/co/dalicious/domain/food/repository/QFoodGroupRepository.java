@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import static co.dalicious.domain.food.entity.QFoodGroup.foodGroup;
+import static co.dalicious.domain.food.entity.QMakersCapacity.makersCapacity;
 
 @Repository
 @RequiredArgsConstructor
@@ -26,5 +27,11 @@ public class QFoodGroupRepository {
         return queryFactory.selectFrom(foodGroup)
                 .where(foodGroup.name.in(names))
                 .fetch();
+    }
+
+    public void deleteAllByIds(List<BigInteger> ids) {
+        queryFactory.delete(makersCapacity)
+                .where(foodGroup.id.in(ids))
+                .execute();
     }
 }

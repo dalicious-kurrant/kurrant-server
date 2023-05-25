@@ -50,6 +50,12 @@ public class QGroupRepository {
                 .fetch();
     }
 
+    public List<Group> findAllByNames(List<String> groupNames) {
+        return queryFactory.selectFrom(group)
+                .where(group.name.in(groupNames))
+                .fetch();
+    }
+
     public List<Group> findAllByIds(Set<BigInteger> ids) {
         return queryFactory.selectFrom(group)
                 .where(group.id.in(ids))

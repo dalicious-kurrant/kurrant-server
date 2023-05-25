@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.FoodGroup;
+import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.recommend.dto.FoodRecommendDto;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,7 +21,11 @@ public interface FoodService {
     void updateFood(List<MultipartFile> files, MakersFoodDetailReqDto foodDetailDto) throws IOException;
     List<FoodListDto.FoodList> getAllFoodForExcel();
     List<FoodGroupDto.Response> getFoodGroups();
-    void postFoodGroup(List<FoodGroupDto.Request> requests);
+    void postFoodGroup(FoodGroupDto.Request request);
+    void excelFoodGroups(List<FoodGroupDto.Request> requests);
+    void deleteFoodGroups(OrderDto.IdList ids);
     List<FoodRecommendDto.Response> getRecommendsFoodGroup();
-    void postRecommendsFoodGroup(List<FoodRecommendDto.Response> foodRecommendDtos);
+    void excelRecommendsFoodGroup(List<FoodRecommendDto.Response> foodRecommendDtos);
+    void postRecommendsFoodGroup(FoodRecommendDto.Response foodRecommendDtos);
+    void deleteFoodRecommends(OrderDto.IdList ids);
 }

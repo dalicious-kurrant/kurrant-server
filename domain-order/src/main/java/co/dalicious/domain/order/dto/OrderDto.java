@@ -68,6 +68,7 @@ public class OrderDto {
         private BigDecimal supportPrice;
         private BigDecimal payPrice;
         private BigDecimal deliveryPrice;
+        private Boolean isMembership;
         private List<OrderItemDailyFood> orderItemDailyFoods;
     }
 
