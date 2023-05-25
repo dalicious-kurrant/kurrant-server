@@ -239,17 +239,17 @@ public class FoodServiceImpl implements FoodService {
 
         //리뷰와 유저정보 가져오기
         Page<Reviews> pageReviews = null;
-        Page<Reviews> totalReviewsList = null;
 
-        totalReviewsList = qReviewRepository.findAllByFoodId(dailyFood.getFood().getId(), pageable);
+
+        List<Reviews> totalReviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
         if ((photo != null && photo != 0) || (starFilter != null && starFilter.length() != 0)){
            pageReviews = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), photo, starFilter, pageable);
 
         } else {
-            pageReviews = totalReviewsList;
+            pageReviews = qReviewRepository.findAllByFoodId(dailyFood.getFood().getId(), pageable);
         }
 
-        if (totalReviewsList.getSize() == 0){
+        if (totalReviewsList.size() == 0){
             return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
                     true,0,0, 0, BigInteger.valueOf(0));
         }
@@ -265,7 +265,7 @@ public class FoodServiceImpl implements FoodService {
             //좋아요 눌렀는지 여부 조회
             boolean isGood = false;
             //조회한 유저가 리뷰 작성자인지 여부
-            boolean isWriter = optionalUser.get().getId() == user.getId() ? true : false;
+            boolean isWriter = optionalUser.get().getId() == user.getId();
             if (isWriter) isReview = 1;
             Optional<ReviewGood> reviewGood = qReviewGoodRepository.foodReviewLikeCheckByUserId(user.getId(), reviews.getId());
             if (reviewGood.isPresent()) isGood = true;
@@ -282,7 +282,7 @@ public class FoodServiceImpl implements FoodService {
                      .thenComparing(FoodReviewListDto::getCreateDate)).collect(Collectors.toList());
 
 
-        Integer totalReviewSize = totalReviewsList.getContent().size();
+        Integer totalReviewSize = totalReviewsList.size();
         starEverage =  Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
 
         //리뷰작성
@@ -296,7 +296,7 @@ public class FoodServiceImpl implements FoodService {
         }
 
         //주문 기한이 5일이 지났는지(orderItemDailyFood +5일이 오늘보다 작다면)
-        if (orderItemDailyFood.getCreatedDateTime().toLocalDateTime().toLocalDate().plusDays(5).isBefore(LocalDate.now())){
+        if (orderItemDailyFood != null && orderItemDailyFood.getCreatedDateTime().toLocalDateTime().toLocalDate().plusDays(5).isBefore(LocalDate.now())){
             reviewWrite = BigInteger.valueOf(0);
         }
 
