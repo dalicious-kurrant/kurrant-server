@@ -1,4 +1,4 @@
-package co.dalicious.domain.client.entity.embeddable;
+package co.dalicious.domain.food.entity.embebbed;
 
 import lombok.AccessLevel;
 import lombok.Builder;

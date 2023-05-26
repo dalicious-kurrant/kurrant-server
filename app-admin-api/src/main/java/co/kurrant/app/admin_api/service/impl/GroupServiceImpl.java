@@ -2,16 +2,25 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
+import co.dalicious.domain.client.dto.filter.FilterDto;
+import co.dalicious.domain.client.dto.filter.FilterPageableRequest;
+import co.dalicious.domain.client.dto.filter.FilterRequest;
+import co.dalicious.domain.client.dto.filter.FilterStatusDto;
+import co.dalicious.domain.client.dto.mySpotZone.AdminListResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
+import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
+import co.dalicious.domain.client.mapper.MySpotZoneMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.Days;
@@ -27,7 +36,6 @@ import co.kurrant.app.admin_api.service.GroupService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -52,6 +60,9 @@ public class GroupServiceImpl implements GroupService {
     private final UserRepository userRepository;
     private final SpotMapper spotMapper;
     private final QMembershipSupportPriceRepository qmembershipSupportPriceRepository;
+    private final QRegionRepository qRegionRepository;
+    private final MySpotZoneMapper mySpotZoneMapper;
+    private final QMySpotZoneRepository qMySpotZoneRepository;
 
     @Override
     @Transactional
@@ -302,6 +313,36 @@ public class GroupServiceImpl implements GroupService {
             openGroup.updateOpenSpot(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getEmployeeCount(), updateSpotDetailRequestDto.getIsActive());
         }
         mealInfoRepository.saveAll(newMealInfoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FilterDto getAllListForFilter(FilterRequest filterRequest) {
+        // 시/도, 군/구, 동/읍/리 별로 필터. - 군/구, 동/읍/리는 다중 필터 가능
+        List<String> nameList = qMySpotZoneRepository.findAllNameList();
+        List<String> cityList = qRegionRepository.findAllCity();
+        List<String> countyList = qRegionRepository.findAllCountyByCity(filterRequest.getCity());
+        List<String> villageList = qRegionRepository.findAllVillageByCounty(filterRequest.getCity(), filterRequest.getCounty());
+        List<String> zipcodeList = qRegionRepository.findAllZipcodeByCityAndCountyAndVillage(filterRequest.getCity(), filterRequest.getCounty(), filterRequest.getVillages());
+        List<MySpotZoneStatus> statusDtoList = List.of(MySpotZoneStatus.class.getEnumConstants());
+
+        return mySpotZoneMapper.toFilterDto(nameList, cityList, countyList, villageList, zipcodeList, statusDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ListItemResponseDto<AdminListResponseDto> getAllMySpotZoneList(FilterPageableRequest filterRequest, OffsetBasedPageRequest pageable) {
+        Page<MySpotZone> mySpotZoneList = qMySpotZoneRepository.findAllMySpotZone(filterRequest.getName(), filterRequest.getCity(), filterRequest.getCounty(), filterRequest.getVillages(), filterRequest.getZipcode(), MySpotZoneStatus.ofCode(filterRequest.getStatus()), filterRequest.getLimit(), filterRequest.getSize(), pageable);
+
+        List<AdminListResponseDto> adminListResponseDtoList = new ArrayList<>();
+        if(mySpotZoneList == null || mySpotZoneList.isEmpty()) {
+            return ListItemResponseDto.<AdminListResponseDto>builder().items(adminListResponseDtoList).count(0).limit(pageable.getPageSize()).offset(pageable.getOffset()).total(0L).build();
+        }
+
+        adminListResponseDtoList.addAll(mySpotZoneList.stream().map(mySpotZoneMapper::toAdminListResponseDto).toList());
+
+        return ListItemResponseDto.<AdminListResponseDto>builder().items(adminListResponseDtoList).count(mySpotZoneList.getNumberOfElements())
+                .limit(pageable.getPageSize()).offset(pageable.getOffset()).total((long) mySpotZoneList.getTotalPages()).build();
     }
 
 

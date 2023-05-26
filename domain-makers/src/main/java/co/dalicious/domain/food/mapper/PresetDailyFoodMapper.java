@@ -1,7 +1,7 @@
 package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.dto.PresetScheduleDto;
 import co.dalicious.domain.food.dto.PresetScheduleResponseDto;
 import co.dalicious.domain.food.entity.*;
@@ -13,9 +13,7 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 
-import java.time.LocalTime;
 import java.util.List;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, DiningType.class, ScheduleStatus.class})

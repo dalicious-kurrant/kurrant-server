@@ -13,9 +13,11 @@ import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.Requeste
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
+import co.dalicious.domain.client.entity.Region;
 import co.dalicious.domain.client.repository.MealInfoRepository;
 import co.dalicious.domain.client.repository.MySpotZoneRepository;
 import co.dalicious.domain.client.repository.QMySpotZoneRepository;
+import co.dalicious.domain.client.repository.RegionRepository;
 import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.repository.QMySpotRepository;
 import co.dalicious.system.enums.DiningType;
@@ -44,6 +46,7 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     private final MySpotZoneRepository mySpotZoneRepository;
     private final MealInfoRepository mealInfoRepository;
     private final QMySpotZoneRepository qMySpotZoneRepository;
+    private final RegionRepository regionRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -151,7 +154,13 @@ public class GroupRequestServiceImpl implements GroupRequestService {
             mealInfoList.add(requestedMySpotZonesMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime));
         }
 
+        List<Region> regions = new ArrayList<>();
+        existRequestedMySpotZones.forEach(requestedMySpotZones -> {
+            regions.add(requestedMySpotZonesMapper.toRegion(requestedMySpotZones, mySpotZone));
+        });
+
         mySpotZoneRepository.save(mySpotZone);
+        regionRepository.saveAll(regions);
         mealInfoRepository.saveAll(mealInfoList);
 
         // requestedMySpotZone을 가지고 있는 muSpot을 수정

@@ -1,6 +1,5 @@
 package co.dalicious.domain.client.entity;
 
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
@@ -8,12 +7,9 @@ import lombok.*;
 import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Getter

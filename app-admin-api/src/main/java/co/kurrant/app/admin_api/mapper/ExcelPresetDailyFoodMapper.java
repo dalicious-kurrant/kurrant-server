@@ -1,7 +1,7 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;

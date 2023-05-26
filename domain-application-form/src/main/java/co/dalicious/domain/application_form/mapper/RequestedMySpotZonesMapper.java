@@ -5,20 +5,15 @@ import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterI
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
-import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
-import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.GenerateRandomNumber;
 import org.mapstruct.Mapper;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -52,17 +47,9 @@ public interface RequestedMySpotZonesMapper {
     RequestedMySpotZones toRequestedMySpotZones (CreateRequestDto createRequestDto);
 
     default MySpotZone toMySpotZone(List<RequestedMySpotZones> requestedMySpotZonesList) {
-
-        List<String> zipcodes = new ArrayList<>();
-        List<String> counties = new ArrayList<>();
-        List<String> villages = new ArrayList<>();
         Integer count = null;
 
         for(RequestedMySpotZones requestedMySpotZones : requestedMySpotZonesList) {
-            if(zipcodes.isEmpty() || !zipcodes.contains(requestedMySpotZones.getZipcode())) zipcodes.add(requestedMySpotZones.getZipcode());
-            if(counties.isEmpty() || !counties.contains(requestedMySpotZones.getZipcode())) counties.add(requestedMySpotZones.getCounty());
-            if(villages.isEmpty() || !villages.contains(requestedMySpotZones.getZipcode())) villages.add(requestedMySpotZones.getVillage());
-
             if (count == null) count = requestedMySpotZones.getWaitingUserCount();
             else count = count + requestedMySpotZones.getWaitingUserCount();
         }
@@ -71,10 +58,6 @@ public interface RequestedMySpotZonesMapper {
                 .diningTypes(List.of(DiningType.MORNING, DiningType.LUNCH, DiningType.DINNER))
                 .name("(임시)_" + GenerateRandomNumber.create6DigitKey())
                 .mySpotZoneStatus(MySpotZoneStatus.WAITE)
-                .zipcodes(zipcodes)
-                .city(requestedMySpotZonesList.get(0).getCity())
-                .countries(counties)
-                .villages(villages)
                 .mySpotZoneUserCount(count)
                 .build();
     }
@@ -94,5 +77,15 @@ public interface RequestedMySpotZonesMapper {
                 .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                 .build();
 
+    }
+
+    default Region toRegion (RequestedMySpotZones requestedMySpotZones, MySpotZone mySpotZone) {
+        return Region.builder()
+                .city(requestedMySpotZones.getCity())
+                .country(requestedMySpotZones.getCounty())
+                .village(requestedMySpotZones.getVillage())
+                .zipcodes(requestedMySpotZones.getZipcode())
+                .mySpotZone(mySpotZone)
+                .build();
     }
 }

@@ -3,7 +3,6 @@ package co.kurrant.app.admin_api.mapper;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
