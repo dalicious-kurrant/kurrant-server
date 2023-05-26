@@ -192,7 +192,7 @@ public class AuthServiceImpl implements AuthService {
                     userValidator.isPhoneValid(smsMessageRequestDto.getTo());
             case FIND_ID, FIND_PASSWORD -> {
                 // 유저가 존재하는지 확인
-                User user = userRepository.findOneByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+                User user = qUserRepository.findOneByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
             }
         }
 

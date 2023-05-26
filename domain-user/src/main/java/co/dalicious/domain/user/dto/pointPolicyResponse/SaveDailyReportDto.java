@@ -15,5 +15,6 @@ public class SaveDailyReportDto {
     private Integer protein;
     private Integer fat;
     private String eatDate;
+    private Integer diningType;
 
 }
