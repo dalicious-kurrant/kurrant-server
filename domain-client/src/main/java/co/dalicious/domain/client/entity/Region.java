@@ -31,14 +31,14 @@ public class Region {
     private String city;
 
     @Column(name = "coutry")
-    @Comment("군/구")
+    @Comment("시/군/구")
     private String country;
 
     @Column(name = "village")
     @Comment("동/읍/리")
     private String village;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_my_spot_zone_id")
     @JsonManagedReference(value = "client__my_spot_zone_fk")
     @Comment("마이스팟 존")
