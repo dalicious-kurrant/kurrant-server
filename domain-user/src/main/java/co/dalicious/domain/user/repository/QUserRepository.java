@@ -233,7 +233,7 @@ public class QUserRepository {
                 .fetch();
     }
 
-    public Optional<User> findOneByEmail(String phone) {
+    public Optional<User> findOneByPhone(String phone) {
         return Optional.ofNullable(queryFactory.selectFrom(user)
                 .where(user.phone.eq(phone))
                 .limit(1)

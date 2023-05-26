@@ -109,7 +109,7 @@ public class AuthServiceImpl implements AuthService {
             }
             case FIND_PASSWORD -> {
                 // 존재하는 유저인지 확인
-                User user = qUserRepository.findOneByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+                User user = userRepository.findOneByEmail(mailMessageDto.getReceivers().get(0)).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
             }
             case PAYMENT_PASSWORD_CREATE_APPLE -> {
                 SecurityUser securityUser = UserUtil.securityUser(authentication);
@@ -192,7 +192,7 @@ public class AuthServiceImpl implements AuthService {
                     userValidator.isPhoneValid(smsMessageRequestDto.getTo());
             case FIND_ID, FIND_PASSWORD -> {
                 // 유저가 존재하는지 확인
-                User user = userRepository.findOneByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+                User user = qUserRepository.findOneByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
             }
         }
 
