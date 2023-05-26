@@ -14,6 +14,7 @@ import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -26,8 +27,10 @@ import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.user.dto.*;
+import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
+import co.dalicious.domain.user.mapper.DailyReportMapper;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
 import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
 import co.dalicious.domain.user.repository.*;
@@ -105,6 +108,8 @@ public class UserServiceImpl implements UserService {
     private final UserSelectTestDataRepository userSelectTestDataRepository;
     private final UserSelectTestDataMapper userSelectTestDataMapper;
     private final PushAlarmHashRepository pushAlarmHashRepository;
+    private final DailyReportMapper dailyReportMapper;
+    private final DailyReportRepository dailyReportRepository;
 
     @Override
     @Transactional
@@ -1079,5 +1084,21 @@ public class UserServiceImpl implements UserService {
             alarmResponseDtos.add(new PushResponseDto(pushAlarmHash));
         }
         return alarmResponseDtos;
+    }
+
+    @Override
+    @Transactional
+    public void insertMyFood(SecurityUser securityUser, SaveDailyReportDto saveDailyReportDto) {
+        User user = userUtil.getUser(securityUser);
+
+        String type = "user";
+
+        DailyReport dailyReport = dailyReportMapper.toEntity(user, saveDailyReportDto, type);
+
+        DailyReport saved = dailyReportRepository.save(dailyReport);
+        if (saved.getId() == null){
+            new ApiException(ExceptionEnum.SAVE_FAILED);
+        }
+
     }
 }

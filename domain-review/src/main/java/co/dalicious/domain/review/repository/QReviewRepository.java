@@ -263,21 +263,21 @@ public class QReviewRepository {
     public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter, Pageable pageable) {
         List<Reviews> reviewsList = new ArrayList<>();
 
-        reviewsList = queryFactory.selectFrom(reviews)
+        QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
                     .limit(pageable.getPageSize())
                     .offset(pageable.getOffset())
-                    .fetch();
+                    .fetchResults();
 
         if (photo != null && photo == 1){
-            reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
+            reviewsList = result.getResults().stream().filter(v -> !v.getImages().isEmpty()).toList();
         }
 
         if (starFilter != null && starFilter.length() != 0){
-            reviewsList = reviewsList.stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
+            reviewsList = result.getResults().stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
         }
 
-    return new PageImpl<>(reviewsList, pageable, reviewsList.size());
+    return new PageImpl<>(reviewsList, pageable, result.getTotal());
     }
 
     public void plusLike(BigInteger reviewId) {
@@ -306,14 +306,14 @@ public class QReviewRepository {
     }
 
     public Page<Reviews> findAllByFoodId(BigInteger foodId, Pageable pageable) {
-        List<Reviews> reviewsList = queryFactory.selectFrom(reviews)
+        QueryResults<Reviews> reviewsList = queryFactory.selectFrom(reviews)
                 .where(reviews.food.id.eq(foodId))
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
-                .fetch();
+                .fetchResults();
 
 
-        return new PageImpl<>(reviewsList, pageable, reviewsList.size());
+        return new PageImpl<>(reviewsList.getResults(), pageable, reviewsList.getTotal());
     }
 
      /*
