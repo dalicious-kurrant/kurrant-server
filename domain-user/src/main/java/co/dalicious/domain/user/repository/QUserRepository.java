@@ -20,10 +20,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.user.entity.QUser.user;
@@ -234,5 +231,12 @@ public class QUserRepository {
                 .where(user.id.in(userIds),
                         user.firebaseToken.isNotNull())
                 .fetch();
+    }
+
+    public Optional<User> findOneByEmail(String phone) {
+        return Optional.ofNullable(queryFactory.selectFrom(user)
+                .where(user.phone.eq(phone))
+                .limit(1)
+                .fetchOne());
     }
 }
