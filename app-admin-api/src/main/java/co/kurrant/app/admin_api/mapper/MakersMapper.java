@@ -146,7 +146,7 @@ public interface MakersMapper {
     @Mapping(source = "dto.name", target = "name")
     @Mapping(source = "dto.code", target = "code")
     @Mapping(source = "dto.isActive", target = "isActive")
-    @Mapping(target = "serviceDays", expression = "java(dto.getServiceDays() = null ? null : DaysUtil.serviceDaysToDaysList(dto.getServiceDays()))")
+    @Mapping(target = "serviceDays", expression = "java(dto.getServiceDays() == null ? null : DaysUtil.serviceDaysToDaysList(dto.getServiceDays()))")
     Makers toEntity(SaveMakersRequestDto dto, Address address);
 
     /*
