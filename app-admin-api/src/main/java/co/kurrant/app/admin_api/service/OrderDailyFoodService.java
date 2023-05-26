@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface OrderDailyFoodService {
-    List<OrderDto.OrderItemDailyFoodList> retrieveOrder(Map<String, Object> parameters);
+    List<OrderDto.OrderItemDailyFoodGroupList> retrieveOrder(Map<String, Object> parameters);
     OrderDailyFoodByMakersDto.ByPeriod retrieveOrderByMakers(Map<String, Object> parameters);
     OrderDto.OrderDailyFoodDetail getOrderDetail(String orderCode);
     List<GroupDto.Group> getGroup(Integer clientType);

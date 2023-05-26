@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
+import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.dto.point.FoundersPointDto;
@@ -40,6 +41,7 @@ import java.time.YearMonth;
 import java.util.*;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
+import static co.dalicious.domain.client.entity.QSpot.spot;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;

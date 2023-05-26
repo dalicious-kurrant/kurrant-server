@@ -48,6 +48,7 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
                         String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 값이 " + '"' + oldCollection + '"' + "에서 " + '"' + newCollection + '"' + "로 변경.";
                         logs.add(logEntry);
                         System.out.println(logEntry);
+                        continue;
                     }
 
                     Iterator<?> oldIterator = oldCollection.iterator();

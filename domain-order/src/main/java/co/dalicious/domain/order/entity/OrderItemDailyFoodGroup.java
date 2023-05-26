@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 @DynamicInsert
 @DynamicUpdate
@@ -28,11 +29,11 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "order__order_item_dailyfood_group")
-public class  OrderItemDailyFoodGroup {
+public class OrderItemDailyFoodGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("주문상세 PK")
-    @Column(name="id", columnDefinition = "BIGINT UNSIGNED")
+    @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
     @Convert(converter = OrderStatusConverter.class)
@@ -90,7 +91,7 @@ public class  OrderItemDailyFoodGroup {
 
     public BigDecimal getTotalPriceByGroup() {
         BigDecimal totalPrice = BigDecimal.ZERO;
-        if(this.orderStatus.equals(OrderStatus.CANCELED)) return totalPrice;
+        if (this.orderStatus.equals(OrderStatus.CANCELED)) return totalPrice;
 
         for (OrderItemDailyFood orderDailyFood : this.orderDailyFoods) {
             totalPrice = totalPrice.add((OrderStatus.completePayment().contains(orderDailyFood.getOrderStatus())) ? orderDailyFood.getOrderItemTotalPrice() : BigDecimal.ZERO);
@@ -121,5 +122,12 @@ public class  OrderItemDailyFoodGroup {
         }
 
         return totalPrice;
+    }
+
+    public Boolean isMembershipApplied() {
+        Optional<OrderItemDailyFood> orderItemDailyFood = this.orderDailyFoods.stream()
+                .filter(v -> v.getMembershipDiscountRate() != null && v.getMembershipDiscountRate() > 0)
+                .findFirst();
+        return orderItemDailyFood.isPresent();
     }
 }
