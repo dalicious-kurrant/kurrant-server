@@ -1,5 +1,7 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.system.converter.DiningTypeConverter;
+import co.dalicious.system.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,6 +12,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -57,6 +60,11 @@ public class DailyReport {
     @Column(name ="eat_date", columnDefinition = "DATE DEFAULT NOW()")
     private LocalDate eatDate;
 
+    @Convert(converter = DiningTypeConverter.class)
+    @Column(name = "e_dining_type", nullable = false)
+    @Comment("식사 타입")
+    private DiningType diningType;
+
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(name = "created_datetime", nullable = false,
@@ -66,7 +74,7 @@ public class DailyReport {
 
     @UpdateTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
-    @Column(name = "updated_datetime", nullable = false,
+    @Column(name = "updated_datetime",
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
@@ -76,7 +84,9 @@ public class DailyReport {
     private String type;
 
     @Builder
-    public DailyReport(User user, String foodName, Integer calorie, Integer protein, Integer fat, Integer carbohydrate, LocalDate eatDate, Timestamp createdDateTime, Timestamp updatedDateTime, String type) {
+    public DailyReport(User user, String foodName, Integer calorie, Integer protein, Integer fat,
+                       Integer carbohydrate, LocalDate eatDate, DiningType diningType, Timestamp createdDateTime, Timestamp updatedDateTime,
+                       String type) {
         this.user = user;
         this.foodName = foodName;
         this.calorie = calorie;
@@ -84,6 +94,7 @@ public class DailyReport {
         this.fat = fat;
         this.carbohydrate = carbohydrate;
         this.eatDate = eatDate;
+        this.diningType = diningType;
         this.createdDateTime = createdDateTime;
         this.updatedDateTime = updatedDateTime;
         this.type = type;
