@@ -110,6 +110,7 @@ public class UserServiceImpl implements UserService {
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final DailyReportMapper dailyReportMapper;
     private final DailyReportRepository dailyReportRepository;
+    private final QDailyReportRepository qDailyReportRepository;
 
     @Override
     @Transactional
@@ -1092,12 +1093,14 @@ public class UserServiceImpl implements UserService {
         User user = userUtil.getUser(securityUser);
 
         String type = "user";
+        //같은 날, 같은 DiningType이면 에러
+        qDailyReportRepository.findByUserIdAndDiningType(user.getId(), saveDailyReportDto.getDiningType(), saveDailyReportDto.getEatDate());
 
         DailyReport dailyReport = dailyReportMapper.toEntity(user, saveDailyReportDto, type);
 
         DailyReport saved = dailyReportRepository.save(dailyReport);
         if (saved.getId() == null){
-            new ApiException(ExceptionEnum.SAVE_FAILED);
+            throw new ApiException(ExceptionEnum.SAVE_FAILED);
         }
 
     }
