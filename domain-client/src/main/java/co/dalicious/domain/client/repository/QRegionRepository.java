@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.repository;
 
 import co.dalicious.domain.client.dto.filter.FilterInfo;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.Region;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static co.dalicious.domain.client.entity.QRegion.region;
 
@@ -22,11 +24,10 @@ public class QRegionRepository {
 
     public Region findRegionByZipcodeAndCountyAndVillage(String zipcode, String county, String village) {
         String village1 = village.replaceAll("동$", "");
-        Region region1 = queryFactory.selectFrom(region)
+
+        return queryFactory.selectFrom(region)
                 .where(region.zipcode.eq(zipcode), region.county.contains(county), region.village.contains(village1))
                 .fetchFirst();
-
-        return region1;
     }
 
     public List<FilterInfo> findAllCity() {
@@ -163,4 +164,24 @@ public class QRegionRepository {
                 .fetch();
     }
 
+    public List<Region> findRegionByZipcodesAndCountiesAndVillages(List<String> zipcodes, List<String> counties, List<String> villages) {
+        List<String> villages1 = villages.stream().map(village -> village.replaceAll("동$", "")).toList();
+
+        BooleanBuilder whereCuase = new BooleanBuilder();
+
+        counties.forEach(county -> whereCuase.or(region.county.contains(county)));
+        villages1.forEach(village -> whereCuase.or(region.village.contains(village)));
+
+        List<Region> resultByZipcodes = queryFactory.selectFrom(region)
+                .where(region.zipcode.in(zipcodes), whereCuase)
+                .fetch();
+
+        return resultByZipcodes;
+    }
+
+    public List<Region> findRegionByMySpotZone(MySpotZone mySpotZone) {
+        return queryFactory.selectFrom(region)
+                .where(region.mySpotZone.eq(mySpotZone))
+                .fetch();
+    }
 }

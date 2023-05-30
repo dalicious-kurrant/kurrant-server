@@ -2,8 +2,10 @@ package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.converter.MysSpotZoneStatusConverter;
+import co.dalicious.domain.client.dto.mySpotZone.UpdateRequestDto;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -48,12 +50,19 @@ public class MySpotZone extends Group{
     private Integer mySpotZoneUserCount;
 
     @Builder
-    public MySpotZone(Address address, List<DiningType> diningTypes, String name, String memo, MySpotZoneStatus mySpotZoneStatus, List<Region> regionList, LocalDate openStartDate, LocalDate openCloseDate, Integer mySpotZoneUserCount) {
+    public MySpotZone(Address address, List<DiningType> diningTypes, String name, String memo, MySpotZoneStatus mySpotZoneStatus, LocalDate openStartDate, LocalDate openCloseDate, Integer mySpotZoneUserCount) {
         super(address, diningTypes, name, memo);
         this.mySpotZoneStatus = mySpotZoneStatus;
-        this.regionList = regionList;
         this.openStartDate = openStartDate;
         this.openCloseDate = openCloseDate;
         this.mySpotZoneUserCount = mySpotZoneUserCount;
+    }
+
+    public void updateMySpotZone(UpdateRequestDto updateRequestDto) {
+        List<DiningType> diningTypes = updateRequestDto.getDiningTypes().stream().map(DiningType::ofCode).toList();
+        this.updateGroup(diningTypes, updateRequestDto.getName(), updateRequestDto.getMemo());
+        this.mySpotZoneStatus = MySpotZoneStatus.ofCode(updateRequestDto.getStatus());
+        this.openStartDate = DateUtils.stringToDate(updateRequestDto.getOpenStartDate());
+        this.openCloseDate = DateUtils.stringToDate(updateRequestDto.getOpenCloseDate());
     }
 }

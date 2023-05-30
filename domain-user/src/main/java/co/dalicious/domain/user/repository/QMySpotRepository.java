@@ -1,6 +1,7 @@
 package co.dalicious.domain.user.repository;
 
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.user.entity.MySpot;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,12 @@ public class QMySpotRepository {
     public List<MySpot> findMySpotByRequestedMySpotZones(List<RequestedMySpotZones> requestedMySpotZonesList) {
         return queryFactory.selectFrom(mySpot)
                 .where(mySpot.requestedMySpotZones.in(requestedMySpotZonesList))
+                .fetch();
+    }
+
+    public List<MySpot> findMySpotByMySpotZone(MySpotZone mySpotZone) {
+        return queryFactory.selectFrom(mySpot)
+                .where(mySpot.mySpotZone.eq(mySpotZone))
                 .fetch();
     }
 }

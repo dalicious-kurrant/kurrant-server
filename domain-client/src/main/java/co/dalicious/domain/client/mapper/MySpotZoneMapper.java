@@ -4,9 +4,8 @@ import co.dalicious.domain.client.dto.filter.FilterDto;
 import co.dalicious.domain.client.dto.filter.FilterInfo;
 import co.dalicious.domain.client.dto.filter.FilterStatusDto;
 import co.dalicious.domain.client.dto.mySpotZone.AdminListResponseDto;
-import co.dalicious.domain.client.entity.MealInfo;
-import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.domain.client.entity.Region;
+import co.dalicious.domain.client.dto.mySpotZone.CreateRequestDto;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -69,4 +68,18 @@ public interface MySpotZoneMapper {
 
         return adminListResponseDto;
     }
+
+    default MySpotZone toMySpotZone(CreateRequestDto createRequestDto) {
+        return MySpotZone.builder()
+                .name(createRequestDto.getName())
+                .diningTypes(createRequestDto.getDiningTypes().stream().map(DiningType::ofCode).toList())
+                .mySpotZoneStatus(MySpotZoneStatus.ofCode(createRequestDto.getStatus()))
+                .mySpotZoneUserCount(createRequestDto.getUserCount())
+                .openStartDate(DateUtils.stringToDate(createRequestDto.getOpenStartDate()))
+                .openCloseDate(DateUtils.stringToDate(createRequestDto.getOpenCloseDate()))
+                .memo(createRequestDto.getMemo())
+                .build();
+    }
+
+
 }

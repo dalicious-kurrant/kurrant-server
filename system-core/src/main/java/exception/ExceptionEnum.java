@@ -59,6 +59,7 @@ public enum ExceptionEnum {
 	ALREADY_USED_DAYS(HttpStatus.BAD_REQUEST, "E4000107", "이미 서비스를 제공하고 있는 요일입니다."),
 	NOT_VALID_EMAIL(HttpStatus.BAD_REQUEST, "E4000100", "잘못된 이메일 주소입니다."),
 	ALREADY_EXIST_REQUEST(HttpStatus.BAD_REQUEST, "E4000108", "요청하신 우편번호와 동일한 마이 스팟 신청내역이 존재합니다."),
+	ALREADY_EXIST_MY_SPOT_ZONE(HttpStatus.BAD_REQUEST, "E4000108", "요청하신 우편번호와 동일한 마이 스팟이 존재합니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
@@ -117,6 +118,7 @@ public enum ExceptionEnum {
 	ALREADY_NOT_ACTIVE(HttpStatus.NOT_FOUND, "E4040038", "이미 비활성화 상태입니다."),
 	NOT_FOUND_FOOD_IMAGE(HttpStatus.NOT_FOUND, "E4040039", "음식 이미지를 찾을 수 없습니다."),
 	NOT_FOUND_REGION(HttpStatus.NOT_FOUND, "E4040040", "지역을 찾을 수 없습니다. 지역 정보를 확인해주세요."),
+	NOT_FOUND_MY_SPOT_ZONE(HttpStatus.NOT_FOUND, "E4040040", "마이 스팟을 찾을 수 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),

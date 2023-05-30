@@ -14,10 +14,10 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
 import co.dalicious.domain.client.entity.Region;
+import co.dalicious.domain.client.mapper.MealInfoMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.repository.QMySpotRepository;
-import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.service.GroupRequestService;
@@ -44,6 +44,7 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     private final MealInfoRepository mealInfoRepository;
     private final QMySpotZoneRepository qMySpotZoneRepository;
     private final QRegionRepository qRegionRepository;
+    private final MealInfoMapper mealInfoMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -153,7 +154,7 @@ public class GroupRequestServiceImpl implements GroupRequestService {
                         case DINNER -> "19:00";
                     };
 
-                    return requestedMySpotZonesMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime);
+                    return mealInfoMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime);
                 })
                 .collect(Collectors.toList());
 

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 import static co.dalicious.domain.client.entity.QMySpotZone.mySpotZone;
@@ -52,19 +53,19 @@ public class QMySpotZoneRepository {
         return filterInfos;
     }
 
-    public String findNameById(BigInteger id) {
+    public List<String> findNameById(List<BigInteger> id) {
         return queryFactory.select(mySpotZone.name)
                 .from(mySpotZone)
-                .where(mySpotZone.id.eq(id))
-                .fetchOne();
+                .where(mySpotZone.id.in(id))
+                .fetch();
     }
 
 
-    public Page<MySpotZone> findAllMySpotZone(String name, String city, String county, List<String> villages, List<String> zipcodes, MySpotZoneStatus status, Integer limit, Integer page, Pageable pageable) {
+    public Page<MySpotZone> findAllMySpotZone(List<String> name, String city, String county, List<String> villages, List<String> zipcodes, MySpotZoneStatus status, Integer limit, Integer page, Pageable pageable) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(name != null) {
-            whereCause.and(mySpotZone.name.eq(name));
+            whereCause.and(mySpotZone.name.in(name));
         }
         if(city != null) {
             whereCause.and(mySpotZone.regionList.any().city.eq(city));
@@ -86,6 +87,7 @@ public class QMySpotZoneRepository {
 
         QueryResults<MySpotZone> results = queryFactory.selectFrom(mySpotZone)
                 .where(whereCause)
+                .orderBy(mySpotZone.id.desc())
                 .limit(limit)
                 .offset(offset)
                 .fetchResults();
@@ -93,6 +95,17 @@ public class QMySpotZoneRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
+    public MySpotZone findExistMySpotZoneByZipcodes(List<String> zipcodes) {
+        return queryFactory.selectFrom(mySpotZone)
+                .where(mySpotZone.regionList.any().zipcode.in(zipcodes))
+                .fetchOne();
+    }
+
+    public MySpotZone findMySpotZoneById(BigInteger id) {
+        return queryFactory.selectFrom(mySpotZone)
+                .where(mySpotZone.id.eq(id))
+                .fetchOne();
+    }
 }
 
 

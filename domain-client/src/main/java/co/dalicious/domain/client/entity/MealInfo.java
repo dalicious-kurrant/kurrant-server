@@ -150,4 +150,8 @@ public class MealInfo {
             return new DayAndTime(day, time);
         }
     }
+
+    public void updateDeliveryTimes(List<LocalTime> deliveryTimes) {
+        this.deliveryTimes = deliveryTimes;
+    }
 }

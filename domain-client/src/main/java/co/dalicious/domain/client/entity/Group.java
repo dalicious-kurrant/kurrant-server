@@ -142,4 +142,14 @@ public class Group {
         this.name = spotResponseDto.getSpotName();
         this.address = address;
     }
+
+    public void updateGroup(List<DiningType> diningTypes, String name, String memo) {
+        this.diningTypes = diningTypes;
+        this.name = name;
+        this.memo = memo;
+    }
+
+    public void updateIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
 }
