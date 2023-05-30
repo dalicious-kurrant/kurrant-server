@@ -14,13 +14,13 @@ public class ApplicationFormDto {
     private Integer clientType;
     private BigInteger id;
     private String name;
-    private String date;
+    private String address;
+    private Boolean isExist;
 
     @Builder
-    public ApplicationFormDto(Integer clientType, BigInteger id, String name, String date) {
+    public ApplicationFormDto(Integer clientType, BigInteger id, String name) {
         this.clientType = clientType;
         this.id = id;
         this.name = name;
-        this.date = date;
     }
 }
