@@ -9,15 +9,17 @@ import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.dto.filter.*;
 import co.dalicious.domain.client.dto.mySpotZone.AdminListResponseDto;
+import co.dalicious.domain.client.dto.mySpotZone.CreateRequestDto;
+import co.dalicious.domain.client.dto.mySpotZone.UpdateRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
+import co.dalicious.domain.client.mapper.MealInfoMapper;
 import co.dalicious.domain.client.mapper.MySpotZoneMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.enums.ReviewPointPolicy;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.Days;
@@ -42,7 +44,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -61,6 +65,7 @@ public class GroupServiceImpl implements GroupService {
     private final MySpotZoneMapper mySpotZoneMapper;
     private final QMySpotZoneRepository qMySpotZoneRepository;
     private final QRegionRepository qRegionRepository;
+    private final MealInfoMapper mealInfoMapper;
 
     @Override
     @Transactional
@@ -333,7 +338,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional(readOnly = true)
     public ListItemResponseDto<AdminListResponseDto> getAllMySpotZoneList(Map<String, Object> parameters, Integer limit, Integer size, OffsetBasedPageRequest pageable) {
-        String name = parameters.get("name") == null || !parameters.containsKey("name") ? null : qMySpotZoneRepository.findNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("name"))));
+        List<String> name = parameters.get("name") == null || !parameters.containsKey("name") ? null : qMySpotZoneRepository.findNameById(StringUtils.parseBigIntegerList((String) parameters.get("name")));
         String city = parameters.get("city") == null || !parameters.containsKey("city") ? null : qRegionRepository.findCityNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("city"))));
         String county = parameters.get("county") == null || !parameters.containsKey("county") ? null : qRegionRepository.findCountyNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("county"))));
         List<String> villages = parameters.get("villages") == null || !parameters.containsKey("villages") ? null : qRegionRepository.findVillageNameById(StringUtils.parseBigIntegerList((String) parameters.get("villages")));
@@ -351,6 +356,72 @@ public class GroupServiceImpl implements GroupService {
 
         return ListItemResponseDto.<AdminListResponseDto>builder().items(adminListResponseDtoList).count(mySpotZoneList.getNumberOfElements())
                 .limit(pageable.getPageSize()).offset(pageable.getOffset()).total((long) mySpotZoneList.getTotalPages()).build();
+    }
+
+    @Override
+    @Transactional
+    public void createMySpotZone(CreateRequestDto createRequestDto) {
+        // zipcode를 가지고 있는지 확인.
+        MySpotZone existMySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcodes(createRequestDto.getZipcodes());
+        if(existMySpotZone != null) throw new ApiException(ExceptionEnum.ALREADY_EXIST_MY_SPOT_ZONE);
+
+        // 해당 zipcode region 찾기
+        List<Region> regions = qRegionRepository.findRegionByZipcodesAndCountiesAndVillages(createRequestDto.getZipcodes(), createRequestDto.getCounties(), createRequestDto.getVillages());
+        if(regions == null || regions.isEmpty()) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
+
+        // my spot zone 생성
+        MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(createRequestDto);
+
+        // region updqte my sopt zone fk
+        regions.forEach(region -> region.updateMySpotZone(mySpotZone));
+
+        // meal info 생성
+        String defaultTime = "00:00";
+        String defaultDays = "월, 화, 수, 목, 금, 토, 일";
+
+        List<MealInfo> mealInfoList = mySpotZone.getDiningTypes().stream()
+                .map(diningType -> {
+                    List<LocalTime> mealTime = switch (diningType) {
+                        case MORNING -> createRequestDto.getBreakfastDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case LUNCH -> createRequestDto.getLunchDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case DINNER -> createRequestDto.getDinnerDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                    };
+
+                    return mealInfoMapper.toMealInfo(mySpotZone, diningType, mealTime, defaultTime, defaultDays, defaultTime);
+                })
+                .collect(Collectors.toList());
+
+        groupRepository.save(mySpotZone);
+        mealInfoRepository.saveAll(mealInfoList);
+    }
+
+    @Override
+    @Transactional
+    public void updateMySpotZone(UpdateRequestDto updateRequestDto) {
+        // my spot zone 찾기
+        MySpotZone mySpotZone = qMySpotZoneRepository.findMySpotZoneById(updateRequestDto.getId());
+        if(mySpotZone == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
+
+        // my spot zone 수정
+        mySpotZone.updateMySpotZone(updateRequestDto);
+
+        // region list 수정
+        List<Region> defaultRegion = mySpotZone.getRegionList();
+        defaultRegion.forEach(region -> region.updateMySpotZone(null));
+        List<Region> updateRequestRegion = qRegionRepository.findRegionByZipcodesAndCountiesAndVillages(updateRequestDto.getZipcodes(), updateRequestDto.getCounties(), updateRequestDto.getVillages());
+        updateRequestRegion.forEach(region -> region.updateMySpotZone(mySpotZone));
+
+        // meal info 수정
+        mySpotZone.getDiningTypes()
+                .forEach(diningType -> {
+                    List<LocalTime> deliveryTimes = switch (diningType) {
+                        case MORNING -> updateRequestDto.getBreakfastDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case LUNCH -> updateRequestDto.getLunchDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case DINNER -> updateRequestDto.getDinnerDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                    };
+                    mySpotZone.getMealInfo(diningType).updateDeliveryTimes(deliveryTimes);
+                });
+
     }
 
 
