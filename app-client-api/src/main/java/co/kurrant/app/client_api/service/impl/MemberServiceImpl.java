@@ -221,6 +221,8 @@ public class MemberServiceImpl implements MemberService {
             String phone = employeeDto.getPhone();
             String name = employeeDto.getName();
 
+            if(email == null || email.isBlank()) throw new ApiException(ExceptionEnum.NOT_VALID_EMAIL);
+
             if (employee.isPresent()) {
                 qEmployeeRepository.patchEmployee(employeeDto.getId(), phone, email, name);
             } else {
