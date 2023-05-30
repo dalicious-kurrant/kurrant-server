@@ -148,4 +148,8 @@ public class Group {
         this.name = name;
         this.memo = memo;
     }
+
+    public void updateIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
 }

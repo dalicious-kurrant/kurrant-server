@@ -60,7 +60,7 @@ public class MySpotZone extends Group{
 
     public void updateMySpotZone(UpdateRequestDto updateRequestDto) {
         List<DiningType> diningTypes = updateRequestDto.getDiningTypes().stream().map(DiningType::ofCode).toList();
-        updateGroup(diningTypes, updateRequestDto.getName(), updateRequestDto.getMemo());
+        this.updateGroup(diningTypes, updateRequestDto.getName(), updateRequestDto.getMemo());
         this.mySpotZoneStatus = MySpotZoneStatus.ofCode(updateRequestDto.getStatus());
         this.openStartDate = DateUtils.stringToDate(updateRequestDto.getOpenStartDate());
         this.openCloseDate = DateUtils.stringToDate(updateRequestDto.getOpenCloseDate());

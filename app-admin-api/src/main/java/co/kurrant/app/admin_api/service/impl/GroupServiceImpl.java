@@ -19,7 +19,9 @@ import co.dalicious.domain.client.mapper.MySpotZoneMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
 import co.dalicious.domain.user.entity.Membership;
+import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.repository.QMySpotRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.Days;
@@ -66,6 +68,7 @@ public class GroupServiceImpl implements GroupService {
     private final QMySpotZoneRepository qMySpotZoneRepository;
     private final QRegionRepository qRegionRepository;
     private final MealInfoMapper mealInfoMapper;
+    private final QMySpotRepository qMySpotRepository;
 
     @Override
     @Transactional
@@ -415,13 +418,34 @@ public class GroupServiceImpl implements GroupService {
         mySpotZone.getDiningTypes()
                 .forEach(diningType -> {
                     List<LocalTime> deliveryTimes = switch (diningType) {
-                        case MORNING -> updateRequestDto.getBreakfastDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
-                        case LUNCH -> updateRequestDto.getLunchDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
-                        case DINNER -> updateRequestDto.getDinnerDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case MORNING -> updateRequestDto.getBreakfastDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
+                        case LUNCH -> updateRequestDto.getLunchDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
+                        case DINNER -> updateRequestDto.getDinnerDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
                     };
                     mySpotZone.getMealInfo(diningType).updateDeliveryTimes(deliveryTimes);
                 });
 
+    }
+
+    @Override
+    @Transactional
+    public void deleteMySpotZone(BigInteger id) {
+        // my spot zone 찾기
+        MySpotZone mySpotZone = qMySpotZoneRepository.findMySpotZoneById(id);
+        if(mySpotZone == null) throw new ApiException(ExceptionEnum.ALREADY_EXIST_MY_SPOT_ZONE);
+
+        // region의 my spot zone fk도 null
+        List<Region> regions = mySpotZone.getRegionList();
+        regions.forEach(region -> region.updateMySpotZone(null));
+
+        // my spot zone fk를 가진 my spot 찾아서 null
+        List<MySpot> mySpotList = qMySpotRepository.findMySpotByMySpotZone(mySpotZone);
+        if(mySpotList.isEmpty()) groupRepository.delete(mySpotZone);
+
+        mySpotList.forEach(mySpot -> mySpot.updateMySpotZone(null));
+
+        // my spot zone update isActive false
+        mySpotZone.updateIsActive(false);
     }
 
 

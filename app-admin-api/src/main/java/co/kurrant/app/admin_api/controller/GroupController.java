@@ -8,6 +8,7 @@ import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.domain.client.dto.mySpotZone.UpdateRequestDto;
+import co.kurrant.app.admin_api.dto.IdDto;
 import co.kurrant.app.admin_api.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -114,6 +115,16 @@ public class GroupController {
         groupService.updateMySpotZone(updateRequestDto);
         return ResponseMessage.builder()
                 .message("스팟 수정에 성공했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.GROUP)
+    @Operation(summary = "마이 스팟 삭제", description = "마이 스팟을 삭제합니다.")
+    @PatchMapping("my/spot/zones/delete")
+    public ResponseMessage deleteMySpotZone(@RequestBody BigInteger id) {
+        groupService.deleteMySpotZone(id);
+        return ResponseMessage.builder()
+                .message("스팟 삭제에 성공했습니다.")
                 .build();
     }
 
