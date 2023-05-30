@@ -3,9 +3,14 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.apartment.*;
 import co.dalicious.domain.application_form.dto.corporation.*;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.application_form.entity.*;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
+import co.dalicious.domain.client.entity.MySpotZone;
+import co.dalicious.domain.client.repository.QMySpotZoneRepository;
+import co.dalicious.domain.user.entity.MySpot;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -42,6 +47,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final CorporationApplicationReqMapper corporationApplicationReqMapper;
     private final CorporationApplicationSpotReqMapper corporationApplicationSpotReqMapper;
     private final CorporationApplicationFormResMapper corporationApplicationFormResMapper;
+    private final QMySpotZoneRepository qMySpotZoneRepository;
+    private final QRequestedMySpotZonesRepository qRequestedMySpotZonesRepository;
+    private final MySpotMa
 
     @Override
     @Transactional
@@ -65,7 +73,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         return ApplicationFormDto.builder()
                 .clientType(0)
                 .id(apartmentApplicationForm.getId())
-                .date(DateUtils.format(LocalDate.now(), "yyyy. MM. dd"))
                 .build();
     }
 
@@ -113,7 +120,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                 .clientType(1)
                 .id(corporationApplicationForm.getId())
                 .name(corporationApplicationForm.getCorporationName())
-                .date(DateUtils.format(LocalDate.now(), "yyyy. MM. dd"))
                 .build();
     }
 
@@ -160,7 +166,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                     .id(corporationApplicationForm.getId())
                     .clientType(1)
                     .name(corporationApplicationForm.getCorporationName())
-                    .date(DateUtils.format(corporationApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
                     .build());
         }
         for (ApartmentApplicationForm apartmentApplicationForm : apartmentApplicationForms) {
@@ -168,14 +173,33 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                     .id(apartmentApplicationForm.getId())
                     .clientType(0)
                     .name(apartmentApplicationForm.getApartmentName())
-                    .date(DateUtils.format(apartmentApplicationForm.getCreatedDateTime(), "yyyy. MM. dd"))
                     .build());
         }
 
-        // 생성일자 순으로 정렬
-        applicationFormDtos.sort(Comparator.comparing(ApplicationFormDto::getDate));
         Collections.reverse(applicationFormDtos);
 
         return applicationFormDtos;
+    }
+
+    @Override
+    @Transactional
+    public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) {
+        // user 찾기
+        User user = userUtil.getUser(securityUser);
+
+        // my spot 생성
+        MySpot mySpot =
+
+        // my spot zone 찾기
+        MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(mySpotZoneApplicationFormRequestDto.getAddress().getZipCode());
+
+        if(mySpotZone != null) {
+            mySpotZone.updateMySpotZoneUserCount(1);
+        }
+        // my spot zone 없으면 my spot zone 신청하기
+        RequestedMySpotZones requestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(mySpotZoneApplicationFormRequestDto.getAddress().getZipCode());
+        // 해당하는 fk 등록
+        // my spot zone 존재 여부 response
+        return null;
     }
 }

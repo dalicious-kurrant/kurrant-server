@@ -5,6 +5,7 @@ import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFo
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
 import co.kurrant.app.public_api.dto.client.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 
@@ -27,4 +28,7 @@ public interface ApplicationFormService {
     CorporationApplicationFormResponseDto getCorporationApplicationFormDetail(BigInteger userId, BigInteger id);
     // 스팟 신청 날짜 리스트
     List<ApplicationFormDto> getSpotsApplicationList(BigInteger userId);
+    // 마이 스팟 신청
+    ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto);
+
 }
