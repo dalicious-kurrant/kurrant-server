@@ -16,6 +16,7 @@ import org.locationtech.jts.io.ParseException;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 public interface GroupService {
     List<GroupDto.Spot> getSpots(BigInteger groupId);
@@ -25,6 +26,6 @@ public interface GroupService {
 
     void updateGroupDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException;
     List<GroupListDto.GroupInfoList> getAllGroupForExcel();
-    FilterDto getAllListForFilter(FilterRequest filterRequest);
-    ListItemResponseDto<AdminListResponseDto> getAllMySpotZoneList(FilterPageableRequest filterRequest, OffsetBasedPageRequest pageable);
+    FilterDto getAllListForFilter(Map<String, Object> parameters);
+    ListItemResponseDto<AdminListResponseDto> getAllMySpotZoneList(Map<String, Object> parameters, Integer limit, Integer size, OffsetBasedPageRequest pageable);
 }

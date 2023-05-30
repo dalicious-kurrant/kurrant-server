@@ -7,10 +7,7 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
-import co.dalicious.domain.client.dto.filter.FilterDto;
-import co.dalicious.domain.client.dto.filter.FilterPageableRequest;
-import co.dalicious.domain.client.dto.filter.FilterRequest;
-import co.dalicious.domain.client.dto.filter.FilterStatusDto;
+import co.dalicious.domain.client.dto.filter.*;
 import co.dalicious.domain.client.dto.mySpotZone.AdminListResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
@@ -28,6 +25,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.DiningTypesUtils;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
@@ -60,9 +58,9 @@ public class GroupServiceImpl implements GroupService {
     private final UserRepository userRepository;
     private final SpotMapper spotMapper;
     private final QMembershipSupportPriceRepository qmembershipSupportPriceRepository;
-    private final QRegionRepository qRegionRepository;
     private final MySpotZoneMapper mySpotZoneMapper;
     private final QMySpotZoneRepository qMySpotZoneRepository;
+    private final QRegionRepository qRegionRepository;
 
     @Override
     @Transactional
@@ -317,13 +315,16 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional(readOnly = true)
-    public FilterDto getAllListForFilter(FilterRequest filterRequest) {
+    public FilterDto getAllListForFilter(Map<String, Object> parameters) {
+        String city = parameters.get("city") == null || !parameters.containsKey("city") ? null : qRegionRepository.findCityNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("city"))));
+        String county = parameters.get("county") == null || !parameters.containsKey("county") ? null : qRegionRepository.findCountyNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("county"))));
+        List<String> villages = parameters.get("villages") == null || !parameters.containsKey("villages") ? null : qRegionRepository.findVillageNameById(StringUtils.parseBigIntegerList((String) parameters.get("villages")));
         // 시/도, 군/구, 동/읍/리 별로 필터. - 군/구, 동/읍/리는 다중 필터 가능
-        List<String> nameList = qMySpotZoneRepository.findAllNameList();
-        List<String> cityList = qRegionRepository.findAllCity();
-        List<String> countyList = qRegionRepository.findAllCountyByCity(filterRequest.getCity());
-        List<String> villageList = qRegionRepository.findAllVillageByCounty(filterRequest.getCity(), filterRequest.getCounty());
-        List<String> zipcodeList = qRegionRepository.findAllZipcodeByCityAndCountyAndVillage(filterRequest.getCity(), filterRequest.getCounty(), filterRequest.getVillages());
+        List<FilterInfo> nameList = qMySpotZoneRepository.findAllNameList();
+        List<FilterInfo> cityList = qRegionRepository.findAllCity();
+        List<FilterInfo> countyList = qRegionRepository.findAllCountyByCity(city);
+        List<FilterInfo> villageList = qRegionRepository.findAllVillageByCounty(city, county);
+        List<FilterInfo> zipcodeList = qRegionRepository.findAllZipcodeByCityAndCountyAndVillage(city, county, villages);
         List<MySpotZoneStatus> statusDtoList = List.of(MySpotZoneStatus.class.getEnumConstants());
 
         return mySpotZoneMapper.toFilterDto(nameList, cityList, countyList, villageList, zipcodeList, statusDtoList);
@@ -331,8 +332,15 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional(readOnly = true)
-    public ListItemResponseDto<AdminListResponseDto> getAllMySpotZoneList(FilterPageableRequest filterRequest, OffsetBasedPageRequest pageable) {
-        Page<MySpotZone> mySpotZoneList = qMySpotZoneRepository.findAllMySpotZone(filterRequest.getName(), filterRequest.getCity(), filterRequest.getCounty(), filterRequest.getVillages(), filterRequest.getZipcode(), MySpotZoneStatus.ofCode(filterRequest.getStatus()), filterRequest.getLimit(), filterRequest.getSize(), pageable);
+    public ListItemResponseDto<AdminListResponseDto> getAllMySpotZoneList(Map<String, Object> parameters, Integer limit, Integer size, OffsetBasedPageRequest pageable) {
+        String name = parameters.get("name") == null || !parameters.containsKey("name") ? null : qMySpotZoneRepository.findNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("name"))));
+        String city = parameters.get("city") == null || !parameters.containsKey("city") ? null : qRegionRepository.findCityNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("city"))));
+        String county = parameters.get("county") == null || !parameters.containsKey("county") ? null : qRegionRepository.findCountyNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("county"))));
+        List<String> villages = parameters.get("villages") == null || !parameters.containsKey("villages") ? null : qRegionRepository.findVillageNameById(StringUtils.parseBigIntegerList((String) parameters.get("villages")));
+        List<String> zipcodes = parameters.get("zipcode") == null || !parameters.containsKey("zipcode") ? null : qRegionRepository.findZipcodeById(StringUtils.parseBigIntegerList((String) parameters.get("zipcode")));
+        MySpotZoneStatus status = parameters.get("status") == null || !parameters.containsKey("status") ? null : MySpotZoneStatus.ofCode(Integer.parseInt((String) parameters.get("status")));
+
+        Page<MySpotZone> mySpotZoneList = qMySpotZoneRepository.findAllMySpotZone(name, city, county, villages, zipcodes, status, limit, size, pageable);
 
         List<AdminListResponseDto> adminListResponseDtoList = new ArrayList<>();
         if(mySpotZoneList == null || mySpotZoneList.isEmpty()) {

@@ -6,8 +6,6 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
-import co.dalicious.domain.client.dto.filter.FilterPageableRequest;
-import co.dalicious.domain.client.dto.filter.FilterRequest;
 import co.kurrant.app.admin_api.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -79,8 +77,8 @@ public class GroupController {
 
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "필터 정보 조회", description = "필터를 위한 정보를 조회합니다.")
-    @PostMapping("my/spot/zones/filter")
-    public ResponseMessage getAllListForFilter(@RequestBody(required = false) FilterRequest filterRequest) {
+    @GetMapping("my/spot/zones/filter")
+    public ResponseMessage getAllListForFilter(@RequestParam(required = false) Map<String, Object> filterRequest) {
         return ResponseMessage.builder()
                 .message("조회를 성공했습니다.")
                 .data(groupService.getAllListForFilter(filterRequest))
@@ -89,11 +87,11 @@ public class GroupController {
 
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "필터 정보 조회", description = "필터를 위한 정보를 조회합니다.")
-    @PostMapping("my/spot/zones")
-    public ResponseMessage getAllMySpotZoneList(@RequestBody FilterPageableRequest filterRequest, OffsetBasedPageRequest pageable) {
+    @GetMapping("my/spot/zones")
+    public ResponseMessage getAllMySpotZoneList(@RequestParam(required = false) Map<String, Object> parameters, Integer limit, Integer size, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("조회를 성공했습니다.")
-                .data(groupService.getAllMySpotZoneList(filterRequest, pageable))
+                .data(groupService.getAllMySpotZoneList(parameters, limit, size, pageable))
                 .build();
     }
 

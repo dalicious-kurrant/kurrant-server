@@ -9,14 +9,14 @@ import java.util.List;
 @Setter
 public class FilterDto {
 
-    private List<String> name;
-    private List<String> cityInfos;
-    private List<String> countyInfos;
-    private List<String> villageInfos;
-    private List<String> zipcodeInfos;
+    private List<FilterInfo> name;
+    private List<FilterInfo> cityInfos;
+    private List<FilterInfo> countyInfos;
+    private List<FilterInfo> villageInfos;
+    private List<FilterInfo> zipcodeInfos;
     private List<FilterStatusDto> status;
 
-    public FilterDto(List<String> name, List<String> cityInfos, List<String> countyInfos, List<String> villageInfos, List<String> zipcodeInfos, List<FilterStatusDto> status) {
+    public FilterDto(List<FilterInfo> name, List<FilterInfo> cityInfos, List<FilterInfo> countyInfos, List<FilterInfo> villageInfos, List<FilterInfo> zipcodeInfos, List<FilterStatusDto> status) {
         this.name = name;
         this.cityInfos = cityInfos;
         this.countyInfos = countyInfos;

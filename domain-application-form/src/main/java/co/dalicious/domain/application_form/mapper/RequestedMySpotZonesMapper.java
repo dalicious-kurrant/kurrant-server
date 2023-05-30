@@ -14,6 +14,7 @@ import co.dalicious.system.util.GenerateRandomNumber;
 import org.mapstruct.Mapper;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -34,17 +35,23 @@ public interface RequestedMySpotZonesMapper {
         ListResponseDto listResponseDto = new ListResponseDto();
 
         listResponseDto.setId(requestedMySpotZones.getId());
-        listResponseDto.setCity(requestedMySpotZones.getCity());
-        listResponseDto.setCounty(requestedMySpotZones.getCounty());
+        listResponseDto.setCity(requestedMySpotZones.getRegion().getCity());
+        listResponseDto.setCounty(requestedMySpotZones.getRegion().getCounty());
         listResponseDto.setRequestUserCount(requestedMySpotZones.getWaitingUserCount());
-        listResponseDto.setVillage(requestedMySpotZones.getVillage());
-        listResponseDto.setZipcode(requestedMySpotZones.getZipcode());
+        listResponseDto.setVillage(requestedMySpotZones.getRegion().getVillage());
+        listResponseDto.setZipcode(requestedMySpotZones.getRegion().getZipcode());
         listResponseDto.setMemo(requestedMySpotZones.getMemo());
 
         return listResponseDto;
     }
 
-    RequestedMySpotZones toRequestedMySpotZones (CreateRequestDto createRequestDto);
+    default RequestedMySpotZones toRequestedMySpotZones (CreateRequestDto createRequestDto, Region region) {
+        return RequestedMySpotZones.builder()
+                .region(region)
+                .waitingUserCount(createRequestDto.getWaitingUserCount())
+                .memo(createRequestDto.getMemo())
+                .build();
+    }
 
     default MySpotZone toMySpotZone(List<RequestedMySpotZones> requestedMySpotZonesList) {
         Integer count = null;
@@ -79,13 +86,4 @@ public interface RequestedMySpotZonesMapper {
 
     }
 
-    default Region toRegion (RequestedMySpotZones requestedMySpotZones, MySpotZone mySpotZone) {
-        return Region.builder()
-                .city(requestedMySpotZones.getCity())
-                .country(requestedMySpotZones.getCounty())
-                .village(requestedMySpotZones.getVillage())
-                .zipcodes(requestedMySpotZones.getZipcode())
-                .mySpotZone(mySpotZone)
-                .build();
-    }
 }

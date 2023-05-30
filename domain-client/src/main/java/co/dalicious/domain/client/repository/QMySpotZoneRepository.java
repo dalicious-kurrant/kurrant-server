@@ -1,10 +1,13 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.client.dto.filter.FilterDto;
+import co.dalicious.domain.client.dto.filter.FilterInfo;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.Region;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,6 +15,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 import static co.dalicious.domain.client.entity.QMySpotZone.mySpotZone;
@@ -23,23 +28,37 @@ public class QMySpotZoneRepository {
     private final JPAQueryFactory queryFactory;
 
     public MySpotZone findExistMySpotZoneByZipcode(String zipcode) {
-        Region region1 = queryFactory.selectFrom(region)
-                .where(region.zipcodes.eq(zipcode))
-                .fetchOne();
-
-        if(region1 == null) return null;
-
         return queryFactory.selectFrom(mySpotZone)
-                .where(mySpotZone.regionList.contains(region1))
+                .where(mySpotZone.regionList.any().zipcode.eq(zipcode))
                 .fetchOne();
     }
 
-    public List<String> findAllNameList() {
-        return queryFactory.select(mySpotZone.name)
+    public List<FilterInfo> findAllNameList() {
+        List<Tuple> retsultList = queryFactory.select(mySpotZone.id, mySpotZone.name)
                 .from(mySpotZone)
                 .orderBy(mySpotZone.name.asc())
                 .fetch();
+
+        List<FilterInfo> filterInfos = new ArrayList<>();
+
+        retsultList.forEach(result -> {
+            FilterInfo filterInfo = new FilterInfo();
+
+            filterInfo.setId(result.get(mySpotZone.id));
+            filterInfo.setName(result.get(mySpotZone.name));
+            filterInfos.add(filterInfo);
+        });
+
+        return filterInfos;
     }
+
+    public String findNameById(BigInteger id) {
+        return queryFactory.select(mySpotZone.name)
+                .from(mySpotZone)
+                .where(mySpotZone.id.eq(id))
+                .fetchOne();
+    }
+
 
     public Page<MySpotZone> findAllMySpotZone(String name, String city, String county, List<String> villages, List<String> zipcodes, MySpotZoneStatus status, Integer limit, Integer page, Pageable pageable) {
         BooleanBuilder whereCause = new BooleanBuilder();
@@ -51,13 +70,13 @@ public class QMySpotZoneRepository {
             whereCause.and(mySpotZone.regionList.any().city.eq(city));
         }
         if(county != null) {
-            whereCause.and(mySpotZone.regionList.any().country.eq(county));
+            whereCause.and(mySpotZone.regionList.any().county.eq(county));
         }
         if(villages != null && !villages.isEmpty()) {
             whereCause.and(mySpotZone.regionList.any().village.in(villages));
         }
         if(zipcodes != null && !zipcodes.isEmpty()) {
-            whereCause.and(mySpotZone.regionList.any().zipcodes.in(zipcodes));
+            whereCause.and(mySpotZone.regionList.any().zipcode.in(zipcodes));
         }
         if(status != null) {
             whereCause.and(mySpotZone.mySpotZoneStatus.eq(status));
@@ -73,7 +92,6 @@ public class QMySpotZoneRepository {
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
-
 
 }
 

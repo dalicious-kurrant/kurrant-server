@@ -24,15 +24,15 @@ public class Region {
 
     @Column(name = "zipcodes")
     @Comment("우편 번호")
-    private String zipcodes;
+    private String zipcode;
 
     @Column(name = "city")
     @Comment("시/도")
     private String city;
 
-    @Column(name = "coutry")
+    @Column(name = "county")
     @Comment("시/군/구")
-    private String country;
+    private String county;
 
     @Column(name = "village")
     @Comment("동/읍/리")
@@ -45,12 +45,15 @@ public class Region {
     private MySpotZone mySpotZone;
 
     @Builder
-    public Region(String zipcodes, String city, String country, String village, MySpotZone mySpotZone) {
-        this.zipcodes = zipcodes;
+    public Region(String zipcode, String city, String county, String village, MySpotZone mySpotZone) {
+        this.zipcode = zipcode;
         this.city = city;
-        this.country = country;
+        this.county = county;
         this.village = village;
         this.mySpotZone = mySpotZone;
     }
 
+    public void updateMySpotZone(MySpotZone mySpotZone) {
+        this.mySpotZone = mySpotZone;
+    }
 }

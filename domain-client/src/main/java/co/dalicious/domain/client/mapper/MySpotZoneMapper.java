@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.mapper;
 
 import co.dalicious.domain.client.dto.filter.FilterDto;
+import co.dalicious.domain.client.dto.filter.FilterInfo;
 import co.dalicious.domain.client.dto.filter.FilterStatusDto;
 import co.dalicious.domain.client.dto.mySpotZone.AdminListResponseDto;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -10,7 +11,6 @@ import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,7 +20,7 @@ import java.util.Set;
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface MySpotZoneMapper {
 
-    default FilterDto toFilterDto(List<String> nameList, List<String> cityList, List<String> countyList, List<String> villageList, List<String> zipcodeList, List<MySpotZoneStatus> statusList) {
+    default FilterDto toFilterDto(List<FilterInfo> nameList, List<FilterInfo> cityList, List<FilterInfo> countyList, List<FilterInfo> villageList, List<FilterInfo> zipcodeList, List<MySpotZoneStatus> statusList) {
         return new FilterDto(nameList, cityList, countyList, villageList, zipcodeList, statusList.stream().map(this::toFilterStatusDto).toList());
     }
 
@@ -43,12 +43,12 @@ public interface MySpotZoneMapper {
         List<String> zipcodes = new ArrayList<>();
 
         for(Region region : regionList) {
-            counties.add(region.getCountry());
+            counties.add(region.getCounty());
             villages.add(region.getVillage());
-            zipcodes.add(region.getZipcodes());
+            zipcodes.add(region.getZipcode());
         }
 
-        adminListResponseDto.setCity(regionList.get(0).getCity());
+        adminListResponseDto.setCity(regionList.isEmpty() ? null : regionList.get(0).getCity());
         adminListResponseDto.setCounties(counties);
         adminListResponseDto.setVillages(villages);
         adminListResponseDto.setZipcodes(zipcodes);
