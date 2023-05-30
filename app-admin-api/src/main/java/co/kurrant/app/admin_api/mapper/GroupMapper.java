@@ -103,10 +103,10 @@ public interface GroupMapper {
         groupInfoList.setIsActive(group.getIsActive());
         groupInfoList.setCode((isCorporation) ? ((Corporation) group).getCode() : null);
         groupInfoList.setName(group.getName());
-        groupInfoList.setZipCode(group.getAddress().getZipCode());
-        groupInfoList.setAddress1(group.getAddress().getAddress1());
-        groupInfoList.setAddress2(group.getAddress().getAddress2());
-        groupInfoList.setLocation((group.getAddress().getLocation() != null) ? String.valueOf(group.getAddress().getLocation()) : null);
+        groupInfoList.setZipCode(group.getAddress() == null ? null : group.getAddress().getZipCode());
+        groupInfoList.setAddress1(group.getAddress() == null ? null : group.getAddress().getAddress1());
+        groupInfoList.setAddress2(group.getAddress() == null ? null : group.getAddress().getAddress2());
+        groupInfoList.setLocation(group.getAddress() == null ? null : group.getAddress().getLocation() != null ? String.valueOf(group.getAddress().getLocation()) : null);
 
         List<DiningType> diningTypeList = group.getDiningTypes();
         groupInfoList.setDiningTypes(diningTypeList.stream().map(DiningType::getCode).toList());
