@@ -21,11 +21,11 @@ import co.dalicious.system.util.PeriodDto;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.weaver.ast.Or;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
@@ -455,5 +455,19 @@ public class QOrderDailyFoodRepository {
             }
         }
         return usingMembershipUserCountMap;
+    }
+
+    public List<OrderItemDailyFood> findAllUserIdAndDate(BigInteger userId, LocalDate startDate, LocalDate endDate) {
+
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(orderItemDailyFood.order, order)
+                .where(order.user.id.eq(userId),
+                        dailyFood.serviceDate.between(startDate, endDate))
+                .fetch();
+
+
+
+
     }
 }

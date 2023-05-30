@@ -1,5 +1,6 @@
 package co.dalicious.domain.user.mapper;
 
+import co.dalicious.domain.user.dto.FindDailyReportResDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.DailyReport;
 import co.dalicious.domain.user.entity.User;
@@ -21,9 +22,10 @@ public interface DailyReportMapper {
     @Mapping(source = "saveDailyReportDto.carbohydrate", target = "carbohydrate")
     @Mapping(source = "saveDailyReportDto.eatDate", target = "eatDate", qualifiedByName = "convertDate")
     @Mapping(source = "saveDailyReportDto.diningType", target = "diningType", qualifiedByName = "generatedDiningType")
+    @Mapping(source = "title", target = "title")
     @Mapping(source = "type", target = "type")
     @Mapping(source = "user", target = "user")
-    DailyReport toEntity(User user, SaveDailyReportDto saveDailyReportDto, String type);
+    DailyReport toEntity(User user, SaveDailyReportDto saveDailyReportDto, String type, String title);
 
     @Named("convertDate")
     default LocalDate convertDate(String date){
@@ -34,5 +36,18 @@ public interface DailyReportMapper {
     default DiningType generatedDiningType(Integer code){
         return DiningType.ofCode(code);
     }
+
+
+    @Mapping(source = "diningType", target = "diningType")
+    @Mapping(source = "eatDate", target = "eatDate")
+    @Mapping(source = "calorie", target = "calorie")
+    @Mapping(source = "protein", target = "protein")
+    @Mapping(source = "fat", target = "fat")
+    @Mapping(source = "carbohydrate", target = "carbohydrate")
+    @Mapping(source = "title", target = "title")
+    @Mapping(source = "type", target = "type")
+    @Mapping(source = "name", target = "foodName")
+    @Mapping(source = "user", target = "user")
+    DailyReport toEntityByOrderItemDailyFood(User user, String name, Integer carbohydrate, Integer fat, Integer protein, Integer calorie, LocalDate eatDate, DiningType diningType, String type, String title);
 
 }

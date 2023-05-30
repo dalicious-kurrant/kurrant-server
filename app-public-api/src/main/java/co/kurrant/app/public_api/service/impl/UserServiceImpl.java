@@ -38,6 +38,7 @@ import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
 import co.dalicious.system.util.DateUtils;
@@ -51,11 +52,14 @@ import co.kurrant.app.public_api.service.UserService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.querydsl.jpa.impl.JPAQuery;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.asm.Advice;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -1093,14 +1097,63 @@ public class UserServiceImpl implements UserService {
         User user = userUtil.getUser(securityUser);
 
         String type = "user";
-        //같은 날, 같은 DiningType이면 에러
-        qDailyReportRepository.findByUserIdAndDiningType(user.getId(), saveDailyReportDto.getDiningType(), saveDailyReportDto.getEatDate());
-
-        DailyReport dailyReport = dailyReportMapper.toEntity(user, saveDailyReportDto, type);
+        String title = user.getName() + "님의 식사";
+        DailyReport dailyReport = dailyReportMapper.toEntity(user, saveDailyReportDto, type, title);
 
         DailyReport saved = dailyReportRepository.save(dailyReport);
         if (saved.getId() == null){
             throw new ApiException(ExceptionEnum.SAVE_FAILED);
+        }
+
+    }
+
+    @Override
+    public Object getReport(SecurityUser securityUser, String date) {
+
+        User user = userUtil.getUser(securityUser);
+
+        List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDate(user.getId(), date);
+
+        if (dailyReportList.isEmpty()){
+            return "식단 리포트가 없습니다.";
+        }
+        /* 주문에서 리포트 추가기능 작성후 재작성 예정
+        String makersName =
+        List<FindDailyReportResDto> resultList = new ArrayList<>();
+        for (DailyReport dailyReport : dailyReportList){
+
+            if ()
+
+            dailyReportMapper.toFindDailyReportDto(dailyReport);
+
+        }
+         */
+
+
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto) {
+
+        User user = userUtil.getUser(securityUser);
+
+        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllUserIdAndDate(user.getId(), LocalDate.parse(dto.getStartDate()), LocalDate.parse(dto.getEndDate()));
+
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
+
+            String title = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
+            String name = orderItemDailyFood.getDailyFood().getFood().getName();
+            Integer carbohydrate = orderItemDailyFood.getDailyFood().getFood().getCarbohydrate();
+            Integer fat = orderItemDailyFood.getDailyFood().getFood().getFat();
+            Integer protein = orderItemDailyFood.getDailyFood().getFood().getProtein();
+            Integer calorie = orderItemDailyFood.getDailyFood().getFood().getCalorie();
+            LocalDate eatDate = orderItemDailyFood.getDailyFood().getServiceDate();
+            DiningType diningType = orderItemDailyFood.getDailyFood().getDiningType();
+
+            DailyReport dailyReport = dailyReportMapper.toEntityByOrderItemDailyFood(user, name, carbohydrate, fat, protein, calorie, eatDate, diningType, "order", title);
+            dailyReportRepository.save(dailyReport);
         }
 
     }

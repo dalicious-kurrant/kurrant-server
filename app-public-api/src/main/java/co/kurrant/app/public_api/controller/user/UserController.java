@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.user.dto.SaveDailyReportFoodReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.kurrant.app.public_api.dto.user.*;
@@ -342,4 +343,26 @@ public class UserController {
                 .message("식단을 추가했습니다.")
                 .build();
     }
+
+    @GetMapping("/daily/report")
+    @Operation(summary = "식단 리포트 조회", description = "식단 리포트를 조회한다.")
+    public ResponseMessage getReport(Authentication authentication, @RequestParam String date){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.getReport(securityUser, date))
+                .message("식단 조회 성공!")
+                .build();
+    }
+
+    @PostMapping("/daily/report/food")
+    @Operation(summary = "주문내역을 리포트로 가져온다", description = "유저의 주문 내역을 리포트로 가져온다.")
+    public ResponseMessage insertFoodRecord(Authentication authentication, @RequestBody SaveDailyReportFoodReqDto dto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.saveDailyReportFood(securityUser, dto);
+        return ResponseMessage.builder()
+                .message("리포트에 음식을 추가햇습니다.")
+                .build();
+    }
+
+
 }

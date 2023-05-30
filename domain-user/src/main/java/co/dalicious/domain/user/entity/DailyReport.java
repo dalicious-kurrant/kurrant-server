@@ -40,6 +40,10 @@ public class DailyReport {
     @Column(name ="name", columnDefinition = "VARCHAR(64)")
     private String foodName;
 
+    @Comment("제목")
+    @Column(name = "title", columnDefinition = "VARCHAR(64)")
+    private String title;
+
     @Comment("칼로리")
     @Column(name = "calorie", columnDefinition = "INT")
     private Integer calorie;
@@ -86,7 +90,7 @@ public class DailyReport {
     @Builder
     public DailyReport(User user, String foodName, Integer calorie, Integer protein, Integer fat,
                        Integer carbohydrate, LocalDate eatDate, DiningType diningType, Timestamp createdDateTime, Timestamp updatedDateTime,
-                       String type) {
+                       String type, String title) {
         this.user = user;
         this.foodName = foodName;
         this.calorie = calorie;
@@ -98,5 +102,6 @@ public class DailyReport {
         this.createdDateTime = createdDateTime;
         this.updatedDateTime = updatedDateTime;
         this.type = type;
+        this.title = title;
     }
 }

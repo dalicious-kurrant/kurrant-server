@@ -3,13 +3,13 @@ package co.dalicious.domain.user.repository;
 import co.dalicious.domain.user.entity.DailyReport;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.asm.Advice;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.List;
 
 import static co.dalicious.domain.user.entity.QDailyReport.dailyReport;
 
@@ -28,9 +28,23 @@ public class QDailyReportRepository {
                         dailyReport.eatDate.eq(LocalDate.parse(eatDate)))
                 .fetchOne();
 
-        if (result != null){
-            throw new ApiException(ExceptionEnum.DUPLICATED_DINING_TYPE);
-        }
+
+    }
+
+    public List<DailyReport> findByUserIdAndDate(BigInteger userId, String stringDate) {
+
+        LocalDate date = LocalDate.parse(stringDate);
+
+        return queryFactory.selectFrom(dailyReport)
+                .where(dailyReport.user.id.eq(userId),
+                        dailyReport.eatDate.eq(date))
+                .fetch();
+
+    }
+
+    public void saveDailyReportFood(BigInteger userId, LocalDate startDate, LocalDate endDate) {
+
+
 
     }
 }
