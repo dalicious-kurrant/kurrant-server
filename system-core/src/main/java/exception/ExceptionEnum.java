@@ -116,6 +116,7 @@ public enum ExceptionEnum {
 	NOT_MATCHED_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040037", "존재하지 않는 테스트 데이터 ID 입니다."),
 	ALREADY_NOT_ACTIVE(HttpStatus.NOT_FOUND, "E4040038", "이미 비활성화 상태입니다."),
 	NOT_FOUND_FOOD_IMAGE(HttpStatus.NOT_FOUND, "E4040039", "음식 이미지를 찾을 수 없습니다."),
+	NOT_FOUND_REGION(HttpStatus.NOT_FOUND, "E4040040", "지역을 찾을 수 없습니다. 지역 정보를 확인해주세요."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),

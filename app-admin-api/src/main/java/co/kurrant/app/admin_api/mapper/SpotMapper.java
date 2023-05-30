@@ -84,7 +84,12 @@ public interface SpotMapper {
             return null;
         }
 
-        List<LocalTime> deliveryTimes = Collections.singletonList(DateUtils.stringToLocalTime(deliveryTime));
+        String[] deliveryTimeStrArr = deliveryTime.split(",|, ");
+        List<LocalTime> deliveryTimes = new ArrayList<>();
+
+        for (String deliveryTimeStr : deliveryTimeStrArr ) {
+            deliveryTimes.add(DateUtils.stringToLocalTime(deliveryTimeStr));
+        }
 
         // 기업 스팟인 경우
         if (group instanceof Corporation corporation) {

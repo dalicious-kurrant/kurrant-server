@@ -1,7 +1,6 @@
 package co.dalicious.domain.application_form.repository;
 
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
-import co.dalicious.domain.application_form.entity.QRequestedMySpotZones;
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
@@ -28,10 +27,10 @@ public class QRequestedMySpotZonesRepository {
 
     public List<FilterInfo> findAllCity() {
 
-        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.city)
+        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.region.city)
                 .from(requestedMySpotZones)
-                .groupBy(requestedMySpotZones.city)
-                .orderBy(requestedMySpotZones.city.asc())
+                .groupBy(requestedMySpotZones.region.city)
+                .orderBy(requestedMySpotZones.region.city.asc())
                 .fetch();
 
         List<FilterInfo> filterInfos = new ArrayList<>();
@@ -42,7 +41,7 @@ public class QRequestedMySpotZonesRepository {
             FilterInfo filterInfo = new FilterInfo();
 
             filterInfo.setId(result.get(requestedMySpotZones.id));
-            filterInfo.setName(result.get(requestedMySpotZones.city));
+            filterInfo.setName(result.get(requestedMySpotZones.region.city));
 
             filterInfos.add(filterInfo);
         });
@@ -54,14 +53,14 @@ public class QRequestedMySpotZonesRepository {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(city != null) {
-            whereCause.and(requestedMySpotZones.city.eq(city));
+            whereCause.and(requestedMySpotZones.region.city.eq(city));
         }
 
-        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.county)
+        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.region.county)
                 .from(requestedMySpotZones)
                 .where(whereCause)
-                .groupBy(requestedMySpotZones.county)
-                .orderBy(requestedMySpotZones.county.asc())
+                .groupBy(requestedMySpotZones.region.county)
+                .orderBy(requestedMySpotZones.region.county.asc())
                 .fetch();
 
         List<FilterInfo> filterInfos = new ArrayList<>();
@@ -72,7 +71,7 @@ public class QRequestedMySpotZonesRepository {
             FilterInfo filterInfo = new FilterInfo();
 
             filterInfo.setId(result.get(requestedMySpotZones.id));
-            filterInfo.setName(result.get(requestedMySpotZones.county));
+            filterInfo.setName(result.get(requestedMySpotZones.region.county));
 
             filterInfos.add(filterInfo);
         });
@@ -84,17 +83,17 @@ public class QRequestedMySpotZonesRepository {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(city != null) {
-            whereCause.and(requestedMySpotZones.city.eq(city));
+            whereCause.and(requestedMySpotZones.region.city.eq(city));
         }
 
         if (county != null) {
-            whereCause.and(requestedMySpotZones.county.eq(county));
+            whereCause.and(requestedMySpotZones.region.county.eq(county));
         }
 
-        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.village)
+        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.region.village)
                 .from(requestedMySpotZones)
                 .where(whereCause)
-                .groupBy(requestedMySpotZones.village)
+                .groupBy(requestedMySpotZones.region)
                 .fetch();
 
         List<FilterInfo> filterInfos = new ArrayList<>();
@@ -105,7 +104,7 @@ public class QRequestedMySpotZonesRepository {
             FilterInfo filterInfo = new FilterInfo();
 
             filterInfo.setId(result.get(requestedMySpotZones.id));
-            filterInfo.setName(result.get(requestedMySpotZones.village));
+            filterInfo.setName(result.get(requestedMySpotZones.region.village));
 
             filterInfos.add(filterInfo);
         });
@@ -117,16 +116,16 @@ public class QRequestedMySpotZonesRepository {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(city != null) {
-            whereCause.and(requestedMySpotZones.city.eq(city));
+            whereCause.and(requestedMySpotZones.region.city.eq(city));
         }
         if (county != null) {
-            whereCause.and(requestedMySpotZones.county.eq(county));
+            whereCause.and(requestedMySpotZones.region.county.eq(county));
         }
         if (village != null && !village.isEmpty()) {
-            whereCause.and(requestedMySpotZones.village.in(village));
+            whereCause.and(requestedMySpotZones.region.village.in(village));
         }
 
-        List<Tuple> resultList =  queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.zipcode)
+        List<Tuple> resultList =  queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.region.zipcode)
                 .from(requestedMySpotZones)
                 .where(whereCause)
                 .fetch();
@@ -139,7 +138,7 @@ public class QRequestedMySpotZonesRepository {
             FilterInfo filterInfo = new FilterInfo();
 
             filterInfo.setId(result.get(requestedMySpotZones.id));
-            filterInfo.setName(result.get(requestedMySpotZones.zipcode));
+            filterInfo.setName(result.get(requestedMySpotZones.region.zipcode));
 
             filterInfos.add(filterInfo);
         });
@@ -152,16 +151,16 @@ public class QRequestedMySpotZonesRepository {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(city != null) {
-            whereCause.and(requestedMySpotZones.city.eq(city));
+            whereCause.and(requestedMySpotZones.region.city.eq(city));
         }
         if (county != null) {
-            whereCause.and(requestedMySpotZones.county.eq(county));
+            whereCause.and(requestedMySpotZones.region.county.eq(county));
         }
         if (villages != null && !villages.isEmpty()) {
-            whereCause.and(requestedMySpotZones.village.in(villages));
+            whereCause.and(requestedMySpotZones.region.village.in(villages));
         }
         if (zipcodes != null && !zipcodes.isEmpty()) {
-            whereCause.and(requestedMySpotZones.zipcode.in(zipcodes));
+            whereCause.and(requestedMySpotZones.region.zipcode.in(zipcodes));
         }
         if (min != null) {
             whereCause.and(requestedMySpotZones.waitingUserCount.loe(min));
@@ -173,6 +172,7 @@ public class QRequestedMySpotZonesRepository {
         int offset = limit * (page - 1);
 
         QueryResults<RequestedMySpotZones> results = queryFactory.selectFrom(requestedMySpotZones)
+                .leftJoin(requestedMySpotZones)
                 .where(whereCause)
                 .limit(limit)
                 .offset(offset)
@@ -183,36 +183,12 @@ public class QRequestedMySpotZonesRepository {
 
     public RequestedMySpotZones findRequestedMySpotZoneByZipcode(String zipcode) {
         return queryFactory.selectFrom(requestedMySpotZones)
-                .where(requestedMySpotZones.zipcode.eq(zipcode))
+                .where(requestedMySpotZones.region.zipcode.eq(zipcode))
                 .fetchOne();
     }
 
     public List<RequestedMySpotZones> findRequestedMySpotZonesByIds(List<BigInteger> ids) {
         return queryFactory.selectFrom(requestedMySpotZones)
-                .where(requestedMySpotZones.id.in(ids))
-                .fetch();
-    }
-
-    public String findCityNameById(BigInteger id) {
-        return queryFactory.select(requestedMySpotZones.city).from(requestedMySpotZones)
-                .where(requestedMySpotZones.id.eq(id))
-                .fetchOne();
-    }
-
-    public String findCountyNameById(BigInteger id) {
-        return queryFactory.select(requestedMySpotZones.county).from(requestedMySpotZones)
-                .where(requestedMySpotZones.id.eq(id))
-                .fetchOne();
-    }
-
-    public List<String> findVillageNameById(List<BigInteger> ids) {
-        return queryFactory.select(requestedMySpotZones.village).from(requestedMySpotZones)
-                .where(requestedMySpotZones.id.in(ids))
-                .fetch();
-    }
-
-    public List<String> findZipcodeById(List<BigInteger> ids) {
-        return queryFactory.select(requestedMySpotZones.zipcode).from(requestedMySpotZones)
                 .where(requestedMySpotZones.id.in(ids))
                 .fetch();
     }

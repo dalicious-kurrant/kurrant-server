@@ -2,7 +2,7 @@ package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
