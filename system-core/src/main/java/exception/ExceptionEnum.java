@@ -145,6 +145,7 @@ public enum ExceptionEnum {
 	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "비밀번호가 생각나지 않으시면 [비밀번호 재설정]을 눌러주세요."),
 	PAYMENT_PASSWORD_RESET_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000019", "결제 비밀번호 재설정에 실패했습니다."),
 	SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000020", "저장에 실패했습니다."),
+	DUPLICATED_DINING_TYPE(HttpStatus.INTERNAL_SERVER_ERROR, "E5000021", "이미 등록된 식사시간입니다."),
 
 
 
