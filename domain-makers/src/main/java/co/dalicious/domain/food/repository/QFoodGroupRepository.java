@@ -34,4 +34,10 @@ public class QFoodGroupRepository {
                 .where(foodGroup.id.in(ids))
                 .execute();
     }
+
+    public List<FoodGroup> findAllByMakersId(BigInteger makersId) {
+        return queryFactory.selectFrom(foodGroup)
+                .where(foodGroup.makers.id.eq(makersId))
+                .fetch();
+    }
 }

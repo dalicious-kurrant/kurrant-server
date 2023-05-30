@@ -88,6 +88,16 @@ public class FoodController {
     }
 
     @ControllerMarker(ControllerType.FOOD)
+    @Operation(summary = "메이커스별 상품 그룹을 조회", description = "상품 그룹을 조회")
+    @GetMapping("/makers/{makersId}/groups")
+    public ResponseMessage getFoodGroupsByMakers(@PathVariable BigInteger makersId) {
+        return ResponseMessage.builder()
+                .message("상품 그룹을 조회 했습니다.")
+                .data(foodService.getFoodGroupsByMakers(makersId))
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.FOOD)
     @Operation(summary = "상품 그룹을 조회", description = "상품 그룹을 조회")
     @GetMapping("/groups")
     public ResponseMessage getFoodGroups() {

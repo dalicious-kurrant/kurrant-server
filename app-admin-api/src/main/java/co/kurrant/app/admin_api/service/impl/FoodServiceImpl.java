@@ -43,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -303,6 +304,16 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
+    public List<FoodGroupDto.NameList> getFoodGroupsByMakers(BigInteger makersId) {
+        List<FoodGroup> foodGroups = qFoodGroupRepository.findAllByMakersId(makersId);
+        return foodGroups == null || foodGroups.isEmpty() ?
+                Collections.emptyList() : foodGroups.stream()
+                .map(foodGroupMapper::toNameList)
+                .toList();
+    }
+
+    @Override
+    @Transactional
     public List<FoodGroupDto.Response> getFoodGroups() {
         List<FoodGroup> foodGroups = foodGroupRepository.findAll();
         return foodGroupMapper.toDtos(foodGroups);
@@ -349,7 +360,7 @@ public class FoodServiceImpl implements FoodService {
     @Override
     @Transactional
     public void deleteFoodGroups(OrderDto.IdList ids) {
-        List<FoodGroup> foodGroups  = foodGroupRepository.findAllById(ids.getIdList());
+        List<FoodGroup> foodGroups = foodGroupRepository.findAllById(ids.getIdList());
         foodGroupRepository.deleteAll(foodGroups);
     }
 

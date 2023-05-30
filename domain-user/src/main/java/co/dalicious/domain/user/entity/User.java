@@ -337,9 +337,9 @@ public class User {
             String prefix = this.email.substring(0, 2);
             String domain = this.email.substring(this.email.indexOf("@"));
             // replace the prefix with asterisks
-            String maskedPrefix = prefix.replaceAll(".", "*");
+            String maskedPrefix = "*".repeat(this.email.substring(2, this.email.indexOf("@")).length());
             // set the modified email address
-            this.email = prefix + maskedPrefix + domain;
+            this.email = prefix + maskedPrefix + domain + "(" + LocalDateTime.now() + ")";
         } else {
             this.email = email; // use the original email if it doesn't meet the criteria
         }
