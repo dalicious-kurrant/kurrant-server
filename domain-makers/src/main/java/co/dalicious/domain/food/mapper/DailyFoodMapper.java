@@ -1,7 +1,7 @@
 package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodDto;
 import co.dalicious.domain.food.entity.*;

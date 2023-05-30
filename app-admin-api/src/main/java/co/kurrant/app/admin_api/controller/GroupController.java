@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "3. Group")
 @RestController
@@ -71,6 +72,26 @@ public class GroupController {
         groupService.updateGroupDetail(updateSpotDetailRequestDto);
         return ResponseMessage.builder()
                 .message("기업  상세 정보를 수정했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.GROUP)
+    @Operation(summary = "필터 정보 조회", description = "필터를 위한 정보를 조회합니다.")
+    @GetMapping("my/spot/zones/filter")
+    public ResponseMessage getAllListForFilter(@RequestParam(required = false) Map<String, Object> filterRequest) {
+        return ResponseMessage.builder()
+                .message("조회를 성공했습니다.")
+                .data(groupService.getAllListForFilter(filterRequest))
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.GROUP)
+    @Operation(summary = "필터 정보 조회", description = "필터를 위한 정보를 조회합니다.")
+    @GetMapping("my/spot/zones")
+    public ResponseMessage getAllMySpotZoneList(@RequestParam(required = false) Map<String, Object> parameters, Integer limit, Integer size, OffsetBasedPageRequest pageable) {
+        return ResponseMessage.builder()
+                .message("조회를 성공했습니다.")
+                .data(groupService.getAllMySpotZoneList(parameters, limit, size, pageable))
                 .build();
     }
 

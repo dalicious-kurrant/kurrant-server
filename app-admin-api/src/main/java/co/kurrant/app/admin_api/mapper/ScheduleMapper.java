@@ -1,9 +1,7 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MealInfo;
-import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
@@ -12,7 +10,6 @@ import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.ScheduleDto;
-import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;

@@ -1,7 +1,7 @@
 package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -11,7 +11,6 @@ import org.hibernate.annotations.Comment;
 
 import javax.persistence.*;
 import java.math.BigInteger;
-import java.time.LocalTime;
 import java.util.List;
 
 @Getter

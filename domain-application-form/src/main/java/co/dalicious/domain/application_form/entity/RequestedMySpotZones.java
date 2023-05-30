@@ -1,6 +1,7 @@
 package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
+import co.dalicious.domain.client.entity.Region;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,21 +23,9 @@ public class RequestedMySpotZones {
     @Comment("신청한 마이 스팟존 PK")
     private BigInteger id;
 
-    @Column(name = "zipcode")
-    @Comment("우편 번호")
-    private String zipcode;
-
-    @Column(name = "city")
-    @Comment("시/도")
-    private String city;
-
-    @Column(name = "county")
-    @Comment("시/군/구")
-    private String county;
-
-    @Column(name = "village")
-    @Comment("동/읍/리")
-    private String village;
+    @ManyToOne
+    @JoinColumn(name = "region_fk")
+    private Region region;
 
     @Column(name = "waiting_user_count")
     @Comment("신청 유저 수")
@@ -47,20 +36,14 @@ public class RequestedMySpotZones {
     private String memo;
 
     @Builder
-    public RequestedMySpotZones(String zipcode, String city, String county, String village, Integer waitingUserCount, String memo) {
-        this.zipcode = zipcode;
-        this.city = city;
-        this.county = county;
-        this.village = village;
+    public RequestedMySpotZones(Region region, Integer waitingUserCount, String memo) {
+        this.region = region;
         this.waitingUserCount = waitingUserCount;
         this.memo = memo;
     }
 
-    public void updateRequestedMySpotZones(RequestedMySpotDetailDto updateRequestDto) {
-        this.zipcode = updateRequestDto.getZipcode();
-        this.city = updateRequestDto.getCity();
-        this.county = updateRequestDto.getCounty();
-        this.village = updateRequestDto.getVillage();
+    public void updateRequestedMySpotZones(RequestedMySpotDetailDto updateRequestDto, Region region) {
+        this.region = region;
         this.waitingUserCount = updateRequestDto.getRequestUserCount();
         this.memo = updateRequestDto.getMemo();
     }

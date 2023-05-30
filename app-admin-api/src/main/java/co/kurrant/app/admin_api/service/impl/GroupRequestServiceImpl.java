@@ -13,9 +13,8 @@ import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.Requeste
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
-import co.dalicious.domain.client.repository.MealInfoRepository;
-import co.dalicious.domain.client.repository.MySpotZoneRepository;
-import co.dalicious.domain.client.repository.QMySpotZoneRepository;
+import co.dalicious.domain.client.entity.Region;
+import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.repository.QMySpotRepository;
 import co.dalicious.system.enums.DiningType;
@@ -44,14 +43,15 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     private final MySpotZoneRepository mySpotZoneRepository;
     private final MealInfoRepository mealInfoRepository;
     private final QMySpotZoneRepository qMySpotZoneRepository;
+    private final QRegionRepository qRegionRepository;
 
     @Override
     @Transactional(readOnly = true)
     public FilterDto getAllListForFilter(Map<String, Object> parameters) {
         // 시/도, 군/구, 동/읍/리 별로 필터. - 군/구, 동/읍/리는 다중 필터 가능
-        String city = parameters.get("city") == null || !parameters.containsKey("city") ? null : qRequestedMySpotZonesRepository.findCityNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("city"))));
-        String county = parameters.get("county") == null || !parameters.containsKey("county") ? null : qRequestedMySpotZonesRepository.findCountyNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("county"))));
-        List<String> villages = parameters.get("villages") == null || !parameters.containsKey("villages") ? null : qRequestedMySpotZonesRepository.findVillageNameById(StringUtils.parseBigIntegerList((String) parameters.get("villages")));
+        String city = parameters.get("city") == null || !parameters.containsKey("city") ? null : qRegionRepository.findCityNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("city"))));
+        String county = parameters.get("county") == null || !parameters.containsKey("county") ? null : qRegionRepository.findCountyNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("county"))));
+        List<String> villages = parameters.get("villages") == null || !parameters.containsKey("villages") ? null : qRegionRepository.findVillageNameById(StringUtils.parseBigIntegerList((String) parameters.get("villages")));
 
         List<FilterInfo> cityList = qRequestedMySpotZonesRepository.findAllCity();
         List<FilterInfo> countyList = qRequestedMySpotZonesRepository.findAllCountyByCity(city);
@@ -64,10 +64,10 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     @Override
     @Transactional(readOnly = true)
     public ListItemResponseDto<ListResponseDto> getAllMySpotRequestList(Map<String, Object> parameters, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
-        String city = parameters.get("city") == null || !parameters.containsKey("city") ? null : qRequestedMySpotZonesRepository.findCityNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("city"))));
-        String county = parameters.get("county") == null || !parameters.containsKey("county") ? null : qRequestedMySpotZonesRepository.findCountyNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("county"))));
-        List<String> villages = parameters.get("villages") == null || !parameters.containsKey("villages") ? null : qRequestedMySpotZonesRepository.findVillageNameById(StringUtils.parseBigIntegerList((String) parameters.get("villages")));
-        List<String> zipcodes = parameters.get("zipcode") == null || !parameters.containsKey("zipcode") ? null : qRequestedMySpotZonesRepository.findZipcodeById(StringUtils.parseBigIntegerList((String) parameters.get("zipcode")));
+        String city = parameters.get("city") == null || !parameters.containsKey("city") ? null : qRegionRepository.findCityNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("city"))));
+        String county = parameters.get("county") == null || !parameters.containsKey("county") ? null : qRegionRepository.findCountyNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("county"))));
+        List<String> villages = parameters.get("villages") == null || !parameters.containsKey("villages") ? null : qRegionRepository.findVillageNameById(StringUtils.parseBigIntegerList((String) parameters.get("villages")));
+        List<String> zipcodes = parameters.get("zipcode") == null || !parameters.containsKey("zipcode") ? null : qRegionRepository.findZipcodeById(StringUtils.parseBigIntegerList((String) parameters.get("zipcode")));
         Integer minUserCount = parameters.get("min") == null || !parameters.containsKey("min") ? null : Integer.valueOf(String.valueOf(parameters.get("min")));
         Integer maxUserCount = parameters.get("max") == null || !parameters.containsKey("max") ? null : Integer.valueOf(String.valueOf(parameters.get("max")));
 
@@ -98,7 +98,9 @@ public class GroupRequestServiceImpl implements GroupRequestService {
         if(existRequestedMySpotZones != null || existMySpotZone != null ) throw new ApiException(ExceptionEnum.ALREADY_EXIST_REQUEST);
 
         // 동일한 우편번호가 없으면? -> 생성
-        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(createRequestDto);
+        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(createRequestDto.getZipcode(), createRequestDto.getCounty(), createRequestDto.getVillage());
+        if(region == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(createRequestDto, region);
         requestedMySpotZonesRepository.save(requestedMySpotZones);
     }
 
@@ -108,7 +110,9 @@ public class GroupRequestServiceImpl implements GroupRequestService {
         RequestedMySpotZones existRequestedMySpotZones = requestedMySpotZonesRepository.findById(requestedMySpotDetailDto.getId())
                 .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
 
-        existRequestedMySpotZones.updateRequestedMySpotZones(requestedMySpotDetailDto);
+        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestedMySpotDetailDto.getZipcode(), requestedMySpotDetailDto.getCounty(), requestedMySpotDetailDto.getVillage());
+        if(region == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
+        existRequestedMySpotZones.updateRequestedMySpotZones(requestedMySpotDetailDto, region);
     }
 
     @Override
@@ -134,35 +138,37 @@ public class GroupRequestServiceImpl implements GroupRequestService {
 
         // 마이스팟 생성
         MySpotZone mySpotZone = requestedMySpotZonesMapper.toMySpotZone(existRequestedMySpotZones);
+        // 지역에 마이스팟 fk
+        existRequestedMySpotZones.forEach(requestedMySpotZones -> requestedMySpotZones.getRegion().updateMySpotZone(mySpotZone));
 
         // mealInfo 생성
-        List<MealInfo> mealInfoList = new ArrayList<>();
-
         String defaultTime = "00:00";
         String defaultDays = "월, 화, 수, 목, 금, 토, 일";
 
-        for (DiningType diningType : mySpotZone.getDiningTypes()) {
-            String mealTime = switch (diningType) {
-                case MORNING -> "07:00";
-                case LUNCH -> "12:00";
-                case DINNER -> "19:00";
-            };
+        List<MealInfo> mealInfoList = mySpotZone.getDiningTypes().stream()
+                .map(diningType -> {
+                    String mealTime = switch (diningType) {
+                        case MORNING -> "07:00";
+                        case LUNCH -> "12:00";
+                        case DINNER -> "19:00";
+                    };
 
-            mealInfoList.add(requestedMySpotZonesMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime));
-        }
+                    return requestedMySpotZonesMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime);
+                })
+                .collect(Collectors.toList());
 
         mySpotZoneRepository.save(mySpotZone);
         mealInfoRepository.saveAll(mealInfoList);
 
+
+
         // requestedMySpotZone을 가지고 있는 muSpot을 수정
         List<MySpot> mySpotList = qMySpotRepository.findMySpotByRequestedMySpotZones(existRequestedMySpotZones);
 
-        if(!mySpotList.isEmpty()) {
-            mySpotList.forEach(mySpot -> {
-                mySpot.updateRequestedMySpotZones(null);
-                mySpot.updateMySpotZone(mySpotZone);
-            });
-        }
+        mySpotList.forEach(mySpot -> {
+            mySpot.updateRequestedMySpotZones(null);
+            mySpot.updateMySpotZone(mySpotZone);
+        });
 
         // 신청된 마이스팟 존 삭제
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);

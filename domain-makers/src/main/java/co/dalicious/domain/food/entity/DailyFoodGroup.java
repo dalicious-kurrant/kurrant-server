@@ -1,8 +1,7 @@
 package co.dalicious.domain.food.entity;
 
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

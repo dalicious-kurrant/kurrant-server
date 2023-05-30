@@ -3,7 +3,6 @@ package co.kurrant.app.admin_api.mapper;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
@@ -259,7 +258,12 @@ public interface GroupMapper {
             return null;
         }
 
-        List<LocalTime> deliveryTimes = Collections.singletonList(DateUtils.stringToLocalTime(deliveryTime));
+        String[] deliveryTimeStrArr = deliveryTime.split(",|, ");
+        List<LocalTime> deliveryTimes = new ArrayList<>();
+
+        for (String deliveryTimeStr : deliveryTimeStrArr ) {
+            deliveryTimes.add(DateUtils.stringToLocalTime(deliveryTimeStr));
+        }
 
         // 기업 스팟인 경우
         if (group instanceof Corporation corporation) {

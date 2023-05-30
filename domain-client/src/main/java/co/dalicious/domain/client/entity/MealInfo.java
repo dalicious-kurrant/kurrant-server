@@ -2,14 +2,10 @@ package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.client.converter.DayAndTimeConverter;
 import co.dalicious.domain.client.converter.DeliveryTimesConverter;
-import co.dalicious.domain.client.dto.GroupExcelRequestDto;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.system.converter.DaysListConverter;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
-import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.DaysUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -21,10 +17,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 

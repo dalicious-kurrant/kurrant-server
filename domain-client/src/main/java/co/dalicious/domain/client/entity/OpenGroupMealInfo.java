@@ -1,7 +1,5 @@
 package co.dalicious.domain.client.entity;
 
-import co.dalicious.domain.client.dto.GroupExcelRequestDto;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;

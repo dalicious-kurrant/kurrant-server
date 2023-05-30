@@ -1,20 +1,16 @@
 package co.dalicious.domain.client.dto;
 
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.entity.embeddable.DeliverySchedule;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.util.DateUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter

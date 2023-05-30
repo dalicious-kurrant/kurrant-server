@@ -1,12 +1,10 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.client.converter.CountriesConverter;
 import co.dalicious.domain.client.converter.MysSpotZoneStatusConverter;
-import co.dalicious.domain.client.converter.VillagesConverter;
-import co.dalicious.domain.client.converter.ZipcodesConverter;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,10 +30,10 @@ public class MySpotZone extends Group{
     @Comment("스팟 오픈 상태")
     private MySpotZoneStatus mySpotZoneStatus;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "client__my_spot_zone_zipcodes", joinColumns = @JoinColumn(name = "my_spot_zone_id"))
-    @Comment("우편 번호")
-    private List<String> zipcodes;
+    @OneToMany(mappedBy = "mySpotZone", fetch = FetchType.LAZY)
+    @JsonBackReference(value = "client__my_spot_zone_fk")
+    @Comment("지역 pk")
+    private List<Region> regionList;
 
     @Column(name = "open_start_date")
     @Comment("오픈 시작일")
@@ -45,34 +43,17 @@ public class MySpotZone extends Group{
     @Comment("오픈 마감일")
     private LocalDate openCloseDate;
 
-    @Column(name = "city")
-    @Comment("시/도")
-    private String city;
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "client__my_spot_zone_countries", joinColumns = @JoinColumn(name = "my_spot_zone_id"))
-    @Comment("군/구")
-    private List<String> countries;
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "client__my_spot_zone_villages", joinColumns = @JoinColumn(name = "my_spot_zone_id"))
-    @Comment("동/읍/리")
-    private List<String> villages;
-
     @Column(name = "my_spot_zone_user_count")
     @Comment("이용 유저 수")
     private Integer mySpotZoneUserCount;
 
     @Builder
-    public MySpotZone(Address address, List<DiningType> diningTypes, String name, String memo, MySpotZoneStatus mySpotZoneStatus, List<String> zipcodes, LocalDate openStartDate, LocalDate openCloseDate, String city, List<String> countries, List<String> villages, Integer mySpotZoneUserCount) {
+    public MySpotZone(Address address, List<DiningType> diningTypes, String name, String memo, MySpotZoneStatus mySpotZoneStatus, List<Region> regionList, LocalDate openStartDate, LocalDate openCloseDate, Integer mySpotZoneUserCount) {
         super(address, diningTypes, name, memo);
         this.mySpotZoneStatus = mySpotZoneStatus;
-        this.zipcodes = zipcodes;
+        this.regionList = regionList;
         this.openStartDate = openStartDate;
         this.openCloseDate = openCloseDate;
-        this.city = city;
-        this.countries = countries;
-        this.villages = villages;
         this.mySpotZoneUserCount = mySpotZoneUserCount;
     }
 }
