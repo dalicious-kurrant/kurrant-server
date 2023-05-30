@@ -23,19 +23,13 @@ import java.util.List;
 public interface MemberService {
 
 
-    List<MemberListResponseDto> getUserList(String code);
+    List<MemberListResponseDto> getUserList(SecurityUser securityUser);
 
-    List<MemberWaitingListResponseDto> getWaitingUserList(String code);
+    List<MemberWaitingListResponseDto> getWaitingUserList(SecurityUser securityUser);
 
     void deleteMember(SecurityUser securityUser, MemberIdListDto deleteMemberRequestDto);
 
-    List<ImportExcelWaitingUserListResponseDto> importExcelForWaitingUserList(MultipartFile file) throws IOException;
+    void insertMemberListByExcel(SecurityUser securityUser, ClientUserWaitingListSaveRequestDtoList clientUserWaitingListSaveRequestDtoList);
 
-    ResponseEntity<InputStreamResource> exportExcelForWaitingUserList(HttpServletResponse response, ClientUserWaitingListSaveRequestDto exportExcelWaitngUserListRequestDto) throws IOException;
-
-    void insertMemberList(ClientUserWaitingListSaveRequestDtoList clientUserWaitingListSaveRequestDtoList);
-
-    void insertMemberListByExcel(ClientUserWaitingListSaveRequestDtoList clientUserWaitingListSaveRequestDtoList);
-
-    void deleteWaitingMember(DeleteWaitingMemberRequestDto deleteWaitingMemberRequestDto);
+    void deleteWaitingMember(SecurityUser securityUser, DeleteWaitingMemberRequestDto deleteWaitingMemberRequestDto);
 }

@@ -25,14 +25,15 @@ public class OrderDetailDto {
         private LocalDate serviceDate;
         private DiningType diningType;
 
-        public static OrderDetail create (LocalDate serviceDate, DiningType diningType) {
+        public static OrderDetail create(LocalDate serviceDate, DiningType diningType) {
             return OrderDetail.builder()
                     .serviceDate(serviceDate)
                     .diningType(diningType)
                     .build();
         }
+
         public boolean equals(Object obj) {
-            if(obj instanceof OrderDetail tmp) {
+            if (obj instanceof OrderDetail tmp) {
                 return serviceDate.equals(tmp.serviceDate) && diningType.equals(tmp.diningType);
             }
             return false;

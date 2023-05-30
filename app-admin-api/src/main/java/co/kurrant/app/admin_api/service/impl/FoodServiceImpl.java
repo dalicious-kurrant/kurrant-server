@@ -349,8 +349,8 @@ public class FoodServiceImpl implements FoodService {
     @Override
     @Transactional
     public void deleteFoodGroups(OrderDto.IdList ids) {
-        List<FoodRecommend> foodRecommends = foodRecommendRepository.findAllById(ids.getIdList());
-        foodRecommendRepository.deleteAll(foodRecommends);
+        List<FoodGroup> foodGroups  = foodGroupRepository.findAllById(ids.getIdList());
+        foodGroupRepository.deleteAll(foodGroups);
     }
 
     @Override
