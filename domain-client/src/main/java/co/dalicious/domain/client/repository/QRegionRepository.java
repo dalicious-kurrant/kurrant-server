@@ -165,7 +165,9 @@ public class QRegionRepository {
     }
 
     public List<Region> findRegionByZipcodesAndCountiesAndVillages(List<String> zipcodes, List<String> counties, List<String> villages) {
-        List<String> villages1 = villages.stream().map(village -> village.replaceAll("동$", "")).toList();
+        List<String> villages1 = villages.stream()
+                .map(village -> village.matches(".*\\d.*") ? village.replaceAll("동$", "") : village)
+                .toList();
 
         BooleanBuilder whereCuase = new BooleanBuilder();
 
