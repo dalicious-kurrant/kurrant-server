@@ -161,7 +161,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<? extends Group> groups = new ArrayList<>();
         if (clientType == null) {
             groups = groupRepository.findAll();
-        } else if (ClientType.ofCode(clientType) == ClientType.APARTMENT) {
+        } else if (ClientType.ofCode(clientType) == ClientType.MY_SPOT) {
             groups = apartmentRepository.findAll();
         } else if (ClientType.ofCode(clientType) == ClientType.CORPORATION) {
             groups = corporationRepository.findAll();
