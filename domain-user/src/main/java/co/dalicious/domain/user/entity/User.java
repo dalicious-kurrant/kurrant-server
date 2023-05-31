@@ -11,8 +11,11 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
@@ -337,9 +340,11 @@ public class User {
             String prefix = this.email.substring(0, 2);
             String domain = this.email.substring(this.email.indexOf("@"));
             // replace the prefix with asterisks
-            String maskedPrefix = prefix.replaceAll(".", "*");
+            String maskedPrefix = "*".repeat(this.email.substring(2, this.email.indexOf("@")).length());
             // set the modified email address
-            this.email = prefix + maskedPrefix + domain;
+            double dValue = Math.random();
+            int iValue = (int)(dValue * 10000);
+            this.email = prefix + maskedPrefix + domain + "(" + iValue + ")";
         } else {
             this.email = email; // use the original email if it doesn't meet the criteria
         }
@@ -349,7 +354,7 @@ public class User {
         }
 
         // 이름 개인정보 수정
-        if(this.name != null || !this.name.equals("이름없음")) {
+        if(this.name != null && !this.name.equals("이름없음")) {
             String prefix = this.name.substring(0, 1);
             int length = this.name.substring(1).length();
             String maskedPrefix = "*".repeat(length);

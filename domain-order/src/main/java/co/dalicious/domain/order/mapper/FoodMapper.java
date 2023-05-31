@@ -2,10 +2,7 @@ package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.*;
-import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.entity.FoodDiscountPolicy;
-import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.FoodStatus;
 import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.enums.FoodCategory;
@@ -41,6 +38,10 @@ public interface FoodMapper {
     @Mapping(source = "dailyFood.food.description", target = "description")
     @Mapping(source = "dailyFood.food.makers.origins", target = "origins", qualifiedByName = "originsToDto")
     @Mapping(source = "dailyFood.food.foodTags", target = "allergies", qualifiedByName = "allergiesFromFoodTags")
+    @Mapping(source = "dailyFood.food.calorie", target = "calorie")
+    @Mapping(source = "dailyFood.food.fat", target = "fat")
+    @Mapping(source = "dailyFood.food.protein", target = "protein")
+    @Mapping(source = "dailyFood.food.carbohydrate", target = "carbohydrate")
     FoodDetailDto toDto(DailyFood dailyFood, DiscountDto discountDto);
 
     @Named("getImageLocation")
@@ -60,7 +61,8 @@ public interface FoodMapper {
     @Mapping(source = "foodListDto.description", target = "description")
     @Mapping(source = "foodTags", target = "foodTags")
     @Mapping(source = "customPrice", target = "customPrice")
-    Food toNewEntity(FoodListDto.FoodList foodListDto, Makers makers, BigDecimal customPrice, List<FoodTag> foodTags);
+    @Mapping(source = "foodGroup", target = "foodGroup")
+    Food toNewEntity(FoodListDto.FoodList foodListDto, Makers makers, BigDecimal customPrice, List<FoodTag> foodTags, FoodGroup foodGroup);
 
 
     default FoodDiscountPolicy toFoodDiscountPolicy(Food food, DiscountType discountType, Integer discountRate) {

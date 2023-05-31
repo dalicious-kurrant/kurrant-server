@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
+import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.dto.point.FoundersPointDto;
@@ -20,11 +21,11 @@ import co.dalicious.system.util.PeriodDto;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.weaver.ast.Or;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
@@ -40,6 +41,7 @@ import java.time.YearMonth;
 import java.util.*;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
+import static co.dalicious.domain.client.entity.QSpot.spot;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;
@@ -453,5 +455,19 @@ public class QOrderDailyFoodRepository {
             }
         }
         return usingMembershipUserCountMap;
+    }
+
+    public List<OrderItemDailyFood> findAllUserIdAndDate(BigInteger userId, LocalDate startDate, LocalDate endDate) {
+
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(orderItemDailyFood.order, order)
+                .where(order.user.id.eq(userId),
+                        dailyFood.serviceDate.between(startDate, endDate))
+                .fetch();
+
+
+
+
     }
 }

@@ -39,10 +39,10 @@ public class MakersServiceImpl implements MakersService {
     private final QMakersRepository qMakersRepository;
 
     @Override
-    public Object findAllMakersInfo() {
+    public List<MakersInfoResponseDto> findAllMakersInfo() {
 
         List<Makers> makersList = makersRepository.findAll();
-        if (makersList.size() == 0){
+        if (makersList.size() == 0) {
             throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
         }
 
@@ -51,7 +51,7 @@ public class MakersServiceImpl implements MakersService {
         for (Makers makers : makersList) {
             //dailyCapacity 구하기
             List<MakersCapacity> makersCapacity = qMakersCapacityRepository.findByMakersId(makers.getId());
-            if (makersCapacity.size() == 0){
+            if (makersCapacity.size() == 0) {
                 throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS_CAPACITY);
             }
 
@@ -63,9 +63,9 @@ public class MakersServiceImpl implements MakersService {
             for (MakersCapacity capacity : makersCapacity) {
                 dailyCapacity += capacity.getCapacity();
                 diningTypes.add(capacity.getDiningType().getDiningType());
-                if (capacity.getDiningType().getCode() == 1){
+                if (capacity.getDiningType().getCode() == 1) {
                     morningCapacity = capacity.getCapacity();
-                } else if(capacity.getDiningType().getCode() == 2){
+                } else if (capacity.getDiningType().getCode() == 2) {
                     lunchCapacity = capacity.getCapacity();
                 } else {
                     dinnerCapacity = capacity.getCapacity();
@@ -74,7 +74,7 @@ public class MakersServiceImpl implements MakersService {
             }
 
             MakersInfoResponseDto makersInfo = makersMapper.toDto(makers, dailyCapacity, diningTypes,
-                                                        morningCapacity, lunchCapacity, dinnerCapacity);
+                    morningCapacity, lunchCapacity, dinnerCapacity);
 
             makersInfoResponseDtoList.add(makersInfo);
 
@@ -91,30 +91,30 @@ public class MakersServiceImpl implements MakersService {
 
             Optional<Makers> optionalMakers = makersRepository.findById(saveMakersRequestDto.getId());
             //이미 존재하면 수정
-            if (optionalMakers.isPresent()){
+            if (optionalMakers.isPresent()) {
 
                 //수정한것 외에 다른 다이닝타입은 지우기 위해 전체삭제
-                if (saveMakersRequestDto.getDiningTypes().size() != 0 && !saveMakersRequestDto.getDiningTypes().isEmpty()){
+                if (saveMakersRequestDto.getDiningTypes().size() != 0 && !saveMakersRequestDto.getDiningTypes().isEmpty()) {
                     qMakersCapacityRepository.deleteAllByMakersId(saveMakersRequestDto.getId());
                 }
                 //다이닝 타입별 가능수량을 계산해서 저장해준다.
                 for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
-                        String lastOrderTime = saveMakersRequestDto.getDiningTypes().get(i).getLastOrderTime();
-                        Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
-                        Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
+                    String lastOrderTime = saveMakersRequestDto.getDiningTypes().get(i).getLastOrderTime();
+                    Integer diningType = saveMakersRequestDto.getDiningTypes().get(i).getDiningType();
+                    Integer capacity = saveMakersRequestDto.getDiningTypes().get(i).getCapacity();
 
-                        MakersCapacity makersCapacity = makersCapacityMapper.toEntityForCapacitySave(optionalMakers.get(), diningType, capacity, lastOrderTime);
+                    MakersCapacity makersCapacity = makersCapacityMapper.toEntityForCapacitySave(optionalMakers.get(), diningType, capacity, lastOrderTime);
 
-                        makersCapacityRepository.save(makersCapacity);
-                    }
+                    makersCapacityRepository.save(makersCapacity);
+                }
                 //그 외 수정
                 optionalMakers.get().updateMakers(saveMakersRequestDto);
                 optionalMakers.get().updateAddress(address);
-            }else {
+            } else {
                 Makers makers = makersMapper.toEntity(saveMakersRequestDto, address);
 
                 Makers saveResult = makersRepository.save(makers);
-                if (saveResult == null){
+                if (saveResult == null) {
                     throw new ApiException(ExceptionEnum.MAKERS_SAVE_FAILED);
                 }
 
@@ -122,7 +122,7 @@ public class MakersServiceImpl implements MakersService {
                 for (int i = 0; i < saveMakersRequestDto.getDiningTypes().size(); i++) {
                     MakersCapacity makersCapacity = makersCapacityMapper.toEntity(makers, saveMakersRequestDto.getDiningTypes().get(i));
                     MakersCapacity capacitySaveResult = makersCapacityRepository.save(makersCapacity);
-                    if (capacitySaveResult == null){
+                    if (capacitySaveResult == null) {
                         throw new ApiException(ExceptionEnum.MAKERS_SAVE_FAILED);
                     }
                 }
@@ -152,12 +152,12 @@ public class MakersServiceImpl implements MakersService {
 
 
         List<MakersCapacity> makersCapacityList = new ArrayList<>();
-        if (updateMakersReqDto.getDiningTypes() != null){
+        if (updateMakersReqDto.getDiningTypes() != null) {
             //기존 Capacity정보 삭제
             qMakersCapacityRepository.deleteAllByMakersId(makers.getId());
         }
 
-        for (MakersCapacityDto capacityDto : updateMakersReqDto.getDiningTypes()){
+        for (MakersCapacityDto capacityDto : updateMakersReqDto.getDiningTypes()) {
             //makersCapacity 수정
             MakersCapacity makersCapacity = makersCapacityMapper.toEntity(makers, capacityDto);
             makersCapacityList.add(makersCapacity);
@@ -165,8 +165,5 @@ public class MakersServiceImpl implements MakersService {
         }
 
         makers.updateMakersDetail(updateMakersReqDto, address, makersCapacityList);
-
-
-
     }
 }

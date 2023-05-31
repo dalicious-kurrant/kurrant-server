@@ -213,6 +213,17 @@ public enum FoodTag {
         return foodTags;
     }
 
+    public static List<FoodTag> ofStrings(List<String> strs) {
+        List<FoodTag> foodTags = new ArrayList<>();
+        for (String str : strs) {
+            FoodTag foodTag = FoodTag.ofString(str);
+            if (foodTag != null) {
+                foodTags.add(foodTag);
+            }
+        }
+        return foodTags;
+    }
+
     public static List<FoodTag> ofCategory(FoodCategory foodCategory) {
         return Arrays.stream(FoodTag.values())
                 .filter(v -> v.getCategory().equals(foodCategory.getFoodCategory()))

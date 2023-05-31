@@ -9,10 +9,8 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @Setter
 public class LoginRequestDto {
-  @NotBlank()
   private String email;
 
-  @NotBlank()
   private String password;
 
   private String fcmToken;

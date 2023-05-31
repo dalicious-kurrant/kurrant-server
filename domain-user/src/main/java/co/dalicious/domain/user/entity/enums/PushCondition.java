@@ -51,4 +51,8 @@ public enum PushCondition {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
     }
+
+    public static List<PushCondition> getBatchAlarmCondition() {
+        return List.of(REVIEW_DEADLINE, LAST_ORDER_BY_DAILYFOOD);
+    }
 }

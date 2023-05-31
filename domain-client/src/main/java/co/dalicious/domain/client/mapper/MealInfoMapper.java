@@ -1,22 +1,18 @@
-//package co.dalicious.domain.client.mapper;
-//
-//import co.dalicious.domain.client.dto.SpotResponseDto;
-//import co.kurrant.app.admin_api.dto.client.UpdateSpotDetailRequestDto;
-//import co.dalicious.domain.client.entity.*;
-//import co.dalicious.system.enums.DiningType;
-//import jdk.jfr.Name;
-//import org.mapstruct.Mapper;
-//import org.mapstruct.Mapping;
-//import org.mapstruct.Named;
-//
-//import javax.annotation.MatchesPattern;
-//import javax.persistence.NamedEntityGraph;
-//import java.math.BigDecimal;
-//import java.math.BigInteger;
-//import java.time.LocalTime;
-//
-//@Mapper(componentModel = "spring")
-//public interface MealInfoMapper {
+package co.dalicious.domain.client.mapper;
+
+import co.dalicious.domain.client.entity.DayAndTime;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.MySpotZoneMealInfo;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DaysUtil;
+import org.mapstruct.Mapper;
+
+import java.time.LocalTime;
+import java.util.List;
+
+@Mapper(componentModel = "spring")
+public interface MealInfoMapper {
 //    @Mapping(source = "lastOrderTime", target = "lastOrderTime")
 //    @Mapping(source = "serviceDays", target = "serviceDays")
 //    @Mapping(source = "deliveryTime", target = "deliveryTime", qualifiedByName = "getDeliveryTime")
@@ -70,4 +66,37 @@
 //        return DiningType.ofCode(Integer.valueOf(diningType));
 //    }
 //
-//}
+    default MySpotZoneMealInfo toMealInfo(Group group, DiningType diningType, LocalTime deliveryTime, String lastOrderTime, String useDays, String membershipBenefitTime) {
+        // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
+        if (lastOrderTime == null || useDays == null) {
+            return null;
+        }
+
+        return MySpotZoneMealInfo.builder()
+                .group(group)
+                .diningType(diningType)
+                .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
+                .deliveryTimes(List.of(deliveryTime))
+                .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
+                .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
+                .build();
+
+    }
+
+    default MySpotZoneMealInfo toMealInfo(Group group, DiningType diningType, List<LocalTime> deliveryTime, String lastOrderTime, String useDays, String membershipBenefitTime) {
+        // MealInfo 를 생성하기 위한 기본값이 존재하지 않으면 객체 생성 X
+        if (lastOrderTime == null || useDays == null) {
+            return null;
+        }
+
+        return MySpotZoneMealInfo.builder()
+                .group(group)
+                .diningType(diningType)
+                .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
+                .deliveryTimes(deliveryTime)
+                .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
+                .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
+                .build();
+
+    }
+}

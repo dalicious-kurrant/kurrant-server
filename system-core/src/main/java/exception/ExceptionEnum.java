@@ -46,6 +46,7 @@ public enum ExceptionEnum {
 	NOT_MATCH_USER_CARD(HttpStatus.BAD_REQUEST, "E4000034", "유저 카드정보와 일치하지 않습니다."),
 	NOT_MATCHED_GROUP(HttpStatus.BAD_REQUEST, "E4000035", "그룹이 일치하지 않습니다."),
 	NOT_MATCHED_MAKERS(HttpStatus.BAD_REQUEST, "E4000036", "메이커스가 일치하지 않습니다."),
+	NEED_TO_UPDATE(HttpStatus.BAD_REQUEST, "E4000037", "앱 업데이트가 필요합니다."),
 	EXCEL_EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "E4000100", "이미 사용중인 이메일입니다."),
 	EXCEL_INTEGRITY_ERROR(HttpStatus.BAD_REQUEST, "E4000101", "정합성에 위반된 데이터가 존재합니다. 올바른 데이터를 입력해주세요."),
 	CONNECTION_ERROR(HttpStatus.BAD_REQUEST, "E4000102", "연결 오류!!!"),
@@ -57,6 +58,8 @@ public enum ExceptionEnum {
 	ALREADY_DELETED_REVIEW(HttpStatus.BAD_REQUEST, "E4000106", "삭제된 리뷰입니다."),
 	ALREADY_USED_DAYS(HttpStatus.BAD_REQUEST, "E4000107", "이미 서비스를 제공하고 있는 요일입니다."),
 	NOT_VALID_EMAIL(HttpStatus.BAD_REQUEST, "E4000100", "잘못된 이메일 주소입니다."),
+	ALREADY_EXIST_REQUEST(HttpStatus.BAD_REQUEST, "E4000108", "요청하신 우편번호와 동일한 마이 스팟 신청내역이 존재합니다."),
+	ALREADY_EXIST_MY_SPOT_ZONE(HttpStatus.BAD_REQUEST, "E4000108", "요청하신 우편번호와 동일한 마이 스팟이 존재합니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
@@ -114,6 +117,8 @@ public enum ExceptionEnum {
 	NOT_MATCHED_TEST_DATA_ID(HttpStatus.NOT_FOUND, "E4040037", "존재하지 않는 테스트 데이터 ID 입니다."),
 	ALREADY_NOT_ACTIVE(HttpStatus.NOT_FOUND, "E4040038", "이미 비활성화 상태입니다."),
 	NOT_FOUND_FOOD_IMAGE(HttpStatus.NOT_FOUND, "E4040039", "음식 이미지를 찾을 수 없습니다."),
+	NOT_FOUND_REGION(HttpStatus.NOT_FOUND, "E4040040", "지역을 찾을 수 없습니다. 지역 정보를 확인해주세요."),
+	NOT_FOUND_MY_SPOT_ZONE(HttpStatus.NOT_FOUND, "E4040040", "마이 스팟을 찾을 수 없습니다."),
 
 	/* E409 */
 	ALREADY_EXISTING_USER(HttpStatus.CONFLICT, "E4090001", "이미 존재하는 유저입니다."),
@@ -141,6 +146,8 @@ public enum ExceptionEnum {
 	PAYMENT_PASSWORD_LENGTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "E5000017", "결제 비밀번호는 6자리로 입력해주세요."),
 	PAYMENT_PASSWORD_NOT_MATCH(HttpStatus.INTERNAL_SERVER_ERROR, "E5000018", "비밀번호가 생각나지 않으시면 [비밀번호 재설정]을 눌러주세요."),
 	PAYMENT_PASSWORD_RESET_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000019", "결제 비밀번호 재설정에 실패했습니다."),
+	SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "E5000020", "저장에 실패했습니다."),
+	DUPLICATED_DINING_TYPE(HttpStatus.INTERNAL_SERVER_ERROR, "E5000021", "이미 등록된 식사시간입니다."),
 
 
 

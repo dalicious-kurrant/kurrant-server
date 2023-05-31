@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.mapper;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.dto.FoodDto;
 import co.dalicious.domain.food.entity.*;
@@ -38,11 +39,18 @@ public interface DailyFoodMapper {
                     .build();
       };
 
-      @Mapping(source = "pickupTime", target = "pickupTime")
+      @Mapping(source = "presetGroupDailyFood.deliveryScheduleList", target = "deliverySchedules")
       DailyFoodGroup toDailyFoodGroup(PresetGroupDailyFood presetGroupDailyFood);
 
-      default DailyFoodGroup toDailyFoodGroup(FoodDto.DailyFood dailyFood) {
-            return new DailyFoodGroup(DateUtils.stringToLocalTime(dailyFood.getMakersPickupTime()));
+      default DailyFoodGroup toDailyFoodGroup(Map<String, String> deliveryScheduleMap) {
+            List<DeliverySchedule> deliveryScheduleList = new ArrayList<>();
+
+            deliveryScheduleMap.keySet().stream().forEach(deliveryTime -> {
+                  DeliverySchedule deliverySchedule = new DeliverySchedule(DateUtils.stringToLocalTime(deliveryTime), DateUtils.stringToLocalTime(deliveryScheduleMap.get(deliveryTime)));
+                  deliveryScheduleList.add(deliverySchedule);
+            });
+
+            return new DailyFoodGroup(deliveryScheduleList);
       };
 
       default List<DailyFood> toDailyFoods(MultiValueMap<DailyFoodGroup, FoodDto.DailyFood> dailyFoodMap, List<Group> groups, List<Food> foods) {

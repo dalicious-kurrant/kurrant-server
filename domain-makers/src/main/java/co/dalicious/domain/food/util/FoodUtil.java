@@ -2,13 +2,13 @@ package co.dalicious.domain.food.util;
 
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.system.util.PriceUtils;
+import co.dalicious.system.util.NumberUtils;
 
 import java.math.BigDecimal;
 
 public class FoodUtil {
     public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
-        return PriceUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100.0)));
+        return NumberUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100.0)));
     }
 
     public static BigDecimal getFoodTotalDiscountedPrice(Food food, DiscountDto discountDto) {

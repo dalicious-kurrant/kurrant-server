@@ -1,11 +1,13 @@
 package co.kurrant.app.admin_api.service.impl;
 
-import co.dalicious.client.alarm.util.KakaoUtil;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
@@ -31,12 +33,15 @@ import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
+import co.dalicious.domain.order.util.OrderMembershipUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
+import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.*;
+import co.dalicious.domain.user.repository.QMembershipRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
@@ -58,6 +63,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -74,6 +80,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
+    private final PushAlarmHashRepository pushAlarmHashRepository;
     private final GroupRepository groupRepository;
     private final ApartmentRepository apartmentRepository;
     private final CorporationRepository corporationRepository;
@@ -101,12 +108,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushUtil pushUtil;
-    private final KakaoUtil kaKaoUtil;
+    private final OrderMembershipUtil orderMembershipUtil;
     private final PushService pushService;
+    private final QMembershipRepository qMembershipRepository;
 
     @Override
     @Transactional
-    public List<OrderDto.OrderItemDailyFoodList> retrieveOrder(Map<String, Object> parameters) {
+    public List<OrderDto.OrderItemDailyFoodGroupList> retrieveOrder(Map<String, Object> parameters) {
         LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
         BigInteger groupId = !parameters.containsKey("group") || parameters.get("group").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("group")));
@@ -123,8 +131,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         OrderStatus orderStatus = status == null ? null : OrderStatus.ofCode(status);
 
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, group, spotIds, diningTypeCode, userId, makers, orderStatus);
+        List<Membership> memberships = qMembershipRepository.findAllByFilter(startDate, endDate, group, userId);
 
-        return orderMapper.ToDtoByGroup(orderItemDailyFoods);
+        return orderMapper.toOrderItemDailyFoodGroupList(orderItemDailyFoods, memberships);
     }
 
     @Override
@@ -199,6 +208,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
         Set<String> userPhoneNumber = new HashSet<>();
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
+        List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             if (!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
@@ -207,10 +217,18 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             orderItemDailyFood.updateOrderStatus(orderStatus);
             Optional<User> optionalUser = userRepository.findById(orderItemDailyFood.getOrder().getUser().getId());
             optionalUser.ifPresent(user -> userPhoneNumber.add(user.getPhone()));
-            // 배송완료 푸시 알림 전송
-            if (OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
-                PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
+
+            // 배송완료 푸시 알림 전송 및 멤버십 추가
+            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.DELIVERED) && OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
+                // 멤버십 추가
                 User user = orderItemDailyFood.getOrder().getUser();
+                Group group = (Group) Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup());
+                if (group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+                    orderMembershipUtil.joinCorporationMembership(user, corporation);
+                }
+
+                // 배송 완료 푸시알림 전송
+                PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
                 String userName = user.getName();
                 String foodName = orderItemDailyFood.getName();
                 String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
@@ -219,9 +237,18 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (pushRequestDtoByUser != null) {
                     pushRequestDtoByUsers.add(pushRequestDtoByUser);
                 }
+                PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                        .title(PushCondition.DELIVERED_ORDER_ITEM.getTitle())
+                        .isRead(false)
+                        .message(message)
+                        .userId(user.getId())
+                        .type(AlarmType.ORDER_STATUS.getAlarmType())
+                        .build();
+                pushAlarmHashes.add(pushAlarmHash);
             }
         }
         pushService.sendToPush(pushRequestDtoByUsers);
+        pushAlarmHashRepository.saveAll(pushAlarmHashes);
 
         /*
         String content = "안녕하세요!\n" +
@@ -251,21 +278,23 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    public void cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public String cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
+        StringBuilder failMessage = new StringBuilder();
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
         for (OrderItem orderItem : orderItems) {
+            User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
             try {
-                User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
-
                 if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                     orderService.adminCancelOrderItemDailyFood(orderItemDailyFood, user);
                 }
-
             } catch (Exception e) {
                 // Log the exception or handle it as needed
+                failMessage.append(user.getName()).append("님의 ").append(((OrderItemDailyFood) orderItem).getName()).append(" 상품이 취소되지 않았습니다. \n");
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
+        return failMessage.toString();
     }
 
     @Override

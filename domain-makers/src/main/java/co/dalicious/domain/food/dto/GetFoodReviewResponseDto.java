@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigInteger;
 import java.util.List;
 
 @Getter
@@ -12,6 +13,12 @@ import java.util.List;
 public class GetFoodReviewResponseDto {
 
     private List<FoodReviewListDto> items;
-    private Double starEverage;
+    private Double starAverage;
     private Integer total;
+    private Integer count;
+    private Integer limit;
+    private Boolean isLast;
+    private BigInteger foodId;
+    private Integer totalReview;
+    private BigInteger reviewWrite;
 }

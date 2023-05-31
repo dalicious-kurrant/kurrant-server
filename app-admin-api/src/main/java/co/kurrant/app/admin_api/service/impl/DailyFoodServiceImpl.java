@@ -2,10 +2,14 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.dto.DailyFoodGroupDto;
@@ -15,7 +19,6 @@ import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.mapper.CapacityMapper;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.domain.food.repository.*;
-import co.dalicious.domain.order.dto.CapacityDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
@@ -45,7 +48,6 @@ import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -74,6 +76,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final PushUtil pushUtil;
     private final PushService pushService;
     private final QPushAlarmsRepository qPushAlarmsRepository;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
 
     @Override
     @Transactional
@@ -117,7 +120,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         // TODO: 메이커스 승인 완료 하면 Push 알림 구현
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
-        Map<User, Group> userGroupMap = qUserGroupRepository.findUserGroupFirebaseToken(groupIdSet);
+        List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
+         Map<User, Group> userGroupMap = qUserGroupRepository.findUserGroupFirebaseToken(groupIdSet);
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.NEW_DAILYFOOD);
         for (User user : userGroupMap.keySet()) {
             String message = PushUtil.getContextNewDailyFood(pushAlarms.getMessage(), userGroupMap.get(user).getName(), periodDto.getStartDate(), periodDto.getEndDate());
@@ -125,8 +129,18 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             if (pushRequestDtoByUser != null) {
                 pushRequestDtoByUsers.add(pushRequestDtoByUser);
             }
+
+            PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                    .title(PushCondition.NEW_DAILYFOOD.getTitle())
+                    .isRead(false)
+                    .message(message)
+                    .userId(user.getId())
+                    .type(AlarmType.MEAL.getAlarmType())
+                    .build();
+            pushAlarmHashes.add(pushAlarmHash);
         }
         pushService.sendToPush(pushRequestDtoByUsers);
+        pushAlarmHashRepository.saveAll(pushAlarmHashes);
     }
 
     @Override
@@ -241,8 +255,12 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 waitingDailyFood = null;
             }
 
-            if (!Objects.equals(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), dailyFood.getDailyFoodGroup().getPickupTime())) {
-                dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()));
+            DeliverySchedule deliverySchedule = dailyFood.getDailyFoodGroup().getDeliverySchedules().stream()
+                    .filter(deliverySchedule1 -> deliverySchedule1.getDeliveryTime().equals(DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime())))
+                    .findAny().orElse(null);
+
+            if (deliverySchedule != null && !Objects.equals(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), deliverySchedule.getPickupTime())) {
+                dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()));
             }
 
             // 식단을 구매한 사람이 없다면
@@ -286,7 +304,13 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupDtoMap.keySet()) {
             List<FoodDto.DailyFood> dailyFoodDtos = dailyFoodGroupDtoMap.get(dailyFoodGroupDto);
-            DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(dailyFoodGroupDtoMap.get(dailyFoodGroupDto).get(0)));
+
+            Map<String, String> deliveryScheduleMap = new HashMap<>();
+            for(FoodDto.DailyFood dailyFood : Objects.requireNonNull(dailyFoodDtos)) {
+                deliveryScheduleMap.put(dailyFood.getDeliveryTime(), dailyFood.getMakersPickupTime());
+            }
+
+            DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(deliveryScheduleMap));
             newDailyFoodGroupMap.put(dailyFoodGroup, dailyFoodDtos);
         }
 
@@ -305,6 +329,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         // 등록대기 -> 판매중으로 변경된 식단들만 푸시 알림 보내기
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
+        List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
         Map<User, Group> userGroupMap = qUserGroupRepository.findUserGroupFirebaseTokenByGroup(groupMap.keySet());
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.NEW_DAILYFOOD);
         for (User user : userGroupMap.keySet()) {
@@ -316,8 +341,17 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 if (pushRequestDtoByUser != null) {
                     pushRequestDtoByUsers.add(pushRequestDtoByUser);
                 }
+                PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                        .title(PushCondition.NEW_DAILYFOOD.getTitle())
+                        .isRead(false)
+                        .message(message)
+                        .userId(user.getId())
+                        .type(AlarmType.MEAL.getAlarmType())
+                        .build();
+                pushAlarmHashes.add(pushAlarmHash);
             }
         }
         pushService.sendToPush(pushRequestDtoByUsers);
+        pushAlarmHashRepository.saveAll(pushAlarmHashes);
     }
 }

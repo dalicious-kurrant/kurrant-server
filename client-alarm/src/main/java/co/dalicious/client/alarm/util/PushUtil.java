@@ -1,5 +1,6 @@
 package co.dalicious.client.alarm.util;
 
+import co.dalicious.client.alarm.dto.BatchAlarmDto;
 import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
@@ -25,8 +26,6 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class PushUtil {
-
-    private final QUserGroupRepository qUserGroupRepository;
     private final QUserSpotRepository qUserSpotRepository;
     private final QUserRepository qUserRepository;
     private final QPushAlarmsRepository qPushAlarmsRepository;
@@ -35,14 +34,14 @@ public class PushUtil {
     private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
     private final QBatchPushAlarmLogRepository qBatchPushAlarmLogRepository;
 
-    public void sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, String customMessage) {
+    public PushRequestDto sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, String customMessage) {
         Set<BigInteger> spotIds = !ids.containsKey("spotIds") || ids.get("spotIds") == null ? null : ids.get("spotIds");
         Set<BigInteger> userIds = !ids.containsKey("userIds") || ids.get("userIds") == null ? null : ids.get("userIds");
 
         // 활성화 된 자동 알람을 불러오기
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
         // 비활성인 경우 알람 안보냄
-        if (pushAlarms == null) return;
+        if (pushAlarms == null) return null;
 
         List<User> userList = new ArrayList<>();
 
@@ -77,14 +76,10 @@ public class PushUtil {
             message = customMessage;
         }
 
-        PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(firebaseTokenList, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl(), keys);
-
-        pushService.sendToPush(pushRequestDto);
-        saveBatchLog(pushUserIds,  pushCondition);
+        return pushAlarmMapper.toPushRequestDto(firebaseTokenList, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl(), keys);
     }
 
     public PushRequestDtoByUser getPushRequest(User user, PushCondition pushCondition, String customMessage) {
-
         // 활성화 된 자동 알람을 불러오기
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
         // 비활성인 경우 알람 안보냄
@@ -135,26 +130,30 @@ public class PushUtil {
         return template;
     }
 
-    @Transactional
-    public void saveBatchLog(List<BigInteger> userIds, PushCondition pushCondition) {
-        LocalDateTime logDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+    public void getBatchAlarmDto(User user, PushCondition pushCondition) {
+        // 활성화 된 자동 알람을 불러오기
+        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
+        // 비활성인 경우 알람 안보냄
+        if (pushAlarms == null) return;
 
-        List<BatchPushAlarmLog> existPushAlarmLogList = qBatchPushAlarmLogRepository.findAllBatchAlarmLogByUserIds(userIds);
-        List<BatchPushAlarmLog> pushAlarmLogList = new ArrayList<>();
+        Map<String, BigInteger> token = new HashMap<>();
+        BatchAlarmDto pushRequestDto = null;
 
-        // 업데이트 할 아이디와 생성할 아이디 분리
-        if(!existPushAlarmLogList.isEmpty()) {
-            for(BatchPushAlarmLog existPushAlarmLog : existPushAlarmLogList) {
-                existPushAlarmLog.updatePushDateTime(logDateTime);
-                userIds.remove(existPushAlarmLog.getUserId());
-            }
+        List<PushCondition> pushConditionList = user.getPushConditionList();
+        if (pushConditionList == null || pushConditionList.isEmpty()) {
+            return;
+        }
+        if (pushConditionList.contains(pushCondition)) {
+            token.put(user.getFirebaseToken(), user.getId());
         }
 
-        if(!userIds.isEmpty()) {
-            for(BigInteger id : userIds) {
-                pushAlarmLogList.add(pushAlarmMapper.toBatchPushAlarmLog(id, pushCondition, logDateTime));
-            }
-            batchPushAlarmLogRepository.saveAll(pushAlarmLogList);
+        String message = pushAlarms.getMessage();
+        if (!token.isEmpty()) {
+            pushRequestDto = pushAlarmMapper.toBatchAlarmDto(token, pushCondition.getTitle(), pushAlarms.getRedirectUrl(), message);
+        }
+
+        if(pushRequestDto != null) {
+            pushService.sendToPush(pushRequestDto, pushCondition);
         }
     }
 }

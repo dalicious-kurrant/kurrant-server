@@ -33,6 +33,7 @@ import co.kurrant.app.public_api.mapper.user.UserMapper;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.client.external.mail.EmailService;
@@ -45,6 +46,7 @@ import co.dalicious.domain.user.dto.UserDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -96,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void mailConfirm(Authentication authentication, MailMessageDto mailMessageDto, String type) throws Exception {
         // 인증을 요청하는 위치 파악하기
-        for(String email : mailMessageDto.getReceivers()) {
+        for (String email : mailMessageDto.getReceivers()) {
             UserValidator.isValidEmail(email);
         }
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
@@ -117,7 +119,7 @@ public class AuthServiceImpl implements AuthService {
                 userValidator.isEmailValid(user, mailMessageDto.getReceivers().get(0));
                 Optional<User> userOptional = userRepository.findOneByEmail(mailMessageDto.getReceivers().get(0));
 
-                if(userOptional.isPresent()) {
+                if (userOptional.isPresent()) {
                     throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
                 }
             }
@@ -155,7 +157,7 @@ public class AuthServiceImpl implements AuthService {
                 </header>
                 <div>
                     <div style="width:100%; justify-content: center;  align-items: center; display: flex; flex-direction: column;">
-                
+                                
                         <div style="padding: 50px; padding-right: 104px; border:1px solid #E4E3E7; border-radius: 14px; max-width: 481px; min-height: 481px; width: 100%; box-sizing: border-box;">
                             <div style="font-size: 26px; font-weight: 600; font-family: ‘Franklin Gothic Medium’, ‘Arial Narrow’, Arial, sans-serif; line-height: 35px; margin-bottom: 32px; color: #343337;">커런트에서 요청하신 인증번호를 발송해 드립니다.</div>
                             <div style="font-size: 14px; line-height: 22px; font-weight: 400; color: #343337;">아래 인증번호 6자리를 인증번호 입력창에 입력해주세요</div>
@@ -192,7 +194,7 @@ public class AuthServiceImpl implements AuthService {
                     userValidator.isPhoneValid(smsMessageRequestDto.getTo());
             case FIND_ID, FIND_PASSWORD -> {
                 // 유저가 존재하는지 확인
-                User user = userRepository.findOneByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+                User user = qUserRepository.findOneByPhone(smsMessageRequestDto.getTo()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
             }
         }
 
@@ -298,6 +300,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResponseDto login(LoginRequestDto dto) {
+        if (dto.getEmail() == null) {
+            throw new ApiException(ExceptionEnum.NOT_INPUT_USERNAME);
+        }
+        if (dto.getPassword() == null) {
+            throw new ApiException(ExceptionEnum.NOT_INPUT_PASSWORD);
+        }
+
         User user = userRepository.findOneByEmail(dto.getEmail()).orElseThrow(() -> {
             throw new ApiException(ExceptionEnum.USER_NOT_FOUND);
         });
@@ -578,7 +587,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void checkUser(FindPasswordUserCheckRequestDto findPasswordUserCheckRequestDto) {
-        userRepository.findOneByNameAndEmail(findPasswordUserCheckRequestDto.getName(), findPasswordUserCheckRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        User user = userRepository.findOneByNameAndEmail(findPasswordUserCheckRequestDto.getName(), findPasswordUserCheckRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
     }
 
     @Override

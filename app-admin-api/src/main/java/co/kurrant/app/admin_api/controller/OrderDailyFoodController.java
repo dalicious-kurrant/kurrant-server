@@ -1,6 +1,8 @@
 package co.kurrant.app.admin_api.controller;
 
+import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.admin_api.service.OrderDailyFoodService;
@@ -8,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.ParseException;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @GetMapping("")
     public ResponseMessage retrieveOrder(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
@@ -32,6 +34,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @GetMapping("/by/makers")
     public ResponseMessage retrieveOrderCountByMakers(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
@@ -40,6 +43,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @GetMapping("/{orderCode}")
     public ResponseMessage getOrderDetail(@PathVariable String orderCode) {
         return ResponseMessage.builder()
@@ -48,6 +52,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @GetMapping("/group")
     public ResponseMessage getGroup(@RequestParam(required = false) Integer clientType) {
         return ResponseMessage.builder()
@@ -56,6 +61,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @GetMapping("/makers")
     public ResponseMessage getMakers() {
         return ResponseMessage.builder()
@@ -64,6 +70,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @GetMapping("/groupInfo")
     public ResponseMessage getGroupInfo(@RequestParam(required = false) BigInteger groupId) {
         return ResponseMessage.builder()
@@ -72,6 +79,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @PostMapping("/cancel")
     public ResponseMessage cancelOrder(@RequestBody OrderDto.Id id) throws IOException, ParseException {
         orderDailyFoodService.cancelOrderNice(id.getId());
@@ -80,6 +88,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @PostMapping("/orderItems/status")
     public ResponseMessage changeStatus(@RequestBody OrderDto.StatusAndIdList statusAndIdList) throws IOException, ParseException {
         orderDailyFoodService.changeOrderStatus(statusAndIdList);
@@ -88,13 +97,16 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @PostMapping("/orderItems/cancel")
     public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
-        orderDailyFoodService.cancelOrderItemsNice(idList.getIdList());
+        String message = orderDailyFoodService.cancelOrderItemsNice(idList.getIdList());
         return ResponseMessage.builder()
-                .message("부분 주문 취소를 성공했습니다.")
+                .message(message.isEmpty() ? "부분 주문 취소를 성공했습니다." : message)
                 .build();
     }
+
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @GetMapping("/extra/dailyFoods")
     public ResponseMessage getExtraDailyFoods(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
                                               @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
@@ -105,6 +117,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @GetMapping("/extra")
     public ResponseMessage getExtraOrders(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
@@ -113,6 +126,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @PostMapping("/extra")
     public ResponseMessage postExtraOrderItems(@RequestBody List<ExtraOrderDto.Request> orderDtos) {
         orderDailyFoodService.postExtraOrderItems(orderDtos);
@@ -121,6 +135,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @PostMapping("/extra/refund")
     public ResponseMessage refundExtraOrderItems(@RequestBody OrderDto.Id id) {
         orderDailyFoodService.refundExtraOrderItems(id.getId());
@@ -129,6 +144,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @PostMapping("/cancel/toss")
     public ResponseMessage cancelOrderNice(@RequestBody OrderDto.Id id) throws IOException, ParseException {
         orderDailyFoodService.cancelOrderToss(id.getId());
@@ -137,6 +153,7 @@ public class OrderDailyFoodController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @PostMapping("/orderItems/cancel/toss")
     public ResponseMessage cancelOrderItemNice(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
         orderDailyFoodService.cancelOrderItemsToss(idList.getIdList());

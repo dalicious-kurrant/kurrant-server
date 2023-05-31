@@ -66,8 +66,12 @@ public class UpdateSpotDetailRequestDto {
     private Boolean isHotStorage;
     @Schema(description = "선불정산 여부 체크")
     private Boolean isPrepaid;
+    @Schema(description = "멤버십 종료 날짜")
+    private String membershipEndDate;
     @Schema(description = "메모")
     private String memo;
+    @Schema(description = "활성화 여부")
+    private Boolean isActive;
     @Schema(description = "정산 선불 정보")
     private List<PrepaidCategory> prepaidCategoryList;
     @Getter

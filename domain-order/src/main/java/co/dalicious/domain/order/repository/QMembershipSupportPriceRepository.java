@@ -3,6 +3,7 @@ package co.dalicious.domain.order.repository;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
+import co.dalicious.domain.user.entity.Membership;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -13,6 +14,8 @@ import java.time.YearMonth;
 import java.util.List;
 
 import static co.dalicious.domain.order.entity.QMembershipSupportPrice.membershipSupportPrice;
+import static co.dalicious.domain.order.entity.QOrderItemMembership.orderItemMembership;
+import static co.dalicious.domain.user.entity.QMembership.membership;
 
 @Repository
 @RequiredArgsConstructor
@@ -43,6 +46,19 @@ public class QMembershipSupportPriceRepository {
                 .where(membershipSupportPrice.monetaryStatus.eq(MonetaryStatus.DEDUCTION),
                         membershipSupportPrice.group.id.eq(corporation.getId()),
                         membershipSupportPrice.createdDateTime.between(startTimestamp, endTimestamp))
+                .fetch();
+    }
+
+    public List<Membership> findAllByGroupAndNow(Corporation corporation) {
+        LocalDate now = LocalDate.now();
+
+        return queryFactory.select(membership)
+                .from(membershipSupportPrice)
+                .leftJoin(membershipSupportPrice.orderItemMembership, orderItemMembership)
+                .leftJoin(orderItemMembership.membership, membership)
+                .where(membershipSupportPrice.group.id.eq(corporation.getId()),
+                        membership.startDate.loe(now),
+                        membership.endDate.goe(now))
                 .fetch();
     }
 }

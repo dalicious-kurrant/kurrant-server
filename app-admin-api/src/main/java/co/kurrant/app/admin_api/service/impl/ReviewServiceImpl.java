@@ -1,8 +1,13 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.dto.PushRequestDto;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
+import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.FoodRepository;
@@ -40,7 +45,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final MakersRepository makersRepository;
     private final PushUtil pushUtil;
-
+    private final PushService pushService;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
     private final KeywordRepository keywordRepository;
     private final KeywordMapper keywordMapper;
     private final QKeywordRepository qKeywordRepository;
@@ -120,8 +126,18 @@ public class ReviewServiceImpl implements ReviewService {
         BigInteger userId = reviews.getUser().getId();
         Map<String, Set<BigInteger>> userIdsMap = Collections.singletonMap("userIds", new HashSet<>(Collections.singletonList(userId)));
 
-        pushUtil.sendToType(userIdsMap, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
+        PushRequestDto pushRequestDto = pushUtil.sendToType(userIdsMap, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
+        pushService.sendToPush(pushRequestDto);
 
+        PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                .title(pushRequestDto.getTitle())
+                .message(pushRequestDto.getMessage())
+                .isRead(false)
+                .userId(userId)
+                .type(AlarmType.REVIEW.getAlarmType())
+                .reviewId(reviews.getId())
+                .build();
+        pushAlarmHashRepository.save(pushAlarmHash);
     }
 
     @Override

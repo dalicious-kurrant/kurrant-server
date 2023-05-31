@@ -24,4 +24,6 @@ public interface ReviewService {
     void updateReviews(SecurityUser securityUser, List<MultipartFile> fileList, ReviewUpdateReqDto updateReqDto, BigInteger reviewsId) throws IOException;
     //리뷰 삭제
     void deleteReviews(SecurityUser securityUser, BigInteger reviewId);
+
+    Object reviewStarCount(BigInteger dailyFoodId);
 }

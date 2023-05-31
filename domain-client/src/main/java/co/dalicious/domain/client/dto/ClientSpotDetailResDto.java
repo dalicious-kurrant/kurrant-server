@@ -7,7 +7,6 @@ import co.dalicious.system.util.DateUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -33,7 +32,7 @@ public class ClientSpotDetailResDto {
         private String serviceDays;
         private String membershipBenefitTime;
         private String lastOrderTime;
-        private String deliveryTime;
+        private List<String> deliveryTime;
         private BigDecimal supportPrice;
 
         @Builder
@@ -59,7 +58,9 @@ public class ClientSpotDetailResDto {
             this.serviceDays = String.valueOf(serviceDays);
             this.membershipBenefitTime = DayAndTime.dayAndTimeToString(mealInfo.getMembershipBenefitTime());
             this.lastOrderTime = DayAndTime.dayAndTimeToString(mealInfo.getLastOrderTime());
-            this.deliveryTime =  DateUtils.timeToString(mealInfo.getDeliveryTime());
+            this.deliveryTime = mealInfo.getDeliveryTimes().stream()
+                    .map(DateUtils::timeToString)
+                    .toList();
             this.supportPrice = !(mealInfo instanceof CorporationMealInfo) ? bigDecimal : null;
         }
     }
