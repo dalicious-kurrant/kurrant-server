@@ -429,23 +429,26 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public void deleteMySpotZone(BigInteger id) {
+    public void deleteMySpotZone(List<BigInteger> id) {
         // my spot zone 찾기
-        MySpotZone mySpotZone = qMySpotZoneRepository.findMySpotZoneById(id);
-        if(mySpotZone == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
+        List<MySpotZone> mySpotZoneList = qMySpotZoneRepository.findAllMySpotZoneByIds(id);
+        if(mySpotZoneList == null || mySpotZoneList.isEmpty()) throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
 
         // region의 my spot zone fk도 null
-        List<Region> regions = mySpotZone.getRegionList();
+        List<Region> regions = mySpotZoneList.stream()
+                .flatMap(mySpotZone -> mySpotZone.getRegionList().stream())
+                .toList();
+
         regions.forEach(region -> region.updateMySpotZone(null));
 
         // my spot zone fk를 가진 my spot 찾아서 null
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByMySpotZone(mySpotZone);
-        if(mySpotList.isEmpty()) mySpotZone.updateIsActive(false);
+        List<MySpot> mySpotList = qMySpotRepository.findMySpotByMySpotZone(mySpotZoneList);
+        if(mySpotList.isEmpty()) mySpotZoneList.forEach(mySpotZone -> mySpotZone.updateIsActive(false));
         else {
             mySpotList.forEach(mySpot -> mySpot.updateMySpotZone(null));
 
             // my spot zone update isActive false
-            mySpotZone.updateIsActive(false);
+            mySpotZoneList.forEach(mySpotZone -> mySpotZone.updateIsActive(false));
         }
     }
 
