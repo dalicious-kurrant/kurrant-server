@@ -7,7 +7,9 @@ import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
+import co.dalicious.domain.user.dto.SaveDailyReportFoodReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.kurrant.app.public_api.dto.board.AlarmResponseDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.kurrant.app.public_api.dto.user.*;
@@ -87,4 +89,10 @@ public interface UserService {
     Boolean userPreferenceCheck(SecurityUser securityUser);
 
     List<PushResponseDto> getAlarms(SecurityUser securityUser);
+
+    void insertMyFood(SecurityUser securityUser, SaveDailyReportDto saveDailyReportDto);
+
+    Object getReport(SecurityUser securityUser, String date);
+
+    void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto);
 }

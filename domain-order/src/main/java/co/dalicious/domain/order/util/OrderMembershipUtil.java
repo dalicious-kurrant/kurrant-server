@@ -53,8 +53,7 @@ public class OrderMembershipUtil {
         membershipRepository.save(membership);
 
         // 결제 내역 등록
-        OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
-        OrderMembership order = orderMembershipMapper.toOrderMembership(orderUserInfoDto, null, MembershipSubscriptionType.MONTH, BigDecimal.ZERO, BigDecimal.ZERO, PaymentType.SUPPORT_PRICE, membership);
+        OrderMembership order = orderMembershipMapper.toOrderMembership(user, corporation.getAddress(), null, MembershipSubscriptionType.MONTH, BigDecimal.ZERO, BigDecimal.ZERO, PaymentType.SUPPORT_PRICE, membership);
         orderMembershipRepository.save(order);
 
         // 멤버십 결제 내역 등록(진행중 상태)

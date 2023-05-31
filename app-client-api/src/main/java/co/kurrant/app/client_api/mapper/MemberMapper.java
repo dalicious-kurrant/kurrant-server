@@ -9,6 +9,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface MemberMapper {
 
@@ -30,7 +32,8 @@ public interface MemberMapper {
     @Mapping(source = "employee.name", target = "name")
     @Mapping(source = "employee.email", target = "email")
     @Mapping(source = "employee.id", target = "id")
-    MemberWaitingListResponseDto toMemberWaitingListDto(Employee employee);
+    @Mapping(source = "status", target = "status")
+    MemberWaitingListResponseDto toMemberWaitingListDto(Employee employee, Boolean status);
 
     @Named("userType")
     default String userType(Role role){

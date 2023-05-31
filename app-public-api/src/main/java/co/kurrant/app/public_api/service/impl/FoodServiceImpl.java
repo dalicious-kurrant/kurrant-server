@@ -8,7 +8,10 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
-import co.dalicious.domain.order.repository.DailyFoodSupportPriceRepository;
+import co.dalicious.domain.order.entity.OrderItem;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.QOrderItemDailyFood;
+import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
@@ -65,11 +68,11 @@ public class FoodServiceImpl implements FoodService {
     private final UserRepository userRepository;
 
     private final CommentsRepository commentsRepository;
-
+    private final OrderItemRepository orderItemRepository;
     private final ReviewGoodRepository reviewGoodRepository;
     private final LikeMapper likeMapper;
     private final QReviewGoodRepository qReviewGoodRepository;
-
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final QKeywordRepository qKeywordRepository;
 
 
@@ -236,33 +239,35 @@ public class FoodServiceImpl implements FoodService {
 
         //리뷰와 유저정보 가져오기
         Page<Reviews> pageReviews = null;
-        Page<Reviews> totalReviewsList = null;
 
-        totalReviewsList = qReviewRepository.findAllByFoodId(dailyFood.getFood().getId(), pageable);
+
+        List<Reviews> totalReviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
         if ((photo != null && photo != 0) || (starFilter != null && starFilter.length() != 0)){
            pageReviews = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), photo, starFilter, pageable);
 
         } else {
-            pageReviews = totalReviewsList;
+            pageReviews = qReviewRepository.findAllByFoodId(dailyFood.getFood().getId(), pageable);
         }
 
-        if (totalReviewsList.getSize() == 0){
+        if (totalReviewsList.size() == 0){
             return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
-                    true,0,0);
+                    true,0,0, 0, BigInteger.valueOf(0));
         }
 
         //대댓글과 별점 추가
-        double starEverage;
+        double starAverage;
+        int isReview = 0;
         double sumStar = 0;    //별점 계산을 위한 총 별점
+
         for (Reviews reviews : pageReviews){
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList  = commentsRepository.findAllByReviewsId(reviews.getId());
 
-
             //좋아요 눌렀는지 여부 조회
             boolean isGood = false;
             //조회한 유저가 리뷰 작성자인지 여부
-            boolean isWriter = optionalUser.get().getId() == user.getId() ? true : false;
+            boolean isWriter = optionalUser.get().getId() == user.getId();
+            if (isWriter) isReview = 1;
             Optional<ReviewGood> reviewGood = qReviewGoodRepository.foodReviewLikeCheckByUserId(user.getId(), reviews.getId());
             if (reviewGood.isPresent()) isGood = true;
             FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList, isGood, isWriter);
@@ -273,16 +278,31 @@ public class FoodServiceImpl implements FoodService {
         }
 
         //기본 정렬
-
         sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction)
                      .thenComparing(FoodReviewListDto::getCreateDate)).collect(Collectors.toList());
 
 
-        Integer totalReviewSize = totalReviewsList.getContent().size();
-        starEverage =  Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
+        Integer totalReviewSize = totalReviewsList.size();
+        starAverage =  Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
 
-        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starEverage, totalReviewSize, dailyFood.getFood().getId(), sort,
-                pageReviews.isLast(), pageReviews.getTotalPages(), pageable.getPageSize());
+        //리뷰작성
+        BigInteger reviewWrite = null;
+        //주문에 대한 리뷰를 작성했는지
+        if (isReview == 1) reviewWrite = BigInteger.valueOf(0);
+        //주문 한 적 있는지
+        OrderItemDailyFood orderItemDailyFood = qOrderItemDailyFoodRepository.findAllByUserAndDailyFood(user.getId(), dailyFood.getFood().getId());
+        if (orderItemDailyFood != null){
+            reviewWrite = orderItemDailyFood.getId();
+        }
+
+        //주문 기한이 5일이 지났는지(orderItemDailyFood +5일이 오늘보다 작다면)
+        if (orderItemDailyFood != null && orderItemDailyFood.getCreatedDateTime().toLocalDateTime().toLocalDate().plusDays(5).isBefore(LocalDate.now())){
+            reviewWrite = BigInteger.valueOf(0);
+        }
+
+
+        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort,
+                pageReviews.isLast(), pageReviews.getTotalPages(), pageable.getPageSize(), pageReviews.getNumberOfElements(), reviewWrite);
     }
 
     @Override

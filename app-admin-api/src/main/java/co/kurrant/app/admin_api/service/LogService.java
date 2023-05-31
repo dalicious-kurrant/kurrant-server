@@ -9,4 +9,5 @@ import java.util.Map;
 
 public interface LogService {
     ItemPageableResponseDto<List<AdminLogsDto>> getLogs(Map<String, Object> parameters, OffsetBasedPageRequest pageable);
+    List<String> getDevices();
 }

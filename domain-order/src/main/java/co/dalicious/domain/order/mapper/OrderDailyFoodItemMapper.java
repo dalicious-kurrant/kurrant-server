@@ -31,4 +31,5 @@ public interface OrderDailyFoodItemMapper {
     @Mapping(target = "diningType", expression = "java(DiningType.ofString(cartDailyFoodDto.getDiningType()))")
     @Mapping(source = "deliveryFee", target = "deliveryFee")
     OrderItemDailyFoodGroup dtoToOrderItemDailyFoodGroup(CartDailyFoodDto cartDailyFoodDto);
+
 }

@@ -249,6 +249,8 @@ public class Makers {
             this.accountNumber = saveMakersRequestDto.getAccountNumber();
         if (saveMakersRequestDto.getIsActive() != null)
             this.isActive = saveMakersRequestDto.getIsActive();
+        if (saveMakersRequestDto.getServiceDays() != null && !saveMakersRequestDto.getServiceDays().equals(""))
+            this.serviceDays = DaysUtil.serviceDaysToDaysList(saveMakersRequestDto.getServiceDays());
     }
 
     public void updateAddress(Address address) {

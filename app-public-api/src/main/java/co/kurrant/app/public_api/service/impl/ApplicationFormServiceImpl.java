@@ -67,6 +67,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserGroupRepository userGroupRepository;
     private final MySpotRepository mySpotRepository;
 
+
     @Override
     @Transactional
     public ApplicationFormDto registerApartmentSpot(SecurityUser securityuser, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto) {
