@@ -139,6 +139,11 @@ public class Makers {
     @Comment("원산지")
     private List<Origin> origins;
 
+    @OneToMany(mappedBy = "makers", orphanRemoval = true)
+    @JsonBackReference(value = "makers_fk")
+    @Comment("식사 일정별 영업시간")
+    private List<MakersBusinessHours> makersBusinessHours;
+
     @CreationTimestamp
     @Column(name = "created_datetime", nullable = false, insertable = false, updatable = false,
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) COMMENT '생성일'")
@@ -329,4 +334,22 @@ public class Makers {
             this.serviceDays = DaysUtil.serviceDaysToDaysList(updateMakersReqDto.getServiceDays());
     }
 
+    public MakersBusinessHours getMakersBusinessHour(DiningType diningType) {
+        return this.makersBusinessHours.stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .orElse(null);
+    }
+
+    public List<DiningType> getDiningTypes() {
+        return this.makersCapacities.stream()
+                .map(MakersCapacity::getDiningType)
+                .toList();
+    }
+
+    public Integer getDailyCapacity() {
+        return this.makersCapacities.stream()
+                .map(MakersCapacity::getCapacity)
+                .reduce(0, Integer::sum);
+    }
 }
