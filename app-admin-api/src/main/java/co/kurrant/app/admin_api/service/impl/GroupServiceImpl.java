@@ -432,7 +432,7 @@ public class GroupServiceImpl implements GroupService {
     public void deleteMySpotZone(BigInteger id) {
         // my spot zone 찾기
         MySpotZone mySpotZone = qMySpotZoneRepository.findMySpotZoneById(id);
-        if(mySpotZone == null) throw new ApiException(ExceptionEnum.ALREADY_EXIST_MY_SPOT_ZONE);
+        if(mySpotZone == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
 
         // region의 my spot zone fk도 null
         List<Region> regions = mySpotZone.getRegionList();
@@ -440,12 +440,13 @@ public class GroupServiceImpl implements GroupService {
 
         // my spot zone fk를 가진 my spot 찾아서 null
         List<MySpot> mySpotList = qMySpotRepository.findMySpotByMySpotZone(mySpotZone);
-        if(mySpotList.isEmpty()) groupRepository.delete(mySpotZone);
+        if(mySpotList.isEmpty()) mySpotZone.updateIsActive(false);
+        else {
+            mySpotList.forEach(mySpot -> mySpot.updateMySpotZone(null));
 
-        mySpotList.forEach(mySpot -> mySpot.updateMySpotZone(null));
-
-        // my spot zone update isActive false
-        mySpotZone.updateIsActive(false);
+            // my spot zone update isActive false
+            mySpotZone.updateIsActive(false);
+        }
     }
 
 

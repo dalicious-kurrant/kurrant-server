@@ -37,6 +37,7 @@ public class QMySpotZoneRepository {
     public List<FilterInfo> findAllNameList() {
         List<Tuple> retsultList = queryFactory.select(mySpotZone.id, mySpotZone.name)
                 .from(mySpotZone)
+                .where(mySpotZone.isActive.ne(false))
                 .orderBy(mySpotZone.name.asc())
                 .fetch();
 
@@ -86,7 +87,7 @@ public class QMySpotZoneRepository {
         int offset = limit * (page - 1);
 
         QueryResults<MySpotZone> results = queryFactory.selectFrom(mySpotZone)
-                .where(whereCause)
+                .where(whereCause, mySpotZone.isActive.ne(false))
                 .orderBy(mySpotZone.id.desc())
                 .limit(limit)
                 .offset(offset)
@@ -103,7 +104,7 @@ public class QMySpotZoneRepository {
 
     public MySpotZone findMySpotZoneById(BigInteger id) {
         return queryFactory.selectFrom(mySpotZone)
-                .where(mySpotZone.id.eq(id))
+                .where(mySpotZone.id.eq(id), mySpotZone.isActive.ne(false))
                 .fetchOne();
     }
 }

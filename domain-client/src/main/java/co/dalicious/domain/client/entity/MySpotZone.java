@@ -65,4 +65,8 @@ public class MySpotZone extends Group{
         this.openStartDate = DateUtils.stringToDate(updateRequestDto.getOpenStartDate());
         this.openCloseDate = DateUtils.stringToDate(updateRequestDto.getOpenCloseDate());
     }
+
+    public void updateMySpotZoneUserCount(Integer count) {
+        this.mySpotZoneUserCount = this.mySpotZoneUserCount + count;
+    }
 }
