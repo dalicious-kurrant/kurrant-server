@@ -7,6 +7,7 @@ import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
+import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -478,7 +479,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public List<SpotListResponseDto> getClients(SecurityUser securityUser) {
+    public GroupCountDto getClients(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
         // 그룹/스팟 정보 가져오기
         List<UserGroup> userGroups = user.getGroups();
@@ -492,7 +493,7 @@ public class UserServiceImpl implements UserService {
                 spotListResponseDtoList.add(groupResponseMapper.toDto(group));
             }
         }
-        return spotListResponseDtoList;
+        return groupResponseMapper.toGroupCountDto(spotListResponseDtoList);
     }
 
     @Override

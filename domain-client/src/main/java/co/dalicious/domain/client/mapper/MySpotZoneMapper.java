@@ -39,7 +39,7 @@ public interface MySpotZoneMapper {
 
         Set<String> counties = new HashSet<>();
         Set<String> villages = new HashSet<>();
-        List<String> zipcodes = new ArrayList<>();
+        Set<String> zipcodes = new HashSet<>();
 
         for(Region region : regionList) {
             counties.add(region.getCounty());

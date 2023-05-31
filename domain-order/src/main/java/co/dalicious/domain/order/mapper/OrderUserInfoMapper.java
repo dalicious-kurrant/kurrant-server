@@ -2,6 +2,7 @@ package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
+import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
 import exception.ApiException;
@@ -50,15 +51,15 @@ public interface OrderUserInfoMapper {
     }
 
     @Named("getHo")
-    default Integer getHo(List<UserSpot> userSpots) {
+    default String getHo(List<UserSpot> userSpots) {
         UserSpot userDefaultSpot = null;
         for (UserSpot userSpot : userSpots) {
             if (userSpot.getIsDefault()) {
                 userDefaultSpot = userSpot;
             }
         }
-        if (userDefaultSpot != null) {
-            return userDefaultSpot.getHo();
+        if (userDefaultSpot != null && userDefaultSpot instanceof MySpot myspot) {
+            return myspot.getHo();
         }
         throw new ApiException(ExceptionEnum.SPOT_NOT_FOUND);
     }

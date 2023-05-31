@@ -36,7 +36,7 @@ public interface UserHomeInfoMapper {
                 .filter(UserSpot::getIsDefault)
                 .map(spot -> spot.getClientType().getCode())
                 .map(code -> {
-                    if (code == 0) return GroupDataType.APARTMENT.getCode();
+                    if (code == 0) return GroupDataType.MY_SPOT.getCode();
                     else if (code == 1) return GroupDataType.CORPORATION.getCode();
                     else if (code == 2) return GroupDataType.OPEN_GROUP.getCode();
                     return null;

@@ -11,6 +11,7 @@ import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -98,7 +99,7 @@ public class ApplicationFormController {
     @Operation(summary = "마이 스팟 개설 신청 API", description = "마이 스팟 개설을 신청한다.")
     @PostMapping("/my/spot")
     public ResponseMessage registerMySpot(Authentication authentication,
-                                                 @RequestBody MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) {
+                                                 @RequestBody MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(applicationFormService.registerMySpot(securityUser, mySpotZoneApplicationFormRequestDto))

@@ -15,7 +15,7 @@ public class AdminListResponseDto {
     private String city;
     private Set<String> counties;
     private Set<String> villages;
-    private List<String> zipcodes;
+    private Set<String> zipcodes;
     private Integer status;
     private String openStartDate;
     private String openCloseDate;

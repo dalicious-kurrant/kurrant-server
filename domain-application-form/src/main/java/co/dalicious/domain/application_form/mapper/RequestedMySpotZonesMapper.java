@@ -45,11 +45,11 @@ public interface RequestedMySpotZonesMapper {
         return listResponseDto;
     }
 
-    default RequestedMySpotZones toRequestedMySpotZones (CreateRequestDto createRequestDto, Region region) {
+    default RequestedMySpotZones toRequestedMySpotZones (Integer count, String memo, Region region) {
         return RequestedMySpotZones.builder()
                 .region(region)
-                .waitingUserCount(createRequestDto.getWaitingUserCount())
-                .memo(createRequestDto.getMemo())
+                .waitingUserCount(count)
+                .memo(memo)
                 .build();
     }
 

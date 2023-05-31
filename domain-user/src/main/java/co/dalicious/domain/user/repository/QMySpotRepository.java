@@ -23,9 +23,9 @@ public class QMySpotRepository {
                 .fetch();
     }
 
-    public List<MySpot> findMySpotByMySpotZone(MySpotZone mySpotZone) {
+    public List<MySpot> findMySpotByMySpotZone(List<MySpotZone> mySpotZone) {
         return queryFactory.selectFrom(mySpot)
-                .where(mySpot.mySpotZone.eq(mySpotZone))
+                .where(mySpot.mySpotZone.in(mySpotZone))
                 .fetch();
     }
 }
