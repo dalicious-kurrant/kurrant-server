@@ -33,7 +33,7 @@ public interface GroupInfoMapper {
             groupInfoList.setMaximumSpend(corporation.getMaximumSpend());
         }
         else if(group instanceof Apartment apartment) {
-            groupType = GroupDataType.APARTMENT.getCode();
+            groupType = GroupDataType.MY_SPOT.getCode();
             employeeCount = apartment.getFamilyCount();
         }
         else if(group instanceof OpenGroup openGroup) {

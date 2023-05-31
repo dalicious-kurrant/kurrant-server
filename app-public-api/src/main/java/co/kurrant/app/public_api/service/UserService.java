@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
@@ -50,7 +51,7 @@ public interface UserService {
     // 오픈스팟 그룹 설정
     void settingGroup(SecurityUser securityUser, BigInteger groupId);
     // 유저가 속한 그룹 정보 리스트
-    List<SpotListResponseDto> getClients(SecurityUser securityUser);
+    GroupCountDto getClients(SecurityUser securityUser);
     Integer isHideEmail(SecurityUser securityUser);
     Object createNiceBillingKeyFirst(SecurityUser securityUser, Integer typeId, BillingKeyDto billingKeyDto) throws IOException, ParseException;
     List<CreditCardResponseDto> getCardList(SecurityUser securityUser);

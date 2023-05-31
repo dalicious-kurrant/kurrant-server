@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 public enum  ClientType {
-    APARTMENT("아파트", 0),
+    MY_SPOT("마이 스팟", 0),
     CORPORATION("기업", 1),
     OPEN_GROUP("오픈 그룹", 2),;
 
@@ -20,7 +20,7 @@ public enum  ClientType {
 
     public static ClientType ofCode(Integer dbData) {
         return switch (dbData) {
-            case 0 -> APARTMENT;
+            case 0 -> MY_SPOT;
             case 1 -> CORPORATION;
             case 2 -> OPEN_GROUP;
             default -> throw new ApiException(ExceptionEnum.ENUM_NOT_FOUND);
