@@ -131,7 +131,7 @@ public interface GroupMapper {
     default Integer getGroupDataType(Group group) {
         Integer groupType = null;
         if(group instanceof Corporation ) groupType = ClientType.CORPORATION.getCode();
-        else if(group instanceof Apartment) groupType = ClientType.APARTMENT.getCode();
+        else if(group instanceof MySpotZone) groupType = ClientType.MY_SPOT.getCode();
         else if(group instanceof OpenGroup) groupType = ClientType.OPEN_GROUP.getCode();
         return groupType;
     }

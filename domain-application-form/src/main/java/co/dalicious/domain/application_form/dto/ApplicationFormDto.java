@@ -18,9 +18,11 @@ public class ApplicationFormDto {
     private Boolean isExist;
 
     @Builder
-    public ApplicationFormDto(Integer clientType, BigInteger id, String name) {
+    public ApplicationFormDto(Integer clientType, BigInteger id, String name, String address, Boolean isExist) {
         this.clientType = clientType;
         this.id = id;
         this.name = name;
+        this.address = address;
+        this.isExist = isExist;
     }
 }

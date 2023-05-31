@@ -1,33 +1,37 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
-import co.dalicious.domain.application_form.dto.apartment.*;
-import co.dalicious.domain.application_form.dto.corporation.*;
+import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormResponseDto;
+import co.dalicious.domain.application_form.dto.apartment.ApartmentMealInfoRequestDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationMealInfoRequestDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationSpotRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.application_form.entity.*;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
+import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import co.dalicious.domain.client.entity.MySpotZone;
+import co.dalicious.domain.client.entity.Region;
 import co.dalicious.domain.client.repository.QMySpotZoneRepository;
+import co.dalicious.domain.client.repository.QRegionRepository;
 import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.system.util.DateUtils;
+import co.dalicious.domain.user.mapper.MySpotMapper;
+import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
-import co.kurrant.app.public_api.dto.client.*;
-import co.kurrant.app.public_api.model.SecurityUser;
-import co.dalicious.domain.application_form.mapper.CorporationMealInfoReqMapper;
-import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigInteger;
-import java.text.ParseException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -49,7 +53,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final CorporationApplicationFormResMapper corporationApplicationFormResMapper;
     private final QMySpotZoneRepository qMySpotZoneRepository;
     private final QRequestedMySpotZonesRepository qRequestedMySpotZonesRepository;
-//    private final MySpotMa
+    private final MySpotMapper mySpotMapper;
+    private final ApplicationMapper applicationMapper;
+    private final RequestedMySpotZonesMapper requestedMySpotZonesMapper;
+    private final QRegionRepository qRegionRepository;
+
 
     @Override
     @Transactional
@@ -183,23 +191,46 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional
-    public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) {
+    public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto requestDto) throws ParseException {
         // user 찾기
-        //User user = userUtil.getUser(securityUser);
-
-        // my spot 생성
-        //MySpot mySpot =
-
-        // my spot zone 찾기
-        //MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(mySpotZoneApplicationFormRequestDto.getAddress().getZipCode());
-
-        //if(mySpotZone != null) {
-            //mySpotZone.updateMySpotZoneUserCount(1);
-        //}
-        // my spot zone 없으면 my spot zone 신청하기
-        //RequestedMySpotZones requestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(mySpotZoneApplicationFormRequestDto.getAddress().getZipCode());
-        // 해당하는 fk 등록
-        // my spot zone 존재 여부 response
+//        User user = userUtil.getUser(securityUser);
+//
+//        // my spot 생성
+//        MySpot mySpot = mySpotMapper.toMySpot(user, requestDto);
+//
+//        // my spot zone 찾기
+//        MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
+//
+//        if(mySpotZone != null) {
+//            mySpotZone.updateMySpotZoneUserCount(1);
+//            mySpot.updateMySpotZone(mySpotZone);
+//            return applicationMapper.
+//        }
+//
+//        // my spot zone 없으면 my spot zone 신청하기
+//        RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
+//        if(existRequestedMySpotZones != null) {
+//            existRequestedMySpotZones.updateWaitingUserCount(1);
+//            mySpot.updateRequestedMySpotZones(existRequestedMySpotZones);
+//            return applicationMapper.
+//        }
+//
+//        String[] jibunAddress = requestDto.getJibunAddress().split(" ");
+//        String county = null;
+//        String village = null;
+//
+//        for(String addr : jibunAddress) {
+//            if(addr.endsWith("구")) county = addr;
+//            else if(addr.endsWith(""))
+//        }
+//
+//        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(),);
+//        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, requestDto.getMemo(), )
+//
+//
+//
+//        // my spot zone 존재 여부 response
+//        return applicationMapper.;
         return null;
     }
 }

@@ -46,13 +46,6 @@ public class UserSpot {
     @Comment("기본으로 설정한 스팟 id")
     private Spot spot;
 
-    @Comment("아파트 유저의 세부주소 (호수)")
-    private Integer ho;
-
-    public void updateHo(Integer ho) {
-        this.ho = ho;
-    }
-
     public void updateSpot(Spot spot) {
         this.spot = spot;
     }

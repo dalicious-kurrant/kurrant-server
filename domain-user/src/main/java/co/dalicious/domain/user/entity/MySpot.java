@@ -30,11 +30,15 @@ public class MySpot extends UserSpot{
 
     @Column(name = "ho")
     @Comment("호수")
-    private Integer ho;
+    private String ho;
 
     @Column(name = "memo")
     @Comment("메모")
     private String memo;
+
+    @Column(name = "name")
+    @Comment("이름")
+    private String name;
 
     @ManyToOne
     @JoinColumn(name = "my_spot_zone_fk")
@@ -44,13 +48,14 @@ public class MySpot extends UserSpot{
     @JoinColumn(name = "requested_my_spot_zones_fk")
     private RequestedMySpotZones requestedMySpotZones;
 
-    public MySpot(User user, ClientType clientType, Spot spot, Boolean isDefault, Address address, Integer ho, String memo, MySpotZone mySpotZone, RequestedMySpotZones requestedMySpotZones) {
+    public MySpot(User user, ClientType clientType, Spot spot, Boolean isDefault, Address address, String ho, String memo, MySpotZone mySpotZone, RequestedMySpotZones requestedMySpotZones, String name) {
         super(user, clientType, spot, isDefault);
         this.address = address;
         this.ho = ho;
         this.memo = memo;
         this.mySpotZone = mySpotZone;
         this.requestedMySpotZones = requestedMySpotZones;
+        this.name = name;
     }
 
     public void updateRequestedMySpotZones(RequestedMySpotZones requestedMySpotZones) {
@@ -59,5 +64,9 @@ public class MySpot extends UserSpot{
 
     public void updateMySpotZone(MySpotZone mySpotZone) {
         this.mySpotZone = mySpotZone;
+    }
+
+    public void updateHo(String ho) {
+        this.ho = ho;
     }
 }

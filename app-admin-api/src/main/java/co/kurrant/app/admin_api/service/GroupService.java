@@ -31,5 +31,5 @@ public interface GroupService {
     ListItemResponseDto<AdminListResponseDto> getAllMySpotZoneList(Map<String, Object> parameters, Integer limit, Integer size, OffsetBasedPageRequest pageable);
     void createMySpotZone(CreateRequestDto createRequestDto);
     void updateMySpotZone(UpdateRequestDto updateRequestDto);
-    void deleteMySpotZone(BigInteger id);
+    void deleteMySpotZone(List<BigInteger> id);
 }

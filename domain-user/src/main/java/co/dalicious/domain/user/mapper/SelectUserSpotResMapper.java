@@ -16,6 +16,6 @@ public interface SelectUserSpotResMapper {
 
     @Named("hasHo")
     default Boolean hasHo(ClientType clientType) {
-        return clientType == ClientType.APARTMENT;
+        return clientType == ClientType.MY_SPOT;
     }
 }

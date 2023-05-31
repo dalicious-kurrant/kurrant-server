@@ -6,5 +6,5 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class ClientSpotDetailReqDto {
-    private Integer ho;
+    private String ho;
 }

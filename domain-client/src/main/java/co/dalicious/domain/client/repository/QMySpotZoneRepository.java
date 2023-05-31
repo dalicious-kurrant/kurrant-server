@@ -107,6 +107,12 @@ public class QMySpotZoneRepository {
                 .where(mySpotZone.id.eq(id), mySpotZone.isActive.ne(false))
                 .fetchOne();
     }
+
+    public List<MySpotZone> findAllMySpotZoneByIds(List<BigInteger> ids) {
+        return queryFactory.selectFrom(mySpotZone)
+                .where(mySpotZone.id.in(ids), mySpotZone.isActive.ne(false))
+                .fetch();
+    }
 }
 
 

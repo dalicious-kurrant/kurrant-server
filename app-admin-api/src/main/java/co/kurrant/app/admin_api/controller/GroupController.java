@@ -121,7 +121,7 @@ public class GroupController {
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "마이 스팟 삭제", description = "마이 스팟을 삭제합니다.")
     @PatchMapping("my/spot/zones/delete")
-    public ResponseMessage deleteMySpotZone(@RequestBody BigInteger id) {
+    public ResponseMessage deleteMySpotZone(@RequestBody List<BigInteger> id) {
         groupService.deleteMySpotZone(id);
         return ResponseMessage.builder()
                 .message("스팟 삭제에 성공했습니다.")

@@ -90,7 +90,7 @@ public interface GroupMapper {
             groupInfoList.setMaximumSpend(corporation.getMaximumSpend());
         }
         else if(group instanceof Apartment apartment) {
-            groupType = GroupDataType.APARTMENT.getCode();
+            groupType = GroupDataType.MY_SPOT.getCode();
             employeeCount = apartment.getFamilyCount();
         }
         else if(group instanceof OpenGroup openGroup) {
@@ -177,7 +177,7 @@ public interface GroupMapper {
                     .maximumSpend(setMaximumSpend(groupInfoList))
                     .build();
         }
-        else if(GroupDataType.APARTMENT.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
+        else if(GroupDataType.MY_SPOT.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
             return Apartment.builder()
                     .address(address)
                     .diningTypes(diningTypeList)

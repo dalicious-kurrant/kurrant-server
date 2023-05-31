@@ -48,6 +48,8 @@ public class RequestedMySpotZones {
         this.memo = updateRequestDto.getMemo();
     }
 
-
+    public void updateWaitingUserCount(Integer count) {
+        this.waitingUserCount = this.waitingUserCount + count;
+    }
 
 }
