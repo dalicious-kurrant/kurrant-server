@@ -18,4 +18,6 @@ public class MemberWaitingListResponseDto {
     private String name;
     @Schema(description = "휴대폰 번호")
     private String phone;
+    @Schema(description = "가입 상태")
+    private String status;
 }

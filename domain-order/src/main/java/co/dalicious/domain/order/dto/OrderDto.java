@@ -14,7 +14,7 @@ import java.util.List;
 public class OrderDto {
     @Getter
     @Setter
-    @Schema(description = "백오피스 주문 상품 리스트 조회 DTO")
+    @Schema(description = "(구)백오피스 주문 상품 리스트 조회 DTO")
     public static class OrderItemDailyFoodList {
         private BigInteger spotId;
         private Integer spotFoodCount;
@@ -24,6 +24,7 @@ public class OrderDto {
         private List<OrderItemDailyFoodGroupList> orderItemDailyFoodGroupList;
 
     }
+
     @Getter
     @Setter
     public static class SpotFoodMap {
@@ -68,6 +69,7 @@ public class OrderDto {
         private BigDecimal supportPrice;
         private BigDecimal payPrice;
         private BigDecimal deliveryPrice;
+        private Boolean isMembership;
         private List<OrderItemDailyFood> orderItemDailyFoods;
     }
 

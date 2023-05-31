@@ -11,26 +11,20 @@ import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.Reviews;
-import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import jdk.jfr.Name;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.util.MultiValueMap;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -340,17 +334,19 @@ public interface ReviewMapper {
         return imageList.isEmpty() ? null : imageList.get(0).getLocation();
     }
 
-    default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starEverage, Integer count, BigInteger foodId, Integer sort,
-                                                                boolean isLast, Integer total, Integer limit){
+    default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starAverage, Integer totalReview, BigInteger foodId, Integer sort,
+                                                                Boolean isLast, Integer total, Integer limit, Integer count, BigInteger reviewWrite){
         GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
 
         getFoodReviewResponseDto.setItems(foodReviewListDtoList);
-        getFoodReviewResponseDto.setStarEverage(starEverage);
+        getFoodReviewResponseDto.setStarAverage(starAverage);
         getFoodReviewResponseDto.setIsLast(isLast);
         getFoodReviewResponseDto.setCount(count);
+        getFoodReviewResponseDto.setTotalReview(totalReview);
         getFoodReviewResponseDto.setTotal(total);
         getFoodReviewResponseDto.setLimit(limit);
         getFoodReviewResponseDto.setFoodId(foodId);
+        getFoodReviewResponseDto.setReviewWrite(reviewWrite);
 
 
         if (sort == 0){ //별점순 같을 경우 최신순

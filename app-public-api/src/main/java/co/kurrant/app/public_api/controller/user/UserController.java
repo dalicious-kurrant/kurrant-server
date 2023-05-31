@@ -4,7 +4,9 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.user.dto.SaveDailyReportFoodReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
+import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserService;
@@ -15,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import net.bytebuddy.asm.Advice;
 import org.json.simple.parser.ParseException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -323,7 +326,7 @@ public class UserController {
 
     @PostMapping("/payment/password/check")
     @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
-    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
         return ResponseMessage.builder()
@@ -331,30 +334,35 @@ public class UserController {
                 .build();
     }
 
-//
-//    @PostMapping("/payment/password")
-//    @Operation(summary = "결제 비밀번호 등록하기", description = "결제 비밀번호 등록")
-//    public ResponseMessage savePaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
-//        SecurityUser securityUser = UserUtil.securityUser(authentication);
-//        String result = userService.savePaymentPassword(securityUser, savePaymentPasswordDto);
-//        return ResponseMessage.builder()
-//                .message(result)
-//                .build();
-//    }
-//    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
-//    @PostMapping("/cards")
-//    public ResponseMessage saveCreditCard(Authentication authentication,
-//                                          @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
-//        SecurityUser securityUser = UserUtil.securityUser(authentication);
-//        Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
-//        if (result == 2){
-//            return ResponseMessage.builder()
-//                    .message("같은 카드가 이미 등록되어 있습니다.")
-//                    .build();
-//        }
-//        return ResponseMessage.builder()
-//                .message("결제 카드 등록에 성공하셨습니다.")
-//                .build();
-//
-//    }
+    @PostMapping("/daily/report/me")
+    @Operation(summary = "내 식사 추가하기", description = "식단 리포트에 내가 먹은 음식을 추가한다.")
+    public ResponseMessage insertMyFood(Authentication authentication, @RequestBody SaveDailyReportDto saveDailyReportDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.insertMyFood(securityUser, saveDailyReportDto);
+        return ResponseMessage.builder()
+                .message("식단을 추가했습니다.")
+                .build();
+    }
+
+    @GetMapping("/daily/report")
+    @Operation(summary = "식단 리포트 조회", description = "식단 리포트를 조회한다.")
+    public ResponseMessage getReport(Authentication authentication, @RequestParam String date){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.getReport(securityUser, date))
+                .message("식단 조회 성공!")
+                .build();
+    }
+
+    @PostMapping("/daily/report/food")
+    @Operation(summary = "주문내역을 리포트로 가져온다", description = "유저의 주문 내역을 리포트로 가져온다.")
+    public ResponseMessage insertFoodRecord(Authentication authentication, @RequestBody SaveDailyReportFoodReqDto dto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.saveDailyReportFood(securityUser, dto);
+        return ResponseMessage.builder()
+                .message("리포트에 음식을 추가햇습니다.")
+                .build();
+    }
+
+
 }

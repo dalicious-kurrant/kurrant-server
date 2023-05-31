@@ -235,7 +235,11 @@ public class Food {
     }
 
     public void updateFoodGroup(FoodGroup foodGroup) {
-        if(!this.makers.equals(foodGroup.getMakers()))
+        if (foodGroup == null) {
+            this.foodGroup = null;
+            return;
+        }
+        if (!this.makers.equals(foodGroup.getMakers()))
             throw new ApiException(ExceptionEnum.NOT_MATCHED_MAKERS);
         this.foodGroup = foodGroup;
     }

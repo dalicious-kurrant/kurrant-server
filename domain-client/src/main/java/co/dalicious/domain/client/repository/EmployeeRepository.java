@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<Employee, BigInteger> {
-    Optional<Employee> findOneByCorporationAndEmail(Corporation corporation, String email);
     List<Employee> findAllByEmail(String email);
+    List<Employee> findAllByCorporation(Corporation corporation);
 
     void deleteAllByCorporationId(BigInteger corporationId);
 

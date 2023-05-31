@@ -18,6 +18,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.mapper.OrderDailyFoodItemMapper;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
@@ -27,8 +28,10 @@ import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.user.dto.*;
+import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
+import co.dalicious.domain.user.mapper.DailyReportMapper;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
 import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
 import co.dalicious.domain.user.repository.*;
@@ -38,10 +41,10 @@ import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
-import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.public_api.dto.board.AlarmResponseDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
+import co.kurrant.app.public_api.dto.order.OrderItemDailyFoodToDailyReportDto;
 import co.kurrant.app.public_api.dto.user.*;
+import co.kurrant.app.public_api.mapper.DailyReport.OrderItemDailyFoodDailyReportMapper;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -106,6 +109,11 @@ public class UserServiceImpl implements UserService {
     private final UserSelectTestDataRepository userSelectTestDataRepository;
     private final UserSelectTestDataMapper userSelectTestDataMapper;
     private final PushAlarmHashRepository pushAlarmHashRepository;
+    private final DailyReportMapper dailyReportMapper;
+    private final DailyReportRepository dailyReportRepository;
+    private final QDailyReportRepository qDailyReportRepository;
+    private final OrderItemDailyFoodDailyReportMapper orderItemDailyFoodDailyReportMapper;
+
 
     @Override
     @Transactional
@@ -1080,5 +1088,64 @@ public class UserServiceImpl implements UserService {
             alarmResponseDtos.add(new PushResponseDto(pushAlarmHash));
         }
         return alarmResponseDtos;
+    }
+
+    @Override
+    @Transactional
+    public void insertMyFood(SecurityUser securityUser, SaveDailyReportDto saveDailyReportDto) {
+        User user = userUtil.getUser(securityUser);
+
+        String type = "user";
+        String title = user.getName() + "님의 식사";
+        DailyReport dailyReport = dailyReportMapper.toEntity(user, saveDailyReportDto, type, title);
+
+        DailyReport saved = dailyReportRepository.save(dailyReport);
+        if (saved.getId() == null){
+            throw new ApiException(ExceptionEnum.SAVE_FAILED);
+        }
+
+    }
+
+    @Override
+    public Object getReport(SecurityUser securityUser, String date) {
+
+        User user = userUtil.getUser(securityUser);
+
+        List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDate(user.getId(), date);
+
+        if (dailyReportList.isEmpty()){
+            return "식단 리포트가 없습니다.";
+        }
+        /* 주문에서 리포트 추가기능 작성후 재작성 예정
+        String makersName =
+        List<FindDailyReportResDto> resultList = new ArrayList<>();
+        for (DailyReport dailyReport : dailyReportList){
+
+            if ()
+
+            dailyReportMapper.toFindDailyReportDto(dailyReport);
+
+        }
+         */
+
+
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto) {
+        User user = userUtil.getUser(securityUser);
+
+        //해당 날짜에 주문한 내역을 불러오기
+        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllUserIdAndDate(user.getId(), LocalDate.parse(dto.getStartDate()), LocalDate.parse(dto.getEndDate()));
+
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
+            //매핑 후 저장
+            OrderItemDailyFoodToDailyReportDto dailyReportDto = orderItemDailyFoodDailyReportMapper.toDailyReportDto(orderItemDailyFood);
+            DailyReport dailyReport = dailyReportMapper.toEntityByOrderItemDailyFood(user, dailyReportDto,  "order");
+            dailyReportRepository.save(dailyReport);
+        }
+
     }
 }

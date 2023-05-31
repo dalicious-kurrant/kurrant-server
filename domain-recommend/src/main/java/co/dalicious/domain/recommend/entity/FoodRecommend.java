@@ -2,6 +2,8 @@ package co.dalicious.domain.recommend.entity;
 
 import co.dalicious.system.converter.IdListConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import exception.ApiException;
+import exception.CustomException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,6 +11,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.http.HttpStatus;
 
 import javax.persistence.*;
 import java.math.BigInteger;
@@ -55,6 +58,9 @@ public class FoodRecommend {
 
     @Builder
     public FoodRecommend(Collection<BigInteger> groupIds, List<FoodRecommendTypes> foodRecommendTypes, List<FoodGroupRecommend> foodGroupRecommends) {
+        if(groupIds == null || groupIds.isEmpty()) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE400008", "고객사 IDs는 필수 값입니다.");
+        }
         this.groupIds = groupIds.stream().toList();
         this.foodRecommendTypes = foodRecommendTypes;
         this.foodGroupRecommends = foodGroupRecommends;

@@ -58,6 +58,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final RequestedMySpotZonesMapper requestedMySpotZonesMapper;
     private final QRegionRepository qRegionRepository;
 
+
     @Override
     @Transactional
     public ApplicationFormDto registerApartmentSpot(SecurityUser securityuser, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto) {
