@@ -49,7 +49,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final CorporationApplicationFormResMapper corporationApplicationFormResMapper;
     private final QMySpotZoneRepository qMySpotZoneRepository;
     private final QRequestedMySpotZonesRepository qRequestedMySpotZonesRepository;
-    private final MySpotMa
+//    private final MySpotMa
 
     @Override
     @Transactional
@@ -185,19 +185,19 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) {
         // user 찾기
-        User user = userUtil.getUser(securityUser);
+        //User user = userUtil.getUser(securityUser);
 
         // my spot 생성
-        MySpot mySpot =
+        //MySpot mySpot =
 
         // my spot zone 찾기
-        MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(mySpotZoneApplicationFormRequestDto.getAddress().getZipCode());
+        //MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(mySpotZoneApplicationFormRequestDto.getAddress().getZipCode());
 
-        if(mySpotZone != null) {
-            mySpotZone.updateMySpotZoneUserCount(1);
-        }
+        //if(mySpotZone != null) {
+            //mySpotZone.updateMySpotZoneUserCount(1);
+        //}
         // my spot zone 없으면 my spot zone 신청하기
-        RequestedMySpotZones requestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(mySpotZoneApplicationFormRequestDto.getAddress().getZipCode());
+        //RequestedMySpotZones requestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(mySpotZoneApplicationFormRequestDto.getAddress().getZipCode());
         // 해당하는 fk 등록
         // my spot zone 존재 여부 response
         return null;
