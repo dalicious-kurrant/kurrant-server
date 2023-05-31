@@ -1,5 +1,6 @@
 package co.dalicious.domain.application_form.dto;
 
+import co.dalicious.domain.address.entity.embeddable.Address;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,11 +19,11 @@ public class ApplicationFormDto {
     private Boolean isExist;
 
     @Builder
-    public ApplicationFormDto(Integer clientType, BigInteger id, String name, String address, Boolean isExist) {
+    public ApplicationFormDto(Integer clientType, BigInteger id, String name, Address address, Boolean isExist) {
         this.clientType = clientType;
         this.id = id;
         this.name = name;
-        this.address = address;
+        this.address = address.addressToString();
         this.isExist = isExist;
     }
 }

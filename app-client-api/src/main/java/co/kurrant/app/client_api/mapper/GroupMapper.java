@@ -2,7 +2,6 @@ package co.kurrant.app.client_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
-import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.user.entity.User;

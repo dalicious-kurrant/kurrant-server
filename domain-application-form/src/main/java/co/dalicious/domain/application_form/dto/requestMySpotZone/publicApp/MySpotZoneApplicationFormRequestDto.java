@@ -8,10 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MySpotZoneApplicationFormRequestDto {
-    private ApplyUserDto user;
     private CreateAddressRequestDto address;
     private String mySpotName;
-    private String ho;
     private String jibunAddress;
     private String memo;
+    private String phone;
 }

@@ -2,9 +2,9 @@ package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
-import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
+import co.dalicious.integration.client.user.entity.MySpot;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import org.mapstruct.Mapper;

@@ -3,25 +3,28 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
-import co.dalicious.domain.client.dto.filter.*;
-import co.dalicious.domain.client.dto.mySpotZone.AdminListResponseDto;
-import co.dalicious.domain.client.dto.mySpotZone.CreateRequestDto;
-import co.dalicious.domain.client.dto.mySpotZone.UpdateRequestDto;
+import co.dalicious.integration.client.user.dto.filter.FilterDto;
+import co.dalicious.integration.client.user.dto.filter.FilterInfo;
+import co.dalicious.integration.client.user.dto.mySpotZone.AdminListResponseDto;
+import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
+import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
-import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
+import co.dalicious.integration.client.user.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.client.mapper.MealInfoMapper;
-import co.dalicious.domain.client.mapper.MySpotZoneMapper;
+import co.dalicious.integration.client.user.mapper.MySpotZoneMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
 import co.dalicious.domain.user.entity.Membership;
-import co.dalicious.domain.user.entity.MySpot;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.repository.QMySpotRepository;
+import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.Days;
@@ -32,9 +35,11 @@ import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
+import co.dalicious.domain.address.repository.QRegionRepository;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.GroupService;
+import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +65,6 @@ public class GroupServiceImpl implements GroupService {
     public final QGroupRepository qGroupRepository;
     public final GroupRepository groupRepository;
     private final MealInfoRepository mealInfoRepository;
-    private final SpotRepository spotRepository;
     private final UserRepository userRepository;
     private final SpotMapper spotMapper;
     private final QMembershipSupportPriceRepository qmembershipSupportPriceRepository;
@@ -328,14 +332,15 @@ public class GroupServiceImpl implements GroupService {
         String county = parameters.get("county") == null || !parameters.containsKey("county") ? null : qRegionRepository.findCountyNameById(BigInteger.valueOf(Integer.parseInt((String) parameters.get("county"))));
         List<String> villages = parameters.get("villages") == null || !parameters.containsKey("villages") ? null : qRegionRepository.findVillageNameById(StringUtils.parseBigIntegerList((String) parameters.get("villages")));
         // 시/도, 군/구, 동/읍/리 별로 필터. - 군/구, 동/읍/리는 다중 필터 가능
-        List<FilterInfo> nameList = qMySpotZoneRepository.findAllNameList();
-        List<FilterInfo> cityList = qRegionRepository.findAllCity();
-        List<FilterInfo> countyList = qRegionRepository.findAllCountyByCity(city);
-        List<FilterInfo> villageList = qRegionRepository.findAllVillageByCounty(city, county);
-        List<FilterInfo> zipcodeList = qRegionRepository.findAllZipcodeByCityAndCountyAndVillage(city, county, villages);
+        List<MySpotZone> mySpotZoneList = qMySpotZoneRepository.findAll();
+        List<BigInteger> regionIds = mySpotZoneList.stream().flatMap(mySpotZone -> mySpotZone.getRegionIds().stream()).toList();
+        Map<BigInteger, String> cityList = qRegionRepository.findAllCityByIds(regionIds);
+        Map<BigInteger, String> countyList = qRegionRepository.findAllCountyByCity(city, regionIds);
+        Map<BigInteger, String> villageList = qRegionRepository.findAllVillageByCounty(city, county, regionIds);
+        Map<BigInteger, String> zipcodeList = qRegionRepository.findAllZipcodeByCityAndCountyAndVillage(city, county, villages, regionIds);
         List<MySpotZoneStatus> statusDtoList = List.of(MySpotZoneStatus.class.getEnumConstants());
 
-        return mySpotZoneMapper.toFilterDto(nameList, cityList, countyList, villageList, zipcodeList, statusDtoList);
+        return mySpotZoneMapper.toFilterDto(mySpotZoneList, cityList, countyList, villageList, zipcodeList, statusDtoList);
     }
 
     @Override

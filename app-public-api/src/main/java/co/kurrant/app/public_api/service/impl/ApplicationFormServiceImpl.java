@@ -1,5 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.address.entity.Region;
+import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormResponseDto;
@@ -13,17 +15,20 @@ import co.dalicious.domain.application_form.entity.*;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
-import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.domain.client.entity.Region;
-import co.dalicious.domain.client.repository.QMySpotZoneRepository;
-import co.dalicious.domain.client.repository.QRegionRepository;
-import co.dalicious.domain.user.entity.MySpot;
+import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.mapper.MySpotMapper;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.entity.enums.ClientType;
+import co.dalicious.integration.client.user.mapper.MySpotMapper;
+import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
+import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
@@ -33,6 +38,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +63,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final ApplicationMapper applicationMapper;
     private final RequestedMySpotZonesMapper requestedMySpotZonesMapper;
     private final QRegionRepository qRegionRepository;
+    private final RequestedMySpotZonesRepository requestedMySpotZonesRepository;
+    private final UserGroupRepository userGroupRepository;
+    private final MySpotRepository mySpotRepository;
 
     @Override
     @Transactional
@@ -192,44 +201,51 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto requestDto) throws ParseException {
         // user 찾기
-//        User user = userUtil.getUser(securityUser);
-//
-//        // my spot 생성
-//        MySpot mySpot = mySpotMapper.toMySpot(user, requestDto);
-//
-//        // my spot zone 찾기
-//        MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
-//
-//        if(mySpotZone != null) {
-//            mySpotZone.updateMySpotZoneUserCount(1);
-//            mySpot.updateMySpotZone(mySpotZone);
-//            return applicationMapper.
-//        }
-//
-//        // my spot zone 없으면 my spot zone 신청하기
-//        RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
-//        if(existRequestedMySpotZones != null) {
-//            existRequestedMySpotZones.updateWaitingUserCount(1);
-//            mySpot.updateRequestedMySpotZones(existRequestedMySpotZones);
-//            return applicationMapper.
-//        }
-//
-//        String[] jibunAddress = requestDto.getJibunAddress().split(" ");
-//        String county = null;
-//        String village = null;
-//
-//        for(String addr : jibunAddress) {
-//            if(addr.endsWith("구")) county = addr;
-//            else if(addr.endsWith(""))
-//        }
-//
-//        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(),);
-//        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, requestDto.getMemo(), )
-//
-//
-//
-//        // my spot zone 존재 여부 response
-//        return applicationMapper.;
-        return null;
+        User user = userUtil.getUser(securityUser);
+        if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
+
+        // my spot 생성
+        MySpot mySpot = mySpotMapper.toMySpot(user, requestDto);
+
+        // my spot zone 찾기
+        MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
+
+        if(mySpotZone != null) {
+            mySpotZone.updateMySpotZoneUserCount(1);
+            mySpot.updateMySpotZone(mySpotZone);
+            mySpot.updateActive(true);
+            // user group 생성
+            userGroupRepository.save(UserGroup.builder().group(mySpotZone).user(user).clientStatus(ClientStatus.BELONG).build());
+
+            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), true);
+        }
+
+        // my spot zone 없으면 my spot zone 신청하기
+        RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
+        if(existRequestedMySpotZones != null) {
+            existRequestedMySpotZones.updateWaitingUserCount(1);
+            mySpot.updateRequestedMySpotZones(existRequestedMySpotZones);
+            mySpot.updateActive(false);
+            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false);
+        }
+
+        String[] jibunAddress = requestDto.getJibunAddress().split(" ");
+        String county = null;
+        String village = null;
+
+        for(String addr : jibunAddress) {
+            if(addr.endsWith("구")) county = addr;
+            else if(addr.endsWith("동")) village = addr;
+        }
+
+        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, requestDto.getMemo(), region);
+        requestedMySpotZonesRepository.save(requestedMySpotZones);
+        mySpot.updateRequestedMySpotZones(requestedMySpotZones);
+        mySpot.updateActive(false);
+
+        mySpotRepository.save(mySpot);
+        // my spot zone 존재 여부 response
+        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false);
     }
 }

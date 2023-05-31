@@ -2,22 +2,26 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
-import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
-import co.dalicious.domain.application_form.repository.QRequestedMySpotZonesRepository;
-import co.dalicious.domain.application_form.repository.RequestedMySpotZonesRepository;
-import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
+import co.dalicious.domain.address.entity.Region;
+import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
-import co.dalicious.domain.client.entity.MealInfo;
-import co.dalicious.domain.client.entity.MySpotZone;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
+import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
-import co.dalicious.domain.client.entity.Region;
-import co.dalicious.domain.client.mapper.MealInfoMapper;
-import co.dalicious.domain.client.repository.*;
-import co.dalicious.domain.user.entity.MySpot;
-import co.dalicious.domain.user.repository.QMySpotRepository;
+import co.dalicious.domain.application_form.repository.QRequestedMySpotZonesRepository;
+import co.dalicious.domain.application_form.repository.RequestedMySpotZonesRepository;
+import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.MealInfoRepository;
+import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.integration.client.user.mapper.MySpotZoneMapper;
+import co.dalicious.integration.client.user.mapper.MySpotZoneMealInfoMapper;
+import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
+import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.service.GroupRequestService;
@@ -29,7 +33,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,11 +47,12 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     private final RequestedMySpotZonesMapper requestedMySpotZonesMapper;
     private final RequestedMySpotZonesRepository requestedMySpotZonesRepository;
     private final QMySpotRepository qMySpotRepository;
-    private final MySpotZoneRepository mySpotZoneRepository;
     private final MealInfoRepository mealInfoRepository;
     private final QMySpotZoneRepository qMySpotZoneRepository;
     private final QRegionRepository qRegionRepository;
-    private final MealInfoMapper mealInfoMapper;
+    private final MySpotZoneMapper mySpotZoneMapper;
+    private final GroupRepository groupRepository;
+    private final MySpotZoneMealInfoMapper mySpotZoneMealInfoMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -138,9 +146,10 @@ public class GroupRequestServiceImpl implements GroupRequestService {
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
 
         // 마이스팟 생성
-        MySpotZone mySpotZone = requestedMySpotZonesMapper.toMySpotZone(existRequestedMySpotZones);
+        MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(existRequestedMySpotZones);
         // 지역에 마이스팟 fk
-        existRequestedMySpotZones.forEach(requestedMySpotZones -> requestedMySpotZones.getRegion().updateMySpotZone(mySpotZone));
+        List<BigInteger> regionIds = existRequestedMySpotZones.stream().map(requestedMySpotZones -> requestedMySpotZones.getRegion().getId()).toList();
+        mySpotZone.updateRegionIds(regionIds);
 
         // mealInfo 생성
         String defaultTime = "00:00";
@@ -154,11 +163,11 @@ public class GroupRequestServiceImpl implements GroupRequestService {
                         case DINNER -> "19:00";
                     };
 
-                    return mealInfoMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime);
+                    return mySpotZoneMealInfoMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime);
                 })
                 .collect(Collectors.toList());
 
-        mySpotZoneRepository.save(mySpotZone);
+        groupRepository.save(mySpotZone);
         mealInfoRepository.saveAll(mealInfoList);
 
 
