@@ -139,11 +139,6 @@ public class Makers {
     @Comment("원산지")
     private List<Origin> origins;
 
-    @OneToMany(mappedBy = "makers", orphanRemoval = true)
-    @JsonBackReference(value = "makers_fk")
-    @Comment("식사 일정별 영업시간")
-    private List<MakersBusinessHours> makersBusinessHours;
-
     @CreationTimestamp
     @Column(name = "created_datetime", nullable = false, insertable = false, updatable = false,
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) COMMENT '생성일'")
@@ -276,69 +271,6 @@ public class Makers {
 
     public void updateImages(List<ImageWithEnum> images) {
         this.images = images;
-    }
-
-
-    public void updateMakersDetail(UpdateMakersReqDto updateMakersReqDto, Address address, List<MakersCapacity> makersCapacityList) {
-        if (updateMakersReqDto.getCode() != null && !updateMakersReqDto.getCode().equals(""))
-            this.code = updateMakersReqDto.getCode();
-        if (updateMakersReqDto.getName() != null && !updateMakersReqDto.getName().equals(""))
-            this.name = updateMakersReqDto.getName();
-        if (updateMakersReqDto.getCompanyName() != null && !updateMakersReqDto.getCompanyName().equals(""))
-            this.companyName = updateMakersReqDto.getCompanyName();
-        if (updateMakersReqDto.getCeo() != null && !updateMakersReqDto.getCeo().equals(""))
-            this.CEO = updateMakersReqDto.getCeo();
-        if (updateMakersReqDto.getCeoPhone() != null && !updateMakersReqDto.getCeoPhone().equals(""))
-            this.CEOPhone = updateMakersReqDto.getCeoPhone();
-        if (updateMakersReqDto.getManagerName() != null && !updateMakersReqDto.getManagerName().equals(""))
-            this.managerName = updateMakersReqDto.getManagerName();
-        if (updateMakersReqDto.getManagerPhone() != null && !updateMakersReqDto.getManagerPhone().equals(""))
-            this.managerPhone = updateMakersReqDto.getManagerPhone();
-        if (updateMakersReqDto.getDiningTypes() != null)
-            this.makersCapacities = makersCapacityList;
-        if (updateMakersReqDto.getServiceType() != null && updateMakersReqDto.getServiceType().equals(""))
-            this.serviceType = ServiceType.ofString(updateMakersReqDto.getServiceType());
-        if (updateMakersReqDto.getServiceForm() != null && updateMakersReqDto.getServiceForm().equals(""))
-            this.serviceForm = ServiceForm.ofString(updateMakersReqDto.getServiceForm());
-        if (updateMakersReqDto.getIsParentCompany() != null)
-            this.isParentCompany = updateMakersReqDto.getIsParentCompany();
-        if (updateMakersReqDto.getParentCompanyId() != null && updateMakersReqDto.getParentCompanyId().intValue() != 0)
-            this.parentCompanyId = updateMakersReqDto.getParentCompanyId();
-        if (address != null)
-            this.address = address;
-        if (updateMakersReqDto.getCompanyRegistrationNumber() != null && !updateMakersReqDto.getCompanyRegistrationNumber().equals(""))
-            this.companyRegistrationNumber = updateMakersReqDto.getCompanyRegistrationNumber();
-        if (updateMakersReqDto.getContractStartDate() != null && !updateMakersReqDto.getContractStartDate().equals(""))
-            this.contractStartDate = LocalDate.parse(updateMakersReqDto.getContractStartDate());
-        if (updateMakersReqDto.getContractEndDate() != null && !updateMakersReqDto.getContractEndDate().equals(""))
-            this.contractEndDate = LocalDate.parse(updateMakersReqDto.getContractEndDate());
-        if (updateMakersReqDto.getIsNutritionInformation() != null)
-            this.isNutritionInformation = updateMakersReqDto.getIsNutritionInformation();
-        if (updateMakersReqDto.getOpenTime() != null && !updateMakersReqDto.getOpenTime().equals(""))
-            this.openTime = LocalTime.parse(updateMakersReqDto.getOpenTime());
-        if (updateMakersReqDto.getCloseTime() != null && !updateMakersReqDto.getCloseTime().equals(""))
-            this.closeTime = LocalTime.parse(updateMakersReqDto.getCloseTime());
-        if (updateMakersReqDto.getFee() != null)
-            this.fee = updateMakersReqDto.getFee();
-        if (updateMakersReqDto.getBank() != null && !updateMakersReqDto.getBank().equals(""))
-            this.bank = updateMakersReqDto.getBank();
-        if (updateMakersReqDto.getDepositHolder() != null && !updateMakersReqDto.getDepositHolder().equals(""))
-            this.depositHolder = updateMakersReqDto.getDepositHolder();
-        if (updateMakersReqDto.getAccountNumber() != null && !updateMakersReqDto.getAccountNumber().equals(""))
-            this.accountNumber = updateMakersReqDto.getAccountNumber();
-        if (updateMakersReqDto.getMemo() != null && !updateMakersReqDto.getMemo().equals(""))
-            this.memo = updateMakersReqDto.getMemo();
-        if (updateMakersReqDto.getIsActive() != null)
-            this.isActive = updateMakersReqDto.getIsActive();
-        if (updateMakersReqDto.getServiceDays() != null && !updateMakersReqDto.getServiceDays().equals(""))
-            this.serviceDays = DaysUtil.serviceDaysToDaysList(updateMakersReqDto.getServiceDays());
-    }
-
-    public MakersBusinessHours getMakersBusinessHour(DiningType diningType) {
-        return this.makersBusinessHours.stream()
-                .filter(v -> v.getDiningType().equals(diningType))
-                .findAny()
-                .orElse(null);
     }
 
     public List<DiningType> getDiningTypes() {
