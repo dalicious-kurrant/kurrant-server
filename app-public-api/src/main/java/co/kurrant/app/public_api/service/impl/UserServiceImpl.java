@@ -14,10 +14,10 @@ import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.mapper.OrderDailyFoodItemMapper;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
@@ -38,13 +38,12 @@ import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
-import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
-import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.public_api.dto.board.AlarmResponseDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
+import co.kurrant.app.public_api.dto.order.OrderItemDailyFoodToDailyReportDto;
 import co.kurrant.app.public_api.dto.user.*;
+import co.kurrant.app.public_api.mapper.DailyReport.OrderItemDailyFoodDailyReportMapper;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -52,13 +51,11 @@ import co.kurrant.app.public_api.service.UserService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.querydsl.jpa.impl.JPAQuery;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -114,6 +111,8 @@ public class UserServiceImpl implements UserService {
     private final DailyReportMapper dailyReportMapper;
     private final DailyReportRepository dailyReportRepository;
     private final QDailyReportRepository qDailyReportRepository;
+    private final OrderItemDailyFoodDailyReportMapper orderItemDailyFoodDailyReportMapper;
+
 
     @Override
     @Transactional
@@ -1135,23 +1134,15 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto) {
-
         User user = userUtil.getUser(securityUser);
 
+        //해당 날짜에 주문한 내역을 불러오기
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllUserIdAndDate(user.getId(), LocalDate.parse(dto.getStartDate()), LocalDate.parse(dto.getEndDate()));
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
-
-            String title = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
-            String name = orderItemDailyFood.getDailyFood().getFood().getName();
-            Integer carbohydrate = orderItemDailyFood.getDailyFood().getFood().getCarbohydrate();
-            Integer fat = orderItemDailyFood.getDailyFood().getFood().getFat();
-            Integer protein = orderItemDailyFood.getDailyFood().getFood().getProtein();
-            Integer calorie = orderItemDailyFood.getDailyFood().getFood().getCalorie();
-            LocalDate eatDate = orderItemDailyFood.getDailyFood().getServiceDate();
-            DiningType diningType = orderItemDailyFood.getDailyFood().getDiningType();
-
-            DailyReport dailyReport = dailyReportMapper.toEntityByOrderItemDailyFood(user, name, carbohydrate, fat, protein, calorie, eatDate, diningType, "order", title);
+            //매핑 후 저장
+            OrderItemDailyFoodToDailyReportDto dailyReportDto = orderItemDailyFoodDailyReportMapper.toDailyReportDto(orderItemDailyFood);
+            DailyReport dailyReport = dailyReportMapper.toEntityByOrderItemDailyFood(user, dailyReportDto,  "order");
             dailyReportRepository.save(dailyReport);
         }
 

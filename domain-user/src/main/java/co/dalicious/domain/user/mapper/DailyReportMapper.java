@@ -5,6 +5,7 @@ import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.DailyReport;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
+import co.kurrant.app.public_api.dto.order.OrderItemDailyFoodToDailyReportDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -38,16 +39,16 @@ public interface DailyReportMapper {
     }
 
 
-    @Mapping(source = "diningType", target = "diningType")
-    @Mapping(source = "eatDate", target = "eatDate")
-    @Mapping(source = "calorie", target = "calorie")
-    @Mapping(source = "protein", target = "protein")
-    @Mapping(source = "fat", target = "fat")
-    @Mapping(source = "carbohydrate", target = "carbohydrate")
-    @Mapping(source = "title", target = "title")
+    @Mapping(source = "dailyReportDto.diningType", target = "diningType")
+    @Mapping(source = "dailyReportDto.eatDate", target = "eatDate")
+    @Mapping(source = "dailyReportDto.calorie", target = "calorie")
+    @Mapping(source = "dailyReportDto.protein", target = "protein")
+    @Mapping(source = "dailyReportDto.fat", target = "fat")
+    @Mapping(source = "dailyReportDto.carbohydrate", target = "carbohydrate")
+    @Mapping(source = "dailyReportDto.title", target = "title")
     @Mapping(source = "type", target = "type")
-    @Mapping(source = "name", target = "foodName")
+    @Mapping(source = "dailyReportDto.name", target = "foodName")
     @Mapping(source = "user", target = "user")
-    DailyReport toEntityByOrderItemDailyFood(User user, String name, Integer carbohydrate, Integer fat, Integer protein, Integer calorie, LocalDate eatDate, DiningType diningType, String type, String title);
+    DailyReport toEntityByOrderItemDailyFood(User user, OrderItemDailyFoodToDailyReportDto dailyReportDto, String type);
 
 }

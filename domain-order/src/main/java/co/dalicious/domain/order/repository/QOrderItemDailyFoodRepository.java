@@ -43,6 +43,7 @@ public class QOrderItemDailyFoodRepository {
             BigInteger orderItemDailyFoodId = queryFactory.select(orderItemDailyFood.id)
                     .from(orderItemDailyFood)
                     .where(orderItemDailyFood.dailyFood.id.eq(dailyFoodId))
+                    .limit(1)
                     .fetchOne();
             orderItemDailyFoodIdSet.add(orderItemDailyFoodId);
         }
