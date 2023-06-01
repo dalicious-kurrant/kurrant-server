@@ -166,7 +166,7 @@ public class QRegionRepository {
         return resultByZipcodes;
     }
 
-    public List<Region> findRegionByMySpotZone(List<BigInteger> ids) {
+    public List<Region> findRegionByIds(List<BigInteger> ids) {
         return queryFactory.selectFrom(region)
                 .where(region.id.in(ids))
                 .fetch();

@@ -38,6 +38,9 @@ public interface MySpotZoneMapper {
     FilterStatusDto toFilterStatusDto(MySpotZoneStatus mySpotZoneStatus);
 
     default AdminListResponseDto toAdminListResponseDto(MySpotZone mySpotZone, List<Region> regionList) {
+
+        List<Region> mySpotZoneRegion = regionList.stream().filter(region -> mySpotZone.getRegionIds().contains(region.getId())).findFirst().stream().toList();
+
         AdminListResponseDto adminListResponseDto = new AdminListResponseDto();
 
         adminListResponseDto.setId(mySpotZone.getId());
@@ -51,7 +54,7 @@ public interface MySpotZoneMapper {
         Set<String> villages = new HashSet<>();
         Set<String> zipcodes = new HashSet<>();
 
-        for(Region region : regionList) {
+        for(Region region : mySpotZoneRegion) {
             counties.add(region.getCounty());
             villages.add(region.getVillage());
             zipcodes.add(region.getZipcode());
@@ -79,7 +82,7 @@ public interface MySpotZoneMapper {
         return adminListResponseDto;
     }
 
-    default MySpotZone toMySpotZone(CreateRequestDto createRequestDto) {
+    default MySpotZone toMySpotZone(CreateRequestDto createRequestDto, List<BigInteger> regionIds) {
         return MySpotZone.builder()
                 .name(createRequestDto.getName())
                 .diningTypes(createRequestDto.getDiningTypes().stream().map(DiningType::ofCode).toList())
@@ -87,6 +90,7 @@ public interface MySpotZoneMapper {
                 .mySpotZoneUserCount(createRequestDto.getUserCount())
                 .openStartDate(DateUtils.stringToDate(createRequestDto.getOpenStartDate()))
                 .openCloseDate(DateUtils.stringToDate(createRequestDto.getOpenCloseDate()))
+                .regionIds(regionIds)
                 .memo(createRequestDto.getMemo())
                 .build();
     }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static co.dalicious.domain.user.entity.QMySpot.mySpot;
+import static co.dalicious.integration.client.user.entity.QMySpot.mySpot;
 
 @Repository
 @RequiredArgsConstructor

@@ -27,29 +27,9 @@ public class QMySpotZoneRepository {
 
     public MySpotZone findExistMySpotZoneByZipcode(String zipcode) {
         return queryFactory.selectFrom(mySpotZone)
-                .leftJoin(region).on(mySpotZone.regionIds.any().eq(region.id))
+                .leftJoin(region).on(region.id.stringValue().contains(String.valueOf(mySpotZone.regionIds)))
                 .where(region.zipcode.eq(zipcode), mySpotZone.isActive.ne(false))
                 .fetchOne();
-    }
-
-    public List<FilterInfo> findAllNameList() {
-        List<Tuple> retsultList = queryFactory.select(mySpotZone.id, mySpotZone.name)
-                .from(mySpotZone)
-                .where(mySpotZone.isActive.ne(false))
-                .orderBy(mySpotZone.name.asc())
-                .fetch();
-
-        List<FilterInfo> filterInfos = new ArrayList<>();
-
-        retsultList.forEach(result -> {
-            FilterInfo filterInfo = new FilterInfo();
-
-            filterInfo.setId(result.get(mySpotZone.id));
-            filterInfo.setName(result.get(mySpotZone.name));
-            filterInfos.add(filterInfo);
-        });
-
-        return filterInfos;
     }
 
     public List<String> findNameById(List<BigInteger> id) {
@@ -85,7 +65,7 @@ public class QMySpotZoneRepository {
         int offset = limit * (page - 1);
 
         QueryResults<MySpotZone> results = queryFactory.selectFrom(mySpotZone)
-                .leftJoin(region).on(mySpotZone.regionIds.any().eq(region.id))
+                .leftJoin(region).on(region.id.stringValue().contains(String.valueOf(mySpotZone.regionIds)))
                 .where(whereCause, mySpotZone.isActive.ne(false))
                 .orderBy(mySpotZone.id.desc())
                 .limit(limit)
@@ -97,7 +77,7 @@ public class QMySpotZoneRepository {
 
     public MySpotZone findExistMySpotZoneByZipcodes(List<String> zipcodes) {
         return queryFactory.selectFrom(mySpotZone)
-                .leftJoin(region).on(mySpotZone.regionIds.any().eq(region.id))
+                .leftJoin(region).on(region.id.stringValue().contains(String.valueOf(mySpotZone.regionIds)))
                 .where(region.zipcode.in(zipcodes))
                 .fetchOne();
     }
