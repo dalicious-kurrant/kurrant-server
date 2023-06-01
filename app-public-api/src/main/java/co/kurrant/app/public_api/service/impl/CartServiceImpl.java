@@ -27,9 +27,11 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.service.CartService;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -38,6 +40,7 @@ import org.springframework.util.MultiValueMap;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,6 +61,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public CartDto.Response saveOrderCart(SecurityUser securityUser, List<CartDto> cartDtoList) {
+        // TODO: 주문 시간이 다르면 장바구니가 분리되어야함
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
         List<BigInteger> dailyFoodIds = new ArrayList<>();
@@ -110,7 +114,11 @@ public class CartServiceImpl implements CartService {
                 }
             } else {
                 // 중복되는 DailyFood가 장바구니에 존재하지 않는다면 추가하기
-                CartDailyFood cartDailyFood = new CartDailyFood(user, cartDto.getCount(), dailyFood, spot, DateUtils.stringToLocalTime(cartDto.getDeliveryTime()));
+                LocalTime deliveryTime = DateUtils.stringToLocalTime(cartDto.getDeliveryTime());
+                if(deliveryTime == null || !mealInfo.getDeliveryTimes().contains(deliveryTime)) {
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE400011", "올바른 배송시간이 아닙니다.");
+                }
+                CartDailyFood cartDailyFood = new CartDailyFood(user, cartDto.getCount(), dailyFood, spot, deliveryTime);
                 cartDailyFoodRepository.save(cartDailyFood);
                 cartCount += 1;
             }
