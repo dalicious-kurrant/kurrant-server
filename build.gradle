@@ -214,6 +214,7 @@ project(':app-client-api') {
         implementation project(':domain-order')
         implementation project(':domain-makers')
         implementation project(':domain-paycheck')
+        implementation project(':integration-client-user')
     }
 }
 
