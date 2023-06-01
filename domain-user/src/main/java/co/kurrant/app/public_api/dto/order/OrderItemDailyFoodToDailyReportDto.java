@@ -20,6 +20,7 @@ public class OrderItemDailyFoodToDailyReportDto {
     private Integer calorie;
     private LocalDate eatDate;
     private DiningType diningType;
+    private String imageLocation;
 
 
 }
