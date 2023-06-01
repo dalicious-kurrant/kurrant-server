@@ -149,4 +149,8 @@ public class DateUtils {
         SimpleDateFormat sdf = new SimpleDateFormat("MM월 dd일 E", Locale.KOREA);
         return sdf.format(ts);
     }
+
+    public static boolean isBetween(LocalTime timeToCheck, LocalTime minTime, LocalTime maxTime) {
+        return !timeToCheck.isBefore(minTime) && !timeToCheck.isAfter(maxTime);
+    }
 }
