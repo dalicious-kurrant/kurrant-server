@@ -3,6 +3,7 @@ package co.dalicious.integration.client.user.mapper;
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.integration.client.user.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -11,7 +12,6 @@ import co.dalicious.integration.client.user.dto.filter.FilterInfo;
 import co.dalicious.integration.client.user.dto.filter.FilterStatusDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.AdminListResponseDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
-import co.dalicious.domain.address.entity.Region;
 import co.dalicious.system.util.GenerateRandomNumber;
 import org.mapstruct.Mapper;
 
@@ -24,9 +24,8 @@ import java.util.Set;
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface MySpotZoneMapper {
 
-    default FilterDto toFilterDto(List<MySpotZone> mySpotZoneList, Map<BigInteger, String> cityMap, Map<BigInteger, String> countyMap, Map<BigInteger, String> villageMap, Map<BigInteger, String> zipcodeMap, List<MySpotZoneStatus> statusList) {
+    default FilterDto toFilterDto(List<FilterInfo> nameList, Map<BigInteger, String> cityMap, Map<BigInteger, String> countyMap, Map<BigInteger, String> villageMap, Map<BigInteger, String> zipcodeMap, List<MySpotZoneStatus> statusList) {
 
-        List<FilterInfo> nameList = mySpotZoneList.stream().map(mySpotZone -> toFilterInfo(mySpotZone.getId(), mySpotZone.getName())).toList();
         List<FilterInfo> cityList = cityMap.keySet().stream().map(v -> toFilterInfo(v, cityMap.get(v))).toList();
         List<FilterInfo> countyList = countyMap.keySet().stream().map(v -> toFilterInfo(v, countyMap.get(v))).toList();
         List<FilterInfo> villageList = villageMap.keySet().stream().map(v -> toFilterInfo(v, villageMap.get(v))).toList();
@@ -39,7 +38,7 @@ public interface MySpotZoneMapper {
 
     default AdminListResponseDto toAdminListResponseDto(MySpotZone mySpotZone, List<Region> regionList) {
 
-        List<Region> mySpotZoneRegion = regionList.stream().filter(region -> mySpotZone.getRegionIds().contains(region.getId())).findFirst().stream().toList();
+        List<Region> mySpotZoneRegion = regionList.stream().filter(region -> mySpotZone.getId().equals(region.getMySpotZoneIds())).findFirst().stream().toList();
 
         AdminListResponseDto adminListResponseDto = new AdminListResponseDto();
 
@@ -82,7 +81,7 @@ public interface MySpotZoneMapper {
         return adminListResponseDto;
     }
 
-    default MySpotZone toMySpotZone(CreateRequestDto createRequestDto, List<BigInteger> regionIds) {
+    default MySpotZone toMySpotZone(CreateRequestDto createRequestDto) {
         return MySpotZone.builder()
                 .name(createRequestDto.getName())
                 .diningTypes(createRequestDto.getDiningTypes().stream().map(DiningType::ofCode).toList())
@@ -90,7 +89,6 @@ public interface MySpotZoneMapper {
                 .mySpotZoneUserCount(createRequestDto.getUserCount())
                 .openStartDate(DateUtils.stringToDate(createRequestDto.getOpenStartDate()))
                 .openCloseDate(DateUtils.stringToDate(createRequestDto.getOpenCloseDate()))
-                .regionIds(regionIds)
                 .memo(createRequestDto.getMemo())
                 .build();
     }

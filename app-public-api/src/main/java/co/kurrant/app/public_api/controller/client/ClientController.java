@@ -33,6 +33,7 @@ public class ClientController {
                 .build();
     }
 
+    // TODO: 오픈그룹 검색
     @Operation(summary = "고객사로 등록된 오픈 그룹/아파트 전체 조회", description = "고객사로 등록된 오픈 그룹/아파트들 전체를 조회한다.")
     @GetMapping("/apartments")
     public ResponseMessage getOpenGroupsAndApartments(Authentication authentication) {
@@ -43,6 +44,7 @@ public class ClientController {
                 .build();
     }
 
+    // TODO: 오픈그룹 선택
     @Operation(summary = "고객사로 등록된 오픈 그룹/아파트 선택", description = "고객사로 등록된 오픈 그룹/아파트를 그룹에 추가한다.")
     @PostMapping("/apartments")
     public ResponseMessage settingGroup(Authentication authentication, @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {

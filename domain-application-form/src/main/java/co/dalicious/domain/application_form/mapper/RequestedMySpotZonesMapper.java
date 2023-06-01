@@ -1,11 +1,11 @@
 package co.dalicious.domain.application_form.mapper;
 
-import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
 
+import co.dalicious.integration.client.user.entity.Region;
 import org.mapstruct.Mapper;
 
 import java.util.List;

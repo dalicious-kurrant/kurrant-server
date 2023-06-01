@@ -1,6 +1,6 @@
 package co.dalicious.domain.address.repository;
 
-import co.dalicious.domain.address.entity.Region;
+import co.dalicious.integration.client.user.entity.Region;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static co.dalicious.domain.address.entity.QRegion.region;
+import static co.dalicious.integration.client.user.entity.QRegion.region;
 
 @Repository
 @RequiredArgsConstructor
@@ -22,17 +22,17 @@ public class QRegionRepository {
     private final JPAQueryFactory queryFactory;
 
     public Region findRegionByZipcodeAndCountyAndVillage(String zipcode, String county, String village) {
-        String village1 = !village.matches(".*\\d.*") ? village : village.replaceAll("동$", "");
+        String village1 = !village.matches(".*\\d.*") ? village : village.replaceAll("\\d+동$", "");
 
         return queryFactory.selectFrom(region)
                 .where(region.zipcode.eq(zipcode), region.county.contains(county), region.village.contains(village1))
                 .fetchFirst();
     }
 
-    public Map<BigInteger, String> findAllCityByIds(List<BigInteger> ids) {
+    public  Map<BigInteger, String> findAllCity() {
         List<Tuple> resultList = queryFactory.select(region.id, region.city)
                 .from(region)
-                .where(region.id.in(ids))
+                .where(region.mySpotZoneIds.isNotNull())
                 .groupBy(region.city)
                 .orderBy(region.city.asc())
                 .fetch();
@@ -46,7 +46,7 @@ public class QRegionRepository {
         return filterInfos;
     }
 
-    public Map<BigInteger, String> findAllCountyByCity(String city, List<BigInteger> ids) {
+    public Map<BigInteger, String> findAllCountyByCity(String city) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(city != null) {
@@ -55,7 +55,7 @@ public class QRegionRepository {
 
         List<Tuple> resultList = queryFactory.select(region.id, region.county)
                 .from(region)
-                .where(region.id.in(ids), whereCause)
+                .where(region.mySpotZoneIds.isNotNull(), whereCause)
                 .groupBy(region.county)
                 .orderBy(region.county.asc())
                 .fetch();
@@ -63,13 +63,12 @@ public class QRegionRepository {
         Map<BigInteger, String> filterInfos = new HashMap<>();
 
         resultList.forEach(result -> {
-            filterInfos.put(result.get(region.id), result.get(region.county));
+            filterInfos.put(result.get(region.id), result.get(region.city));
         });
-
         return filterInfos;
     }
 
-    public Map<BigInteger, String> findAllVillageByCounty(String city, String county, List<BigInteger> ids) {
+    public  Map<BigInteger, String> findAllVillageByCounty(String city, String county) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(city != null) {
@@ -81,7 +80,7 @@ public class QRegionRepository {
 
         List<Tuple> resultList = queryFactory.select(region.id, region.village)
                 .from(region)
-                .where(region.id.in(ids), whereCause)
+                .where(region.mySpotZoneIds.isNotNull(), whereCause)
                 .groupBy(region.village)
                 .orderBy(region.village.asc())
                 .fetch();
@@ -89,13 +88,13 @@ public class QRegionRepository {
         Map<BigInteger, String> filterInfos = new HashMap<>();
 
         resultList.forEach(result -> {
-            filterInfos.put(result.get(region.id), result.get(region.village));
+            filterInfos.put(result.get(region.id), result.get(region.city));
         });
 
         return filterInfos;
     }
 
-    public Map<BigInteger, String> findAllZipcodeByCityAndCountyAndVillage(String city, String county, List<String> villages, List<BigInteger> ids) {
+    public Map<BigInteger, String> findAllZipcodeByCityAndCountyAndVillage(String city, String county, List<String> villages) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(city != null) {
@@ -110,7 +109,7 @@ public class QRegionRepository {
 
         List<Tuple> resultList = queryFactory.select(region.id, region.zipcode)
                 .from(region)
-                .where(region.id.in(ids), whereCause)
+                .where(region.mySpotZoneIds.isNotNull(), whereCause)
                 .groupBy(region.zipcode)
                 .orderBy(region.zipcode.asc())
                 .fetch();
@@ -118,7 +117,7 @@ public class QRegionRepository {
         Map<BigInteger, String> filterInfos = new HashMap<>();
 
         resultList.forEach(result -> {
-            filterInfos.put(result.get(region.id), result.get(region.zipcode));
+            filterInfos.put(result.get(region.id), result.get(region.city));
         });
 
         return filterInfos;
@@ -151,7 +150,7 @@ public class QRegionRepository {
 
     public List<Region> findRegionByZipcodesAndCountiesAndVillages(List<String> zipcodes, List<String> counties, List<String> villages) {
         List<String> villages1 = villages.stream()
-                .map(village -> village.matches(".*\\d.*") ? village.replaceAll("동$", "") : village)
+                .map(village -> village.matches(".*\\d.*") ? village.replaceAll("\\d+동$", "") : village)
                 .toList();
 
         BooleanBuilder whereCuase = new BooleanBuilder();
@@ -166,9 +165,15 @@ public class QRegionRepository {
         return resultByZipcodes;
     }
 
-    public List<Region> findRegionByIds(List<BigInteger> ids) {
+    public List<Region> findRegionByMySpotZone(List<BigInteger> mySpotZoneIds) {
         return queryFactory.selectFrom(region)
-                .where(region.id.in(ids))
+                .where(region.mySpotZoneIds.in(mySpotZoneIds))
+                .fetch();
+    }
+
+    public List<Region> findRegionByMySpotZoneId(BigInteger mySpotZoneId) {
+        return queryFactory.selectFrom(region)
+                .where(region.mySpotZoneIds.eq(mySpotZoneId))
                 .fetch();
     }
 }

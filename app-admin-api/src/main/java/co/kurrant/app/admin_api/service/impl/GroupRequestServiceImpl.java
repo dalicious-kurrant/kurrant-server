@@ -2,7 +2,6 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
@@ -16,10 +15,15 @@ import co.dalicious.domain.application_form.repository.RequestedMySpotZonesRepos
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.MealInfoRepository;
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.integration.client.user.mapper.MySpotZoneMapper;
 import co.dalicious.integration.client.user.mapper.MySpotZoneMealInfoMapper;
+import co.dalicious.integration.client.user.mapper.UserGroupMapper;
 import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
 import co.dalicious.system.util.DateUtils;
@@ -53,6 +57,8 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     private final MySpotZoneMapper mySpotZoneMapper;
     private final GroupRepository groupRepository;
     private final MySpotZoneMealInfoMapper mySpotZoneMealInfoMapper;
+    private final UserGroupMapper userGroupMapper;
+    private final UserGroupRepository userGroupRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -148,8 +154,8 @@ public class GroupRequestServiceImpl implements GroupRequestService {
         // 마이스팟 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(existRequestedMySpotZones);
         // 지역에 마이스팟 fk
-        List<BigInteger> regionIds = existRequestedMySpotZones.stream().map(requestedMySpotZones -> requestedMySpotZones.getRegion().getId()).toList();
-        mySpotZone.updateRegionIds(regionIds);
+        List<Region> regions = existRequestedMySpotZones.stream().map(RequestedMySpotZones::getRegion).toList();
+        regions.forEach(region -> region.updateMySpotZone(mySpotZone.getId()));
 
         // mealInfo 생성
         String defaultTime = "00:00";
@@ -170,15 +176,17 @@ public class GroupRequestServiceImpl implements GroupRequestService {
         groupRepository.save(mySpotZone);
         mealInfoRepository.saveAll(mealInfoList);
 
-
-
         // requestedMySpotZone을 가지고 있는 muSpot을 수정
         List<MySpot> mySpotList = qMySpotRepository.findMySpotByRequestedMySpotZones(existRequestedMySpotZones);
-
         mySpotList.forEach(mySpot -> {
             mySpot.updateRequestedMySpotZones(null);
             mySpot.updateMySpotZone(mySpotZone);
         });
+
+        // userGroup
+        List<User> users = mySpotList.stream().map(MySpot::getUser).toList();
+        List<UserGroup> userGroups = users.stream().map(user -> userGroupMapper.toUserGroup(user, mySpotZone)).toList();
+        userGroupRepository.saveAll(userGroups);
 
         // 신청된 마이스팟 존 삭제
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);

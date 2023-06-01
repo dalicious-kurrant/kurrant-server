@@ -18,7 +18,6 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.order.mapper.OrderDailyFoodItemMapper;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
@@ -39,6 +38,9 @@ import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
+import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
@@ -113,6 +115,8 @@ public class UserServiceImpl implements UserService {
     private final DailyReportRepository dailyReportRepository;
     private final QDailyReportRepository qDailyReportRepository;
     private final OrderItemDailyFoodDailyReportMapper orderItemDailyFoodDailyReportMapper;
+    private final UserGroupMapper userGroupMapper;
+    private final QMySpotRepository qMySpotRepository;
 
 
     @Override
@@ -483,6 +487,8 @@ public class UserServiceImpl implements UserService {
         User user = userUtil.getUser(securityUser);
         // 그룹/스팟 정보 가져오기
         List<UserGroup> userGroups = user.getGroups();
+        // 유저가 마이스팟을 가졌다면 가져오기
+        List<MySpot> mySpotList = qMySpotRepository.findMySpotByUser(user);
         // 그룹/스팟 리스트를 담아줄 Dto 생성하기
         List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
         // 그룹 추가
@@ -490,10 +496,10 @@ public class UserServiceImpl implements UserService {
             // 현재 활성화된 유저 그룹일 경우만 가져오기
             if (userGroup.getClientStatus() == ClientStatus.BELONG) {
                 Group group = userGroup.getGroup();
-                spotListResponseDtoList.add(groupResponseMapper.toDto(group));
+                spotListResponseDtoList.add(userGroupMapper.toSpotListResponseDto(group, mySpotList));
             }
         }
-        return groupResponseMapper.toGroupCountDto(spotListResponseDtoList);
+        return userGroupMapper.toGroupCountDto(spotListResponseDtoList);
     }
 
     @Override

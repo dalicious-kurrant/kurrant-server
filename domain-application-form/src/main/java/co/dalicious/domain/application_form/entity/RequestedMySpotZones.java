@@ -1,7 +1,7 @@
 package co.dalicious.domain.application_form.entity;
 
-import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
+import co.dalicious.integration.client.user.entity.Region;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

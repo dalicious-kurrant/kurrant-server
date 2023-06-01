@@ -1,6 +1,5 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
@@ -15,20 +14,20 @@ import co.dalicious.domain.application_form.entity.*;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
-import co.dalicious.integration.client.user.entity.MySpotZone;
-import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.ClientType;
-import co.dalicious.integration.client.user.mapper.MySpotMapper;
 import co.dalicious.domain.user.repository.UserGroupRepository;
+import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.integration.client.user.entity.Region;
+import co.dalicious.integration.client.user.mapper.MySpotMapper;
+import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
+import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
-import co.dalicious.integration.client.user.entity.MySpot;
-import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
@@ -66,6 +65,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final RequestedMySpotZonesRepository requestedMySpotZonesRepository;
     private final UserGroupRepository userGroupRepository;
     private final MySpotRepository mySpotRepository;
+    private final UserGroupMapper userGroupMapper;
 
 
     @Override
@@ -216,7 +216,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             mySpot.updateMySpotZone(mySpotZone);
             mySpot.updateActive(true);
             // user group 생성
-            userGroupRepository.save(UserGroup.builder().group(mySpotZone).user(user).clientStatus(ClientStatus.BELONG).build());
+            userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone));
 
             return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), true);
         }

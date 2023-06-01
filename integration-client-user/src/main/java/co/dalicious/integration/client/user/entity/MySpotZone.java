@@ -1,15 +1,12 @@
 package co.dalicious.integration.client.user.entity;
 
-import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.integration.client.user.converter.MySpotZoneStatusConverter;
-import co.dalicious.integration.client.user.converter.RegionIdsConverter;
 import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
 import co.dalicious.integration.client.user.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,7 +16,6 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -36,11 +32,6 @@ public class MySpotZone extends Group {
     @Comment("스팟 오픈 상태")
     private MySpotZoneStatus mySpotZoneStatus;
 
-    @Convert(converter = RegionIdsConverter.class)
-    @Column(name = "region_ids")
-    @Comment("지역 pk")
-    private List<BigInteger> regionIds;
-
     @Column(name = "open_start_date")
     @Comment("오픈 시작일")
     private LocalDate openStartDate;
@@ -54,10 +45,9 @@ public class MySpotZone extends Group {
     private Integer mySpotZoneUserCount;
 
     @Builder
-    public MySpotZone(Address address, List<DiningType> diningTypes, String name, String memo, MySpotZoneStatus mySpotZoneStatus, List<BigInteger> regionIds, LocalDate openStartDate, LocalDate openCloseDate, Integer mySpotZoneUserCount) {
+    public MySpotZone(Address address, List<DiningType> diningTypes, String name, String memo, MySpotZoneStatus mySpotZoneStatus, LocalDate openStartDate, LocalDate openCloseDate, Integer mySpotZoneUserCount) {
         super(address, diningTypes, name, memo);
         this.mySpotZoneStatus = mySpotZoneStatus;
-        this.regionIds = regionIds;
         this.openStartDate = openStartDate;
         this.openCloseDate = openCloseDate;
         this.mySpotZoneUserCount = mySpotZoneUserCount;
@@ -73,9 +63,5 @@ public class MySpotZone extends Group {
 
     public void updateMySpotZoneUserCount(Integer count) {
         this.mySpotZoneUserCount = this.mySpotZoneUserCount + count;
-    }
-
-    public void updateRegionIds(List<BigInteger> regionIds) {
-        this.regionIds = regionIds;
     }
 }

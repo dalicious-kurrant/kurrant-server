@@ -17,8 +17,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import static co.dalicious.domain.address.entity.QRegion.region;
 import static co.dalicious.integration.client.user.entity.QMySpotZone.mySpotZone;
+import static co.dalicious.integration.client.user.entity.QRegion.region;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,9 +27,29 @@ public class QMySpotZoneRepository {
 
     public MySpotZone findExistMySpotZoneByZipcode(String zipcode) {
         return queryFactory.selectFrom(mySpotZone)
-                .leftJoin(region).on(region.id.stringValue().contains(String.valueOf(mySpotZone.regionIds)))
+                .leftJoin(region).on(region.mySpotZoneIds.eq(mySpotZone.id))
                 .where(region.zipcode.eq(zipcode), mySpotZone.isActive.ne(false))
                 .fetchOne();
+    }
+
+    public List<FilterInfo> findAllNameList() {
+        List<Tuple> retsultList = queryFactory.select(mySpotZone.id, mySpotZone.name)
+                .from(mySpotZone)
+                .where(mySpotZone.isActive.ne(false))
+                .orderBy(mySpotZone.name.asc())
+                .fetch();
+
+        List<FilterInfo> filterInfos = new ArrayList<>();
+
+        retsultList.forEach(result -> {
+            FilterInfo filterInfo = new FilterInfo();
+
+            filterInfo.setId(result.get(mySpotZone.id));
+            filterInfo.setName(result.get(mySpotZone.name));
+            filterInfos.add(filterInfo);
+        });
+
+        return filterInfos;
     }
 
     public List<String> findNameById(List<BigInteger> id) {
@@ -65,7 +85,7 @@ public class QMySpotZoneRepository {
         int offset = limit * (page - 1);
 
         QueryResults<MySpotZone> results = queryFactory.selectFrom(mySpotZone)
-                .leftJoin(region).on(region.id.stringValue().contains(String.valueOf(mySpotZone.regionIds)))
+                .leftJoin(region).on(region.mySpotZoneIds.eq(mySpotZone.id))
                 .where(whereCause, mySpotZone.isActive.ne(false))
                 .orderBy(mySpotZone.id.desc())
                 .limit(limit)
@@ -77,7 +97,7 @@ public class QMySpotZoneRepository {
 
     public MySpotZone findExistMySpotZoneByZipcodes(List<String> zipcodes) {
         return queryFactory.selectFrom(mySpotZone)
-                .leftJoin(region).on(region.id.stringValue().contains(String.valueOf(mySpotZone.regionIds)))
+                .leftJoin(region).on(region.mySpotZoneIds.eq(mySpotZone.id))
                 .where(region.zipcode.in(zipcodes))
                 .fetchOne();
     }
@@ -91,11 +111,6 @@ public class QMySpotZoneRepository {
     public List<MySpotZone> findAllMySpotZoneByIds(List<BigInteger> ids) {
         return queryFactory.selectFrom(mySpotZone)
                 .where(mySpotZone.id.in(ids), mySpotZone.isActive.ne(false))
-                .fetch();
-    }
-
-    public List<MySpotZone> findAll() {
-        return queryFactory.selectFrom(mySpotZone)
                 .fetch();
     }
 }
