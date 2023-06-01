@@ -395,4 +395,8 @@ public class User {
     public boolean hasPushCondition(PushCondition condition) {
         return pushConditionList.contains(condition);
     }
+
+    public void updatePhone(String phone) {
+        this.phone = phone;
+    }
 }

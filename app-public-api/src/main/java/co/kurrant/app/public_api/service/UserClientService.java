@@ -2,7 +2,7 @@ package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
-import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
+import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 
 import java.math.BigInteger;

@@ -3,18 +3,11 @@ package co.dalicious.domain.application_form.mapper;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
-import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
 
-import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
-import co.dalicious.system.enums.DiningType;
-import co.dalicious.system.util.DaysUtil;
-import co.dalicious.system.util.GenerateRandomNumber;
+import co.dalicious.integration.client.user.entity.Region;
 import org.mapstruct.Mapper;
 
-import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -52,23 +45,5 @@ public interface RequestedMySpotZonesMapper {
                 .memo(memo)
                 .build();
     }
-
-    default MySpotZone toMySpotZone(List<RequestedMySpotZones> requestedMySpotZonesList) {
-        Integer count = null;
-
-        for(RequestedMySpotZones requestedMySpotZones : requestedMySpotZonesList) {
-            if (count == null) count = requestedMySpotZones.getWaitingUserCount();
-            else count = count + requestedMySpotZones.getWaitingUserCount();
-        }
-
-        return MySpotZone.builder()
-                .diningTypes(List.of(DiningType.MORNING, DiningType.LUNCH, DiningType.DINNER))
-                .name("(임시)_" + GenerateRandomNumber.create6DigitKey())
-                .mySpotZoneStatus(MySpotZoneStatus.WAITE)
-                .mySpotZoneUserCount(count)
-                .build();
-    }
-
-
 
 }

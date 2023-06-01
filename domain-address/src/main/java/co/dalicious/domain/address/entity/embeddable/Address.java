@@ -63,4 +63,5 @@ public class Address {
     if(location == null) return null;
     return wktReader.read("POINT("+location+")");
   }
+
 }
