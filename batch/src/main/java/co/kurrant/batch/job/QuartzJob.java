@@ -10,7 +10,7 @@ import java.util.*;
 @Component
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
-public class 소QuartzJob implements Job {
+public class QuartzJob implements Job {
     /*
      * Quartz instantiates jobs using a no-argument constructor,
      * and it does not have access to the Spring container to perform dependency injection.
