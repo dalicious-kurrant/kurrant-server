@@ -381,7 +381,6 @@ public class UserServiceImpl implements UserService {
         return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(finalUserPushConditionList, c)).toList();
     }
 
-
     @Override
     @Transactional
     public UserPersonalInfoDto getPersonalUserInfo(SecurityUser securityUser) {
@@ -1080,5 +1079,14 @@ public class UserServiceImpl implements UserService {
             alarmResponseDtos.add(new PushResponseDto(pushAlarmHash));
         }
         return alarmResponseDtos;
+    }
+
+    @Override
+    public void allChangeAlarmSetting(SecurityUser securityUser, Boolean isActive) {
+        User user = userUtil.getUser(securityUser);
+
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
+
+        user.updatePushCondition(pushConditionList);
     }
 }

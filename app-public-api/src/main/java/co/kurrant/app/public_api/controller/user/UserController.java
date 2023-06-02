@@ -323,7 +323,7 @@ public class UserController {
 
     @PostMapping("/payment/password/check")
     @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
-    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
         return ResponseMessage.builder()
@@ -331,30 +331,14 @@ public class UserController {
                 .build();
     }
 
-//
-//    @PostMapping("/payment/password")
-//    @Operation(summary = "결제 비밀번호 등록하기", description = "결제 비밀번호 등록")
-//    public ResponseMessage savePaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
-//        SecurityUser securityUser = UserUtil.securityUser(authentication);
-//        String result = userService.savePaymentPassword(securityUser, savePaymentPasswordDto);
-//        return ResponseMessage.builder()
-//                .message(result)
-//                .build();
-//    }
-//    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
-//    @PostMapping("/cards")
-//    public ResponseMessage saveCreditCard(Authentication authentication,
-//                                          @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
-//        SecurityUser securityUser = UserUtil.securityUser(authentication);
-//        Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
-//        if (result == 2){
-//            return ResponseMessage.builder()
-//                    .message("같은 카드가 이미 등록되어 있습니다.")
-//                    .build();
-//        }
-//        return ResponseMessage.builder()
-//                .message("결제 카드 등록에 성공하셨습니다.")
-//                .build();
-//
-//    }
+    @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
+    @PostMapping("/setting/all")
+    public ResponseMessage allChangeAlarmSetting(Authentication authentication, Boolean isActive) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.allChangeAlarmSetting(securityUser, isActive);
+        return ResponseMessage.builder()
+                .message("마케팅 수신 정보 변경에 성공하였습니다.")
+                .build();
+    }
+
 }

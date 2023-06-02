@@ -86,4 +86,5 @@ public interface UserService {
     Boolean userPreferenceCheck(SecurityUser securityUser);
 
     List<PushResponseDto> getAlarms(SecurityUser securityUser);
+    void allChangeAlarmSetting(SecurityUser securityUser, Boolean isActive);
 }
