@@ -66,13 +66,8 @@ public interface OrderMembershipMapper {
 
     @Mapping(source = "user", target = "user")
     @Mapping(source = "group", target = "group")
-    @Mapping(source = "orderItemMembership", target = "usingSupportPrice", qualifiedByName = "getUsingSupportPrice")
+    @Mapping(target = "usingSupportPrice", constant = "10000")
     @Mapping(target = "monetaryStatus", constant = "DEDUCTION")
     @Mapping(source = "orderItemMembership", target = "orderItemMembership")
     MembershipSupportPrice toMembershipSupportPrice(User user, Group group, OrderItemMembership orderItemMembership);
-
-    @Named("getUsingSupportPrice")
-    default BigDecimal getUsingSupportPrice(OrderItemMembership orderItemMembership) {
-        return orderItemMembership.getPrice();
-    }
 }

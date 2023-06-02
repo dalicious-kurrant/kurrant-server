@@ -4,10 +4,12 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.user.entity.User;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -51,6 +53,22 @@ public class QDailyFoodSupportPriceRepository {
         return queryFactory
                 .selectFrom(dailyFoodSupportPrice)
                 .where(dailyFoodSupportPrice.monetaryStatus.eq(MonetaryStatus.DEDUCTION),
+                        dailyFoodSupportPrice.serviceDate.between(startDate,endDate))
+                .fetch();
+    }
+
+    public List<DailyFoodSupportPrice> findAllByGroupsAndPeriod(List<BigInteger> groupIds, YearMonth yearMonth) {
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(groupIds != null && !groupIds.isEmpty()) {
+            whereClause.and(dailyFoodSupportPrice.group.id.in(groupIds));
+        }
+        return queryFactory
+                .selectFrom(dailyFoodSupportPrice)
+                .where(dailyFoodSupportPrice.monetaryStatus.eq(MonetaryStatus.DEDUCTION),
+                        whereClause,
                         dailyFoodSupportPrice.serviceDate.between(startDate,endDate))
                 .fetch();
     }

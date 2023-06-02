@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.order.dto.OrderCount;
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
@@ -35,6 +36,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Component
@@ -629,5 +631,33 @@ public class OrderUtil {
 
     }
 
+    public static List<OrderCount> getTotalOrderCount(List<OrderItemDailyFood> orderItemDailyFoods) {
+        Map<Group, List<OrderItemDailyFood>> groupOrderItems = orderItemDailyFoods.stream()
+                .collect(Collectors.groupingBy(v -> v.getDailyFood().getGroup()));
 
+        List<OrderCount> result = new ArrayList<>();
+
+        for (Group group : groupOrderItems.keySet()) {
+            OrderCount orderCount = new OrderCount();
+            orderCount.setGroup(group);
+
+            List<OrderCount.Count> counts = groupOrderItems.get(group).stream()
+                    .collect(Collectors.groupingBy(v -> new AbstractMap.SimpleEntry<>(v.getDailyFood().getServiceDate(), v.getDailyFood().getDiningType()),
+                            Collectors.summingInt(OrderItemDailyFood::getCount)))
+                    .entrySet().stream()
+                    .map(entry -> {
+                        OrderCount.Count count = new OrderCount.Count();
+                        count.setServiceDate(entry.getKey().getKey());
+                        count.setDiningType(entry.getKey().getValue());
+                        count.setCount(entry.getValue());
+                        return count;
+                    })
+                    .collect(Collectors.toList());
+
+            orderCount.setCounts(counts);
+            result.add(orderCount);
+        }
+
+        return result;
+    }
 }

@@ -7,6 +7,7 @@ import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -119,7 +120,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     @Override
     @Transactional
     public BigInteger orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
-        if(orderItemDailyFoodReqDto.getAmount() != 0) {
+        if (orderItemDailyFoodReqDto.getAmount() != 0) {
             throw new ApiException(ExceptionEnum.NEED_TO_UPDATE);
         }
 
@@ -389,30 +390,34 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
+    private final GroupRepository groupRepository;
 
     @Override
     @Transactional
-    public List<OrderDetailDto> findOrderByServiceDate(SecurityUser securityUser, LocalDate startDate, LocalDate endDate) {
+    public List<OrderDetailDto> findOrderByServiceDate(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate) {
         // 유저정보 가져오기
         User user = userUtil.getUser(securityUser);
         List<OrderDetailDto> orderDetailDtos = new ArrayList<>();
         MultiValueMap<OrderDetailDto.OrderDetail, OrderItemDailyFood> multiValueMap = new LinkedMultiValueMap<>();
 
-        List<OrderItemDailyFood> orderItemList = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, startDate, endDate);
+        Spot spot = (spotId == null) ? null : spotRepository.findById(spotId).orElse(null);
+        Group group = (spot == null) ? null : spot.getGroup();
+
+        List<OrderItemDailyFood> orderItemList = qOrderDailyFoodRepository.findByUserAndGroupAndServiceDateBetween(user, group, startDate, endDate);
         // group by orderItemDailyFoodGroup
-        for(OrderItemDailyFood orderItemDailyFood : orderItemList) {
+        for (OrderItemDailyFood orderItemDailyFood : orderItemList) {
             OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
             OrderDetailDto.OrderDetail orderDetail = OrderDetailDto.OrderDetail.create(orderItemDailyFoodGroup.getServiceDate(), orderItemDailyFoodGroup.getDiningType());
             multiValueMap.add(orderDetail, orderItemDailyFood);
         }
 
         //make dto
-        for(OrderDetailDto.OrderDetail orderDetail : multiValueMap.keySet()) {
+        for (OrderDetailDto.OrderDetail orderDetail : multiValueMap.keySet()) {
             List<OrderItemDailyFood> orderItemDailyFoods = multiValueMap.get(orderDetail);
-            if(orderItemDailyFoods == null || orderItemDailyFoods.isEmpty()) continue;
+            if (orderItemDailyFoods == null || orderItemDailyFoods.isEmpty()) continue;
 
             List<OrderItemDto> orderItemDtoList = new ArrayList<>();
-            for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                 OrderItemDto orderItemDto = orderItemDailyFoodListMapper.toDto(orderItemDailyFood);
                 orderItemDtoList.add(orderItemDto);
             }
@@ -570,7 +575,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Map<String, LocalDate> weekOfDay = DateUtils.getWeekOfDay(now);
         LocalDate startDate = weekOfDay.get("startDate").plusDays(7);
         LocalDate endDate = weekOfDay.get("endDate").plusDays(7);
-        List<OrderItemDailyFood> nextWeekOrderFoods = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, startDate, endDate);
+        List<OrderItemDailyFood> nextWeekOrderFoods = qOrderDailyFoodRepository.findByUserAndGroupAndServiceDateBetween(user, null, startDate, endDate);
 
         Set<String> nextWeekOrderFoodServiceDays = nextWeekOrderFoods.stream()
                 .map(order -> order.getDailyFood().getServiceDate().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA))
@@ -698,11 +703,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     CartDailyFood selectedCartDailyFood = cartDailyFoods.stream().filter(v -> v.getId().equals(cartDailyFood.getId()))
                             .findAny()
                             .orElseThrow(() -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND));
-                    if(selectedCartDailyFood != null && !selectedCartDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SALES)) {
+                    if (selectedCartDailyFood != null && !selectedCartDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SALES)) {
                         throw new CustomException(HttpStatus.NOT_FOUND, "CE4000002", "주문 불가한 상품입니다.");
                     }
                     // 일치하는 상품을 찾을 수 없을 경우
-                    if(selectedCartDailyFood == null) {
+                    if (selectedCartDailyFood == null) {
                         throw new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND);
                     }
                     // 주문 수량이 일치하는지 확인
@@ -884,9 +889,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
         // 유저가 파운더스이고 멤버십을 유지하고 있으며 오늘 수령확인을 처음 진행하는 거라면
         Founders foundersUser = qFoundersRepository.findFoundersByUser(user);
-        if(user.getIsMembership() && foundersUser != null && serviceDate.equals(LocalDate.now())) {
+        if (user.getIsMembership() && foundersUser != null && serviceDate.equals(LocalDate.now())) {
             BigDecimal point = pointUtil.findFoundersPoint(user);
-            if(point.compareTo(BigDecimal.ZERO) != 0) {
+            if (point.compareTo(BigDecimal.ZERO) != 0) {
                 pointUtil.createPointHistoryByOthers(user, null, PointStatus.FOUNDERS_REWARD, point);
                 qUserRepository.updateUserPoint(user.getId(), point, PointStatus.FOUNDERS_REWARD);
             }
