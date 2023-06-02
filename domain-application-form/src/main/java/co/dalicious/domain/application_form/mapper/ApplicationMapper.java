@@ -13,5 +13,5 @@ import java.math.BigInteger;
 @Mapper(componentModel = "spring")
 public interface ApplicationMapper {
 
-    ApplicationFormDto toApplicationFromDto(BigInteger id, String name, String address, Integer clientType, Boolean isExist, Boolean isAlarm);
+    ApplicationFormDto toApplicationFromDto(BigInteger id, String name, Address address, Integer clientType, Boolean isExist, Boolean isAlarm);
 }

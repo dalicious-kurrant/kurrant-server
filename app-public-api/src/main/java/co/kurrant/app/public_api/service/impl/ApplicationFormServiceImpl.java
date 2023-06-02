@@ -237,7 +237,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             // user group 생성
             if(userGroup == null) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone));
 
-            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress().addressToString(), GroupDataType.MY_SPOT.getCode(),true, pushCondition);
+            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(),true, pushCondition);
         }
 
         // my spot zone 없으면 my spot zone 신청하기
@@ -246,7 +246,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             existRequestedMySpotZones.updateWaitingUserCount(1);
             mySpot.updateRequestedMySpotZones(existRequestedMySpotZones);
             mySpot.updateActive(false);
-            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress().addressToString(), ClientType.MY_SPOT.getCode(), false, pushCondition);
+            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false, pushCondition);
         }
 
         String[] jibunAddress = requestDto.getJibunAddress().split(" ");
@@ -265,6 +265,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         mySpot.updateActive(false);
 
         // my spot zone 존재 여부 response
-        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress().addressToString(), ClientType.MY_SPOT.getCode(), false, pushCondition);
+        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false, pushCondition);
     }
 }

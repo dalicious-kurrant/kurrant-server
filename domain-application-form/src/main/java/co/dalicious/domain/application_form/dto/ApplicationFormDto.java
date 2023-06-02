@@ -20,11 +20,11 @@ public class ApplicationFormDto {
     private Boolean isAlarm;
 
     @Builder
-    public ApplicationFormDto(Integer clientType, BigInteger id, String name, String address, Boolean isExist, Boolean isAlarm) {
+    public ApplicationFormDto(Integer clientType, BigInteger id, String name, Address address, Boolean isExist, Boolean isAlarm) {
         this.clientType = clientType;
         this.id = id;
         this.name = name;
-        this.address = address;
+        this.address = address.addressToString();
         this.isExist = isExist;
         this.isAlarm = isAlarm;
     }
