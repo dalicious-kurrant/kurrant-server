@@ -70,4 +70,11 @@ public class QCorporationPaycheckRepository {
                 .orderBy(corporationPaycheck.createdDateTime.asc())
                 .fetch();
     }
+
+    public List<CorporationPaycheck> getCorporationPaychecksByFilter(List<BigInteger> groupIds, YearMonth yearMonth) {
+        return queryFactory.selectFrom(corporationPaycheck)
+                .where(corporationPaycheck.corporation.id.in(groupIds),
+                        corporationPaycheck.yearMonth.eq(yearMonth))
+                .fetch();
+    }
 }
