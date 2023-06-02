@@ -14,10 +14,12 @@ import co.dalicious.domain.application_form.entity.*;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientType;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.integration.client.user.entity.MySpotZone;
@@ -210,9 +212,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
 
         // my spot이 두 개 이상 있으면 더 신청 불가
-        List<UserSpot> userSpots = user.getUserSpots();
-        List<MySpot> mySpotList = userSpots.stream().filter(s -> s instanceof MySpot).map(s -> (MySpot) s).toList();
-        if(mySpotList.size() > 2) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
+//        List<UserSpot> userSpots = user.getUserSpots();
+//        List<MySpot> mySpotList = userSpots.stream().filter(s -> s instanceof MySpot).map(s -> (MySpot) s).toList();
+//        if(mySpotList.size() > 1) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
 
         // my spot 생성
         MySpot mySpot = mySpotMapper.toMySpot(user, requestDto);
@@ -220,6 +222,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // my spot zone 찾기
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
+
+        // 알림 설정이 되어 있는지 체크
+        List<PushCondition> pushConditions = user.getPushConditionList();
+        Boolean pushCondition = pushConditions.stream().anyMatch(p -> p.equals(PushCondition.NEW_SPOT));
 
         if(mySpotZone != null) {
             mySpotZone.updateMySpotZoneUserCount(1);
@@ -231,7 +237,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             // user group 생성
             if(userGroup == null) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone));
 
-            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), true);
+            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress().addressToString(), GroupDataType.MY_SPOT.getCode(),true, pushCondition);
         }
 
         // my spot zone 없으면 my spot zone 신청하기
@@ -240,7 +246,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             existRequestedMySpotZones.updateWaitingUserCount(1);
             mySpot.updateRequestedMySpotZones(existRequestedMySpotZones);
             mySpot.updateActive(false);
-            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false);
+            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress().addressToString(), ClientType.MY_SPOT.getCode(), false, pushCondition);
         }
 
         String[] jibunAddress = requestDto.getJibunAddress().split(" ");
@@ -259,6 +265,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         mySpot.updateActive(false);
 
         // my spot zone 존재 여부 response
-        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false);
+        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress().addressToString(), ClientType.MY_SPOT.getCode(), false, pushCondition);
     }
 }

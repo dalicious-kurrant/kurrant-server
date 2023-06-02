@@ -455,7 +455,8 @@ public class UserServiceImpl implements UserService {
             // 현재 활성화된 유저 그룹일 경우만 가져오기
             if (userGroup.getClientStatus() == ClientStatus.BELONG) {
                 Group group = userGroup.getGroup();
-                spotListResponseDtoList.add(userGroupMapper.toSpotListResponseDto(group, mySpotList));
+                SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(group, mySpotList);
+                spotListResponseDtoList.add(spotListResponseDto);
             }
         }
         return userGroupMapper.toGroupCountDto(spotListResponseDtoList);
@@ -1112,5 +1113,14 @@ public class UserServiceImpl implements UserService {
             dailyReportRepository.save(dailyReport);
         }
 
+    }
+
+    @Override
+    public void allChangeAlarmSetting(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
+
+        user.updatePushCondition(pushConditionList);
     }
 }

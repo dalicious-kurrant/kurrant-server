@@ -22,7 +22,10 @@ public enum PushCondition {
     REVIEW_GET_COMMENT("[리뷰댓글]","리뷰에 댓글이 달렸을 때", 2002),
 
     /*공지 및 이벤트*/
-    NEW_NOTICE("[공지사항]","새로운 혜택 및 소식", 3001)
+    NEW_NOTICE("[공지사항]","새로운 혜택 및 소식", 3001),
+
+    /*스팟*/
+    NEW_SPOT("[스팟신청]", "신청한 스팟 생성", 4001)
     ;
     private final String title;
     private final String condition;
