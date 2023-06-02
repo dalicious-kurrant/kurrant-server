@@ -1082,37 +1082,67 @@ public class UserServiceImpl implements UserService {
         if (dailyReportList.isEmpty()){
             return "식단 리포트가 없습니다.";
         }
-        /* 주문에서 리포트 추가기능 작성후 재작성 예정
-        String makersName =
+
         List<FindDailyReportResDto> resultList = new ArrayList<>();
         for (DailyReport dailyReport : dailyReportList){
-
-            if ()
-
-            dailyReportMapper.toFindDailyReportDto(dailyReport);
-
+            FindDailyReportResDto findDailyReportDto = dailyReportMapper.toFindDailyReportDto(dailyReport);
+            resultList.add(findDailyReportDto);
         }
-         */
 
-
-        return null;
+        return resultList;
     }
 
     @Override
     @Transactional
-    public void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto) {
-        User user = userUtil.getUser(securityUser);
+    public void saveDailyReportFood(SaveDailyReportFoodReqDto dto) {
+        User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
 
         //해당 날짜에 주문한 내역을 불러오기
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllUserIdAndDate(user.getId(), LocalDate.parse(dto.getStartDate()), LocalDate.parse(dto.getEndDate()));
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
             //매핑 후 저장
-            OrderItemDailyFoodToDailyReportDto dailyReportDto = orderItemDailyFoodDailyReportMapper.toDailyReportDto(orderItemDailyFood);
+            String imageLocation = null;
+            if (!orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty()){
+                imageLocation = orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation();
+            }
+            OrderItemDailyFoodToDailyReportDto dailyReportDto = orderItemDailyFoodDailyReportMapper.toDailyReportDto(orderItemDailyFood, imageLocation);
             DailyReport dailyReport = dailyReportMapper.toEntityByOrderItemDailyFood(user, dailyReportDto,  "order");
             dailyReportRepository.save(dailyReport);
         }
+    }
 
+    @Override
+    @Transactional
+    public String deleteReport(SecurityUser securityUser, BigInteger reportId) {
+        User user = userUtil.getUser(securityUser);
+
+        long deleteResult = qDailyReportRepository.deleteReport(user.getId(), reportId);
+        if (deleteResult == 0) return "제거에 실패헸습니다.";
+
+        return "제거에 성공했습니다.";
+    }
+
+    @Override
+    public Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType) {
+
+        User user = userUtil.getUser(securityUser);
+
+        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByDateAndDiningType(user.getId(), date, diningType);
+
+        if (orderItemDailyFoodList.isEmpty()) return "해당 날짜에 주문 내역이 없습니다.";
+
+        List<OrderByDateAndDiningTypeResDto> resultList = new ArrayList<>();
+
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
+            String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
+            String location = null;
+            if (!orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty()) location = orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation();
+            OrderByDateAndDiningTypeResDto orderByDateDto = orderItemDailyFoodDailyReportMapper.toOrderByDateDto(orderItemDailyFood, location, spotName);
+            resultList.add(orderByDateDto);
+        }
+
+        return resultList;
     }
 
     @Override

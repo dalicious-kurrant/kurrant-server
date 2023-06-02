@@ -53,4 +53,10 @@ public class MakersInfoResponseDto {
     private Integer dinnerCapacity;
     private String memo;
     private String serviceDays;
+    private String morningMinTime;
+    private String morningMaxTime;
+    private String lunchMinTime;
+    private String lunchMaxTime;
+    private String dinnerMinTime;
+    private String dinnerMaxTime;
 }

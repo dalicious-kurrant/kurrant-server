@@ -24,6 +24,7 @@ public class CartDailyFoodDto {
     public static class DailyFood {
         BigInteger id;
         BigInteger dailyFoodId;
+        String deliveryTime;
         Integer status;
         Integer capacity;
         String name;

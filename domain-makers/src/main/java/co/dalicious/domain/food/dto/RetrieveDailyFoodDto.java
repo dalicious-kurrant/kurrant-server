@@ -13,17 +13,29 @@ import java.util.List;
 @Setter
 @Schema(description = "식단 조회 응답 Dto")
 public class RetrieveDailyFoodDto {
-    List<Integer> diningTypes;
+    List<DiningType> diningTypes;
     SupportPrice supportPrice;
     ServiceDays serviceDays;
     List<DailyFoodDto> dailyFoodDtos;
 
     @Builder
-    public RetrieveDailyFoodDto(List<Integer> diningTypes, List<DailyFoodDto> dailyFoodDtos, SupportPrice supportPrice, ServiceDays serviceDays) {
+    public RetrieveDailyFoodDto(List<DiningType> diningTypes, List<DailyFoodDto> dailyFoodDtos, SupportPrice supportPrice, ServiceDays serviceDays) {
         this.diningTypes = diningTypes;
         this.supportPrice = supportPrice;
         this.dailyFoodDtos = dailyFoodDtos;
         this.serviceDays = serviceDays;
+    }
+
+    @Getter
+    @Setter
+    public static class DiningType {
+        private Integer diningType;
+        private List<String> times;
+
+        public DiningType(Integer diningType, List<String> times) {
+            this.diningType = diningType;
+            this.times = times;
+        }
     }
 
     @Getter
