@@ -1146,7 +1146,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void allChangeAlarmSetting(SecurityUser securityUser) {
+    public void allChangeAlarmSetting(SecurityUser securityUser, Boolean isActive) {
         User user = userUtil.getUser(securityUser);
 
         List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
