@@ -11,6 +11,5 @@ public class MySpotZoneApplicationFormRequestDto {
     private CreateAddressRequestDto address;
     private String mySpotName;
     private String jibunAddress;
-    private String memo;
     private String phone;
 }

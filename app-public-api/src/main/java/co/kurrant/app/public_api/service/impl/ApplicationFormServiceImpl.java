@@ -15,6 +15,8 @@ import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.integration.client.user.entity.MySpot;
@@ -28,6 +30,8 @@ import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
@@ -205,8 +209,14 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         User user = userUtil.getUser(securityUser);
         if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
 
+        // my spot이 두 개 이상 있으면 더 신청 불가
+        List<UserSpot> userSpots = user.getUserSpots();
+        List<MySpot> mySpotList = userSpots.stream().filter(s -> s instanceof MySpot).map(s -> (MySpot) s).toList();
+        if(mySpotList.size() > 2) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
+
         // my spot 생성
         MySpot mySpot = mySpotMapper.toMySpot(user, requestDto);
+        mySpotRepository.save(mySpot);
 
         // my spot zone 찾기
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
@@ -215,8 +225,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             mySpotZone.updateMySpotZoneUserCount(1);
             mySpot.updateMySpotZone(mySpotZone);
             mySpot.updateActive(true);
+
+            // 동일한 user group에 등록되어 있으면 패스
+            UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
             // user group 생성
-            userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone));
+            if(userGroup == null) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone));
 
             return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), true);
         }
@@ -240,12 +253,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));
-        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, requestDto.getMemo(), region);
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, region);
         requestedMySpotZonesRepository.save(requestedMySpotZones);
         mySpot.updateRequestedMySpotZones(requestedMySpotZones);
         mySpot.updateActive(false);
 
-        mySpotRepository.save(mySpot);
         // my spot zone 존재 여부 response
         return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false);
     }
