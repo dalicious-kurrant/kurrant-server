@@ -63,12 +63,13 @@ public class FoodController {
                                          @RequestParam (required = false) Integer sort,
                                          @RequestParam (required = false) Integer photo,
                                          @RequestParam (required = false) String starFilter,
+                                         @RequestParam (required = false) String keywordFilter,
                                          @RequestParam(required = false, defaultValue = "20") Integer limit,
                                          @RequestParam Integer page
                                          ){
         OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        Object foodReview = foodService.getFoodReview(dailyFoodId, securityUser, sort, photo, starFilter,pageable);
+        Object foodReview = foodService.getFoodReview(dailyFoodId, securityUser, sort, photo, starFilter, keywordFilter, pageable);
         String message = "상품 리뷰 조회 성공!";
             //리뷰없을경우 message 내용변경
             if (foodReview.equals("리뷰없음")) message = "등록된 리뷰가 없습니다.";
