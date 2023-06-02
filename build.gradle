@@ -175,6 +175,7 @@ project(':app-public-api') {
         implementation project(':client-sse')
         implementation project(':domain-recommend')
         implementation project(':domain-event')
+        implementation project(':integration-client-user')
     }
 }
 
@@ -196,6 +197,7 @@ project(':app-admin-api') {
         implementation project(':client-alarm')
         implementation project(':domain-application-form')
         implementation project(':data-redis')
+        implementation project(':integration-client-user')
     }
 }
 
@@ -212,6 +214,7 @@ project(':app-client-api') {
         implementation project(':domain-order')
         implementation project(':domain-makers')
         implementation project(':domain-paycheck')
+        implementation project(':integration-client-user')
     }
 }
 
@@ -306,7 +309,6 @@ project(':domain-user') {
         implementation project(':domain-file')
         implementation project(':domain-address')
         implementation project(':domain-client')
-        implementation project(':domain-application-form')
     }
 }
 
@@ -327,6 +329,7 @@ project(':domain-order') {
         implementation project(':domain-client')
         implementation project(':domain-payment')
         implementation project(':domain-event')
+        implementation project(':integration-client-user')
     }
 }
 
@@ -415,5 +418,15 @@ project(':client-alarm') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
+    }
+}
+
+project(':integration-client-user') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-user')
+        implementation project(':domain-client')
+        implementation project(':domain-application-form')
+        implementation project(':domain-address')
     }
 }

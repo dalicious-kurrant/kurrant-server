@@ -87,10 +87,14 @@ public class DailyReport {
     @Column(name="type", columnDefinition = "VARCHAR(8)")
     private String type;
 
+    @Comment("이미지")
+    @Column(name = "image_location", columnDefinition = "VARCAHR(255)")
+    private String imageLocation;
+
     @Builder
     public DailyReport(User user, String foodName, Integer calorie, Integer protein, Integer fat,
                        Integer carbohydrate, LocalDate eatDate, DiningType diningType, Timestamp createdDateTime, Timestamp updatedDateTime,
-                       String type, String title) {
+                       String type, String title, String imageLocation) {
         this.user = user;
         this.foodName = foodName;
         this.calorie = calorie;
@@ -103,5 +107,6 @@ public class DailyReport {
         this.updatedDateTime = updatedDateTime;
         this.type = type;
         this.title = title;
+        this.imageLocation = imageLocation;
     }
 }

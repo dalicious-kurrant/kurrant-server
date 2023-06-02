@@ -47,4 +47,11 @@ public class QDailyReportRepository {
 
 
     }
+
+    public long deleteReport(BigInteger userId, BigInteger reportId) {
+        return queryFactory.delete(dailyReport)
+                .where(dailyReport.user.id.eq(userId),
+                        dailyReport.id.eq(reportId))
+                .execute();
+    }
 }

@@ -6,13 +6,12 @@ import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
-import co.dalicious.domain.client.dto.filter.FilterDto;
-import co.dalicious.domain.client.dto.mySpotZone.AdminListResponseDto;
-import co.dalicious.domain.client.dto.mySpotZone.CreateRequestDto;
-import co.dalicious.domain.client.dto.mySpotZone.UpdateRequestDto;
+import co.dalicious.integration.client.user.dto.filter.FilterDto;
+import co.dalicious.integration.client.user.dto.mySpotZone.AdminListResponseDto;
+import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
+import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
-import co.kurrant.app.admin_api.dto.IdDto;
 import org.locationtech.jts.io.ParseException;
 
 import java.math.BigInteger;
