@@ -18,7 +18,7 @@ import java.util.List;
 public interface PaycheckService {
     TransactionInfoDefault getTransactionInfoDefault();
     // 월별 메이커스 정산.
-    List<MakersPaycheck> generateAllMakersPaycheck(List<? extends PaycheckDto.PaycheckDailyFood> paycheckDailyFoods);
+    List<MakersPaycheck> generateAllMakersPaycheck(List<? extends PaycheckDto.PaycheckDailyFood> paycheckDailyFoods, YearMonth yearMonth);
 
     // 메이커스 정산 Entity를 생성한다.
     MakersPaycheck generateMakersPaycheck(Makers makers, List<OrderItemDailyFood> dailyFoods);

@@ -23,19 +23,9 @@ public class PaycheckController {
 
     @ControllerMarker(ControllerType.PAYCHECK)
     @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
-    @PostMapping("/makers/{yearMonth}")
-    public ResponseMessage postMakersPaycheck(@PathVariable String yearMonth) {
-        adminPaycheckService.postMakersPaycheckExcel(yearMonth);
-        return ResponseMessage.builder()
-                .message("메이커스 정산 등록에 성공하였습니다.")
-                .build();
-    }
-
-    @ControllerMarker(ControllerType.PAYCHECK)
-    @Operation(summary = "메이커스 정산 등록", description = "메이커스 정산 등록")
-    @PostMapping("/makers/excel/{makersId}/{yearMonth}")
-    public ResponseMessage postOneMakersPaycheck(@PathVariable BigInteger makersId, @PathVariable String yearMonth) {
-        adminPaycheckService.postOneMakersPaycheckExcel(makersId, yearMonth);
+    @PostMapping("/makers")
+    public ResponseMessage postMakersPaycheck(@RequestBody PaycheckDto.Request request) {
+        adminPaycheckService.postMakersPaycheckExcel(request);
         return ResponseMessage.builder()
                 .message("메이커스 정산 등록에 성공하였습니다.")
                 .build();
@@ -103,22 +93,11 @@ public class PaycheckController {
                 .build();
     }
 
-//    @Operation(summary = "메이커스 정산 수정", description = "메이커스 정산 등록")
-//    @PatchMapping("/makers")
-//    public ResponseMessage updateMakersPaycheck(@RequestPart(required = false) MultipartFile makersXlsx,
-//                                                @RequestPart(required = false) MultipartFile makersPdf,
-//                                                @RequestPart PaycheckDto.MakersResponse paycheckDto) throws IOException {
-//        adminPaycheckService.updateMakersPaycheck(makersXlsx, makersPdf, paycheckDto);
-//        return ResponseMessage.builder()
-//                .message("메이커스 정산 수정에 성공하였습니다.")
-//                .build();
-//    }
-
     @ControllerMarker(ControllerType.PAYCHECK)
     @Operation(summary = "메이커스 정산 삭제", description = "메이커스 정산 삭제")
     @DeleteMapping("/makers")
-    public ResponseMessage deleteMakersPaycheck(@RequestBody List<BigInteger> ids) {
-        adminPaycheckService.deleteMakersPaycheck(ids);
+    public ResponseMessage deleteMakersPaycheck(@RequestBody PaycheckDto.Request request) {
+        adminPaycheckService.deleteMakersPaycheck(request);
         return ResponseMessage.builder()
                 .message("메이커스 정산 상태 변경에 성공하였습니다.")
                 .build();
