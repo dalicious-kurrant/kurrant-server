@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -95,9 +96,20 @@ public class DateUtils {
         return LocalDateTime.parse(string, formatter);
     }
     public static LocalTime stringToLocalTime(String time) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        return (time == null) ? null : LocalTime.parse(time.trim(), formatter);
+        if (time == null) {
+            return null;
+        }
+
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .appendPattern("HH:mm")
+                .optionalStart()
+                .appendPattern(":ss")
+                .optionalEnd()
+                .toFormatter();
+
+        return LocalTime.parse(time.trim(), formatter);
     }
+
 
     public static Map<String, LocalDate> getWeekOfDay(LocalDate today) {
         Map<String, LocalDate> weekOfDay = new HashMap<>();
