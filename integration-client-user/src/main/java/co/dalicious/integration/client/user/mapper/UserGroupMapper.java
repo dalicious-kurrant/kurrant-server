@@ -24,9 +24,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Mapper(componentModel = "spring")
 public interface UserGroupMapper {
 
-    @Mapping(source = "group.id", target = "clientId")
-    @Mapping(source = "group.name", target = "clientName")
     SpotListResponseDto toSpotListResponseDto(Group group, List<MySpot> mySpotList);
+
+    @AfterMapping
+    default void getGroup(Group group, @MappingTarget SpotListResponseDto dto) {
+        if(group instanceof MySpotZone) {
+            dto.setClientId(null);
+            dto.setClientName(null);
+        }
+        else {
+            dto.setClientId(group.getId());
+            dto.setClientName(group.getName());
+        }
+    }
 
     @AfterMapping
     default void getSpots(Group group, List<MySpot> mySpotList, @MappingTarget SpotListResponseDto dto) {
@@ -36,7 +46,7 @@ public interface UserGroupMapper {
             spotDtoList = mySpotList.stream().filter(mySpot -> mySpot.getIsActive().equals(true))
                     .map(mySpot -> SpotListResponseDto.Spot.builder()
                             .spotId(mySpot.getId())
-                            .spotName(mySpot.getName())
+                            .spotName(mySpot.getName() == null ? mySpot.getAddress().addressToString() : mySpot.getName())
                             .build()).toList();
         }
         else {
