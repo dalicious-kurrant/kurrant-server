@@ -140,7 +140,7 @@ public class PaycheckUtils {
         List<BigInteger> garbage7500 = Arrays.asList(BigInteger.valueOf(103), BigInteger.valueOf(133));
         List<BigInteger> garbage15000 = List.of(BigInteger.valueOf(95));
 
-        Integer countForGarbage = orderCount.getTotalCount();
+        Integer countForGarbage = orderCount.getCounts().size();
         BigDecimal garbageFee;
 
         if (corporation.getId().equals(BigInteger.valueOf(97))) {

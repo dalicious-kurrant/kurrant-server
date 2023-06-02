@@ -194,7 +194,6 @@ public class PaycheckDto {
             this.diningType = orderItemDailyFood.getDailyFood().getDiningType().getDiningType();
             this.makers = orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
             this.food = orderItemDailyFood.getName();
-            this.supportPrice = supportPrice.intValue();
             this.user = orderItemDailyFood.getOrder().getUser().getName();
             this.email = orderItemDailyFood.getOrder().getUser().getEmail();
             this.count = orderItemDailyFood.getCount();
@@ -207,6 +206,7 @@ public class PaycheckDto {
                     this.count = i;
                 }
             }
+            this.supportPrice = (orderItemDailyFood.getOrderItemTotalPrice().compareTo(supportPrice) < 0) ? orderItemDailyFood.getOrderItemTotalPrice().intValue() : supportPrice.intValue();
         }
     }
 
