@@ -24,22 +24,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Mapper(componentModel = "spring")
 public interface UserGroupMapper {
 
-    SpotListResponseDto toSpotListResponseDto(Group group, List<MySpot> mySpotList);
+    default SpotListResponseDto toSpotListResponseDto(Group group, List<MySpot> mySpotList) {
+        SpotListResponseDto spotListResponseDto = new SpotListResponseDto();
 
-    @AfterMapping
-    default void getGroup(Group group, @MappingTarget SpotListResponseDto dto) {
         if(group instanceof MySpotZone) {
-            dto.setClientId(null);
-            dto.setClientName(null);
+            spotListResponseDto.setSpots(getSpots(group, mySpotList));
         }
         else {
-            dto.setClientId(group.getId());
-            dto.setClientName(group.getName());
+            spotListResponseDto.setClientId(group.getId());
+            spotListResponseDto.setClientName(group.getName());
+            spotListResponseDto.setSpots(getSpots(group, mySpotList));
         }
-    }
 
-    @AfterMapping
-    default void getSpots(Group group, List<MySpot> mySpotList, @MappingTarget SpotListResponseDto dto) {
+        if(Hibernate.unproxy(group) instanceof Corporation) spotListResponseDto.setSpotType(GroupDataType.CORPORATION.getCode());
+        else if(Hibernate.unproxy(group) instanceof MySpotZone) spotListResponseDto.setSpotType(GroupDataType.MY_SPOT.getCode());
+        else if(Hibernate.unproxy(group) instanceof OpenGroup) spotListResponseDto.setSpotType(GroupDataType.OPEN_GROUP.getCode());
+
+        return spotListResponseDto;
+    };
+
+    default List<SpotListResponseDto.Spot> getSpots(Group group, List<MySpot> mySpotList) {
         List<SpotListResponseDto.Spot> spotDtoList;
 
         if(group instanceof MySpotZone) {
@@ -57,14 +61,7 @@ public interface UserGroupMapper {
                             .build()).toList();
         }
 
-        dto.setSpots(spotDtoList);
-    }
-
-    @AfterMapping
-    default void setClientType(@MappingTarget SpotListResponseDto dto, Group group) {
-        if(Hibernate.unproxy(group) instanceof Corporation) dto.setSpotType(GroupDataType.CORPORATION.getCode());
-        else if(Hibernate.unproxy(group) instanceof MySpotZone) dto.setSpotType(GroupDataType.MY_SPOT.getCode());
-        else if(Hibernate.unproxy(group) instanceof OpenGroup) dto.setSpotType(GroupDataType.OPEN_GROUP.getCode());
+        return spotDtoList;
     }
 
     default GroupCountDto toGroupCountDto(List<SpotListResponseDto> spotListResponseDtoList) {
