@@ -11,21 +11,21 @@ import java.util.List;
 public enum PushCondition {
 
     /*식단*/
-    NEW_DAILYFOOD("[식단추가]","새로운 식단이 등록되었을 때",1),
-    LAST_ORDER_BY_DAILYFOOD("[주문마감]","주문 마감이 임박했을 때", 2),
+    NEW_DAILYFOOD("식단추가","새로운 식단이 등록되었을 때",1),
+    LAST_ORDER_BY_DAILYFOOD("주문마감","주문 마감이 임박했을 때", 2),
 
     /*배송*/
-    DELIVERED_ORDER_ITEM("[배송완료]","상품이 도착했을 때", 1001),
+    DELIVERED_ORDER_ITEM("배송완료","상품이 도착했을 때", 1001),
 
     /*리뷰*/
-    REVIEW_DEADLINE("[리뷰작성]","리뷰 작성 마감 하루 전", 2001),
-    REVIEW_GET_COMMENT("[리뷰댓글]","리뷰에 댓글이 달렸을 때", 2002),
+    REVIEW_DEADLINE("리뷰작성","리뷰 작성 마감 하루 전", 2001),
+    REVIEW_GET_COMMENT("리뷰댓글","리뷰에 댓글이 달렸을 때", 2002),
 
     /*공지 및 이벤트*/
-    NEW_NOTICE("[공지사항]","새로운 혜택 및 소식", 3001),
+    NEW_NOTICE("공지사항","새로운 혜택 및 소식", 3001),
 
     /*스팟*/
-    NEW_SPOT("[스팟신청]", "신청한 스팟 생성", 4001)
+    NEW_SPOT("스팟신청", "신청한 스팟 생성", 4001)
     ;
     private final String title;
     private final String condition;
