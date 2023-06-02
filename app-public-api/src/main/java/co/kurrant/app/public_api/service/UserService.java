@@ -91,5 +91,5 @@ public interface UserService {
     Object getReport(SecurityUser securityUser, String date);
 
     void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto);
-    void allChangeAlarmSetting(SecurityUser securityUser);
+    void allChangeAlarmSetting(SecurityUser securityUser, Boolean isActive);
 }
