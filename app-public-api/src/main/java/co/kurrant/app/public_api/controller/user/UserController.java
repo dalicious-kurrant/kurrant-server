@@ -370,6 +370,8 @@ public class UserController {
         userService.allChangeAlarmSetting(securityUser, isActive);
         return ResponseMessage.builder()
                 .message("마케팅 수신 정보 변경에 성공하였습니다.")
+                .build();
+    }
 
     @DeleteMapping("/daily/report/{reportId}")
     @Operation(summary = "식단리포트 제거", description = "선택한 식단리포트를 제거 한다.")
