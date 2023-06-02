@@ -54,6 +54,7 @@ public interface DailyReportMapper {
 
 
 
+    @Mapping(source = "dailyReport.id", target = "reportId")
     @Mapping(source = "dailyReport.imageLocation", target = "imgLocation")
     @Mapping(source = "dailyReport.carbohydrate", target = "carbohydrate")
     @Mapping(source = "dailyReport.protein", target = "protein")
