@@ -38,10 +38,11 @@ public interface RequestedMySpotZonesMapper {
         return listResponseDto;
     }
 
-    default RequestedMySpotZones toRequestedMySpotZones (Integer count, Region region) {
+    default RequestedMySpotZones toRequestedMySpotZones (Integer count, String memo, Region region) {
         return RequestedMySpotZones.builder()
                 .region(region)
                 .waitingUserCount(count)
+                .memo(memo)
                 .build();
     }
 

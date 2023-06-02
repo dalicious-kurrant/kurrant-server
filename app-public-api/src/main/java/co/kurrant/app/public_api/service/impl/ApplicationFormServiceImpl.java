@@ -253,7 +253,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));
-        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, region);
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, null, region);
         requestedMySpotZonesRepository.save(requestedMySpotZones);
         mySpot.updateRequestedMySpotZones(requestedMySpotZones);
         mySpot.updateActive(false);
