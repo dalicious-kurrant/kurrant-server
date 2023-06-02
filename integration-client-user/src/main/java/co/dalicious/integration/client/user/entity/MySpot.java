@@ -33,10 +33,6 @@ public class MySpot extends UserSpot {
     @Comment("호수")
     private String ho;
 
-    @Column(name = "memo")
-    @Comment("메모")
-    private String memo;
-
     @Column(name = "name")
     @Comment("이름")
     private String name;
@@ -53,11 +49,10 @@ public class MySpot extends UserSpot {
     @JoinColumn(name = "requested_my_spot_zones_fk")
     private RequestedMySpotZones requestedMySpotZones;
 
-    public MySpot(User user, ClientType clientType, Spot spot, Boolean isDefault, Address address, String ho, String memo, MySpotZone mySpotZone, RequestedMySpotZones requestedMySpotZones, String name, Boolean isActive) {
+    public MySpot(User user, ClientType clientType, Spot spot, Boolean isDefault, Address address, String ho, MySpotZone mySpotZone, RequestedMySpotZones requestedMySpotZones, String name, Boolean isActive) {
         super(user, clientType, spot, isDefault);
         this.address = address;
         this.ho = ho;
-        this.memo = memo;
         this.mySpotZone = mySpotZone;
         this.requestedMySpotZones = requestedMySpotZones;
         this.name = name;

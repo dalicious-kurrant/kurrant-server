@@ -22,7 +22,6 @@ public interface MySpotMapper {
                 .user(user)
                 .isDefault(false)
                 .name(mySpotZoneApplicationFormRequestDto.getMySpotName())
-                .memo(mySpotZoneApplicationFormRequestDto.getMemo())
                 .build();
     }
 }
