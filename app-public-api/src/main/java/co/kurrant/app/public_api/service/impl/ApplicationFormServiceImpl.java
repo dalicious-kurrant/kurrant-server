@@ -207,6 +207,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // my spot 생성
         MySpot mySpot = mySpotMapper.toMySpot(user, requestDto);
+        mySpotRepository.save(mySpot);
 
         // my spot zone 찾기
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
@@ -240,12 +241,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));
-        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, requestDto.getMemo(), region);
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, region);
         requestedMySpotZonesRepository.save(requestedMySpotZones);
         mySpot.updateRequestedMySpotZones(requestedMySpotZones);
         mySpot.updateActive(false);
 
-        mySpotRepository.save(mySpot);
         // my spot zone 존재 여부 response
         return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false);
     }
