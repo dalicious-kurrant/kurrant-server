@@ -89,10 +89,12 @@ public interface UserService {
     void insertMyFood(SecurityUser securityUser, SaveDailyReportDto saveDailyReportDto);
 
     Object getReport(SecurityUser securityUser, String date);
-
+    void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto);
+    void allChangeAlarmSetting(SecurityUser securityUser);
     void saveDailyReportFood(SaveDailyReportFoodReqDto dto);
 
     String deleteReport(SecurityUser securityUser, BigInteger reportId);
 
     Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType);
+
 }

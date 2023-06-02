@@ -17,13 +17,15 @@ public class ApplicationFormDto {
     private String name;
     private String address;
     private Boolean isExist;
+    private Boolean isAlarm;
 
     @Builder
-    public ApplicationFormDto(Integer clientType, BigInteger id, String name, Address address, Boolean isExist) {
+    public ApplicationFormDto(Integer clientType, BigInteger id, String name, String address, Boolean isExist, Boolean isAlarm) {
         this.clientType = clientType;
         this.id = id;
         this.name = name;
-        this.address = address.addressToString();
+        this.address = address;
         this.isExist = isExist;
+        this.isAlarm = isAlarm;
     }
 }

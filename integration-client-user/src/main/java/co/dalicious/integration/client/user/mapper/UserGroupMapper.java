@@ -27,8 +27,9 @@ public interface UserGroupMapper {
     default SpotListResponseDto toSpotListResponseDto(Group group, List<MySpot> mySpotList) {
         SpotListResponseDto spotListResponseDto = new SpotListResponseDto();
 
-        if(group instanceof MySpotZone) {
-            spotListResponseDto.setSpots(getSpots(group, mySpotList));
+        if(Hibernate.unproxy(group) instanceof MySpotZone mySpotZone) {
+            spotListResponseDto.setClientId(mySpotZone.getId());
+            spotListResponseDto.setSpots(getSpots(mySpotZone, mySpotList));
         }
         else {
             spotListResponseDto.setClientId(group.getId());

@@ -1,5 +1,6 @@
 package co.dalicious.integration.client.user.mapper;
 
+import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.user.entity.User;
@@ -13,6 +14,12 @@ import org.locationtech.jts.io.ParseException;
 public interface MySpotMapper {
 
     default MySpot toMySpot(User user, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException {
+
+        CreateAddressRequestDto addressRequestDto = mySpotZoneApplicationFormRequestDto.getAddress();
+
+        if(addressRequestDto.getAddress1() == null && addressRequestDto.getAddress2() == null) {
+            addressRequestDto.setAddress1(mySpotZoneApplicationFormRequestDto.getJibunAddress());
+        }
 
         Address address = new Address(mySpotZoneApplicationFormRequestDto.getAddress());
 
