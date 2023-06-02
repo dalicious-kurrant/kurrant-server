@@ -325,5 +325,11 @@ public class PaycheckDto {
         }
     }
 
+    @Getter
+    @Setter
+    public static class Request {
+        private String date;
+        private List<BigInteger> id;
+    }
 
 }

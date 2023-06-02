@@ -25,13 +25,13 @@ public interface AdminPaycheckService {
     void postMakersPaycheckAdd(BigInteger makersPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos);
     void updateMakersPaycheckStatus(Integer status, List<BigInteger> ids);
     void postMakersMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto);
-    void postCorporationPaycheckExcel(String yearMonth);
+    void postCorporationPaycheckExcel(PaycheckDto.Request request);
     void postOneCorporationPaycheckExcel(BigInteger corporationId, String yearMonth);
     PaycheckDto.CorporationMain getCorporationPaychecks(Map<String, Object> parameters);
     PaycheckDto.CorporationOrder getCorporationOrderHistory(BigInteger corporationPaycheckId);
     PaycheckDto.Invoice getCorporationInvoice(BigInteger corporationPaycheckId);
     void updateCorporationPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.CorporationResponse paycheckDto) throws IOException;
-    void deleteCorporationPaycheck(List<BigInteger> ids);
+    void deleteCorporationPaycheck(PaycheckDto.Request request);
     void updateCorporationPaycheckStatus(Integer status, List<BigInteger> ids);
     void postCorporationPaycheckAdd(BigInteger corporationPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos);
     void postCorporationMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto);

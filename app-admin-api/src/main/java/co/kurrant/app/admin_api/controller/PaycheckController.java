@@ -124,32 +124,11 @@ public class PaycheckController {
                 .build();
     }
 
-//    @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
-//    @PostMapping("/corporations")
-//    public ResponseMessage postCorporationPaycheck(@RequestPart(required = false) MultipartFile corporationXlsx,
-//                                                   @RequestPart(required = false) MultipartFile corporationPdf,
-//                                                   @RequestPart PaycheckDto.CorporationRequest paycheckDto) throws IOException {
-//        adminPaycheckService.postCorporationPaycheck(corporationXlsx, corporationPdf, paycheckDto);
-//        return ResponseMessage.builder()
-//                .message("기업 정산 등록에 성공하였습니다.")
-//                .build();
-//    }
-
     @ControllerMarker(ControllerType.PAYCHECK)
     @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
-    @PostMapping("/corporations/{yearMonth}")
-    public ResponseMessage postCorporationPaycheck(@PathVariable String yearMonth) {
-        adminPaycheckService.postCorporationPaycheckExcel(yearMonth);
-        return ResponseMessage.builder()
-                .message("기업 정산 등록에 성공하였습니다.")
-                .build();
-    }
-
-    @ControllerMarker(ControllerType.PAYCHECK)
-    @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
-    @PostMapping("/corporations/{corporationId}/{yearMonth}")
-    public ResponseMessage postOneCorporationPaycheck(@PathVariable BigInteger corporationId, @PathVariable String yearMonth) {
-        adminPaycheckService.postOneCorporationPaycheckExcel(corporationId, yearMonth);
+    @PostMapping("/corporations")
+    public ResponseMessage postCorporationPaycheck(@RequestBody PaycheckDto.Request request) {
+        adminPaycheckService.postCorporationPaycheckExcel(request);
         return ResponseMessage.builder()
                 .message("기업 정산 등록에 성공하였습니다.")
                 .build();
@@ -200,8 +179,8 @@ public class PaycheckController {
     @ControllerMarker(ControllerType.PAYCHECK)
     @Operation(summary = "기업 정산 삭제", description = "기업 정산 삭제")
     @DeleteMapping("/corporations")
-    public ResponseMessage deleteCorporationPaycheck(@RequestBody List<BigInteger> ids) {
-        adminPaycheckService.deleteCorporationPaycheck(ids);
+    public ResponseMessage deleteCorporationPaycheck(@RequestBody PaycheckDto.Request request) {
+        adminPaycheckService.deleteCorporationPaycheck(request);
         return ResponseMessage.builder()
                 .message("기업 정산 상태 변경에 성공하였습니다.")
                 .build();

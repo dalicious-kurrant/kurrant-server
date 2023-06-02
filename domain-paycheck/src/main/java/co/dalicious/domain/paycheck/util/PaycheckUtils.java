@@ -4,6 +4,7 @@ import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.PrepaidCategory;
 import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.domain.order.dto.DailySupportPriceDto;
+import co.dalicious.domain.order.dto.OrderCount;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.paycheck.entity.PaycheckCategory;
@@ -93,7 +94,7 @@ public class PaycheckUtils {
         return null;
     }
 
-    public static List<PaycheckCategory> getAdditionalPaycheckCategories(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices) {
+    public static List<PaycheckCategory> getAdditionalPaycheckCategories(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, OrderCount orderCount) {
         List<PaycheckCategory> paycheckCategories = new ArrayList<>();
 
         dailyFoodSupportPrices = dailyFoodSupportPrices.stream()
@@ -107,17 +108,6 @@ public class PaycheckUtils {
                 serviceDiningTypeMap.put(serviceDiningDto, count);
             } else {
                 serviceDiningTypeMap.put(serviceDiningDto, dailyFoodSupportPrice.getCount());
-            }
-        }
-
-        Map<ServiceDiningDto, Integer> serviceDiningTypeMapForGarbage = new HashMap<>();
-        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
-            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFoodSupportPrice.getServiceDate(), dailyFoodSupportPrice.getDiningType());
-            if (serviceDiningTypeMapForGarbage.containsKey(serviceDiningDto)) {
-                Integer count = serviceDiningTypeMapForGarbage.get(serviceDiningDto) + dailyFoodSupportPrice.getCountForGarbage();
-                serviceDiningTypeMapForGarbage.put(serviceDiningDto, count);
-            } else {
-                serviceDiningTypeMapForGarbage.put(serviceDiningDto, dailyFoodSupportPrice.getCountForGarbage());
             }
         }
 
@@ -150,7 +140,7 @@ public class PaycheckUtils {
         List<BigInteger> garbage7500 = Arrays.asList(BigInteger.valueOf(103), BigInteger.valueOf(133));
         List<BigInteger> garbage15000 = List.of(BigInteger.valueOf(95));
 
-        Integer countForGarbage = serviceDiningTypeMapForGarbage.size();
+        Integer countForGarbage = orderCount.getTotalCount();
         BigDecimal garbageFee;
 
         if (corporation.getId().equals(BigInteger.valueOf(97))) {
@@ -162,7 +152,7 @@ public class PaycheckUtils {
             garbageFee = FEE_15000;
             paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.GARBAGE, countForGarbage, countForGarbage, garbageFee, garbageFee.multiply(BigDecimal.valueOf(countForGarbage))));
         } else if (corporation.getIsGarbage()) {
-            paycheckCategories.addAll(getGarbageCharge(serviceDiningTypeMapForGarbage));
+            paycheckCategories.addAll(getGarbageCharge(orderCount));
         }
 
         if(corporation.getPrepaidCategory(PaycheckCategoryItem.HOT_STORAGE) != null) {
@@ -208,7 +198,7 @@ public class PaycheckUtils {
 
     // 고객사 쓰레기 수거
     // FIXME: 50개 이하 쓰레기 수거는 존재하지 않음?
-    public static List<PaycheckCategory> getGarbageCharge(Map<ServiceDiningDto, Integer> serviceDiningTypeMap) {
+    public static List<PaycheckCategory> getGarbageCharge(OrderCount orderCount) {
         List<PaycheckCategory> paycheckCategories = new ArrayList<>();
 
         BigDecimal over50TotalPrice = BigDecimal.ZERO;
@@ -217,8 +207,8 @@ public class PaycheckUtils {
         Integer over50 = 0;
 //        Integer under50 = 0;
         Integer countOver50 = 0;
-        for (ServiceDiningDto serviceDiningDto : serviceDiningTypeMap.keySet()) {
-            Integer count = serviceDiningTypeMap.get(serviceDiningDto);
+        for (OrderCount.Count countDto : orderCount.getCounts()) {
+            Integer count = countDto.getCount();
 //            if (count >= 50) {
 //                over50TotalPrice = over50TotalPrice.add(GARBAGE_PER_ITEM.multiply(BigDecimal.valueOf(count)));
 //                countOver50 += count;

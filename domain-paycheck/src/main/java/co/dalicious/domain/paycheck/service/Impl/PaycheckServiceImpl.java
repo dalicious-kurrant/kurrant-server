@@ -5,6 +5,7 @@ import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.dto.OrderCount;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.YearMonth;
@@ -47,6 +49,7 @@ public class PaycheckServiceImpl implements PaycheckService {
     private final QUserRepository qUserRepository;
     private final CorporationPaycheckRepository corporationPaycheckRepository;
     private final ExpectedPaycheckRepository expectedPaycheckRepository;
+    private final EntityManager entityManager;
 
     @Override
     public TransactionInfoDefault getTransactionInfoDefault() {
@@ -149,16 +152,20 @@ public class PaycheckServiceImpl implements PaycheckService {
 
     @Override
     @Transactional
-    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices, YearMonth yearMonth) {
+    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices, OrderCount orderCount, YearMonth yearMonth) {
         // 1. 매니저 계정 확인
 
         // 2. CorporationPaycheck 생성
-        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices, yearMonth);
+        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices, orderCount, yearMonth);
         corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
 
         // 선불 정산인 경우 체크
         ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation, corporationPaycheck);
-        if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
+        if (expectedPaycheck != null) {
+            corporationPaycheckRepository.saveAndFlush(corporationPaycheck);
+            expectedPaycheckRepository.save(expectedPaycheck);
+            entityManager.refresh(corporationPaycheck);
+        }
         return corporationPaycheck;
     }
 
