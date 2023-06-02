@@ -356,9 +356,8 @@ public class UserController {
 
     @PostMapping("/daily/report/food")
     @Operation(summary = "주문내역을 리포트로 가져온다", description = "유저의 주문 내역을 리포트로 가져온다.")
-    public ResponseMessage insertFoodRecord(Authentication authentication, @RequestBody SaveDailyReportFoodReqDto dto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.saveDailyReportFood(securityUser, dto);
+    public ResponseMessage insertFoodRecord(@RequestBody SaveDailyReportFoodReqDto dto){
+        userService.saveDailyReportFood(dto);
         return ResponseMessage.builder()
                 .message("리포트에 음식을 추가햇습니다.")
                 .build();
@@ -371,6 +370,24 @@ public class UserController {
         userService.allChangeAlarmSetting(securityUser);
         return ResponseMessage.builder()
                 .message("마케팅 수신 정보 변경에 성공하였습니다.")
+
+    @DeleteMapping("/daily/report/{reportId}")
+    @Operation(summary = "식단리포트 제거", description = "선택한 식단리포트를 제거 한다.")
+    public ResponseMessage deleteDailyReport(Authentication authentication, @PathVariable BigInteger reportId){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String message = userService.deleteReport(securityUser, reportId);
+        return ResponseMessage.builder()
+                .message(message)
+                .build();
+    }
+
+    @GetMapping("/daily/report/order")
+    @Operation(summary = "주문내역 조회", description = "특정 날짜, 특정 식사타입으로 주문 내역 조회")
+    public ResponseMessage getOrderByDateAndDiningType(Authentication authentication, @RequestParam String date, @RequestParam Integer diningType){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.getOrderByDateAndDiningType(securityUser, date, diningType))
+                .message("주문내역 조회에 성공했습니다.")
                 .build();
     }
 

@@ -465,9 +465,14 @@ public class QOrderDailyFoodRepository {
                 .where(order.user.id.eq(userId),
                         dailyFood.serviceDate.between(startDate, endDate))
                 .fetch();
-
-
-
-
+    }
+    public List<OrderItemDailyFood> findAllByDateAndDiningType(BigInteger userId, String date, Integer diningType) {
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(orderItemDailyFood.order, order)
+                .where(order.user.id.eq(userId),
+                        dailyFood.serviceDate.eq(LocalDate.parse(date)),
+                        dailyFood.diningType.eq(DiningType.ofCode(diningType)))
+                .fetch();
     }
 }

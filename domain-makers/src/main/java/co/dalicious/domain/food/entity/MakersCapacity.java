@@ -16,6 +16,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.math.BigInteger;
+import java.time.LocalTime;
 
 @DynamicUpdate
 @DynamicInsert
@@ -42,22 +43,33 @@ public class MakersCapacity {
     @Comment("식사 일정별 가능 수량")
     private Integer capacity;
 
+    @Comment("최소 시간")
+    private LocalTime minTime;
+
+    @Comment("최대 시간")
+    private LocalTime maxTime;
+
     @Column(name = "last_order_time")
     @Convert(converter = DayAndTimeConverter.class)
     @Comment("음식별 주문 마감 시간")
     private DayAndTime lastOrderTime;
+
     @Builder
-    public MakersCapacity(Makers makers, DiningType diningType, Integer capacity, DayAndTime lastOrderTime) {
+    public MakersCapacity(Makers makers, DiningType diningType, Integer capacity, LocalTime minTime, LocalTime maxTime, DayAndTime lastOrderTime) {
         this.makers = makers;
         this.diningType = diningType;
         this.capacity = capacity;
+        this.minTime = minTime;
+        this.maxTime = maxTime;
         this.lastOrderTime = lastOrderTime;
     }
 
-    public void updateMakersCapacity(Makers makers, MakersCapacityDto makersCapacity) {
-        this.makers = makers;
-        this.diningType = DiningType.ofCode(makersCapacity.getDiningType());
-        this.capacity = makersCapacity.getCapacity();
-        this.lastOrderTime = DayAndTime.stringToDayAndTime(makersCapacity.getLastOrderTime());
+    public void updateMakersCapacity(Integer capacity, LocalTime minTime, LocalTime maxTime, DayAndTime lastOrderTime) {
+        this.capacity = capacity;
+        this.minTime = minTime;
+        this.maxTime = maxTime;
+        this.lastOrderTime = lastOrderTime;
     }
+
+
 }

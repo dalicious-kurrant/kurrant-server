@@ -3,6 +3,7 @@ package co.dalicious.domain.user.mapper;
 import co.dalicious.domain.user.dto.FindDailyReportResDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.DailyReport;
+import co.dalicious.domain.user.entity.QDailyReport;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.public_api.dto.order.OrderItemDailyFoodToDailyReportDto;
@@ -51,4 +52,32 @@ public interface DailyReportMapper {
     @Mapping(source = "user", target = "user")
     DailyReport toEntityByOrderItemDailyFood(User user, OrderItemDailyFoodToDailyReportDto dailyReportDto, String type);
 
+
+
+    @Mapping(source = "dailyReport.imageLocation", target = "imgLocation")
+    @Mapping(source = "dailyReport.carbohydrate", target = "carbohydrate")
+    @Mapping(source = "dailyReport.protein", target = "protein")
+    @Mapping(source = "dailyReport.fat", target = "fat")
+    @Mapping(source = "dailyReport.calorie", target = "calorie")
+    @Mapping(source = "dailyReport.foodName", target = "foodName")
+    @Mapping(source = "dailyReport.title", target = "title")
+    @Mapping(source = "dailyReport.diningType", target = "diningType", qualifiedByName = "diningTypeToInteger")
+    FindDailyReportResDto toFindDailyReportDto(DailyReport dailyReport);
+
+    @Named("diningTypeToInteger")
+    default Integer diningTypeToInteger(DiningType diningType){
+        return diningType.getCode();
+    }
+
+    /*
+    * private Integer diningType;
+    private String title;
+    private String foodName;
+    private Integer calorie;
+    private Integer carbohydrate;
+    private Integer protein;
+    private Integer fat;
+    private String imgUrl;
+    *
+    * */
 }

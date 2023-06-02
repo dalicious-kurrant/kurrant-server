@@ -60,6 +60,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -281,9 +282,9 @@ public class AuthServiceImpl implements AuthService {
         Integer leftWithdrawDays = null;
 
         if (user.getUserStatus().equals(UserStatus.REQUEST_WITHDRAWAL)) {
-            LocalDateTime withdrawRequestDateTime = user.getUpdatedDateTime().toLocalDateTime();
-            Duration interval = Duration.between(withdrawRequestDateTime, LocalDateTime.now());
-            leftWithdrawDays = (int) interval.toDays();
+            LocalDateTime updatedDateTime = user.getUpdatedDateTime().toLocalDateTime().plusDays(8);
+            Duration duration = Duration.between(LocalDateTime.now(), updatedDateTime);
+            leftWithdrawDays = (int) duration.toDays();
         }
 
         return LoginResponseDto.builder()
@@ -588,6 +589,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void checkUser(FindPasswordUserCheckRequestDto findPasswordUserCheckRequestDto) {
         User user = userRepository.findOneByNameAndEmail(findPasswordUserCheckRequestDto.getName(), findPasswordUserCheckRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        if (user.getUserStatus().equals(UserStatus.REQUEST_WITHDRAWAL)) {
+            LocalDateTime updatedDateTime = user.getUpdatedDateTime().toLocalDateTime().plusDays(8);
+            Duration duration = Duration.between(LocalDateTime.now(), updatedDateTime);
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE400010", "탈퇴한 계정입니다. 계정을 복구하시겠습니까? 복구 가능 남은 기간 " + duration.toDays() + "일");
+        }
     }
 
     @Override
