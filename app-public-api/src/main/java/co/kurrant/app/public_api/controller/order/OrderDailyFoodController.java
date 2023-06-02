@@ -32,7 +32,7 @@ public class OrderDailyFoodController {
     @Operation(summary = "유저 식사 일정 가져오기", description = "유저의 주문 정보를 가져온다.")
     @GetMapping("")
     public ResponseMessage userOrderByDate(Authentication authentication,
-                                           @RequestParam BigInteger spotId,
+                                           @RequestParam(required = false) BigInteger spotId,
                                            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
                                            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
