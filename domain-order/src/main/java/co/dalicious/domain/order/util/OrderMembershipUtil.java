@@ -91,6 +91,7 @@ public class OrderMembershipUtil {
         orderItemMembership.updateOrderStatus(OrderStatus.CANCELED);
         orderItemMembership.getMembershipSupportPriceList()
                 .forEach(membershipSupportPrice -> membershipSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND));
+        membership.getUser().updateIsMembership(false);
     }
 
     // 기간 내에 첫번째로 구매한 음식인지

@@ -10,9 +10,8 @@ import lombok.Setter;
 @Setter
 @Schema(description = "주문 고객 정보 DTO")
 public class OrderUserInfoDto {
-    String groupName;
-    String spotName;
-    String ho;
-    Address address;
-    User user;
+    private String groupName;
+    private String spotName;
+    private Address address;
+    private User user;
 }
