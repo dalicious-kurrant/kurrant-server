@@ -89,10 +89,6 @@ public interface GroupMapper {
             groupInfoList.setMinimumSpend(corporation.getMinimumSpend());
             groupInfoList.setMaximumSpend(corporation.getMaximumSpend());
         }
-        else if(group instanceof Apartment apartment) {
-            groupType = GroupDataType.MY_SPOT.getCode();
-            employeeCount = apartment.getFamilyCount();
-        }
         else if(group instanceof OpenGroup openGroup) {
             groupType = GroupDataType.OPEN_GROUP.getCode();
             employeeCount = openGroup.getOpenGroupUserCount();
@@ -175,14 +171,6 @@ public interface GroupMapper {
                     .isSetting(!groupInfoList.getIsSetting().equals("미사용"))
                     .minimumSpend(setMinimumSpend(groupInfoList))
                     .maximumSpend(setMaximumSpend(groupInfoList))
-                    .build();
-        }
-        else if(GroupDataType.MY_SPOT.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
-            return Apartment.builder()
-                    .address(address)
-                    .diningTypes(diningTypeList)
-                    .name(groupInfoList.getName())
-                    .familyCount(groupInfoList.getEmployeeCount())
                     .build();
         }
         else if(GroupDataType.OPEN_GROUP.equals(GroupDataType.ofCode(groupInfoList.getGroupType()))) {
@@ -275,15 +263,6 @@ public interface GroupMapper {
                     .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDaysAndSupportPrices(serviceDaysAndSupportPriceList)
-                    .build();
-        } else if (group instanceof Apartment apartment) {
-            return ApartmentMealInfo.builder()
-                    .group(apartment)
-                    .diningType(diningType)
-                    .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryTimes(deliveryTimes)
-                    .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
-                    .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .build();
         } else if (group instanceof OpenGroup openGroup) {
             return OpenGroupMealInfo.builder()

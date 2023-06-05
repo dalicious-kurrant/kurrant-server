@@ -2,12 +2,15 @@ package co.dalicious.domain.client.repository;
 
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.Apartment;
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -97,5 +100,20 @@ public class QGroupRepository {
                 .from(group)
                 .where(group.id.eq(groupId))
                 .fetchOne();
+    }
+
+    public List<? extends Group> findGroupByType(GroupDataType clientType) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(clientType.equals(GroupDataType.OPEN_GROUP)) {
+            whereCause.and(group.instanceOf(OpenGroup.class));
+        }
+        if(clientType.equals(GroupDataType.CORPORATION)) {
+            whereCause.and(group.instanceOf(Corporation.class));
+        }
+
+        return queryFactory.selectFrom(group)
+                .where(whereCause)
+                .fetch();
     }
 }
