@@ -79,8 +79,7 @@ public class QCorporationPaycheckRepository {
             whereClause.and(corporationPaycheck.corporation.id.in(groupIds));
         }
         return queryFactory.selectFrom(corporationPaycheck)
-                .where(whereClause,
-                        corporationPaycheck.yearMonth.eq(yearMonth))
+                .where(whereClause, corporationPaycheck.yearMonth.eq(yearMonth))
                 .fetch();
     }
 }
