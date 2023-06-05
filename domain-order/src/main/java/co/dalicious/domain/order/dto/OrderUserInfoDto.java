@@ -12,7 +12,6 @@ import lombok.Setter;
 public class OrderUserInfoDto {
     String groupName;
     String spotName;
-    String ho;
     Address address;
     User user;
 }
