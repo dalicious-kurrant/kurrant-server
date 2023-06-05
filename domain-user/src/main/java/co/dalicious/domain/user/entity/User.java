@@ -1,38 +1,34 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.user.converter.GourmetTypeConverter;
 import co.dalicious.domain.user.converter.PushConditionsConverter;
+import co.dalicious.domain.user.converter.RoleConverter;
 import co.dalicious.domain.user.converter.UserStatusConverter;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.system.util.StringUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.*;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
-import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
-import javax.persistence.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import co.dalicious.domain.file.entity.embeddable.Image;
-import co.dalicious.domain.user.converter.GourmetTypeConverter;
-import co.dalicious.domain.user.converter.RoleConverter;
-import lombok.AccessLevel;
-import lombok.Builder;
-import org.hibernate.annotations.*;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @DynamicInsert
 @DynamicUpdate
@@ -132,6 +128,10 @@ public class User {
     @OneToMany(mappedBy = "user", orphanRemoval = true)
     @JsonBackReference(value = "user_spot_fk")
     private List<UserSpot> userSpots;
+
+    @OneToMany(mappedBy = "user", orphanRemoval = true)
+    @JsonBackReference(value = "user_department_fk")
+    private List<UserDepartment> userDepartments;
 
     @Size(max = 16)
     @Column(name = "phone", length = 16,
@@ -324,6 +324,16 @@ public class User {
         }
         return StringUtils.StringListToString(groupNames);
     }
+
+    public String getDepartment(){
+
+        if (!getUserDepartments().isEmpty()){
+            return getUserDepartments().get(0).getDepartment().getName();
+        }
+
+        return "없음";
+    }
+
 
     public String getProviderEmail(Provider provider) {
         return getProviderEmails().stream()

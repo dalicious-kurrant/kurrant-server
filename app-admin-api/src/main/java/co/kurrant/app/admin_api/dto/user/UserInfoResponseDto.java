@@ -27,6 +27,8 @@ public class UserInfoResponseDto {
     private String email;
     @Schema(description = "그룹 이름")
     private String groupName;
+    @Schema(description = "부서 이름")
+    private String departmentName;
     @Schema(description = "보유 포인트")
     private Integer point;
     @Schema(description = "미식가 타입")
