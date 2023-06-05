@@ -43,12 +43,11 @@ public class Region {
     private BigInteger mySpotZoneIds;
 
     @Builder
-    public Region(String zipcode, String city, String county, String village, BigInteger mySpotZoneIds) {
+    public Region(String zipcode, String city, String county, String village) {
         this.zipcode = zipcode;
         this.city = city;
         this.county = county;
         this.village = village;
-        this.mySpotZoneIds = mySpotZoneIds;
     }
 
     public void updateMySpotZone(BigInteger mySpotZone) {

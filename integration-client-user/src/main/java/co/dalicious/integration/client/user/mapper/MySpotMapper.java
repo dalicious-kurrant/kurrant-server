@@ -17,7 +17,7 @@ public interface MySpotMapper {
 
         CreateAddressRequestDto addressRequestDto = mySpotZoneApplicationFormRequestDto.getAddress();
 
-        if(addressRequestDto.getAddress1() == null && addressRequestDto.getAddress2() == null) {
+        if(addressRequestDto.getAddress1() == null) {
             addressRequestDto.setAddress1(mySpotZoneApplicationFormRequestDto.getJibunAddress());
         }
 

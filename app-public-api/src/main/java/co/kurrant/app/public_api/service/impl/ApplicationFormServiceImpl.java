@@ -224,8 +224,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
 
         // 알림 설정이 되어 있는지 체크
-        List<PushCondition> pushConditions = user.getPushConditionList();
-        Boolean pushCondition = pushConditions.stream().anyMatch(p -> p.equals(PushCondition.NEW_SPOT));
+        Boolean pushCondition = user.getPushConditionList().stream().anyMatch(p -> p.equals(PushCondition.NEW_SPOT));
 
         if(mySpotZone != null) {
             mySpotZone.updateMySpotZoneUserCount(1);
