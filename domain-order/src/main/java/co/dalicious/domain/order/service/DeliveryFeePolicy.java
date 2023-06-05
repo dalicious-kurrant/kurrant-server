@@ -12,13 +12,13 @@ import java.math.BigDecimal;
 public interface DeliveryFeePolicy {
     BigDecimal getDeliveryFee();
     BigDecimal getGroupDeliveryFee(User user, Group group);
-    BigDecimal getApartmentUserDeliveryFee(User user, Apartment apartment);
+    BigDecimal getUserDeliveryFee(User user);
     BigDecimal getOpenGroupDeliveryFee(User user, OpenGroup openGroup);
     BigDecimal getCorporationDeliveryFee(User user, Corporation corporation);
     // 그룹이 아파트이고, 멤버십을 구매한 경우
-    BigDecimal getMembershipApartmentDeliveryFee();
+    BigDecimal getMembershipDeliveryFee();
     // 그룹이 아파트이고, 멤버십을 구매하지 않은 경우
-    BigDecimal getNoMembershipApartmentDeliveryFee();
+    BigDecimal getNoMembershipDeliveryFee();
     // 그룹이 오픈 그룹이고, 멤버십을 구매한 경우
     BigDecimal getMembershipOpenGroupDeliveryFee();
     // 그룹이 오픈 그룹이고, 멤버십을 구매하지 않은 경우
