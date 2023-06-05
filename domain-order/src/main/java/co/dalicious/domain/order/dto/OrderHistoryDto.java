@@ -23,6 +23,7 @@ public class OrderHistoryDto {
     @Setter
     public static class OrderItem {
         private BigInteger id;
+        private String deliveryTime;
         private String makersName;
         private String name;
         private String image;

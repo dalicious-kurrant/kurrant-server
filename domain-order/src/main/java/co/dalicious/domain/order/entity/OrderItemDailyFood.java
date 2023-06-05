@@ -14,6 +14,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 @DynamicInsert
 @DynamicUpdate
@@ -26,6 +27,9 @@ public class OrderItemDailyFood extends OrderItem {
     @JoinColumn(name = "daily_food_id")
     @Comment("식품 ID")
     private DailyFood dailyFood;
+
+    @Comment("배송 시간")
+    private LocalTime deliveryTime;
 
     @Comment("식품 이름")
     private String name;
@@ -65,16 +69,17 @@ public class OrderItemDailyFood extends OrderItem {
     private OrderItemDailyFoodGroup orderItemDailyFoodGroup;
 
     @Builder
-    public OrderItemDailyFood(OrderStatus orderStatus, Order order, String usage, DailyFood dailyFood, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountRate, Integer membershipDiscountRate, Integer periodDiscountRate, OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
+    public OrderItemDailyFood(OrderStatus orderStatus, Order order, DailyFood dailyFood, LocalTime deliveryTime, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, String usage, Integer membershipDiscountRate, Integer makersDiscountRate, Integer periodDiscountRate, OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
         super(orderStatus, order);
         this.dailyFood = dailyFood;
+        this.deliveryTime = deliveryTime;
         this.name = name;
-        this.usage = usage;
         this.price = price;
         this.discountedPrice = discountedPrice;
         this.count = count;
-        this.makersDiscountRate = makersDiscountRate;
+        this.usage = usage;
         this.membershipDiscountRate = membershipDiscountRate;
+        this.makersDiscountRate = makersDiscountRate;
         this.periodDiscountRate = periodDiscountRate;
         this.orderItemDailyFoodGroup = orderItemDailyFoodGroup;
     }

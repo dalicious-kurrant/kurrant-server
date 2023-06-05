@@ -83,10 +83,16 @@ public class QOrderDailyFoodRepository {
                 .orderBy(orderItemDailyFood.dailyFood.serviceDate.desc())
                 .fetch();
     }
-    public List<OrderItemDailyFood> findByUserAndServiceDateBetween(User user, LocalDate startDate, LocalDate endDate) {
+
+    public List<OrderItemDailyFood> findByUserAndGroupAndServiceDateBetween(User user, Group group, LocalDate startDate, LocalDate endDate) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(group != null) {
+            whereClause.and(orderItemDailyFood.dailyFood.group.eq(group));
+        }
         return queryFactory
                 .selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.order.user.eq(user),
+                        whereClause,
                         orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()),
                         orderItemDailyFood.orderItemDailyFoodGroup.serviceDate.between(startDate, endDate))
                 .fetch();
@@ -403,18 +409,18 @@ public class QOrderDailyFoodRepository {
 
         List<FoundersPointDto> foundersPointDtoList = new ArrayList<>();
 
-        for(Tuple result : queryResult) {
+        for (Tuple result : queryResult) {
             foundersPointDtoList.add(FoundersPointDto.create(result.get(order.user), result.get(dailyFood.serviceDate), result.get(founders.membership.startDate)));
         }
 
         return foundersPointDtoList;
     }
-  
+
     public Integer findUsingMembershipUserCountByGroup(Corporation corporation, YearMonth yearMonth) {
         LocalDate startDate = yearMonth.atDay(1);
         LocalDate endDate = yearMonth.atEndOfMonth();
 
-        long result =  queryFactory.selectFrom(orderItemDailyFood)
+        long result = queryFactory.selectFrom(orderItemDailyFood)
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
                 .leftJoin(dailyFood.group, group)
                 .leftJoin(orderItem).on(orderItemDailyFood.id.eq(orderItem.id))
@@ -448,9 +454,9 @@ public class QOrderDailyFoodRepository {
 
         MultiValueMap<Group, OrderItemDailyFood> usingMembershipUserCountMap = new LinkedMultiValueMap<>();
 
-        for(OrderItemDailyFood orderItemDailyFood1 : result) {
+        for (OrderItemDailyFood orderItemDailyFood1 : result) {
             Group g = orderItemDailyFood1.getDailyFood().getGroup();
-            if(Hibernate.unproxy(g) instanceof Corporation corporation && corporation.getIsMembershipSupport()) {
+            if (Hibernate.unproxy(g) instanceof Corporation corporation && corporation.getIsMembershipSupport()) {
                 usingMembershipUserCountMap.add(g, orderItemDailyFood1);
             }
         }
@@ -458,7 +464,6 @@ public class QOrderDailyFoodRepository {
     }
 
     public List<OrderItemDailyFood> findAllUserIdAndDate(BigInteger userId, LocalDate startDate, LocalDate endDate) {
-
         return queryFactory.selectFrom(orderItemDailyFood)
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
                 .leftJoin(orderItemDailyFood.order, order)
@@ -466,6 +471,20 @@ public class QOrderDailyFoodRepository {
                         dailyFood.serviceDate.between(startDate, endDate))
                 .fetch();
     }
+
+    public List<OrderItemDailyFood> findAllOrderItemDailyFoodCount(Set<Group> groups, YearMonth yearMonth) {
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .where(orderItemDailyFood.dailyFood.group.in(groups),
+                        orderItemDailyFood.dailyFood.serviceDate.goe(startDate),
+                        orderItemDailyFood.dailyFood.serviceDate.loe(endDate),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .orderBy(orderItemDailyFood.dailyFood.group.id.asc(), orderItemDailyFood.dailyFood.serviceDate.asc())
+                .fetch();
+    }
+
     public List<OrderItemDailyFood> findAllByDateAndDiningType(BigInteger userId, String date, Integer diningType) {
         return queryFactory.selectFrom(orderItemDailyFood)
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)

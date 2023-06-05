@@ -12,6 +12,7 @@ public class OrderItemDto {
     private BigInteger id;
     private BigInteger dailyFoodId;
     private String name;
+    private String deliveryTime;
     private Integer dailyFoodStatus;
     private Integer orderStatus;
     private String makers;
@@ -19,6 +20,4 @@ public class OrderItemDto {
     private Integer count;
     private String groupName;
     private String spotName;
-
-
 }
