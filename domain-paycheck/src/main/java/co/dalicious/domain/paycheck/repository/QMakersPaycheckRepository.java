@@ -119,8 +119,12 @@ public class QMakersPaycheckRepository {
     }
 
     public List<MakersPaycheck> getMakersPaychecksByFilter(List<BigInteger> makersIds, YearMonth yearMonth) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(makersIds != null && !makersIds.isEmpty()) {
+            whereClause.and(makersPaycheck.makers.id.in(makersIds));
+        }
         return queryFactory.selectFrom(makersPaycheck)
-                .where(makersPaycheck.yearMonth.eq(yearMonth), makersPaycheck.makers.id.in(makersIds))
+                .where(makersPaycheck.yearMonth.eq(yearMonth), whereClause)
                 .fetch();
     }
 }

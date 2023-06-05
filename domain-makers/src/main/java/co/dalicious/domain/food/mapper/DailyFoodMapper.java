@@ -124,7 +124,7 @@ public interface DailyFoodMapper {
     default void afterMapping(@MappingTarget DailyFoodDto dto, DailyFood dailyFood, Integer capacity, List<UserRecommends> userRecommends) {
         MakersCapacity makersCapacity = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType());
         dto.setMinTime(makersCapacity == null ? null : DateUtils.timeToString(makersCapacity.getMinTime()));
-        dto.setMaxTime(makersCapacity == null ? null : DateUtils.timeToString(makersCapacity.getMinTime()));
+        dto.setMaxTime(makersCapacity == null ? null : DateUtils.timeToString(makersCapacity.getMaxTime()));
         dto.setCapacity(capacity);
         // 랭크 추가
         userRecommends.stream().filter(recommend ->
