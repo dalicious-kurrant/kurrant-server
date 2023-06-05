@@ -25,11 +25,9 @@ public class OrderDetailDto {
         private LocalDate serviceDate;
         private DiningType diningType;
 
-        public static OrderDetail create(LocalDate serviceDate, DiningType diningType) {
-            return OrderDetail.builder()
-                    .serviceDate(serviceDate)
-                    .diningType(diningType)
-                    .build();
+        public OrderDetail(LocalDate serviceDate, DiningType diningType) {
+            this.serviceDate = serviceDate;
+            this.diningType = diningType;
         }
 
         public boolean equals(Object obj) {

@@ -11,10 +11,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface OrderDailyFoodService {
-    // 정기식사를 구매한다.
-    Object orderDailyFoodsNice(SecurityUser securityUser, OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException;
     // 식사 일정을 조회한다.
     List<OrderDetailDto> findOrderByServiceDate(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate);
+    // 정기식사를 구매한다.
+    Object orderDailyFoodsNice(SecurityUser securityUser, OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException;
     // 구매 내역을 조회한다.
     List<OrderHistoryDto> findUserOrderDailyFoodHistory(SecurityUser securityUser, LocalDate startDate, LocalDate endDate, Integer orderType);
     // 구매 내역 상세를 조회한다.

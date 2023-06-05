@@ -332,6 +332,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 orderDailyFood.updateTotalDeliveryFee(totalDeliveryFee);
                 for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                     orderItemDailyFood.updateOrderStatus(OrderStatus.COMPLETED);
+                    orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.COMPLETED);
                 }
                 user.updatePoint(user.getPoint().subtract(orderItemDailyFoodReqDto.getOrderItems().getUserPoint()));
             }
@@ -381,7 +382,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         // group by orderItemDailyFoodGroup
         for (OrderItemDailyFood orderItemDailyFood : orderItemList) {
             OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
-            OrderDetailDto.OrderDetail orderDetail = OrderDetailDto.OrderDetail.create(orderItemDailyFoodGroup.getServiceDate(), orderItemDailyFoodGroup.getDiningType());
+            OrderDetailDto.OrderDetail orderDetail = new OrderDetailDto.OrderDetail(orderItemDailyFoodGroup.getServiceDate(), orderItemDailyFoodGroup.getDiningType());
             multiValueMap.add(orderDetail, orderItemDailyFood);
         }
 

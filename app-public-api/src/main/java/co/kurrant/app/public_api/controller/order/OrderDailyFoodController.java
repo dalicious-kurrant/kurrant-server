@@ -42,16 +42,6 @@ public class OrderDailyFoodController {
                 .build();
     }
 
-    @Operation(summary = "정기 식사 주문하기", description = "정기 식사를 구매한다.")
-    @PostMapping("")
-    public ResponseMessage userOrderByDate(Authentication authentication, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto))
-                .message("식사 주문에 성공하였습니다.")
-                .build();
-    }
-
     @Operation(summary = "정기식사 구매내역", description = "정기 식사 구매내역을 조회한다.")
     @GetMapping("/histories")
     public ResponseMessage userOrderDailyFoodHistory(Authentication authentication,
@@ -141,6 +131,16 @@ public class OrderDailyFoodController {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(orderDailyFoodService.orderCardQuota(securityUser, orderCardQuotaDto))
+                .message("식사 주문에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "정기 식사 주문하기", description = "정기 식사를 구매한다.")
+    @PostMapping("")
+    public ResponseMessage userOrderByDate(Authentication authentication, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto))
                 .message("식사 주문에 성공하였습니다.")
                 .build();
     }
