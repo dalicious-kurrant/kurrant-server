@@ -9,17 +9,20 @@ import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.integration.client.user.entity.MySpotZone;
 import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
+import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -179,25 +182,36 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public Integer withdrawClient(SecurityUser securityUser, BigInteger clientId) {
+    public Integer withdrawClient(SecurityUser securityUser, BigInteger spotId) {
         // 유저를 조회한다.
         User user = userUtil.getUser(securityUser);
-        List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
-        // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
-        Group group = groupRepository.findById(clientId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)
-        );
-        UserGroup userGroup = groups.stream().filter(v -> v.getGroup().equals(group))
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
-        // 유저 그룹 상태를 탈퇴로 만든다.
-        userGroup.updateStatus(ClientStatus.WITHDRAWAL);
-        List<UserSpot> userSpots = user.getUserSpots();
-        Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
+        // 유저의 스팟리스트에서 해당하는 spot을 찾는다.
+        UserSpot userSpot = user.getUserSpots().stream()
+                .filter(spot -> (spot instanceof MySpot mySpot && mySpot.getId().equals(spotId)) || (spot.getSpot() != null && spot.getSpot().getId().equals(spotId)))
+                .findFirst()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+
+        // 마이스팟이면
+        if(userSpot instanceof MySpot mySpot) {
+            // 관련 마이스팟존 탈퇴처리
+            Optional<UserGroup> userGroup = user.getGroups().stream()
+                    .filter(group -> group.getGroup().equals(mySpot.getMySpotZone()))
+                    .findAny();
+            userGroup.ifPresent(g -> g.updateStatus(ClientStatus.WITHDRAWAL));
+
+            mySpot.updateMySpotForDelete();
+            return (user.getGroups().size() - 1 > 0) ? SpotStatus.NO_SPOT_BUT_HAS_CLIENT.getCode() : SpotStatus.NO_SPOT_AND_CLIENT.getCode();
+        }
+
+        // 유저 그룹 비활성으로 변경하고 유저스팟 삭제
+        Optional<UserGroup> userGroup = user.getGroups().stream()
+                .filter(group -> group.getGroup().equals(userSpot.getSpot().getGroup()))
                 .findAny();
-        userSpot.ifPresent(userSpotRepository::delete);
+        userGroup.ifPresent(g -> g.updateStatus(ClientStatus.WITHDRAWAL));
+        userSpotRepository.delete(userSpot);
+
         // 다른 그룹이 존재하는지 여부에 따라 Return값 결정(스팟 선택 화면 || 그룹 신청 화면)
-        return (groups.size() - 1 > 0) ? SpotStatus.NO_SPOT_BUT_HAS_CLIENT.getCode() : SpotStatus.NO_SPOT_AND_CLIENT.getCode();
+        return (user.getGroups().size() - 1 > 0) ? SpotStatus.NO_SPOT_BUT_HAS_CLIENT.getCode() : SpotStatus.NO_SPOT_AND_CLIENT.getCode();
     }
 
     @Override

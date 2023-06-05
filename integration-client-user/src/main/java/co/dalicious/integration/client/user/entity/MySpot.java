@@ -72,6 +72,12 @@ public class MySpot extends UserSpot {
     }
 
     public void updateActive(Boolean active) {
-        isActive = active;
+        this.isActive = active;
+    }
+
+    public void updateMySpotForDelete() {
+        this.mySpotZone = null;
+        this.isActive = false;
+        this.address = null;
     }
 }
