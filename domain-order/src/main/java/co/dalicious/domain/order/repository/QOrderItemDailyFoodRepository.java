@@ -1,11 +1,14 @@
 package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.user.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -59,5 +62,14 @@ public class QOrderItemDailyFoodRepository {
         return queryFactory.selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.id.eq(id))
                 .fetchOne();
+    }
+    public List<OrderItemDailyFood> findAllByUserAndPeriod(User user, LocalDate startDate, LocalDate endDate) {
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .where(orderItemDailyFood.order.user.eq(user),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()),
+                        dailyFood.serviceDate.goe(startDate),
+                        dailyFood.serviceDate.loe(endDate))
+                .fetch();
     }
 }

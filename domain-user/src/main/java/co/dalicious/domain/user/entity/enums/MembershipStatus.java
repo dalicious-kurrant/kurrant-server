@@ -9,7 +9,8 @@ public enum MembershipStatus {
     PROCESSING("진행중", 1),
     EXPIRED("멤버십 기간 만료", 2),
     AUTO_REFUND("멤버십 자동 환불, 결제 후 7일 이내", 3),
-    BACK_OFFICE_REFUND("수동 환불, 백오피스 수정", 4);
+    BACK_OFFICE_REFUND("수동 환불, 백오피스 수정", 4),
+    SUPPORT_PRICE_REFUND("기업 멤버십 환불", 5);
 
     private final String membershipStatus;
     private final Integer code;
