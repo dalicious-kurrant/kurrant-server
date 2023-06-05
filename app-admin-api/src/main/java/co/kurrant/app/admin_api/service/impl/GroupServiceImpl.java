@@ -170,9 +170,6 @@ public class GroupServiceImpl implements GroupService {
                 if(group instanceof Corporation corporation) {
                     corporation.updateCorporation(groupInfoList, address, diningTypeList);
                 }
-                else if (group instanceof Apartment apartment) {
-                    apartment.updateApartment(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
-                }
                 else if (group instanceof  OpenGroup openGroup) {
                     openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
                 }
@@ -318,9 +315,6 @@ public class GroupServiceImpl implements GroupService {
             }
             corporation.updateCorporation(updateSpotDetailRequestDto, address, updateDiningTypeList);
             corporation.updatePrepaidCategories(spotMapper.toPrepaidCategories(updateSpotDetailRequestDto.getPrepaidCategoryList()));
-        }
-        else if (group instanceof Apartment apartment) {
-            apartment.updateApartment(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getEmployeeCount(), updateSpotDetailRequestDto.getIsActive());
         }
         else if (group instanceof  OpenGroup openGroup) {
             openGroup.updateOpenSpot(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getEmployeeCount(), updateSpotDetailRequestDto.getIsActive());

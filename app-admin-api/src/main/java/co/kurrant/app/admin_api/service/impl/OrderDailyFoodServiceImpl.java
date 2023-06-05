@@ -11,10 +11,8 @@ import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.client.repository.ApartmentRepository;
-import co.dalicious.domain.client.repository.CorporationRepository;
-import co.dalicious.domain.client.repository.GroupRepository;
-import co.dalicious.domain.client.repository.QSpotRepository;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
@@ -82,8 +80,6 @@ import java.util.stream.Collectors;
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final GroupRepository groupRepository;
-    private final ApartmentRepository apartmentRepository;
-    private final CorporationRepository corporationRepository;
     private final GroupMapper groupMapper;
     private final OrderMapper orderMapper;
     private final MakersMapper makersMapper;
@@ -111,6 +107,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderMembershipUtil orderMembershipUtil;
     private final PushService pushService;
     private final QMembershipRepository qMembershipRepository;
+    private final QGroupRepository qGroupRepository;
 
     @Override
     @Transactional
@@ -165,10 +162,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<? extends Group> groups = new ArrayList<>();
         if (clientType == null) {
             groups = groupRepository.findAll();
-        } else if (ClientType.ofCode(clientType) == ClientType.MY_SPOT) {
-            groups = apartmentRepository.findAll();
+        } else if (ClientType.ofCode(clientType) == ClientType.OPEN_GROUP) {
+            groups = qGroupRepository.findGroupByType(GroupDataType.OPEN_GROUP);
         } else if (ClientType.ofCode(clientType) == ClientType.CORPORATION) {
-            groups = corporationRepository.findAll();
+            groups = qGroupRepository.findGroupByType(GroupDataType.CORPORATION);
         }
 
         return groupMapper.groupsToDtos(groups);

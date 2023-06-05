@@ -15,6 +15,7 @@ import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
+import co.dalicious.integration.client.user.mapper.UserSpotMapper;
 import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -42,6 +43,7 @@ public class UserClientServiceImpl implements UserClientService {
     private final UserSpotRepository userSpotRepository;
     private final GroupRepository groupRepository;
     private final UserSpotDetailResMapper userSpotDetailResMapper;
+    private final UserSpotMapper userSpotMapper;
 
     @Override
     @Transactional
@@ -76,108 +78,43 @@ public class UserClientServiceImpl implements UserClientService {
     public BigInteger selectUserSpot(SecurityUser securityUser, BigInteger spotId) {
         // 유저를 조회한다.
         User user = userUtil.getUser(securityUser);
-        // 스팟을 가져온다.
-        Spot spot = spotRepository.findById(spotId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-        );
-        ClientType spotClientType = (spot instanceof CorporationSpot) ? ClientType.CORPORATION : spot instanceof OpenGroupSpot ? ClientType.OPEN_GROUP :ClientType.MY_SPOT ;
-        // 유저가 스팟 그룹에 등록되었는지 검사한다.
+
+        // default spot update to false - 기존 디폴트 스팟을 false로 변경
+        UserSpot defaultSpot = user.getDefaultUserSpot();
+        if (defaultSpot != null) defaultSpot.updateDefault(false);
+
+        // 스팟 조회
+        Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        // 해당 스팟의 그룹이 유저 그룹에서 활성 상태인지 확인
         Group group = spot.getGroup();
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         groups.stream().filter(v -> v.getGroup().equals(group))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
-        List<UserSpot> userSpots = user.getUserSpots();
 
-        // 등록하려는 스팟이 아파트일 경우
-        if (spotClientType.equals(ClientType.MY_SPOT)) {
-            // 아파트 스팟이 존재할 경우, 이전에 등록된 스팟과 일치하는지 확인한다.
-            Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().equals(spot) && v.getClientType().equals(ClientType.MY_SPOT)).findAny();
-            if (userSpot.isPresent()) {
-                user.userSpotSetNull();
-                userSpot.get().updateDefault(true);
-                return spot.getId();
-            }
-            return null;
-        }
-        // 등록하려는 스팟이 기업/오픈그룹일 경우
-        // 유저 스팟에서 기업/오픈그룹 스팟이 존재하는지 확인한다.
-        Optional<UserSpot> optionalUserSpot = userSpots.stream().filter(v -> v.getClientType().equals(ClientType.CORPORATION) || v.getClientType().equals(ClientType.OPEN_GROUP)).findAny();
+        // 유저가 가진 스팟 중에 해당 스팟이 있는지 확인
+        UserSpot userSpot = user.getUserSpots().stream()
+                .filter(s -> (s instanceof MySpot mySpot && mySpot.getId().equals(spotId) && mySpot.getIsActive()) ||
+                        (s.getSpot() != null && s.getSpot().equals(spot)))
+                .findAny()
+                .orElse(null);
 
-        // 기업/오픈그룹이 존재할 경우 업데이트 한다.
-        if (optionalUserSpot.isPresent()) {
-            UserSpot userSpot = optionalUserSpot.get();
-            user.userSpotSetNull();
-            if (!userSpot.getSpot().equals(spot)) {
-                userSpot.updateSpot(spot);
-                userSpot.updateClientType(spotClientType);
-            }
-            optionalUserSpot.get().updateDefault(true);
-            return spot.getId();
-        }
-        // 기업/오픈그룹 스팟이 존재하지 않을 경우 유저 스팟을 저장한다.
-        else {
-            UserSpot newUserSpot = UserSpot.builder()
-                    .spot(spot)
-                    .user(user)
-                    .clientType(spotClientType)
-                    .build();
-            user.userSpotSetNull();
-            newUserSpot.updateDefault(true);
+        ClientType spotClientType = (spot instanceof CorporationSpot) ? ClientType.CORPORATION : ClientType.OPEN_GROUP;
+
+        // 유저 스팟에 등록되지 않은 경우
+        if(userSpot == null) {
+            UserSpot newUserSpot = userSpotMapper.toUserSpot(spot, user, true, spotClientType);
             userSpotRepository.save(newUserSpot);
             return spot.getId();
         }
-    }
-
-    @Override
-    @Transactional
-    public BigInteger saveUserDefaultSpot(SecurityUser securityUser, ClientSpotDetailReqDto clientSpotDetailReqDto, BigInteger spotId) {
-        // 유저 정보를 가져온다.
-        User user = userUtil.getUser(securityUser);
-        // 스팟을 가져온다.
-        Spot spot = spotRepository.findById(spotId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-        );
-        // 기존에 존재하는 아파트 스팟이 있는지 확인한다.
-        Optional<UserSpot> userSpot = user.getUserSpots().stream()
-                .filter(v -> v.getClientType().equals(ClientType.MY_SPOT))
-                .findAny();
-        // 존재하는 아파트 스팟이 있다면, 업데이트 시켜준다.
-        if(userSpot.isPresent() && userSpot.get() instanceof MySpot mySpot) {
-            user.getUserSpots().stream().filter(v -> !v.equals(mySpot)).forEach(us -> us.updateDefault(false));
-            mySpot.updateSpot(spot);
-            mySpot.updateHo(clientSpotDetailReqDto.getHo());
+        // 마이 스팟의 경우
+        if(userSpot instanceof MySpot mySpot) {
             mySpot.updateDefault(true);
             return mySpot.getId();
         }
-        // 존재하는 아파트가 없다면 저장한다.
-        MySpot newUserSpot = MySpot.builder()
-                .clientType(ClientType.MY_SPOT)
-                .isDefault(true)
-                .user(user)
-                .spot(spot)
-                .build();
-        newUserSpot.updateHo(clientSpotDetailReqDto.getHo());
-
-        return userSpotRepository.save(newUserSpot).getId();
-
-    }
-
-    @Override
-    @Transactional
-    public BigInteger updateUserHo(SecurityUser securityUser, ClientSpotDetailReqDto spotDetailReqDto, BigInteger spotId) {
-        // 유저 정보를 가져온다.
-        User user = userUtil.getUser(securityUser);
-        // 기존에 존재하는 아파트 스팟이 있는지 확인한다.
-        Optional<MySpot> userSpot = user.getUserSpots().stream()
-                .filter(v -> v instanceof MySpot)
-                .map(v -> (MySpot) v)
-                .findAny();
-        if(userSpot.isEmpty()) {
-            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
-        }
-        userSpot.get().updateHo(spotDetailReqDto.getHo());
-        return userSpot.get().getId();
+        // 이미 유저 스팟으로 등록된 경우 - corporation & open spot
+        userSpot.updateDefault(true);
+        return spot.getId();
     }
 
     @Override
