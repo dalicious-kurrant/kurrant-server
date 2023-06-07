@@ -1,6 +1,5 @@
 package co.dalicious.data.redis;
 
-import co.dalicious.data.redis.entity.CertificationHash;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
