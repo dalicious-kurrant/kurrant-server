@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
@@ -19,10 +20,32 @@ import java.math.BigInteger;
 
 @Tag(name = "7. Application Form ClientType")
 @RequiredArgsConstructor
-@RequestMapping(value = "/v1/application-form")
+@RequestMapping(value = "/v1/application-forms")
 @RestController
 public class ApplicationFormController {
     private final ApplicationFormService applicationFormService;
+
+    @Operation(summary = "마이 스팟 개설 신청 API", description = "마이 스팟 개설을 신청한다.")
+    @PostMapping("/spots/my")
+    public ResponseMessage registerMySpot(Authentication authentication,
+                                                 @RequestBody MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(applicationFormService.registerMySpot(securityUser, mySpotZoneApplicationFormRequestDto))
+                .message("아파트 스팟 개설 신청에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "공유 스팟 개설/추가/시간 신청 API", description = "공유 스팟 개설/추가/시간을 신청한다.")
+    @PostMapping("/spots/share/types/{typeId}")
+    public ResponseMessage registerShareSpot(Authentication authentication, @PathVariable Integer typeId,
+                                             @RequestBody ShareSpotDto.Request request) throws ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        applicationFormService.registerShareSpot(securityUser, typeId, request);
+        return ResponseMessage.builder()
+                .message("공유 스팟 개설/추가/시간 신청에 성공하였습니다.")
+                .build();
+    }
 
     @Operation(summary = "아파트 스팟 개설 신청 API", description = "아파트 스팟 개설을 신청한다.")
     @PostMapping("/apartments")
@@ -96,14 +119,4 @@ public class ApplicationFormController {
                 .build();
     }
 
-    @Operation(summary = "마이 스팟 개설 신청 API", description = "마이 스팟 개설을 신청한다.")
-    @PostMapping("/my/spot")
-    public ResponseMessage registerMySpot(Authentication authentication,
-                                                 @RequestBody MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(applicationFormService.registerMySpot(securityUser, mySpotZoneApplicationFormRequestDto))
-                .message("아파트 스팟 개설 신청에 성공하였습니다.")
-                .build();
-    }
 }

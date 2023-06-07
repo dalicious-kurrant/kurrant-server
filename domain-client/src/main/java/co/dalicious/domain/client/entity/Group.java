@@ -81,6 +81,9 @@ public class Group {
     @Comment("스팟 리스트")
     List<Spot> spots;
 
+    @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
+    List<Department> departments;
+
     @Comment("메모")
     @Column(name="memo", columnDefinition = "text")
     private String memo;

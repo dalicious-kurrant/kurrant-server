@@ -27,21 +27,22 @@ import static co.dalicious.domain.paycheck.entity.QCorporationPaycheck.corporati
 @RequiredArgsConstructor
 public class QCorporationPaycheckRepository {
     private final JPAQueryFactory queryFactory;
+
     public List<CorporationPaycheck> getCorporationPaychecksByFilter(YearMonth startYearMonth, YearMonth endYearMonth, List<BigInteger> corporationIds, PaycheckStatus paycheckStatus, Boolean hasRequest) {
         BooleanBuilder whereClause = new BooleanBuilder();
-        if(startYearMonth != null) {
+        if (startYearMonth != null) {
             whereClause.and(corporationPaycheck.yearMonth.goe(startYearMonth));
         }
-        if(endYearMonth != null) {
+        if (endYearMonth != null) {
             whereClause.and(corporationPaycheck.yearMonth.loe(endYearMonth));
         }
-        if(corporationIds != null && !corporationIds.isEmpty()) {
+        if (corporationIds != null && !corporationIds.isEmpty()) {
             whereClause.and(corporationPaycheck.corporation.id.in(corporationIds));
         }
-        if(paycheckStatus != null) {
+        if (paycheckStatus != null) {
             whereClause.and(corporationPaycheck.paycheckStatus.eq(paycheckStatus));
         }
-        if(hasRequest != null) {
+        if (hasRequest != null) {
             whereClause.and(hasRequest ? corporationPaycheck.paycheckMemos.isNotEmpty() : corporationPaycheck.paycheckMemos.isEmpty());
         }
         return queryFactory.selectFrom(corporationPaycheck)
@@ -49,20 +50,21 @@ public class QCorporationPaycheckRepository {
                 .orderBy(corporationPaycheck.createdDateTime.asc())
                 .fetch();
     }
+
     public List<CorporationPaycheck> getCorporationPaychecksByFilter(Corporation corporation, YearMonth startYearMonth, YearMonth endYearMonth, PaycheckStatus paycheckStatus, Boolean hasRequest) {
         BooleanBuilder whereClause = new BooleanBuilder();
         whereClause.and(whereClause.and(corporationPaycheck.corporation.eq(corporation)));
 
-        if(startYearMonth != null) {
+        if (startYearMonth != null) {
             whereClause.and(corporationPaycheck.yearMonth.goe(startYearMonth));
         }
-        if(endYearMonth != null) {
+        if (endYearMonth != null) {
             whereClause.and(corporationPaycheck.yearMonth.loe(endYearMonth));
         }
-        if(paycheckStatus != null) {
+        if (paycheckStatus != null) {
             whereClause.and(corporationPaycheck.paycheckStatus.eq(paycheckStatus));
         }
-        if(hasRequest != null) {
+        if (hasRequest != null) {
             whereClause.and(hasRequest ? corporationPaycheck.paycheckMemos.isNotEmpty() : corporationPaycheck.paycheckMemos.isEmpty());
         }
         return queryFactory.selectFrom(corporationPaycheck)
@@ -72,9 +74,12 @@ public class QCorporationPaycheckRepository {
     }
 
     public List<CorporationPaycheck> getCorporationPaychecksByFilter(List<BigInteger> groupIds, YearMonth yearMonth) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if (groupIds != null && !groupIds.isEmpty()) {
+            whereClause.and(corporationPaycheck.corporation.id.in(groupIds));
+        }
         return queryFactory.selectFrom(corporationPaycheck)
-                .where(corporationPaycheck.corporation.id.in(groupIds),
-                        corporationPaycheck.yearMonth.eq(yearMonth))
+                .where(whereClause, corporationPaycheck.yearMonth.eq(yearMonth))
                 .fetch();
     }
 }

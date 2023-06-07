@@ -33,9 +33,6 @@ public class SpotServiceImpl implements SpotService {
     private final QGroupRepository qGroupRepository;
     private final GroupMapper groupMapper;
     private final GroupRepository groupRepository;
-    private final MealInfoRepository mealInfoRepository;
-
-    private final UserRepository userRepository;
 
     @Override
     public List<SpotResponseDto> getAllSpotList(Integer status) {

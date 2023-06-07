@@ -1,10 +1,10 @@
 package co.dalicious.domain.order.service.Impl;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
+import co.dalicious.domain.client.entity.enums.DeliveryFeeOption;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.user.entity.User;
 import exception.ApiException;
@@ -13,8 +13,6 @@ import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Component
 public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
@@ -29,27 +27,23 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
     @Override
     public BigDecimal getGroupDeliveryFee(User user, Group group) {
         group = (Group) Hibernate.unproxy(group);
-        if(group instanceof Apartment) {
-            return getApartmentUserDeliveryFee(user, (Apartment) group);
-        } else if (group instanceof Corporation) {
-            return getCorporationDeliveryFee(user, (Corporation) group);
-        } else if (group instanceof OpenGroup) {
-            // TODO: 추후 삭제
-            if(group.getName().replaceAll("\\s+", "").contains("스파크플러스") && LocalDate.now().isBefore(LocalDate.of(2023, 4, 22))) {
-                return getMembershipCorporationDeliveryFee();
-            }
-            return getOpenGroupDeliveryFee(user, (OpenGroup) group);
+        if (group instanceof Corporation corporation && corporation.getDeliveryFeeOption().equals(DeliveryFeeOption.PERSONAL)) {
+            return getUserDeliveryFee(user);
+        } else if (group instanceof Corporation corporation) {
+            return getCorporationDeliveryFee(user, corporation);
+        } else if (group instanceof OpenGroup openGroup) {
+            return getOpenGroupDeliveryFee(user, openGroup);
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND);
     }
 
     @Override
-    public BigDecimal getApartmentUserDeliveryFee(User user, Apartment apartment) {
+    public BigDecimal getUserDeliveryFee(User user) {
         Boolean isMembership = user.getIsMembership();
         if (isMembership) {
-            return getMembershipApartmentDeliveryFee();
+            return getMembershipDeliveryFee();
         } else {
-            return getNoMembershipApartmentDeliveryFee();
+            return getNoMembershipDeliveryFee();
         }
     }
 
@@ -77,12 +71,12 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
     }
 
     @Override
-    public BigDecimal getMembershipApartmentDeliveryFee() {
+    public BigDecimal getMembershipDeliveryFee() {
         return BigDecimal.ZERO;
     }
 
     @Override
-    public BigDecimal getNoMembershipApartmentDeliveryFee() {
+    public BigDecimal getNoMembershipDeliveryFee() {
         return DELIVERY_FEE;
     }
 

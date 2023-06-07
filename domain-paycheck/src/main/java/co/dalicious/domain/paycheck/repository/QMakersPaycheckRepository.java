@@ -39,6 +39,12 @@ public class QMakersPaycheckRepository {
         SimpleExpression<Integer> countSumExpression = orderItemDailyFood.count.sum();
         Coalesce<BigDecimal> supplyPriceCoalesce = new Coalesce<BigDecimal>().add(dailyFood.supplyPrice).add(food.supplyPrice);
 
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if(makersIds != null && !makersIds.isEmpty()) {
+            whereClause.and(makers.id.in(makersIds));
+        }
+
         List<Tuple> result = queryFactory.select(makers, dailyFood.serviceDate, dailyFood.diningType, food, food.name, supplyPriceCoalesce, countSumExpression)
                 .from(food)
                 .leftJoin(dailyFood).on(food.eq(dailyFood.food))
@@ -48,7 +54,7 @@ public class QMakersPaycheckRepository {
                 .where(dailyFood.serviceDate.goe(startOfMonth),
                         dailyFood.serviceDate.loe(endOfMonth),
                         orderItem.orderStatus.in(OrderStatus.completePayment()),
-                        makers.id.in(makersIds))
+                        whereClause)
                 .groupBy(makers.id, dailyFood.serviceDate, dailyFood.diningType, food.id)
                 .having(countSumExpression.isNotNull())
                 .orderBy(makers.id.asc(), dailyFood.serviceDate.asc(), dailyFood.diningType.asc(), food.id.asc())
@@ -119,8 +125,12 @@ public class QMakersPaycheckRepository {
     }
 
     public List<MakersPaycheck> getMakersPaychecksByFilter(List<BigInteger> makersIds, YearMonth yearMonth) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(makersIds != null && !makersIds.isEmpty()) {
+            whereClause.and(makersPaycheck.makers.id.in(makersIds));
+        }
         return queryFactory.selectFrom(makersPaycheck)
-                .where(makersPaycheck.yearMonth.eq(yearMonth), makersPaycheck.makers.id.in(makersIds))
+                .where(makersPaycheck.yearMonth.eq(yearMonth), whereClause)
                 .fetch();
     }
 }

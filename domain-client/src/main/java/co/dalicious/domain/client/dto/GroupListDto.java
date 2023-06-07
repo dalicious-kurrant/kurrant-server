@@ -42,6 +42,7 @@ public class GroupListDto {
         private Boolean isHotStorage;
         private Boolean isPrepaid;
         private Boolean isActive;
+        private String deliveryOption;
         private String membershipEndDate;
         private BigDecimal morningSupportPrice;
         private BigDecimal lunchSupportPrice;

@@ -10,7 +10,9 @@ import co.dalicious.domain.application_form.dto.corporation.CorporationApplicati
 import co.dalicious.domain.application_form.dto.corporation.CorporationMealInfoRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationSpotRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.dalicious.domain.application_form.entity.*;
+import co.dalicious.domain.application_form.entity.enums.ShareSpotRequestType;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
@@ -72,7 +74,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserGroupRepository userGroupRepository;
     private final MySpotRepository mySpotRepository;
     private final UserGroupMapper userGroupMapper;
-
+    private final RequestedShareSpotMapper requestedShareSpotMapper;
+    private final RequestedShareSpotRepository requestedShareSpotRepository;
 
     @Override
     @Transactional
@@ -265,5 +268,16 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // my spot zone 존재 여부 response
         return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false, pushCondition);
+    }
+
+    @Override
+    @Transactional
+    public void registerShareSpot(SecurityUser securityUser, Integer typeId, ShareSpotDto.Request request) throws ParseException {
+        User user = userUtil.getUser(securityUser);
+        ShareSpotRequestType shareSpotRequestType = ShareSpotRequestType.ofCode(typeId);
+        RequestedShareSpot requestedShareSpot = requestedShareSpotMapper.toEntity(request);
+        requestedShareSpot.updateShareSpotRequestType(shareSpotRequestType);
+        requestedShareSpot.updateUserId(user.getId());
+        requestedShareSpotRepository.save(requestedShareSpot);
     }
 }

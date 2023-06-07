@@ -6,6 +6,7 @@ import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFo
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.kurrant.app.public_api.dto.client.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import org.locationtech.jts.io.ParseException;
@@ -15,6 +16,12 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface ApplicationFormService {
+    // 마이 스팟 신청
+    ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException;
+    // 공유 스팟 신청
+    void registerShareSpot(SecurityUser securityUser, Integer typeId, ShareSpotDto.Request request) throws ParseException;
+
+
     // 아파트 스팟 개설 신청
     ApplicationFormDto registerApartmentSpot(SecurityUser securityuser, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto);
     // 아파트 스팟 개설 신청 기타 내용 변경
@@ -29,7 +36,4 @@ public interface ApplicationFormService {
     CorporationApplicationFormResponseDto getCorporationApplicationFormDetail(BigInteger userId, BigInteger id);
     // 스팟 신청 날짜 리스트
     List<ApplicationFormDto> getSpotsApplicationList(BigInteger userId);
-    // 마이 스팟 신청
-    ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException;
-
 }
