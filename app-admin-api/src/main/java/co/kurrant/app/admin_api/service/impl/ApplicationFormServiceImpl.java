@@ -8,10 +8,15 @@ import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResp
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
+import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
+import co.dalicious.domain.application_form.entity.RequestedShareSpot;
 import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
+import co.dalicious.domain.application_form.mapper.RequestedShareSpotMapper;
 import co.dalicious.domain.application_form.repository.QRequestedMySpotZonesRepository;
+import co.dalicious.domain.application_form.repository.QRequestedShareSpotRepository;
 import co.dalicious.domain.application_form.repository.RequestedMySpotZonesRepository;
+import co.dalicious.domain.application_form.repository.RequestedShareSpotRepository;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.MealInfoRepository;
@@ -28,10 +33,11 @@ import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
-import co.kurrant.app.admin_api.service.GroupRequestService;
+import co.kurrant.app.admin_api.service.ApplicationFormService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +51,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class GroupRequestServiceImpl implements GroupRequestService {
+public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     private final QRequestedMySpotZonesRepository qRequestedMySpotZonesRepository;
     private final RequestedMySpotZonesMapper requestedMySpotZonesMapper;
@@ -59,6 +65,9 @@ public class GroupRequestServiceImpl implements GroupRequestService {
     private final MySpotZoneMealInfoMapper mySpotZoneMealInfoMapper;
     private final UserGroupMapper userGroupMapper;
     private final UserGroupRepository userGroupRepository;
+    private final RequestedShareSpotMapper requestedShareSpotMapper;
+    private final RequestedShareSpotRepository requestedShareSpotRepository;
+    private final QRequestedShareSpotRepository qRequestedShareSpotRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -190,6 +199,35 @@ public class GroupRequestServiceImpl implements GroupRequestService {
 
         // 신청된 마이스팟 존 삭제
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
+    }
+
+    @Override
+    @Transactional
+    public ListItemResponseDto<ShareSpotDto.Response> getAllShareSpotRequestList(Integer type, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
+        Page<RequestedShareSpot> requestedShareSpots = qRequestedShareSpotRepository.findAllByType(type, limit, page, pageable);
+        return ListItemResponseDto.<ShareSpotDto.Response>builder().items(requestedShareSpotMapper.toDtos(requestedShareSpots))
+                .limit(pageable.getPageSize()).total((long) requestedShareSpots.getTotalPages())
+                .count(requestedShareSpots.getNumberOfElements()).offset(pageable.getOffset()).build();
+    }
+
+    @Override
+    public void createShareSpotRequest(ShareSpotDto.AdminRequest request) throws ParseException {
+        RequestedShareSpot requestedShareSpot = requestedShareSpotMapper.toEntity(request);
+        requestedShareSpotRepository.save(requestedShareSpot);
+    }
+
+    @Override
+    @Transactional
+    public void updateShareSpotRequest(BigInteger applicationId, ShareSpotDto.AdminRequest request) throws ParseException {
+       RequestedShareSpot requestedShareSpot = requestedShareSpotRepository.findById(applicationId)
+               .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+       requestedShareSpotMapper.updateRequestedShareSpotFromRequest(request, requestedShareSpot);
+    }
+
+    @Override
+    public void deleteShareSpotRequest(List<BigInteger> ids) {
+        List<RequestedShareSpot> requestedShareSpots = requestedShareSpotRepository.findAllById(ids);
+        requestedShareSpotRepository.deleteAll(requestedShareSpots);
     }
 
 

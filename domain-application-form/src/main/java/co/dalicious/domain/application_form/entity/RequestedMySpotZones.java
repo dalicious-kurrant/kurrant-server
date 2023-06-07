@@ -2,19 +2,25 @@ package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.integration.client.user.entity.Region;
+import co.dalicious.system.converter.IdListConverter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.List;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "client__requested_my_spot_zones")
+@Table(name = "application_form__requested_my_spot_zones")
 public class RequestedMySpotZones {
 
     @Id
@@ -34,6 +40,22 @@ public class RequestedMySpotZones {
     @Column(name = "memo")
     @Comment("메모")
     private String memo;
+
+    @Convert(converter = IdListConverter.class)
+    @Comment("신청 유저 ID 리스트")
+    private List<BigInteger> userIds;
+
+    @CreationTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("생성일")
+    private Timestamp createdDateTime;
+
+    @UpdateTimestamp
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
+    @Comment("수정일")
+    private Timestamp updatedDateTime;
 
     @Builder
     public RequestedMySpotZones(Region region, Integer waitingUserCount, String memo) {
