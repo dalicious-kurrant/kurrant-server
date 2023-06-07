@@ -12,6 +12,7 @@ import org.locationtech.jts.io.WKTWriter;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import java.math.BigInteger;
 
 @Getter
 @Embeddable
@@ -64,4 +65,7 @@ public class Address {
     return wktReader.read("POINT("+location+")");
   }
 
+  public void updateLocation(String location) throws ParseException {
+    this.location = createPoint(location);
+  }
 }
