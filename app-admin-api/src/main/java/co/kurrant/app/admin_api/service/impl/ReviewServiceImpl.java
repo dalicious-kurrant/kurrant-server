@@ -8,8 +8,10 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.review.dto.CommentReqDto;
@@ -184,6 +186,11 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public List<String> foodReviewKeyword(BigInteger foodId) {
+        return qKeywordRepository.findAllByFoodId(foodId);
+    }
+
+    @Override
     @Transactional
     public void reviewKeywordSave(ReviewKeywordSaveReqDto keywordDto) {
 
@@ -196,6 +203,9 @@ public class ReviewServiceImpl implements ReviewService {
             Keyword keyword = keywordMapper.toEntity(name, 0, food);
             keywordRepository.save(keyword);
         }
+
+
+
 
     }
 }
