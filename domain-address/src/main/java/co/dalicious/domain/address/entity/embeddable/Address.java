@@ -68,4 +68,8 @@ public class Address {
   public void updateLocation(String location) throws ParseException {
     this.location = createPoint(location);
   }
+
+  public String locationToString() {
+    return this.location.toString().replaceAll("POINT |[(]|[)]", "");
+  }
 }
