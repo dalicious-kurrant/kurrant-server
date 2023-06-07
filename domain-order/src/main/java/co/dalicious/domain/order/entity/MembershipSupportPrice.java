@@ -71,4 +71,8 @@ public class MembershipSupportPrice {
         this.monetaryStatus = monetaryStatus;
         this.orderItemMembership = orderItemMembership;
     }
+
+    public void updateMonetaryStatus(MonetaryStatus monetaryStatus) {
+        this.monetaryStatus = monetaryStatus;
+    }
 }

@@ -168,7 +168,7 @@ public class MembershipServiceImpl implements MembershipService {
     @Transactional
     public void refundMembership(User user, Order order, Membership membership, OrderMembership orderMembership) throws IOException, ParseException {
         // TODO: 연간구독 해지시, membership endDate update.
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, membership.getStartDate(), membership.getEndDate());
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndGroupAndServiceDateBetween(user, null,membership.getStartDate(), membership.getEndDate());
 
         // 멤버십 결제금액 가져오기
         BigDecimal paidPrice = order.getTotalPrice();
@@ -405,7 +405,7 @@ public class MembershipServiceImpl implements MembershipService {
     @Transactional
     public void refundMembershipNice(User user, Order order, Membership membership, OrderMembership orderMembership) throws IOException, ParseException {
         // TODO: 연간구독 해지시, membership endDate update.
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndServiceDateBetween(user, membership.getStartDate(), membership.getEndDate());
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndGroupAndServiceDateBetween(user, null, membership.getStartDate(), membership.getEndDate());
 
         // 멤버십 결제금액 가져오기
         BigDecimal paidPrice = order.getTotalPrice();

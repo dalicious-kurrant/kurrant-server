@@ -260,7 +260,7 @@ public class QReviewRepository {
     }
 
 
-    public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter, Pageable pageable) {
+    public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter,String keywordFilter, Pageable pageable) {
         List<Reviews> reviewsList = new ArrayList<>();
 
         QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
@@ -269,12 +269,18 @@ public class QReviewRepository {
                     .offset(pageable.getOffset())
                     .fetchResults();
 
+
+
         if (photo != null && photo == 1){
             reviewsList = result.getResults().stream().filter(v -> !v.getImages().isEmpty()).toList();
         }
 
         if (starFilter != null && starFilter.length() != 0){
             reviewsList = result.getResults().stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
+        }
+
+        if (keywordFilter != null && !keywordFilter.equals("")){
+            reviewsList = result.getResults().stream().filter(v -> v.getContent().contains(keywordFilter)).toList();
         }
 
     return new PageImpl<>(reviewsList, pageable, result.getTotal());

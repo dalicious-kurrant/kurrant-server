@@ -181,7 +181,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter, OffsetBasedPageRequest pageable) {
+    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter,String keywordFilter, OffsetBasedPageRequest pageable) {
 
         User user = userUtil.getUser(securityUser);
 
@@ -196,8 +196,8 @@ public class FoodServiceImpl implements FoodService {
 
 
         List<Reviews> totalReviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
-        if ((photo != null && photo != 0) || (starFilter != null && starFilter.length() != 0)) {
-            pageReviews = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), photo, starFilter, pageable);
+        if ((photo != null && photo != 0) || (starFilter != null && starFilter.length() != 0) || (keywordFilter != null && !keywordFilter.equals(""))) {
+            pageReviews = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), photo, starFilter, keywordFilter, pageable);
 
         } else {
             pageReviews = qReviewRepository.findAllByFoodId(dailyFood.getFood().getId(), pageable);

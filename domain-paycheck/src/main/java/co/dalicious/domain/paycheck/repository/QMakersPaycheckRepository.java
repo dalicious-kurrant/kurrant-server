@@ -7,7 +7,6 @@ import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.Coalesce;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -33,7 +32,7 @@ import static co.dalicious.domain.paycheck.entity.QMakersPaycheck.makersPaycheck
 public class QMakersPaycheckRepository {
     private final JPAQueryFactory queryFactory;
 
-    public List<PaycheckDto.PaycheckDailyFood> getPaycheckDto(YearMonth yearMonth) {
+    public List<PaycheckDto.PaycheckDailyFood> getPaycheckDto(YearMonth yearMonth, List<BigInteger> makersIds) {
         LocalDate startOfMonth = yearMonth.atDay(1);
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
 
@@ -46,7 +45,10 @@ public class QMakersPaycheckRepository {
                 .leftJoin(orderItemDailyFood).on(orderItemDailyFood.dailyFood.eq(dailyFood))
                 .leftJoin(orderItem).on(orderItem.id.eq(orderItemDailyFood.id))
                 .leftJoin(makers).on(food.makers.eq(makers))
-                .where(dailyFood.serviceDate.goe(startOfMonth), dailyFood.serviceDate.loe(endOfMonth), orderItem.orderStatus.in(OrderStatus.completePayment()))
+                .where(dailyFood.serviceDate.goe(startOfMonth),
+                        dailyFood.serviceDate.loe(endOfMonth),
+                        orderItem.orderStatus.in(OrderStatus.completePayment()),
+                        makers.id.in(makersIds))
                 .groupBy(makers.id, dailyFood.serviceDate, dailyFood.diningType, food.id)
                 .having(countSumExpression.isNotNull())
                 .orderBy(makers.id.asc(), dailyFood.serviceDate.asc(), dailyFood.diningType.asc(), food.id.asc())
@@ -113,6 +115,12 @@ public class QMakersPaycheckRepository {
         return queryFactory.selectFrom(makersPaycheck)
                 .where(whereClause)
                 .orderBy(makersPaycheck.createdDateTime.asc())
+                .fetch();
+    }
+
+    public List<MakersPaycheck> getMakersPaychecksByFilter(List<BigInteger> makersIds, YearMonth yearMonth) {
+        return queryFactory.selectFrom(makersPaycheck)
+                .where(makersPaycheck.yearMonth.eq(yearMonth), makersPaycheck.makers.id.in(makersIds))
                 .fetch();
     }
 }
