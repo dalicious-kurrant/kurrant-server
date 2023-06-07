@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.*;
@@ -44,6 +45,7 @@ public class UserClientServiceImpl implements UserClientService {
     private final GroupRepository groupRepository;
     private final UserSpotDetailResMapper userSpotDetailResMapper;
     private final UserSpotMapper userSpotMapper;
+    private final QGroupRepository qGroupRepository;
 
     @Override
     @Transactional
@@ -154,7 +156,7 @@ public class UserClientServiceImpl implements UserClientService {
     @Override
     @Transactional
     public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser) {
-        List<Group> groups = groupRepository.findAll();
+        List<? extends Group> groups = qGroupRepository.findGroupByType(GroupDataType.OPEN_GROUP);
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
         for (Group group : groups) {
             openGroupResponseDtos.add(groupResponseMapper.toOpenGroupDto(group));
