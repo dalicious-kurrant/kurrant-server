@@ -140,7 +140,7 @@ public class PaycheckUtils {
         List<BigInteger> garbage7500 = Arrays.asList(BigInteger.valueOf(103), BigInteger.valueOf(133));
         List<BigInteger> garbage15000 = List.of(BigInteger.valueOf(95));
 
-        Integer countForGarbage = orderCount.getCounts().size();
+        Integer countForGarbage = orderCount == null ? null : orderCount.getCounts().size();
         BigDecimal garbageFee;
 
         if (corporation.getId().equals(BigInteger.valueOf(97))) {
@@ -151,7 +151,7 @@ public class PaycheckUtils {
         } else if (garbage15000.contains(corporationId)) {
             garbageFee = FEE_15000;
             paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.GARBAGE, countForGarbage, countForGarbage, garbageFee, garbageFee.multiply(BigDecimal.valueOf(countForGarbage))));
-        } else if (corporation.getIsGarbage()) {
+        } else if (corporation.getIsGarbage() && orderCount != null) {
             paycheckCategories.addAll(getGarbageCharge(orderCount));
         }
 
