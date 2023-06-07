@@ -34,20 +34,21 @@ public class ClientController {
                 .build();
     }
 
-    // TODO: 오픈그룹 검색
     @Operation(summary = "등록된 오픈 그룹 전체 조회", description = "고객사로 등록된 오픈 그룹을 전체를 조회한다.")
-    @GetMapping("/spots/open")
-    public ResponseMessage getOpenGroupsAndApartments(Authentication authentication, @RequestParam Map<String, Object> location) {
+    @GetMapping("/spots/share")
+    public ResponseMessage getOpenGroupsAndApartments(Authentication authentication,
+                                                      @RequestParam Map<String, Object> location,
+                                                      @RequestParam(required = false) Map<String, Object> parameters) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(userClientService.getOpenGroupsAndApartments(securityUser, location))
+                .data(userClientService.getOpenGroupsAndApartments(securityUser, location, parameters))
                 .message("오픈 그룹 전체 조회에 성공하셨습니다.")
                 .build();
     }
 
     // TODO: 오픈그룹 선택
     @Operation(summary = "고객사로 등록된 오픈 그룹/아파트 선택", description = "고객사로 등록된 오픈 그룹/아파트를 그룹에 추가한다.")
-    @PostMapping("/apartments")
+    @PostMapping("/spots/share")
     public ResponseMessage settingGroup(Authentication authentication, @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.settingGroup(securityUser, groupAndSpotIdReqDto.getId());

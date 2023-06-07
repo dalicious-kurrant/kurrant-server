@@ -11,6 +11,7 @@ import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigInteger;
@@ -27,10 +28,15 @@ public class OpenGroup extends Group{
     @Comment("오픈 그룹 사용자 수")
     private Integer openGroupUserCount;
 
+    @Column(name = "access_restricted")
+    @Comment("출입 제한 여부")
+    private Boolean isRestriction;
+
     @Builder
-    public OpenGroup(Address address, List<DiningType> diningTypes, String name, Integer openGroupUserCount, String memo) {
+    public OpenGroup(Address address, List<DiningType> diningTypes, String name, Integer openGroupUserCount, String memo, Boolean isRestriction) {
         super(address, diningTypes, name, memo);
         this.openGroupUserCount = openGroupUserCount;
+        this.isRestriction = isRestriction;
     }
 
     public void updateOpenSpot(Address address, List<DiningType> diningTypeList, String name, Integer openGroupUserCount, Boolean isActive) {

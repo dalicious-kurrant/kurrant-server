@@ -19,6 +19,7 @@ import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
 import co.dalicious.integration.client.user.mapper.UserSpotMapper;
 import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DistanceUtil;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -154,12 +155,15 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser, Map<String, Object> location) {
+    public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters) {
+        Boolean isRestriction = parameters.get("isRestriction") == null || !parameters.containsKey("isRestriction") ? null : Boolean.valueOf(String.valueOf(parameters.get("isRestriction")));
+        DiningType diningType = parameters.get("diningType") == null || !parameters.containsKey("diningType") ? null : DiningType.ofCode(Integer.parseInt(String.valueOf(parameters.get("diningType"))));
         Double latitude = Double.valueOf(String.valueOf(location.get("lat")));
         Double longitude = Double.valueOf(String.valueOf(location.get("long")));
 
-        List<? extends Group> groups = qGroupRepository.findGroupByType(GroupDataType.OPEN_GROUP);
+        List<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType);
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
+        if(groups.isEmpty() || groups == null) return openGroupResponseDtos;
 
         Map<BigInteger, List<Double>> locationMap = new HashMap<>();
         groups.forEach(group -> {
