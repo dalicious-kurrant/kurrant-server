@@ -116,4 +116,10 @@ public class QGroupRepository {
                 .where(whereCause)
                 .fetch();
     }
+
+    public List<Group> findGroupAndAddressIsNull() {
+        return queryFactory.selectFrom(group)
+                .where(group.address.location.isNull(), group.instanceOf(OpenGroup.class).or(group.instanceOf(Corporation.class)))
+                .fetch();
+    }
 }

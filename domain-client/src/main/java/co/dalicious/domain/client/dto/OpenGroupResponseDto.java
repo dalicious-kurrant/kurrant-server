@@ -10,7 +10,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@Schema(description = "아파트 리스트 응답 DTO")
+@Schema(description = "오픈 그룹 리스트 응답 DTO")
 public class OpenGroupResponseDto {
     private BigInteger id;
     private String name;
@@ -20,14 +20,4 @@ public class OpenGroupResponseDto {
     private List<Integer> diningType;
     private Integer spotType;
     private Integer userCount;
-
-    @Builder
-    public OpenGroupResponseDto(BigInteger id, String name, String address, List<Integer> diningType, Integer spotType, Integer userCount) {
-        this.id = id;
-        this.name = name;
-        this.address = address;
-        this.diningType = diningType;
-        this.spotType = spotType;
-        this.userCount = userCount;
-    }
 }

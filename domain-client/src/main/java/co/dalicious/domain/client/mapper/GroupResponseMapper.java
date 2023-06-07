@@ -6,6 +6,7 @@ import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.system.enums.DiningType;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,12 +15,16 @@ import org.mapstruct.Named;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = DiningType.class)
 public interface GroupResponseMapper {
 
-    @Mapping(source = "address", target = "address", qualifiedByName = "addressToString")
+    @Mapping(source = "group.address", target = "address", qualifiedByName = "addressToString")
+    @Mapping(target = "latitude", expression = "java(String.valueOf(group.getAddress().getLocation()).split(\" \")[0])")
+    @Mapping(target = "longitude", expression = "java(String.valueOf(group.getAddress().getLocation()).split(\" \")[1])")
+    @Mapping(target = "diningType", expression = "java(group.getDiningTypes().stream().map(DiningType::getCode).toList())")
     @Mapping(source = "group", target = "spotType", qualifiedByName = "setSpotType")
-    OpenGroupResponseDto toOpenGroupDto(Group group);
+    @Mapping(source = "group.openGroupUserCount", target = "userCount")
+    OpenGroupResponseDto toOpenGroupDto(OpenGroup group, Double distance);
 
     @Named("addressToString")
     default String addressToString(Address address) {

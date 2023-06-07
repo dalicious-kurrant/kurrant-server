@@ -14,7 +14,7 @@ import java.math.BigInteger;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "client__requested_my_spot_zones")
+@Table(name = "applicatioin_form__requested_my_spot_zones")
 public class RequestedMySpotZones {
 
     @Id

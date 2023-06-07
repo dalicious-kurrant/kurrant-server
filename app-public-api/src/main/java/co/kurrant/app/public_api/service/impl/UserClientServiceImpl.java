@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.address.dto.LocationDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -29,10 +30,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +44,8 @@ public class UserClientServiceImpl implements UserClientService {
     private final UserSpotDetailResMapper userSpotDetailResMapper;
     private final UserSpotMapper userSpotMapper;
     private final QGroupRepository qGroupRepository;
+
+    private static final double EARTH_RADIUS = 6371.0;
 
     @Override
     @Transactional
@@ -155,13 +155,69 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser) {
+    public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser, Map<String, Object> location) {
+        Double latitude = Double.valueOf(String.valueOf(location.get("lat")));
+        Double longitude = Double.valueOf(String.valueOf(location.get("long")));
+
         List<? extends Group> groups = qGroupRepository.findGroupByType(GroupDataType.OPEN_GROUP);
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
-        for (Group group : groups) {
-            openGroupResponseDtos.add(groupResponseMapper.toOpenGroupDto(group));
+
+        Map<Group, List<Double>> locationMap = new HashMap<>();
+        groups.forEach(group -> {
+            String groupLocation = String.valueOf(group.getAddress().getLocation());
+
+            List<Double> locationArr = new ArrayList<>();
+            locationArr.add(Double.parseDouble(groupLocation.split(" ")[0]));
+            locationArr.add(Double.parseDouble(groupLocation.split(" ")[1]));
+
+            locationMap.put(group, locationArr);
+        });
+        List<Map.Entry<Group, Double>> sortedDataList = sortByDistance(locationMap, latitude, longitude);
+
+        // 결과 출력
+        System.out.println("가장 가까운 거리 순으로 데이터를 나열:");
+        for (Map.Entry<Group, Double> entry : sortedDataList) {
+            Group group = entry.getKey();
+            double distance = entry.getValue();
+            openGroupResponseDtos.add(groupResponseMapper.toOpenGroupDto((OpenGroup) group, distance));
+            System.out.println(group + ": " + distance + "km");
         }
-        openGroupResponseDtos = openGroupResponseDtos.stream().sorted(Comparator.comparing(OpenGroupResponseDto::getName)).toList();
+
         return openGroupResponseDtos;
     }
+
+
+    // 거리순으로 데이터 정렬
+    private static List<Map.Entry<Group, Double>> sortByDistance(Map<Group, List<Double>> locationMap, double myLatitude, double myLongitude) {
+        List<Map.Entry<Group, Double>> sortedDataList = new ArrayList<>(locationMap.size());
+
+        for (Map.Entry<Group, List<Double>> entry : locationMap.entrySet()) {
+            Group group = entry.getKey();
+            List<Double> location = entry.getValue();
+            double distance = calculateDistance(myLatitude, myLongitude, location.get(0), location.get(1));
+
+            sortedDataList.add(new AbstractMap.SimpleEntry<>(group, distance));
+        }
+
+        sortedDataList.sort(Comparator.comparingDouble(Map.Entry::getValue)); // 거리순으로 정렬
+
+        return sortedDataList;
+    }
+
+    // 거리 계산 (하버사인 공식 사용)
+    private static double calculateDistance(double myLatitude, double myLongitude, double groupLat, double groupLon) {
+        double myLatitudeRad = Math.toRadians(myLatitude);
+        double myLongitudeRad = Math.toRadians(myLongitude);
+        double groupLatRad = Math.toRadians(groupLat);
+        double groupLonRad = Math.toRadians(groupLon);
+
+        double dlon = groupLonRad - myLongitudeRad;
+        double dlat = groupLatRad - myLatitudeRad;
+
+        double x = Math.pow(Math.sin(dlat / 2), 2) + Math.cos(myLatitudeRad) * Math.cos(groupLatRad) * Math.pow(Math.sin(dlon / 2), 2);
+        double y = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+
+        return EARTH_RADIUS * y;
+    }
+
 }
