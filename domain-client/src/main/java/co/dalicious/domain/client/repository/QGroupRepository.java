@@ -18,7 +18,7 @@ import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QMealInfo.mealInfo;
-import static co.dalicious.domain.client.entity.QOpenGroup.openGroup;
+import static co.dalicious.domain.client.entity.QOpenGroupSpot.openGroupSpot;
 
 
 @Repository
@@ -125,7 +125,7 @@ public class QGroupRepository {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if (isRestriction != null) {
-            whereCause.and(openGroup.isRestriction.eq(isRestriction));
+            whereCause.and(openGroupSpot.isRestriction.eq(isRestriction));
         }
         if (diningType != null) {
             List<Group> openGroupList = queryFactory.select(mealInfo.group)
@@ -137,8 +137,23 @@ public class QGroupRepository {
 
         return queryFactory.selectFrom(group)
                 .leftJoin(mealInfo).on(group.eq(mealInfo.group))
-                .leftJoin(openGroup).on(group.id.eq(openGroup.id))
+                .leftJoin(openGroupSpot).on(group.id.eq(openGroupSpot.id))
                 .where(group.instanceOf(OpenGroup.class), whereCause)
                 .fetch();
+    }
+
+    public Group findGroupByTypeAndId(BigInteger id, GroupDataType clientType) {
+        BooleanBuilder whereCause =  new BooleanBuilder();
+
+        if(clientType.equals(GroupDataType.CORPORATION)) {
+            whereCause.and(group.instanceOf(Corporation.class));
+        }
+        if(clientType.equals(GroupDataType.OPEN_GROUP)) {
+            whereCause.and(group.instanceOf(OpenGroup.class));
+        }
+
+        return queryFactory.selectFrom(group)
+                .where(whereCause, group.id.eq(id))
+                .fetchOne();
     }
 }

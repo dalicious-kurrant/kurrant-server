@@ -46,12 +46,11 @@ public class ClientController {
                 .build();
     }
 
-    // TODO: 오픈그룹 선택
     @Operation(summary = "고객사로 등록된 오픈 그룹/아파트 선택", description = "고객사로 등록된 오픈 그룹/아파트를 그룹에 추가한다.")
     @PostMapping("/spots/share")
-    public ResponseMessage settingGroup(Authentication authentication, @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
+    public ResponseMessage settingOpenGroup(Authentication authentication, @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.settingGroup(securityUser, groupAndSpotIdReqDto.getId());
+        userService.settingOpenGroup(securityUser, groupAndSpotIdReqDto.getId());
         return ResponseMessage.builder()
                 .message("유저 그룹(기업) 설정에 성공하였습니다.")
                 .build();
@@ -88,6 +87,16 @@ public class ClientController {
         return ResponseMessage.builder()
                 .data(userClientService.withdrawClient(securityUser, groupAndSpotIdReqDto.getId()))
                 .message("그룹 탈퇴에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "등록된 오픈 그룹 전체 조회", description = "고객사로 등록된 오픈 그룹을 전체를 조회한다.")
+    @GetMapping("/spots/share/{groupId}")
+    public ResponseMessage getOpenSpotDetail(Authentication authentication, @PathVariable BigInteger groupId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userClientService.getOpenSpotDetail(securityUser, groupId))
+                .message("오픈 그룹 전체 조회에 성공하셨습니다.")
                 .build();
     }
 }

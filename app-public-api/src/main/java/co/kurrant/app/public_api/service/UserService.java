@@ -47,7 +47,7 @@ public interface UserService {
     // 마이페이지(개인정보) 유저 정보 가져오기
     UserPersonalInfoDto getPersonalUserInfo(SecurityUser securityUser);
     // 오픈스팟 그룹 설정
-    void settingGroup(SecurityUser securityUser, BigInteger groupId);
+    void settingOpenGroup(SecurityUser securityUser, BigInteger groupId);
     // 유저가 속한 그룹 정보 리스트
     GroupCountDto getClients(SecurityUser securityUser);
     Integer isHideEmail(SecurityUser securityUser);

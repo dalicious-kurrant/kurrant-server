@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.address.dto.LocationDto;
+import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
@@ -19,4 +20,6 @@ public interface UserClientService {
     BigInteger selectUserSpot(SecurityUser securityUser, BigInteger spotId);
     // 유저가 속한 그룹을 탈퇴한다.
     Integer withdrawClient(SecurityUser securityUser, BigInteger groupId);
+    // 공유 스팟의 상세조회
+    OpenGroupDetailDto getOpenSpotDetail(SecurityUser securityUser, BigInteger groupId);
 }

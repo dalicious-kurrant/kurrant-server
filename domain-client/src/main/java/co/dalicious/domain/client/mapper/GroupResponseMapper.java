@@ -14,32 +14,5 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring", imports = DiningType.class)
 public interface GroupResponseMapper {
 
-    @Mapping(source = "group.address", target = "address", qualifiedByName = "addressToString")
-    @Mapping(target = "diningType", expression = "java(group.getDiningTypes().stream().map(DiningType::getCode).toList())")
-    @Mapping(source = "group", target = "spotType", qualifiedByName = "setSpotType")
-    @Mapping(source = "group.openGroupUserCount", target = "userCount")
-    OpenGroupResponseDto toOpenGroupDto(OpenGroup group, Double distance) ;
 
-    @AfterMapping
-    default void toLocation(OpenGroup group, @MappingTarget OpenGroupResponseDto dto) {
-        String location = group.getAddress().locationToString();
-
-        dto.setLatitude(location.split(" ")[0]);
-        dto.setLongitude(location.split(" ")[1]);
-    }
-
-    @Named("addressToString")
-    default String addressToString(Address address) {
-        return address.addressToString();
-    }
-
-    @Named("setSpotType")
-    default Integer setSpotType(Group group) {
-        Integer code = null;
-        if(Hibernate.unproxy(group) instanceof Corporation) code = GroupDataType.CORPORATION.getCode();
-        if(Hibernate.unproxy(group) instanceof Apartment) code = GroupDataType.MY_SPOT.getCode();
-        if(Hibernate.unproxy(group) instanceof OpenGroup) code = GroupDataType.OPEN_GROUP.getCode();
-
-        return code;
-    }
 }

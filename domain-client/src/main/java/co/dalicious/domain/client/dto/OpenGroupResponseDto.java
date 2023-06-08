@@ -20,5 +20,4 @@ public class OpenGroupResponseDto {
     private List<Integer> diningType;
     private Integer spotType;
     private Integer userCount;
-    private Boolean isActive;
 }
