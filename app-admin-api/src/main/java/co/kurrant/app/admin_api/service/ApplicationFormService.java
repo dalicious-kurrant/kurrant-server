@@ -31,5 +31,7 @@ public interface ApplicationFormService {
     void updateShareSpotRequest(BigInteger applicationId, ShareSpotDto.AdminRequest request) throws ParseException;
 
     void deleteShareSpotRequest(List<BigInteger> ids);
+    Boolean findRenewalMySpotRequest();
+    void renewalMySpotRequest();
 
 }

@@ -220,5 +220,21 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         requestedShareSpotRepository.deleteAll(requestedShareSpots);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Boolean findRenewalMySpotRequest() {
+        Integer requestedMySpotZones = qRequestedMySpotZonesRepository.findAlreadyExistMySpotZone().size();
+
+        if(requestedMySpotZones > 0) return true;
+        return false;
+    }
+
+    @Override
+    @Transactional
+    public void renewalMySpotRequest() {
+        List<RequestedMySpotZones> requestedMySpotZones = qRequestedMySpotZonesRepository.findAlreadyExistMySpotZone();
+        requestedMySpotZonesRepository.deleteAll(requestedMySpotZones);
+    }
+
 
 }
