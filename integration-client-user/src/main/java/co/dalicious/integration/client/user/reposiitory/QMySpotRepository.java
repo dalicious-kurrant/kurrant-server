@@ -8,6 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import static co.dalicious.integration.client.user.entity.QMySpot.mySpot;
@@ -18,9 +19,9 @@ public class QMySpotRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    public List<MySpot> findMySpotByRequestedMySpotZones(List<RequestedMySpotZones> requestedMySpotZonesList) {
+    public List<MySpot> findMySpotByUserIds(List<BigInteger> userIds) {
         return queryFactory.selectFrom(mySpot)
-                .where(mySpot.requestedMySpotZones.in(requestedMySpotZonesList))
+                .where(mySpot.user.id.in(userIds))
                 .fetch();
     }
 

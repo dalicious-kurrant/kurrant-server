@@ -41,21 +41,12 @@ public class MySpot extends UserSpot {
     @JoinColumn(name = "my_spot_zone_fk")
     private MySpotZone mySpotZone;
 
-    @ManyToOne
-    @JoinColumn(name = "requested_my_spot_zones_fk")
-    private RequestedMySpotZones requestedMySpotZones;
-
-    public MySpot(User user, ClientType clientType, Spot spot, Boolean isDefault, Address address, MySpotZone mySpotZone, RequestedMySpotZones requestedMySpotZones, String name, Boolean isActive) {
+    public MySpot(User user, ClientType clientType, Spot spot, Boolean isDefault, Address address, MySpotZone mySpotZone, String name, Boolean isActive) {
         super(user, clientType, spot, isDefault);
         this.address = address;
         this.mySpotZone = mySpotZone;
-        this.requestedMySpotZones = requestedMySpotZones;
         this.name = name;
         this.isActive = isActive;
-    }
-
-    public void updateRequestedMySpotZones(RequestedMySpotZones requestedMySpotZones) {
-        this.requestedMySpotZones = requestedMySpotZones;
     }
 
     public void updateMySpotZone(MySpotZone mySpotZone) {

@@ -1,5 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.entity.*;
@@ -24,6 +26,7 @@ import co.kurrant.app.public_api.service.UserClientService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -160,15 +163,17 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters) {
+    public ListItemResponseDto<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
         Boolean isRestriction = parameters.get("isRestriction") == null || !parameters.containsKey("isRestriction") ? null : Boolean.valueOf(String.valueOf(parameters.get("isRestriction")));
         DiningType diningType = parameters.get("diningType") == null || !parameters.containsKey("diningType") ? null : DiningType.ofCode(Integer.parseInt(String.valueOf(parameters.get("diningType"))));
         Double latitude = Double.valueOf(String.valueOf(location.get("lat")));
         Double longitude = Double.valueOf(String.valueOf(location.get("long")));
 
-        List<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType);
+        Page<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType, pageable);
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
-        if(groups.isEmpty() || groups == null) return openGroupResponseDtos;
+        if(groups.isEmpty() || groups == null) {
+            return ListItemResponseDto.<OpenGroupResponseDto>builder().items(openGroupResponseDtos).limit(pageable.getPageSize()).total(0L).count(0).offset(0L).isLast(true).build();
+        }
 
         Map<BigInteger, List<Double>> locationMap = new HashMap<>();
         groups.forEach(group -> {
@@ -185,7 +190,8 @@ public class UserClientServiceImpl implements UserClientService {
             openGroupResponseDtos.add(openGroupMapper.toOpenGroupDto((OpenGroup) group, distance));
         }
 
-        return openGroupResponseDtos;
+        return ListItemResponseDto.<OpenGroupResponseDto>builder().items(openGroupResponseDtos).limit(pageable.getPageSize()).total((long) groups.getTotalPages())
+                .count(groups.getNumberOfElements()).offset(pageable.getOffset()).isLast(groups.isLast()).build();
     }
 
 }

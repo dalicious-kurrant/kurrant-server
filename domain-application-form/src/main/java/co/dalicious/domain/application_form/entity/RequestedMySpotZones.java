@@ -58,10 +58,11 @@ public class RequestedMySpotZones {
     private Timestamp updatedDateTime;
 
     @Builder
-    public RequestedMySpotZones(Region region, Integer waitingUserCount, String memo) {
+    public RequestedMySpotZones(Region region, Integer waitingUserCount, String memo, List<BigInteger> userIds) {
         this.region = region;
         this.waitingUserCount = waitingUserCount;
         this.memo = memo;
+        this.userIds = userIds;
     }
 
     public void updateRequestedMySpotZones(RequestedMySpotDetailDto updateRequestDto, Region region) {
@@ -74,4 +75,5 @@ public class RequestedMySpotZones {
         this.waitingUserCount = this.waitingUserCount + count;
     }
 
+    public void updateUserIds(List<BigInteger> userIds) { this.userIds = userIds; }
 }

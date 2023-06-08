@@ -121,7 +121,7 @@ public class QGroupRepository {
                 .fetch();
     }
 
-    public List<Group> findOPenGroupByFilter (Boolean isRestriction, DiningType diningType) {
+    public Page<Group> findOPenGroupByFilter (Boolean isRestriction, DiningType diningType, Pageable pageable) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if (isRestriction != null) {
@@ -135,11 +135,15 @@ public class QGroupRepository {
             whereCause.and(group.in(openGroupList));
         }
 
-        return queryFactory.selectFrom(group)
+        QueryResults<Group> resultList = queryFactory.selectFrom(group)
                 .leftJoin(mealInfo).on(group.eq(mealInfo.group))
                 .leftJoin(openGroupSpot).on(group.id.eq(openGroupSpot.id))
                 .where(group.instanceOf(OpenGroup.class), whereCause)
-                .fetch();
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+        return new PageImpl<>(resultList.getResults(),pageable, resultList.getTotal());
     }
 
     public Group findGroupByTypeAndId(BigInteger id, GroupDataType clientType) {

@@ -1,5 +1,7 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.dto.LocationDto;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
@@ -13,7 +15,7 @@ import java.util.Map;
 
 public interface UserClientService {
     // 고객사로 등록된 아파트 전체 리스트를 불러온다.
-    List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters);
+    ListItemResponseDto<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters, OffsetBasedPageRequest pageable);
     // 그룹별 스팟 상세조회
     ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId);
     // 유저 스팟을 선택한다
