@@ -8,6 +8,7 @@ import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResp
 import co.dalicious.integration.client.user.entity.Region;
 import org.mapstruct.Mapper;
 
+import java.math.BigInteger;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -38,11 +39,12 @@ public interface RequestedMySpotZonesMapper {
         return listResponseDto;
     }
 
-    default RequestedMySpotZones toRequestedMySpotZones (Integer count, String memo, Region region) {
+    default RequestedMySpotZones toRequestedMySpotZones (Integer count, String memo, Region region, BigInteger userIds) {
         return RequestedMySpotZones.builder()
                 .region(region)
                 .waitingUserCount(count)
                 .memo(memo)
+                .userIds(List.of(userIds))
                 .build();
     }
 
