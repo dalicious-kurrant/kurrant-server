@@ -142,9 +142,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional
     public void deleteMySpotRequest(List<BigInteger> ids) {
-
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
-
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
 
     }

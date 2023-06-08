@@ -24,7 +24,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@PropertySource("classpath:application-map.properties")
+//@PropertySource("classpath:application-map.properties")
 public class AddressUtil {
 
     public final QGroupRepository qGroupRepository;

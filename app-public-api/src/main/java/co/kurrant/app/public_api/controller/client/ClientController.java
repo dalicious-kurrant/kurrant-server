@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.controller.client;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.dto.GroupAndSpotIdReqDto;
 import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
@@ -10,6 +11,7 @@ import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,10 +40,12 @@ public class ClientController {
     @GetMapping("/spots/share")
     public ResponseMessage getOpenGroupsAndApartments(Authentication authentication,
                                                       @RequestParam Map<String, Object> location,
-                                                      @RequestParam(required = false) Map<String, Object> parameters) {
+                                                      @RequestParam(required = false) Map<String, Object> parameters,
+                                                      @RequestParam(required = false, defaultValue = "20") Integer limit, @RequestParam Integer page) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
+        OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
         return ResponseMessage.builder()
-                .data(userClientService.getOpenGroupsAndApartments(securityUser, location, parameters))
+                .data(userClientService.getOpenGroupsAndApartments(securityUser, location, parameters, pageable))
                 .message("오픈 그룹 전체 조회에 성공하셨습니다.")
                 .build();
     }
