@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -153,5 +154,29 @@ public class Group {
 
     public void updateIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public void setAddress(Address address){
+        this.address = address;
+    }
+
+    public void setDiningTypes(List<DiningType> diningTypes) {
+        this.diningTypes = diningTypes;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
+    }
+
+    public void setContractStartDate(LocalDate contractStartDate) {
+        this.contractStartDate = contractStartDate;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
     }
 }

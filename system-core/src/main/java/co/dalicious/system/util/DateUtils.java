@@ -10,12 +10,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class DateUtils {
-    public static String toISO(Date date) {
-        SimpleDateFormat sdf;
-        sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        return sdf.format(date);
-    }
-
+    private static final String SEPARATOR = ",";
     public static String toISO(Timestamp ts) {
         SimpleDateFormat sdf;
         sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
@@ -75,6 +70,22 @@ public class DateUtils {
         return (time == null) ? null : time.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
+    public static String timesToString(List<LocalTime> times) {
+        if (times == null || times.isEmpty()) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (LocalTime deliveryTime : times) {
+            sb.append(DateUtils.timeToString(deliveryTime)).append(SEPARATOR);
+        }
+
+        // remove the last separator
+        sb.setLength(sb.length() - SEPARATOR.length());
+
+        return sb.toString();
+    }
+
     public static String timeToStringWithAMPM(LocalTime time) {
         return time.format(DateTimeFormatter.ofPattern("hh:mm a"));
     }
@@ -85,7 +96,7 @@ public class DateUtils {
         return LocalDate.of(Integer.parseInt(stringList[0]),Integer.parseInt(stringList[1]), Integer.parseInt(stringList[2]));
     }
 
-    public static String localDateToString(LocalDate date) { return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); }
+    public static String localDateToString(LocalDate date) { return date == null ? null : date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); }
 
     public static String localDateTimeToString(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
@@ -108,6 +119,15 @@ public class DateUtils {
                 .toFormatter();
 
         return LocalTime.parse(time.trim(), formatter);
+    }
+
+    public static List<LocalTime> stringToLocalTimes(String timesStr) {
+        String[] timeStrArr = timesStr.split(",|, ");
+        List<LocalTime> times = new ArrayList<>();
+        for (String timeStr : timeStrArr) {
+            times.add(DateUtils.stringToLocalTime(timeStr));
+        }
+        return times;
     }
 
 

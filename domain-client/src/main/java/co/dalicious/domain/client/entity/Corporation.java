@@ -221,4 +221,8 @@ public class Corporation extends Group {
     public void updatePrepaid(Boolean prepaid) {
         isPrepaid = prepaid;
     }
+
+    public void setMembershipEndDate(LocalDate membershipEndDate) {
+        this.membershipEndDate = membershipEndDate;
+    }
 }

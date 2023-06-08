@@ -4,6 +4,7 @@ import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Comment;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
@@ -15,6 +16,7 @@ import javax.persistence.Embeddable;
 
 @Getter
 @Embeddable
+@Setter
 @NoArgsConstructor
 public class Address {
   @Column(name = "zip_code", columnDefinition = "VARCHAR(5) COMMENT '우편번호, 다섯자리'")
