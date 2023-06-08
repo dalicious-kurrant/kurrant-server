@@ -92,4 +92,5 @@ public interface UserService {
     Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType);
     void allChangeAlarmSetting(SecurityUser securityUser, Boolean isActive);
 
+    Object getMealHistory(SecurityUser securityUser, String startDate, String endDate);
 }
