@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static co.dalicious.domain.application_form.entity.QRequestedMySpotZones.requestedMySpotZones;
+import static co.dalicious.integration.client.user.entity.QRegion.region;
 
 
 @Repository
@@ -190,6 +191,13 @@ public class QRequestedMySpotZonesRepository {
     public List<RequestedMySpotZones> findRequestedMySpotZonesByIds(List<BigInteger> ids) {
         return queryFactory.selectFrom(requestedMySpotZones)
                 .where(requestedMySpotZones.id.in(ids))
+                .fetch();
+    }
+
+    public List<RequestedMySpotZones> findAlreadyExistMySpotZone() {
+        return queryFactory.selectFrom(requestedMySpotZones)
+                .leftJoin(requestedMySpotZones.region, region)
+                .where(requestedMySpotZones.region.zipcode.eq(region.zipcode), region.mySpotZoneIds.isNotNull())
                 .fetch();
     }
 
