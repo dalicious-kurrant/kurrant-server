@@ -13,10 +13,7 @@ import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.integration.client.user.entity.MySpotZone;
 import org.hibernate.Hibernate;
-import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,13 +65,13 @@ public interface UserGroupMapper {
     default GroupCountDto toGroupCountDto(List<SpotListResponseDto> spotListResponseDtoList) {
 
         AtomicInteger privateCount = new AtomicInteger();
-        AtomicInteger mySpotCount = new AtomicInteger();
         AtomicInteger shareSpotCount = new AtomicInteger();
+        AtomicInteger mySpotCount = new AtomicInteger();
 
         spotListResponseDtoList.forEach(spotListResponseDto ->  {
             if(spotListResponseDto.getSpotType().equals(GroupDataType.CORPORATION.getCode())) privateCount.getAndIncrement();
             else if (spotListResponseDto.getSpotType().equals(GroupDataType.OPEN_GROUP.getCode())) shareSpotCount.getAndIncrement();
-            else if (spotListResponseDto.getSpotType().equals(GroupDataType.MY_SPOT.getCode())) mySpotCount.getAndIncrement();
+            else if (spotListResponseDto.getSpotType().equals(GroupDataType.MY_SPOT.getCode())) mySpotCount.set(spotListResponseDto.getSpots().size());
         });
 
         GroupCountDto groupCountDto = new GroupCountDto();

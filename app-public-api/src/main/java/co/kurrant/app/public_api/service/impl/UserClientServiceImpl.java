@@ -1,42 +1,38 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
+import co.dalicious.domain.client.mapper.OpenGroupMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.integration.client.user.entity.MySpot;
-import co.dalicious.integration.client.user.entity.MySpotZone;
 import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
 import co.dalicious.integration.client.user.mapper.UserSpotMapper;
-import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DistanceUtil;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class UserClientServiceImpl implements UserClientService {
-    private final GroupResponseMapper groupResponseMapper;
     private final UserUtil userUtil;
     private final UserGroupRepository userGroupRepository;
     private final SpotRepository spotRepository;
@@ -44,6 +40,8 @@ public class UserClientServiceImpl implements UserClientService {
     private final GroupRepository groupRepository;
     private final UserSpotDetailResMapper userSpotDetailResMapper;
     private final UserSpotMapper userSpotMapper;
+    private final QGroupRepository qGroupRepository;
+    private final OpenGroupMapper openGroupMapper;
 
     @Override
     @Transactional
@@ -153,13 +151,41 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser) {
-        List<Group> groups = groupRepository.findAll();
+    public OpenGroupDetailDto getOpenSpotDetail(SecurityUser securityUser, BigInteger groupId) {
+        User user = userUtil.getUser(securityUser);
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+
+        return openGroupMapper.toOpenGroupDetailDto((OpenGroup) group);
+    }
+
+    @Override
+    @Transactional
+    public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters) {
+        Boolean isRestriction = parameters.get("isRestriction") == null || !parameters.containsKey("isRestriction") ? null : Boolean.valueOf(String.valueOf(parameters.get("isRestriction")));
+        DiningType diningType = parameters.get("diningType") == null || !parameters.containsKey("diningType") ? null : DiningType.ofCode(Integer.parseInt(String.valueOf(parameters.get("diningType"))));
+        Double latitude = Double.valueOf(String.valueOf(location.get("lat")));
+        Double longitude = Double.valueOf(String.valueOf(location.get("long")));
+
+        List<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType);
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
-        for (Group group : groups) {
-            openGroupResponseDtos.add(groupResponseMapper.toOpenGroupDto(group));
+        if(groups.isEmpty() || groups == null) return openGroupResponseDtos;
+
+        Map<BigInteger, List<Double>> locationMap = new HashMap<>();
+        groups.forEach(group -> {
+            List<Double> locationArr = DistanceUtil.parsLocationToDouble(group.getAddress().locationToString());
+            locationMap.put(group.getId(), locationArr);
+        });
+        List<Map.Entry<BigInteger, Double>> sortedDataList = DistanceUtil.sortByDistance(locationMap, latitude, longitude);
+
+        // 결과 출력
+        for (Map.Entry<BigInteger, Double> entry : sortedDataList) {
+            Group group = groups.stream().filter(g -> g.getId().equals(entry.getKey())).findAny().orElse(null);
+            if(group == null) continue;
+            double distance = entry.getValue();
+            openGroupResponseDtos.add(openGroupMapper.toOpenGroupDto((OpenGroup) group, distance));
         }
-        openGroupResponseDtos = openGroupResponseDtos.stream().sorted(Comparator.comparing(OpenGroupResponseDto::getName)).toList();
+
         return openGroupResponseDtos;
     }
+
 }
