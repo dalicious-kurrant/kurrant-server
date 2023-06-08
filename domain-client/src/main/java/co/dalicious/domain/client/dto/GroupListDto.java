@@ -3,6 +3,7 @@ package co.dalicious.domain.client.dto;
 import co.dalicious.domain.client.entity.Group;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -12,13 +13,20 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
+@NoArgsConstructor
 public class GroupListDto {
     List<GroupInfo> groupIdList;
     List<GroupInfoList> groupInfoList;
 
+    @Builder
+    public GroupListDto(List<GroupInfo> groupIdList, List<GroupInfoList> groupInfoList) {
+        this.groupIdList = groupIdList;
+        this.groupInfoList = groupInfoList;
+    }
+
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class GroupInfoList {
         private BigInteger id;
         private Integer groupType;
@@ -30,8 +38,6 @@ public class GroupListDto {
         private String location;
         private List<Integer> diningTypes;
         private String serviceDays;
-        private String supportDays;
-        private String notSupportDays;
         private BigInteger managerId;
         private String managerName;
         private String managerPhone;
@@ -42,14 +48,49 @@ public class GroupListDto {
         private Boolean isHotStorage;
         private Boolean isPrepaid;
         private Boolean isActive;
-        private String deliveryOption;
+        private Boolean isSaladRequired;
+        private String contractStartDate;
+        private String deliveryFeeOption;
         private String membershipEndDate;
-        private BigDecimal morningSupportPrice;
-        private BigDecimal lunchSupportPrice;
-        private BigDecimal dinnerSupportPrice;
         private BigDecimal minimumSpend;
         private BigDecimal maximumSpend;
         private String memo;
+        private List<MealInfo> mealInfos;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class MealInfo {
+        private Integer diningType;
+        private String deliveryTimes;
+        private String membershipBenefitTime;
+        private String lastOrderTime;
+        private String serviceDays;
+        private List<SupportPriceByDay> supportPriceByDays;
+
+        @Builder
+        public MealInfo(Integer diningType, String deliveryTimes, String membershipBenefitTime, String lastOrderTime, String serviceDays, List<SupportPriceByDay> supportPriceByDays) {
+            this.diningType = diningType;
+            this.deliveryTimes = deliveryTimes;
+            this.membershipBenefitTime = membershipBenefitTime;
+            this.lastOrderTime = lastOrderTime;
+            this.serviceDays = serviceDays;
+            this.supportPriceByDays = supportPriceByDays;
+        }
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class SupportPriceByDay {
+        private String serviceDay;
+        private BigDecimal supportPrice;
+
+        public SupportPriceByDay(String serviceDay, BigDecimal supportPrice) {
+            this.serviceDay = serviceDay;
+            this.supportPrice = supportPrice;
+        }
     }
 
     public static GroupListDto createGroupListDto(List<Group> groupList, List<GroupInfoList> groupInfoList) {

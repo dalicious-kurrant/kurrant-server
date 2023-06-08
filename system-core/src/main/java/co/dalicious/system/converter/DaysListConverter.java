@@ -19,9 +19,12 @@ public class DaysListConverter implements AttributeConverter<List<Days>, String>
         if (days == null || days.isEmpty()) {
             return null;
         }
-        Collections.sort(days);
+
+        List<Days> sortedDays = new ArrayList<>(days);
+        Collections.sort(sortedDays);
+
         StringBuilder sb = new StringBuilder();
-        for (Days day : days) {
+        for (Days day : sortedDays) {
             sb.append(day.getCode()).append(SEPARATOR);
         }
 
