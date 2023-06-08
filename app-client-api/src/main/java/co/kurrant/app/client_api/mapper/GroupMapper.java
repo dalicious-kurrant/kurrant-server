@@ -233,20 +233,6 @@ public interface GroupMapper {
         else return null;
     }
 
-    @Mapping(source = "address", target = "address")
-    @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
-    @Mapping(source = "groupInfoList.name", target = "name")
-    @Mapping(source = "groupInfoList.managerId", target = "managerId")
-    @Mapping(source = "groupInfoList.code", target = "code")
-    @Mapping(source = "groupInfoList", target = "isMembershipSupport", qualifiedByName = "isMembershipSupport")
-    @Mapping(source = "groupInfoList.employeeCount", target = "employeeCount")
-    @Mapping(source = "groupInfoList", target = "isGarbage", qualifiedByName = "isGarbage")
-    @Mapping(source = "groupInfoList", target = "isHotStorage", qualifiedByName = "isHotStorage")
-    @Mapping(source = "groupInfoList", target = "isSetting", qualifiedByName = "isSetting")
-    @Mapping(source = "groupInfoList", target = "minimumSpend", qualifiedByName = "setMinimumSpend")
-    @Mapping(source = "groupInfoList", target = "maximumSpend", qualifiedByName = "setMaximumSpend")
-    Corporation groupInfoListToCorporationEntity(GroupExcelRequestDto groupInfoList, Address address);
-
     @Named("setMinimumSpend")
     default BigDecimal setMinimumSpend(GroupExcelRequestDto groupInfoList) {
         if(groupInfoList.getMinimumSpend() != null) {
