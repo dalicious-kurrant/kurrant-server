@@ -24,5 +24,6 @@ public class SaveUserListRequestDto {
     private Boolean marketingAlarm;
     private Boolean orderAlarm;
     private String paymentPassword;
+    private String departmentName;
 
 }

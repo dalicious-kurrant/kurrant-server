@@ -38,6 +38,7 @@ public class QOrderItemDailyFoodRepository {
             OrderItemDailyFood orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
                     .where(orderItemDailyFood.order.id.eq(orderId),
                             orderItemDailyFood.dailyFood.serviceDate.between(LocalDate.now().minusDays(5), LocalDate.now()))
+                    .limit(1)
                     .fetchOne();
             if (orderItemDailyFoods != null){
                 orderItemDailyFoodIdSet.add(orderItemDailyFoods.getId());

@@ -326,7 +326,7 @@ public class User {
     }
 
     public String getDepartment(){
-
+        //관련 기획이 없으므로 임시로 부서가 1개라고 가정하고 작성
         if (!getUserDepartments().isEmpty()){
             return getUserDepartments().get(0).getDepartment().getName();
         }
