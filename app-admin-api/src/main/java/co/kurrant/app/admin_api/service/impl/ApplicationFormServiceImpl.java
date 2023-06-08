@@ -145,12 +145,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
 
-        // requestedMySpotZone을 가지고 있는 muSpot을 수정
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByRequestedMySpotZones(existRequestedMySpotZones);
-
-        if(mySpotList.isEmpty()) requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
-
-        mySpotList.forEach(mySpot -> mySpot.updateRequestedMySpotZones(null));
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
 
     }
@@ -186,11 +180,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         mealInfoRepository.saveAll(mealInfoList);
 
         // requestedMySpotZone을 가지고 있는 muSpot을 수정
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByRequestedMySpotZones(existRequestedMySpotZones);
-        mySpotList.forEach(mySpot -> {
-            mySpot.updateRequestedMySpotZones(null);
-            mySpot.updateMySpotZone(mySpotZone);
-        });
+        List<BigInteger> userIds = existRequestedMySpotZones.stream().flatMap(requestedMySpotZone -> requestedMySpotZone.getUserIds().stream()).toList();
+        List<MySpot> mySpotList = qMySpotRepository.findMySpotByUserIds(userIds);
+        mySpotList.forEach(mySpot -> mySpot.updateMySpotZone(mySpotZone));
 
         // userGroup
         List<User> users = mySpotList.stream().map(MySpot::getUser).toList();
