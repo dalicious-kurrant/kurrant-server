@@ -59,6 +59,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.asm.Advice;
+import org.geolatte.geom.M;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -1157,5 +1159,28 @@ public class UserServiceImpl implements UserService {
         List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
 
         user.updatePushCondition(pushConditionList);
+    }
+
+    @Override
+    public MealHistoryResDto getMealHistory(SecurityUser securityUser, String startDate, String endDate) {
+
+        MealHistoryResDto mealHistoryResDto = new MealHistoryResDto();
+        User user = userUtil.getUser(securityUser);
+
+        List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDateBetween(user.getId(), LocalDate.parse(startDate), LocalDate.parse(endDate));
+
+        if (dailyReportList.isEmpty()) return null;
+
+        List<DailyReportByDate> dailyReportByDateList = new ArrayList<>();
+        for (DailyReport dailyReport : dailyReportList){
+            DailyReportByDate dailyReportByDateDto = dailyReportMapper.toDailyReportByDateDto(dailyReport);
+            if (dailyReportByDateDto.getCalorie() != null){
+                dailyReportByDateList.add(dailyReportByDateDto);
+            }
+        }
+        mealHistoryResDto.setDailyReportList(dailyReportByDateList);
+
+        return mealHistoryResDto;
+
     }
 }
