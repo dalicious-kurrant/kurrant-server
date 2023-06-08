@@ -128,4 +128,24 @@ public class ApplicationFormController {
                 .message("공유 스팟 신청을 삭제했습니다.")
                 .build();
     }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "마이 스팟 신청 갱신 조회", description = "이미 개설된 마이 스팟이 있는지 조회합니다.")
+    @GetMapping("/spots/my/renew")
+    public ResponseMessage findRenewalMySpotRequest() {
+        return ResponseMessage.builder()
+                .message("마이 스팟 갱신 신청 여부를 조회했습니다.")
+                .data(applicationFormService.findRenewalMySpotRequest())
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "마이 스팟 신청 갱신", description = "이미 개설된 마이 스팟을 삭제합니다.")
+    @DeleteMapping("/spots/my/renew")
+    public ResponseMessage renewalMySpotRequest(@RequestBody Boolean isDo) {
+        applicationFormService.renewalMySpotRequest();
+        return ResponseMessage.builder()
+                .message("마이 스팟 신청을 갱신했습니다.")
+                .build();
+    }
 }

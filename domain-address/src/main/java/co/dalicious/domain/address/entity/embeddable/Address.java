@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import java.math.BigInteger;
 
 @Getter
 @Embeddable
@@ -75,4 +76,11 @@ public class Address {
     public void setLocation(String location) {
         this.location = createPoint(location);
     }
+  public void updateLocation(String location) throws ParseException {
+    this.location = createPoint(location);
+  }
+
+  public String locationToString() {
+    return this.location.toString().replaceAll("POINT |[(]|[)]", "");
+  }
 }

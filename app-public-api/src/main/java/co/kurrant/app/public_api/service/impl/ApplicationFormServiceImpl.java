@@ -20,6 +20,7 @@ import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.UserGroupRepository;
@@ -238,6 +239,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
             // user group 생성
             if(userGroup == null) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone));
+            else userGroup.updateStatus(ClientStatus.BELONG);
 
             return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(),true, pushCondition);
         }
@@ -246,7 +248,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
         if(existRequestedMySpotZones != null) {
             existRequestedMySpotZones.updateWaitingUserCount(1);
-            mySpot.updateRequestedMySpotZones(existRequestedMySpotZones);
+
+            List<BigInteger> userIds = existRequestedMySpotZones.getUserIds();
+            userIds.add(user.getId());
+            existRequestedMySpotZones.updateUserIds(userIds);
+
             mySpot.updateActive(false);
             return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false, pushCondition);
         }
@@ -261,9 +267,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));
-        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, null, region);
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, null, region, user.getId());
         requestedMySpotZonesRepository.save(requestedMySpotZones);
-        mySpot.updateRequestedMySpotZones(requestedMySpotZones);
+
         mySpot.updateActive(false);
 
         // my spot zone 존재 여부 response

@@ -247,6 +247,8 @@ public class FoodServiceImpl implements FoodService {
         OrderItemDailyFood orderItemDailyFood = qOrderItemDailyFoodRepository.findAllByUserAndDailyFood(user.getId(), dailyFood.getFood().getId());
         if (orderItemDailyFood != null) {
             reviewWrite = orderItemDailyFood.getId();
+        } else{
+            reviewWrite = BigInteger.valueOf(0);
         }
 
         //주문 기한이 5일이 지났는지(orderItemDailyFood +5일이 오늘보다 작다면)

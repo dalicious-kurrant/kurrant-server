@@ -124,7 +124,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 동일한 우편번호가 없으면? -> 생성
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(createRequestDto.getZipcode(), createRequestDto.getCounty(), createRequestDto.getVillage());
         if(region == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
-        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(createRequestDto.getWaitingUserCount(), createRequestDto.getMemo(), region);
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(createRequestDto.getWaitingUserCount(), createRequestDto.getMemo(), region, null);
         requestedMySpotZonesRepository.save(requestedMySpotZones);
     }
 
@@ -142,15 +142,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional
     public void deleteMySpotRequest(List<BigInteger> ids) {
-
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
-
-        // requestedMySpotZone을 가지고 있는 muSpot을 수정
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByRequestedMySpotZones(existRequestedMySpotZones);
-
-        if(mySpotList.isEmpty()) requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
-
-        mySpotList.forEach(mySpot -> mySpot.updateRequestedMySpotZones(null));
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
 
     }
@@ -186,11 +178,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         mealInfoRepository.saveAll(mealInfoList);
 
         // requestedMySpotZone을 가지고 있는 muSpot을 수정
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByRequestedMySpotZones(existRequestedMySpotZones);
-        mySpotList.forEach(mySpot -> {
-            mySpot.updateRequestedMySpotZones(null);
-            mySpot.updateMySpotZone(mySpotZone);
-        });
+        List<BigInteger> userIds = existRequestedMySpotZones.stream().flatMap(requestedMySpotZone -> requestedMySpotZone.getUserIds().stream()).toList();
+        List<MySpot> mySpotList = qMySpotRepository.findMySpotByUserIds(userIds);
+        mySpotList.forEach(mySpot -> mySpot.updateMySpotZone(mySpotZone));
 
         // userGroup
         List<User> users = mySpotList.stream().map(MySpot::getUser).toList();
@@ -228,6 +218,22 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     public void deleteShareSpotRequest(List<BigInteger> ids) {
         List<RequestedShareSpot> requestedShareSpots = requestedShareSpotRepository.findAllById(ids);
         requestedShareSpotRepository.deleteAll(requestedShareSpots);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Boolean findRenewalMySpotRequest() {
+        Integer requestedMySpotZones = qRequestedMySpotZonesRepository.findAlreadyExistMySpotZone().size();
+
+        if(requestedMySpotZones > 0) return true;
+        return false;
+    }
+
+    @Override
+    @Transactional
+    public void renewalMySpotRequest() {
+        List<RequestedMySpotZones> requestedMySpotZones = qRequestedMySpotZonesRepository.findAlreadyExistMySpotZone();
+        requestedMySpotZonesRepository.deleteAll(requestedMySpotZones);
     }
 
 

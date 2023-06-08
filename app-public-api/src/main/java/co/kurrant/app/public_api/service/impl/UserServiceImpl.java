@@ -12,8 +12,10 @@ import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.OpenGroup;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
@@ -91,8 +93,6 @@ public class UserServiceImpl implements UserService {
     private final UserGroupRepository userGroupRepository;
     private final UserHomeInfoMapper userHomeInfoMapper;
     private final UserPersonalInfoMapper userPersonalInfoMapper;
-    private final GroupResponseMapper groupResponseMapper;
-    private final GroupRepository groupRepository;
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
     private final CreditCardInfoMapper creditCardInfoMapper;
@@ -117,6 +117,7 @@ public class UserServiceImpl implements UserService {
     private final OrderItemDailyFoodDailyReportMapper orderItemDailyFoodDailyReportMapper;
     private final UserGroupMapper userGroupMapper;
     private final QMySpotRepository qMySpotRepository;
+    private final QGroupRepository qGroupRepository;
 
 
     @Override
@@ -408,10 +409,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void settingGroup(SecurityUser securityUser, BigInteger groupId) {
+    public void settingOpenGroup(SecurityUser securityUser, BigInteger groupId) {
         User user = userUtil.getUser(securityUser);
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        Group group = qGroupRepository.findGroupByTypeAndId(groupId, GroupDataType.OPEN_GROUP);
+        if(group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
+
         List<UserGroup> userGroups = user.getGroups();
 
         // TODO: 그룹 슬롯 증가의 경우 반영 필요
@@ -432,11 +434,7 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ExceptionEnum.ALREADY_EXISTING_GROUP);
         }
 
-        UserGroup userCorporation = UserGroup.builder()
-                .clientStatus(ClientStatus.BELONG)
-                .user(user)
-                .group(group)
-                .build();
+        UserGroup userCorporation = userGroupMapper.toUserGroup(user, group);
         userGroupRepository.save(userCorporation);
     }
 
@@ -1083,13 +1081,20 @@ public class UserServiceImpl implements UserService {
             return "식단 리포트가 없습니다.";
         }
 
-        List<FindDailyReportResDto> resultList = new ArrayList<>();
+        List<FindDailyReportResDto> resDtoArrayList = new ArrayList<>();
+        DailyReportResDto result = new DailyReportResDto();
         for (DailyReport dailyReport : dailyReportList){
             FindDailyReportResDto findDailyReportDto = dailyReportMapper.toFindDailyReportDto(dailyReport);
-            resultList.add(findDailyReportDto);
+            resDtoArrayList.add(findDailyReportDto);
         }
+        result.setDailyReportResDtoList(resDtoArrayList);
+        int n = 0;
+        result.setTotalCalorie(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getCalorie())).mapToInt(Integer::intValue).sum());
+        result.setTotalCarbohydrate(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getCarbohydrate())).mapToInt(Integer::intValue).sum());
+        result.setTotalFat(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getFat())).mapToInt(Integer::intValue).sum());
+        result.setTotalProtein(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getProtein())).mapToInt(Integer::intValue).sum());
 
-        return resultList;
+        return result;
     }
 
     @Override

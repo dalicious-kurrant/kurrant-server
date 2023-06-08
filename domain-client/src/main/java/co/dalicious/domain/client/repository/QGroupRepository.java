@@ -1,16 +1,12 @@
 package co.dalicious.domain.client.repository;
 
-import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
-import co.dalicious.domain.client.entity.Apartment;
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.OpenGroup;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +17,8 @@ import java.util.List;
 import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
+import static co.dalicious.domain.client.entity.QMealInfo.mealInfo;
+import static co.dalicious.domain.client.entity.QOpenGroupSpot.openGroupSpot;
 
 
 @Repository
@@ -115,5 +113,51 @@ public class QGroupRepository {
         return queryFactory.selectFrom(group)
                 .where(whereCause)
                 .fetch();
+    }
+
+    public List<Group> findGroupAndAddressIsNull() {
+        return queryFactory.selectFrom(group)
+                .where(group.address.location.isNull(), group.instanceOf(OpenGroup.class).or(group.instanceOf(Corporation.class)))
+                .fetch();
+    }
+
+    public Page<Group> findOPenGroupByFilter (Boolean isRestriction, DiningType diningType, Pageable pageable) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if (isRestriction != null) {
+            whereCause.and(openGroupSpot.isRestriction.eq(isRestriction));
+        }
+        if (diningType != null) {
+            List<Group> openGroupList = queryFactory.select(mealInfo.group)
+                    .from(mealInfo)
+                    .where(mealInfo.instanceOf(OpenGroupMealInfo.class), mealInfo.diningType.eq(diningType))
+                    .fetch();
+            whereCause.and(group.in(openGroupList));
+        }
+
+        QueryResults<Group> resultList = queryFactory.selectFrom(group)
+                .leftJoin(mealInfo).on(group.eq(mealInfo.group))
+                .leftJoin(openGroupSpot).on(group.id.eq(openGroupSpot.id))
+                .where(group.instanceOf(OpenGroup.class), whereCause)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+        return new PageImpl<>(resultList.getResults(),pageable, resultList.getTotal());
+    }
+
+    public Group findGroupByTypeAndId(BigInteger id, GroupDataType clientType) {
+        BooleanBuilder whereCause =  new BooleanBuilder();
+
+        if(clientType.equals(GroupDataType.CORPORATION)) {
+            whereCause.and(group.instanceOf(Corporation.class));
+        }
+        if(clientType.equals(GroupDataType.OPEN_GROUP)) {
+            whereCause.and(group.instanceOf(OpenGroup.class));
+        }
+
+        return queryFactory.selectFrom(group)
+                .where(whereCause, group.id.eq(id))
+                .fetchOne();
     }
 }

@@ -268,19 +268,28 @@ public class QReviewRepository {
                     .limit(pageable.getPageSize())
                     .offset(pageable.getOffset())
                     .fetchResults();
-
-
-
-        if (photo != null && photo == 1){
-            reviewsList = result.getResults().stream().filter(v -> !v.getImages().isEmpty()).toList();
-        }
+        int count = 0;
 
         if (starFilter != null && starFilter.length() != 0){
+            count += 1;
             reviewsList = result.getResults().stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
         }
 
         if (keywordFilter != null && !keywordFilter.equals("")){
-            reviewsList = result.getResults().stream().filter(v -> v.getContent().contains(keywordFilter)).toList();
+            if (count > 0){
+                reviewsList = reviewsList.stream().filter(v -> v.getContent().contains(keywordFilter)).toList();
+            }else {
+                count += 1;
+                reviewsList = result.getResults().stream().filter(v -> v.getContent().contains(keywordFilter)).toList();
+            }
+        }
+
+        if (photo != null && photo == 1){
+            if (count > 0){
+                 reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
+            } else {
+                reviewsList = result.getResults().stream().filter(v -> !v.getImages().isEmpty()).toList();
+            }
         }
 
     return new PageImpl<>(reviewsList, pageable, result.getTotal());
