@@ -4,13 +4,12 @@ import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
-import co.dalicious.domain.address.dto.UpdateLocationDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
 import co.kurrant.app.admin_api.service.GroupService;
-import co.kurrant.app.admin_api.util.AddressUtil;
+import co.dalicious.domain.address.utils.AddressUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -133,8 +132,8 @@ public class GroupController {
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "주소 location 등록", description = "좌표를 등록합니다.")
     @PatchMapping("location")
-    public ResponseMessage updateLocation(@RequestBody List<UpdateLocationDto> dto) throws ParseException {
-        addressUtil.updateLocation(dto);
+    public ResponseMessage updateLocation(@RequestBody /*List<UpdateLocationDto> dto*/ Boolean toDo) throws ParseException {
+        groupService.updateLocation();
         return ResponseMessage.builder()
                 .message("좌표 등록에 성공했습니다.")
                 .build();
