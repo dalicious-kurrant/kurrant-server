@@ -1081,13 +1081,20 @@ public class UserServiceImpl implements UserService {
             return "식단 리포트가 없습니다.";
         }
 
-        List<FindDailyReportResDto> resultList = new ArrayList<>();
+        List<FindDailyReportResDto> resDtoArrayList = new ArrayList<>();
+        DailyReportResDto result = new DailyReportResDto();
         for (DailyReport dailyReport : dailyReportList){
             FindDailyReportResDto findDailyReportDto = dailyReportMapper.toFindDailyReportDto(dailyReport);
-            resultList.add(findDailyReportDto);
+            resDtoArrayList.add(findDailyReportDto);
         }
+        result.setDailyReportResDtoList(resDtoArrayList);
+        int n = 0;
+        result.setTotalCalorie(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getCalorie())).mapToInt(Integer::intValue).sum());
+        result.setTotalCarbohydrate(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getCarbohydrate())).mapToInt(Integer::intValue).sum());
+        result.setTotalFat(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getFat())).mapToInt(Integer::intValue).sum());
+        result.setTotalProtein(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getProtein())).mapToInt(Integer::intValue).sum());
 
-        return resultList;
+        return result;
     }
 
     @Override
