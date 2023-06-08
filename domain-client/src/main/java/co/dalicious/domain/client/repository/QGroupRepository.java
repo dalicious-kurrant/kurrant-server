@@ -16,8 +16,10 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
+import static co.dalicious.domain.client.entity.QCorporation.corporation;
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QMealInfo.mealInfo;
+import static co.dalicious.domain.client.entity.QOpenGroup.openGroup;
 import static co.dalicious.domain.client.entity.QOpenGroupSpot.openGroupSpot;
 
 
@@ -38,6 +40,26 @@ public class QGroupRepository {
 
         QueryResults<Group> results = queryFactory.selectFrom(group)
                 .where(whereClause)
+                .orderBy(group.id.asc())
+                .limit(limit)
+                .offset(offset)
+                .fetchResults();
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public Page<Group> findAllExceptForMySpot(BigInteger groupId, Integer limit, Integer page, Pageable pageable) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if(groupId != null) {
+            whereClause.and(group.id.eq(groupId));
+        }
+
+        int offset = limit * (page - 1);
+
+        QueryResults<Group> results = queryFactory.selectFrom(group)
+                .leftJoin(corporation).on(group.id.eq(corporation.id))
+                .leftJoin(openGroup).on(group.id.eq(openGroup.id))
+                .where(whereClause, corporation.id.isNotNull().or(openGroup.id.isNotNull()))
                 .orderBy(group.id.asc())
                 .limit(limit)
                 .offset(offset)

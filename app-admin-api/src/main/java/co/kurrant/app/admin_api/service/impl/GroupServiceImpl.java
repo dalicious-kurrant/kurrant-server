@@ -88,7 +88,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional(readOnly = true)
     public ItemPageableResponseDto<GroupListDto> getGroupList(BigInteger groupId, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
-        Page<Group> groupList = qGroupRepository.findAll(groupId, limit, page, pageable);
+        Page<Group> groupList = qGroupRepository.findAllExceptForMySpot(groupId, limit, page, pageable);
 
         // 기업 정보 dto 맵핑하기
         List<GroupListDto.GroupInfoList> groupListDtoList = new ArrayList<>();
