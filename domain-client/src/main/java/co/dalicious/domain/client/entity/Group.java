@@ -168,8 +168,8 @@ public class Group {
         this.name = name;
     }
 
-    public void setActive(Boolean active) {
-        isActive = active;
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     public void setContractStartDate(LocalDate contractStartDate) {

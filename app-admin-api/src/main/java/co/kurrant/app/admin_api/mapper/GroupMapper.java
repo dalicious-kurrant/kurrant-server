@@ -143,17 +143,36 @@ public interface GroupMapper {
     @Mapping(source = "address.zipCode", target = "zipCode")
     @Mapping(source = "address.address1", target = "address1")
     @Mapping(source = "address.address2", target = "address2")
+    @Mapping(target = "location", expression = "java(corporation.getAddress().getLocation() == null ? null : corporation.getAddress().getLocation().toString())")
     @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.diningTypesToCodes(corporation.getDiningTypes()))")
     @Mapping(source = "deliveryFeeOption.deliveryFeeOption", target = "deliveryFeeOption")
     @Mapping(target = "membershipEndDate", expression = "java(DateUtils.localDateToString(corporation.getMembershipEndDate()))")
     GroupListDto.GroupInfoList toCorporationDto(Corporation corporation);
 
+    @Mapping(target = "membershipEndDate", expression = "java(DateUtils.stringToDate(groupDto.getMembershipEndDate()))")
+    @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.codesToDiningTypes(groupDto.getDiningTypes()))")
+    @Mapping(target = "deliveryFeeOption", expression = "java(DeliveryFeeOption.ofString(groupDto.getDeliveryFeeOption()))")
+    @Mapping(source = "zipCode", target = "address.zipCode")
+    @Mapping(source = "address1", target = "address.address1")
+    @Mapping(source = "address2", target = "address.address2")
+    @Mapping(source = "location", target = "address.location")
+    Corporation toCorporation(GroupListDto.GroupInfoList groupDto) throws ParseException;
+
     @Mapping(source = "address.zipCode", target = "zipCode")
     @Mapping(source = "address.address1", target = "address1")
     @Mapping(source = "address.address2", target = "address2")
+    @Mapping(target = "location", expression = "java(openGroup.getAddress().getLocation() == null ? null : openGroup.getAddress().getLocation().toString())")
     @Mapping(source = "openGroupUserCount", target = "employeeCount")
     @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.diningTypesToCodes(openGroup.getDiningTypes()))")
     GroupListDto.GroupInfoList toOpenSpotDto(OpenGroup openGroup);
+
+    @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.codesToDiningTypes(groupDto.getDiningTypes()))")
+    @Mapping(source = "zipCode", target = "address.zipCode")
+    @Mapping(source = "address1", target = "address.address1")
+    @Mapping(source = "address2", target = "address.address2")
+    @Mapping(source = "location", target = "address.location")
+    @Mapping(source = "employeeCount", target = "openGroupUserCount")
+    OpenGroup toOpenGroup(GroupListDto.GroupInfoList groupDto) throws ParseException;
 
     default GroupListDto.GroupInfoList toGroupListDto(Group group, User managerUser) {
         GroupListDto.GroupInfoList groupInfoList = null;
@@ -188,6 +207,16 @@ public interface GroupMapper {
         groupInfoList.setMealInfos(mealInfoDtos);
 
         return groupInfoList;
+    }
+
+    default Group toEntity(GroupListDto.GroupInfoList groupDto) throws ParseException {
+        if(GroupDataType.ofCode(groupDto.getGroupType()).equals(GroupDataType.CORPORATION)) {
+            return toCorporation(groupDto);
+        }
+        if(GroupDataType.ofCode(groupDto.getGroupType()).equals(GroupDataType.OPEN_GROUP)) {
+            return toOpenGroup(groupDto);
+        }
+        return null;
     }
 
     default Group saveToEntity(GroupListDto.GroupInfoList groupInfoList, Address address) {
@@ -411,6 +440,7 @@ public interface GroupMapper {
     @Mapping(source = "zipCode", target = "address.zipCode")
     @Mapping(source = "address1", target = "address.address1")
     @Mapping(source = "address2", target = "address.address2")
+    @Mapping(target = "deliveryFeeOption", expression = "java(DeliveryFeeOption.ofString(groupDto.getDeliveryFeeOption()))")
     @Mapping(target = "mealInfos", ignore = true)
     void updateCorporation(GroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;
 }

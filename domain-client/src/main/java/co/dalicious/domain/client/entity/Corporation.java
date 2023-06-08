@@ -12,10 +12,7 @@ import co.dalicious.system.converter.IdListConverter;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import exception.CustomException;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -33,6 +30,7 @@ import java.util.List;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Setter
 @Table(name = "client__corporation")
 public class Corporation extends Group {
     @Comment("그룹 코드")
@@ -186,6 +184,13 @@ public class Corporation extends Group {
         else return null;
     }
 
+    public void setMembershipEndDate(LocalDate membershipEndDate) {
+        if (membershipEndDate != null && membershipEndDate.isBefore(LocalDate.now())) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000004", "멤버십 종료 날짜는 현재보다 이전 날짜로 설정할 수 없습니다");
+        }
+        this.membershipEndDate = membershipEndDate;
+    }
+
     public PrepaidCategory getPrepaidCategory(PaycheckCategoryItem paycheckCategoryItem) {
         if (this.prepaidCategories == null || this.prepaidCategories.isEmpty()) {
             return null;
@@ -220,9 +225,5 @@ public class Corporation extends Group {
 
     public void updatePrepaid(Boolean prepaid) {
         isPrepaid = prepaid;
-    }
-
-    public void setMembershipEndDate(LocalDate membershipEndDate) {
-        this.membershipEndDate = membershipEndDate;
     }
 }

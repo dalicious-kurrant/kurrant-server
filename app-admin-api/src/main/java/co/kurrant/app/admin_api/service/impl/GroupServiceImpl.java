@@ -138,7 +138,7 @@ public class GroupServiceImpl implements GroupService {
 
             // group 없으면
             if (group == null) {
-                Group newGroup = groupMapper.saveToEntity(groupInfoList, address);
+                Group newGroup = groupMapper.toEntity(groupInfoList);
                 newGroupList.add(newGroup);
 
                 List<DiningType> diningTypeList = newGroup.getDiningTypes();
