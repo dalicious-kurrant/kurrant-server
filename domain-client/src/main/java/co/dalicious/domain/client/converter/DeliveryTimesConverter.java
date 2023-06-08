@@ -21,7 +21,7 @@ public class DeliveryTimesConverter implements AttributeConverter<List<LocalTime
 
         StringBuilder sb = new StringBuilder();
         for (LocalTime deliveryTime : deliveryTimes) {
-            sb.append(deliveryTime).append(SEPARATOR);
+            sb.append(DateUtils.timeToString(deliveryTime)).append(SEPARATOR);
         }
 
         // remove the last separator

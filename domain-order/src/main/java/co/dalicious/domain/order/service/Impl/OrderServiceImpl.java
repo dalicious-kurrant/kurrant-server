@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.service.Impl;
 
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.event.MembershipDiscountEvent;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
@@ -12,6 +13,7 @@ import co.dalicious.domain.order.mapper.DailyFoodSupportPriceMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.DiscountPolicy;
 import co.dalicious.domain.order.service.OrderService;
+import co.dalicious.domain.order.util.OrderMembershipUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
@@ -30,6 +32,7 @@ import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipDiscountPolicyRepository;
 import co.dalicious.domain.user.repository.MembershipRepository;
+import co.dalicious.domain.user.repository.QMembershipRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
@@ -50,6 +53,7 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -80,238 +84,12 @@ public class OrderServiceImpl implements OrderService {
     private final MembershipDiscountEvent membershipDiscountEvent;
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final PointUtil pointUtil;
+    private final OrderMembershipUtil orderMembershipUtil;
+    private final QMembershipRepository qMembershipRepository;
     private final EntityManager entityManager;
     private final ConcurrentHashMap<User, Object> tossItemsLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<User, Object> tossItemLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<User, Object> niceItemsLocks = new ConcurrentHashMap<>();
-
-    @Override
-    @Transactional
-    public void cancelOrderDailyFood(OrderDailyFood order, User user) throws IOException, ParseException {
-        BigDecimal price = BigDecimal.ZERO;
-        BigDecimal deliveryFee = BigDecimal.ZERO;
-        BigDecimal point = BigDecimal.ZERO;
-
-        // 이전에 환불을 진행한 경우
-        List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
-
-        // 순차적으로 환불이 일어날 수 있도록, 유저의 중복 요청을 synchronized로 해결
-        synchronized (tossItemsLocks.computeIfAbsent(user, u -> new Object())) {
-
-            for (OrderItem orderItem : order.getOrderItems()) {
-                OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) Hibernate.unproxy(orderItem);
-                // 상태값이 이미 7L(취소)인지 확인
-                if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
-                    continue;
-                }
-
-                if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
-                    throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
-                }
-
-                BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories());
-
-                RefundPriceDto refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
-                price = price.add(refundPriceDto.getPrice());
-                deliveryFee = deliveryFee.add(refundPriceDto.getDeliveryFee());
-                point = point.add(refundPriceDto.getPoint());
-
-                if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
-                    List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
-                    for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
-                        dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
-                    }
-                    DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
-                    if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                        dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
-                    }
-                }
-
-                // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
-                if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0 || refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
-                    PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
-                    paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
-                    // 환불 포인트 내역 남기기
-                    pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
-                }
-                orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
-
-                if (refundPriceDto.getIsLastItemOfGroup()) {
-                    orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
-                }
-            }
-            user.updatePoint(user.getPoint().add(point));
-
-            // 결제 환불 금액이 0일 경우 토스페이를 거치지 않고 환불
-            if (price.compareTo(BigDecimal.ZERO) != 0) {
-                tossUtil.cardCancelOne(order.getPaymentKey(), "전체 주문 취소", price.intValue());
-            }
-
-        }
-    }
-
-    @Override
-    @Transactional
-    public void cancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException {
-        Order order = orderItemDailyFood.getOrder();
-        User orderUser = (User) Hibernate.unproxy(order.getUser());
-        synchronized (tossItemLocks.computeIfAbsent(user, u -> new Object())) {
-            if (!orderUser.equals(user)) {
-                throw new ApiException(ExceptionEnum.UNAUTHORIZED);
-            }
-
-            // 상태값이 이미 7L(취소)인지 확인
-            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
-                throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
-            }
-
-//        if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
-//            throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
-//        }
-
-            // 이전에 환불을 진행한 경우
-            List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
-
-            BigDecimal usedSupportPrice = orderItemDailyFood.getOrderItemDailyFoodGroup().getUsingSupportPrice();
-
-            RefundPriceDto refundPriceDto = null;
-
-            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉")) {
-                refundPriceDto = OrderUtil.getMedtronicRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
-            } else {
-                refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
-            }
-
-
-            if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
-                List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
-                for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
-                    dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
-                }
-                DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
-                if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
-                }
-            }
-
-            PaymentCancelHistory paymentCancelHistory = null;
-            // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
-            if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
-                paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
-                paymentCancelHistoryRepository.save(paymentCancelHistory);
-            }
-            // 결제 정보가 없지만 포인트 내역이 있다면
-            if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) == 0 && refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
-                paymentCancelHistory = orderUtil.cancelPointPaidOrderItemDailyFood(orderItemDailyFood, refundPriceDto);
-                paymentCancelHistoryRepository.save(paymentCancelHistory);
-            }
-
-            // 환불 포인트가 있으면
-            if (paymentCancelHistory != null && refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
-                // 환불 포인트 내역 남기기
-                pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
-            }
-
-            user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
-            orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
-
-            if (refundPriceDto.getIsLastItemOfGroup()) {
-                orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
-            }
-        }
-    }
-
-    @Override
-    public void payMembership(User user, MembershipSubscriptionType membershipSubscriptionType, PeriodDto periodDto, PaymentType paymentType) {
-        BigDecimal defaultPrice = membershipSubscriptionType.getPrice();
-        BigDecimal yearDescriptionDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, membershipSubscriptionType.getDiscountRate());
-        // 기간 할인 가격이 일치하는지 확인
-        BigDecimal periodDiscountPrice = BigDecimal.ZERO;
-        Integer periodDiscountRate = 0;
-        // 베스핀글로벌 멤버십 첫 결제 할인
-        if (membershipDiscountEvent.isBespinGlobal(user) && membershipSubscriptionType.equals(MembershipSubscriptionType.MONTH)) {
-            periodDiscountRate = 50;
-            periodDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, periodDiscountRate);
-        } else if (membershipDiscountEvent.isBespinGlobal(user) && membershipSubscriptionType.equals(MembershipSubscriptionType.YEAR)) {
-            periodDiscountRate = 30;
-            periodDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, periodDiscountRate);
-        }
-        BigDecimal totalPrice = defaultPrice.subtract(yearDescriptionDiscountPrice).subtract(periodDiscountPrice);
-
-        // 멤버십 등록
-        Membership membership = membershipRepository.save(orderMembershipMapper.toMembership(membershipSubscriptionType, user, periodDto));
-
-        // 연간 구독 구매자라면, 할인 정책 저장.
-        if (membershipSubscriptionType.equals(MembershipSubscriptionType.YEAR)) {
-            MembershipDiscountPolicy yearDescriptionDiscountPolicy = orderMembershipMapper.toMembershipDiscountPolicy(membership, DiscountType.YEAR_DESCRIPTION_DISCOUNT, MembershipSubscriptionType.YEAR.getDiscountRate());
-            membershipDiscountPolicyRepository.save(yearDescriptionDiscountPolicy);
-        }
-
-
-        // TODO: 할인 혜택을 가지고 있는 유저인지 확인 후 할인 정책 저장.
-        if (periodDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
-            MembershipDiscountPolicy periodDiscountPolicy = orderMembershipMapper.toMembershipDiscountPolicy(membership, DiscountType.PERIOD_DISCOUNT, periodDiscountRate);
-            membershipDiscountPolicyRepository.save(periodDiscountPolicy);
-        }
-
-        //카드정보 가져오기
-        Optional<CreditCardInfo> creditCardInfo = qCreditCardInfoRepository.findOneByUser(user);
-        if (creditCardInfo.isEmpty()) {
-            throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
-        }
-        CreditCardValidator.isValidCreditCard(creditCardInfo.get(), user);
-
-        // 멤버십 결제 요청
-        OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
-        OrderMembership order = orderMembershipRepository.save(orderMembershipMapper.toOrderMembership(orderUserInfoDto, creditCardInfo.get(), membershipSubscriptionType, BigDecimal.ZERO, totalPrice, paymentType, membership));
-
-        // 멤버십 결제 내역 등록(진행중 상태)
-        OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership, periodDiscountRate));
-
-        // 파운더스 확인
-        if (!foundersUtil.isFounders(user) && !foundersUtil.isOverFoundersLimit()) {
-            Founders founders = foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber() + 1);
-            foundersUtil.saveFounders(founders);
-        }
-
-        // 결제 진행. 실패시 오류 날림
-        BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
-
-        String customerKey = creditCardInfo.get().getCustomerKey();
-        String billingKey = creditCardInfo.get().getTossBillingKey();
-
-        try {
-            JSONObject payResult = tossUtil.payToCard(customerKey, totalPrice.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType(), billingKey);
-
-            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-            if (payResult.get("status").equals("DONE")) {
-                orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(price));
-                orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
-
-                //Order 테이블에 paymentKey와 receiptUrl 업데이트
-                JSONObject receipt = (JSONObject) payResult.get("receipt");
-                String receiptUrl = receipt.get("url").toString();
-
-                String paymentKey = (String) payResult.get("paymentKey");
-                order.updatePaymentKey(paymentKey);
-                order.updateReceiptUrl(receiptUrl);
-
-                order.updateOrderMembershipAfterPayment(receiptUrl, paymentKey, orderItemMembership.getOrder().getCode(), creditCardInfo.get());
-            }
-            // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
-            else {
-                orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
-                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-            }
-        } catch (ApiException e) {
-            orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
-            throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-        } catch (IOException | InterruptedException | ParseException e) {
-            throw new RuntimeException(e);
-        }
-        user.changeMembershipStatus(true);
-    }
-
     @Override
     @Transactional
     public void updateFailedMembershipPayment(Membership membership) {
@@ -348,6 +126,18 @@ public class OrderServiceImpl implements OrderService {
                 deliveryFee = deliveryFee.add(refundPriceDto.getDeliveryFee());
                 point = point.add(refundPriceDto.getPoint());
 
+                if (refundPriceDto.getIsLastItemOfGroup()) {
+                    orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
+                    if (user.getIsMembership() &&
+                            Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup()) instanceof Corporation corporation &&
+                            corporation.getIsMembershipSupport()) {
+                        Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
+                        if(orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
+                            orderMembershipUtil.refundCorporationMembership(membership);
+                        }
+                    }
+                }
+
                 if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
                     List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
                     for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
@@ -367,10 +157,6 @@ public class OrderServiceImpl implements OrderService {
                     pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
                 }
                 orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
-
-                if (refundPriceDto.getIsLastItemOfGroup()) {
-                    orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
-                }
             }
             user.updatePoint(user.getPoint().add(point));
 
@@ -428,6 +214,18 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
 
+            if (refundPriceDto.getIsLastItemOfGroup()) {
+                orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
+                if (user.getIsMembership() &&
+                        Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup()) instanceof Corporation corporation &&
+                        corporation.getIsMembershipSupport()) {
+                    Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
+                    if(orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
+                        orderMembershipUtil.refundCorporationMembership(membership);
+                    }
+                }
+            }
+
             PaymentCancelHistory paymentCancelHistory = null;
             // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
             if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
@@ -449,10 +247,6 @@ public class OrderServiceImpl implements OrderService {
 
             user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
             orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
-
-            if (refundPriceDto.getIsLastItemOfGroup()) {
-                orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
-            }
         }
     }
 
@@ -497,6 +291,20 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
 
+            if (refundPriceDto.getIsLastItemOfGroup()) {
+                if (user.getIsMembership() &&
+                        Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup()) instanceof Corporation corporation &&
+                        corporation.getIsMembershipSupport()) {
+                    Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
+                    if(orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
+                        orderMembershipUtil.refundCorporationMembership(membership);
+                    }
+                }
+                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
+                orderItemDailyFoodGroup.updateOrderStatus(OrderStatus.CANCELED);
+                orderItemDailyFoodGroupRepository.save(orderItemDailyFoodGroup);
+            }
+
             PaymentCancelHistory paymentCancelHistory = null;
             // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
             if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
@@ -520,12 +328,6 @@ public class OrderServiceImpl implements OrderService {
             userRepository.save(user);
             orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
             orderItemDailyFoodRepository.save(orderItemDailyFood);
-
-            if (refundPriceDto.getIsLastItemOfGroup()) {
-                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
-                orderItemDailyFoodGroup.updateOrderStatus(OrderStatus.CANCELED);
-                orderItemDailyFoodGroupRepository.save(orderItemDailyFoodGroup);
-            }
 
             entityManager.flush();
             entityManager.clear();
@@ -718,5 +520,235 @@ public class OrderServiceImpl implements OrderService {
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
         }
     }
+    
+    
+    
+    // FIXME: 토스 결제
+    @Override
+    @Transactional
+    public void cancelOrderDailyFood(OrderDailyFood order, User user) throws IOException, ParseException {
+        BigDecimal price = BigDecimal.ZERO;
+        BigDecimal deliveryFee = BigDecimal.ZERO;
+        BigDecimal point = BigDecimal.ZERO;
 
+        // 이전에 환불을 진행한 경우
+        List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
+
+        // 순차적으로 환불이 일어날 수 있도록, 유저의 중복 요청을 synchronized로 해결
+        synchronized (tossItemsLocks.computeIfAbsent(user, u -> new Object())) {
+
+            for (OrderItem orderItem : order.getOrderItems()) {
+                OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) Hibernate.unproxy(orderItem);
+                // 상태값이 이미 7L(취소)인지 확인
+                if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
+                    continue;
+                }
+
+                if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+                    throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
+                }
+
+                BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories());
+
+                RefundPriceDto refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+                price = price.add(refundPriceDto.getPrice());
+                deliveryFee = deliveryFee.add(refundPriceDto.getDeliveryFee());
+                point = point.add(refundPriceDto.getPoint());
+
+                if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
+                    List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
+                    for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
+                        dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
+                    }
+                    DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+                    if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
+                        dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
+                    }
+                }
+
+                // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
+                if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0 || refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
+                    PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(orderItemDailyFood, refundPriceDto, paymentCancelHistories);
+                    paymentCancelHistories.add(paymentCancelHistoryRepository.save(paymentCancelHistory));
+                    // 환불 포인트 내역 남기기
+                    pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
+                }
+                orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
+
+                if (refundPriceDto.getIsLastItemOfGroup()) {
+                    orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
+                }
+            }
+            user.updatePoint(user.getPoint().add(point));
+
+            // 결제 환불 금액이 0일 경우 토스페이를 거치지 않고 환불
+            if (price.compareTo(BigDecimal.ZERO) != 0) {
+                tossUtil.cardCancelOne(order.getPaymentKey(), "전체 주문 취소", price.intValue());
+            }
+
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException {
+        Order order = orderItemDailyFood.getOrder();
+        User orderUser = (User) Hibernate.unproxy(order.getUser());
+        synchronized (tossItemLocks.computeIfAbsent(user, u -> new Object())) {
+            if (!orderUser.equals(user)) {
+                throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+            }
+
+            // 상태값이 이미 7L(취소)인지 확인
+            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || orderItemDailyFood.getOrderItemDailyFoodGroup().getOrderStatus().equals(OrderStatus.CANCELED)) {
+                throw new ApiException(ExceptionEnum.DUPLICATE_CANCELLATION_REQUEST);
+            }
+
+            if (orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.STOP_SALE) || orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.PASS_LAST_ORDER_TIME)) {
+                throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
+            }
+
+            // 이전에 환불을 진행한 경우
+            List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
+
+            BigDecimal usedSupportPrice = orderItemDailyFood.getOrderItemDailyFoodGroup().getUsingSupportPrice();
+
+            RefundPriceDto refundPriceDto = null;
+
+            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉")) {
+                refundPriceDto = OrderUtil.getMedtronicRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+            } else {
+                refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+            }
+
+
+            if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
+                List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
+                for (DailyFoodSupportPrice dailyFoodSupportPrice : userSupportPriceHistories) {
+                    dailyFoodSupportPrice.updateMonetaryStatus(MonetaryStatus.REFUND);
+                }
+                DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
+                if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
+                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
+                }
+            }
+
+            PaymentCancelHistory paymentCancelHistory = null;
+            // 결제 정보가 없을 경우 -> 환불 요청 필요 없음.
+            if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) != 0) {
+                paymentCancelHistory = orderUtil.cancelOrderItemDailyFood(order.getPaymentKey(), "주문 마감 전 주문 취소", orderItemDailyFood, refundPriceDto);
+                paymentCancelHistoryRepository.save(paymentCancelHistory);
+            }
+            // 결제 정보가 없지만 포인트 내역이 있다면
+            if (refundPriceDto.getPrice().compareTo(BigDecimal.ZERO) == 0 && refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
+                paymentCancelHistory = orderUtil.cancelPointPaidOrderItemDailyFood(orderItemDailyFood, refundPriceDto);
+                paymentCancelHistoryRepository.save(paymentCancelHistory);
+            }
+
+            // 환불 포인트가 있으면
+            if (paymentCancelHistory != null && refundPriceDto.getPoint().compareTo(BigDecimal.ZERO) != 0) {
+                // 환불 포인트 내역 남기기
+                pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
+            }
+
+            user.updatePoint(user.getPoint().add(refundPriceDto.getPoint()));
+            orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
+
+            if (refundPriceDto.getIsLastItemOfGroup()) {
+                orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
+            }
+        }
+    }
+
+    @Override
+    public void payMembership(User user, MembershipSubscriptionType membershipSubscriptionType, PeriodDto periodDto, PaymentType paymentType) {
+        BigDecimal defaultPrice = membershipSubscriptionType.getPrice();
+        BigDecimal yearDescriptionDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, membershipSubscriptionType.getDiscountRate());
+        // 기간 할인 가격이 일치하는지 확인
+        BigDecimal periodDiscountPrice = BigDecimal.ZERO;
+        Integer periodDiscountRate = 0;
+        // 베스핀글로벌 멤버십 첫 결제 할인
+        if (membershipDiscountEvent.isBespinGlobal(user) && membershipSubscriptionType.equals(MembershipSubscriptionType.MONTH)) {
+            periodDiscountRate = 50;
+            periodDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, periodDiscountRate);
+        } else if (membershipDiscountEvent.isBespinGlobal(user) && membershipSubscriptionType.equals(MembershipSubscriptionType.YEAR)) {
+            periodDiscountRate = 30;
+            periodDiscountPrice = OrderUtil.discountPriceByRate(defaultPrice, periodDiscountRate);
+        }
+        BigDecimal totalPrice = defaultPrice.subtract(yearDescriptionDiscountPrice).subtract(periodDiscountPrice);
+
+        // 멤버십 등록
+        Membership membership = membershipRepository.save(orderMembershipMapper.toMembership(membershipSubscriptionType, user, periodDto));
+
+        // 연간 구독 구매자라면, 할인 정책 저장.
+        if (membershipSubscriptionType.equals(MembershipSubscriptionType.YEAR)) {
+            MembershipDiscountPolicy yearDescriptionDiscountPolicy = orderMembershipMapper.toMembershipDiscountPolicy(membership, DiscountType.YEAR_DESCRIPTION_DISCOUNT, MembershipSubscriptionType.YEAR.getDiscountRate());
+            membershipDiscountPolicyRepository.save(yearDescriptionDiscountPolicy);
+        }
+
+
+        // TODO: 할인 혜택을 가지고 있는 유저인지 확인 후 할인 정책 저장.
+        if (periodDiscountPrice.compareTo(BigDecimal.ZERO) > 0) {
+            MembershipDiscountPolicy periodDiscountPolicy = orderMembershipMapper.toMembershipDiscountPolicy(membership, DiscountType.PERIOD_DISCOUNT, periodDiscountRate);
+            membershipDiscountPolicyRepository.save(periodDiscountPolicy);
+        }
+
+        //카드정보 가져오기
+        Optional<CreditCardInfo> creditCardInfo = qCreditCardInfoRepository.findOneByUser(user);
+        if (creditCardInfo.isEmpty()) {
+            throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
+        }
+        CreditCardValidator.isValidCreditCard(creditCardInfo.get(), user);
+
+        // 멤버십 결제 요청
+        OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
+        OrderMembership order = orderMembershipRepository.save(orderMembershipMapper.toOrderMembership(orderUserInfoDto, creditCardInfo.get(), membershipSubscriptionType, BigDecimal.ZERO, totalPrice, paymentType, membership));
+
+        // 멤버십 결제 내역 등록(진행중 상태)
+        OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership, periodDiscountRate));
+
+        // 파운더스 확인
+        if (!foundersUtil.isFounders(user) && !foundersUtil.isOverFoundersLimit()) {
+            Founders founders = foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber() + 1);
+            foundersUtil.saveFounders(founders);
+        }
+
+        // 결제 진행. 실패시 오류 날림
+        BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
+
+        String customerKey = creditCardInfo.get().getCustomerKey();
+        String billingKey = creditCardInfo.get().getTossBillingKey();
+
+        try {
+            JSONObject payResult = tossUtil.payToCard(customerKey, totalPrice.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType(), billingKey);
+
+            // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
+            if (payResult.get("status").equals("DONE")) {
+                orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(price));
+                orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
+
+                //Order 테이블에 paymentKey와 receiptUrl 업데이트
+                JSONObject receipt = (JSONObject) payResult.get("receipt");
+                String receiptUrl = receipt.get("url").toString();
+
+                String paymentKey = (String) payResult.get("paymentKey");
+                order.updatePaymentKey(paymentKey);
+                order.updateReceiptUrl(receiptUrl);
+
+                order.updateOrderMembershipAfterPayment(receiptUrl, paymentKey, orderItemMembership.getOrder().getCode(), creditCardInfo.get());
+            }
+            // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(3)로 변경
+            else {
+                orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
+                throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+            }
+        } catch (ApiException e) {
+            orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
+            throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
+        } catch (IOException | InterruptedException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+        user.changeMembershipStatus(true);
+    }
+    
 }

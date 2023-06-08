@@ -20,7 +20,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
-import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -29,7 +28,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @DynamicInsert
@@ -235,7 +233,11 @@ public class Food {
     }
 
     public void updateFoodGroup(FoodGroup foodGroup) {
-        if(!this.makers.equals(foodGroup.getMakers()))
+        if (foodGroup == null) {
+            this.foodGroup = null;
+            return;
+        }
+        if (!this.makers.equals(foodGroup.getMakers()))
             throw new ApiException(ExceptionEnum.NOT_MATCHED_MAKERS);
         this.foodGroup = foodGroup;
     }

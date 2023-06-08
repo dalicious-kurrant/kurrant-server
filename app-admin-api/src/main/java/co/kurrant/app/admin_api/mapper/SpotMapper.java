@@ -25,6 +25,7 @@ import org.mapstruct.Named;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.time.LocalTime;
 import java.util.*;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Address.class, Group.class, MealInfo.class})
@@ -44,19 +45,19 @@ public interface SpotMapper {
         spotResponseDto.setLocation(getLocation(spot.getAddress().getLocation()));
 
         spotResponseDto.setBreakfastLastOrderTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DayAndTime.dayAndTimeToString(spot.getMealInfo(DiningType.MORNING).getLastOrderTime()));
-        spotResponseDto.setBreakfastDeliveryTime(spot.getMealInfo(DiningType.MORNING) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.MORNING).getDeliveryTime()));
+        spotResponseDto.setBreakfastDeliveryTime(spot.getMealInfo(DiningType.MORNING) == null ? null : deliveryTimeToString(spot.getMealInfo(DiningType.MORNING).getDeliveryTimes()));
         spotResponseDto.setBreakfastUseDays(spot.getMealInfo(DiningType.MORNING) == null ? null : DaysUtil.serviceDaysToDaysString(spot.getMealInfo(DiningType.MORNING).getServiceDays()));
         spotResponseDto.setBreakfastSupportPrice(BigDecimal.ZERO);
         spotResponseDto.setBreakfastMembershipBenefitTime(spot.getMealInfo(DiningType.MORNING) == null ? null : spot.getMealInfo(DiningType.MORNING).dayAndTimeToString());
 
         spotResponseDto.setLunchLastOrderTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DayAndTime.dayAndTimeToString(spot.getMealInfo(DiningType.LUNCH).getLastOrderTime()));
-        spotResponseDto.setLunchDeliveryTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.LUNCH).getDeliveryTime()));
+        spotResponseDto.setLunchDeliveryTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : deliveryTimeToString(spot.getMealInfo(DiningType.LUNCH).getDeliveryTimes()));
         spotResponseDto.setLunchUseDays(spot.getMealInfo(DiningType.LUNCH) == null ? null : DaysUtil.serviceDaysToDaysString(spot.getMealInfo(DiningType.LUNCH).getServiceDays()));
         spotResponseDto.setLunchSupportPrice(BigDecimal.ZERO);
         spotResponseDto.setLunchMembershipBenefitTime(spot.getMealInfo(DiningType.LUNCH) == null ? null : spot.getMealInfo(DiningType.LUNCH).dayAndTimeToString());
 
         spotResponseDto.setDinnerLastOrderTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DayAndTime.dayAndTimeToString(spot.getMealInfo(DiningType.DINNER).getLastOrderTime()));
-        spotResponseDto.setDinnerDeliveryTime(spot.getMealInfo(DiningType.DINNER) == null ? null : DateUtils.timeToString(spot.getMealInfo(DiningType.DINNER).getDeliveryTime()));
+        spotResponseDto.setDinnerDeliveryTime(spot.getMealInfo(DiningType.DINNER) == null ? null : deliveryTimeToString(spot.getMealInfo(DiningType.DINNER).getDeliveryTimes()));
         spotResponseDto.setDinnerUseDays(spot.getMealInfo(DiningType.DINNER) == null ? null : DaysUtil.serviceDaysToDaysString(spot.getMealInfo(DiningType.DINNER).getServiceDays()));
         spotResponseDto.setDinnerSupportPrice(BigDecimal.ZERO);
         spotResponseDto.setDinnerMembershipBenefitTime((spot.getMealInfo(DiningType.DINNER) == null ? null : spot.getMealInfo(DiningType.DINNER).dayAndTimeToString()));
@@ -82,31 +83,30 @@ public interface SpotMapper {
         if (lastOrderTime == null || deliveryTime == null || useDays == null) {
             return null;
         }
+
+        String[] deliveryTimeStrArr = deliveryTime.split(",|, ");
+        List<LocalTime> deliveryTimes = new ArrayList<>();
+
+        for (String deliveryTimeStr : deliveryTimeStrArr ) {
+            deliveryTimes.add(DateUtils.stringToLocalTime(deliveryTimeStr));
+        }
+
         // 기업 스팟인 경우
         if (group instanceof Corporation corporation) {
             return CorporationMealInfo.builder()
                     .group(corporation)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .deliveryTimes(deliveryTimes)
                     .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
-                    .build();
-        } else if (group instanceof Apartment apartment) {
-            return ApartmentMealInfo.builder()
-                    .group(apartment)
-                    .diningType(diningType)
-                    .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
-                    .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
-                    .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .build();
         } else if (group instanceof OpenGroup openGroup) {
             return OpenGroupMealInfo.builder()
                     .group(openGroup)
                     .diningType(diningType)
                     .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryTime(DateUtils.stringToLocalTime(deliveryTime))
+                    .deliveryTimes(deliveryTimes)
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .build();
@@ -154,8 +154,6 @@ public interface SpotMapper {
         //TODO: Location 생성
         String location = spotInfo.getLocation();
         Address address = new Address(spotInfo.getZipCode(), spotInfo.getAddress1(), spotInfo.getAddress2(), location);
-        if (group instanceof Apartment)
-            return new ApartmentSpot(spotInfo.getSpotName(), address, diningTypes, group, spotInfo.getMemo());
         if (group instanceof Corporation)
             return new CorporationSpot(spotInfo.getSpotName(), address, diningTypes, group, spotInfo.getMemo());
         return null;
@@ -165,25 +163,6 @@ public interface SpotMapper {
     default Group generatedGroup(BigInteger groupId) {
         return new Group(groupId);
     }
-
-    @Mapping(source = "group.name", target = "name")
-    @Mapping(source = "group.address", target = "address")
-    @Mapping(source = "group.diningTypes", target = "diningTypes")
-    @Mapping(source = "group", target = "group")
-    CorporationSpot toCorporationSpotEntity(Group group);
-
-    @Mapping(source = "group.name", target = "name")
-    @Mapping(source = "group.address", target = "address")
-    @Mapping(source = "group.diningTypes", target = "diningTypes")
-    @Mapping(source = "group", target = "group")
-    ApartmentSpot toApartmentSpotEntity(Group group);
-
-    @Mapping(source = "group.name", target = "name")
-    @Mapping(source = "group.address", target = "address")
-    @Mapping(source = "group.diningTypes", target = "diningTypes")
-    @Mapping(source = "group", target = "group")
-    OpenGroupSpot toOpenGroupSpotEntity(Group group);
-
 
     default UpdateSpotDetailResponseDto toDetailDto(Group group, User manager, List<MealInfo> mealInfoList) {
         UpdateSpotDetailResponseDto spotDetailResDto = new UpdateSpotDetailResponseDto();
@@ -231,8 +210,6 @@ public interface SpotMapper {
                 spotDetailResDto.setMaxPrice(corporation.getMaximumSpend());
         } else if (group instanceof OpenGroup) {
             spotDetailResDto.setSpotType("OpenGroup");
-        } else if (group instanceof Apartment) {
-            spotDetailResDto.setSpotType("Apartment");
         } else {
             spotDetailResDto.setSpotType("없음");
         }
@@ -301,6 +278,15 @@ public interface SpotMapper {
         return prepaidCategoryDtos.stream()
                 .map(this::toPrepaidCategory)
                 .toList();
+    }
+
+    default String deliveryTimeToString(List<LocalTime> deliveryTimeList) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(LocalTime deliveryTime : deliveryTimeList) {
+            stringBuilder.append(DateUtils.timeToString(deliveryTime)).append(", ");
+        }
+        return stringBuilder.substring(0, stringBuilder.length() - 2);
     }
 }
 

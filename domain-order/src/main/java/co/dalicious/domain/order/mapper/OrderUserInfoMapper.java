@@ -16,7 +16,6 @@ import java.util.List;
 public interface OrderUserInfoMapper {
     @Mapping(source = "userSpots", target = "groupName", qualifiedByName = "getDefaultGroupName")
     @Mapping(source = "userSpots", target = "spotName", qualifiedByName = "getDefaultSpotName")
-    @Mapping(source = "userSpots", target = "ho", qualifiedByName = "getHo")
     @Mapping(source = "userSpots", target = "address", qualifiedByName = "getAddress")
     @Mapping(target = "user", qualifiedByName = "setUser")
     OrderUserInfoDto toDto(User user);
@@ -45,20 +44,6 @@ public interface OrderUserInfoMapper {
         }
         if (userDefaultSpot != null) {
             return userDefaultSpot.getSpot().getName();
-        }
-        throw new ApiException(ExceptionEnum.SPOT_NOT_FOUND);
-    }
-
-    @Named("getHo")
-    default Integer getHo(List<UserSpot> userSpots) {
-        UserSpot userDefaultSpot = null;
-        for (UserSpot userSpot : userSpots) {
-            if (userSpot.getIsDefault()) {
-                userDefaultSpot = userSpot;
-            }
-        }
-        if (userDefaultSpot != null) {
-            return userDefaultSpot.getHo();
         }
         throw new ApiException(ExceptionEnum.SPOT_NOT_FOUND);
     }

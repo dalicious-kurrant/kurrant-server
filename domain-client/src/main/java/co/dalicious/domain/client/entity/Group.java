@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -81,6 +82,9 @@ public class Group {
     @Comment("스팟 리스트")
     List<Spot> spots;
 
+    @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
+    List<Department> departments;
+
     @Comment("메모")
     @Column(name="memo", columnDefinition = "text")
     private String memo;
@@ -140,5 +144,39 @@ public class Group {
         this.isActive = spotResponseDto.getIsActive();
         this.name = spotResponseDto.getSpotName();
         this.address = address;
+    }
+
+    public void updateGroup(List<DiningType> diningTypes, String name, String memo) {
+        this.diningTypes = diningTypes;
+        this.name = name;
+        this.memo = memo;
+    }
+
+    public void updateIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public void setAddress(Address address){
+        this.address = address;
+    }
+
+    public void setDiningTypes(List<DiningType> diningTypes) {
+        this.diningTypes = diningTypes;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public void setContractStartDate(LocalDate contractStartDate) {
+        this.contractStartDate = contractStartDate;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
     }
 }

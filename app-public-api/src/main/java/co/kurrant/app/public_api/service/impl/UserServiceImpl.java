@@ -7,12 +7,15 @@ import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
+import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.OpenGroup;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
@@ -26,8 +29,10 @@ import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.user.dto.*;
+import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
+import co.dalicious.domain.user.mapper.DailyReportMapper;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
 import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
 import co.dalicious.domain.user.repository.*;
@@ -35,12 +40,15 @@ import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
+import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
-import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.public_api.dto.board.AlarmResponseDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
+import co.kurrant.app.public_api.dto.order.OrderItemDailyFoodToDailyReportDto;
 import co.kurrant.app.public_api.dto.user.*;
+import co.kurrant.app.public_api.mapper.DailyReport.OrderItemDailyFoodDailyReportMapper;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -85,8 +93,6 @@ public class UserServiceImpl implements UserService {
     private final UserGroupRepository userGroupRepository;
     private final UserHomeInfoMapper userHomeInfoMapper;
     private final UserPersonalInfoMapper userPersonalInfoMapper;
-    private final GroupResponseMapper groupResponseMapper;
-    private final GroupRepository groupRepository;
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
     private final CreditCardInfoMapper creditCardInfoMapper;
@@ -105,6 +111,14 @@ public class UserServiceImpl implements UserService {
     private final UserSelectTestDataRepository userSelectTestDataRepository;
     private final UserSelectTestDataMapper userSelectTestDataMapper;
     private final PushAlarmHashRepository pushAlarmHashRepository;
+    private final DailyReportMapper dailyReportMapper;
+    private final DailyReportRepository dailyReportRepository;
+    private final QDailyReportRepository qDailyReportRepository;
+    private final OrderItemDailyFoodDailyReportMapper orderItemDailyFoodDailyReportMapper;
+    private final UserGroupMapper userGroupMapper;
+    private final QMySpotRepository qMySpotRepository;
+    private final QGroupRepository qGroupRepository;
+
 
     @Override
     @Transactional
@@ -301,47 +315,6 @@ public class UserServiceImpl implements UserService {
         providerEmailRepository.save(providerEmail);
     }
 
-//    @Override
-//    @Transactional
-//    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
-//        // 유저 정보 가져오기
-//        User user = userUtil.getUser(securityUser);
-//        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
-//        return MarketingAlarmResponseDto.builder()
-//                .marketingAgree(user.getMarketingAgree())
-//                .orderAlarm(user.getOrderAlarm())
-//                .marketingAlarm(user.getMarketingAlarm())
-//                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
-//                .build();
-//    }
-//
-//
-//    @Override
-//    @Transactional
-//    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
-//            // 유저 정보 가져오기
-//            User user = userUtil.getUser(securityUser);
-//            Boolean currantMarketingInfoAgree = user.getMarketingAgree();
-//            Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
-//            Boolean currantOrderAlarmAgree = user.getOrderAlarm();
-//
-//            // 현재 시간 가져오기
-//            Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-//
-//            // 변수 설정
-//            Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
-//            Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
-//            Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
-//
-//            user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
-//
-//            return MarketingAlarmResponseDto.builder()
-//                    .marketingAgree(currantMarketingInfoAgree)
-//                    .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
-//                    .marketingAlarm(currantMarketingAlarmAgree)
-//                    .orderAlarm(currantOrderAlarmAgree)
-//                    .build();
-//        }
 
     @Override
     @Transactional
@@ -416,7 +389,7 @@ public class UserServiceImpl implements UserService {
                 if (mealInfo.isEmpty()) {
                     throw new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO);
                 }
-                LocalTime deliveryTime = mealInfo.get().getDeliveryTime();
+                LocalTime deliveryTime = orderItemDailyFood.getOrderItemDailyFoodGroup().getDeliveryTime();
                 if (LocalTime.now().isAfter(deliveryTime)) {
                     continue;
                 }
@@ -436,10 +409,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void settingGroup(SecurityUser securityUser, BigInteger groupId) {
+    public void settingOpenGroup(SecurityUser securityUser, BigInteger groupId) {
         User user = userUtil.getUser(securityUser);
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        Group group = qGroupRepository.findGroupByTypeAndId(groupId, GroupDataType.OPEN_GROUP);
+        if(group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
+
         List<UserGroup> userGroups = user.getGroups();
 
         // TODO: 그룹 슬롯 증가의 경우 반영 필요
@@ -460,20 +434,18 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ExceptionEnum.ALREADY_EXISTING_GROUP);
         }
 
-        UserGroup userCorporation = UserGroup.builder()
-                .clientStatus(ClientStatus.BELONG)
-                .user(user)
-                .group(group)
-                .build();
+        UserGroup userCorporation = userGroupMapper.toUserGroup(user, group);
         userGroupRepository.save(userCorporation);
     }
 
     @Override
     @Transactional
-    public List<SpotListResponseDto> getClients(SecurityUser securityUser) {
+    public GroupCountDto getClients(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
         // 그룹/스팟 정보 가져오기
         List<UserGroup> userGroups = user.getGroups();
+        // 유저가 마이스팟을 가졌다면 가져오기
+        List<MySpot> mySpotList = qMySpotRepository.findMySpotByUser(user);
         // 그룹/스팟 리스트를 담아줄 Dto 생성하기
         List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
         // 그룹 추가
@@ -481,10 +453,11 @@ public class UserServiceImpl implements UserService {
             // 현재 활성화된 유저 그룹일 경우만 가져오기
             if (userGroup.getClientStatus() == ClientStatus.BELONG) {
                 Group group = userGroup.getGroup();
-                spotListResponseDtoList.add(groupResponseMapper.toDto(group));
+                SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(group, mySpotList);
+                spotListResponseDtoList.add(spotListResponseDto);
             }
         }
-        return spotListResponseDtoList;
+        return userGroupMapper.toGroupCountDto(spotListResponseDtoList);
     }
 
     @Override
@@ -1079,5 +1052,110 @@ public class UserServiceImpl implements UserService {
             alarmResponseDtos.add(new PushResponseDto(pushAlarmHash));
         }
         return alarmResponseDtos;
+    }
+
+    @Override
+    @Transactional
+    public void insertMyFood(SecurityUser securityUser, SaveDailyReportDto saveDailyReportDto) {
+        User user = userUtil.getUser(securityUser);
+
+        String type = "user";
+        String title = user.getName() + "님의 식사";
+        DailyReport dailyReport = dailyReportMapper.toEntity(user, saveDailyReportDto, type, title);
+
+        DailyReport saved = dailyReportRepository.save(dailyReport);
+        if (saved.getId() == null){
+            throw new ApiException(ExceptionEnum.SAVE_FAILED);
+        }
+
+    }
+
+    @Override
+    public Object getReport(SecurityUser securityUser, String date) {
+
+        User user = userUtil.getUser(securityUser);
+
+        List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDate(user.getId(), date);
+
+        if (dailyReportList.isEmpty()){
+            return "식단 리포트가 없습니다.";
+        }
+
+        List<FindDailyReportResDto> resDtoArrayList = new ArrayList<>();
+        DailyReportResDto result = new DailyReportResDto();
+        for (DailyReport dailyReport : dailyReportList){
+            FindDailyReportResDto findDailyReportDto = dailyReportMapper.toFindDailyReportDto(dailyReport);
+            resDtoArrayList.add(findDailyReportDto);
+        }
+        result.setDailyReportResDtoList(resDtoArrayList);
+        int n = 0;
+        result.setTotalCalorie(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getCalorie())).mapToInt(Integer::intValue).sum());
+        result.setTotalCarbohydrate(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getCarbohydrate())).mapToInt(Integer::intValue).sum());
+        result.setTotalFat(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getFat())).mapToInt(Integer::intValue).sum());
+        result.setTotalProtein(resDtoArrayList.stream().map(v -> Math.addExact(n, v.getProtein())).mapToInt(Integer::intValue).sum());
+
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void saveDailyReportFood(SaveDailyReportFoodReqDto dto) {
+        User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+
+        //해당 날짜에 주문한 내역을 불러오기
+        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllUserIdAndDate(user.getId(), LocalDate.parse(dto.getStartDate()), LocalDate.parse(dto.getEndDate()));
+
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
+            //매핑 후 저장
+            String imageLocation = null;
+            if (!orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty()){
+                imageLocation = orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation();
+            }
+            OrderItemDailyFoodToDailyReportDto dailyReportDto = orderItemDailyFoodDailyReportMapper.toDailyReportDto(orderItemDailyFood, imageLocation);
+            DailyReport dailyReport = dailyReportMapper.toEntityByOrderItemDailyFood(user, dailyReportDto,  "order");
+            dailyReportRepository.save(dailyReport);
+        }
+    }
+
+    @Override
+    @Transactional
+    public String deleteReport(SecurityUser securityUser, BigInteger reportId) {
+        User user = userUtil.getUser(securityUser);
+
+        long deleteResult = qDailyReportRepository.deleteReport(user.getId(), reportId);
+        if (deleteResult == 0) return "제거에 실패헸습니다.";
+
+        return "제거에 성공했습니다.";
+    }
+
+    @Override
+    public Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType) {
+
+        User user = userUtil.getUser(securityUser);
+
+        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByDateAndDiningType(user.getId(), date, diningType);
+
+        if (orderItemDailyFoodList.isEmpty()) return "해당 날짜에 주문 내역이 없습니다.";
+
+        List<OrderByDateAndDiningTypeResDto> resultList = new ArrayList<>();
+
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
+            String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
+            String location = null;
+            if (!orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty()) location = orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation();
+            OrderByDateAndDiningTypeResDto orderByDateDto = orderItemDailyFoodDailyReportMapper.toOrderByDateDto(orderItemDailyFood, location, spotName);
+            resultList.add(orderByDateDto);
+        }
+
+        return resultList;
+    }
+
+    @Override
+    public void allChangeAlarmSetting(SecurityUser securityUser, Boolean isActive) {
+        User user = userUtil.getUser(securityUser);
+
+        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
+
+        user.updatePushCondition(pushConditionList);
     }
 }

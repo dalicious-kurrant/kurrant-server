@@ -23,6 +23,7 @@ public interface OrderDailyFoodItemMapper {
     @Mapping(source = "cartDailyFoodDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "cartDailyFoodDto.periodDiscountRate", target = "periodDiscountRate")
     @Mapping(source = "orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
+    @Mapping(source = "cartDailyFood.deliveryTime", target = "deliveryTime")
     OrderItemDailyFood dtoToOrderItemDailyFood(CartDailyFoodDto.DailyFood cartDailyFoodDto, CartDailyFood cartDailyFood, Order order, OrderItemDailyFoodGroup orderItemDailyFoodGroup);
 
 
@@ -31,4 +32,5 @@ public interface OrderDailyFoodItemMapper {
     @Mapping(target = "diningType", expression = "java(DiningType.ofString(cartDailyFoodDto.getDiningType()))")
     @Mapping(source = "deliveryFee", target = "deliveryFee")
     OrderItemDailyFoodGroup dtoToOrderItemDailyFoodGroup(CartDailyFoodDto cartDailyFoodDto);
+
 }

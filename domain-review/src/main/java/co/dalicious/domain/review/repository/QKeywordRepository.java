@@ -21,7 +21,8 @@ public class QKeywordRepository {
     public List<String> findAllByFoodId(BigInteger foodId) {
         return queryFactory.select(keyword.name)
                 .from(keyword)
-                .where(keyword.food.id.eq(foodId))
+                .where(keyword.food.id.eq(foodId),
+                        keyword.count.ne(0))
                 .orderBy(keyword.count.desc())
                 .fetch();
     }

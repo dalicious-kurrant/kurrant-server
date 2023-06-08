@@ -11,10 +11,8 @@ import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.client.repository.ApartmentRepository;
-import co.dalicious.domain.client.repository.CorporationRepository;
-import co.dalicious.domain.client.repository.GroupRepository;
-import co.dalicious.domain.client.repository.QSpotRepository;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
@@ -37,9 +35,11 @@ import co.dalicious.domain.order.util.OrderMembershipUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
+import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.*;
+import co.dalicious.domain.user.repository.QMembershipRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
@@ -80,8 +80,6 @@ import java.util.stream.Collectors;
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final GroupRepository groupRepository;
-    private final ApartmentRepository apartmentRepository;
-    private final CorporationRepository corporationRepository;
     private final GroupMapper groupMapper;
     private final OrderMapper orderMapper;
     private final MakersMapper makersMapper;
@@ -108,10 +106,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PushUtil pushUtil;
     private final OrderMembershipUtil orderMembershipUtil;
     private final PushService pushService;
+    private final QMembershipRepository qMembershipRepository;
+    private final QGroupRepository qGroupRepository;
 
     @Override
     @Transactional
-    public List<OrderDto.OrderItemDailyFoodList> retrieveOrder(Map<String, Object> parameters) {
+    public List<OrderDto.OrderItemDailyFoodGroupList> retrieveOrder(Map<String, Object> parameters) {
         LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
         BigInteger groupId = !parameters.containsKey("group") || parameters.get("group").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("group")));
@@ -128,8 +128,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         OrderStatus orderStatus = status == null ? null : OrderStatus.ofCode(status);
 
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, group, spotIds, diningTypeCode, userId, makers, orderStatus);
+        List<Membership> memberships = qMembershipRepository.findAllByFilter(startDate, endDate, group, userId);
 
-        return orderMapper.ToDtoByGroup(orderItemDailyFoods);
+        return orderMapper.toOrderItemDailyFoodGroupList(orderItemDailyFoods, memberships);
     }
 
     @Override
@@ -161,10 +162,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<? extends Group> groups = new ArrayList<>();
         if (clientType == null) {
             groups = groupRepository.findAll();
-        } else if (ClientType.ofCode(clientType) == ClientType.APARTMENT) {
-            groups = apartmentRepository.findAll();
+        } else if (ClientType.ofCode(clientType) == ClientType.OPEN_GROUP) {
+            groups = qGroupRepository.findGroupByType(GroupDataType.OPEN_GROUP);
         } else if (ClientType.ofCode(clientType) == ClientType.CORPORATION) {
-            groups = corporationRepository.findAll();
+            groups = qGroupRepository.findGroupByType(GroupDataType.CORPORATION);
         }
 
         return groupMapper.groupsToDtos(groups);
@@ -215,11 +216,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             optionalUser.ifPresent(user -> userPhoneNumber.add(user.getPhone()));
 
             // 배송완료 푸시 알림 전송 및 멤버십 추가
-            if (OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
+            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.DELIVERED) && OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
                 // 멤버십 추가
                 User user = orderItemDailyFood.getOrder().getUser();
                 Group group = (Group) Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup());
-                if (group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
                     orderMembershipUtil.joinCorporationMembership(user, corporation);
                 }
 

@@ -25,6 +25,7 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
 
     private boolean isAdminRequest() {
         Integer currentPort = RequestContextHolder.getCurrentPort();
+        System.out.println("currentPort = " + currentPort);
         return currentPort != null && currentPort == ADMIN_PORT;
     }
 
@@ -43,6 +44,12 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
         for (int i = 0; i < properties.length; i++) {
             if (!Objects.equals(oldState[i], newState[i]) && !properties[i].equals("updatedDateTime")) {
                 if (oldState[i] instanceof Collection<?> oldCollection && newState[i] instanceof Collection<?> newCollection) {
+                    if (!oldCollection.equals(newCollection)) {
+                        String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 값이 " + '"' + oldCollection + '"' + "에서 " + '"' + newCollection + '"' + "로 변경.";
+                        logs.add(logEntry);
+                        System.out.println(logEntry);
+                        continue;
+                    }
 
                     Iterator<?> oldIterator = oldCollection.iterator();
                     Iterator<?> newIterator = newCollection.iterator();
@@ -54,8 +61,8 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
                         Field[] fields = oldElement.getClass().getDeclaredFields();
 
                         for (Field field : fields) {
-                            field.setAccessible(true);
                             try {
+                                field.setAccessible(true);
                                 Object oldValue = field.get(oldElement);
                                 Object newValue = field.get(newElement);
 
@@ -75,7 +82,9 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
                                     logs.add(logEntry);
                                     System.out.println(logEntry);
                                 }
-                            }  catch (IllegalAccessException e) {
+                                // Your existing logic here...
+
+                            } catch (IllegalAccessException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -107,7 +116,7 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
                                 logs.add(logEntry);
                                 System.out.println(logEntry);
                             }
-                        }  catch (IllegalAccessException e) {
+                        } catch (IllegalAccessException e) {
                             e.printStackTrace();
                         }
                     }
@@ -118,7 +127,7 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
                 }
             }
         }
-        if(logs.isEmpty()) return;
+        if (logs.isEmpty()) return;
         adminLogsRepository.save(AdminLogs.builder()
                 .logType(LogType.UPDATE)
                 .controllerType(RequestContextHolder.getCurrentControllerType())

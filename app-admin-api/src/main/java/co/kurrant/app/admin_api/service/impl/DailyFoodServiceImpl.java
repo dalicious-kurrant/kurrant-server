@@ -9,6 +9,7 @@ import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.dto.DailyFoodGroupDto;
@@ -18,7 +19,6 @@ import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.mapper.CapacityMapper;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.domain.food.repository.*;
-import co.dalicious.domain.order.dto.CapacityDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
@@ -48,7 +48,6 @@ import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -256,8 +255,12 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 waitingDailyFood = null;
             }
 
-            if (!Objects.equals(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), dailyFood.getDailyFoodGroup().getPickupTime())) {
-                dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()));
+            DeliverySchedule deliverySchedule = dailyFood.getDailyFoodGroup().getDeliverySchedules().stream()
+                    .filter(deliverySchedule1 -> deliverySchedule1.getDeliveryTime().equals(DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime())))
+                    .findAny().orElse(null);
+
+            if (deliverySchedule != null && !Objects.equals(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), deliverySchedule.getPickupTime())) {
+                dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()));
             }
 
             // 식단을 구매한 사람이 없다면
@@ -301,7 +304,13 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupDtoMap.keySet()) {
             List<FoodDto.DailyFood> dailyFoodDtos = dailyFoodGroupDtoMap.get(dailyFoodGroupDto);
-            DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(dailyFoodGroupDtoMap.get(dailyFoodGroupDto).get(0)));
+
+            Map<String, String> deliveryScheduleMap = new HashMap<>();
+            for(FoodDto.DailyFood dailyFood : Objects.requireNonNull(dailyFoodDtos)) {
+                deliveryScheduleMap.put(dailyFood.getDeliveryTime(), dailyFood.getMakersPickupTime());
+            }
+
+            DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(deliveryScheduleMap));
             newDailyFoodGroupMap.put(dailyFoodGroup, dailyFoodDtos);
         }
 

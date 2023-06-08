@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.mapper;
 
+import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
@@ -35,6 +36,19 @@ public interface OrderMembershipMapper {
     @Mapping(source = "membership", target = "membership")
     OrderMembership toOrderMembership(OrderUserInfoDto orderUserInfoDto, CreditCardInfo creditCardInfo, MembershipSubscriptionType membershipSubscriptionType, BigDecimal point, BigDecimal totalPrice, PaymentType paymentType, Membership membership);
 
+    @Mapping(target = "orderType", constant = "MEMBERSHIP")
+    @Mapping(target = "code", expression = "java(OrderUtil.generateOrderCode(OrderType.MEMBERSHIP, user.getId()))")
+    @Mapping(target = "defaultPrice", expression = "java(membershipSubscriptionType.getPrice())")
+    @Mapping(source = "point", target = "point")
+    @Mapping(source = "totalPrice", target = "totalPrice")
+    @Mapping(source = "creditCardInfo", target = "creditCardInfo")
+    @Mapping(source = "paymentType", target = "paymentType")
+    @Mapping(source = "user", target = "user")
+    @Mapping(source = "address", target = "address")
+    @Mapping(source = "membership", target = "membership")
+    OrderMembership toOrderMembership(User user, Address address, CreditCardInfo creditCardInfo, MembershipSubscriptionType membershipSubscriptionType, BigDecimal point, BigDecimal totalPrice, PaymentType paymentType, Membership membership);
+
+
     @Mapping(target = "membershipStatus", constant = "PROCESSING")
     @Mapping(source = "membershipSubscriptionType", target = "membershipSubscriptionType")
     @Mapping(source = "periodDto.startDate", target = "startDate")
@@ -66,13 +80,8 @@ public interface OrderMembershipMapper {
 
     @Mapping(source = "user", target = "user")
     @Mapping(source = "group", target = "group")
-    @Mapping(source = "orderItemMembership", target = "usingSupportPrice", qualifiedByName = "getUsingSupportPrice")
+    @Mapping(target = "usingSupportPrice", constant = "10000")
     @Mapping(target = "monetaryStatus", constant = "DEDUCTION")
     @Mapping(source = "orderItemMembership", target = "orderItemMembership")
     MembershipSupportPrice toMembershipSupportPrice(User user, Group group, OrderItemMembership orderItemMembership);
-
-    @Named("getUsingSupportPrice")
-    default BigDecimal getUsingSupportPrice(OrderItemMembership orderItemMembership) {
-        return orderItemMembership.getPrice();
-    }
 }

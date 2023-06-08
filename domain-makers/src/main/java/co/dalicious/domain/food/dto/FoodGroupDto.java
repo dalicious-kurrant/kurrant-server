@@ -25,7 +25,6 @@ public class FoodGroupDto {
         private String conveniencePercent;
 
         @Builder
-
         public Response(String makers, BigInteger id, String name, String groupNumbers, String saladPercent, String dinnerBoxPercent, String proteinPercent, String dietPercent, String postpartumPercent, String singleBowlPercent, String conveniencePercent) {
             this.makers = makers;
             this.id = id;
@@ -48,6 +47,13 @@ public class FoodGroupDto {
         private BigInteger id;
         private String name;
         private String groupNumbers;
+    }
+
+    @Getter
+    @Setter
+    public static class NameList {
+        private BigInteger id;
+        private String name;
     }
 
 }

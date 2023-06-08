@@ -14,13 +14,18 @@ public class NetworkUtils {
             ip = InetAddress.getLocalHost();
 
             NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+            if(network == null) return null;
             byte[] mac = network.getHardwareAddress();
 
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < mac.length; i++) {
-                sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+            if (mac != null) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < mac.length; i++) {
+                    sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+                }
+                result = sb.toString();
+            } else {
+                result = "MAC address not available";
             }
-            result = sb.toString();
         } catch (UnknownHostException | SocketException e) {
             e.printStackTrace();
         }

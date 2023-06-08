@@ -17,14 +17,6 @@ public class SpotListResponseDto {
     private List<Spot> spots;
     private Integer spotType;
 
-    @Builder
-    public SpotListResponseDto(BigInteger clientId, String clientName, List<Spot> spots, Integer spotType) {
-        this.clientId = clientId;
-        this.clientName = clientName;
-        this.spots = spots;
-        this.spotType = spotType;
-    }
-
     @Getter
     @Setter
     public static class Spot {

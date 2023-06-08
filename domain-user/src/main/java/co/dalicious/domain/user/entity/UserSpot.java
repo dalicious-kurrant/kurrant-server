@@ -4,10 +4,7 @@ import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.user.converter.ClientConverter;
 import co.dalicious.domain.user.entity.enums.ClientType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Comment;
 
@@ -21,6 +18,7 @@ import java.math.BigInteger;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "user__user_spot")
 public class UserSpot {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("유저가 기본으로 저장한 스팟을 가져온다")
@@ -45,13 +43,6 @@ public class UserSpot {
     @JsonManagedReference(value = "spot_fk")
     @Comment("기본으로 설정한 스팟 id")
     private Spot spot;
-
-    @Comment("아파트 유저의 세부주소 (호수)")
-    private Integer ho;
-
-    public void updateHo(Integer ho) {
-        this.ho = ho;
-    }
 
     public void updateSpot(Spot spot) {
         this.spot = spot;

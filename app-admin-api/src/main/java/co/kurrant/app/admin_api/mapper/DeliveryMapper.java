@@ -1,6 +1,8 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.GroupInfo;
+import co.dalicious.domain.client.dto.SpotInfo;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
@@ -12,6 +14,8 @@ import co.kurrant.app.admin_api.dto.DeliveryDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -23,6 +27,40 @@ import java.util.Set;
 @Mapper(componentModel = "spring")
 public interface DeliveryMapper {
 
+//    default DeliveryDto toDeliveryDto(List<Group> groupList, List<Spot> spotList, List<DailyFood> dailyFoodList, List<OrderItemDailyFood> orderItemDailyFoodList) {
+//        DeliveryDto deliveryDto = new DeliveryDto();
+//
+//        deliveryDto.setGroupInfoList(groupList.stream().map(this::toGroupInfo).toList());
+//        deliveryDto.setSpotInfoList(spotList.stream().map(this::toSpotInfo).toList());
+//        deliveryDto.setDeliveryInfoList(toDeliveryInfo(dailyFoodList, orderItemDailyFoodList));
+//
+//        return deliveryDto;
+//    }
+
+    @Mapping(source = "group.id", target = "groupId")
+    @Mapping(source = "group.name", target = "groupName")
+    GroupInfo toGroupInfo(Group group);
+
+    @Mapping(source = "spot.id", target = "spotId")
+    @Mapping(source = "spot.name", target = "spotName")
+    SpotInfo toSpotInfo(Spot spot);
+
+//    default List<DeliveryDto.DeliveryInfo> toDeliveryInfo(List<DailyFood> dailyFoodList, List<OrderItemDailyFood> orderItemDailyFoodList) {
+//        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
+//
+//        MultiValueMap<LocalDate, DailyFood> serviceDateMap = new LinkedMultiValueMap<>();
+//
+//        for(DailyFood dailyFood : dailyFoodList) {
+//            serviceDateMap.add(dailyFood.getServiceDate(), dailyFood);
+//        }
+//
+//        for(LocalDate serviceDate : serviceDateMap.keySet()) {
+//
+//        }
+//
+//
+//        return deliveryInfoList;
+//    }
 
     @Mapping(source = "serviceDate", target = "serviceDate")
     @Mapping(source = "deliveryGroupList", target = "group")

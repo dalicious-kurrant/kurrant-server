@@ -54,6 +54,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
         List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
+
         List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
 
@@ -141,7 +142,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
                         // pickup time
                         if(pickupTime == null) {
-                            pickupTime = dailyFood.getDailyFoodGroup().getPickupTime();
+                            pickupTime = dailyFood.getDailyFoodGroup().getDeliverySchedules().get(0).getPickupTime();
                         }
                         // dining type
                         if(diningType == null) {
@@ -176,8 +177,8 @@ public class DeliveryServiceImpl implements DeliveryService {
                     DiningType finalDiningType = diningType;
                     deliveryTime = spot.getGroup().getMealInfos().stream()
                             .filter(mealInfo -> mealInfo.getDiningType().equals(finalDiningType))
-                            .map(MealInfo::getDeliveryTime)
-                            .findFirst().orElse(null);
+                            .map(MealInfo::getDeliveryTimes)
+                            .findFirst().get().get(0);
                 }
 
                 // delivery makers list 를 pickup time 으로 정렬
