@@ -29,6 +29,7 @@ import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.integration.client.user.mapper.MySpotZoneMapper;
 import co.dalicious.integration.client.user.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
 import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
 import co.dalicious.system.util.DateUtils;
@@ -68,6 +69,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final RequestedShareSpotMapper requestedShareSpotMapper;
     private final RequestedShareSpotRepository requestedShareSpotRepository;
     private final QRequestedShareSpotRepository qRequestedShareSpotRepository;
+    private final MySpotRepository mySpotRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -124,7 +126,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 동일한 우편번호가 없으면? -> 생성
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(createRequestDto.getZipcode(), createRequestDto.getCounty(), createRequestDto.getVillage());
         if(region == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
-        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(createRequestDto.getWaitingUserCount(), createRequestDto.getMemo(), region);
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(createRequestDto.getWaitingUserCount(), createRequestDto.getMemo(), region, null);
         requestedMySpotZonesRepository.save(requestedMySpotZones);
     }
 
@@ -143,6 +145,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public void deleteMySpotRequest(List<BigInteger> ids) {
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
+
+        // 신청 유저의 마이 스팟 삭제
+        List<BigInteger> userIds = existRequestedMySpotZones.stream().flatMap(r -> r.getUserIds().stream()).toList();
+        List<MySpot> mySpotList = qMySpotRepository.findMySpotByUserIds(userIds);
+        mySpotRepository.deleteAll(mySpotList);
+
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
 
     }
