@@ -459,6 +459,18 @@ public class UserServiceImpl implements UserService {
                 spotListResponseDtoList.add(spotListResponseDto);
             }
         }
+        // 기업 -> 공유 -> 마이 스팟 별로 정렬.
+        spotListResponseDtoList = spotListResponseDtoList.stream().sorted(Comparator.comparing(SpotListResponseDto::getSpotType)).sorted(Comparator.comparingInt(dto -> {
+                    int spotType = dto.getSpotType();
+                    if (spotType == 0) {
+                        return 0;
+                    } else if (spotType == 2) {
+                        return 1;
+                    } else {
+                        return 2;
+                    }
+                }))
+                .toList();
         return userGroupMapper.toGroupCountDto(spotListResponseDtoList);
     }
 
