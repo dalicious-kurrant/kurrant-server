@@ -248,11 +248,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
         if(existRequestedMySpotZones != null) {
             List<BigInteger> userIds = existRequestedMySpotZones.getUserIds();
-            if(userIds.contains(user.getId())) throw new ApiException(ExceptionEnum.ALREADY_REQUESTED_MY_SPOT_ZONE);
 
-            userIds.add(user.getId());
-            existRequestedMySpotZones.updateUserIds(userIds);
-            existRequestedMySpotZones.updateWaitingUserCount(1);
+            if(!userIds.contains(user.getId())) {
+                userIds.add(user.getId());
+                existRequestedMySpotZones.updateUserIds(userIds);
+                existRequestedMySpotZones.updateWaitingUserCount(1);
+            }
 
             mySpot.updateActive(false);
             return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false, pushCondition);
