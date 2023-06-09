@@ -44,7 +44,7 @@ public interface RequestedMySpotZonesMapper {
                 .region(region)
                 .waitingUserCount(count)
                 .memo(memo)
-                .userIds(List.of(userIds))
+                .userIds(userIds == null ? null : List.of(userIds))
                 .build();
     }
 

@@ -1,6 +1,6 @@
 package co.kurrant.app.admin_api.service;
 
-import co.kurrant.app.admin_api.dto.DeliveryDto;
+import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
 
 import java.math.BigInteger;
 import java.util.List;
