@@ -66,6 +66,6 @@ public class MySpot extends UserSpot {
         this.mySpotZone = null;
         this.isActive = false;
         this.address = null;
-        this.isDelete = false;
+        this.isDelete = true;
     }
 }
