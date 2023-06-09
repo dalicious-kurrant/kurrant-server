@@ -1074,17 +1074,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Object getReport(SecurityUser securityUser, String date) {
+        List<FindDailyReportResDto> resDtoArrayList = new ArrayList<>();
+        DailyReportResDto result = new DailyReportResDto();
 
         User user = userUtil.getUser(securityUser);
 
         List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDate(user.getId(), date);
 
         if (dailyReportList.isEmpty()){
-            return "식단 리포트가 없습니다.";
+            result.setTotalProtein(0);
+            result.setTotalFat(0);
+            result.setTotalCarbohydrate(0);
+            result.setTotalCalorie(0);
+            result.setDailyReportResDtoList(resDtoArrayList);
+            return result;
         }
 
-        List<FindDailyReportResDto> resDtoArrayList = new ArrayList<>();
-        DailyReportResDto result = new DailyReportResDto();
         for (DailyReport dailyReport : dailyReportList){
             FindDailyReportResDto findDailyReportDto = dailyReportMapper.toFindDailyReportDto(dailyReport);
             resDtoArrayList.add(findDailyReportDto);
