@@ -1,5 +1,6 @@
 package co.dalicious.domain.user.mapper;
 
+import co.dalicious.domain.user.dto.DailyReportByDate;
 import co.dalicious.domain.user.dto.FindDailyReportResDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.DailyReport;
@@ -70,15 +71,16 @@ public interface DailyReportMapper {
         return diningType.getCode();
     }
 
-    /*
-    * private Integer diningType;
-    private String title;
-    private String foodName;
-    private Integer calorie;
-    private Integer carbohydrate;
-    private Integer protein;
-    private Integer fat;
-    private String imgUrl;
-    *
-    * */
+    @Mapping(source = "dailyReport.calorie", target = "calorie")
+    @Mapping(source = "dailyReport.protein", target = "protein")
+    @Mapping(source = "dailyReport.carbohydrate", target = "carbohydrate")
+    @Mapping(source = "dailyReport.fat", target = "fat")
+    @Mapping(source = "dailyReport.eatDate", target = "date", qualifiedByName = "localDateToString")
+    DailyReportByDate toDailyReportByDateDto(DailyReport dailyReport);
+
+    @Named("localDateToString")
+    default String localDateToString(LocalDate date){
+        return date.toString();
+    }
+
 }

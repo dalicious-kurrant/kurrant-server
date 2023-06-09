@@ -393,6 +393,15 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/daily/report/history")
+    @Operation(summary = "식사 히스토리", description = "식사 히스토리에 필요한 정보를 조회한다.")
+    public ResponseMessage getMealHistory(Authentication authentication, @RequestParam String startDate, @RequestParam String endDate){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.getMealHistory(securityUser, startDate, endDate))
+                .message("조회에 성공했습니다.")
+                .build();
+    }
 
 
 }

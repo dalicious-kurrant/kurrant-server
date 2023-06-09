@@ -4,14 +4,13 @@ import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
-import co.dalicious.domain.address.dto.UpdateLocationDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
 import co.kurrant.app.admin_api.service.GroupService;
-import co.kurrant.app.admin_api.util.AddressUtil;
+import co.dalicious.domain.address.utils.AddressUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -64,10 +63,10 @@ public class GroupController {
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "기업 정보 상세 조회", description = "기업 의 상세정보를 조회합니다.")
     @GetMapping("/detail")
-    public ResponseMessage getSpotDetail(@RequestParam Integer spotId) {
+    public ResponseMessage getGroupDetail(@RequestParam BigInteger groupId) {
         return ResponseMessage.builder()
                 .message("기업 상세 정보를 조회했습니다.")
-                .data(groupService.getGroupDetail(spotId))
+                .data(groupService.getGroupDetail(groupId))
                 .build();
     }
 
@@ -134,8 +133,8 @@ public class GroupController {
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "주소 location 등록", description = "좌표를 등록합니다.")
     @PatchMapping("location")
-    public ResponseMessage updateLocation(@RequestBody List<UpdateLocationDto> dto) throws ParseException {
-        addressUtil.updateLocation(dto);
+    public ResponseMessage updateLocation(@RequestBody /*List<UpdateLocationDto> dto*/ Boolean toDo) throws ParseException {
+        groupService.updateLocation();
         return ResponseMessage.builder()
                 .message("좌표 등록에 성공했습니다.")
                 .build();

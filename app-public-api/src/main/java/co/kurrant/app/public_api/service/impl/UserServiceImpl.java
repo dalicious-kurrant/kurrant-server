@@ -59,6 +59,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.asm.Advice;
+import org.geolatte.geom.M;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -1072,17 +1074,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Object getReport(SecurityUser securityUser, String date) {
+        List<FindDailyReportResDto> resDtoArrayList = new ArrayList<>();
+        DailyReportResDto result = new DailyReportResDto();
 
         User user = userUtil.getUser(securityUser);
 
         List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDate(user.getId(), date);
 
         if (dailyReportList.isEmpty()){
-            return "식단 리포트가 없습니다.";
+            result.setTotalProtein(0);
+            result.setTotalFat(0);
+            result.setTotalCarbohydrate(0);
+            result.setTotalCalorie(0);
+            result.setDailyReportResDtoList(resDtoArrayList);
+            return result;
         }
 
-        List<FindDailyReportResDto> resDtoArrayList = new ArrayList<>();
-        DailyReportResDto result = new DailyReportResDto();
         for (DailyReport dailyReport : dailyReportList){
             FindDailyReportResDto findDailyReportDto = dailyReportMapper.toFindDailyReportDto(dailyReport);
             resDtoArrayList.add(findDailyReportDto);
@@ -1157,5 +1164,28 @@ public class UserServiceImpl implements UserService {
         List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
 
         user.updatePushCondition(pushConditionList);
+    }
+
+    @Override
+    public MealHistoryResDto getMealHistory(SecurityUser securityUser, String startDate, String endDate) {
+
+        MealHistoryResDto mealHistoryResDto = new MealHistoryResDto();
+        User user = userUtil.getUser(securityUser);
+
+        List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDateBetween(user.getId(), LocalDate.parse(startDate), LocalDate.parse(endDate));
+
+        if (dailyReportList.isEmpty()) return null;
+
+        List<DailyReportByDate> dailyReportByDateList = new ArrayList<>();
+        for (DailyReport dailyReport : dailyReportList){
+            DailyReportByDate dailyReportByDateDto = dailyReportMapper.toDailyReportByDateDto(dailyReport);
+            if (dailyReportByDateDto.getCalorie() != null){
+                dailyReportByDateList.add(dailyReportByDateDto);
+            }
+        }
+        mealHistoryResDto.setDailyReportList(dailyReportByDateList);
+
+        return mealHistoryResDto;
+
     }
 }

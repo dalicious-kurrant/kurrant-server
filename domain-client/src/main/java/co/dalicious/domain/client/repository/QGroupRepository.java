@@ -16,8 +16,10 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
+import static co.dalicious.domain.client.entity.QCorporation.corporation;
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QMealInfo.mealInfo;
+import static co.dalicious.domain.client.entity.QOpenGroup.openGroup;
 import static co.dalicious.domain.client.entity.QOpenGroupSpot.openGroupSpot;
 
 
@@ -38,6 +40,26 @@ public class QGroupRepository {
 
         QueryResults<Group> results = queryFactory.selectFrom(group)
                 .where(whereClause)
+                .orderBy(group.id.asc())
+                .limit(limit)
+                .offset(offset)
+                .fetchResults();
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public Page<Group> findAllExceptForMySpot(BigInteger groupId, Integer limit, Integer page, Pageable pageable) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if(groupId != null) {
+            whereClause.and(group.id.eq(groupId));
+        }
+
+        int offset = limit * (page - 1);
+
+        QueryResults<Group> results = queryFactory.selectFrom(group)
+                .leftJoin(corporation).on(group.id.eq(corporation.id))
+                .leftJoin(openGroup).on(group.id.eq(openGroup.id))
+                .where(whereClause, corporation.id.isNotNull().or(openGroup.id.isNotNull()))
                 .orderBy(group.id.asc())
                 .limit(limit)
                 .offset(offset)
@@ -100,14 +122,18 @@ public class QGroupRepository {
                 .fetchOne();
     }
 
-    public List<? extends Group> findGroupByType(GroupDataType clientType) {
+    public List<? extends Group> findGroupByType(GroupDataType groupDataType) {
         BooleanBuilder whereCause = new BooleanBuilder();
+        if(groupDataType.equals(GroupDataType.CORPORATION)) {
+            whereCause.and(group.instanceOf(Corporation.class));
+        }
 
-        if(clientType.equals(GroupDataType.OPEN_GROUP)) {
+        if(groupDataType.equals(GroupDataType.OPEN_GROUP)) {
             whereCause.and(group.instanceOf(OpenGroup.class));
         }
-        if(clientType.equals(GroupDataType.CORPORATION)) {
-            whereCause.and(group.instanceOf(Corporation.class));
+
+        if(groupDataType.equals(GroupDataType.MY_SPOT)) {
+            whereCause.and(group.instanceOf(MySpotZone.class));
         }
 
         return queryFactory.selectFrom(group)
@@ -146,13 +172,13 @@ public class QGroupRepository {
         return new PageImpl<>(resultList.getResults(),pageable, resultList.getTotal());
     }
 
-    public Group findGroupByTypeAndId(BigInteger id, GroupDataType clientType) {
+    public Group findGroupByTypeAndId(BigInteger id, GroupDataType groupDataType) {
         BooleanBuilder whereCause =  new BooleanBuilder();
 
-        if(clientType.equals(GroupDataType.CORPORATION)) {
+        if(groupDataType.equals(GroupDataType.CORPORATION)) {
             whereCause.and(group.instanceOf(Corporation.class));
         }
-        if(clientType.equals(GroupDataType.OPEN_GROUP)) {
+        if(groupDataType.equals(GroupDataType.OPEN_GROUP)) {
             whereCause.and(group.instanceOf(OpenGroup.class));
         }
 

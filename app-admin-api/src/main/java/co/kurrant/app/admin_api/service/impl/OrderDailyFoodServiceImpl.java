@@ -158,16 +158,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    public List<GroupDto.Group> getGroup(Integer clientType) {
+    public List<GroupDto.Group> getGroup(Integer groupDataType) {
         List<? extends Group> groups = new ArrayList<>();
-        if (clientType == null) {
+        if (groupDataType == null) {
             groups = groupRepository.findAll();
-        } else if (ClientType.ofCode(clientType) == ClientType.OPEN_GROUP) {
-            groups = qGroupRepository.findGroupByType(GroupDataType.OPEN_GROUP);
-        } else if (ClientType.ofCode(clientType) == ClientType.CORPORATION) {
-            groups = qGroupRepository.findGroupByType(GroupDataType.CORPORATION);
+        } else {
+            groups = qGroupRepository.findGroupByType(GroupDataType.ofCode(groupDataType));
         }
-
         return groupMapper.groupsToDtos(groups);
     }
 

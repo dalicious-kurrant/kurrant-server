@@ -54,4 +54,13 @@ public class QDailyReportRepository {
                         dailyReport.id.eq(reportId))
                 .execute();
     }
+
+    public List<DailyReport> findByUserIdAndDateBetween(BigInteger userId, LocalDate startDate, LocalDate endDate) {
+
+        return queryFactory.selectFrom(dailyReport)
+                .where(dailyReport.user.id.eq(userId),
+                        dailyReport.eatDate.between(startDate,endDate))
+                .fetch();
+
+    }
 }

@@ -24,13 +24,14 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.integration.client.user.entity.MySpot;
-import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.integration.client.user.mapper.MySpotZoneMapper;
 import co.dalicious.integration.client.user.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
 import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
-import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
+import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.service.ApplicationFormService;
@@ -68,6 +69,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final RequestedShareSpotMapper requestedShareSpotMapper;
     private final RequestedShareSpotRepository requestedShareSpotRepository;
     private final QRequestedShareSpotRepository qRequestedShareSpotRepository;
+    private final MySpotRepository mySpotRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -143,6 +145,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public void deleteMySpotRequest(List<BigInteger> ids) {
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
+
+        // 신청 유저의 마이 스팟 삭제
+        List<BigInteger> userIds = existRequestedMySpotZones.stream().flatMap(r -> r.getUserIds().stream()).toList();
+        List<MySpot> mySpotList = qMySpotRepository.findMySpotByUserIds(userIds);
+        mySpotRepository.deleteAll(mySpotList);
+
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
 
     }
