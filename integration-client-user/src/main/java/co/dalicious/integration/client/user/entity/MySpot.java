@@ -41,6 +41,10 @@ public class MySpot extends UserSpot {
     @JoinColumn(name = "my_spot_zone_fk")
     private MySpotZone mySpotZone;
 
+    @Column(name = "is_active")
+    @Comment("마이 스팟 삭제 여부 - 1: 삭제")
+    private Boolean isDelete;
+
     public MySpot(User user, GroupDataType groupDataType, Spot spot, Boolean isDefault, Address address, MySpotZone mySpotZone, String name, Boolean isActive) {
         super(user, groupDataType, spot, isDefault);
         this.address = address;

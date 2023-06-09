@@ -19,8 +19,8 @@ import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
@@ -33,6 +33,8 @@ import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
@@ -211,10 +213,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         User user = userUtil.getUser(securityUser);
         if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
 
-        // my spot이 이미 존재하면
-//        List<UserSpot> userSpots = user.getUserSpots();
-//        List<MySpot> mySpotList = userSpots.stream().filter(s -> s instanceof MySpot).map(s -> (MySpot) s).toList();
-//        if(mySpotList.size() > 0) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
+        // 신청한 my spot이 이미 존재하면
+        List<UserSpot> userSpots = user.getUserSpots();
+        List<MySpot> mySpotList = userSpots.stream().filter(s -> s instanceof MySpot mySpot && mySpot.getMySpotZone() == null ).map(s -> (MySpot) s).toList();
+        if(mySpotList.size() > 0) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
 
         // my spot 생성
         MySpot mySpot = mySpotMapper.toMySpot(user, requestDto);
@@ -222,9 +224,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // my spot zone 찾기
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
-
-        // 알림 설정이 되어 있는지 체크
-        Boolean pushCondition = user.getPushConditionList() != null && !user.getPushConditionList().isEmpty() && user.getPushConditionList().stream().anyMatch(p -> p.equals(PushCondition.NEW_SPOT));
 
         if(mySpotZone != null) {
             mySpotZone.updateMySpotZoneUserCount(1);
@@ -237,7 +236,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             if(userGroup == null) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone));
             else userGroup.updateStatus(ClientStatus.BELONG);
 
-            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(),true, pushCondition);
+            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(),true);
         }
 
         // my spot zone 없으면 my spot zone 신청하기
@@ -252,7 +251,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             }
 
             mySpot.updateActive(false);
-            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false, pushCondition);
+            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
         }
 
         String[] jibunAddress = requestDto.getJibunAddress().split(" ");
@@ -272,7 +271,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         mySpot.updateActive(false);
 
         // my spot zone 존재 여부 response
-        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false, pushCondition);
+        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
     }
 
     @Override
