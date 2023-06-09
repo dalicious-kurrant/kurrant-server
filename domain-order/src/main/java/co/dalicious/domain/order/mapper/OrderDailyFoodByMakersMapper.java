@@ -169,7 +169,7 @@ public interface OrderDailyFoodByMakersMapper {
                 foodList.add(foodDto);
             }
 
-            LocalTime deliveryTime = orderItemDailyFoods.get(0).getOrderItemDailyFoodGroup().getDeliveryTime();
+            LocalTime deliveryTime = orderItemDailyFoods.get(0).getDeliveryTime();
             LocalTime pickupTime = orderItemDailyFoods.get(0).getDailyFood().getDailyFoodGroup().getDeliverySchedules().stream()
                     .filter(deliverySchedule -> deliverySchedule.getDeliveryTime().equals(deliveryTime))
                     .findAny()
