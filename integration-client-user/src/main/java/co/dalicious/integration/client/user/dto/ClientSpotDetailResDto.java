@@ -43,7 +43,7 @@ public class ClientSpotDetailResDto {
                 BigDecimal supportPrice = corporationMealInfo.getServiceDaysAndSupportPrices().stream()
                         .filter(o -> o.getSupportPrice().compareTo(BigDecimal.valueOf(0)) != 0).findAny()
                         .map(ServiceDaysAndSupportPrice::getSupportPrice).orElse(null);
-                bigDecimal = bigDecimal.add(supportPrice);
+                if(supportPrice != null) bigDecimal = bigDecimal.add(supportPrice);
             }
 
             this.diningType = mealInfo.getDiningType().getCode();

@@ -28,6 +28,7 @@ import co.kurrant.app.public_api.service.UserClientService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -62,7 +63,7 @@ public class UserClientServiceImpl implements UserClientService {
         if(!groupDataType.equals(GroupDataType.MY_SPOT)) {
             // 스팟 정보 가져오기
             Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-            Group group = spot.getGroup();
+            Group group = (Group) Hibernate.unproxy(spot.getGroup());
             isGroupMember(user, group);
 
             return userSpotDetailResMapper.toDto(userSpot);
