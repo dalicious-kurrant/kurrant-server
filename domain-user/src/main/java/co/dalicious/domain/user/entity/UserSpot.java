@@ -1,5 +1,6 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.client.converter.GroupDataTypeConverter;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -33,7 +34,7 @@ public class UserSpot {
     @Comment("유저")
     private User user;
 
-    @Convert(converter = GroupDataType.class)
+    @Convert(converter = GroupDataTypeConverter.class)
     @Comment("그룹 타입(아파트/기업)")
     private GroupDataType groupDataType;
 
