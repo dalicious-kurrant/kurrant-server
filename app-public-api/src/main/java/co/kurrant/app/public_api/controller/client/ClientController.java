@@ -3,7 +3,6 @@ package co.kurrant.app.public_api.controller.client;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.dto.GroupAndSpotIdReqDto;
-import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
 import co.kurrant.app.public_api.service.UserService;
@@ -63,10 +62,10 @@ public class ClientController {
     @Operation(summary = "스팟 선택", description = "유저의 기본 스팟을 등록한다.")
     @PostMapping("/spots")
     public ResponseMessage selectUserSpot(Authentication authentication,
-                                          @RequestParam Integer groupType,
+                                          @RequestParam Integer spotType,
                                           @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        BigInteger result = userClientService.selectUserSpot(securityUser, groupType, groupAndSpotIdReqDto.getId());
+        BigInteger result = userClientService.selectUserSpot(securityUser, spotType, groupAndSpotIdReqDto.getId());
         return ResponseMessage.builder()
                 .data(result)
                 .message((result == null) ? "스팟 상세 주소 등록이 필요합니다" : "스팟 등록에 성공하였습니다.")
@@ -76,10 +75,10 @@ public class ClientController {
     @Operation(summary = "그룹별 스팟 상세 조회", description = "유저가 속한 그룹의 스팟들의 상세 정보를 조회한다.")
     @GetMapping("/spots/{spotId}")
     public ResponseMessage getSpotDetail(Authentication authentication,
-                                         @PathVariable BigInteger spotId, @RequestParam Integer clientType) {
+                                         @PathVariable BigInteger spotId, @RequestParam Integer spotType) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(userClientService.getSpotDetail(securityUser, spotId, clientType))
+                .data(userClientService.getSpotDetail(securityUser, spotId, spotType))
                 .message("스팟 상세 조회에 성공하였습니다.")
                 .build();
     }
