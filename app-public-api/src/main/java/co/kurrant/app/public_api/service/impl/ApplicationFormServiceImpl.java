@@ -41,10 +41,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -214,9 +211,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
 
         // 신청한 my spot이 이미 존재하면
-        List<UserSpot> userSpots = user.getUserSpots();
-        List<MySpot> mySpotList = userSpots.stream().filter(s -> s instanceof MySpot mySpot && mySpot.getMySpotZone() == null ).map(s -> (MySpot) s).toList();
-        if(mySpotList.size() > 0) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
+//        List<UserSpot> userSpots = user.getUserSpots();
+//        List<MySpot> mySpotList = userSpots.stream().filter(s -> s instanceof MySpot mySpot && mySpot.getMySpotZone() == null ).map(s -> (MySpot) s).toList();
+//        if(mySpotList.size() > 0) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
 
         // my spot 생성
         MySpot mySpot = mySpotMapper.toMySpot(user, requestDto);
@@ -255,7 +252,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
 
         String[] jibunAddress = requestDto.getJibunAddress().split(" ");
-        System.out.println("jibunAddress = " + jibunAddress);
+        System.out.println("jibunAddress = " + Arrays.toString(jibunAddress));
         String county = null;
         String village = null;
 

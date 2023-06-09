@@ -21,6 +21,7 @@ import co.dalicious.integration.client.user.mapper.UserSpotMapper;
 import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DistanceUtil;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
@@ -50,29 +51,27 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId) {
+    public ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId, Integer clientType) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-        // 유저가 가지고 있는 유저 스팟 가져오기
-        List<UserSpot> userSpots = user.getUserSpots();
-        // 스팟 정보 가져오기
-        Spot spot = spotRepository.findById(spotId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-        );
-        // 유저가 등록한 스팟인지 검증
-        UserSpot userSpot = userSpots.stream()
-                .filter(v -> v.getSpot().equals(spot))
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_SET_SPOT));
-        // 스팟에 속한 그룹 가져오기
-        Group group = spot.getGroup();
-        // 유저가 그룹에 속하지 않는다면 예외처리
-        user.getGroups().stream()
-                .filter(g -> g.getGroup().equals(group) && g.getClientStatus().equals(ClientStatus.BELONG))
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
-        // 식사 정보 가져오기
-        return userSpotDetailResMapper.toDto(userSpot);
+
+        GroupDataType groupDataType = GroupDataType.ofCode(clientType);
+
+        UserSpot userSpot = getUserSpot(spotId, user);
+
+        if(!groupDataType.equals(GroupDataType.MY_SPOT)) {
+            // 스팟 정보 가져오기
+            Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+            Group group = spot.getGroup();
+            isGroupMember(user, group);
+
+            return userSpotDetailResMapper.toDto(userSpot);
+        }
+        else if (userSpot != null) {
+            return userSpotDetailResMapper.toDto(userSpot);
+        }
+
+        throw new ApiException(ExceptionEnum.NOT_SET_SPOT);
     }
 
     @Override
@@ -151,9 +150,9 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public ListItemResponseDto<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
+    public ListItemResponseDto<OpenGroupResponseDto> getOpenGroups(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
         Boolean isRestriction = parameters.get("isRestriction") == null || !parameters.containsKey("isRestriction") ? null : Boolean.valueOf(String.valueOf(parameters.get("isRestriction")));
-        DiningType diningType = parameters.get("diningType") == null || !parameters.containsKey("diningType") ? null : DiningType.ofCode(Integer.parseInt(String.valueOf(parameters.get("diningType"))));
+        List<DiningType> diningType = parameters.get("diningType") == null || !parameters.containsKey("diningType") ? null : StringUtils.parseIntegerList(String.valueOf(parameters.get("diningType"))).stream().map(DiningType::ofCode).toList();
         Double latitude = Double.valueOf(String.valueOf(location.get("lat")));
         Double longitude = Double.valueOf(String.valueOf(location.get("long")));
 
