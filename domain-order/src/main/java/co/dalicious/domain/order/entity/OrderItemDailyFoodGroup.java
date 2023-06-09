@@ -62,17 +62,12 @@ public class OrderItemDailyFoodGroup {
     @JsonBackReference(value = "order_item_daily_food_group_fk")
     private List<OrderItemDailyFood> orderDailyFoods;
 
-    @Column(name = "delivery_time")
-    @Comment("배송 시간")
-    private LocalTime deliveryTime;
-
     @Builder
-    public OrderItemDailyFoodGroup(OrderStatus orderStatus, LocalDate serviceDate, DiningType diningType, BigDecimal deliveryFee, LocalTime deliveryTime) {
+    public OrderItemDailyFoodGroup(OrderStatus orderStatus, LocalDate serviceDate, DiningType diningType, BigDecimal deliveryFee) {
         this.orderStatus = orderStatus;
         this.serviceDate = serviceDate;
         this.diningType = diningType;
         this.deliveryFee = deliveryFee;
-        this.deliveryTime = deliveryTime;
     }
 
     public void updateOrderStatus(OrderStatus orderStatus) {
