@@ -147,7 +147,7 @@ public class QGroupRepository {
                 .fetch();
     }
 
-    public Page<Group> findOPenGroupByFilter (Boolean isRestriction, DiningType diningType, Pageable pageable) {
+    public Page<Group> findOPenGroupByFilter (Boolean isRestriction, List<DiningType> diningType, Pageable pageable) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if (isRestriction != null) {
@@ -156,7 +156,7 @@ public class QGroupRepository {
         if (diningType != null) {
             List<Group> openGroupList = queryFactory.select(mealInfo.group)
                     .from(mealInfo)
-                    .where(mealInfo.instanceOf(OpenGroupMealInfo.class), mealInfo.diningType.eq(diningType))
+                    .where(mealInfo.instanceOf(OpenGroupMealInfo.class), mealInfo.diningType.in(diningType))
                     .fetch();
             whereCause.and(group.in(openGroupList));
         }

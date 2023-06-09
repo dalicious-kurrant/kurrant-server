@@ -15,9 +15,9 @@ import java.util.Map;
 
 public interface UserClientService {
     // 고객사로 등록된 아파트 전체 리스트를 불러온다.
-    ListItemResponseDto<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters, OffsetBasedPageRequest pageable);
+    ListItemResponseDto<OpenGroupResponseDto> getOpenGroups(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters, OffsetBasedPageRequest pageable);
     // 그룹별 스팟 상세조회
-    ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId);
+    ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId, Integer clientType);
     // 유저 스팟을 선택한다
     BigInteger selectUserSpot(SecurityUser securityUser, Integer groupType, BigInteger spotId);
     // 유저가 속한 그룹을 탈퇴한다.

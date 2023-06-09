@@ -41,16 +41,17 @@ public class MySpot extends UserSpot {
     @JoinColumn(name = "my_spot_zone_fk")
     private MySpotZone mySpotZone;
 
-    @Column(name = "is_active")
+    @Column(name = "is_delete")
     @Comment("마이 스팟 삭제 여부 - 1: 삭제")
     private Boolean isDelete;
 
-    public MySpot(User user, GroupDataType groupDataType, Spot spot, Boolean isDefault, Address address, MySpotZone mySpotZone, String name, Boolean isActive) {
+    public MySpot(User user, GroupDataType groupDataType, Spot spot, Boolean isDefault, Address address, MySpotZone mySpotZone, String name, Boolean isActive, Boolean isDelete) {
         super(user, groupDataType, spot, isDefault);
         this.address = address;
         this.mySpotZone = mySpotZone;
         this.name = name;
         this.isActive = isActive;
+        this.isDelete = isDelete;
     }
 
     public void updateMySpotZone(MySpotZone mySpotZone) {
@@ -65,5 +66,6 @@ public class MySpot extends UserSpot {
         this.mySpotZone = null;
         this.isActive = false;
         this.address = null;
+        this.isDelete = false;
     }
 }
