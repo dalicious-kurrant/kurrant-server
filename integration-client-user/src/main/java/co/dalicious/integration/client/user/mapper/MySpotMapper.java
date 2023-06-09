@@ -3,8 +3,8 @@ package co.dalicious.integration.client.user.mapper;
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.integration.client.user.entity.MySpot;
 import org.mapstruct.Mapper;
 
@@ -25,7 +25,7 @@ public interface MySpotMapper {
 
         return MySpot.builder()
                 .address(address)
-                .clientType(ClientType.MY_SPOT)
+                .groupDataType(GroupDataType.MY_SPOT)
                 .user(user)
                 .isDefault(false)
                 .name(mySpotZoneApplicationFormRequestDto.getMySpotName())

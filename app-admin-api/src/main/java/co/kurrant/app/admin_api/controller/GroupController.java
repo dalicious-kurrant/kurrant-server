@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
+import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
@@ -42,7 +43,7 @@ public class GroupController {
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "기업 정보 저장", description = "기업 정보를 저장했습니다.")
     @PostMapping("/excel")
-    public ResponseMessage saveCorporationList(@RequestBody List<GroupExcelRequestDto> corporationListDto) throws ParseException {
+    public ResponseMessage saveCorporationList(@RequestBody List<GroupListDto.GroupInfoList> corporationListDto) throws ParseException {
         groupService.saveCorporationList(corporationListDto);
         return ResponseMessage.builder()
                 .message("기업 정보를 저장했습니다.")
@@ -62,10 +63,10 @@ public class GroupController {
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "기업 정보 상세 조회", description = "기업 의 상세정보를 조회합니다.")
     @GetMapping("/detail")
-    public ResponseMessage getSpotDetail(@RequestParam Integer spotId) {
+    public ResponseMessage getGroupDetail(@RequestParam BigInteger groupId) {
         return ResponseMessage.builder()
                 .message("기업 상세 정보를 조회했습니다.")
-                .data(groupService.getGroupDetail(spotId))
+                .data(groupService.getGroupDetail(groupId))
                 .build();
     }
 

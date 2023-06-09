@@ -1,6 +1,6 @@
-package co.dalicious.integration.client.user.converter;
+package co.dalicious.domain.client.converter;
 
-import co.dalicious.integration.client.user.entity.enums.MySpotZoneStatus;
+import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

@@ -19,24 +19,20 @@ import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.integration.client.user.entity.MySpot;
-import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.integration.client.user.mapper.MySpotMapper;
 import co.dalicious.integration.client.user.mapper.UserGroupMapper;
 import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
-import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
+import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
@@ -256,7 +252,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             }
 
             mySpot.updateActive(false);
-            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false, pushCondition);
+            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false, pushCondition);
         }
 
         String[] jibunAddress = requestDto.getJibunAddress().split(" ");
@@ -276,7 +272,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         mySpot.updateActive(false);
 
         // my spot zone 존재 여부 response
-        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), ClientType.MY_SPOT.getCode(), false, pushCondition);
+        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false, pushCondition);
     }
 
     @Override

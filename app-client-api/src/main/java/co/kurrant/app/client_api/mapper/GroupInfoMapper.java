@@ -89,11 +89,6 @@ public interface GroupInfoMapper {
         supportDays.removeAll(notSupportDays);
 
         groupInfoList.setServiceDays(DaysUtil.serviceDaysToDaysString(serviceDays));
-        groupInfoList.setSupportDays(DaysUtil.serviceDaysToDaysString(supportDays));
-        groupInfoList.setNotSupportDays(DaysUtil.serviceDaysToDaysString(notSupportDays));
-        groupInfoList.setMorningSupportPrice(morningSupportPrice);
-        groupInfoList.setLunchSupportPrice(lunchSupportPrice);
-        groupInfoList.setDinnerSupportPrice(dinnerSupportPrice);
 
         return groupInfoList;
     }

@@ -6,25 +6,24 @@ import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.integration.client.user.dto.filter.FilterDto;
-import co.dalicious.integration.client.user.dto.filter.FilterInfo;
+import co.dalicious.domain.client.dto.FilterInfo;
 import co.dalicious.integration.client.user.dto.mySpotZone.AdminListResponseDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.integration.client.user.entity.Region;
-import co.dalicious.integration.client.user.entity.enums.MySpotZoneStatus;
+import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.client.mapper.MealInfoMapper;
 import co.dalicious.integration.client.user.mapper.MySpotZoneMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.integration.client.user.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
@@ -36,11 +35,10 @@ import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
-import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.GroupService;
-import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
+import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.dalicious.domain.address.utils.AddressUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -90,23 +88,23 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional(readOnly = true)
     public ItemPageableResponseDto<GroupListDto> getGroupList(BigInteger groupId, Integer limit, Integer page, OffsetBasedPageRequest pageable) {
-        Page<Group> groupList = qGroupRepository.findAll(groupId, limit, page, pageable);
+        Page<Group> groupList = qGroupRepository.findAllExceptForMySpot(groupId, limit, page, pageable);
 
         // 기업 정보 dto 맵핑하기
         List<GroupListDto.GroupInfoList> groupListDtoList = new ArrayList<>();
-        if(groupList != null && !groupList.isEmpty()) {
+        if (groupList != null && !groupList.isEmpty()) {
             List<BigInteger> managerIds = groupList.stream()
                     .filter(group -> group instanceof Corporation)
                     .map(group -> ((Corporation) group).getManagerId())
                     .filter(Objects::nonNull)
                     .toList();
             List<User> users = (managerIds.isEmpty()) ? null : qUserRepository.getUserAllById(managerIds);
-            for(Group group : groupList) {
+            for (Group group : groupList) {
                 User managerUser = null;
-                if(group instanceof Corporation corporation && corporation.getManagerId() != null) {
+                if (group instanceof Corporation corporation && corporation.getManagerId() != null) {
                     managerUser = (users != null) ? users.stream().filter(user -> user.getId().equals(corporation.getManagerId())).findFirst().orElse(null) : null;
                 }
-                GroupListDto.GroupInfoList corporationListDto = groupMapper.toCorporationListDto(group, managerUser);
+                GroupListDto.GroupInfoList corporationListDto = groupMapper.toGroupListDto(group, managerUser);
                 groupListDtoList.add(corporationListDto);
             }
         }
@@ -121,9 +119,9 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public void saveCorporationList(List<GroupExcelRequestDto> groupListDtoList) throws ParseException {
+    public void saveCorporationList(List<GroupListDto.GroupInfoList> groupListDtoList) throws ParseException {
         Set<BigInteger> groupIdList = new HashSet<>();
-        for(GroupExcelRequestDto groupExcelRequestDto : groupListDtoList) {
+        for (GroupListDto.GroupInfoList groupExcelRequestDto : groupListDtoList) {
             groupIdList.add(groupExcelRequestDto.getId());
         }
         List<Group> groupList = qGroupRepository.findAllByIds(groupIdList);
@@ -131,69 +129,56 @@ public class GroupServiceImpl implements GroupService {
         List<Group> newGroupList = new ArrayList<>();
         List<MealInfo> newMealInfoList = new ArrayList<>();
         // 그룹이 있는지 찾아보기
-        for(GroupExcelRequestDto groupInfoList : groupListDtoList) {
+        for (GroupListDto.GroupInfoList groupInfoList : groupListDtoList) {
             Group group = groupList.stream().filter(groupMatch -> groupMatch.getId().equals(groupInfoList.getId())).findFirst().orElse(null);
             Address address = new Address(groupInfoList.getZipCode(), groupInfoList.getAddress1(), groupInfoList.getAddress2(), groupInfoList.getLocation());
 
             // 겹치는 요일이 있으면 패스
-            List<Days> notSupportDays = groupInfoList.getNotSupportDays() != null ? DaysUtil.serviceDaysToDaysList(groupInfoList.getNotSupportDays()) : new ArrayList<>();
             List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(groupInfoList.getServiceDays());
-            List<Days> supportDays = new ArrayList<>(serviceDays);
-            supportDays.removeAll(notSupportDays);
 
             // group 없으면
-            if(group == null) {
-                Group newGroup = groupMapper.saveToEntity(groupInfoList, address);
+            if (group == null) {
+                Group newGroup = groupMapper.toEntity(groupInfoList);
                 newGroupList.add(newGroup);
 
                 List<DiningType> diningTypeList = newGroup.getDiningTypes();
-                for(DiningType diningType : diningTypeList) {
-                    List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
-
-                    Integer supportPrice = null;
-                    if(diningType.equals(DiningType.MORNING)) supportPrice = groupInfoList.getMorningSupportPrice();
-                    else if(diningType.equals(DiningType.LUNCH)) supportPrice = groupInfoList.getLunchSupportPrice();
-                    else if(diningType.equals(DiningType.DINNER)) supportPrice = groupInfoList.getDinnerSupportPrice();
-                    serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, BigDecimal.valueOf(supportPrice)));
-
-                    MealInfo mealInfo = groupMapper.toMealInfo(newGroup, diningType, "00:00", "00:00", groupInfoList.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
-                    newMealInfoList.add(mealInfo);
+                List<MealInfo> mealInfos = new ArrayList<>();
+                for (DiningType diningType : diningTypeList) {
+                    Optional<GroupListDto.MealInfo> mealInfo = groupInfoList.getMealInfos().stream()
+                            .filter(v -> diningType.getCode().equals(v.getDiningType()))
+                            .findAny();
+                    mealInfo.ifPresent(v -> mealInfos.add(groupMapper.toMealInfo(mealInfo.get(), newGroup)));
                 }
+                newMealInfoList.addAll(mealInfos);
+
             }
             // group 있으면
             else {
-                List<DiningType> diningTypeList = new ArrayList<>();
-                List<String> integerList = groupInfoList.getDiningTypes();
-                for(String string : integerList) {
-                    diningTypeList.add(DiningType.ofString(string));
-                }
+                List<DiningType> diningTypeList = DiningTypesUtils.codesToDiningTypes(groupInfoList.getDiningTypes());
 
                 // group update
-                if(group instanceof Corporation corporation) {
-                    corporation.updateCorporation(groupInfoList, address, diningTypeList);
-                }
-                else if (group instanceof  OpenGroup openGroup) {
+                if (group instanceof Corporation corporation) {
+                    groupMapper.updateCorporation(groupInfoList, corporation);
+                } else if (group instanceof OpenGroup openGroup) {
                     openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
                 }
 
                 // dining type 체크해서 있으면 업데이트, 없으면 생성
                 List<MealInfo> mealInfoList = group.getMealInfos();
-                for(DiningType diningType : diningTypeList) {
-                    Integer supportPrice = null;
-                    if(diningType.equals(DiningType.MORNING)) supportPrice = groupInfoList.getMorningSupportPrice();
-                    else if(diningType.equals(DiningType.LUNCH)) supportPrice = groupInfoList.getLunchSupportPrice();
-                    else if(diningType.equals(DiningType.DINNER)) supportPrice = groupInfoList.getDinnerSupportPrice();
-
-                    List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
-                    if(supportPrice != 0) serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, BigDecimal.valueOf(supportPrice)));
-
+                for (DiningType diningType : diningTypeList) {
                     MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
-                    if(mealInfo == null) {
-                        MealInfo newMealInfo = groupMapper.toMealInfo(group, diningType, "00:00", "00:00", groupInfoList.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
+                    if (mealInfo == null) {
+                        GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
+                                .findAny().orElse(null);
+                        MealInfo newMealInfo = groupMapper.toMealInfo(mealInfoDto, group);
                         newMealInfoList.add(newMealInfo);
                     } else {
-                        if(mealInfo instanceof  CorporationMealInfo corporationMealInfo) corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays, serviceDaysAndSupportPriceList);
-                        else mealInfo.updateMealInfo(serviceDays);
+                        if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
+                            GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
+                                    .findAny().orElse(null);
+                            List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = groupMapper.toServiceDaysAndSupportPrice(mealInfoDto.getSupportPriceByDays());
+                            corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays, serviceDaysAndSupportPriceList);
+                        } else mealInfo.updateMealInfo(serviceDays);
                     }
                 }
 
@@ -211,7 +196,9 @@ public class GroupServiceImpl implements GroupService {
         // 기업 정보 dto 맵핑하기
         List<GroupListDto.GroupInfoList> groupListDtoList = new ArrayList<>();
 
-        if(groupAllList.isEmpty()) { return groupListDtoList; }
+        if (groupAllList.isEmpty()) {
+            return groupListDtoList;
+        }
 
         List<BigInteger> managerIds = groupAllList.stream()
                 .filter(group -> group instanceof Corporation)
@@ -219,9 +206,9 @@ public class GroupServiceImpl implements GroupService {
                 .filter(Objects::nonNull)
                 .toList();
         List<User> users = (managerIds.isEmpty()) ? null : qUserRepository.getUserAllById(managerIds);
-        for(Group group : groupAllList) {
+        for (Group group : groupAllList) {
             User managerUser = null;
-            if(group instanceof Corporation corporation && corporation.getManagerId() != null) {
+            if (group instanceof Corporation corporation && corporation.getManagerId() != null) {
                 managerUser = (users != null) ? users.stream().filter(user -> user.getId().equals(corporation.getManagerId())).findFirst().orElse(null) : null;
             }
             GroupListDto.GroupInfoList corporationListDto = groupMapper.toCorporationListDto(group, managerUser);
@@ -233,22 +220,18 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional(readOnly = true)
-    public UpdateSpotDetailResponseDto getGroupDetail(Integer spotId) {
+    public GroupListDto.GroupInfoList getGroupDetail(BigInteger groupId) {
         //spotId로 spot 조회
-        Group group = groupRepository.findById(BigInteger.valueOf(spotId))
+        Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
 
-        if (group instanceof Corporation corporation){
-            List<MealInfo> mealInfoList = group.getMealInfos();
-
+        User manager = null;
+        if (group instanceof Corporation corporation) {
             if (corporation.getManagerId() != null) {
-                User manager = userRepository.findById(corporation.getManagerId()).orElse(null);
-                return spotMapper.toDetailDto(group, manager, mealInfoList);
+                manager = userRepository.findById(corporation.getManagerId()).orElse(null);
             }
-            return spotMapper.toDetailDto(group, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), mealInfoList);
         }
-
-        return spotMapper.toDetailDto(group, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), null);
+        return groupMapper.toCorporationListDto(group, manager);
     }
 
     @Override
@@ -270,46 +253,51 @@ public class GroupServiceImpl implements GroupService {
         // dining type 체크해서 있으면 업데이트, 없으면 생성
         List<MealInfo> mealInfoList = group.getMealInfos();
         List<MealInfo> newMealInfoList = new ArrayList<>();
-        for(DiningType diningType : updateDiningTypeList) {
+        for (DiningType diningType : updateDiningTypeList) {
             BigDecimal supportPrice = null;
-            if(diningType.equals(DiningType.MORNING)) supportPrice = updateSpotDetailRequestDto.getBreakfastSupportPrice();
-            else if(diningType.equals(DiningType.LUNCH)) supportPrice = updateSpotDetailRequestDto.getLunchSupportPrice();
-            else if(diningType.equals(DiningType.DINNER)) supportPrice = updateSpotDetailRequestDto.getDinnerSupportPrice();
+            if (diningType.equals(DiningType.MORNING))
+                supportPrice = updateSpotDetailRequestDto.getBreakfastSupportPrice();
+            else if (diningType.equals(DiningType.LUNCH))
+                supportPrice = updateSpotDetailRequestDto.getLunchSupportPrice();
+            else if (diningType.equals(DiningType.DINNER))
+                supportPrice = updateSpotDetailRequestDto.getDinnerSupportPrice();
 
             List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
-            if(supportPrice != null && supportPrice.compareTo(BigDecimal.valueOf(0)) != 0) serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, supportPrice));
+            if (supportPrice != null && supportPrice.compareTo(BigDecimal.valueOf(0)) != 0)
+                serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, supportPrice));
 
             MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
-            if(mealInfo == null) {
+            if (mealInfo == null) {
                 MealInfo newMealInfo = groupMapper.toMealInfo(group, diningType, "00:00", "00:00", updateSpotDetailRequestDto.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
                 newMealInfoList.add(newMealInfo);
             } else {
-                if(mealInfo instanceof  CorporationMealInfo corporationMealInfo) corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays,serviceDaysAndSupportPriceList);
+                if (mealInfo instanceof CorporationMealInfo corporationMealInfo)
+                    corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays, serviceDaysAndSupportPriceList);
                 else mealInfo.updateMealInfo(serviceDays);
             }
         }
 
         Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), updateSpotDetailRequestDto.getLocation().equals("없음") ? null : updateSpotDetailRequestDto.getLocation());
 
-        if(group instanceof Corporation corporation) {
+        if (group instanceof Corporation corporation) {
             LocalDate membershipEndDate = corporation.getMembershipEndDate();
             LocalDate updateMembershipEndDate = DateUtils.stringToDate(updateSpotDetailRequestDto.getMembershipEndDate());
-            if(corporation.getIsMembershipSupport() && updateSpotDetailRequestDto.getMembershipEndDate() != null && !updateSpotDetailRequestDto.getMembershipEndDate().isEmpty()) {
+            if (corporation.getIsMembershipSupport() && updateSpotDetailRequestDto.getMembershipEndDate() != null && !updateSpotDetailRequestDto.getMembershipEndDate().isEmpty()) {
                 // 멤버십 종료날짜가 새로 생성 또는 기존 날짜보다 이전으로 업데이트 한 경우
-                if(membershipEndDate == null || updateMembershipEndDate.isBefore(membershipEndDate)) {
+                if (membershipEndDate == null || updateMembershipEndDate.isBefore(membershipEndDate)) {
                     List<Membership> memberships = qmembershipSupportPriceRepository.findAllByGroupAndNow(corporation);
                     for (Membership membership : memberships) {
-                        if(membership.getEndDate().isAfter(updateMembershipEndDate)) {
+                        if (membership.getEndDate().isAfter(updateMembershipEndDate)) {
                             membership.updateEndDate(updateMembershipEndDate);
                         }
                     }
                 }
                 // 멤버십 종료날짜가 기존 날짜 이후로 업데이트 된 경우
-                if(membershipEndDate != null && updateMembershipEndDate.isAfter(membershipEndDate)) {
+                if (membershipEndDate != null && updateMembershipEndDate.isAfter(membershipEndDate)) {
                     List<Membership> memberships = qmembershipSupportPriceRepository.findAllByGroupAndNow(corporation);
                     for (Membership membership : memberships) {
                         LocalDate limitEndDate = membership.getStartDate().plusMonths(1);
-                        if(limitEndDate.isBefore(updateMembershipEndDate)) {
+                        if (limitEndDate.isBefore(updateMembershipEndDate)) {
                             membership.updateEndDate(updateMembershipEndDate);
                         }
                     }
@@ -317,8 +305,7 @@ public class GroupServiceImpl implements GroupService {
             }
             corporation.updateCorporation(updateSpotDetailRequestDto, address, updateDiningTypeList);
             corporation.updatePrepaidCategories(spotMapper.toPrepaidCategories(updateSpotDetailRequestDto.getPrepaidCategoryList()));
-        }
-        else if (group instanceof  OpenGroup openGroup) {
+        } else if (group instanceof OpenGroup openGroup) {
             openGroup.updateOpenSpot(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getEmployeeCount(), updateSpotDetailRequestDto.getIsActive());
         }
         mealInfoRepository.saveAll(newMealInfoList);
@@ -354,7 +341,7 @@ public class GroupServiceImpl implements GroupService {
         Page<MySpotZone> mySpotZoneList = qMySpotZoneRepository.findAllMySpotZone(name, city, county, villages, zipcodes, status, limit, size, pageable);
 
         List<AdminListResponseDto> adminListResponseDtoList = new ArrayList<>();
-        if(mySpotZoneList == null || mySpotZoneList.isEmpty()) {
+        if (mySpotZoneList == null || mySpotZoneList.isEmpty()) {
             return ListItemResponseDto.<AdminListResponseDto>builder().items(adminListResponseDtoList).count(0).limit(pageable.getPageSize()).offset(pageable.getOffset()).total(0L).build();
         }
 
@@ -371,11 +358,11 @@ public class GroupServiceImpl implements GroupService {
     public void createMySpotZone(CreateRequestDto createRequestDto) {
         // zipcode를 가지고 있는지 확인.
         MySpotZone existMySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcodes(createRequestDto.getZipcodes());
-        if(existMySpotZone != null) throw new ApiException(ExceptionEnum.ALREADY_EXIST_MY_SPOT_ZONE);
+        if (existMySpotZone != null) throw new ApiException(ExceptionEnum.ALREADY_EXIST_MY_SPOT_ZONE);
 
         // 해당 zipcode region 찾기
         List<Region> regions = qRegionRepository.findRegionByZipcodesAndCountiesAndVillages(createRequestDto.getZipcodes(), createRequestDto.getCounties(), createRequestDto.getVillages());
-        if(regions == null || regions.isEmpty()) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
+        if (regions == null || regions.isEmpty()) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
 
         // my spot zone 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(createRequestDto);
@@ -390,9 +377,12 @@ public class GroupServiceImpl implements GroupService {
         List<MealInfo> mealInfoList = mySpotZone.getDiningTypes().stream()
                 .map(diningType -> {
                     List<LocalTime> mealTime = switch (diningType) {
-                        case MORNING -> createRequestDto.getBreakfastDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
-                        case LUNCH -> createRequestDto.getLunchDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
-                        case DINNER -> createRequestDto.getDinnerDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case MORNING ->
+                                createRequestDto.getBreakfastDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case LUNCH ->
+                                createRequestDto.getLunchDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case DINNER ->
+                                createRequestDto.getDinnerDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
                     };
 
                     return mySpotZoneMealInfoMapper.toMealInfo(mySpotZone, diningType, mealTime, defaultTime, defaultDays, defaultTime);
@@ -408,10 +398,10 @@ public class GroupServiceImpl implements GroupService {
     public void updateMySpotZone(UpdateRequestDto updateRequestDto) {
         // my spot zone 찾기
         MySpotZone mySpotZone = qMySpotZoneRepository.findMySpotZoneById(updateRequestDto.getId());
-        if(mySpotZone == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
+        if (mySpotZone == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
 
         // my spot zone 수정
-        mySpotZone.updateMySpotZone(updateRequestDto);
+        mySpotZoneMapper.updateMySpotZone(updateRequestDto, mySpotZone);
 
         // region list 수정
         List<Region> defaultRegion = qRegionRepository.findRegionByMySpotZoneId(mySpotZone.getId());
@@ -423,9 +413,12 @@ public class GroupServiceImpl implements GroupService {
         mySpotZone.getDiningTypes()
                 .forEach(diningType -> {
                     List<LocalTime> deliveryTimes = switch (diningType) {
-                        case MORNING -> updateRequestDto.getBreakfastDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
-                        case LUNCH -> updateRequestDto.getLunchDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
-                        case DINNER -> updateRequestDto.getDinnerDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
+                        case MORNING ->
+                                updateRequestDto.getBreakfastDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
+                        case LUNCH ->
+                                updateRequestDto.getLunchDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
+                        case DINNER ->
+                                updateRequestDto.getDinnerDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
                     };
                     mySpotZone.getMealInfo(diningType).updateDeliveryTimes(deliveryTimes);
                 });
@@ -437,7 +430,8 @@ public class GroupServiceImpl implements GroupService {
     public void deleteMySpotZone(List<BigInteger> id) {
         // my spot zone 찾기
         List<MySpotZone> mySpotZoneList = qMySpotZoneRepository.findAllMySpotZoneByIds(id);
-        if(mySpotZoneList == null || mySpotZoneList.isEmpty()) throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
+        if (mySpotZoneList == null || mySpotZoneList.isEmpty())
+            throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
 
         // region의 my spot zone fk도 null
         List<Region> regions = qRegionRepository.findRegionByMySpotZone(mySpotZoneList.stream().map(MySpotZone::getId).toList());
@@ -445,7 +439,7 @@ public class GroupServiceImpl implements GroupService {
 
         // my spot zone fk를 가진 my spot 찾아서 null
         List<MySpot> mySpotList = qMySpotRepository.findMySpotByMySpotZone(mySpotZoneList);
-        if(mySpotList.isEmpty()) mySpotZoneList.forEach(mySpotZone -> mySpotZone.updateIsActive(false));
+        if (mySpotList.isEmpty()) mySpotZoneList.forEach(mySpotZone -> mySpotZone.updateIsActive(false));
         else {
             mySpotList.forEach(mySpot -> mySpot.updateMySpotZone(null));
 

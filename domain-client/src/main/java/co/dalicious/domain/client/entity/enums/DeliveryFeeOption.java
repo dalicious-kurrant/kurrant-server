@@ -24,4 +24,11 @@ public enum DeliveryFeeOption {
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
     }
+
+    public static DeliveryFeeOption ofString(String data) {
+        return Arrays.stream(DeliveryFeeOption.values())
+                .filter(v -> v.getDeliveryFeeOption().equals(data))
+                .findAny()
+                .orElse(null);
+    }
 }

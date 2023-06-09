@@ -1,11 +1,11 @@
 package co.dalicious.integration.client.user.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
-import co.dalicious.domain.user.entity.enums.ClientType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,8 +41,8 @@ public class MySpot extends UserSpot {
     @JoinColumn(name = "my_spot_zone_fk")
     private MySpotZone mySpotZone;
 
-    public MySpot(User user, ClientType clientType, Spot spot, Boolean isDefault, Address address, MySpotZone mySpotZone, String name, Boolean isActive) {
-        super(user, clientType, spot, isDefault);
+    public MySpot(User user, GroupDataType groupDataType, Spot spot, Boolean isDefault, Address address, MySpotZone mySpotZone, String name, Boolean isActive) {
+        super(user, groupDataType, spot, isDefault);
         this.address = address;
         this.mySpotZone = mySpotZone;
         this.name = name;
