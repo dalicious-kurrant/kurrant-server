@@ -60,7 +60,8 @@ public enum ExceptionEnum {
 	NOT_VALID_EMAIL(HttpStatus.BAD_REQUEST, "E4000100", "잘못된 이메일 주소입니다."),
 	ALREADY_EXIST_REQUEST(HttpStatus.BAD_REQUEST, "E4000108", "요청하신 우편번호와 동일한 마이 스팟 신청내역이 존재합니다."),
 	ALREADY_EXIST_MY_SPOT_ZONE(HttpStatus.BAD_REQUEST, "E4000108", "요청하신 우편번호와 동일한 마이 스팟이 존재합니다."),
-	OVER_MY_SPOT_LIMIT(HttpStatus.BAD_REQUEST, "E4000109", "신청할 수 있는 마이스팟의 갯수를 초과했습니다."),
+	OVER_MY_SPOT_LIMIT(HttpStatus.BAD_REQUEST, "E4000109", "이미 신청한 마이스팟이 존재합니다."),
+	ALREADY_REQUESTED_MY_SPOT_ZONE(HttpStatus.BAD_REQUEST, "E4000109", "이미 신청하신 마이스팟 존입니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
