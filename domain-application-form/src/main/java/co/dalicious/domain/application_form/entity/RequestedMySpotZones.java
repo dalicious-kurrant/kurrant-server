@@ -45,6 +45,10 @@ public class RequestedMySpotZones {
     @Comment("신청 유저 ID 리스트")
     private List<BigInteger> userIds;
 
+    @Convert(converter = IdListConverter.class)
+    @Comment("푸시 알림 신청 유저 ID 리스트")
+    private List<BigInteger> pushAlarmUserIds;
+
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
@@ -58,11 +62,12 @@ public class RequestedMySpotZones {
     private Timestamp updatedDateTime;
 
     @Builder
-    public RequestedMySpotZones(Region region, Integer waitingUserCount, String memo, List<BigInteger> userIds) {
+    public RequestedMySpotZones(Region region, Integer waitingUserCount, String memo, List<BigInteger> userIds, List<BigInteger> pushAlarmUserIds) {
         this.region = region;
         this.waitingUserCount = waitingUserCount;
         this.memo = memo;
         this.userIds = userIds;
+        this.pushAlarmUserIds = pushAlarmUserIds;
     }
 
     public void updateRequestedMySpotZones(RequestedMySpotDetailDto updateRequestDto, Region region) {
@@ -76,4 +81,6 @@ public class RequestedMySpotZones {
     }
 
     public void updateUserIds(List<BigInteger> userIds) { this.userIds = userIds; }
+
+    public void updatePushAlarmUserIds(List<BigInteger> userIds) { this.pushAlarmUserIds = userIds; }
 }
