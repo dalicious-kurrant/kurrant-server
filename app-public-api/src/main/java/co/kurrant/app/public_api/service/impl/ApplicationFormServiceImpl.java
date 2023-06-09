@@ -260,6 +260,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         }
 
         String[] jibunAddress = requestDto.getJibunAddress().split(" ");
+        System.out.println("jibunAddress = " + jibunAddress);
         String county = null;
         String village = null;
 
