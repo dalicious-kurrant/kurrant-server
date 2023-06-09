@@ -64,10 +64,10 @@ public class GroupController {
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "기업 정보 상세 조회", description = "기업 의 상세정보를 조회합니다.")
     @GetMapping("/detail")
-    public ResponseMessage getSpotDetail(@RequestParam Integer spotId) {
+    public ResponseMessage getGroupDetail(@RequestParam BigInteger groupId) {
         return ResponseMessage.builder()
                 .message("기업 상세 정보를 조회했습니다.")
-                .data(groupService.getGroupDetail(spotId))
+                .data(groupService.getGroupDetail(groupId))
                 .build();
     }
 

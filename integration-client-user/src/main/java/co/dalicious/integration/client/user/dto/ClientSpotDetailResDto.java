@@ -2,7 +2,7 @@ package co.dalicious.integration.client.user.dto;
 
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
-import co.dalicious.integration.client.user.entity.MySpotZoneMealInfo;
+import co.dalicious.domain.client.entity.MySpotZoneMealInfo;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.util.DateUtils;
 import io.swagger.v3.oas.annotations.media.Schema;

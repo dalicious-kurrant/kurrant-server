@@ -1,8 +1,7 @@
 package co.dalicious.domain.user.entity;
 
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.user.converter.ClientConverter;
-import co.dalicious.domain.user.entity.enums.ClientType;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -34,9 +33,9 @@ public class UserSpot {
     @Comment("유저")
     private User user;
 
-    @Convert(converter = ClientConverter.class)
+    @Convert(converter = GroupDataType.class)
     @Comment("그룹 타입(아파트/기업)")
-    private ClientType clientType;
+    private GroupDataType groupDataType;
 
     @OneToOne
     @JoinColumn
@@ -52,13 +51,13 @@ public class UserSpot {
         this.isDefault = isDefault;
     }
 
-    public void updateClientType(ClientType clientType) {
-        this.clientType = clientType;
+    public void updateClientType(GroupDataType clientType) {
+        this.groupDataType = clientType;
     }
 
-    public UserSpot(User user, ClientType clientType, Spot spot, Boolean isDefault) {
+    public UserSpot(User user, GroupDataType groupDataType, Spot spot, Boolean isDefault) {
         this.user = user;
-        this.clientType = clientType;
+        this.groupDataType = groupDataType;
         this.spot = spot;
         this.isDefault = isDefault;
     }

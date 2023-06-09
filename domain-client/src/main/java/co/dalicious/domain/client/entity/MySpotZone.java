@@ -1,16 +1,11 @@
-package co.dalicious.integration.client.user.entity;
+package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.integration.client.user.converter.MySpotZoneStatusConverter;
-import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
-import co.dalicious.integration.client.user.entity.enums.MySpotZoneStatus;
+import co.dalicious.domain.client.converter.MySpotZoneStatusConverter;
+import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -24,6 +19,7 @@ import java.util.List;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Setter
 @Table(name = "client__my_spot_zone")
 public class MySpotZone extends Group {
 
@@ -51,14 +47,6 @@ public class MySpotZone extends Group {
         this.openStartDate = openStartDate;
         this.openCloseDate = openCloseDate;
         this.mySpotZoneUserCount = mySpotZoneUserCount;
-    }
-
-    public void updateMySpotZone(UpdateRequestDto updateRequestDto) {
-        List<DiningType> diningTypes = updateRequestDto.getDiningTypes().stream().map(DiningType::ofCode).toList();
-        this.updateGroup(diningTypes, updateRequestDto.getName(), updateRequestDto.getMemo());
-        this.mySpotZoneStatus = MySpotZoneStatus.ofCode(updateRequestDto.getStatus());
-        this.openStartDate = DateUtils.stringToDate(updateRequestDto.getOpenStartDate());
-        this.openCloseDate = DateUtils.stringToDate(updateRequestDto.getOpenCloseDate());
     }
 
     public void updateMySpotZoneUserCount(Integer count) {

@@ -54,9 +54,9 @@ public class OrderDailyFoodController {
 
     @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @GetMapping("/group")
-    public ResponseMessage getGroup(@RequestParam(required = false) Integer clientType) {
+    public ResponseMessage getGroup(@RequestParam(required = false) Integer groupDataType) {
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.getGroup(clientType))
+                .data(orderDailyFoodService.getGroup(groupDataType))
                 .message("고객사 조회에 성공하였습니다.")
                 .build();
     }
