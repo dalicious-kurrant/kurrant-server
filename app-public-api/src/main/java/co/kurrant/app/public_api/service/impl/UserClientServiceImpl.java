@@ -5,12 +5,12 @@ import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.mapper.OpenGroupMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
@@ -100,11 +100,11 @@ public class UserClientServiceImpl implements UserClientService {
                 .findAny()
                 .orElse(null);
 
-        ClientType spotClientType = (spot instanceof CorporationSpot) ? ClientType.CORPORATION : ClientType.OPEN_GROUP;
+        GroupDataType spotGroupDataType = (spot instanceof CorporationSpot) ? GroupDataType.CORPORATION : GroupDataType.OPEN_GROUP;
 
         // 유저 스팟에 등록되지 않은 경우
         if(userSpot == null) {
-            UserSpot newUserSpot = userSpotMapper.toUserSpot(spot, user, true, spotClientType);
+            UserSpot newUserSpot = userSpotMapper.toUserSpot(spot, user, true, spotGroupDataType);
             userSpotRepository.save(newUserSpot);
             return spot.getId();
         }

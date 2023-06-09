@@ -11,7 +11,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.integration.client.user.entity.MySpot;
-import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.domain.client.entity.MySpotZone;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 

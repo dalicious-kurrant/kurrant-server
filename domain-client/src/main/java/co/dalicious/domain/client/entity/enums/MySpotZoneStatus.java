@@ -1,4 +1,4 @@
-package co.dalicious.integration.client.user.entity.enums;
+package co.dalicious.domain.client.entity.enums;
 
 import lombok.Getter;
 

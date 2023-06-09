@@ -1,5 +1,6 @@
 package co.dalicious.integration.client.user.dto.filter;
 
+import co.dalicious.domain.client.dto.FilterInfo;
 import lombok.Getter;
 import lombok.Setter;
 

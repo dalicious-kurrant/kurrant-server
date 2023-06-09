@@ -5,7 +5,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DaysUtil;
-import co.dalicious.integration.client.user.entity.MySpotZoneMealInfo;
+import co.dalicious.domain.client.entity.MySpotZoneMealInfo;
 import org.mapstruct.Mapper;
 
 import java.time.LocalTime;

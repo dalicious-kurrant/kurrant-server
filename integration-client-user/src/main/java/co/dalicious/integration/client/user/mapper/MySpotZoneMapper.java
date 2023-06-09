@@ -2,18 +2,20 @@ package co.dalicious.integration.client.user.mapper;
 
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.domain.client.entity.MySpotZone;
+import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
 import co.dalicious.integration.client.user.entity.Region;
-import co.dalicious.integration.client.user.entity.enums.MySpotZoneStatus;
+import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.integration.client.user.dto.filter.FilterDto;
-import co.dalicious.integration.client.user.dto.filter.FilterInfo;
+import co.dalicious.domain.client.dto.FilterInfo;
 import co.dalicious.integration.client.user.dto.filter.FilterStatusDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.AdminListResponseDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.system.util.GenerateRandomNumber;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 
 import java.math.BigInteger;
 import java.util.HashSet;
@@ -107,6 +109,14 @@ public interface MySpotZoneMapper {
                 .mySpotZoneStatus(MySpotZoneStatus.WAITE)
                 .mySpotZoneUserCount(count)
                 .build();
+    }
+
+    default void updateMySpotZone(UpdateRequestDto updateRequestDto, @MappingTarget MySpotZone mySpotZone) {
+        List<DiningType> diningTypes = updateRequestDto.getDiningTypes().stream().map(DiningType::ofCode).toList();
+        mySpotZone.updateGroup(diningTypes, updateRequestDto.getName(), updateRequestDto.getMemo());
+        mySpotZone.setMySpotZoneStatus(MySpotZoneStatus.ofCode(updateRequestDto.getStatus()));
+        mySpotZone.setOpenStartDate(DateUtils.stringToDate(updateRequestDto.getOpenStartDate()));
+        mySpotZone.setOpenCloseDate(DateUtils.stringToDate(updateRequestDto.getOpenCloseDate()));
     }
 
 }

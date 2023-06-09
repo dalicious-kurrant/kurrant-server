@@ -6,25 +6,24 @@ import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.integration.client.user.dto.filter.FilterDto;
-import co.dalicious.integration.client.user.dto.filter.FilterInfo;
+import co.dalicious.domain.client.dto.FilterInfo;
 import co.dalicious.integration.client.user.dto.mySpotZone.AdminListResponseDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.integration.client.user.entity.Region;
-import co.dalicious.integration.client.user.entity.enums.MySpotZoneStatus;
+import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.client.mapper.MealInfoMapper;
 import co.dalicious.integration.client.user.mapper.MySpotZoneMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.integration.client.user.entity.MySpotZone;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.integration.client.user.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
@@ -36,11 +35,10 @@ import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
-import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.GroupService;
-import co.dalicious.integration.client.user.reposiitory.QMySpotZoneRepository;
+import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.dalicious.domain.address.utils.AddressUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -222,22 +220,18 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional(readOnly = true)
-    public UpdateSpotDetailResponseDto getGroupDetail(Integer spotId) {
+    public GroupListDto.GroupInfoList getGroupDetail(BigInteger groupId) {
         //spotId로 spot 조회
-        Group group = groupRepository.findById(BigInteger.valueOf(spotId))
+        Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
 
+        User manager = null;
         if (group instanceof Corporation corporation) {
-            List<MealInfo> mealInfoList = group.getMealInfos();
-
             if (corporation.getManagerId() != null) {
-                User manager = userRepository.findById(corporation.getManagerId()).orElse(null);
-                return spotMapper.toDetailDto(group, manager, mealInfoList);
+                manager = userRepository.findById(corporation.getManagerId()).orElse(null);
             }
-            return spotMapper.toDetailDto(group, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), mealInfoList);
         }
-
-        return spotMapper.toDetailDto(group, User.builder().id(BigInteger.valueOf(0)).phone("없음").name("없음").build(), null);
+        return groupMapper.toCorporationListDto(group, manager);
     }
 
     @Override
@@ -407,7 +401,7 @@ public class GroupServiceImpl implements GroupService {
         if (mySpotZone == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
 
         // my spot zone 수정
-        mySpotZone.updateMySpotZone(updateRequestDto);
+        mySpotZoneMapper.updateMySpotZone(updateRequestDto, mySpotZone);
 
         // region list 수정
         List<Region> defaultRegion = qRegionRepository.findRegionByMySpotZoneId(mySpotZone.getId());

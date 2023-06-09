@@ -122,14 +122,18 @@ public class QGroupRepository {
                 .fetchOne();
     }
 
-    public List<? extends Group> findGroupByType(GroupDataType clientType) {
+    public List<? extends Group> findGroupByType(GroupDataType groupDataType) {
         BooleanBuilder whereCause = new BooleanBuilder();
+        if(groupDataType.equals(GroupDataType.CORPORATION)) {
+            whereCause.and(group.instanceOf(Corporation.class));
+        }
 
-        if(clientType.equals(GroupDataType.OPEN_GROUP)) {
+        if(groupDataType.equals(GroupDataType.OPEN_GROUP)) {
             whereCause.and(group.instanceOf(OpenGroup.class));
         }
-        if(clientType.equals(GroupDataType.CORPORATION)) {
-            whereCause.and(group.instanceOf(Corporation.class));
+
+        if(groupDataType.equals(GroupDataType.MY_SPOT)) {
+            whereCause.and(group.instanceOf(MySpotZone.class));
         }
 
         return queryFactory.selectFrom(group)
@@ -168,13 +172,13 @@ public class QGroupRepository {
         return new PageImpl<>(resultList.getResults(),pageable, resultList.getTotal());
     }
 
-    public Group findGroupByTypeAndId(BigInteger id, GroupDataType clientType) {
+    public Group findGroupByTypeAndId(BigInteger id, GroupDataType groupDataType) {
         BooleanBuilder whereCause =  new BooleanBuilder();
 
-        if(clientType.equals(GroupDataType.CORPORATION)) {
+        if(groupDataType.equals(GroupDataType.CORPORATION)) {
             whereCause.and(group.instanceOf(Corporation.class));
         }
-        if(clientType.equals(GroupDataType.OPEN_GROUP)) {
+        if(groupDataType.equals(GroupDataType.OPEN_GROUP)) {
             whereCause.and(group.instanceOf(OpenGroup.class));
         }
 
