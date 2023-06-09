@@ -62,6 +62,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
 
+        List<DeliveryDto.DeliveryInfo> deliveryInfoList = deliveryMapper.toDeliveryInfo(orderItemDailyFoods);
         // service date 묶기
         MultiValueMap<ServiceDateDto, OrderItemDailyFood> serviceDateDtoMap = new LinkedMultiValueMap<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -69,7 +70,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             serviceDateDtoMap.add(serviceDateDto, orderItemDailyFood);
         }
 
-        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
+//        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
         for (ServiceDateDto serviceDateDto : serviceDateDtoMap.keySet()) {
             List<OrderItemDailyFood> serviceDaysOrderItemDailyFoodList = serviceDateDtoMap.get(serviceDateDto);
 

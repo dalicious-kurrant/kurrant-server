@@ -28,13 +28,11 @@ public class DeliveryDto {
     @NoArgsConstructor
     public static class DeliveryInfo {
         private String serviceDate;
-        private String deliveryTime;
         private List<DeliveryGroup> group;
 
         @Builder
-        public DeliveryInfo(LocalDate serviceDate, LocalTime deliveryTime, List<DeliveryGroup> group) {
-            this.serviceDate = DateUtils.localDateToString(serviceDate);
-            this.deliveryTime = DateUtils.timeToString(deliveryTime);
+        public DeliveryInfo(String serviceDate, List<DeliveryGroup> group) {
+            this.serviceDate = serviceDate;
             this.group = group;
         }
     }
@@ -47,16 +45,18 @@ public class DeliveryDto {
         private String spotName;
         private BigInteger spotId;
         private String address;
+        private String deliveryTime;
         private Integer diningType;
         private List<DeliveryMakers> makers;
 
         @Builder
-        public DeliveryGroup(BigInteger groupId, String groupName, String spotName, BigInteger spotId, String address, Integer diningType, List<DeliveryMakers> makers) {
+        public DeliveryGroup(BigInteger groupId, String groupName, String spotName, BigInteger spotId, String address, String deliveryTime, Integer diningType, List<DeliveryMakers> makers) {
             this.groupId = groupId;
             this.groupName = groupName;
             this.spotName = spotName;
             this.spotId = spotId;
             this.address = address;
+            this.deliveryTime = deliveryTime;
             this.diningType = diningType;
             this.makers = makers;
         }
