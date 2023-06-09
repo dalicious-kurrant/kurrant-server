@@ -115,10 +115,7 @@ public class UserClientServiceImpl implements UserClientService {
         // 유저를 조회한다.
         User user = userUtil.getUser(securityUser);
         // 유저의 스팟리스트에서 해당하는 spot을 찾는다.
-        UserSpot userSpot = user.getUserSpots().stream()
-                .filter(spot -> (spot instanceof MySpot mySpot && mySpot.getId().equals(spotId)) || (spot.getSpot() != null && spot.getSpot().getId().equals(spotId)))
-                .findFirst()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        UserSpot userSpot = getUserSpot(spotId, user);
 
         // 마이스팟이면
         if(userSpot instanceof MySpot mySpot) {
