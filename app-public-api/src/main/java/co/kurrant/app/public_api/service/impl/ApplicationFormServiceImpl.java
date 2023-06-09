@@ -211,10 +211,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         User user = userUtil.getUser(securityUser);
         if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
 
-        // my spot이 두 개 이상 있으면 더 신청 불가
+        // my spot이 이미 존재하면
 //        List<UserSpot> userSpots = user.getUserSpots();
 //        List<MySpot> mySpotList = userSpots.stream().filter(s -> s instanceof MySpot).map(s -> (MySpot) s).toList();
-//        if(mySpotList.size() > 1) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
+//        if(mySpotList.size() > 0) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
 
         // my spot 생성
         MySpot mySpot = mySpotMapper.toMySpot(user, requestDto);
@@ -243,11 +243,13 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // my spot zone 없으면 my spot zone 신청하기
         RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
         if(existRequestedMySpotZones != null) {
-            existRequestedMySpotZones.updateWaitingUserCount(1);
-
             List<BigInteger> userIds = existRequestedMySpotZones.getUserIds();
-            userIds.add(user.getId());
-            existRequestedMySpotZones.updateUserIds(userIds);
+
+            if(!userIds.contains(user.getId())) {
+                userIds.add(user.getId());
+                existRequestedMySpotZones.updateUserIds(userIds);
+                existRequestedMySpotZones.updateWaitingUserCount(1);
+            }
 
             mySpot.updateActive(false);
             return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false, pushCondition);

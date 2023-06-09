@@ -39,6 +39,7 @@ import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.GroupService;
 import co.dalicious.domain.client.repository.QMySpotZoneRepository;
+import co.dalicious.domain.address.utils.AddressUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -74,6 +75,7 @@ public class GroupServiceImpl implements GroupService {
     private final MealInfoMapper mealInfoMapper;
     private final QMySpotRepository qMySpotRepository;
     private final MySpotZoneMealInfoMapper mySpotZoneMealInfoMapper;
+    private final AddressUtil addressUtil;
 
     @Override
     @Transactional
@@ -443,6 +445,17 @@ public class GroupServiceImpl implements GroupService {
 
             // my spot zone update isActive false
             mySpotZoneList.forEach(mySpotZone -> mySpotZone.updateIsActive(false));
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateLocation() throws ParseException {
+        List<Group> groupList = qGroupRepository.findGroupAndAddressIsNull();
+
+        for(Group group : groupList) {
+            String updateLocation = addressUtil.getLocation(group.getAddress().getAddress1());
+            group.getAddress().updateLocation(updateLocation);
         }
     }
 
