@@ -100,7 +100,7 @@ public interface DeliveryMapper {
                     makersOrderItemDailyFoodMap.add(orderItemDailyFood.getDailyFood().getFood().getMakers(), orderItemDailyFood);
                 }
 
-                Map<Makers, LocalTime> makersLocalTimeMap = new HashMap<>();
+                Map<Makers, LocalTime> makersPickupTimeMap = new HashMap<>();
                 List<DeliveryDto.DeliveryMakers> deliveryMakersList = new ArrayList<>();
                 for (Makers makers : makersOrderItemDailyFoodMap.keySet()) {
                     List<OrderItemDailyFood> makersOrderItemDailyFoodList = Objects.requireNonNull(makersOrderItemDailyFoodMap.get(makers)).stream().sorted(Comparator.comparing(o -> o.getDailyFood().getId())).toList();
@@ -108,13 +108,18 @@ public interface DeliveryMapper {
                     Map<DailyFood, Integer> dailyFoodOrderCountMap = new HashMap<>();
                     for (OrderItemDailyFood orderItemDailyFood : makersOrderItemDailyFoodList) {
                         DailyFood dailyFood = dailyFoodOrderCountMap.keySet().stream().filter(d -> d.equals(orderItemDailyFood.getDailyFood())).findAny().orElse(null);
-                        if(dailyFood == null) dailyFoodOrderCountMap.put(orderItemDailyFood.getDailyFood(), orderItemDailyFood.getCount());
+                        Integer count = null;
+                        LocalTime pickupTime = null;
+                        if(dailyFood == null) {
+                            count = orderItemDailyFood.getCount();
+                            pickupTime = orderItemDailyFood.getDailyFood().getDailyFoodGroup().getDeliverySchedules().stream().filter(s -> s.getDeliveryTime().equals(serviceDateDto.getDeliveryTime())).map(DeliverySchedule::getPickupTime).findAny().orElse(null);
+                        }
                         else {
-                            Integer count = dailyFoodOrderCountMap.get(dailyFood);
-                            dailyFoodOrderCountMap.put(dailyFood, count + orderItemDailyFood.getCount());
+                             count = dailyFoodOrderCountMap.get(dailyFood) + orderItemDailyFood.getCount();
                         }
 
-                        makersLocalTimeMap.put(makers, )
+                        dailyFoodOrderCountMap.put(dailyFood, count);
+                        makersPickupTimeMap.put(makers, pickupTime);
                     }
                     DeliveryDto.DeliveryFood deliveryFood = toDeliveryFood(dailyFood, count);
                     deliveryFoodList.add(deliveryFood);
