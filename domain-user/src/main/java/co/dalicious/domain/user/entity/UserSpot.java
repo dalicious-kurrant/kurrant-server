@@ -36,6 +36,7 @@ public class UserSpot {
 
     @Convert(converter = GroupDataTypeConverter.class)
     @Comment("그룹 타입(아파트/기업)")
+    @Column(name = "client_type")
     private GroupDataType groupDataType;
 
     @OneToOne

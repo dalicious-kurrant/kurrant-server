@@ -63,9 +63,10 @@ public class ClientController {
     @Operation(summary = "스팟 선택", description = "유저의 기본 스팟을 등록한다.")
     @PostMapping("/spots")
     public ResponseMessage selectUserSpot(Authentication authentication,
+                                          @RequestParam Integer groupType,
                                           @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        BigInteger result = userClientService.selectUserSpot(securityUser, groupAndSpotIdReqDto.getId());
+        BigInteger result = userClientService.selectUserSpot(securityUser, groupType, groupAndSpotIdReqDto.getId());
         return ResponseMessage.builder()
                 .data(result)
                 .message((result == null) ? "스팟 상세 주소 등록이 필요합니다" : "스팟 등록에 성공하였습니다.")

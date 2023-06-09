@@ -19,7 +19,7 @@ public interface UserClientService {
     // 그룹별 스팟 상세조회
     ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId);
     // 유저 스팟을 선택한다
-    BigInteger selectUserSpot(SecurityUser securityUser, BigInteger spotId);
+    BigInteger selectUserSpot(SecurityUser securityUser, Integer groupType, BigInteger spotId);
     // 유저가 속한 그룹을 탈퇴한다.
     Integer withdrawClient(SecurityUser securityUser, BigInteger groupId);
     // 공유 스팟의 상세조회
