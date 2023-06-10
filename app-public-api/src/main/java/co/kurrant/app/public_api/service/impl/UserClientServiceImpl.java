@@ -63,7 +63,7 @@ public class UserClientServiceImpl implements UserClientService {
         if(!groupDataType.equals(GroupDataType.MY_SPOT)) {
             // 스팟 정보 가져오기
             Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-            Group group = (Group) Hibernate.unproxy(spot.getGroup());
+            Group group = spot.getGroup();
             isGroupMember(user, group);
 
             return userSpotDetailResMapper.toDto(userSpot);
