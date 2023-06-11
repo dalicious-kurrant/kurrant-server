@@ -139,4 +139,14 @@ public class GroupController {
                 .message("좌표 등록에 성공했습니다.")
                 .build();
     }
+
+    @ControllerMarker(ControllerType.GROUP)
+    @Operation(summary = "기업/공유 스팟 추가", description = "기업/공유 스팟을 추가했습니다.")
+    @PostMapping("")
+    public ResponseMessage saveCorporationOrOpenGroup(@RequestBody GroupListDto.GroupInfoList requestDto) throws ParseException {
+        groupService.saveCorporationOrOpenGroup(requestDto);
+        return ResponseMessage.builder()
+                .message("기업/공유 스팟을 추가했습니다.")
+                .build();
+    }
 }

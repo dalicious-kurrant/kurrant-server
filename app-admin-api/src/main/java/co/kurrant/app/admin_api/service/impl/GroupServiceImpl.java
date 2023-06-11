@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.repository.QRegionRepository;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
@@ -457,6 +458,27 @@ public class GroupServiceImpl implements GroupService {
             String updateLocation = addressUtil.getLocation(group.getAddress().getAddress1());
             group.getAddress().updateLocation(updateLocation);
         }
+    }
+
+    @Override
+    @Transactional
+    public void saveCorporationOrOpenGroup(GroupListDto.GroupInfoList requestDto) throws ParseException {
+        Group newGroup = groupMapper.toEntity(requestDto);
+
+        // 좌표 업데이트
+        newGroup.getAddress().updateLocationByAddress(requestDto.getAddress1());
+
+        // 식사일정추가
+        List<Integer> diningTypeList = requestDto.getDiningTypes();
+        List<MealInfo> newMealInfo = new ArrayList<>();
+
+        for (Integer diningType : diningTypeList) {
+            Optional<GroupListDto.MealInfo> mealInfo = requestDto.getMealInfos().stream().filter(m -> m.getDiningType().equals(diningType)).findAny();
+            mealInfo.ifPresent(v -> newMealInfo.add(groupMapper.toMealInfo(mealInfo.get(), newGroup)));
+        }
+
+        groupRepository.save(newGroup);
+        mealInfoRepository.saveAll(newMealInfo);
     }
 
 

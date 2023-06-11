@@ -1,5 +1,7 @@
 package co.dalicious.domain.address.utils;
 
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -19,12 +21,12 @@ import java.net.URL;
 public class AddressUtil {
 
     @Value("${naver.client.id}")
-    public String YOUR_CLIENT_ID;
+    public static String YOUR_CLIENT_ID;
 
     @Value("${naver.secret.id}")
-    public String YOUR_CLIENT_SECRET;
+    public static String YOUR_CLIENT_SECRET;
 
-    public String getLocation (String address) {
+    public static String getLocation(String address) {
 
         String locationResult = null;
         try {
@@ -58,6 +60,8 @@ public class AddressUtil {
             JSONTokener tokener = new JSONTokener(response.toString());
             JSONObject object = new JSONObject(tokener);
             JSONArray arr = object.getJSONArray("addresses");
+
+            if(arr.length() < 1) throw new Exception(address + ", 주소를 확인해주세요.");
 
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject temp = (JSONObject) arr.get(i);
