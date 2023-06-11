@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
@@ -24,7 +25,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class, BigDecimal.class, DiningTypesUtils.class})
+@Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class, BigDecimal.class, DiningTypesUtils.class, AddressUtil.class})
 public interface GroupMapper {
     @Mapping(source = "id", target = "groupId")
     @Mapping(source = "name", target = "groupName")
@@ -155,7 +156,7 @@ public interface GroupMapper {
     @Mapping(source = "zipCode", target = "address.zipCode")
     @Mapping(source = "address1", target = "address.address1")
     @Mapping(source = "address2", target = "address.address2")
-    @Mapping(source = "location", target = "address.location")
+    @Mapping(target = "address.location", expression = "java(AddressUtil.getLocation(groupDto.getAddress1()))")
     Corporation toCorporation(GroupListDto.GroupInfoList groupDto) throws ParseException;
 
     @Mapping(source = "address.zipCode", target = "zipCode")
@@ -170,7 +171,7 @@ public interface GroupMapper {
     @Mapping(source = "zipCode", target = "address.zipCode")
     @Mapping(source = "address1", target = "address.address1")
     @Mapping(source = "address2", target = "address.address2")
-    @Mapping(source = "location", target = "address.location")
+    @Mapping(target = "address.location", expression = "java(AddressUtil.getLocation(groupDto.getAddress1()))")
     @Mapping(source = "employeeCount", target = "openGroupUserCount")
     OpenGroup toOpenGroup(GroupListDto.GroupInfoList groupDto) throws ParseException;
 

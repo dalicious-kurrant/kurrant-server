@@ -465,9 +465,6 @@ public class GroupServiceImpl implements GroupService {
     public void saveCorporationOrOpenGroup(GroupListDto.GroupInfoList requestDto) throws ParseException {
         Group newGroup = groupMapper.toEntity(requestDto);
 
-        // 좌표 업데이트
-        newGroup.getAddress().updateLocationByAddress(requestDto.getAddress1());
-
         // 식사일정추가
         List<Integer> diningTypeList = requestDto.getDiningTypes();
         List<MealInfo> newMealInfo = new ArrayList<>();
