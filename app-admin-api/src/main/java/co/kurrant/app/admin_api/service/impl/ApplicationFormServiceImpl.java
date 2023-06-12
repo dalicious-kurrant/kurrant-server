@@ -192,7 +192,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 마이스팟 생성
         List<RequestedMySpot> requestedMySpots = existRequestedMySpotZones.stream().flatMap(requestedMySpotZone -> requestedMySpotZone.getRequestedMySpots().stream()).toList();
-        List<MySpot> mySpotList = requestedMySpots.stream().map(v -> mySpotMapper.toMySpot(v, mySpotZone)).toList();
+        List<MySpot> mySpotList = requestedMySpots.stream().map(v -> mySpotMapper.toEntity(v, mySpotZone)).toList();
         spotRepository.saveAll(mySpotList);
 
         // userGroup and user spot

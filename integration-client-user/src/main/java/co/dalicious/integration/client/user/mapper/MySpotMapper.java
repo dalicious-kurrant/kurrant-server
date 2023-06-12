@@ -36,6 +36,6 @@ public interface MySpotMapper {
                 .build();
     }
 
-    MySpot toMySpot(RequestedMySpot requestedMySpot, Group MySpotZone);
+    MySpot toEntity(RequestedMySpot requestedMySpot, Group MySpotZone);
 
 }
