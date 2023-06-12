@@ -22,7 +22,7 @@ public interface UserGroupMapper {
     default SpotListResponseDto toSpotListResponseDto(UserGroup userGroup) {
         SpotListResponseDto spotListResponseDto = new SpotListResponseDto();
 
-        Group group = userGroup.getGroup();
+        Group group = (Group) Hibernate.unproxy(userGroup.getGroup());
         if(group instanceof MySpotZone mySpotZone) {
             spotListResponseDto.setClientId(mySpotZone.getId());
             spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
@@ -51,7 +51,9 @@ public interface UserGroupMapper {
         List<SpotListResponseDto.Spot> spotDtoList;
 
         if(group instanceof MySpotZone) {
-            spotDtoList = group.getSpots().stream().filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId())).map(this::toSpot).toList();
+            spotDtoList = group.getSpots().stream()
+                    .filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId()))
+                    .map(this::toSpot).toList();
         }
         else {
             spotDtoList = group.getSpots().stream().filter(spot -> spot.getStatus().equals(SpotStatus.ACTIVE))
