@@ -2,6 +2,7 @@ package co.kurrant.app.client_api.service.impl;
 
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
@@ -95,7 +96,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         Makers makers = (makersId != null) ? makersRepository.findById(makersId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
 
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, corporation, spotIds, diningTypeCode, userId, makers, null);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, GroupDataType.CORPORATION.getCode(), corporation, spotIds, diningTypeCode, userId, makers, null);
         return orderMapper.toGroupOrderDto(orderItemDailyFoods);
     }
 
