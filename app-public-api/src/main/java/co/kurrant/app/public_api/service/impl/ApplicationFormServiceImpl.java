@@ -224,7 +224,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         if(mySpotZone != null) {
             mySpotZone.updateMySpotZoneUserCount(1);
-            mySpot.updateMySpotZone(mySpotZone);
+            mySpot.updateGroup(mySpotZone);
             mySpot.updateActive(true);
 
             // 동일한 user group에 등록되어 있으면 패스

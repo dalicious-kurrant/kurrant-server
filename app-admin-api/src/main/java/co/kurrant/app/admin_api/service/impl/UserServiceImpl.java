@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
@@ -13,6 +14,7 @@ import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.user.validator.UserValidator;
+import co.dalicious.integration.client.user.entity.MySpot;
 import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
@@ -194,8 +196,8 @@ public class UserServiceImpl implements UserService {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
                         List<UserSpot> deleteUserSpots = user.getUserSpots().stream()
-                                .filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
-                                .toList();
+                                    .filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
+                                    .toList();
                         userSpotRepository.deleteAll(deleteUserSpots);
                     }
                 });

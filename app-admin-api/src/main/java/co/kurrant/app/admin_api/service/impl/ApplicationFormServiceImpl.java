@@ -185,10 +185,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         groupRepository.save(mySpotZone);
         mealInfoRepository.saveAll(mealInfoList);
 
-        // requestedMySpotZone을 가지고 있는 muSpot을 수정
+        // 마이스팟
         List<BigInteger> userIds = existRequestedMySpotZones.stream().flatMap(requestedMySpotZone -> requestedMySpotZone.getUserIds().stream()).toList();
         List<MySpot> mySpotList = qMySpotRepository.findMySpotByUserIds(userIds);
-        mySpotList.forEach(mySpot -> mySpot.updateMySpotZone(mySpotZone));
+        mySpotList.forEach(mySpot -> mySpot.updateGroup(mySpotZone));
+        List<User> users = qUser
 
         // userGroup
         List<User> users = mySpotList.stream().map(MySpot::getUser).toList();

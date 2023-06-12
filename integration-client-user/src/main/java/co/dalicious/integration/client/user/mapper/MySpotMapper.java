@@ -25,8 +25,7 @@ public interface MySpotMapper {
 
         return MySpot.builder()
                 .address(address)
-                .groupDataType(GroupDataType.MY_SPOT)
-                .user(user)
+                .userId(user.getId())
                 .isDefault(false)
                 .name(mySpotZoneApplicationFormRequestDto.getMySpotName())
                 .isDelete(false)
