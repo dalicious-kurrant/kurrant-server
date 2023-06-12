@@ -21,7 +21,7 @@ import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.util.ClientUtil;
+import co.dalicious.integration.client.user.utils.ClientUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
@@ -52,7 +52,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -60,14 +59,11 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 @Service

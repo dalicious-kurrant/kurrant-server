@@ -1,12 +1,14 @@
-package co.dalicious.domain.user.util;
+package co.dalicious.integration.client.user.utils;
 
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.EmployeeRepository;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
+import co.dalicious.integration.client.user.entity.MySpot;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -64,8 +66,13 @@ public class ClientUtil {
                 .filter(UserSpot::getIsDefault)
                 .findAny();
         if(userSpot.isPresent()) {
-            Spot spot = userSpot.get().getSpot();
-            Group group = (Group) Hibernate.unproxy(spot.getGroup());
+            Group group;
+            if(userSpot.get().getGroupDataType().equals(GroupDataType.MY_SPOT)) {
+                group = ((MySpot) Hibernate.unproxy(userSpot.get())).getMySpotZone();
+            }
+            else {
+                group = (Group) Hibernate.unproxy(userSpot.get().getSpot().getGroup());
+            }
             // 유저가 그 그룹에 속해있는지 조회한다.
             Optional<UserGroup> userGroup = userGroupRepository.findOneByUserAndGroupAndClientStatus(user, group, ClientStatus.BELONG);
             if (userGroup.isEmpty()) {
