@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -72,6 +73,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserGroupMapper userGroupMapper;
     private final RequestedShareSpotMapper requestedShareSpotMapper;
     private final RequestedShareSpotRepository requestedShareSpotRepository;
+    private final RequestedMySpotMapper requestedMySpotMapper;
+    private final RequestedMySpotRepository requestedMySpotRepository;
 
     @Override
     @Transactional
@@ -215,17 +218,15 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 //        List<MySpot> mySpotList = userSpots.stream().filter(s -> s instanceof MySpot mySpot && mySpot.getMySpotZone() == null ).map(s -> (MySpot) s).toList();
 //        if(mySpotList.size() > 0) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
 
-        // my spot 생성
-        MySpot mySpot = mySpotMapper.toMySpot(user, requestDto);
-        mySpotRepository.save(mySpot);
-
         // my spot zone 찾기
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
 
         if(mySpotZone != null) {
             mySpotZone.updateMySpotZoneUserCount(1);
-            mySpot.updateMySpotZone(mySpotZone);
-            mySpot.updateActive(true);
+            // my spot 생성
+            MySpot mySpot = mySpotMapper.toMySpot(user, mySpotZone, requestDto);
+            mySpotRepository.save(mySpot);
+            mySpot.updateGroup(mySpotZone);
 
             // 동일한 user group에 등록되어 있으면 패스
             UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
@@ -239,16 +240,19 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // my spot zone 없으면 my spot zone 신청하기
         RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
         if(existRequestedMySpotZones != null) {
-            List<BigInteger> userIds = existRequestedMySpotZones.getUserIds();
+            RequestedMySpot requestedMySpot = requestedMySpotMapper.toEntity(user.getId(), existRequestedMySpotZones, requestDto);
+            requestedMySpotRepository.save(requestedMySpot);
+
+            Set<BigInteger> userIds = existRequestedMySpotZones.getRequestedMySpots().stream()
+                    .map(RequestedMySpot::getUserId)
+                    .collect(Collectors.toSet());
 
             if(!userIds.contains(user.getId())) {
                 userIds.add(user.getId());
-                existRequestedMySpotZones.updateUserIds(userIds);
                 existRequestedMySpotZones.updateWaitingUserCount(1);
             }
 
-            mySpot.updateActive(false);
-            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
+            return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
         }
 
         String[] jibunAddress = requestDto.getJibunAddress().split(" ");
@@ -265,10 +269,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, null, region, user.getId());
         requestedMySpotZonesRepository.save(requestedMySpotZones);
 
-        mySpot.updateActive(false);
+        RequestedMySpot requestedMySpot = requestedMySpotMapper.toEntity(user.getId(), requestedMySpotZones, requestDto);
+        requestedMySpotRepository.save(requestedMySpot);
 
         // my spot zone 존재 여부 response
-        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
+        return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
     }
 
     @Override

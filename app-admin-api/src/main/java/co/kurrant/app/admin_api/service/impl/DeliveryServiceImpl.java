@@ -62,6 +62,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
 
+//        List<DeliveryDto.DeliveryInfo> deliveryInfoList = deliveryMapper.toDeliveryInfo(orderItemDailyFoods);
+        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
         // service date 묶기
         MultiValueMap<ServiceDateDto, OrderItemDailyFood> serviceDateDtoMap = new LinkedMultiValueMap<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
@@ -69,7 +71,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             serviceDateDtoMap.add(serviceDateDto, orderItemDailyFood);
         }
 
-        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
+//        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
         for (ServiceDateDto serviceDateDto : serviceDateDtoMap.keySet()) {
             List<OrderItemDailyFood> serviceDaysOrderItemDailyFoodList = serviceDateDtoMap.get(serviceDateDto);
 
@@ -133,7 +135,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                         .sorted(Comparator.comparing(deliveryMakers -> LocalTime.parse(deliveryMakers.getPickupTime()))).collect(Collectors.toList());
 
                 // delivery group 만들기
-                DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(spot, Objects.requireNonNull(diningType).getCode(), deliveryMakersList);
+                DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(spot, Objects.requireNonNull(diningType).getCode(), serviceDateDto.getDeliveryTime(), deliveryMakersList);
                 deliveryGroupList.add(deliveryGroup);
             }
 

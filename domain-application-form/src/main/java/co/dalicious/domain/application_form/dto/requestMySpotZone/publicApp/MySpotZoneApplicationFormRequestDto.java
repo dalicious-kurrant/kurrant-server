@@ -15,4 +15,5 @@ public class MySpotZoneApplicationFormRequestDto {
     @NotNull
     private String jibunAddress;
     private String phone;
+    private String memo;
 }

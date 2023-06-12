@@ -32,4 +32,5 @@ public interface GroupService {
     void updateMySpotZone(UpdateRequestDto updateRequestDto);
     void deleteMySpotZone(List<BigInteger> id);
     void updateLocation() throws ParseException;
+    void saveCorporationOrOpenGroup(GroupListDto.GroupInfoList requestDto) throws ParseException;
 }
