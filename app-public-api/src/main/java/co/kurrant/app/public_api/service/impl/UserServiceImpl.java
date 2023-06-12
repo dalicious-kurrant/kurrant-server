@@ -14,7 +14,9 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -41,6 +43,7 @@ import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.integration.client.user.mapper.UserGroupMapper;
 import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
@@ -116,6 +119,7 @@ public class UserServiceImpl implements UserService {
     private final UserGroupMapper userGroupMapper;
     private final QMySpotRepository qMySpotRepository;
     private final QGroupRepository qGroupRepository;
+    private final DailyFoodRepository dailyFoodRepository;
 
 
     @Override
@@ -1143,14 +1147,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType) {
+        List<OrderByDateAndDiningTypeResDto> resultList = new ArrayList<>();
 
         User user = userUtil.getUser(securityUser);
 
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByDateAndDiningType(user.getId(), date, diningType);
 
-        if (orderItemDailyFoodList.isEmpty()) return "해당 날짜에 주문 내역이 없습니다.";
+        if (orderItemDailyFoodList.isEmpty()) return resultList;
 
-        List<OrderByDateAndDiningTypeResDto> resultList = new ArrayList<>();
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
             String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
@@ -1193,5 +1197,32 @@ public class UserServiceImpl implements UserService {
 
         return mealHistoryResDto;
 
+    }
+
+    @Override
+    public void saveDailyReport(SecurityUser securityUser, SaveDailyReportReqDto saveDailyReportDto) {
+
+        User user = userUtil.getUser(securityUser);
+        DailyFood dailyFood = dailyFoodRepository.findById(saveDailyReportDto.getDailyFoodId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+
+        SaveDailyReportDto dailyReportDto = generatedSaveDailyReportDto(dailyFood);
+        if (!dailyFood.getFood().getImages().isEmpty()){
+            dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(),dailyFood.getFood().getImages().get(0).getLocation()));
+        } else {
+            dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(),null));
+        }
+
+    }
+
+    private SaveDailyReportDto generatedSaveDailyReportDto(DailyFood dailyFood) {
+        return SaveDailyReportDto.builder()
+                .fat(dailyFood.getFood().getFat() == null ? 0: dailyFood.getFood().getFat())
+                .carbohydrate(dailyFood.getFood().getCarbohydrate() == null ? 0 : dailyFood.getFood().getCarbohydrate())
+                .protein(dailyFood.getFood().getProtein() == null ? 0 : dailyFood.getFood().getProtein())
+                .calorie(dailyFood.getFood().getCalorie() == null ? 0 : dailyFood.getFood().getCalorie())
+                .eatDate(dailyFood.getServiceDate().toString())
+                .name(dailyFood.getFood().getName())
+                .diningType(dailyFood.getDiningType().getCode())
+                .build();
     }
 }
