@@ -1,3 +1,4 @@
+
 package co.dalicious.domain.application_form.repository;
 
 import co.dalicious.domain.application_form.entity.RequestedMySpot;
