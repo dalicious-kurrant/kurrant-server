@@ -2,18 +2,16 @@ package co.dalicious.integration.client.user.mapper;
 
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.OpenGroup;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.integration.client.user.entity.MySpot;
-import co.dalicious.domain.client.entity.MySpotZone;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,17 +19,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Mapper(componentModel = "spring")
 public interface UserGroupMapper {
 
-    default SpotListResponseDto toSpotListResponseDto(Group group, List<MySpot> mySpotList) {
+    default SpotListResponseDto toSpotListResponseDto(UserGroup userGroup) {
         SpotListResponseDto spotListResponseDto = new SpotListResponseDto();
 
-        if(Hibernate.unproxy(group) instanceof MySpotZone mySpotZone) {
+        Group group = userGroup.getGroup();
+        if(group instanceof MySpotZone mySpotZone) {
             spotListResponseDto.setClientId(mySpotZone.getId());
-            spotListResponseDto.setSpots(getSpots(mySpotZone, mySpotList));
+            spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
         }
         else {
             spotListResponseDto.setClientId(group.getId());
             spotListResponseDto.setClientName(group.getName());
-            spotListResponseDto.setSpots(getSpots(group, mySpotList));
+            spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
         }
 
         if(Hibernate.unproxy(group) instanceof Corporation) spotListResponseDto.setSpotType(GroupDataType.CORPORATION.getCode());
@@ -41,24 +40,19 @@ public interface UserGroupMapper {
         return spotListResponseDto;
     };
 
-    default List<SpotListResponseDto.Spot> getSpots(Group group, List<MySpot> mySpotList) {
+    @Mapping(source = "id", target = "spotId")
+    @Mapping(source = "name", target = "spotName")
+    SpotListResponseDto.Spot toSpot(Spot spot);
+
+    default List<SpotListResponseDto.Spot> getSpots(Group group, User user) {
         List<SpotListResponseDto.Spot> spotDtoList;
 
         if(group instanceof MySpotZone) {
-            spotDtoList = mySpotList.stream().filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE))
-                    .map(mySpot -> SpotListResponseDto.Spot.builder()
-                            .spotId(mySpot.getId())
-                            .spotName(mySpot.getName() == null ? mySpot.getAddress().addressToString() : mySpot.getName())
-                            .build()).toList();
+            spotDtoList = group.getSpots().stream().filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId())).map(this::toSpot).toList();
         }
         else {
-            spotDtoList = group.getSpots().stream().filter(spot -> spot.getStatus().equals(SpotStatus.ACTIVE))
-                    .map(spot -> SpotListResponseDto.Spot.builder()
-                            .spotName(spot.getName())
-                            .spotId(spot.getId())
-                            .build()).toList();
+            spotDtoList = group.getSpots().stream().filter(spot -> spot.getStatus().equals(SpotStatus.ACTIVE)).map(this::toSpot).toList();
         }
-
         return spotDtoList;
     }
 

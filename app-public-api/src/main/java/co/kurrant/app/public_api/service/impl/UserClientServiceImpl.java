@@ -49,26 +49,17 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId, Integer clientType) {
+    public ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-
-        GroupDataType groupDataType = GroupDataType.ofCode(clientType);
+        Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        Group group = (Group) Hibernate.unproxy(spot.getGroup());
+        isGroupMember(user, group);
 
         UserSpot userSpot = getUserSpot(spotId, user);
 
-        if (!groupDataType.equals(GroupDataType.MY_SPOT)) {
-            // 스팟 정보 가져오기
-            Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-            Group group = (Group) Hibernate.unproxy(spot.getGroup());
-            isGroupMember(user, group);
-
-            return userSpotDetailResMapper.toDto(userSpot);
-        } else if (userSpot != null) {
-            return userSpotDetailResMapper.toDto(userSpot);
-        }
-
-        throw new ApiException(ExceptionEnum.NOT_SET_SPOT);
+        if(userSpot == null) throw new ApiException(ExceptionEnum.NOT_SET_SPOT);
+        return userSpotDetailResMapper.toDto(userSpot);
     }
 
     @Override
@@ -172,12 +163,13 @@ public class UserClientServiceImpl implements UserClientService {
     private UserGroup isGroupMember(User user, Group group) {
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         return groups.stream()
-                .filter(v -> v.getGroup().equals(group))
+                .filter(v -> Hibernate.unproxy(v.getGroup()).equals(group))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
     }
 
     private UserSpot getUserSpot(BigInteger spotId, User user) {
+        List<UserSpot> userSpots = user.getUserSpots();
         return user.getUserSpots().stream()
                 .filter(s -> s.getSpot() != null && s.getSpot().getId().equals(spotId))
                 .findAny()
