@@ -68,7 +68,7 @@ public class ClientUtil {
         if(userSpot.isPresent()) {
             Group group;
             if(userSpot.get().getGroupDataType().equals(GroupDataType.MY_SPOT)) {
-                group = ((MySpot) Hibernate.unproxy(userSpot.get())).getMySpotZone();
+                group = ((MySpot) Hibernate.unproxy(userSpot.get())).getGroup();
             }
             else {
                 group = (Group) Hibernate.unproxy(userSpot.get().getSpot().getGroup());
