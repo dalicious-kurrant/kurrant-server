@@ -367,6 +367,7 @@ public class GroupServiceImpl implements GroupService {
 
         // my spot zone 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(createRequestDto);
+        groupRepository.save(mySpotZone);
 
         // region updqte my sopt zone fk
         regions.forEach(region -> region.updateMySpotZone(mySpotZone.getId()));
@@ -390,7 +391,7 @@ public class GroupServiceImpl implements GroupService {
                 })
                 .collect(Collectors.toList());
 
-        groupRepository.save(mySpotZone);
+
         mealInfoRepository.saveAll(mealInfoList);
     }
 
