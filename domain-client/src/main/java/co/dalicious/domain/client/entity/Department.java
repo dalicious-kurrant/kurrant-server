@@ -2,6 +2,7 @@ package co.dalicious.domain.client.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -35,4 +36,11 @@ public class Department {
     @JsonManagedReference(value = "client__group_fk")
     @Comment("그룹")
     private Group group;
+
+
+    @Builder
+    Department(String name, Group group) {
+        this.name = name;
+        this.group = group;
+    }
 }
