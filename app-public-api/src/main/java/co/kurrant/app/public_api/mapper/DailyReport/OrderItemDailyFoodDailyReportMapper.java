@@ -20,6 +20,7 @@ public interface OrderItemDailyFoodDailyReportMapper {
     @Mapping(source = "orderItemDailyFood.dailyFood.food.makers.name", target = "title")
     OrderItemDailyFoodToDailyReportDto toDailyReportDto(OrderItemDailyFood orderItemDailyFood, String location);
 
+    @Mapping(source = "orderItemDailyFood.dailyFood.id", target = "dailyFoodId")
     @Mapping(source = "location", target = "imageLocation")
     @Mapping(source = "spotName", target = "spotName")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.name", target = "foodName")
