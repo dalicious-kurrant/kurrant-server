@@ -1,12 +1,11 @@
 package co.dalicious.domain.application_form.entity;
 
+import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Comment;
+import org.locationtech.jts.io.ParseException;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -15,6 +14,7 @@ import java.math.BigInteger;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "application_form__requested_my_spot")
 public class RequestedMySpot {
@@ -57,5 +57,9 @@ public class RequestedMySpot {
         this.name = name;
         this.memo = memo;
         this.requestedMySpotZones = requestedMySpotZones;
+    }
+
+    public void setAddress(CreateAddressRequestDto address) throws ParseException {
+        this.address = new Address(address);
     }
 }

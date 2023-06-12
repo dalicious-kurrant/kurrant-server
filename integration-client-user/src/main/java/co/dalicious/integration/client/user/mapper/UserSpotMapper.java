@@ -6,6 +6,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.integration.client.user.entity.MySpot;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Optional;
 @Mapper(componentModel = "spring")
 public interface UserSpotMapper {
 
+    @Mapping(target = "id", ignore = true)
     UserSpot toUserSpot(Spot spot, User user, Boolean isDefault, GroupDataType groupDataType);
 
     default List<UserSpot> toEntityList(List<MySpot> spots, List<User> users, GroupDataType groupDataType, Boolean isDefault) {

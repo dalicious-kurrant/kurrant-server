@@ -6,14 +6,11 @@ import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
-import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -27,7 +24,7 @@ import java.util.List;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "user__my_spot")
+@Table(name = "integration_client_user__my_spot")
 public class MySpot extends Spot {
 
     @Column(name = "is_delete")

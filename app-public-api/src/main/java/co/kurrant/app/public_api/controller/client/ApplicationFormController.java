@@ -47,6 +47,9 @@ public class ApplicationFormController {
                 .build();
     }
 
+
+
+
     @Operation(summary = "아파트 스팟 개설 신청 API", description = "아파트 스팟 개설을 신청한다.")
     @PostMapping("/apartments")
     public ResponseMessage registerApartmentSpot(Authentication authentication,

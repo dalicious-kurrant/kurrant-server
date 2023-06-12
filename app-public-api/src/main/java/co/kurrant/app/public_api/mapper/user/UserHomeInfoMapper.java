@@ -2,7 +2,6 @@ package co.kurrant.app.public_api.mapper.user;
 
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
-import co.dalicious.integration.client.user.entity.MySpot;
 import co.kurrant.app.public_api.dto.user.UserHomeResponseDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -37,7 +36,6 @@ public interface UserHomeInfoMapper {
     default BigInteger getSpotId(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
         UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
-        if(userSpot instanceof MySpot mySpot) return mySpot.getId();
         return userSpot == null ? null : userSpot.getSpot().getId();
     }
 
@@ -45,7 +43,6 @@ public interface UserHomeInfoMapper {
     default String getSpotName(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
         UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
-        if(userSpot instanceof MySpot mySpot) return mySpot.getName() != null ? mySpot.getName() : mySpot.getAddress().addressToString();
         return userSpot == null ? null : userSpot.getSpot().getName();
     }
 
@@ -53,7 +50,6 @@ public interface UserHomeInfoMapper {
     default BigInteger getGroupId(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
         UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
-        if(userSpot instanceof MySpot mySpot) return mySpot.getMySpotZone().getId();
         return userSpot == null ? null : userSpot.getSpot().getGroup().getId();
     }
 
@@ -61,7 +57,6 @@ public interface UserHomeInfoMapper {
     default String getGroupName(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
         UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
-        if(userSpot instanceof MySpot mySpot) return null;
         return userSpot == null ? null : userSpot.getSpot().getGroup().getName();
     }
 
