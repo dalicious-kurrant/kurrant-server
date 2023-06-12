@@ -42,8 +42,9 @@ public interface MySpotMapper {
     @Mapping(source = "requestedMySpot.name", target = "name")
     @Mapping(source = "requestedMySpot.address", target = "address")
     @Mapping(source = "requestedMySpot.memo", target = "memo")
-    @Mapping(source = "MySpotZone.diningTypes", target = "diningTypes")
-    MySpot toEntity(RequestedMySpot requestedMySpot, Group MySpotZone) throws ParseException;
+    @Mapping(source = "group.diningTypes", target = "diningTypes")
+    @Mapping(source = "group", target = "group")
+    MySpot toEntity(RequestedMySpot requestedMySpot, Group group) throws ParseException;
 
     default List<MySpot> toEntityList(MySpotZone mySpotZone, List<RequestedMySpot> requestedMySpots){
         return new ArrayList<>(requestedMySpots.stream().map(v -> {

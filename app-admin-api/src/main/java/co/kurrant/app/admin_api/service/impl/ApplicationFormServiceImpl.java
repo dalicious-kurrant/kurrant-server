@@ -248,19 +248,22 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         List<String> zipcodes = requestedMySpotZones.stream().map(v -> v.getRegion().getZipcode()).toList();
         Map<MySpotZone, List<String>> mySpotZones = qMySpotZoneRepository.findExistMySpotZoneListByZipcodes(zipcodes);
 
-        List<MySpot> newMySpot = new ArrayList<>();
+        List<RequestedMySpot> deleteRequestedMySpot = new ArrayList<>();
         // 관련 신청 마이스팟 생성
         for(MySpotZone mySpotZone : mySpotZones.keySet()) {
             Optional<RequestedMySpotZones> requestedMySpotZone = requestedMySpotZones.stream().filter(v -> mySpotZones.get(mySpotZone).contains(v.getRegion().getZipcode())).findAny();
             requestedMySpotZone.ifPresent(v -> {
+
                 List<MySpot> mySpots = mySpotMapper.toEntityList(mySpotZone, v.getRequestedMySpots());
-                newMySpot.addAll(mySpots);
+                spotRepository.saveAll(mySpots);
 
                 createUserGroupAndUserSpot(v.getRequestedMySpots(), mySpotZone, mySpots);
+
+                deleteRequestedMySpot.addAll(v.getRequestedMySpots());
             });
         }
-        spotRepository.saveAll(newMySpot);
 
+        requestedMySpotRepository.deleteAll(deleteRequestedMySpot);
         requestedMySpotZonesRepository.deleteAll(requestedMySpotZones);
     }
 
