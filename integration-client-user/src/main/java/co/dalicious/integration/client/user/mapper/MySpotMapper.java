@@ -14,6 +14,8 @@ import org.locationtech.jts.io.ParseException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
@@ -40,20 +42,16 @@ public interface MySpotMapper {
     @Mapping(source = "requestedMySpot.name", target = "name")
     @Mapping(source = "requestedMySpot.address", target = "address")
     @Mapping(source = "requestedMySpot.memo", target = "memo")
+    @Mapping(source = "MySpotZone.diningTypes", target = "diningTypes")
     MySpot toEntity(RequestedMySpot requestedMySpot, Group MySpotZone) throws ParseException;
 
-    default List<MySpot> toEntityList(List<RequestedMySpot> requestedMySpots, List<MySpotZone> mySpotZones){
-        List<MySpot> mySpotList = new ArrayList<>();
-        mySpotZones.forEach(mySpotZone -> {
-            mySpotList.addAll(requestedMySpots.stream().map(v -> {
-                try {
-                    return toEntity(v, mySpotZone);
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
-                }
-            }).toList());
-        });
-
-        return mySpotList;
+    default List<MySpot> toEntityList(MySpotZone mySpotZone, List<RequestedMySpot> requestedMySpots){
+        return new ArrayList<>(requestedMySpots.stream().map(v -> {
+            try {
+                return toEntity(v, mySpotZone);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
+        }).toList());
     }
 }

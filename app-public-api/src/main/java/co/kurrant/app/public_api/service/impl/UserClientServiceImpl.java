@@ -88,7 +88,7 @@ public class UserClientServiceImpl implements UserClientService {
         if (spot instanceof MySpot mySpot && !user.getId().equals(mySpot.getUserId())) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
-        Group group = spot.getGroup();
+        Group group = (Group) Hibernate.unproxy(spot.getGroup());
         isGroupMember(user, group);
 
         // 유저 스팟에 등록되지 않은 경우
