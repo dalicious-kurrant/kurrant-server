@@ -117,6 +117,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         BigInteger groupId = !parameters.containsKey("group") || parameters.get("group").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("group")));
         List<BigInteger> spotIds = !parameters.containsKey("spots") || parameters.get("spots").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("spots"));
         Integer diningTypeCode = !parameters.containsKey("diningType") || parameters.get("diningType").equals("") ? null : Integer.parseInt((String) parameters.get("diningType"));
+        Integer spotType = !parameters.containsKey("spotType") || parameters.get("spotType").equals("") ? null : Integer.parseInt((String) parameters.get("spotType"));
         Long status = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : Long.parseLong((String) parameters.get("status"));
         BigInteger userId = !parameters.containsKey("userId") || parameters.get("userId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("userId")));
         BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
@@ -127,7 +128,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
         OrderStatus orderStatus = status == null ? null : OrderStatus.ofCode(status);
 
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, group, spotIds, diningTypeCode, userId, makers, orderStatus);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, spotType, group, spotIds, diningTypeCode, userId, makers, orderStatus);
         List<Membership> memberships = qMembershipRepository.findAllByFilter(startDate, endDate, group, userId);
 
         return orderMapper.toOrderItemDailyFoodGroupList(orderItemDailyFoods, memberships);
@@ -158,12 +159,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    public List<GroupDto.Group> getGroup(Integer groupDataType) {
+    public List<GroupDto.Group> getGroup(Integer spotType) {
         List<? extends Group> groups = new ArrayList<>();
-        if (groupDataType == null) {
+        if (spotType == null) {
             groups = groupRepository.findAll();
         } else {
-            groups = qGroupRepository.findGroupByType(GroupDataType.ofCode(groupDataType));
+            groups = qGroupRepository.findGroupByType(GroupDataType.ofCode(spotType));
         }
         return groupMapper.groupsToDtos(groups);
     }

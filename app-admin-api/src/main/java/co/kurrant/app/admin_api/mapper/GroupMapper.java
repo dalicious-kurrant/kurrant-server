@@ -7,6 +7,7 @@ import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -36,6 +37,13 @@ public interface GroupMapper {
     @Mapping(source = "name", target = "spotName")
     GroupDto.Spot spotToDto(Spot spot);
 
+    default GroupDto.Spot mySpotToDto(MySpot mySpot) {
+        GroupDto.Spot spotDto = new GroupDto.Spot();
+        spotDto.setSpotId(mySpot.getId());
+        spotDto.setSpotName(mySpot.getAddress().addressToString());
+        return spotDto;
+    }
+
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(source = "code", target = "code")
     GroupDto.DiningType diningTypeToDto(DiningType diningType);
@@ -52,7 +60,7 @@ public interface GroupMapper {
 
     default List<GroupDto.Spot> spotsToDtos(List<Spot> spots) {
         return spots.stream()
-                .map(this::spotToDto)
+                .map(spot -> spot instanceof MySpot mySpot ? mySpotToDto(mySpot) : spotToDto(spot))
                 .collect(Collectors.toList());
     }
 
