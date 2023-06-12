@@ -11,6 +11,9 @@ import co.dalicious.integration.client.user.entity.MySpot;
 import org.mapstruct.Mapper;
 
 import org.locationtech.jts.io.ParseException;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
@@ -39,4 +42,18 @@ public interface MySpotMapper {
     @Mapping(source = "requestedMySpot.memo", target = "memo")
     MySpot toEntity(RequestedMySpot requestedMySpot, Group MySpotZone) throws ParseException;
 
+    default List<MySpot> toEntityList(List<RequestedMySpot> requestedMySpots, List<MySpotZone> mySpotZones){
+        List<MySpot> mySpotList = new ArrayList<>();
+        mySpotZones.forEach(mySpotZone -> {
+            mySpotList.addAll(requestedMySpots.stream().map(v -> {
+                try {
+                    return toEntity(v, mySpotZone);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            }).toList());
+        });
+
+        return mySpotList;
+    }
 }
