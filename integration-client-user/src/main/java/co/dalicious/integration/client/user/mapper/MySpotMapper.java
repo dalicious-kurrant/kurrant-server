@@ -42,10 +42,16 @@ public interface MySpotMapper {
     @Mapping(source = "requestedMySpot.memo", target = "memo")
     MySpot toEntity(RequestedMySpot requestedMySpot, Group MySpotZone) throws ParseException;
 
-    default List<MySpot> toEntityList(List<RequestedMySpot> requestedMySpots, List<MySpotZone> mySpotZones) {
+    default List<MySpot> toEntityList(List<RequestedMySpot> requestedMySpots, List<MySpotZone> mySpotZones){
         List<MySpot> mySpotList = new ArrayList<>();
         mySpotZones.forEach(mySpotZone -> {
-            mySpotList.addAll(requestedMySpots.stream().map(v -> toEntity(v, mySpotZone)).toList());
+            mySpotList.addAll(requestedMySpots.stream().map(v -> {
+                try {
+                    return toEntity(v, mySpotZone);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            }).toList());
         });
 
         return mySpotList;
