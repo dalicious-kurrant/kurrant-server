@@ -4,6 +4,7 @@ package co.dalicious.domain.user.entity;
 import co.dalicious.domain.client.entity.Department;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -38,4 +39,9 @@ public class UserDepartment {
     @Comment("유저 정보 FK")
     private User user;
 
+    @Builder
+    UserDepartment(Department department, User user) {
+        this.department = department;
+        this.user = user;
+    }
 }

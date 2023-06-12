@@ -57,7 +57,7 @@ public class UserClientServiceImpl implements UserClientService {
         isGroupMember(user, group);
 
         UserSpot userSpot = getUserSpot(spotId, user);
-
+      
         if(userSpot == null) throw new ApiException(ExceptionEnum.NOT_SET_SPOT);
         return userSpotDetailResMapper.toDto(userSpot);
     }
