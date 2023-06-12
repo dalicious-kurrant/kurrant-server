@@ -46,10 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -196,12 +193,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         spotRepository.saveAll(mySpotList);
 
         // userGroup and user spot
-        List<BigInteger> userIds = requestedMySpots.stream().map(RequestedMySpot::getUserId).toList();
-        List<User> users = qUserRepository.getUserAllById(userIds);
-        List<UserGroup> userGroups = users.stream().map(user -> userGroupMapper.toUserGroup(user, mySpotZone)).toList();
-        List<UserSpot> userSpots = userSpotMapper.toEntityList(mySpotList, users, GroupDataType.MY_SPOT, false);
-        userSpotRepository.saveAll(userSpots);
-        userGroupRepository.saveAll(userGroups);
+        createUserGroupAndUserSpot(requestedMySpots, mySpotZone, mySpotList);
 
         // 신청된 마이스팟 존 삭제
         requestedMySpotRepository.deleteAll(requestedMySpots);
@@ -239,19 +231,32 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional(readOnly = true)
-    public Boolean findRenewalMySpotRequest() {
-        Integer requestedMySpotZones = qRequestedMySpotZonesRepository.findAlreadyExistMySpotZone().size();
-
-        if(requestedMySpotZones > 0) return true;
-        return false;
+    public List<BigInteger> findRenewalMySpotRequest() {
+        return qRequestedMySpotZonesRepository.findAlreadyExistMySpotZone().stream().map(RequestedMySpotZones::getId).toList();
     }
 
     @Override
     @Transactional
-    public void renewalMySpotRequest() {
-        List<RequestedMySpotZones> requestedMySpotZones = qRequestedMySpotZonesRepository.findAlreadyExistMySpotZone();
-        requestedMySpotZonesRepository.deleteAll(requestedMySpotZones);
+    public void renewalMySpotRequest(List<BigInteger> ids) {
+//        List<RequestedMySpotZones> requestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
+//        List<String> zipcodes = requestedMySpotZones.stream().map(v -> v.getRegion().getZipcode()).toList();
+//        List<MySpotZone> mySpotZones = qMySpotZoneRepository.findExistMySpotZoneListByZipcodes(zipcodes);
+//        Map<MySpotZone, RequestedMySpot> mySpotZoneRequestedMySpotMap = requestedMySpotZones.stream().filter()
+//
+//        // 관련 신청 마이스팟 생성
+//        List<MySpot> mySpots = mySpotMapper.toEntityList(requestedMySpots, mySpotZones);
+//        spotRepository.saveAll(mySpots);
+//
+//        requestedMySpotZonesRepository.deleteAll(requestedMySpotZones);
     }
 
+    private void createUserGroupAndUserSpot (List<RequestedMySpot> requestedMySpots, MySpotZone mySpotZone, List<MySpot> mySpotList) {
+        List<BigInteger> userIds = requestedMySpots.stream().map(RequestedMySpot::getUserId).toList();
+        List<User> users = qUserRepository.getUserAllById(userIds);
+        List<UserGroup> userGroups = users.stream().map(user -> userGroupMapper.toUserGroup(user, mySpotZone)).toList();
+        List<UserSpot> userSpots = userSpotMapper.toEntityList(mySpotList, users, GroupDataType.MY_SPOT, false);
+        userSpotRepository.saveAll(userSpots);
+        userGroupRepository.saveAll(userGroups);
+    }
 
 }

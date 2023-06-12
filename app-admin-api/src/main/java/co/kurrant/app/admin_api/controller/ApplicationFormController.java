@@ -141,9 +141,9 @@ public class ApplicationFormController {
 
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "마이 스팟 신청 갱신", description = "이미 개설된 마이 스팟을 삭제합니다.")
-    @DeleteMapping("/spots/my/renew")
-    public ResponseMessage renewalMySpotRequest(@RequestBody Boolean isDo) {
-        applicationFormService.renewalMySpotRequest();
+    @PostMapping("/spots/my/renew")
+    public ResponseMessage renewalMySpotRequest(@RequestBody List<BigInteger> ids) {
+        applicationFormService.renewalMySpotRequest(ids);
         return ResponseMessage.builder()
                 .message("마이 스팟 신청을 갱신했습니다.")
                 .build();

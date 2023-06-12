@@ -439,11 +439,10 @@ public class GroupServiceImpl implements GroupService {
         regions.forEach(region -> region.updateMySpotZone(null));
 
         // my spot zone fk를 가진 my spot 찾아서 null
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByMySpotZone(mySpotZoneList);
+        List<MySpot> mySpotList = mySpotZoneList.stream().flatMap(v -> v.getSpots().stream().map(s -> (MySpot) s)).toList();
         if (mySpotList.isEmpty()) mySpotZoneList.forEach(mySpotZone -> mySpotZone.updateIsActive(false));
         else {
-            mySpotList.forEach(mySpot -> mySpot.updateMySpotZone(null));
-
+            mySpotList.forEach(MySpot::updateMySpotForDelete);
             // my spot zone update isActive false
             mySpotZoneList.forEach(mySpotZone -> mySpotZone.updateIsActive(false));
         }

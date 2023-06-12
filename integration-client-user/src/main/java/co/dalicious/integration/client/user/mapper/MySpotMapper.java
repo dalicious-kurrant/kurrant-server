@@ -5,6 +5,7 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.application_form.entity.RequestedMySpot;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.integration.client.user.entity.MySpot;
@@ -13,6 +14,7 @@ import org.mapstruct.Mapper;
 import org.locationtech.jts.io.ParseException;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -36,6 +38,14 @@ public interface MySpotMapper {
                 .build();
     }
 
-    MySpot toEntity(RequestedMySpot requestedMySpot, Group MySpotZone);
+    MySpot toEntity(RequestedMySpot requestedMySpot, MySpotZone mySpotZone);
 
+    default List<MySpot> toEntityList(List<RequestedMySpot> requestedMySpots, List<MySpotZone> mySpotZones) {
+        List<MySpot> mySpotList = new ArrayList<>();
+        mySpotZones.forEach(mySpotZone -> {
+            mySpotList.addAll(requestedMySpots.stream().map(v -> toEntity(v, mySpotZone)).toList());
+        });
+
+        return mySpotList;
+    }
 }

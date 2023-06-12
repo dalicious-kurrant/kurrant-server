@@ -113,6 +113,13 @@ public class QMySpotZoneRepository {
                 .where(QMySpotZone.mySpotZone.id.in(ids), QMySpotZone.mySpotZone.isActive.ne(false))
                 .fetch();
     }
+
+    public List<MySpotZone> findExistMySpotZoneListByZipcodes(List<String> zipcodes) {
+        return queryFactory.selectFrom(QMySpotZone.mySpotZone)
+                .leftJoin(region).on(region.mySpotZoneIds.eq(QMySpotZone.mySpotZone.id))
+                .where(region.zipcode.in(zipcodes), QMySpotZone.mySpotZone.isActive.ne(false))
+                .fetch();
+    }
 }
 
 
