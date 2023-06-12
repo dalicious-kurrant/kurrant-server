@@ -2,6 +2,9 @@ package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MySpotZone;
+import co.dalicious.domain.client.entity.OpenGroup;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.CapacityDto;
@@ -39,6 +42,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QSpot.spot;
@@ -86,7 +90,7 @@ public class QOrderDailyFoodRepository {
 
     public List<OrderItemDailyFood> findByUserAndGroupAndServiceDateBetween(User user, Group group, LocalDate startDate, LocalDate endDate) {
         BooleanBuilder whereClause = new BooleanBuilder();
-        if(group != null) {
+        if (group != null) {
             whereClause.and(orderItemDailyFood.dailyFood.group.eq(group));
         }
         return queryFactory
@@ -124,7 +128,7 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
-    public List<OrderItemDailyFood> findAllByGroupFilter(LocalDate startDate, LocalDate endDate, Group group, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers, OrderStatus orderStatus) {
+    public List<OrderItemDailyFood> findAllByGroupFilter(LocalDate startDate, LocalDate endDate, Integer spotType, Group group, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers, OrderStatus orderStatus) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (startDate != null) {
@@ -134,7 +138,6 @@ public class QOrderDailyFoodRepository {
         if (endDate != null) {
             whereClause.and(orderItemDailyFood.dailyFood.serviceDate.loe(endDate));
         }
-
         if (diningTypeCode != null) {
             whereClause.and(orderItemDailyFood.dailyFood.diningType.eq(DiningType.ofCode(diningTypeCode)));
         }
@@ -159,7 +162,7 @@ public class QOrderDailyFoodRepository {
             whereClause.and(orderItemDailyFood.orderStatus.eq(orderStatus));
         }
 
-        return queryFactory.selectFrom(orderItemDailyFood)
+        List<OrderItemDailyFood> results = queryFactory.selectFrom(orderItemDailyFood)
                 .innerJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
                 .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
                 .innerJoin(dailyFood.food, food)
@@ -167,6 +170,22 @@ public class QOrderDailyFoodRepository {
                 .where(whereClause)
                 .orderBy(orderItemDailyFood.dailyFood.serviceDate.desc())
                 .fetch();
+
+        if (spotType != null) {
+            Class<? extends Group> groupClass = null;
+            switch (GroupDataType.ofCode(spotType)) {
+                case CORPORATION -> groupClass = Corporation.class;
+                case MY_SPOT -> groupClass = MySpotZone.class;
+                case OPEN_GROUP -> groupClass = OpenGroup.class;
+            }
+            Class<? extends Group> finalGroupClass = groupClass;
+            results = results.stream()
+                    .filter(orderItem -> finalGroupClass.isInstance(Hibernate.unproxy(orderItem.getDailyFood().getGroup())))
+                    .collect(Collectors.toList());
+        }
+
+
+        return results;
     }
 
     public List<OrderItemDailyFood> findAllGroupOrderByFilter(Group group, LocalDate startDate, LocalDate endDate, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId) {

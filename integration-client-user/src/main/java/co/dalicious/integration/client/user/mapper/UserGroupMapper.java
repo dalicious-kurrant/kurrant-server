@@ -23,15 +23,9 @@ public interface UserGroupMapper {
         SpotListResponseDto spotListResponseDto = new SpotListResponseDto();
 
         Group group = userGroup.getGroup();
-        if(group instanceof MySpotZone mySpotZone) {
-            spotListResponseDto.setClientId(mySpotZone.getId());
-            spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
-        }
-        else {
-            spotListResponseDto.setClientId(group.getId());
-            spotListResponseDto.setClientName(group.getName());
-            spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
-        }
+        spotListResponseDto.setClientId(group.getId());
+        spotListResponseDto.setClientName(group.getName());
+        spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
 
         if (Hibernate.unproxy(group) instanceof Corporation)
             spotListResponseDto.setSpotType(GroupDataType.CORPORATION.getCode());
@@ -50,18 +44,12 @@ public interface UserGroupMapper {
     default List<SpotListResponseDto.Spot> getSpots(Group group, User user) {
         List<SpotListResponseDto.Spot> spotDtoList;
 
-        if(group instanceof MySpotZone) {
-            spotDtoList = group.getSpots().stream().filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId())).map(this::toSpot).toList();
-        }
-        else {
-            spotDtoList = group.getSpots().stream().filter(spot -> spot.getStatus().equals(SpotStatus.ACTIVE))
-                    .map(spot -> {
-                        SpotListResponseDto.Spot s = toSpot(spot);
-                        if(spot instanceof OpenGroupSpot openGroupSpot) s.setIsRestriction(openGroupSpot.getIsRestriction());
+        spotDtoList = group.getSpots().stream().filter(spot -> spot.getStatus().equals(SpotStatus.ACTIVE))
+                .map(spot -> SpotListResponseDto.Spot.builder()
+                        .spotName(spot.getName())
+                        .spotId(spot.getId())
+                        .build()).toList();
 
-                        return s;
-                    }).toList();
-        }
         return spotDtoList;
     }
 

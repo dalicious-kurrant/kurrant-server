@@ -14,8 +14,6 @@ import java.time.LocalTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
 public class DeliverySchedule {
-
-
     @Column(name = "delivery_time")
     @Comment("배송 시간")
     private LocalTime deliveryTime;
