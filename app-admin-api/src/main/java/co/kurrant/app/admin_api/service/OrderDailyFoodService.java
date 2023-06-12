@@ -17,7 +17,7 @@ public interface OrderDailyFoodService {
     List<OrderDto.OrderItemDailyFoodGroupList> retrieveOrder(Map<String, Object> parameters);
     OrderDailyFoodByMakersDto.ByPeriod retrieveOrderByMakers(Map<String, Object> parameters);
     OrderDto.OrderDailyFoodDetail getOrderDetail(String orderCode);
-    List<GroupDto.Group> getGroup(Integer groupDataType);
+    List<GroupDto.Group> getGroup(Integer spotType);
     GroupDto getGroupInfo(BigInteger groupId);
     List<MakersDto.Makers> getMakers();
     void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) throws IOException, ParseException;

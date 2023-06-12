@@ -32,7 +32,7 @@ public interface UserGroupMapper {
             spotListResponseDto.setClientName(group.getName());
             spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
         }
-
+      
         if (group instanceof Corporation)
             spotListResponseDto.setSpotType(GroupDataType.CORPORATION.getCode());
         else if (group instanceof MySpotZone)
@@ -65,6 +65,7 @@ public interface UserGroupMapper {
                         return s;
                     }).toList();
         }
+      
         return spotDtoList;
     }
 
