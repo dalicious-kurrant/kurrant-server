@@ -22,11 +22,13 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
+import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.integration.client.user.mapper.MySpotMapper;
 import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.integration.client.user.mapper.UserSpotMapper;
 import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
 import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
@@ -75,6 +77,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final RequestedShareSpotRepository requestedShareSpotRepository;
     private final RequestedMySpotMapper requestedMySpotMapper;
     private final RequestedMySpotRepository requestedMySpotRepository;
+    private final UserSpotMapper userSpotMapper;
+    private final UserSpotRepository userSpotRepository;
 
     @Override
     @Transactional
@@ -225,14 +229,18 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             mySpotZone.updateMySpotZoneUserCount(1);
             // my spot 생성
             MySpot mySpot = mySpotMapper.toMySpot(user, mySpotZone, requestDto);
-            mySpotRepository.save(mySpot);
             mySpot.updateGroup(mySpotZone);
+            mySpotRepository.save(mySpot);
 
             // 동일한 user group에 등록되어 있으면 패스
             UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
             // user group 생성
             if(userGroup == null) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone));
             else userGroup.updateStatus(ClientStatus.BELONG);
+
+            // user spot 생성
+            UserSpot userSpot = userSpotMapper.toUserSpot(mySpot, user, false, GroupDataType.MY_SPOT);
+            userSpotRepository.save(userSpot);
 
             return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(),true);
         }

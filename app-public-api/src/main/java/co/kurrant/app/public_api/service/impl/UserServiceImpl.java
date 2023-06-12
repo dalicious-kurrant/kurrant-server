@@ -13,8 +13,6 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
-import co.dalicious.domain.client.mapper.GroupResponseMapper;
-import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
@@ -36,7 +34,7 @@ import co.dalicious.domain.user.mapper.DailyReportMapper;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
 import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
 import co.dalicious.domain.user.repository.*;
-import co.dalicious.domain.user.util.ClientUtil;
+import co.dalicious.integration.client.user.utils.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
@@ -59,8 +57,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import net.bytebuddy.asm.Advice;
-import org.geolatte.geom.M;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -446,8 +442,6 @@ public class UserServiceImpl implements UserService {
         User user = userUtil.getUser(securityUser);
         // 그룹/스팟 정보 가져오기
         List<UserGroup> userGroups = user.getGroups();
-        // 유저가 마이스팟을 가졌다면 가져오기
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByUser(user);
         // 그룹/스팟 리스트를 담아줄 Dto 생성하기
         List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
         // 그룹 추가
@@ -455,7 +449,7 @@ public class UserServiceImpl implements UserService {
             // 현재 활성화된 유저 그룹일 경우만 가져오기
             if (userGroup.getClientStatus() == ClientStatus.BELONG) {
                 Group group = userGroup.getGroup();
-                SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(group, mySpotList);
+                SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(userGroup);
                 spotListResponseDtoList.add(spotListResponseDto);
             }
         }

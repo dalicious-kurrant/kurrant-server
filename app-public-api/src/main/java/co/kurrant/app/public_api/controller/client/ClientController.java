@@ -74,10 +74,10 @@ public class ClientController {
     @Operation(summary = "그룹별 스팟 상세 조회", description = "유저가 속한 그룹의 스팟들의 상세 정보를 조회한다.")
     @GetMapping("/spots/{spotId}")
     public ResponseMessage getSpotDetail(Authentication authentication,
-                                         @PathVariable BigInteger spotId, @RequestParam Integer spotType) {
+                                         @PathVariable BigInteger spotId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(userClientService.getSpotDetail(securityUser, spotId, spotType))
+                .data(userClientService.getSpotDetail(securityUser, spotId))
                 .message("스팟 상세 조회에 성공하였습니다.")
                 .build();
     }
