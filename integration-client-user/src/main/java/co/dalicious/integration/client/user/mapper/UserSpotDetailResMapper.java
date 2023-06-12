@@ -26,8 +26,13 @@ public interface UserSpotDetailResMapper {
         dto.setAddress(spot.getSpot().getAddress().addressToString());
 
         Group group = spot.getSpot().getGroup();
-        dto.setClientId(group.getId());
-        dto.setClientName(group.getName());
+        if(group instanceof MySpotZone mySpotZone) {
+            dto.setClientId(mySpotZone.getId());
+        }
+        else {
+            dto.setClientId(group.getId());
+            dto.setClientName(group.getName());
+        }
         dto.setMealTypeInfoList(getMealTypeInfoList(group.getMealInfos()));
 
         return dto;
