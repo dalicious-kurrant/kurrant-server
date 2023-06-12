@@ -33,11 +33,11 @@ public interface UserGroupMapper {
             spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
         }
 
-        if (Hibernate.unproxy(group) instanceof Corporation)
+        if (group instanceof Corporation)
             spotListResponseDto.setSpotType(GroupDataType.CORPORATION.getCode());
-        else if (Hibernate.unproxy(group) instanceof MySpotZone)
+        else if (group instanceof MySpotZone)
             spotListResponseDto.setSpotType(GroupDataType.MY_SPOT.getCode());
-        else if (Hibernate.unproxy(group) instanceof OpenGroup)
+        else if (group instanceof OpenGroup)
             spotListResponseDto.setSpotType(GroupDataType.OPEN_GROUP.getCode());
 
         return spotListResponseDto;
@@ -51,8 +51,9 @@ public interface UserGroupMapper {
         List<SpotListResponseDto.Spot> spotDtoList;
 
         if(group instanceof MySpotZone) {
+            List<Spot> spot = group.getSpots();
             spotDtoList = group.getSpots().stream()
-                    .filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId()))
+                    .filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId()) && !((MySpot) mySpot).getIsDelete())
                     .map(this::toSpot).toList();
         }
         else {
