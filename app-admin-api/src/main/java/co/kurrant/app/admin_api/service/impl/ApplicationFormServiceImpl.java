@@ -189,7 +189,13 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 마이스팟 생성
         List<RequestedMySpot> requestedMySpots = existRequestedMySpotZones.stream().flatMap(requestedMySpotZone -> requestedMySpotZone.getRequestedMySpots().stream()).toList();
-        List<MySpot> mySpotList = requestedMySpots.stream().map(v -> mySpotMapper.toEntity(v, mySpotZone)).toList();
+        List<MySpot> mySpotList = requestedMySpots.stream().map(v -> {
+            try {
+                return mySpotMapper.toEntity(v, mySpotZone);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
+        }).toList();
         spotRepository.saveAll(mySpotList);
 
         // userGroup and user spot
@@ -241,7 +247,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 //        List<RequestedMySpotZones> requestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
 //        List<String> zipcodes = requestedMySpotZones.stream().map(v -> v.getRegion().getZipcode()).toList();
 //        List<MySpotZone> mySpotZones = qMySpotZoneRepository.findExistMySpotZoneListByZipcodes(zipcodes);
-//        Map<MySpotZone, RequestedMySpot> mySpotZoneRequestedMySpotMap = requestedMySpotZones.stream().filter()
+//        Map<MySpotZone, RequestedMySpot> mySpotZoneRequestedMySpotMap = new HashMap<>();
 //
 //        // 관련 신청 마이스팟 생성
 //        List<MySpot> mySpots = mySpotMapper.toEntityList(requestedMySpots, mySpotZones);
