@@ -41,13 +41,6 @@ public interface DeliveryMapper {
     @Mapping(source = "deliveryGroupList", target = "group")
     DeliveryDto.DeliveryInfo toDeliveryInfo(ServiceDateDto serviceDateDto, List<DeliveryDto.DeliveryGroup> deliveryGroupList);
 
-//    @Mapping(source = "spot.group.id", target = "groupId")
-//    @Mapping(source = "spot.group.name", target = "groupName")
-//    @Mapping(source = "spot.name", target = "spotName")
-//    @Mapping(source = "spot.id", target = "spotId")
-//    @Mapping(target = "address", expression = "java(spot.getAddress().addressToString())")
-//    DeliveryDto.DeliveryGroup toDeliveryGroup(Spot spot);
-
     @Mapping(source = "spot.group.id", target = "groupId")
     @Mapping(source = "spot.group.name", target = "groupName")
     @Mapping(source = "deliveryTime", target = "deliveryTime")
@@ -78,83 +71,4 @@ public interface DeliveryMapper {
     @Mapping(target = "address", expression = "java(makers.getAddress().addressToString())")
     DeliveryDto.DeliveryMakers toDeliveryMakers(Makers makers, List<DeliveryDto.DeliveryFood> deliveryFoodList, LocalTime pickupTime);
 
-//    default List<DeliveryDto.DeliveryInfo> toDeliveryInfo(List<OrderItemDailyFood> orderItemDailyFoods) {
-//        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
-//
-//        // service date 묶기
-//        MultiValueMap<ServiceDateDto, OrderItemDailyFood> serviceDateDtoMap = new LinkedMultiValueMap<>();
-//        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-//            ServiceDateDto serviceDateDto = new ServiceDateDto(orderItemDailyFood.getDailyFood().getServiceDate(), orderItemDailyFood.getDeliveryTime());
-//            serviceDateDtoMap.add(serviceDateDto, orderItemDailyFood);
-//        }
-//
-//        for (ServiceDateDto serviceDateDto : serviceDateDtoMap.keySet()) {
-//            List<OrderItemDailyFood> serviceDaysOrderItemDailyFoodList = serviceDateDtoMap.get(serviceDateDto);
-//
-//            // spot 묶기
-//            MultiValueMap<Spot, OrderItemDailyFood> spotDailyFoodMap = new LinkedMultiValueMap<>();
-//            for (OrderItemDailyFood orderItemDailyFood : serviceDaysOrderItemDailyFoodList) {
-//                if(Hibernate.unproxy(orderItemDailyFood.getOrder()) instanceof OrderDailyFood orderDailyFood) {
-//                    Spot spot = orderDailyFood.getSpot();
-//                    spotDailyFoodMap.add(spot, orderItemDailyFood);
-//                }
-//            }
-//
-//            List<DeliveryDto.DeliveryGroup> deliveryGroupList = new ArrayList<>();
-//            for (Spot spot : spotDailyFoodMap.keySet()) {
-//                List<OrderItemDailyFood> spotOrderItemDailyFoodList = spotDailyFoodMap.get(spot);
-//
-//                // maker 묶기
-//                MultiValueMap<Makers, OrderItemDailyFood> makersOrderItemDailyFoodMap = new LinkedMultiValueMap<>();
-//                for (OrderItemDailyFood orderItemDailyFood : spotOrderItemDailyFoodList) {
-//                    makersOrderItemDailyFoodMap.add(orderItemDailyFood.getDailyFood().getFood().getMakers(), orderItemDailyFood);
-//                }
-//
-//                Map<Makers, LocalTime> makersPickupTimeMap = new HashMap<>();
-//                List<DeliveryDto.DeliveryMakers> deliveryMakersList = new ArrayList<>();
-//                for (Makers makers : makersOrderItemDailyFoodMap.keySet()) {
-//                    List<OrderItemDailyFood> makersOrderItemDailyFoodList = Objects.requireNonNull(makersOrderItemDailyFoodMap.get(makers)).stream().sorted(Comparator.comparing(o -> o.getDailyFood().getId())).toList();
-//
-//                    Map<DailyFood, Integer> dailyFoodOrderCountMap = new HashMap<>();
-//                    for (OrderItemDailyFood orderItemDailyFood : makersOrderItemDailyFoodList) {
-//                        DailyFood dailyFood = dailyFoodOrderCountMap.keySet().stream().filter(d -> d.equals(orderItemDailyFood.getDailyFood())).findAny().orElse(null);
-//                        Integer count = null;
-//                        LocalTime pickupTime = null;
-//                        if(dailyFood == null) {
-//                            count = orderItemDailyFood.getCount();
-//                            pickupTime = orderItemDailyFood.getDailyFood().getDailyFoodGroup().getDeliverySchedules().stream().filter(s -> s.getDeliveryTime().equals(serviceDateDto.getDeliveryTime())).map(DeliverySchedule::getPickupTime).findAny().orElse(null);
-//                        }
-//                        else {
-//                             count = dailyFoodOrderCountMap.get(dailyFood) + orderItemDailyFood.getCount();
-//                        }
-//
-//                        dailyFoodOrderCountMap.put(dailyFood, count);
-//                        makersPickupTimeMap.put(makers, pickupTime);
-//                    }
-//                    DeliveryDto.DeliveryFood deliveryFood = toDeliveryFood(dailyFood, count);
-//                    deliveryFoodList.add(deliveryFood);
-//                    deliveryFoodList = deliveryFoodList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryFood::getFoodName)).collect(Collectors.toList());
-//
-//                }
-//                DeliveryDto.DeliveryMakers deliveryMakers = toDeliveryMakers(makers, deliveryFoodList, pickupTime);
-//                deliveryMakersList.add(deliveryMakers);
-//                // delivery makers list 를 pickup time 으로 정렬
-//                deliveryMakersList = deliveryMakersList.stream()
-//                        .sorted(Comparator.comparing(deliveryMakers -> LocalTime.parse(deliveryMakers.getPickupTime()))).collect(Collectors.toList());
-//
-//                // delivery group 만들기
-//                DeliveryDto.DeliveryGroup deliveryGroup = toDeliveryGroup(spot);
-//                deliveryGroup.setDiningType(Objects.requireNonNull(diningType).getCode());
-//                deliveryGroup.setDeliveryTime(DateUtils.timeToString(serviceDateDto.getDeliveryTime()));
-//                deliveryGroup.setMakers(deliveryMakersList);
-//
-//                deliveryGroupList.add(deliveryGroup);
-//            }
-//
-//            // delivery info 만들기
-//            DeliveryDto.DeliveryInfo deliveryInfo = toDeliveryInfo(serviceDateDto, deliveryGroupList);
-//            deliveryInfoList.add(deliveryInfo);
-//        }
-//        return deliveryInfoList;
-//    }
 }
