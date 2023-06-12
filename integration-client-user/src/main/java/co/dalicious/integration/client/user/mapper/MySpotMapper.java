@@ -6,25 +6,23 @@ import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySp
 import co.dalicious.domain.application_form.entity.RequestedMySpot;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.integration.client.user.entity.MySpot;
 import org.mapstruct.Mapper;
 
 import org.locationtech.jts.io.ParseException;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface MySpotMapper {
-
-    default MySpot toMySpot(BigInteger userId, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException {
+    default MySpot toMySpot(User user, MySpotZone mySpotZone, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException {
 
         CreateAddressRequestDto addressRequestDto = mySpotZoneApplicationFormRequestDto.getAddress();
 
-        if(addressRequestDto.getAddress1() == null) {
+        if (addressRequestDto.getAddress1() == null) {
             addressRequestDto.setAddress1(mySpotZoneApplicationFormRequestDto.getJibunAddress());
         }
 
@@ -32,13 +30,17 @@ public interface MySpotMapper {
 
         return MySpot.builder()
                 .address(address)
-                .userId(userId)
+                .diningTypes(mySpotZone.getDiningTypes())
+                .userId(user.getId())
                 .name(mySpotZoneApplicationFormRequestDto.getMySpotName())
                 .isDelete(false)
                 .build();
     }
 
-    MySpot toEntity(RequestedMySpot requestedMySpot, MySpotZone mySpotZone);
+    @Mapping(source = "requestedMySpot.name", target = "name")
+    @Mapping(source = "requestedMySpot.address", target = "address")
+    @Mapping(source = "requestedMySpot.memo", target = "memo")
+    MySpot toEntity(RequestedMySpot requestedMySpot, Group MySpotZone) throws ParseException;
 
     default List<MySpot> toEntityList(List<RequestedMySpot> requestedMySpots, List<MySpotZone> mySpotZones) {
         List<MySpot> mySpotList = new ArrayList<>();
