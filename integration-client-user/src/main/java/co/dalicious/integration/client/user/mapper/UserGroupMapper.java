@@ -33,12 +33,15 @@ public interface UserGroupMapper {
             spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
         }
 
-        if(Hibernate.unproxy(group) instanceof Corporation) spotListResponseDto.setSpotType(GroupDataType.CORPORATION.getCode());
-        else if(Hibernate.unproxy(group) instanceof MySpotZone) spotListResponseDto.setSpotType(GroupDataType.MY_SPOT.getCode());
-        else if(Hibernate.unproxy(group) instanceof OpenGroup) spotListResponseDto.setSpotType(GroupDataType.OPEN_GROUP.getCode());
+        if (Hibernate.unproxy(group) instanceof Corporation)
+            spotListResponseDto.setSpotType(GroupDataType.CORPORATION.getCode());
+        else if (Hibernate.unproxy(group) instanceof MySpotZone)
+            spotListResponseDto.setSpotType(GroupDataType.MY_SPOT.getCode());
+        else if (Hibernate.unproxy(group) instanceof OpenGroup)
+            spotListResponseDto.setSpotType(GroupDataType.OPEN_GROUP.getCode());
 
         return spotListResponseDto;
-    };
+    }
 
     @Mapping(source = "id", target = "spotId")
     @Mapping(source = "name", target = "spotName")
@@ -62,10 +65,13 @@ public interface UserGroupMapper {
         AtomicInteger shareSpotCount = new AtomicInteger();
         AtomicInteger mySpotCount = new AtomicInteger();
 
-        spotListResponseDtoList.forEach(spotListResponseDto ->  {
-            if(spotListResponseDto.getSpotType().equals(GroupDataType.CORPORATION.getCode())) privateCount.getAndIncrement();
-            else if (spotListResponseDto.getSpotType().equals(GroupDataType.OPEN_GROUP.getCode())) shareSpotCount.getAndIncrement();
-            else if (spotListResponseDto.getSpotType().equals(GroupDataType.MY_SPOT.getCode())) mySpotCount.set(spotListResponseDto.getSpots().size());
+        spotListResponseDtoList.forEach(spotListResponseDto -> {
+            if (spotListResponseDto.getSpotType().equals(GroupDataType.CORPORATION.getCode()))
+                privateCount.getAndIncrement();
+            else if (spotListResponseDto.getSpotType().equals(GroupDataType.OPEN_GROUP.getCode()))
+                shareSpotCount.getAndIncrement();
+            else if (spotListResponseDto.getSpotType().equals(GroupDataType.MY_SPOT.getCode()))
+                mySpotCount.getAndIncrement();
         });
 
         GroupCountDto groupCountDto = new GroupCountDto();
