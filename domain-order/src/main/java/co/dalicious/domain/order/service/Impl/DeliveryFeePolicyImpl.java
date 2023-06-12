@@ -34,7 +34,7 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
         } else if (group instanceof OpenGroup openGroup) {
             return getOpenGroupDeliveryFee(user, openGroup);
         }
-        throw new ApiException(ExceptionEnum.NOT_FOUND);
+        return getUserDeliveryFee(user);
     }
 
     @Override

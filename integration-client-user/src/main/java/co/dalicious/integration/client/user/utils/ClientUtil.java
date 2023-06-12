@@ -66,13 +66,7 @@ public class ClientUtil {
                 .filter(UserSpot::getIsDefault)
                 .findAny();
         if(userSpot.isPresent()) {
-            Group group;
-            if(userSpot.get().getGroupDataType().equals(GroupDataType.MY_SPOT)) {
-                group = ((MySpot) Hibernate.unproxy(userSpot.get())).getMySpotZone();
-            }
-            else {
-                group = (Group) Hibernate.unproxy(userSpot.get().getSpot().getGroup());
-            }
+            Group group = (Group) Hibernate.unproxy(userSpot.get().getSpot().getGroup());
             // 유저가 그 그룹에 속해있는지 조회한다.
             Optional<UserGroup> userGroup = userGroupRepository.findOneByUserAndGroupAndClientStatus(user, group, ClientStatus.BELONG);
             if (userGroup.isEmpty()) {

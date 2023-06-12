@@ -32,7 +32,7 @@ public class ApplicationFormController {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(applicationFormService.registerMySpot(securityUser, mySpotZoneApplicationFormRequestDto))
-                .message("아파트 스팟 개설 신청에 성공하였습니다.")
+                .message("마이 스팟 개설 신청에 성공하였습니다.")
                 .build();
     }
 

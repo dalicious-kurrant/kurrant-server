@@ -225,8 +225,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             mySpotZone.updateMySpotZoneUserCount(1);
             // my spot 생성
             MySpot mySpot = mySpotMapper.toMySpot(user, mySpotZone, requestDto);
-            mySpotRepository.save(mySpot);
             mySpot.updateGroup(mySpotZone);
+            mySpotRepository.save(mySpot);
 
             // 동일한 user group에 등록되어 있으면 패스
             UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
