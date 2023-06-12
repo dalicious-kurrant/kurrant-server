@@ -22,16 +22,6 @@ public interface UserSpotDetailResMapper {
 
     default ClientSpotDetailResDto toDto(UserSpot spot){
         ClientSpotDetailResDto dto;
-        if(spot instanceof MySpot mySpot) {
-            dto = toDtoByMySpot(mySpot);
-
-            MySpotZone mySpotZone = mySpot.getMySpotZone();
-            dto.setClientId(mySpotZone.getId());
-            dto.setMealTypeInfoList(getMealTypeInfoList(mySpotZone.getMealInfos()));
-
-            return dto;
-        }
-
         dto = toDtoByOpenSpotOrCorporation(spot);
         dto.setAddress(spot.getSpot().getAddress().addressToString());
 

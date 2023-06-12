@@ -6,7 +6,6 @@ import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
-import co.dalicious.domain.client.mapper.GroupResponseMapper;
 import co.dalicious.domain.client.mapper.OpenGroupMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.*;
@@ -18,7 +17,6 @@ import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
 import co.dalicious.integration.client.user.mapper.UserSpotMapper;
-import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DistanceUtil;
 import co.dalicious.system.util.StringUtils;
@@ -48,7 +46,6 @@ public class UserClientServiceImpl implements UserClientService {
     private final UserSpotMapper userSpotMapper;
     private final QGroupRepository qGroupRepository;
     private final OpenGroupMapper openGroupMapper;
-    private final MySpotRepository mySpotRepository;
 
     @Override
     @Transactional
@@ -60,15 +57,14 @@ public class UserClientServiceImpl implements UserClientService {
 
         UserSpot userSpot = getUserSpot(spotId, user);
 
-        if(!groupDataType.equals(GroupDataType.MY_SPOT)) {
+        if (!groupDataType.equals(GroupDataType.MY_SPOT)) {
             // 스팟 정보 가져오기
             Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
             Group group = (Group) Hibernate.unproxy(spot.getGroup());
             isGroupMember(user, group);
 
             return userSpotDetailResMapper.toDto(userSpot);
-        }
-        else if (userSpot != null) {
+        } else if (userSpot != null) {
             return userSpotDetailResMapper.toDto(userSpot);
         }
 
@@ -77,36 +73,31 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
-    public BigInteger selectUserSpot(SecurityUser securityUser, Integer groupType, BigInteger spotId) {
+    public BigInteger selectUserSpot(SecurityUser securityUser, BigInteger spotId) {
         // 유저를 조회한다.
         User user = userUtil.getUser(securityUser);
 
         // default spot update to false - 기존 디폴트 스팟을 false로 변경
         resetDefaultSpot(user);
 
-        GroupDataType groupDataType = GroupDataType.ofCode(groupType);
-
         // 유저가 가진 스팟 중에 해당 스팟이 있는지 확인
         UserSpot userSpot = getUserSpot(spotId, user);
 
-        if(!groupDataType.equals(GroupDataType.MY_SPOT)) {
-            Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-            Group group = spot.getGroup();
-            isGroupMember(user, group);
+        Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        // MySpot의 userId 와 일치하는지 검증
+        if (spot instanceof MySpot mySpot && !user.getId().equals(mySpot.getUserId())) {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
+        Group group = spot.getGroup();
+        isGroupMember(user, group);
 
-            // 유저 스팟에 등록되지 않은 경우
-            if(userSpot == null) {
-                userSpot = registerNewUserSpot(spot, user);
-            }
-            userSpot.updateDefault(true);
-            return spot.getId();
+        // 유저 스팟에 등록되지 않은 경우
+        if (userSpot == null) {
+            userSpot = registerNewUserSpot(spot, user);
         }
-        if(userSpot != null){
-            MySpot mySpot = mySpotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-            mySpot.updateDefault(true);
-            return mySpot.getId();
-        }
-        throw new ApiException(ExceptionEnum.SPOT_NOT_FOUND);
+        userSpot.updateDefault(true);
+        return spot.getId();
+
     }
 
     @Override
@@ -114,30 +105,21 @@ public class UserClientServiceImpl implements UserClientService {
     public Integer withdrawClient(SecurityUser securityUser, BigInteger spotId) {
         // 유저를 조회한다.
         User user = userUtil.getUser(securityUser);
-        // 유저의 스팟리스트에서 해당하는 spot을 찾는다.
-        UserSpot userSpot = getUserSpot(spotId, user);
-
-        // 마이스팟이면
-        if(userSpot instanceof MySpot mySpot) {
-            // 관련 마이스팟존 탈퇴처리
-            Optional<UserGroup> userGroup = user.getGroups().stream()
-                    .filter(group -> group.getGroup().equals(mySpot.getMySpotZone()))
-                    .findAny();
-            userGroup.ifPresent(g -> g.updateStatus(ClientStatus.WITHDRAWAL));
-
-            mySpot.updateMySpotForDelete();
-            return (user.getGroups().size() - 1 > 0) ? SpotStatus.NO_SPOT_BUT_HAS_CLIENT.getCode() : SpotStatus.NO_SPOT_AND_CLIENT.getCode();
-        }
-
-        // 유저 그룹 비활성으로 변경하고 유저스팟 삭제
-        Optional<UserGroup> userGroup = user.getGroups().stream()
-                .filter(group -> group.getGroup().equals(userSpot.getSpot().getGroup()))
+        List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
+        // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
+        Group group = groupRepository.findById(spotId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)
+        );
+        UserGroup userGroup = isGroupMember(user, group);
+        // 유저 그룹 상태를 탈퇴로 만든다.
+        userGroup.updateStatus(ClientStatus.WITHDRAWAL);
+        List<UserSpot> userSpots = user.getUserSpots();
+        Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
                 .findAny();
-        userGroup.ifPresent(g -> g.updateStatus(ClientStatus.WITHDRAWAL));
-        userSpotRepository.delete(userSpot);
-
+        userSpot.ifPresent(userSpotRepository::delete);
         // 다른 그룹이 존재하는지 여부에 따라 Return값 결정(스팟 선택 화면 || 그룹 신청 화면)
-        return (user.getGroups().size() - 1 > 0) ? SpotStatus.NO_SPOT_BUT_HAS_CLIENT.getCode() : SpotStatus.NO_SPOT_AND_CLIENT.getCode();
+        return (groups.size() - 1 > 0) ? SpotStatus.NO_SPOT_BUT_HAS_CLIENT.getCode() : SpotStatus.NO_SPOT_AND_CLIENT.getCode();
+
     }
 
     @Override
@@ -159,7 +141,7 @@ public class UserClientServiceImpl implements UserClientService {
 
         Page<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType, pageable);
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
-        if(groups.isEmpty() || groups == null) {
+        if (groups.isEmpty() || groups == null) {
             return ListItemResponseDto.<OpenGroupResponseDto>builder().items(openGroupResponseDtos).limit(pageable.getPageSize()).total(0L).count(0).offset(0L).isLast(true).build();
         }
 
@@ -173,7 +155,7 @@ public class UserClientServiceImpl implements UserClientService {
         // 결과 출력
         for (Map.Entry<BigInteger, Double> entry : sortedDataList) {
             Group group = groups.stream().filter(g -> g.getId().equals(entry.getKey())).findAny().orElse(null);
-            if(group == null) continue;
+            if (group == null) continue;
             double distance = entry.getValue();
             openGroupResponseDtos.add(openGroupMapper.toOpenGroupDto((OpenGroup) group, distance));
         }
@@ -187,23 +169,9 @@ public class UserClientServiceImpl implements UserClientService {
         if (defaultSpot != null) defaultSpot.updateDefault(false);
     }
 
-    private Group retrieveSpotGroup(BigInteger spotId, GroupDataType groupDataType) {
-        Group group;
-
-        if(!groupDataType.equals(GroupDataType.MY_SPOT)) {
-            Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-            group = spot.getGroup();
-        } else {
-            MySpot mySpot = mySpotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-            group = mySpot.getMySpotZone();
-        }
-
-        return group;
-    }
-
-    private void isGroupMember(User user, Group group) {
+    private UserGroup isGroupMember(User user, Group group) {
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
-        groups.stream()
+        return groups.stream()
                 .filter(v -> v.getGroup().equals(group))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
@@ -211,8 +179,7 @@ public class UserClientServiceImpl implements UserClientService {
 
     private UserSpot getUserSpot(BigInteger spotId, User user) {
         return user.getUserSpots().stream()
-                .filter(s -> (s instanceof MySpot mySpot && mySpot.getId().equals(spotId) && mySpot.getIsActive()) ||
-                        (s.getSpot() != null && s.getSpot().getId().equals(spotId)))
+                .filter(s -> s.getSpot() != null && s.getSpot().getId().equals(spotId))
                 .findAny()
                 .orElse(null);
     }

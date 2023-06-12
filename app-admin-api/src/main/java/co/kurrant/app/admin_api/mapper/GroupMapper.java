@@ -156,7 +156,7 @@ public interface GroupMapper {
     @Mapping(source = "zipCode", target = "address.zipCode")
     @Mapping(source = "address1", target = "address.address1")
     @Mapping(source = "address2", target = "address.address2")
-    @Mapping(target = "address.location", expression = "java(AddressUtil.getLocation(groupDto.getAddress1()))")
+    @Mapping(source = "location", target = "address.location")
     Corporation toCorporation(GroupListDto.GroupInfoList groupDto) throws ParseException;
 
     @Mapping(source = "address.zipCode", target = "zipCode")
@@ -171,7 +171,7 @@ public interface GroupMapper {
     @Mapping(source = "zipCode", target = "address.zipCode")
     @Mapping(source = "address1", target = "address.address1")
     @Mapping(source = "address2", target = "address.address2")
-    @Mapping(target = "address.location", expression = "java(AddressUtil.getLocation(groupDto.getAddress1()))")
+    @Mapping(source = "location", target = "address.location")
     @Mapping(source = "employeeCount", target = "openGroupUserCount")
     OpenGroup toOpenGroup(GroupListDto.GroupInfoList groupDto) throws ParseException;
 

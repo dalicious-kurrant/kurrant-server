@@ -33,7 +33,6 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
-import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -72,7 +71,6 @@ public class FoodServiceImpl implements FoodService {
     private final UserRepository userRepository;
 
     private final CommentsRepository commentsRepository;
-    private final OrderItemRepository orderItemRepository;
     private final ReviewGoodRepository reviewGoodRepository;
     private final LikeMapper likeMapper;
     private final QReviewGoodRepository qReviewGoodRepository;
@@ -85,10 +83,12 @@ public class FoodServiceImpl implements FoodService {
     public RetrieveDailyFoodDto getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate, Integer diningTypeCode) {
         // 유저가 그룹에 속해있는지 확인
         User user = userUtil.getUser(securityUser);
+
         Spot spot = spotRepository.findById(spotId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
         );
         Group group = spot.getGroup();
+
         List<UserGroup> userGroups = user.getGroups();
         userGroups.stream().filter(v -> v.getGroup().equals(group) && v.getClientStatus().equals(ClientStatus.BELONG))
                 .findAny()
@@ -123,7 +123,7 @@ public class FoodServiceImpl implements FoodService {
                     if (Hibernate.unproxy(group) instanceof Corporation)
                         supportPriceDto.setLunchSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, selectedDate, DiningType.LUNCH));
                 }
-                case DINNER ->{
+                case DINNER -> {
                     serviceDays.setDinnerServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
                     if (Hibernate.unproxy(group) instanceof Corporation)
                         supportPriceDto.setDinnerSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, selectedDate, DiningType.DINNER));
@@ -181,7 +181,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter,String keywordFilter, OffsetBasedPageRequest pageable) {
+    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter, String keywordFilter, OffsetBasedPageRequest pageable) {
 
         User user = userUtil.getUser(securityUser);
 
@@ -247,7 +247,7 @@ public class FoodServiceImpl implements FoodService {
         OrderItemDailyFood orderItemDailyFood = qOrderItemDailyFoodRepository.findAllByUserAndDailyFood(user.getId(), dailyFood.getFood().getId());
         if (orderItemDailyFood != null) {
             reviewWrite = orderItemDailyFood.getId();
-        } else{
+        } else {
             reviewWrite = BigInteger.valueOf(0);
         }
 

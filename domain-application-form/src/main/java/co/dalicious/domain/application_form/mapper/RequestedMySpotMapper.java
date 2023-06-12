@@ -1,0 +1,34 @@
+package co.dalicious.domain.application_form.mapper;
+
+import co.dalicious.domain.address.dto.CreateAddressRequestDto;
+import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
+import co.dalicious.domain.application_form.entity.RequestedMySpot;
+import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
+import org.locationtech.jts.io.ParseException;
+import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
+
+import java.math.BigInteger;
+
+@Mapper(componentModel = "spring")
+public interface RequestedMySpotMapper {
+    default RequestedMySpot toEntity(BigInteger userId, RequestedMySpotZones requestedMySpotZones, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException, ParseException {
+
+        CreateAddressRequestDto addressRequestDto = mySpotZoneApplicationFormRequestDto.getAddress();
+
+        if(addressRequestDto.getAddress1() == null) {
+            addressRequestDto.setAddress1(mySpotZoneApplicationFormRequestDto.getJibunAddress());
+        }
+
+        Address address = new Address(mySpotZoneApplicationFormRequestDto.getAddress());
+
+        return RequestedMySpot.builder()
+                .userId(userId)
+                .address(address)
+                .name(mySpotZoneApplicationFormRequestDto.getMySpotName())
+                .memo(mySpotZoneApplicationFormRequestDto.getMemo())
+                .requestedMySpotZones(requestedMySpotZones)
+                .build();
+    }
+}
