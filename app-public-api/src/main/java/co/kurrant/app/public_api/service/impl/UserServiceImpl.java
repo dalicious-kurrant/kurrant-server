@@ -449,7 +449,7 @@ public class UserServiceImpl implements UserService {
             // 현재 활성화된 유저 그룹일 경우만 가져오기
             if (userGroup.getClientStatus() == ClientStatus.BELONG) {
                 Group group = userGroup.getGroup();
-                SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(group);
+                SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(userGroup);
                 spotListResponseDtoList.add(spotListResponseDto);
             }
         }
