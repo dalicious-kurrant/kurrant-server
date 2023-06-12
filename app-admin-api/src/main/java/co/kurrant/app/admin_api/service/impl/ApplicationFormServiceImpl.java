@@ -9,26 +9,28 @@ import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.Requeste
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
+import co.dalicious.domain.application_form.entity.RequestedMySpot;
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.application_form.entity.RequestedShareSpot;
 import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
 import co.dalicious.domain.application_form.mapper.RequestedShareSpotMapper;
-import co.dalicious.domain.application_form.repository.QRequestedMySpotZonesRepository;
-import co.dalicious.domain.application_form.repository.QRequestedShareSpotRepository;
-import co.dalicious.domain.application_form.repository.RequestedMySpotZonesRepository;
-import co.dalicious.domain.application_form.repository.RequestedShareSpotRepository;
+import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.MealInfoRepository;
+import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.UserSpot;
+import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
+import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.integration.client.user.entity.Region;
-import co.dalicious.integration.client.user.mapper.MySpotZoneMapper;
-import co.dalicious.integration.client.user.mapper.MySpotZoneMealInfoMapper;
-import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.integration.client.user.mapper.*;
 import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
 import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.domain.client.repository.QMySpotZoneRepository;
@@ -57,7 +59,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final QRequestedMySpotZonesRepository qRequestedMySpotZonesRepository;
     private final RequestedMySpotZonesMapper requestedMySpotZonesMapper;
     private final RequestedMySpotZonesRepository requestedMySpotZonesRepository;
-    private final QMySpotRepository qMySpotRepository;
     private final MealInfoRepository mealInfoRepository;
     private final QMySpotZoneRepository qMySpotZoneRepository;
     private final QRegionRepository qRegionRepository;
@@ -69,7 +70,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final RequestedShareSpotMapper requestedShareSpotMapper;
     private final RequestedShareSpotRepository requestedShareSpotRepository;
     private final QRequestedShareSpotRepository qRequestedShareSpotRepository;
-    private final MySpotRepository mySpotRepository;
+    private final RequestedMySpotRepository requestedMySpotRepository;
+    private final MySpotMapper mySpotMapper;
+    private final QUserRepository qUserRepository;
+    private final UserSpotMapper userSpotMapper;
+    private final UserSpotRepository userSpotRepository;
+    private final SpotRepository spotRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -147,9 +153,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
 
         // 신청 유저의 마이 스팟 삭제
-        List<BigInteger> userIds = existRequestedMySpotZones.stream().flatMap(r -> r.getUserIds().stream()).toList();
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByUserIds(userIds);
-        mySpotRepository.deleteAll(mySpotList);
+        List<RequestedMySpot> requestedMySpots= existRequestedMySpotZones.stream().flatMap(r -> r.getRequestedMySpots().stream()).toList();
+        requestedMySpotRepository.deleteAll(requestedMySpots);
 
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
 
@@ -185,18 +190,21 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         groupRepository.save(mySpotZone);
         mealInfoRepository.saveAll(mealInfoList);
 
-        // 마이스팟
-        List<BigInteger> userIds = existRequestedMySpotZones.stream().flatMap(requestedMySpotZone -> requestedMySpotZone.getUserIds().stream()).toList();
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByUserIds(userIds);
-        mySpotList.forEach(mySpot -> mySpot.updateGroup(mySpotZone));
-        List<User> users = qUser
+        // 마이스팟 생성
+        List<RequestedMySpot> requestedMySpots = existRequestedMySpotZones.stream().flatMap(requestedMySpotZone -> requestedMySpotZone.getRequestedMySpots().stream()).toList();
+        List<MySpot> mySpotList = requestedMySpots.stream().map(v -> mySpotMapper.toMySpot(v, mySpotZone)).toList();
+        spotRepository.saveAll(mySpotList);
 
-        // userGroup
-        List<User> users = mySpotList.stream().map(MySpot::getUser).toList();
+        // userGroup and user spot
+        List<BigInteger> userIds = requestedMySpots.stream().map(RequestedMySpot::getUserId).toList();
+        List<User> users = qUserRepository.getUserAllById(userIds);
         List<UserGroup> userGroups = users.stream().map(user -> userGroupMapper.toUserGroup(user, mySpotZone)).toList();
+        List<UserSpot> userSpots = userSpotMapper.toEntityList(mySpotList, users, GroupDataType.MY_SPOT, false);
+        userSpotRepository.saveAll(userSpots);
         userGroupRepository.saveAll(userGroups);
 
         // 신청된 마이스팟 존 삭제
+        requestedMySpotRepository.deleteAll(requestedMySpots);
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
     }
 
