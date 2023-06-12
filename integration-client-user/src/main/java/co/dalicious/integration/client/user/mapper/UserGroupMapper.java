@@ -54,7 +54,13 @@ public interface UserGroupMapper {
             spotDtoList = group.getSpots().stream().filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId())).map(this::toSpot).toList();
         }
         else {
-            spotDtoList = group.getSpots().stream().filter(spot -> spot.getStatus().equals(SpotStatus.ACTIVE)).map(this::toSpot).toList();
+            spotDtoList = group.getSpots().stream().filter(spot -> spot.getStatus().equals(SpotStatus.ACTIVE))
+                    .map(spot -> {
+                        SpotListResponseDto.Spot s = toSpot(spot);
+                        if(spot instanceof OpenGroupSpot openGroupSpot) s.setIsRestriction(openGroupSpot.getIsRestriction());
+
+                        return s;
+                    }).toList();
         }
         return spotDtoList;
     }
