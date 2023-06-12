@@ -15,8 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static co.dalicious.integration.client.user.entity.QRegion.region;
 
@@ -114,11 +113,22 @@ public class QMySpotZoneRepository {
                 .fetch();
     }
 
-    public List<MySpotZone> findExistMySpotZoneListByZipcodes(List<String> zipcodes) {
-        return queryFactory.selectFrom(QMySpotZone.mySpotZone)
+    public Map<MySpotZone, List<String>> findExistMySpotZoneListByZipcodes(List<String> zipcodes) {
+        List<Tuple> results = queryFactory.select(QMySpotZone.mySpotZone, region.zipcode)
+                .from(QMySpotZone.mySpotZone)
                 .leftJoin(region).on(region.mySpotZoneIds.eq(QMySpotZone.mySpotZone.id))
                 .where(region.zipcode.in(zipcodes), QMySpotZone.mySpotZone.isActive.ne(false))
                 .fetch();
+
+        Map<MySpotZone, List<String>> mySpotZoneListMap = new HashMap<>();
+        results.forEach(r -> {
+            MySpotZone mySpotZone = r.get(QMySpotZone.mySpotZone);
+            mySpotZoneListMap.computeIfAbsent(mySpotZone, k -> new ArrayList<>())
+                    .add(r.get(region.zipcode));
+        });
+
+
+        return mySpotZoneListMap;
     }
 }
 
