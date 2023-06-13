@@ -29,7 +29,7 @@ public class MySpot extends Spot {
 
     @Column(name = "is_delete")
     @Comment("마이 스팟 삭제 여부 - 1: 삭제")
-    private Boolean isDelete;
+    private Boolean isDelete = false;
 
     @Column(name = "user_Id")
     @Comment("유저 Id")

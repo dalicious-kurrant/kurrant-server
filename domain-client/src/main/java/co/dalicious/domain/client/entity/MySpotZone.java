@@ -29,23 +29,23 @@ public class MySpotZone extends Group {
     private MySpotZoneStatus mySpotZoneStatus;
 
     @Column(name = "open_start_date")
-    @Comment("오픈 시작일")
-    private LocalDate openStartDate;
+    @Comment("오픈 예약일")
+    private LocalDate openDate;
 
     @Column(name = "open_close_date")
-    @Comment("오픈 마감일")
-    private LocalDate openCloseDate;
+    @Comment("중지 예약일")
+    private LocalDate closeDate;
 
     @Column(name = "my_spot_zone_user_count")
     @Comment("이용 유저 수")
     private Integer mySpotZoneUserCount;
 
     @Builder
-    public MySpotZone(Address address, List<DiningType> diningTypes, String name, String memo, MySpotZoneStatus mySpotZoneStatus, LocalDate openStartDate, LocalDate openCloseDate, Integer mySpotZoneUserCount) {
+    public MySpotZone(Address address, List<DiningType> diningTypes, String name, String memo, MySpotZoneStatus mySpotZoneStatus, LocalDate openDate, LocalDate closeDate, Integer mySpotZoneUserCount) {
         super(address, diningTypes, name, memo);
         this.mySpotZoneStatus = mySpotZoneStatus;
-        this.openStartDate = openStartDate;
-        this.openCloseDate = openCloseDate;
+        this.openDate = openDate;
+        this.closeDate = closeDate;
         this.mySpotZoneUserCount = mySpotZoneUserCount;
     }
 

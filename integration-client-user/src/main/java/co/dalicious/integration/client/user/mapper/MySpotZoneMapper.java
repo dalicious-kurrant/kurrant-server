@@ -4,6 +4,7 @@ import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
+import co.dalicious.integration.client.user.dto.mySpotZone.UpdateStatusDto;
 import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
@@ -15,6 +16,7 @@ import co.dalicious.integration.client.user.dto.mySpotZone.AdminListResponseDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.system.util.GenerateRandomNumber;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import java.math.BigInteger;
@@ -48,8 +50,8 @@ public interface MySpotZoneMapper {
         adminListResponseDto.setName(mySpotZone.getName());
         adminListResponseDto.setStatus(mySpotZone.getMySpotZoneStatus().getCode());
         adminListResponseDto.setUserCount(mySpotZone.getMySpotZoneUserCount());
-        adminListResponseDto.setOpenStartDate(DateUtils.format(mySpotZone.getOpenStartDate()));
-        adminListResponseDto.setOpenCloseDate(DateUtils.format(mySpotZone.getOpenCloseDate()));
+        adminListResponseDto.setOpenDate(DateUtils.format(mySpotZone.getOpenDate()));
+        adminListResponseDto.setCloseDate(DateUtils.format(mySpotZone.getCloseDate()));
 
         Set<String> counties = new HashSet<>();
         Set<String> villages = new HashSet<>();
@@ -89,8 +91,8 @@ public interface MySpotZoneMapper {
                 .diningTypes(createRequestDto.getDiningTypes().stream().map(DiningType::ofCode).toList())
                 .mySpotZoneStatus(MySpotZoneStatus.ofCode(createRequestDto.getStatus()))
                 .mySpotZoneUserCount(createRequestDto.getUserCount())
-                .openStartDate(DateUtils.stringToDate(createRequestDto.getOpenStartDate()))
-                .openCloseDate(DateUtils.stringToDate(createRequestDto.getOpenCloseDate()))
+                .openDate(DateUtils.stringToDate(createRequestDto.getOpenDate()))
+                .closeDate(DateUtils.stringToDate(createRequestDto.getCloseDate()))
                 .memo(createRequestDto.getMemo())
                 .build();
     }
@@ -115,8 +117,15 @@ public interface MySpotZoneMapper {
         List<DiningType> diningTypes = updateRequestDto.getDiningTypes().stream().map(DiningType::ofCode).toList();
         mySpotZone.updateGroup(diningTypes, updateRequestDto.getName(), updateRequestDto.getMemo());
         mySpotZone.setMySpotZoneStatus(MySpotZoneStatus.ofCode(updateRequestDto.getStatus()));
-        mySpotZone.setOpenStartDate(DateUtils.stringToDate(updateRequestDto.getOpenStartDate()));
-        mySpotZone.setOpenCloseDate(DateUtils.stringToDate(updateRequestDto.getOpenCloseDate()));
+        mySpotZone.setOpenDate(DateUtils.stringToDate(updateRequestDto.getOpenDate()));
+        mySpotZone.setCloseDate(DateUtils.stringToDate(updateRequestDto.getCloseDate()));
     }
+
+    default void updateMySpotZoneStatusAndDate(UpdateStatusDto updateStatusDto, @MappingTarget MySpotZone entity){
+        entity.setMySpotZoneStatus(MySpotZoneStatus.ofCode(updateStatusDto.getStatus()));
+
+        if (MySpotZoneStatus.ofCode(updateStatusDto.getStatus()).equals(MySpotZoneStatus.OPEN)) entity.setOpenDate(updateStatusDto.getStartDate());
+        else if (MySpotZoneStatus.ofCode(updateStatusDto.getStatus()).equals(MySpotZoneStatus.CLOSE)) entity.setCloseDate(updateStatusDto.getStartDate());
+    };
 
 }

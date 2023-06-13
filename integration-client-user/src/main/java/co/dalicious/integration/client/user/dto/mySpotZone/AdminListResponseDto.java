@@ -17,8 +17,8 @@ public class AdminListResponseDto {
     private Set<String> villages;
     private Set<String> zipcodes;
     private Integer status;
-    private String openStartDate;
-    private String openCloseDate;
+    private String openDate;
+    private String closeDate;
     private List<Integer> diningType;
     private List<String> breakfastDeliveryTime;
     private List<String> lunchDeliveryTime;
