@@ -72,9 +72,9 @@ public interface MySpotZoneMapper {
             MealInfo mealInfo = mySpotZone.getMealInfo(diningType);
 
             switch (diningType) {
-                case MORNING -> adminListResponseDto.setBreakfastDeliveryTime(mealInfo.getDeliveryTimes().stream().map(DateUtils::timeToString).toList());
-                case LUNCH -> adminListResponseDto.setLunchDeliveryTime(mealInfo.getDeliveryTimes().stream().map(DateUtils::timeToString).toList());
-                case DINNER -> adminListResponseDto.setDinnerDeliveryTime(mealInfo.getDeliveryTimes().stream().map(DateUtils::timeToString).toList());
+                case MORNING -> adminListResponseDto.setBreakfastDeliveryTime(mealInfo == null ? null : mealInfo.getDeliveryTimes().stream().map(DateUtils::timeToString).toList());
+                case LUNCH -> adminListResponseDto.setLunchDeliveryTime(mealInfo == null ? null : mealInfo.getDeliveryTimes().stream().map(DateUtils::timeToString).toList());
+                case DINNER -> adminListResponseDto.setDinnerDeliveryTime(mealInfo == null ? null : mealInfo.getDeliveryTimes().stream().map(DateUtils::timeToString).toList());
             }
         });
 
