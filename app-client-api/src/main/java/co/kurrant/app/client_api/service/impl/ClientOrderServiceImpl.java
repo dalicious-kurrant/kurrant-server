@@ -3,6 +3,7 @@ package co.kurrant.app.client_api.service.impl;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.delivery.utils.DeliveryUtils;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
@@ -69,6 +70,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final OrderDailyFoodRepository orderDailyFoodRepository;
+    private final DeliveryUtils deliveryUtils;
 
     @Override
     @Transactional
@@ -211,6 +213,8 @@ public class ClientOrderServiceImpl implements ClientOrderService {
 
                     OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
                     orderItemDailyFoods.add(orderItemDailyFood);
+                    // TODO: 배송시간 추가
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, dailyFood, null);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
                     supportPrice = supportPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
                 }

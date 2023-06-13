@@ -62,9 +62,14 @@ public class OrderDailyFoodByMakersDto {
     @Setter
     public static class FoodBySpot {
         private String deliveryId;
+        private Integer spotType;
         private String pickUpTime;
+        private String address1;
+        private String address2;
         private String spotName;
         private String groupName;
+        private String userName;
+        private String phone;
         private List<Food> foods;
         private Integer foodCount;
 

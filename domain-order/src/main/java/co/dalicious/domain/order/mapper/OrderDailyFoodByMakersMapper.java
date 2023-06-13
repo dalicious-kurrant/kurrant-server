@@ -1,7 +1,10 @@
 package co.dalicious.domain.order.mapper;
 
+import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.OpenGroupSpot;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
@@ -121,9 +124,14 @@ public interface OrderDailyFoodByMakersMapper {
             OrderDailyFoodByMakersDto.FoodBySpot foodBySpot = new OrderDailyFoodByMakersDto.FoodBySpot();
             //FIXME: 배송 ID 설정
             foodBySpot.setDeliveryId(null);
+            foodBySpot.setSpotType(ofClass(Hibernate.getClass(spot)).getCode());
             foodBySpot.setPickUpTime(DateUtils.timeToString(spotMap.get(spot).get(0).getDailyFood().getDailyFoodGroup().getPickUpTime(spotMap.get(spot).get(0).getDeliveryTime())));
+            foodBySpot.setAddress1(spot.getAddress().addressToString());
+            foodBySpot.setAddress2(spot.getAddress().getAddress2()); //수정 필요
             foodBySpot.setSpotName(spot.getName());
             foodBySpot.setGroupName(spot instanceof MySpot ? null : spot.getGroup().getName());
+            foodBySpot.setUserName(Hibernate.getClass(spot) == CorporationSpot.class ? null : spotMap.get(spot).get(0).getOrder().getUser().getName());
+            foodBySpot.setPhone(Hibernate.getClass(spot) == CorporationSpot.class ? null : spotMap.get(spot).get(0).getOrder().getUser().getPhone());
             foodBySpot.setFoods(toFoods(spotMap.get(spot)));
             foodBySpot.setFoodCount(foodBySpot.getFoodCount());
             foodBySpots.add(foodBySpot);
@@ -294,5 +302,12 @@ public interface OrderDailyFoodByMakersMapper {
         foodDtoList = foodDtoList.stream()
                 .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.Food::getFoodId)).toList();
         return foodDtoList;
+    }
+
+    default GroupDataType ofClass(Class<? extends Spot> spotClass) {
+        if(spotClass.equals(CorporationSpot.class)) return GroupDataType.CORPORATION;
+        if(spotClass.equals(OpenGroupSpot.class)) return GroupDataType.OPEN_GROUP;
+        if(spotClass.equals(MySpot.class)) return GroupDataType.MY_SPOT;
+        return null;
     }
 }

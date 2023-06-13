@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.entity.enums;
 
+import co.dalicious.domain.client.entity.*;
 import lombok.Getter;
 
 import java.util.Arrays;
