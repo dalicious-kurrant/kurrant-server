@@ -8,7 +8,7 @@ import java.util.Arrays;
 public enum MySpotZoneStatus {
     WAITE("오픈 대기", 0),
     OPEN("오픈", 1),
-    CLOSE("정지", 2);
+    CLOSE("중지", 2);
     private final String status;
     private final Integer code;
 
