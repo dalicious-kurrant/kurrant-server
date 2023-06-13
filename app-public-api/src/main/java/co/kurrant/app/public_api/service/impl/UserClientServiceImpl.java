@@ -98,13 +98,14 @@ public class UserClientServiceImpl implements UserClientService {
         User user = userUtil.getUser(securityUser);
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
-        Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-        Group group = (Group) Hibernate.unproxy(spot.getGroup());
-        UserGroup userGroup = isGroupMember(user, group);
+        Group group = groupRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        Group unproxiedGroup = (Group) Hibernate.unproxy(group);
+        UserGroup userGroup = isGroupMember(user, unproxiedGroup);
         // 유저 그룹 상태를 탈퇴로 만든다.
         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
         List<UserSpot> userSpots = user.getUserSpots();
-        Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup())).findAny();
+        Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
+                .findAny();
         userSpot.ifPresent(userSpotRepository::delete);
         // 다른 그룹이 존재하는지 여부에 따라 Return값 결정(스팟 선택 화면 || 그룹 신청 화면)
         return (groups.size() - 1 > 0) ? SpotStatus.NO_SPOT_BUT_HAS_CLIENT.getCode() : SpotStatus.NO_SPOT_AND_CLIENT.getCode();
@@ -167,7 +168,6 @@ public class UserClientServiceImpl implements UserClientService {
     }
 
     private UserSpot getUserSpot(BigInteger spotId, User user) {
-        List<UserSpot> userSpots = user.getUserSpots();
         return user.getUserSpots().stream()
                 .filter(s -> s.getSpot() != null && s.getSpot().getId().equals(spotId))
                 .findAny()

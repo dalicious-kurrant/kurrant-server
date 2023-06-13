@@ -114,7 +114,6 @@ public class UserServiceImpl implements UserService {
     private final QDailyReportRepository qDailyReportRepository;
     private final OrderItemDailyFoodDailyReportMapper orderItemDailyFoodDailyReportMapper;
     private final UserGroupMapper userGroupMapper;
-    private final QMySpotRepository qMySpotRepository;
     private final QGroupRepository qGroupRepository;
 
 
