@@ -10,6 +10,7 @@ import co.dalicious.integration.client.user.dto.filter.FilterDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.AdminListResponseDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
+import co.dalicious.integration.client.user.dto.mySpotZone.UpdateStatusDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import org.locationtech.jts.io.ParseException;
@@ -32,5 +33,5 @@ public interface GroupService {
     void updateMySpotZone(UpdateRequestDto updateRequestDto);
     void deleteMySpotZone(List<BigInteger> id);
     void updateLocation() throws ParseException;
-    void saveCorporationOrOpenGroup(GroupListDto.GroupInfoList requestDto) throws ParseException;
+    void updateMySpotZoneStatus(UpdateStatusDto updateStatusDto);
 }

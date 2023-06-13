@@ -21,8 +21,8 @@ public class CreateRequestDto {
     @NotNull(message = "동/읍/리는 필수입니다.")
     private List<String> villages;
     private Integer status;
-    private String openStartDate;
-    private String openCloseDate;
+    private String openDate;
+    private String closeDate;
     private Integer userCount;
     @NotNull(message = "식사타입은 필수입니다.")
     private List<Integer> diningTypes;
