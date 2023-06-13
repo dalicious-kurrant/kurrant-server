@@ -3,6 +3,9 @@ package co.dalicious.domain.user.entity;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.querydsl.core.annotations.QueryProjection;
+import com.querydsl.core.types.dsl.DatePath;
+import com.querydsl.core.types.dsl.NumberExpression;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -109,4 +112,14 @@ public class DailyReport {
         this.title = title;
         this.imageLocation = imageLocation;
     }
+
+    @QueryProjection
+    public DailyReport(LocalDate eatDate,Integer calorie, Integer carbohydrate, Integer protein, Integer fat) {
+        this.eatDate = eatDate;
+        this.calorie = calorie;
+        this.carbohydrate = carbohydrate;
+        this.protein = protein;
+        this.fat = fat;
+    }
+
 }

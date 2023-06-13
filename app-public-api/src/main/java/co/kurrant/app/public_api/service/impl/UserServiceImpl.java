@@ -29,7 +29,7 @@ import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.user.dto.*;
-import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
+import co.dalicious.domain.user.dto.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.DailyReportMapper;
@@ -40,10 +40,7 @@ import co.dalicious.integration.client.user.utils.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
-import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.integration.client.user.mapper.UserGroupMapper;
-import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
-import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
@@ -57,11 +54,13 @@ import co.kurrant.app.public_api.service.UserService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.querydsl.core.Tuple;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -1180,24 +1179,18 @@ public class UserServiceImpl implements UserService {
         MealHistoryResDto mealHistoryResDto = new MealHistoryResDto();
         User user = userUtil.getUser(securityUser);
 
-        List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDateBetween(user.getId(), LocalDate.parse(startDate), LocalDate.parse(endDate));
+        List<DailyReportByDate> dailyReportList = qDailyReportRepository.findByUserIdAndDateBetween(user.getId(), LocalDate.parse(startDate), LocalDate.parse(endDate));
 
-        if (dailyReportList.isEmpty()) return null;
+        if (dailyReportList.isEmpty()) return mealHistoryResDto;
 
-        List<DailyReportByDate> dailyReportByDateList = new ArrayList<>();
-        for (DailyReport dailyReport : dailyReportList){
-            DailyReportByDate dailyReportByDateDto = dailyReportMapper.toDailyReportByDateDto(dailyReport);
-            if (dailyReportByDateDto.getCalorie() != null){
-                dailyReportByDateList.add(dailyReportByDateDto);
-            }
-        }
-        mealHistoryResDto.setDailyReportList(dailyReportByDateList);
+        mealHistoryResDto.setDailyReportList(dailyReportList.stream().filter(v -> !v.getCalorie().equals(0)).toList());
 
         return mealHistoryResDto;
 
     }
 
     @Override
+    @Transactional
     public void saveDailyReport(SecurityUser securityUser, SaveDailyReportReqDto saveDailyReportDto) {
 
         User user = userUtil.getUser(securityUser);
