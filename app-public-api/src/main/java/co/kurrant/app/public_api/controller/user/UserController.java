@@ -5,6 +5,7 @@ import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
 import co.dalicious.domain.user.dto.SaveDailyReportFoodReqDto;
+import co.dalicious.domain.user.dto.SaveDailyReportReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
 import co.kurrant.app.public_api.dto.user.*;
@@ -400,6 +401,16 @@ public class UserController {
         return ResponseMessage.builder()
                 .data(userService.getMealHistory(securityUser, startDate, endDate))
                 .message("조회에 성공했습니다.")
+                .build();
+    }
+
+    @PostMapping("/daily/report")
+    @Operation(summary = "조회된 식사를 리포트에 추가", description = "식단 리포트 조회로 조회한 음식을 식단에 추가한다.")
+    public ResponseMessage saveDailyReport(Authentication authentication, @RequestBody SaveDailyReportReqDto saveDailyReportDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.saveDailyReport(securityUser, saveDailyReportDto);
+        return ResponseMessage.builder()
+                .message("저장에 성공했습니다.")
                 .build();
     }
 

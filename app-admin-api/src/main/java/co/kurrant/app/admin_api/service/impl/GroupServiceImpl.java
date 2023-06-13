@@ -4,6 +4,8 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.repository.QRegionRepository;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.integration.client.user.dto.mySpotZone.UpdateStatusDto;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
@@ -277,7 +279,7 @@ public class GroupServiceImpl implements GroupService {
             }
         }
 
-        Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), updateSpotDetailRequestDto.getLocation().equals("없음") ? null : updateSpotDetailRequestDto.getLocation());
+        Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), AddressUtil.getLocation(updateSpotDetailRequestDto.getAddress1()));
 
         if (group instanceof Corporation corporation) {
             LocalDate membershipEndDate = corporation.getMembershipEndDate();
@@ -366,6 +368,7 @@ public class GroupServiceImpl implements GroupService {
 
         // my spot zone 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(createRequestDto);
+        groupRepository.save(mySpotZone);
 
         // region updqte my sopt zone fk
         regions.forEach(region -> region.updateMySpotZone(mySpotZone.getId()));
@@ -389,7 +392,7 @@ public class GroupServiceImpl implements GroupService {
                 })
                 .collect(Collectors.toList());
 
-        groupRepository.save(mySpotZone);
+
         mealInfoRepository.saveAll(mealInfoList);
     }
 
@@ -438,11 +441,10 @@ public class GroupServiceImpl implements GroupService {
         regions.forEach(region -> region.updateMySpotZone(null));
 
         // my spot zone fk를 가진 my spot 찾아서 null
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByMySpotZone(mySpotZoneList);
+        List<MySpot> mySpotList = mySpotZoneList.stream().flatMap(v -> v.getSpots().stream().map(s -> (MySpot) s)).toList();
         if (mySpotList.isEmpty()) mySpotZoneList.forEach(mySpotZone -> mySpotZone.updateIsActive(false));
         else {
-            mySpotList.forEach(mySpot -> mySpot.updateMySpotZone(null));
-
+            mySpotList.forEach(MySpot::updateMySpotForDelete);
             // my spot zone update isActive false
             mySpotZoneList.forEach(mySpotZone -> mySpotZone.updateIsActive(false));
         }
@@ -457,6 +459,13 @@ public class GroupServiceImpl implements GroupService {
             String updateLocation = addressUtil.getLocation(group.getAddress().getAddress1());
             group.getAddress().updateLocation(updateLocation);
         }
+    }
+
+    @Override
+    @Transactional
+    public void updateMySpotZoneStatus(UpdateStatusDto updateStatusDto) {
+        List<MySpotZone> mySpotZoneList = qMySpotZoneRepository.findAllMySpotZoneByIds(updateStatusDto.getIds());
+        mySpotZoneList.forEach(mySpotZone -> mySpotZoneMapper.updateMySpotZoneStatusAndDate(updateStatusDto, mySpotZone));
     }
 
 

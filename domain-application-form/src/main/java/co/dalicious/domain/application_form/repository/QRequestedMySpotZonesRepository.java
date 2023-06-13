@@ -197,7 +197,7 @@ public class QRequestedMySpotZonesRepository {
     public List<RequestedMySpotZones> findAlreadyExistMySpotZone() {
         return queryFactory.selectFrom(requestedMySpotZones)
                 .leftJoin(requestedMySpotZones.region, region)
-                .where(requestedMySpotZones.region.zipcode.eq(region.zipcode), region.mySpotZoneIds.isNotNull())
+                .where(requestedMySpotZones.region.eq(region), region.mySpotZoneIds.isNotNull())
                 .fetch();
     }
 

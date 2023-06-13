@@ -37,7 +37,6 @@ public interface UserHomeInfoMapper {
     default BigInteger getSpotId(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
         UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
-        if(userSpot instanceof MySpot mySpot) return mySpot.getId();
         return userSpot == null ? null : userSpot.getSpot().getId();
     }
 
@@ -45,7 +44,6 @@ public interface UserHomeInfoMapper {
     default String getSpotName(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
         UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
-        if(userSpot instanceof MySpot mySpot) return mySpot.getName() != null ? mySpot.getName() : mySpot.getAddress().addressToString();
         return userSpot == null ? null : userSpot.getSpot().getName();
     }
 
@@ -53,7 +51,6 @@ public interface UserHomeInfoMapper {
     default BigInteger getGroupId(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
         UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
-        if(userSpot instanceof MySpot mySpot) return mySpot.getMySpotZone().getId();
         return userSpot == null ? null : userSpot.getSpot().getGroup().getId();
     }
 
@@ -61,8 +58,7 @@ public interface UserHomeInfoMapper {
     default String getGroupName(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
         UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
-        if(userSpot instanceof MySpot mySpot) return null;
-        return userSpot == null ? null : userSpot.getSpot().getGroup().getName();
+        return userSpot == null ? null : userSpot.getSpot() instanceof MySpot ? null : userSpot.getSpot().getGroup().getName();
     }
 
 }

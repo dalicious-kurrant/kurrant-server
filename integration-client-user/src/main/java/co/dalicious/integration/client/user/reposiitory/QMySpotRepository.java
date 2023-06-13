@@ -1,5 +1,6 @@
 package co.dalicious.integration.client.user.reposiitory;
 
+import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
@@ -20,19 +21,19 @@ public class QMySpotRepository {
 
     public List<MySpot> findMySpotByUserIds(List<BigInteger> userIds) {
         return queryFactory.selectFrom(mySpot)
-                .where(mySpot.user.id.in(userIds))
+                .where(mySpot.userId.in(userIds))
                 .fetch();
     }
 
     public List<MySpot> findMySpotByMySpotZone(List<MySpotZone> mySpotZone) {
         return queryFactory.selectFrom(mySpot)
-                .where(mySpot.mySpotZone.in(mySpotZone))
+                .where(mySpot.group.in(mySpotZone))
                 .fetch();
     }
 
     public List<MySpot> findMySpotByUser(User user) {
         return queryFactory.selectFrom(mySpot)
-                .where(mySpot.isActive.ne(false), mySpot.user.eq(user))
+                .where(mySpot.status.eq(SpotStatus.ACTIVE), mySpot.userId.eq(user.getId()))
                 .fetch();
     }
 }

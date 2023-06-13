@@ -177,4 +177,9 @@ public class Spot {
         this.address = address;
     }
 
+    public void updateGroup(Group group) {
+        this.group = group;
+    }
+
+    public void updateSpotStatus(SpotStatus status) { this.status = status; }
 }

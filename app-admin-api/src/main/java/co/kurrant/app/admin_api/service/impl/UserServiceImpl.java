@@ -1,6 +1,10 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.domain.client.entity.Department;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MySpotZone;
+import co.dalicious.domain.client.mapper.DepartmentMapper;
+import co.dalicious.domain.client.repository.DepartmentRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
@@ -9,10 +13,12 @@ import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
+import co.dalicious.domain.user.mapper.UserDepartmentMapper;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.user.validator.UserValidator;
+import co.dalicious.integration.client.user.entity.MySpot;
 import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
@@ -37,6 +43,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final DepartmentMapper departmentMapper;
+    private final UserDepartmentMapper userDepartmentMapper;
     private final UserHistoryMapper userHistoryMapper;
     private final QGroupRepository qGroupRepository;
     private final PasswordEncoder passwordEncoder;
@@ -50,9 +58,9 @@ public class UserServiceImpl implements UserService {
     private final ProviderEmailRepository providerEmailRepository;
     private final UserSpotRepository userSpotRepository;
     private final UserValidator userValidator;
-
+    private final UserDepartmentRepository userDepartmentRepository;
     private final FoodRepository foodRepository;
-
+    private final DepartmentRepository departmentRepository;
     private final UserTasteTestDataRepository userTasteTestDataRepository;
     private final QUserTasteTestDataRepository qUserTasteTestDataRepository;
     private final PointUtil pointUtil;
@@ -158,6 +166,22 @@ public class UserServiceImpl implements UserService {
                 user.changePaymentPassword(paymentPassword);
             }
 
+            //부서명이 변경 되었을 경우
+            if (!saveUserListRequestDto.getDepartmentName().equals(user.getDepartment())){
+                Department department = departmentRepository.findByName(saveUserListRequestDto.getDepartmentName());
+                //존재하지 않는 부서면 생성
+                if (department == null || department.getName().isEmpty()){
+                    System.out.println("부서 수정");
+                    Department saveDepartment = departmentMapper.toEntity(user.getGroups().get(0).getGroup(), saveUserListRequestDto.getDepartmentName());
+                    departmentRepository.save(saveDepartment);
+                    userDepartmentRepository.save(userDepartmentMapper.toEntity(user, saveDepartment));
+                } else {    //존재하면 해당 유저를 등록한다.
+                    System.out.println("부서수정22");
+                    userDepartmentRepository.save(userDepartmentMapper.toEntity(user,department));
+                }
+            }
+
+
             // 그룹 변경
             List<String> groupsName = Optional.ofNullable(saveUserListRequestDto.getGroupName())
                     .map(name -> Arrays.stream(name.split(","))
@@ -194,8 +218,8 @@ public class UserServiceImpl implements UserService {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
                         List<UserSpot> deleteUserSpots = user.getUserSpots().stream()
-                                .filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
-                                .toList();
+                                    .filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
+                                    .toList();
                         userSpotRepository.deleteAll(deleteUserSpots);
                     }
                 });

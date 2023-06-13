@@ -1,11 +1,13 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -24,7 +26,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class, BigDecimal.class, DiningTypesUtils.class})
+@Mapper(componentModel = "spring", imports = {GroupDto.class, DateUtils.class, BigDecimal.class, DiningTypesUtils.class, AddressUtil.class})
 public interface GroupMapper {
     @Mapping(source = "id", target = "groupId")
     @Mapping(source = "name", target = "groupName")
@@ -34,6 +36,13 @@ public interface GroupMapper {
     @Mapping(source = "id", target = "spotId")
     @Mapping(source = "name", target = "spotName")
     GroupDto.Spot spotToDto(Spot spot);
+
+    default GroupDto.Spot mySpotToDto(MySpot mySpot) {
+        GroupDto.Spot spotDto = new GroupDto.Spot();
+        spotDto.setSpotId(mySpot.getId());
+        spotDto.setSpotName(mySpot.getAddress().addressToString());
+        return spotDto;
+    }
 
     @Mapping(source = "diningType", target = "diningType")
     @Mapping(source = "code", target = "code")
@@ -51,7 +60,7 @@ public interface GroupMapper {
 
     default List<GroupDto.Spot> spotsToDtos(List<Spot> spots) {
         return spots.stream()
-                .map(this::spotToDto)
+                .map(spot -> spot instanceof MySpot mySpot ? mySpotToDto(mySpot) : spotToDto(spot))
                 .collect(Collectors.toList());
     }
 
@@ -143,7 +152,7 @@ public interface GroupMapper {
     @Mapping(source = "address.zipCode", target = "zipCode")
     @Mapping(source = "address.address1", target = "address1")
     @Mapping(source = "address.address2", target = "address2")
-    @Mapping(target = "location", expression = "java(corporation.getAddress().getLocation() == null ? null : corporation.getAddress().getLocation().toString())")
+    @Mapping(target = "location", expression = "java(corporation.getAddress().getLocation() == null ? null : corporation.getAddress().locationToString())")
     @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.diningTypesToCodes(corporation.getDiningTypes()))")
     @Mapping(source = "deliveryFeeOption.deliveryFeeOption", target = "deliveryFeeOption")
     @Mapping(target = "membershipEndDate", expression = "java(DateUtils.localDateToString(corporation.getMembershipEndDate()))")
@@ -155,13 +164,12 @@ public interface GroupMapper {
     @Mapping(source = "zipCode", target = "address.zipCode")
     @Mapping(source = "address1", target = "address.address1")
     @Mapping(source = "address2", target = "address.address2")
-    @Mapping(source = "location", target = "address.location")
     Corporation toCorporation(GroupListDto.GroupInfoList groupDto) throws ParseException;
 
     @Mapping(source = "address.zipCode", target = "zipCode")
     @Mapping(source = "address.address1", target = "address1")
     @Mapping(source = "address.address2", target = "address2")
-    @Mapping(target = "location", expression = "java(openGroup.getAddress().getLocation() == null ? null : openGroup.getAddress().getLocation().toString())")
+    @Mapping(target = "location", expression = "java(openGroup.getAddress().getLocation() == null ? null : openGroup.getAddress().locationToString())")
     @Mapping(source = "openGroupUserCount", target = "employeeCount")
     @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.diningTypesToCodes(openGroup.getDiningTypes()))")
     GroupListDto.GroupInfoList toOpenSpotDto(OpenGroup openGroup);
@@ -170,7 +178,6 @@ public interface GroupMapper {
     @Mapping(source = "zipCode", target = "address.zipCode")
     @Mapping(source = "address1", target = "address.address1")
     @Mapping(source = "address2", target = "address.address2")
-    @Mapping(source = "location", target = "address.location")
     @Mapping(source = "employeeCount", target = "openGroupUserCount")
     OpenGroup toOpenGroup(GroupListDto.GroupInfoList groupDto) throws ParseException;
 
@@ -210,11 +217,16 @@ public interface GroupMapper {
     }
 
     default Group toEntity(GroupListDto.GroupInfoList groupDto) throws ParseException {
+        Group group;
         if(GroupDataType.ofCode(groupDto.getGroupType()).equals(GroupDataType.CORPORATION)) {
-            return toCorporation(groupDto);
+            group = toCorporation(groupDto);
+            group.getAddress().setLocation(AddressUtil.getLocation(groupDto.getAddress1()));
+            return group;
         }
         if(GroupDataType.ofCode(groupDto.getGroupType()).equals(GroupDataType.OPEN_GROUP)) {
-            return toOpenGroup(groupDto);
+            group = toOpenGroup(groupDto);
+            group.getAddress().setLocation(AddressUtil.getLocation(groupDto.getAddress1()));
+            return group;
         }
         return null;
     }

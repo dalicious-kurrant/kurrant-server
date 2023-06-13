@@ -4,8 +4,10 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.NumberUtils;
 import exception.ApiException;
@@ -57,5 +59,27 @@ public class FoodUtils {
             throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000012", "영업하지 않는 메이커스의 음식입니다.");
         }
     }
+
+    public static Boolean isValidDeliveryTime(Makers makers, DiningType diningType, LocalTime deliveryTime) {
+        MakersCapacity makersCapacity = makers.getMakersCapacity(diningType);
+        LocalTime minTime = makersCapacity.getMinTime();
+        LocalTime maxTime = makersCapacity.getMaxTime();
+
+        if(minTime == null && maxTime == null) {
+            return true;
+        }
+
+        if(minTime == null) {
+            return deliveryTime.isBefore(maxTime) || deliveryTime.equals(maxTime);
+        }
+
+        if(maxTime == null) {
+            return deliveryTime.isAfter(minTime) || deliveryTime.equals(minTime);
+        }
+
+        return (deliveryTime.isAfter(minTime) || deliveryTime.equals(minTime))
+                && (deliveryTime.isBefore(maxTime) || deliveryTime.equals(maxTime));
+    }
+
 
 }

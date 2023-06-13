@@ -13,10 +13,10 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
-import co.dalicious.domain.client.mapper.GroupResponseMapper;
-import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -36,13 +36,14 @@ import co.dalicious.domain.user.mapper.DailyReportMapper;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
 import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
 import co.dalicious.domain.user.repository.*;
-import co.dalicious.domain.user.util.ClientUtil;
+import co.dalicious.integration.client.user.utils.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.integration.client.user.mapper.UserGroupMapper;
 import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
@@ -59,8 +60,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import net.bytebuddy.asm.Advice;
-import org.geolatte.geom.M;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -118,8 +117,8 @@ public class UserServiceImpl implements UserService {
     private final QDailyReportRepository qDailyReportRepository;
     private final OrderItemDailyFoodDailyReportMapper orderItemDailyFoodDailyReportMapper;
     private final UserGroupMapper userGroupMapper;
-    private final QMySpotRepository qMySpotRepository;
     private final QGroupRepository qGroupRepository;
+    private final DailyFoodRepository dailyFoodRepository;
 
 
     @Override
@@ -391,7 +390,7 @@ public class UserServiceImpl implements UserService {
                 if (mealInfo.isEmpty()) {
                     throw new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO);
                 }
-                LocalTime deliveryTime = orderItemDailyFood.getOrderItemDailyFoodGroup().getDeliveryTime();
+                LocalTime deliveryTime = orderItemDailyFood.getDeliveryTime();
                 if (LocalTime.now().isAfter(deliveryTime)) {
                     continue;
                 }
@@ -446,19 +445,28 @@ public class UserServiceImpl implements UserService {
         User user = userUtil.getUser(securityUser);
         // 그룹/스팟 정보 가져오기
         List<UserGroup> userGroups = user.getGroups();
-        // 유저가 마이스팟을 가졌다면 가져오기
-        List<MySpot> mySpotList = qMySpotRepository.findMySpotByUser(user);
         // 그룹/스팟 리스트를 담아줄 Dto 생성하기
         List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
         // 그룹 추가
         for (UserGroup userGroup : userGroups) {
             // 현재 활성화된 유저 그룹일 경우만 가져오기
             if (userGroup.getClientStatus() == ClientStatus.BELONG) {
-                Group group = userGroup.getGroup();
-                SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(group, mySpotList);
+                SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(userGroup);
                 spotListResponseDtoList.add(spotListResponseDto);
             }
         }
+        // 기업 -> 공유 -> 마이 스팟 별로 정렬.
+        spotListResponseDtoList = spotListResponseDtoList.stream().sorted(Comparator.comparing(SpotListResponseDto::getSpotType)).sorted(Comparator.comparingInt(dto -> {
+                    int spotType = dto.getSpotType();
+                    if (spotType == 0) {
+                        return 0;
+                    } else if (spotType == 2) {
+                        return 1;
+                    } else {
+                        return 2;
+                    }
+                }))
+                .toList();
         return userGroupMapper.toGroupCountDto(spotListResponseDtoList);
     }
 
@@ -1137,14 +1145,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType) {
+        List<OrderByDateAndDiningTypeResDto> resultList = new ArrayList<>();
 
         User user = userUtil.getUser(securityUser);
 
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByDateAndDiningType(user.getId(), date, diningType);
 
-        if (orderItemDailyFoodList.isEmpty()) return "해당 날짜에 주문 내역이 없습니다.";
+        if (orderItemDailyFoodList.isEmpty()) return resultList;
 
-        List<OrderByDateAndDiningTypeResDto> resultList = new ArrayList<>();
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
             String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
@@ -1187,5 +1195,32 @@ public class UserServiceImpl implements UserService {
 
         return mealHistoryResDto;
 
+    }
+
+    @Override
+    public void saveDailyReport(SecurityUser securityUser, SaveDailyReportReqDto saveDailyReportDto) {
+
+        User user = userUtil.getUser(securityUser);
+        DailyFood dailyFood = dailyFoodRepository.findById(saveDailyReportDto.getDailyFoodId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+
+        SaveDailyReportDto dailyReportDto = generatedSaveDailyReportDto(dailyFood);
+        if (!dailyFood.getFood().getImages().isEmpty()){
+            dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(),dailyFood.getFood().getImages().get(0).getLocation()));
+        } else {
+            dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(),null));
+        }
+
+    }
+
+    private SaveDailyReportDto generatedSaveDailyReportDto(DailyFood dailyFood) {
+        return SaveDailyReportDto.builder()
+                .fat(dailyFood.getFood().getFat() == null ? 0: dailyFood.getFood().getFat())
+                .carbohydrate(dailyFood.getFood().getCarbohydrate() == null ? 0 : dailyFood.getFood().getCarbohydrate())
+                .protein(dailyFood.getFood().getProtein() == null ? 0 : dailyFood.getFood().getProtein())
+                .calorie(dailyFood.getFood().getCalorie() == null ? 0 : dailyFood.getFood().getCalorie())
+                .eatDate(dailyFood.getServiceDate().toString())
+                .name(dailyFood.getFood().getName())
+                .diningType(dailyFood.getDiningType().getCode())
+                .build();
     }
 }

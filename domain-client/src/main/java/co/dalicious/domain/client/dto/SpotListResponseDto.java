@@ -22,11 +22,13 @@ public class SpotListResponseDto {
     public static class Spot {
         private BigInteger spotId;
         private String spotName;
+        private Boolean isRestriction;
 
         @Builder
-        public Spot(BigInteger spotId, String spotName) {
+        public Spot(BigInteger spotId, String spotName, Boolean isRestriction) {
             this.spotId = spotId;
             this.spotName = spotName;
+            this.isRestriction = isRestriction;
         }
     }
 }

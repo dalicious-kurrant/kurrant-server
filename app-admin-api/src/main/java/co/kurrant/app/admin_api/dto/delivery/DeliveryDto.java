@@ -1,24 +1,19 @@
-package co.kurrant.app.admin_api.dto;
+package co.kurrant.app.admin_api.dto.delivery;
 
 import co.dalicious.domain.client.dto.GroupInfo;
 import co.dalicious.domain.client.dto.SpotInfo;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.checkerframework.checker.units.qual.N;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Objects;
 
 @Getter
 @Setter
@@ -55,13 +50,13 @@ public class DeliveryDto {
         private List<DeliveryMakers> makers;
 
         @Builder
-        public DeliveryGroup(BigInteger groupId, String groupName, String spotName, BigInteger spotId, String address, LocalTime deliveryTime, Integer diningType, List<DeliveryMakers> makers) {
+        public DeliveryGroup(BigInteger groupId, String groupName, String spotName, BigInteger spotId, String address, String deliveryTime, Integer diningType, List<DeliveryMakers> makers) {
             this.groupId = groupId;
             this.groupName = groupName;
             this.spotName = spotName;
             this.spotId = spotId;
             this.address = address;
-            this.deliveryTime = (deliveryTime == null) ? null : DateUtils.timeToString(deliveryTime);
+            this.deliveryTime = deliveryTime;
             this.diningType = diningType;
             this.makers = makers;
         }

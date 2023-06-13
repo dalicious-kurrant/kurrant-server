@@ -16,8 +16,8 @@ public class UpdateRequestDto {
     private List<String> counties;
     private List<String> villages;
     private Integer status;
-    private String openStartDate;
-    private String openCloseDate;
+    private String openDate;
+    private String closeDate;
     private List<Integer> diningTypes;
     private List<String> breakfastDeliveryTime;
     private List<String> lunchDeliveryTime;

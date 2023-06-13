@@ -1,6 +1,8 @@
 package co.dalicious.domain.address.entity.embeddable;
 
+import ch.qos.logback.core.util.LocationUtil;
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
+import co.dalicious.domain.address.utils.AddressUtil;
 import exception.CustomException;
 import lombok.Builder;
 import lombok.Getter;
@@ -76,11 +78,11 @@ public class Address {
     public void setLocation(String location) {
         this.location = createPoint(location);
     }
-  public void updateLocation(String location) throws ParseException {
-    this.location = createPoint(location);
-  }
+    public void updateLocation(String location) throws ParseException { this.location = createPoint(location); }
 
-  public String locationToString() {
+    public String locationToString() {
     return this.location.toString().replaceAll("POINT |[(]|[)]", "");
   }
+
+    public void updateLocationByAddress(String address1) throws ParseException { this.location = createPoint(AddressUtil.getLocation(address1)); }
 }

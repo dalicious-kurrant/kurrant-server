@@ -32,7 +32,7 @@ public class ApplicationFormController {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(applicationFormService.registerMySpot(securityUser, mySpotZoneApplicationFormRequestDto))
-                .message("아파트 스팟 개설 신청에 성공하였습니다.")
+                .message("마이 스팟 개설 신청에 성공하였습니다.")
                 .build();
     }
 
@@ -46,6 +46,9 @@ public class ApplicationFormController {
                 .message("공유 스팟 개설/추가/시간 신청에 성공하였습니다.")
                 .build();
     }
+
+
+
 
     @Operation(summary = "아파트 스팟 개설 신청 API", description = "아파트 스팟 개설을 신청한다.")
     @PostMapping("/apartments")
@@ -119,4 +122,13 @@ public class ApplicationFormController {
                 .build();
     }
 
+//    @Operation(summary = "아파트 스팟 개설 신청 내역 기타 내용 저장", description = "아파트 스팟 개설 신청 내역 기타 내용을 저장한다.")
+//    @PutMapping("/spots/{id}")
+//    public ResponseMessage updateApartmentApplicationFormMemo(Authentication authentication, @PathVariable BigInteger id, @RequestBody ApplicationFormMemoDto applicationFormMemoDto) {
+//        SecurityUser securityUser = UserUtil.securityUser(authentication);
+//        applicationFormService.updateApartmentApplicationFormMemo(securityUser, id, applicationFormMemoDto);
+//        return ResponseMessage.builder()
+//                .message("아파트 스팟 개설 신청 내역의 기타 내용을 업데이트 하였습니다.")
+//                .build();
+//    }
 }
