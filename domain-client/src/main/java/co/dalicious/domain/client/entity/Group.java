@@ -140,7 +140,7 @@ public class Group {
 
     public void updateGroup(UpdateSpotDetailRequestDto spotResponseDto) throws ParseException {
         // TODO: Location 추가
-        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null, null);
         this.isActive = spotResponseDto.getIsActive();
         this.name = spotResponseDto.getSpotName();
         this.address = address;

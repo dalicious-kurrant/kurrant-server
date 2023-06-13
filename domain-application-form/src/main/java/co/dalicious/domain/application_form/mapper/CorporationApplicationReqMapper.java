@@ -41,6 +41,7 @@ public interface CorporationApplicationReqMapper {
             return new Address(createAddressRequestDto.getZipCode(),
                     createAddressRequestDto.getAddress1(),
                     createAddressRequestDto.getAddress2(),
+                    createAddressRequestDto.getAddress3(),
                     null);
         } catch (ParseException e) {
             throw new RuntimeException(e);

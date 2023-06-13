@@ -31,8 +31,6 @@ public class PushUtil {
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushService pushService;
     private final PushAlarmMapper pushAlarmMapper;
-    private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
-    private final QBatchPushAlarmLogRepository qBatchPushAlarmLogRepository;
 
     public PushRequestDto sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, String customMessage) {
         Set<BigInteger> spotIds = !ids.containsKey("spotIds") || ids.get("spotIds") == null ? null : ids.get("spotIds");
@@ -155,5 +153,15 @@ public class PushUtil {
         if(pushRequestDto != null) {
             pushService.sendToPush(pushRequestDto, pushCondition);
         }
+    }
+
+    public static String getContextOpenOrMySpot(String template, String userName, String spotType) {
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("user", userName);
+        valuesMap.put("spotType", spotType);
+
+        StringSubstitutor sub = new StringSubstitutor(valuesMap);
+        template = sub.replace(template);
+        return template;
     }
 }

@@ -1,6 +1,7 @@
 package co.kurrant.batch.service;
 
 import co.dalicious.domain.client.entity.DayAndTime;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +69,31 @@ public class PushAlarmService {
         }
 
         return groupIds;
+    }
+
+    public List<BigInteger> getGroupIdsByStartDate() {
+        List<BigInteger> groupIds = new ArrayList<>();
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDate currentDate = currentTime.toLocalDate();
+
+        log.info("[상태 변경 Group 읽기 시작] : {}", DateUtils.localDateTimeToString(currentTime));
+
+        // 고객사 주문 마감 시간 그룹 조회
+        String queryStringForGroup = "SELECT msz.id, msz.openDate " +
+                "FROM MySpotZone msz " +
+                "WHERE msz.openDate > :currentDate " +
+                "AND msz.mySpotZoneStatus != 1";
+
+        TypedQuery<Object[]> queryForGroup = entityManager.createQuery(queryStringForGroup, Object[].class);
+        queryForGroup.setParameter("currentDate", currentDate);
+        List<Object[]> resultsForGroup = queryForGroup.getResultList();
+
+        for (Object[] result : resultsForGroup) {
+            MySpotZone mySpotZone = (MySpotZone) result[0];
+            LocalDate startDate = (LocalDate) result[1];
+
+            
+        }
     }
 
 }

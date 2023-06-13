@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.address.repository.QRegionRepository;
+import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormResponseDto;
@@ -217,6 +218,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // user 찾기
         User user = userUtil.getUser(securityUser);
         if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
+
+        String address = AddressUtil.getAddress3(requestDto.getAddress().getAddress3());
 
         // 신청한 my spot이 이미 존재하면
 //        RequestedMySpot existRequestedMySpot = qRequestedMySpotRepository.findRequestedMySpotByUserId(user.getId());
