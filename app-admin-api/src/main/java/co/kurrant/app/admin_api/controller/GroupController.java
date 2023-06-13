@@ -9,6 +9,7 @@ import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
+import co.dalicious.integration.client.user.dto.mySpotZone.UpdateStatusDto;
 import co.kurrant.app.admin_api.service.GroupService;
 import co.dalicious.domain.address.utils.AddressUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,7 +83,7 @@ public class GroupController {
 
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "필터 정보 조회", description = "필터를 위한 정보를 조회합니다.")
-    @GetMapping("my/spot/zones/filter")
+    @GetMapping("/my/spot/zones/filter")
     public ResponseMessage getAllListForFilter(@RequestParam(required = false) Map<String, Object> filterRequest) {
         return ResponseMessage.builder()
                 .message("조회를 성공했습니다.")
@@ -92,7 +93,7 @@ public class GroupController {
 
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "마이 스팟 조회", description = "마이 스팟을 조회합니다.")
-    @GetMapping("my/spot/zones")
+    @GetMapping("/my/spot/zones")
     public ResponseMessage getAllMySpotZoneList(@RequestParam(required = false) Map<String, Object> parameters, Integer limit, Integer size, OffsetBasedPageRequest pageable) {
         return ResponseMessage.builder()
                 .message("조회를 성공했습니다.")
@@ -102,7 +103,7 @@ public class GroupController {
 
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "마이 스팟 생성", description = "마이 스팟을 생성합니다.")
-    @PostMapping("my/spot/zones")
+    @PostMapping("/my/spot/zones")
     public ResponseMessage createMySpotZone(@RequestBody CreateRequestDto createRequestDto) {
         groupService.createMySpotZone(createRequestDto);
         return ResponseMessage.builder()
@@ -112,7 +113,7 @@ public class GroupController {
 
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "마이 스팟 수정", description = "마이 스팟을 수정합니다.")
-    @PatchMapping("my/spot/zones")
+    @PatchMapping("/my/spot/zones")
     public ResponseMessage updateMySpotZone(@RequestBody UpdateRequestDto updateRequestDto) {
         groupService.updateMySpotZone(updateRequestDto);
         return ResponseMessage.builder()
@@ -122,7 +123,7 @@ public class GroupController {
 
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "마이 스팟 삭제", description = "마이 스팟을 삭제합니다.")
-    @PatchMapping("my/spot/zones/delete")
+    @PatchMapping("/my/spot/zones/delete")
     public ResponseMessage deleteMySpotZone(@RequestBody List<BigInteger> id) {
         groupService.deleteMySpotZone(id);
         return ResponseMessage.builder()
@@ -132,7 +133,7 @@ public class GroupController {
 
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "주소 location 등록", description = "좌표를 등록합니다.")
-    @PatchMapping("location")
+    @PatchMapping("/location")
     public ResponseMessage updateLocation(@RequestBody /*List<UpdateLocationDto> dto*/ Boolean toDo) throws ParseException {
         groupService.updateLocation();
         return ResponseMessage.builder()
@@ -141,12 +142,12 @@ public class GroupController {
     }
 
     @ControllerMarker(ControllerType.GROUP)
-    @Operation(summary = "기업/공유 스팟 추가", description = "기업/공유 스팟을 추가했습니다.")
-    @PostMapping("")
-    public ResponseMessage saveCorporationOrOpenGroup(@RequestBody GroupListDto.GroupInfoList requestDto) throws ParseException {
-        groupService.saveCorporationOrOpenGroup(requestDto);
+    @Operation(summary = "마이 스팟 존 상태 변경", description = "마이 스팟 존 상태를 일괄 변경했습니다.")
+    @PatchMapping("/my/spot/zones/status")
+    public ResponseMessage updateMySpotZoneStatus(@RequestBody UpdateStatusDto updateStatusDto) throws ParseException {
+        groupService.updateMySpotZoneStatus(updateStatusDto);
         return ResponseMessage.builder()
-                .message("기업/공유 스팟을 추가했습니다.")
+                .message("마이 스팟 존 상태 일괄 변경에 성공했습니다.")
                 .build();
     }
 }

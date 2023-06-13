@@ -79,7 +79,7 @@ public class UserClientServiceImpl implements UserClientService {
         if (spot instanceof MySpot mySpot && !user.getId().equals(mySpot.getUserId())) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
-        Group group = spot.getGroup();
+        Group group = (Group) Hibernate.unproxy(spot.getGroup());
         isGroupMember(user, group);
 
         // 유저 스팟에 등록되지 않은 경우
@@ -98,10 +98,9 @@ public class UserClientServiceImpl implements UserClientService {
         User user = userUtil.getUser(securityUser);
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
-        Group group = groupRepository.findById(spotId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)
-        );
-        UserGroup userGroup = isGroupMember(user, group);
+        Group group = groupRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        Group unproxiedGroup = (Group) Hibernate.unproxy(group);
+        UserGroup userGroup = isGroupMember(user, unproxiedGroup);
         // 유저 그룹 상태를 탈퇴로 만든다.
         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
         List<UserSpot> userSpots = user.getUserSpots();
@@ -169,7 +168,6 @@ public class UserClientServiceImpl implements UserClientService {
     }
 
     private UserSpot getUserSpot(BigInteger spotId, User user) {
-        List<UserSpot> userSpots = user.getUserSpots();
         return user.getUserSpots().stream()
                 .filter(s -> s.getSpot() != null && s.getSpot().getId().equals(spotId))
                 .findAny()

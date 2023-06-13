@@ -1,6 +1,7 @@
 package co.dalicious.domain.user.dto.pointPolicyResponse;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,4 +18,14 @@ public class SaveDailyReportDto {
     private String eatDate;
     private Integer diningType;
 
+    @Builder
+    SaveDailyReportDto(String name, Integer calorie, Integer carbohydrate, Integer protein, Integer fat, String eatDate, Integer diningType) {
+        this.name = name;
+        this.calorie = calorie;
+        this.carbohydrate = carbohydrate;
+        this.protein = protein;
+        this.fat = fat;
+        this.eatDate = eatDate;
+        this.diningType = diningType;
+    }
 }

@@ -244,16 +244,27 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional
     public void renewalMySpotRequest(List<BigInteger> ids) {
-//        List<RequestedMySpotZones> requestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
-//        List<String> zipcodes = requestedMySpotZones.stream().map(v -> v.getRegion().getZipcode()).toList();
-//        List<MySpotZone> mySpotZones = qMySpotZoneRepository.findExistMySpotZoneListByZipcodes(zipcodes);
-//        Map<MySpotZone, RequestedMySpot> mySpotZoneRequestedMySpotMap = new HashMap<>();
-//
-//        // 관련 신청 마이스팟 생성
-//        List<MySpot> mySpots = mySpotMapper.toEntityList(requestedMySpots, mySpotZones);
-//        spotRepository.saveAll(mySpots);
-//
-//        requestedMySpotZonesRepository.deleteAll(requestedMySpotZones);
+        List<RequestedMySpotZones> requestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
+        List<String> zipcodes = requestedMySpotZones.stream().map(v -> v.getRegion().getZipcode()).toList();
+        Map<MySpotZone, List<String>> mySpotZones = qMySpotZoneRepository.findExistMySpotZoneListByZipcodes(zipcodes);
+
+        List<RequestedMySpot> deleteRequestedMySpot = new ArrayList<>();
+        // 관련 신청 마이스팟 생성
+        for(MySpotZone mySpotZone : mySpotZones.keySet()) {
+            Optional<RequestedMySpotZones> requestedMySpotZone = requestedMySpotZones.stream().filter(v -> mySpotZones.get(mySpotZone).contains(v.getRegion().getZipcode())).findAny();
+            requestedMySpotZone.ifPresent(v -> {
+
+                List<MySpot> mySpots = mySpotMapper.toEntityList(mySpotZone, v.getRequestedMySpots());
+                spotRepository.saveAll(mySpots);
+
+                createUserGroupAndUserSpot(v.getRequestedMySpots(), mySpotZone, mySpots);
+
+                deleteRequestedMySpot.addAll(v.getRequestedMySpots());
+            });
+        }
+
+        requestedMySpotRepository.deleteAll(deleteRequestedMySpot);
+        requestedMySpotZonesRepository.deleteAll(requestedMySpotZones);
     }
 
     private void createUserGroupAndUserSpot (List<RequestedMySpot> requestedMySpots, MySpotZone mySpotZone, List<MySpot> mySpotList) {

@@ -22,16 +22,22 @@ public interface UserGroupMapper {
     default SpotListResponseDto toSpotListResponseDto(UserGroup userGroup) {
         SpotListResponseDto spotListResponseDto = new SpotListResponseDto();
 
-        Group group = userGroup.getGroup();
-        spotListResponseDto.setClientId(group.getId());
-        spotListResponseDto.setClientName(group.getName());
-        spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
-
-        if (Hibernate.unproxy(group) instanceof Corporation)
+        Group group = (Group) Hibernate.unproxy(userGroup.getGroup());
+        if(group instanceof MySpotZone mySpotZone) {
+            spotListResponseDto.setClientId(mySpotZone.getId());
+            spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
+        }
+        else {
+            spotListResponseDto.setClientId(group.getId());
+            spotListResponseDto.setClientName(group.getName());
+            spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
+        }
+      
+        if (group instanceof Corporation)
             spotListResponseDto.setSpotType(GroupDataType.CORPORATION.getCode());
-        else if (Hibernate.unproxy(group) instanceof MySpotZone)
+        else if (group instanceof MySpotZone)
             spotListResponseDto.setSpotType(GroupDataType.MY_SPOT.getCode());
-        else if (Hibernate.unproxy(group) instanceof OpenGroup)
+        else if (group instanceof OpenGroup)
             spotListResponseDto.setSpotType(GroupDataType.OPEN_GROUP.getCode());
 
         return spotListResponseDto;
@@ -44,12 +50,22 @@ public interface UserGroupMapper {
     default List<SpotListResponseDto.Spot> getSpots(Group group, User user) {
         List<SpotListResponseDto.Spot> spotDtoList;
 
-        spotDtoList = group.getSpots().stream().filter(spot -> spot.getStatus().equals(SpotStatus.ACTIVE))
-                .map(spot -> SpotListResponseDto.Spot.builder()
-                        .spotName(spot.getName())
-                        .spotId(spot.getId())
-                        .build()).toList();
+        if(group instanceof MySpotZone) {
+            List<Spot> spot = group.getSpots();
+            spotDtoList = group.getSpots().stream()
+                    .filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId()) && !((MySpot) mySpot).getIsDelete())
+                    .map(this::toSpot).toList();
+        }
+        else {
+            spotDtoList = group.getSpots().stream().filter(spot -> spot.getStatus().equals(SpotStatus.ACTIVE))
+                    .map(spot -> {
+                        SpotListResponseDto.Spot s = toSpot(spot);
+                        if(spot instanceof OpenGroupSpot openGroupSpot) s.setIsRestriction(openGroupSpot.getIsRestriction());
 
+                        return s;
+                    }).toList();
+        }
+      
         return spotDtoList;
     }
 

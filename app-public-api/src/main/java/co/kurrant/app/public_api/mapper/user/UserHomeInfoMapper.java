@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.mapper.user;
 
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
+import co.dalicious.integration.client.user.entity.MySpot;
 import co.kurrant.app.public_api.dto.user.UserHomeResponseDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -57,7 +58,7 @@ public interface UserHomeInfoMapper {
     default String getGroupName(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
         UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
-        return userSpot == null ? null : userSpot.getSpot().getGroup().getName();
+        return userSpot == null ? null : userSpot.getSpot() instanceof MySpot ? null : userSpot.getSpot().getGroup().getName();
     }
 
 }

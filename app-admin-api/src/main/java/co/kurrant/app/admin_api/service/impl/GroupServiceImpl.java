@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.integration.client.user.dto.mySpotZone.UpdateStatusDto;
 import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupListDto;
@@ -278,7 +279,7 @@ public class GroupServiceImpl implements GroupService {
             }
         }
 
-        Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), updateSpotDetailRequestDto.getLocation().equals("없음") ? null : updateSpotDetailRequestDto.getLocation());
+        Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), AddressUtil.getLocation(updateSpotDetailRequestDto.getAddress1()));
 
         if (group instanceof Corporation corporation) {
             LocalDate membershipEndDate = corporation.getMembershipEndDate();
@@ -367,6 +368,7 @@ public class GroupServiceImpl implements GroupService {
 
         // my spot zone 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(createRequestDto);
+        groupRepository.save(mySpotZone);
 
         // region updqte my sopt zone fk
         regions.forEach(region -> region.updateMySpotZone(mySpotZone.getId()));
@@ -390,7 +392,7 @@ public class GroupServiceImpl implements GroupService {
                 })
                 .collect(Collectors.toList());
 
-        groupRepository.save(mySpotZone);
+
         mealInfoRepository.saveAll(mealInfoList);
     }
 
@@ -461,20 +463,9 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public void saveCorporationOrOpenGroup(GroupListDto.GroupInfoList requestDto) throws ParseException {
-        Group newGroup = groupMapper.toEntity(requestDto);
-
-        // 식사일정추가
-        List<Integer> diningTypeList = requestDto.getDiningTypes();
-        List<MealInfo> newMealInfo = new ArrayList<>();
-
-        for (Integer diningType : diningTypeList) {
-            Optional<GroupListDto.MealInfo> mealInfo = requestDto.getMealInfos().stream().filter(m -> m.getDiningType().equals(diningType)).findAny();
-            mealInfo.ifPresent(v -> newMealInfo.add(groupMapper.toMealInfo(mealInfo.get(), newGroup)));
-        }
-
-        groupRepository.save(newGroup);
-        mealInfoRepository.saveAll(newMealInfo);
+    public void updateMySpotZoneStatus(UpdateStatusDto updateStatusDto) {
+        List<MySpotZone> mySpotZoneList = qMySpotZoneRepository.findAllMySpotZoneByIds(updateStatusDto.getIds());
+        mySpotZoneList.forEach(mySpotZone -> mySpotZoneMapper.updateMySpotZoneStatusAndDate(updateStatusDto, mySpotZone));
     }
 
 
