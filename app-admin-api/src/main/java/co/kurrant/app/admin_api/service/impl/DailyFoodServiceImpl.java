@@ -224,6 +224,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             dailyFoodGroupMap.add(dailyFoodGroupDto, dailyFood);
         }
 
+        //FIXME: ???
         for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
             List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
             List<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()

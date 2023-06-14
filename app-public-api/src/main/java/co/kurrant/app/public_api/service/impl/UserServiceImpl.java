@@ -14,7 +14,9 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -27,7 +29,7 @@ import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.user.dto.*;
-import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
+import co.dalicious.domain.user.dto.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.DailyReportMapper;
@@ -38,9 +40,7 @@ import co.dalicious.integration.client.user.utils.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
-import co.dalicious.integration.client.user.entity.MySpot;
 import co.dalicious.integration.client.user.mapper.UserGroupMapper;
-import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
@@ -54,11 +54,13 @@ import co.kurrant.app.public_api.service.UserService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.querydsl.core.Tuple;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -115,6 +117,7 @@ public class UserServiceImpl implements UserService {
     private final OrderItemDailyFoodDailyReportMapper orderItemDailyFoodDailyReportMapper;
     private final UserGroupMapper userGroupMapper;
     private final QGroupRepository qGroupRepository;
+    private final DailyFoodRepository dailyFoodRepository;
 
 
     @Override
@@ -1141,14 +1144,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType) {
+        List<OrderByDateAndDiningTypeResDto> resultList = new ArrayList<>();
 
         User user = userUtil.getUser(securityUser);
 
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByDateAndDiningType(user.getId(), date, diningType);
 
-        if (orderItemDailyFoodList.isEmpty()) return "해당 날짜에 주문 내역이 없습니다.";
+        if (orderItemDailyFoodList.isEmpty()) return resultList;
 
-        List<OrderByDateAndDiningTypeResDto> resultList = new ArrayList<>();
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
             String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
@@ -1176,20 +1179,41 @@ public class UserServiceImpl implements UserService {
         MealHistoryResDto mealHistoryResDto = new MealHistoryResDto();
         User user = userUtil.getUser(securityUser);
 
-        List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDateBetween(user.getId(), LocalDate.parse(startDate), LocalDate.parse(endDate));
+        List<DailyReportByDate> dailyReportList = qDailyReportRepository.findByUserIdAndDateBetween(user.getId(), LocalDate.parse(startDate), LocalDate.parse(endDate));
 
-        if (dailyReportList.isEmpty()) return null;
+        if (dailyReportList.isEmpty()) return mealHistoryResDto;
 
-        List<DailyReportByDate> dailyReportByDateList = new ArrayList<>();
-        for (DailyReport dailyReport : dailyReportList){
-            DailyReportByDate dailyReportByDateDto = dailyReportMapper.toDailyReportByDateDto(dailyReport);
-            if (dailyReportByDateDto.getCalorie() != null){
-                dailyReportByDateList.add(dailyReportByDateDto);
-            }
-        }
-        mealHistoryResDto.setDailyReportList(dailyReportByDateList);
+        mealHistoryResDto.setDailyReportList(dailyReportList.stream().filter(v -> !v.getCalorie().equals(0)).toList());
 
         return mealHistoryResDto;
 
+    }
+
+    @Override
+    @Transactional
+    public void saveDailyReport(SecurityUser securityUser, SaveDailyReportReqDto saveDailyReportDto) {
+
+        User user = userUtil.getUser(securityUser);
+        DailyFood dailyFood = dailyFoodRepository.findById(saveDailyReportDto.getDailyFoodId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+
+        SaveDailyReportDto dailyReportDto = generatedSaveDailyReportDto(dailyFood);
+        if (!dailyFood.getFood().getImages().isEmpty()){
+            dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(),dailyFood.getFood().getImages().get(0).getLocation()));
+        } else {
+            dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(),null));
+        }
+
+    }
+
+    private SaveDailyReportDto generatedSaveDailyReportDto(DailyFood dailyFood) {
+        return SaveDailyReportDto.builder()
+                .fat(dailyFood.getFood().getFat() == null ? 0: dailyFood.getFood().getFat())
+                .carbohydrate(dailyFood.getFood().getCarbohydrate() == null ? 0 : dailyFood.getFood().getCarbohydrate())
+                .protein(dailyFood.getFood().getProtein() == null ? 0 : dailyFood.getFood().getProtein())
+                .calorie(dailyFood.getFood().getCalorie() == null ? 0 : dailyFood.getFood().getCalorie())
+                .eatDate(dailyFood.getServiceDate().toString())
+                .name(dailyFood.getFood().getName())
+                .diningType(dailyFood.getDiningType().getCode())
+                .build();
     }
 }

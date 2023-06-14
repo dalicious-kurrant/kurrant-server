@@ -13,6 +13,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.*;
+import co.dalicious.domain.delivery.utils.DeliveryUtils;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
@@ -108,6 +109,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PushService pushService;
     private final QMembershipRepository qMembershipRepository;
     private final QGroupRepository qGroupRepository;
+    private final DeliveryUtils deliveryUtils;
 
     @Override
     @Transactional
@@ -383,6 +385,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
                     // 8. 주문 상품(OrderItemDailyFood) 저장
                     OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
+                    // 배송정보 입력
+                    // TODO: 배송시간 추가
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, dailyFood, null);
                     orderItemDailyFoods.add(orderItemDailyFood);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
                     supportPrice = supportPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
