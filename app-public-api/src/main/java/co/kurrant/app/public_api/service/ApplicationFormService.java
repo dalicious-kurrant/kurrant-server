@@ -36,4 +36,6 @@ public interface ApplicationFormService {
     CorporationApplicationFormResponseDto getCorporationApplicationFormDetail(BigInteger userId, BigInteger id);
     // 스팟 신청 날짜 리스트
     List<ApplicationFormDto> getSpotsApplicationList(BigInteger userId);
+    // 신청한 마이스팟 기록 삭제
+    void deleteRequestedMySpot(SecurityUser securityUser);
 }

@@ -214,6 +214,14 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional
+    public void deleteRequestedMySpot(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        RequestedMySpot requestedMySpot = qRequestedMySpotRepository.findRequestedMySpotByUserId(user.getId());
+        requestedMySpotRepository.delete(requestedMySpot);
+    }
+
+    @Override
+    @Transactional
     public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto requestDto) throws ParseException {
         // user 찾기
         User user = userUtil.getUser(securityUser);

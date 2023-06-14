@@ -85,7 +85,7 @@ public class AddressUtil {
 
     public static String getAddress3(String address) {
         StringBuilder stringBuilder = new StringBuilder();
-        String regex = "([가-힣A-Za-z·\\d~\\-\\.]+(시|군|구)\\s)[\\d]+";
+        String regex = "(\\b\\w+(?:동|읍|리)\\b).+";
 
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(address);
