@@ -25,4 +25,5 @@ public class UserHomeResponseDto {
     private int membershipUsingPeriod;
     private Integer foundersNumber;
     private int leftFoundersNumber;
+    private Boolean isRequestedMySpot;
 }

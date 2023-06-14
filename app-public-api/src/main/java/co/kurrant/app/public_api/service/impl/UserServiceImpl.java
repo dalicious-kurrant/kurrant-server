@@ -7,6 +7,7 @@ import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
+import co.dalicious.domain.application_form.utils.ApplicationUtil;
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
@@ -118,6 +119,7 @@ public class UserServiceImpl implements UserService {
     private final UserGroupMapper userGroupMapper;
     private final QGroupRepository qGroupRepository;
     private final DailyFoodRepository dailyFoodRepository;
+    private final ApplicationUtil applicationUtil;
 
 
     @Override
@@ -128,6 +130,7 @@ public class UserServiceImpl implements UserService {
         userHomeResponseDto.setMembershipUsingPeriod(membershipUtil.getUserPeriodOfUsingMembership(user));
         userHomeResponseDto.setFoundersNumber(foundersUtil.getFoundersNumber(user));
         userHomeResponseDto.setLeftFoundersNumber(foundersUtil.getLeftFoundersNumber());
+        userHomeResponseDto.setIsRequestedMySpot(null != applicationUtil.findExistRequestedMySpot(user.getId()));
         return userHomeResponseDto;
     }
 
