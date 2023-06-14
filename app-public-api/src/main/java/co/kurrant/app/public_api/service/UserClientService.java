@@ -2,15 +2,12 @@ package co.kurrant.app.public_api.service;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.address.dto.LocationDto;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
-import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
-import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
+import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Map;
 
 public interface UserClientService {

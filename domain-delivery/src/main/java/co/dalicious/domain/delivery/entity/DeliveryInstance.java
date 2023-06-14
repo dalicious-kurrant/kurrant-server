@@ -2,6 +2,7 @@ package co.dalicious.domain.delivery.entity;
 
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
 import lombok.AccessLevel;
@@ -13,6 +14,7 @@ import javax.persistence.*;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -37,6 +39,9 @@ public class DeliveryInstance {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Spot spot;
 
+    @OneToMany(mappedBy = "deliveryInstance", fetch = FetchType.LAZY)
+    private List<DailyFoodDelivery> dailyFoodDeliveries;
+
     @Builder
     public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, LocalTime pickUpTime, Integer orderNumber, Makers makers, Spot spot) {
         this.serviceDate = serviceDate;
@@ -46,5 +51,17 @@ public class DeliveryInstance {
         this.orderNumber = orderNumber;
         this.makers = makers;
         this.spot = spot;
+    }
+
+    public Integer getItemCount() {
+        return dailyFoodDeliveries.stream()
+                .map(v -> v.getOrderItemDailyFood().getCount())
+                .reduce(0, Integer::sum);
+    }
+
+    public List<OrderItemDailyFood> getOrderItemDailyFoods() {
+        return dailyFoodDeliveries.stream()
+                .map(DailyFoodDelivery::getOrderItemDailyFood)
+                .toList();
     }
 }

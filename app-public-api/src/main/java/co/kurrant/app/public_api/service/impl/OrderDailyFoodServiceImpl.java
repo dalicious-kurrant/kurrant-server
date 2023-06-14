@@ -236,7 +236,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     orderItemDailyFoods.add(orderItemDailyFoodRepository.save(orderItemDailyFood));
 
                     // 배송정보 입력
-                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, selectedCartDailyFood.getDailyFood(), selectedCartDailyFood.getDeliveryTime());
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, user, selectedCartDailyFood.getDailyFood(), selectedCartDailyFood.getDeliveryTime());
 
                     defaultPrice = defaultPrice.add(selectedCartDailyFood.getDailyFood().getFood().getPrice().multiply(BigDecimal.valueOf(cartDailyFood.getCount())));
                     BigDecimal dailyFoodPrice = cartDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(cartDailyFood.getCount()));

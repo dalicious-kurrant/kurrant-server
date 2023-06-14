@@ -1,4 +1,4 @@
-package co.dalicious.integration.client.user.entity;
+package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.Group;

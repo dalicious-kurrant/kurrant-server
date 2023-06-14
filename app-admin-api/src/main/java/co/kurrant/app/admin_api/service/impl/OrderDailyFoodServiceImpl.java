@@ -13,6 +13,8 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.*;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.delivery.utils.DeliveryUtils;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -46,6 +48,7 @@ import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
@@ -110,6 +113,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QMembershipRepository qMembershipRepository;
     private final QGroupRepository qGroupRepository;
     private final DeliveryUtils deliveryUtils;
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
 
     @Override
     @Transactional
@@ -147,8 +151,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         assert makersId != null;
         Makers makers = makersRepository.findById(makersId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
 
+        // FIXME: 기존 로직
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
 
+        // FIXME: 배송 도메인 추가 로직
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByFilter(startDate, endDate, DiningTypesUtils.codesToDiningTypes(diningTypes), makers);
         return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList);
     }
 
@@ -387,7 +394,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
                     // 배송정보 입력
                     // TODO: 배송시간 추가
-                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, dailyFood, null);
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, user, dailyFood, null);
                     orderItemDailyFoods.add(orderItemDailyFood);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
                     supportPrice = supportPrice.add(orderItemDailyFood.getOrderItemTotalPrice());

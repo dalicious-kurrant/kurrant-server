@@ -1,4 +1,4 @@
-package co.dalicious.integration.client.user.dto;
+package co.dalicious.domain.client.dto;
 
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;

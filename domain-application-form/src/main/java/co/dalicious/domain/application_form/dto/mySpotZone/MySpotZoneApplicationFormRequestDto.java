@@ -1,7 +1,6 @@
-package co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp;
+package co.dalicious.domain.application_form.dto.mySpotZone;
 
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
-import co.dalicious.domain.application_form.dto.ApplyUserDto;
 import lombok.Getter;
 import lombok.Setter;
 

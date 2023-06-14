@@ -214,7 +214,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
                     OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
                     orderItemDailyFoods.add(orderItemDailyFood);
                     // TODO: 배송시간 추가
-                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, dailyFood, null);
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, null, dailyFood, null);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
                     supportPrice = supportPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
                 }

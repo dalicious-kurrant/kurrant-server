@@ -11,7 +11,7 @@ import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import org.hibernate.Hibernate;
@@ -19,7 +19,6 @@ import org.mapstruct.Mapper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.math.BigInteger;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -124,7 +123,7 @@ public interface OrderDailyFoodByMakersMapper {
             OrderDailyFoodByMakersDto.FoodBySpot foodBySpot = new OrderDailyFoodByMakersDto.FoodBySpot();
             //FIXME: 배송 ID 설정
             foodBySpot.setDeliveryId(null);
-            foodBySpot.setSpotType(ofClass(Hibernate.getClass(spot)).getCode());
+            foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot)).getCode());
             foodBySpot.setPickUpTime(DateUtils.timeToString(spotMap.get(spot).get(0).getDailyFood().getDailyFoodGroup().getPickUpTime(spotMap.get(spot).get(0).getDeliveryTime())));
             foodBySpot.setAddress1(spot.getAddress().addressToString());
             foodBySpot.setAddress2(spot.getAddress().getAddress2()); //수정 필요
@@ -302,12 +301,5 @@ public interface OrderDailyFoodByMakersMapper {
         foodDtoList = foodDtoList.stream()
                 .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.Food::getFoodId)).toList();
         return foodDtoList;
-    }
-
-    default GroupDataType ofClass(Class<? extends Spot> spotClass) {
-        if(spotClass.equals(CorporationSpot.class)) return GroupDataType.CORPORATION;
-        if(spotClass.equals(OpenGroupSpot.class)) return GroupDataType.OPEN_GROUP;
-        if(spotClass.equals(MySpot.class)) return GroupDataType.MY_SPOT;
-        return null;
     }
 }

@@ -5,13 +5,12 @@ import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFo
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
-import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.kurrant.app.public_api.dto.client.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import org.locationtech.jts.io.ParseException;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigInteger;
 import java.util.List;
 

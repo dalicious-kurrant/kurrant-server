@@ -1,16 +1,12 @@
 package co.dalicious.integration.client.user.utils;
 
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.EmployeeRepository;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.integration.client.user.entity.MySpot;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;

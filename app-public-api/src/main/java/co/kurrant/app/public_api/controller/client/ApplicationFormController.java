@@ -3,7 +3,7 @@ package co.kurrant.app.public_api.controller.client;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
-import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
