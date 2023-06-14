@@ -64,8 +64,8 @@ public class FoodController {
                                          @RequestParam (required = false) Integer photo,
                                          @RequestParam (required = false) String starFilter,
                                          @RequestParam (required = false) String keywordFilter,
-                                         @RequestParam(required = false, defaultValue = "20") Integer limit,
-                                         @RequestParam Integer page
+                                         @RequestParam (required = false, defaultValue = "20") Integer limit,
+                                         @RequestParam (required = false) Integer page
                                          ){
         OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
         SecurityUser securityUser = UserUtil.securityUser(authentication);

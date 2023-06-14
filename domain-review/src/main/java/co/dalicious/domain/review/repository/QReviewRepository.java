@@ -273,7 +273,12 @@ public class QReviewRepository {
 
         if (keywordFilter != null && !keywordFilter.equals("")){
                 count += 1;
-                reviewsList = result.stream().filter(v -> v.getContent().contains(keywordFilter)).toList();
+                reviewsList = queryFactory.selectFrom(reviews)
+                        .where(reviews.food.id.eq(id),
+                                reviews.content.like(keywordFilter))
+                        .offset(pageable.getOffset())
+                        .limit(pageable.getPageSize())
+                        .fetch();
         }
 
         if (starFilter != null && starFilter.length() != 0){
