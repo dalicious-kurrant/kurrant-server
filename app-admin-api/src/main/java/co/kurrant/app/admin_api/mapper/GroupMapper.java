@@ -7,7 +7,7 @@ import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -17,7 +17,6 @@ import co.kurrant.app.admin_api.dto.GroupDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import org.locationtech.jts.io.ParseException;
 import org.mapstruct.*;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -115,7 +114,7 @@ public interface GroupMapper {
         groupInfoList.setZipCode(group.getAddress() == null ? null : group.getAddress().getZipCode());
         groupInfoList.setAddress1(group.getAddress() == null ? null : group.getAddress().getAddress1());
         groupInfoList.setAddress2(group.getAddress() == null ? null : group.getAddress().getAddress2());
-        groupInfoList.setLocation(group.getAddress() == null ? null : group.getAddress().getLocation() != null ? String.valueOf(group.getAddress().getLocation()) : null);
+        groupInfoList.setLocation(group.getAddress() == null ? null : group.getAddress().getLocation() != null ? String.valueOf(group.getAddress().locationToString()) : null);
 
         List<DiningType> diningTypeList = group.getDiningTypes();
         groupInfoList.setDiningTypes(diningTypeList.stream().map(DiningType::getCode).toList());

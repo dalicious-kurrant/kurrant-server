@@ -1,16 +1,14 @@
 package co.dalicious.integration.client.user.mapper;
 
-import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.user.entity.UserSpot;
-import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
-import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
+import co.dalicious.domain.client.entity.MySpot;
 import org.mapstruct.*;
 
 import javax.transaction.Transactional;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;

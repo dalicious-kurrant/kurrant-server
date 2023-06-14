@@ -1,6 +1,6 @@
-package co.dalicious.integration.client.user.reposiitory;
+package co.dalicious.domain.client.repository;
 
-import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.domain.client.entity.MySpot;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.math.BigInteger;

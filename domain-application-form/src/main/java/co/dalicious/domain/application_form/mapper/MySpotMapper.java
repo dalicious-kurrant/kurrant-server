@@ -1,26 +1,25 @@
-package co.dalicious.integration.client.user.mapper;
+package co.dalicious.domain.application_form.mapper;
 
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.application_form.entity.RequestedMySpot;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.domain.user.entity.User;
-import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.domain.client.entity.MySpot;
 import org.mapstruct.Mapper;
 
 import org.locationtech.jts.io.ParseException;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface MySpotMapper {
-    default MySpot toMySpot(User user, MySpotZone mySpotZone, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException {
+    default MySpot toMySpot(BigInteger userId, MySpotZone mySpotZone, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException {
 
         CreateAddressRequestDto addressRequestDto = mySpotZoneApplicationFormRequestDto.getAddress();
 
@@ -33,8 +32,8 @@ public interface MySpotMapper {
         return MySpot.builder()
                 .address(address)
                 .diningTypes(mySpotZone.getDiningTypes())
-                .userId(user.getId())
-                .name(mySpotZoneApplicationFormRequestDto.getMySpotName() == null ? address.addressToString() : mySpotZoneApplicationFormRequestDto.getMySpotName())
+                .userId(userId)
+                .name(mySpotZoneApplicationFormRequestDto.getMySpotName())
                 .isDelete(false)
                 .build();
     }

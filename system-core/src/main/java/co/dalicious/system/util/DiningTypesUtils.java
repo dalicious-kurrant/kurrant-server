@@ -22,6 +22,7 @@ public class DiningTypesUtils {
     }
 
     public static List<DiningType> codesToDiningTypes(List<Integer> codes) {
+        if(codes == null) return null;
         List<DiningType> diningTypes = new ArrayList<>();
 
         for (Integer code : codes) {

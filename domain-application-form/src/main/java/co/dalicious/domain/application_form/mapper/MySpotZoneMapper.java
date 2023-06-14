@@ -1,22 +1,21 @@
-package co.dalicious.integration.client.user.mapper;
+package co.dalicious.domain.application_form.mapper;
 
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
-import co.dalicious.integration.client.user.dto.mySpotZone.UpdateStatusDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.UpdateRequestDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.UpdateStatusDto;
 import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.integration.client.user.dto.filter.FilterDto;
+import co.dalicious.domain.client.dto.filter.FilterDto;
 import co.dalicious.domain.client.dto.FilterInfo;
-import co.dalicious.integration.client.user.dto.filter.FilterStatusDto;
-import co.dalicious.integration.client.user.dto.mySpotZone.AdminListResponseDto;
-import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
+import co.dalicious.domain.client.dto.filter.FilterStatusDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.AdminListResponseDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.system.util.GenerateRandomNumber;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import java.math.BigInteger;

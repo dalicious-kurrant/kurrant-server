@@ -1,4 +1,4 @@
-package co.dalicious.integration.client.user.mapper;
+package co.dalicious.domain.client.mapper;
 
 import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.client.entity.Group;

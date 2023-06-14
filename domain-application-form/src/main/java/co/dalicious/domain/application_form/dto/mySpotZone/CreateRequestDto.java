@@ -1,4 +1,4 @@
-package co.dalicious.integration.client.user.dto.mySpotZone;
+package co.dalicious.domain.application_form.dto.mySpotZone;
 
 import lombok.Getter;
 import lombok.Setter;

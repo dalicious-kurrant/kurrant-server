@@ -10,7 +10,7 @@ import co.dalicious.domain.application_form.dto.corporation.CorporationApplicati
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationMealInfoRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationSpotRequestDto;
-import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.dalicious.domain.application_form.entity.*;
 import co.dalicious.domain.application_form.entity.enums.ShareSpotRequestType;
@@ -24,20 +24,18 @@ import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.integration.client.user.entity.Region;
-import co.dalicious.integration.client.user.mapper.MySpotMapper;
 import co.dalicious.integration.client.user.mapper.UserGroupMapper;
 import co.dalicious.integration.client.user.mapper.UserSpotMapper;
-import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
+import co.dalicious.domain.client.repository.MySpotRepository;
 import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
+import co.dalicious.domain.application_form.mapper.MySpotMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
@@ -237,7 +235,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         if(mySpotZone != null) {
             mySpotZone.updateMySpotZoneUserCount(1);
             // my spot 생성
-            MySpot mySpot = mySpotMapper.toMySpot(user, mySpotZone, requestDto);
+            MySpot mySpot = mySpotMapper.toMySpot(user.getId(), mySpotZone, requestDto);
             mySpot.updateGroup(mySpotZone);
             mySpotRepository.save(mySpot);
 

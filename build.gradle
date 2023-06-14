@@ -423,6 +423,8 @@ project(':domain-delivery') {
         implementation project(':domain-client')
         implementation project(':domain-makers')
         implementation project(':domain-order')
+        implementation project(':domain-user')
+        implementation project(':domain-address')
     }
 }
 

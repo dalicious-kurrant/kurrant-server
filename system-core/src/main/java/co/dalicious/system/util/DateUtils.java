@@ -46,6 +46,12 @@ public class DateUtils {
         return date.format(formatter);
     }
 
+    public static String formatWithoutSeparator(LocalDate date) {
+        if(date == null) return null;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        return date.format(formatter);
+    }
+
     public static String format(Timestamp timestamp) {
         SimpleDateFormat sdf;
         sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
