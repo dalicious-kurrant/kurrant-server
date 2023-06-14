@@ -3,10 +3,12 @@ package co.dalicious.domain.application_form.mapper;
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.MySpotZoneApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.RequestedMySpotDto;
 import co.dalicious.domain.application_form.entity.RequestedMySpot;
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
@@ -31,4 +33,17 @@ public interface RequestedMySpotMapper {
                 .requestedMySpotZones(requestedMySpotZones)
                 .build();
     }
+
+    default RequestedMySpotDto toRequestedMySpotDto(RequestedMySpot requestedMySpot) {
+        RequestedMySpotDto dto = new RequestedMySpotDto();
+
+        if(requestedMySpot == null) {
+            dto.setIsRequested(false);
+            return dto;
+        }
+
+        dto.setIsRequested(true);
+        dto.setAddress(requestedMySpot.getAddress().addressToString());
+        return dto;
+    };
 }
