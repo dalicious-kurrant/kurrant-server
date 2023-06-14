@@ -85,9 +85,9 @@ public class QGroupRepository {
                 .fetch();
     }
 
-    public List<? extends Group> findAllOpenGroupAndApartment() {
+    public List<Group> findAllOpenGroup() {
         return queryFactory.selectFrom(group)
-                .where(group.instanceOf(Apartment.class).or(group.instanceOf(OpenGroup.class)))
+                .where(group.instanceOf(OpenGroup.class))
                 .fetch();
     }
 

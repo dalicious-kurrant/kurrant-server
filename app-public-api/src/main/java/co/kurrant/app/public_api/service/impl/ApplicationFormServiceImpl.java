@@ -219,8 +219,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         User user = userUtil.getUser(securityUser);
         if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
 
-        String address = AddressUtil.getAddress3(requestDto.getAddress().getAddress3());
-
         // 신청한 my spot이 이미 존재하면
 //        RequestedMySpot existRequestedMySpot = qRequestedMySpotRepository.findRequestedMySpotByUserId(user.getId());
 //        if(existRequestedMySpot != null) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
@@ -287,6 +285,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
     }
 
+    //TODO: requested share spot limit => 10
     @Override
     @Transactional
     public void registerShareSpot(SecurityUser securityUser, Integer typeId, ShareSpotDto.Request request) throws ParseException {

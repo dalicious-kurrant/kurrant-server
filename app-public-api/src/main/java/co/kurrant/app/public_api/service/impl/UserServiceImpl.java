@@ -428,7 +428,7 @@ public class UserServiceImpl implements UserService {
                 selectedGroup.get().updateStatus(ClientStatus.BELONG);
                 return;
             }
-            throw new ApiException(ExceptionEnum.ALREADY_EXISTING_GROUP);
+            return;
         }
 
         UserGroup userCorporation = userGroupMapper.toUserGroup(user, group);
