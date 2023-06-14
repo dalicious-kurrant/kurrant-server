@@ -275,7 +275,7 @@ public class QReviewRepository {
                 count += 1;
                 reviewsList = queryFactory.selectFrom(reviews)
                         .where(reviews.food.id.eq(id),
-                                reviews.content.like(keywordFilter))
+                                reviews.content.contains(keywordFilter))
                         .offset(pageable.getOffset())
                         .limit(pageable.getPageSize())
                         .fetch();
