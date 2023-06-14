@@ -122,13 +122,13 @@ public class ApplicationFormController {
                 .build();
     }
 
-    @Operation(summary = "아파트 스팟 개설 신청 내역 기타 내용 저장", description = "아파트 스팟 개설 신청 내역 기타 내용을 저장한다.")
+    @Operation(summary = "스팟 신청 내역 삭제", description = "스팟 신청 내역 삭제합니다.")
     @DeleteMapping("/spots")
     public ResponseMessage deleteRequestedMySpot(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         applicationFormService.deleteRequestedMySpot(securityUser);
         return ResponseMessage.builder()
-                .message("아파트 스팟 개설 신청 내역의 기타 내용을 업데이트 하였습니다.")
+                .message("스팟 신청 내역 삭제에 성공했습니다.")
                 .build();
     }
 }
