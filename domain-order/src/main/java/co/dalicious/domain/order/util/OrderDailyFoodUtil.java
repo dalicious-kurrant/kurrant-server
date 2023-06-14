@@ -9,8 +9,10 @@ import co.dalicious.domain.order.dto.FoodCountDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -42,7 +44,7 @@ public class OrderDailyFoodUtil {
                 makersCount = dailyFood.getFood().getMakers().getMakersCapacities().stream()
                         .filter(v -> v.getDiningType().equals(dailyFood.getDiningType()))
                         .findAny()
-                        .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND))
+                        .orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400015", dailyFood.getFood().getMakers().getId() + "번 " + dailyFood.getFood().getMakers().getName() + " 메이커스의 주문 가능 수량에 문제가 있습니다."))
                         .getCapacity();
             }
             Integer makersBuyCount = makersOrderCount.getMakersCount(dailyFood);
@@ -59,7 +61,7 @@ public class OrderDailyFoodUtil {
 
     public Map<DailyFood, Integer> getRemainFoodsCount(List<DailyFood> dailyFoods) {
         // 존재하는 식단이 없을 경우 빈 Map을 리턴한다.
-        if(dailyFoods.isEmpty()) return new HashMap<>();
+        if (dailyFoods.isEmpty()) return new HashMap<>();
 
         Map<DailyFood, Integer> dailyFoodIntegerMap = new HashMap<>();
         // 1. 한정 판매 수량인지 확인한다.
