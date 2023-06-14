@@ -263,24 +263,25 @@ public class QReviewRepository {
     public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter,String keywordFilter, Pageable pageable) {
         List<Reviews> reviewsList = new ArrayList<>();
 
-        QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
+        List<Reviews> result = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
-                    .limit(pageable.getPageSize())
                     .offset(pageable.getOffset())
-                    .fetchResults();
+                    .limit(pageable.getPageSize())
+                    .fetch();
+
         int count = 0;
 
-        if (starFilter != null && starFilter.length() != 0){
-            count += 1;
-            reviewsList = result.getResults().stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
+        if (keywordFilter != null && !keywordFilter.equals("")){
+                count += 1;
+                reviewsList = result.stream().filter(v -> v.getContent().contains(keywordFilter)).toList();
         }
 
-        if (keywordFilter != null && !keywordFilter.equals("")){
+        if (starFilter != null && starFilter.length() != 0){
             if (count > 0){
-                reviewsList = reviewsList.stream().filter(v -> v.getContent().contains(keywordFilter)).toList();
-            }else {
+                reviewsList = reviewsList.stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
+            } else {
                 count += 1;
-                reviewsList = result.getResults().stream().filter(v -> v.getContent().contains(keywordFilter)).toList();
+                reviewsList = result.stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
             }
         }
 
@@ -288,11 +289,11 @@ public class QReviewRepository {
             if (count > 0){
                  reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
             } else {
-                reviewsList = result.getResults().stream().filter(v -> !v.getImages().isEmpty()).toList();
+                reviewsList = result.stream().filter(v -> !v.getImages().isEmpty()).toList();
             }
         }
 
-    return new PageImpl<>(reviewsList, pageable, result.getTotal());
+    return new PageImpl<>(reviewsList, pageable, result.size());
     }
 
     public void plusLike(BigInteger reviewId) {
