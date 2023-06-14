@@ -63,7 +63,7 @@ public interface MySpotZoneMapper {
             zipcodes.add(region.getZipcode());
         }
 
-        adminListResponseDto.setCity(regionList.isEmpty() ? null : regionList.get(0).getCity());
+        adminListResponseDto.setCity(mySpotZoneRegion.isEmpty() ? null : mySpotZoneRegion.get(0).getCity());
         adminListResponseDto.setCounties(counties);
         adminListResponseDto.setVillages(villages);
         adminListResponseDto.setZipcodes(zipcodes);
