@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
+import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -119,6 +120,18 @@ public class UserClientServiceImpl implements UserClientService {
         Group group = groupRepository.findById(groupId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
 
         return openGroupMapper.toOpenGroupDetailDto((OpenGroup) group);
+    }
+
+    @Override
+    @Transactional
+    public List<OpenGroupListForKeywordDto> getOpenGroupsForKeyword(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+
+        List<Group> groups = qGroupRepository.findAllOpenGroup();
+        List<OpenGroupListForKeywordDto> openGroupListForKeywordDtos = new ArrayList<>();
+        if(groups.isEmpty()) return  openGroupListForKeywordDtos;
+
+        return groups.stream().map(openGroupMapper::toOpenGroupListForKeywordDto).toList();
     }
 
     @Override

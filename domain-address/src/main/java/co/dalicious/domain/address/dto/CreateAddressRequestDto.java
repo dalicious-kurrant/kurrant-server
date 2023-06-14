@@ -14,6 +14,8 @@ public class CreateAddressRequestDto {
     @NotNull
     private String address2;
     @NotNull
+    private String address3;
+    @NotNull
     private String latitude;
     @NotNull
     private String longitude;

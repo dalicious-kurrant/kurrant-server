@@ -14,6 +14,10 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
@@ -77,6 +81,20 @@ public class AddressUtil {
             System.out.println("Error: " + e);
         }
         return locationResult;
+    }
+
+    public static String getAddress3(String address) {
+        StringBuilder stringBuilder = new StringBuilder();
+        String regex = "([가-힣A-Za-z·\\d~\\-\\.]+(시|군|구)\\s)[\\d]+";
+
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(address);
+
+        if (matcher.find()) {
+            String result = matcher.group();
+            System.out.println(result);
+        }
+        return null;
     }
 
 }

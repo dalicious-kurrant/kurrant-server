@@ -102,4 +102,14 @@ public class ClientController {
                 .message("오픈 그룹 상세 조회에 성공하셨습니다.")
                 .build();
     }
+
+    @Operation(summary = "등록된 오픈 그룹 전체 조회", description = "고객사로 등록된 오픈 그룹을 전체를 조회한다.")
+    @GetMapping("/spots/share/keyword")
+    public ResponseMessage getOpenGroupsForKeyword(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userClientService.getOpenGroupsForKeyword(securityUser))
+                .message("오픈 그룹 전체 조회에 성공하셨습니다.")
+                .build();
+    }
 }

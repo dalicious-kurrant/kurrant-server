@@ -2,6 +2,7 @@ package co.dalicious.domain.client.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
+import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.dto.OpenGroupSpotDetailDto;
 import co.dalicious.domain.client.entity.*;
@@ -11,6 +12,7 @@ import co.dalicious.system.util.DateUtils;
 import org.hibernate.Hibernate;
 import org.mapstruct.*;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,5 +87,14 @@ public interface OpenGroupMapper {
         });
 
         return openGroupSpotDetailDtoList;
+    }
+
+    @Mapping(source = "address.address3", target = "jibunAddress")
+    @Mapping(source = "group", target = "address", qualifiedByName = "mappingAddress")
+    OpenGroupListForKeywordDto toOpenGroupListForKeywordDto(Group group);
+
+    @Named("mappingAddress")
+    default String mappingAddress(Group group) {
+        return group.getAddress().addressToString() + " " + group.getName();
     }
 }

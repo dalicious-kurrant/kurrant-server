@@ -26,7 +26,7 @@ public interface RequestedMySpotMapper {
         return RequestedMySpot.builder()
                 .userId(userId)
                 .address(address)
-                .name(mySpotZoneApplicationFormRequestDto.getMySpotName())
+                .name(mySpotZoneApplicationFormRequestDto.getMySpotName() == null ? mySpotZoneApplicationFormRequestDto.getAddress().getAddress1() : mySpotZoneApplicationFormRequestDto.getMySpotName())
                 .memo(mySpotZoneApplicationFormRequestDto.getMemo())
                 .requestedMySpotZones(requestedMySpotZones)
                 .build();

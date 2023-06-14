@@ -33,6 +33,9 @@ public class Address {
     @Column(name = "address_depth_2", columnDefinition = "VARCHAR(255) COMMENT '상세주소'")
     private String address2;
 
+    @Column(name = "address_depth_3", columnDefinition = "VARCHAR(255) COMMENT '지번주소'")
+    private String address3;
+
     @Column(name = "address_location")
     @Comment("위치")
     private Geometry location;
@@ -42,10 +45,19 @@ public class Address {
         this.zipCode = createAddressRequestDto.getZipCode();
         this.address1 = createAddressRequestDto.getAddress1();
         this.address2 = createAddressRequestDto.getAddress2();
+        this.address3 = createAddressRequestDto.getAddress3();
         this.location = (createAddressRequestDto.getLatitude() == null || createAddressRequestDto.getLongitude() == null) ?
                 null : createPoint(createAddressRequestDto.getLatitude() + " " + createAddressRequestDto.getLongitude());
     }
 
+
+    public Address(String zipCode, String address1, String address2, String address3, String location) throws ParseException {
+        this.zipCode = zipCode;
+        this.address1 = address1;
+        this.address2 = address2;
+        this.address3 = address3;
+        this.location = createPoint(location);
+    }
 
     public Address(String zipCode, String address1, String address2, String location) throws ParseException {
         this.zipCode = zipCode;

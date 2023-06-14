@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.*;

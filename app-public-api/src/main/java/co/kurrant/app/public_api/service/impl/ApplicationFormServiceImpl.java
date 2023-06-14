@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.address.repository.QRegionRepository;
+import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormResponseDto;
@@ -79,6 +80,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final RequestedMySpotRepository requestedMySpotRepository;
     private final UserSpotMapper userSpotMapper;
     private final UserSpotRepository userSpotRepository;
+    private final QRequestedMySpotRepository qRequestedMySpotRepository;
 
     @Override
     @Transactional
@@ -218,9 +220,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
 
         // 신청한 my spot이 이미 존재하면
-//        List<UserSpot> userSpots = user.getUserSpots();
-//        List<MySpot> mySpotList = userSpots.stream().filter(s -> s instanceof MySpot mySpot && mySpot.getMySpotZone() == null ).map(s -> (MySpot) s).toList();
-//        if(mySpotList.size() > 0) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
+//        RequestedMySpot existRequestedMySpot = qRequestedMySpotRepository.findRequestedMySpotByUserId(user.getId());
+//        if(existRequestedMySpot != null) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
 
         // my spot zone 찾기
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
@@ -284,6 +285,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
     }
 
+    //TODO: requested share spot limit => 10
     @Override
     @Transactional
     public void registerShareSpot(SecurityUser securityUser, Integer typeId, ShareSpotDto.Request request) throws ParseException {

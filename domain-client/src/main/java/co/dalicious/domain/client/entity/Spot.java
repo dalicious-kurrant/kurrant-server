@@ -148,7 +148,7 @@ public class Spot {
         }
 
         // TODO: Location 추가
-        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null, null);
         this.name = spotResponseDto.getSpotName();
         this.status = SpotStatus.ofCode(spotResponseDto.getStatus());
         this.address = address;
@@ -172,7 +172,7 @@ public class Spot {
 
     public void updateSpot(UpdateSpotDetailRequestDto spotResponseDto) throws ParseException {
         // TODO: Location 추가
-        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null);
+        Address address = new Address(spotResponseDto.getZipCode(), spotResponseDto.getAddress1(), spotResponseDto.getAddress2(), null, null);
         this.name = spotResponseDto.getSpotName();
         this.address = address;
     }

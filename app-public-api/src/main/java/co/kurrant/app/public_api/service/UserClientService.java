@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.dto.LocationDto;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
+import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
@@ -24,4 +25,5 @@ public interface UserClientService {
     Integer withdrawClient(SecurityUser securityUser, BigInteger groupId);
     // 공유 스팟의 상세조회
     OpenGroupDetailDto getOpenSpotDetail(SecurityUser securityUser, BigInteger groupId);
+    List<OpenGroupListForKeywordDto> getOpenGroupsForKeyword(SecurityUser securityUser);
 }
