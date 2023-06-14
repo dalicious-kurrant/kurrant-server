@@ -130,7 +130,7 @@ public class UserServiceImpl implements UserService {
         userHomeResponseDto.setMembershipUsingPeriod(membershipUtil.getUserPeriodOfUsingMembership(user));
         userHomeResponseDto.setFoundersNumber(foundersUtil.getFoundersNumber(user));
         userHomeResponseDto.setLeftFoundersNumber(foundersUtil.getLeftFoundersNumber());
-        userHomeResponseDto.setIsRequestedMySpot(null != applicationUtil.findExistRequestedMySpot(user.getId()));
+        userHomeResponseDto.setRequestedMySpotDto(applicationUtil.findExistRequestedMySpot(user.getId()));
         return userHomeResponseDto;
     }
 

@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.dto.user;
 
+import co.dalicious.domain.application_form.dto.requestMySpotZone.publicApp.RequestedMySpotDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,5 +26,5 @@ public class UserHomeResponseDto {
     private int membershipUsingPeriod;
     private Integer foundersNumber;
     private int leftFoundersNumber;
-    private Boolean isRequestedMySpot;
+    private RequestedMySpotDto requestedMySpotDto;
 }

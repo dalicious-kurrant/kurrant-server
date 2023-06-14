@@ -34,7 +34,7 @@ public interface MySpotMapper {
                 .address(address)
                 .diningTypes(mySpotZone.getDiningTypes())
                 .userId(user.getId())
-                .name(mySpotZoneApplicationFormRequestDto.getMySpotName())
+                .name(mySpotZoneApplicationFormRequestDto.getMySpotName() == null ? address.addressToString() : mySpotZoneApplicationFormRequestDto.getMySpotName())
                 .isDelete(false)
                 .build();
     }
