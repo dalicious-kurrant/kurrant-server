@@ -114,7 +114,7 @@ public interface GroupMapper {
         groupInfoList.setZipCode(group.getAddress() == null ? null : group.getAddress().getZipCode());
         groupInfoList.setAddress1(group.getAddress() == null ? null : group.getAddress().getAddress1());
         groupInfoList.setAddress2(group.getAddress() == null ? null : group.getAddress().getAddress2());
-        groupInfoList.setLocation(group.getAddress() == null ? null : group.getAddress().getLocation() != null ? String.valueOf(group.getAddress().getLocation()) : null);
+        groupInfoList.setLocation(group.getAddress() == null ? null : group.getAddress().getLocation() != null ? String.valueOf(group.getAddress().locationToString()) : null);
 
         List<DiningType> diningTypeList = group.getDiningTypes();
         groupInfoList.setDiningTypes(diningTypeList.stream().map(DiningType::getCode).toList());

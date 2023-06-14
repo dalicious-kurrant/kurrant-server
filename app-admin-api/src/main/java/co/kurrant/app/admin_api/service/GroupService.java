@@ -23,7 +23,7 @@ public interface GroupService {
     void saveCorporationList(List<GroupListDto.GroupInfoList> corporationListDto) throws ParseException;
     GroupListDto.GroupInfoList  getGroupDetail(BigInteger groupId);
 
-    void updateGroupDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException;
+    void updateGroupDetail(GroupListDto.GroupInfoList updateSpotDetailRequestDto) throws ParseException;
     List<GroupListDto.GroupInfoList> getAllGroupForExcel();
     FilterDto getAllListForFilter(Map<String, Object> parameters);
     ListItemResponseDto<AdminListResponseDto> getAllMySpotZoneList(Map<String, Object> parameters, Integer limit, Integer size, OffsetBasedPageRequest pageable);

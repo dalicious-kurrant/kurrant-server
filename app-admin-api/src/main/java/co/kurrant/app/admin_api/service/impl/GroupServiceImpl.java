@@ -66,15 +66,12 @@ public class GroupServiceImpl implements GroupService {
     public final QGroupRepository qGroupRepository;
     public final GroupRepository groupRepository;
     private final MealInfoRepository mealInfoRepository;
-    private final SpotRepository spotRepository;
     private final UserRepository userRepository;
     private final SpotMapper spotMapper;
     private final QMembershipSupportPriceRepository qmembershipSupportPriceRepository;
     private final MySpotZoneMapper mySpotZoneMapper;
     private final QMySpotZoneRepository qMySpotZoneRepository;
     private final QRegionRepository qRegionRepository;
-    private final MealInfoMapper mealInfoMapper;
-    private final QMySpotRepository qMySpotRepository;
     private final MySpotZoneMealInfoMapper mySpotZoneMealInfoMapper;
     private final AddressUtil addressUtil;
 
@@ -212,7 +209,7 @@ public class GroupServiceImpl implements GroupService {
             if (group instanceof Corporation corporation && corporation.getManagerId() != null) {
                 managerUser = (users != null) ? users.stream().filter(user -> user.getId().equals(corporation.getManagerId())).findFirst().orElse(null) : null;
             }
-            GroupListDto.GroupInfoList corporationListDto = groupMapper.toCorporationListDto(group, managerUser);
+            GroupListDto.GroupInfoList corporationListDto = groupMapper.toGroupListDto(group, managerUser);
             groupListDtoList.add(corporationListDto);
         }
 
@@ -232,84 +229,50 @@ public class GroupServiceImpl implements GroupService {
                 manager = userRepository.findById(corporation.getManagerId()).orElse(null);
             }
         }
-        return groupMapper.toCorporationListDto(group, manager);
+        return groupMapper.toGroupListDto(group, manager);
     }
 
     @Override
     @Transactional
     // TODO: 스팟으로 설정되어 있지만 그룹으로 변경
-    public void updateGroupDetail(UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
+    public void updateGroupDetail(GroupListDto.GroupInfoList groupInfoList) throws ParseException {
         // 그룹 찾기.
-        Group group = groupRepository.findById(updateSpotDetailRequestDto.getSpotId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        Group group = groupRepository.findById(groupInfoList.getId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        List<DiningType> diningTypeList = DiningTypesUtils.codesToDiningTypes(groupInfoList.getDiningTypes());
 
-        // 스팟에 해당하는 다이닝 타입 변경
-        List<DiningType> updateDiningTypeList = DiningTypesUtils.stringCodeToDiningTypes(updateSpotDetailRequestDto.getDiningTypes());
-        group.updateDiningTypes(updateDiningTypeList);
+        Address address = new Address(groupInfoList.getZipCode(), groupInfoList.getAddress1(), groupInfoList.getAddress2(), groupInfoList.getLocation());
 
-        List<Days> notSupportDays = updateSpotDetailRequestDto.getNotSupportDays() != null ? DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getNotSupportDays()) : new ArrayList<>();
-        List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(updateSpotDetailRequestDto.getServiceDays());
-        List<Days> supportDays = new ArrayList<>(serviceDays);
-        supportDays.removeAll(notSupportDays);
+        // 겹치는 요일이 있으면 패스
+        List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(groupInfoList.getServiceDays());
+
+        // group update
+        if (group instanceof Corporation corporation) {
+            groupMapper.updateCorporation(groupInfoList, corporation);
+        } else if (group instanceof OpenGroup openGroup) {
+            openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
+        }
 
         // dining type 체크해서 있으면 업데이트, 없으면 생성
         List<MealInfo> mealInfoList = group.getMealInfos();
         List<MealInfo> newMealInfoList = new ArrayList<>();
-        for (DiningType diningType : updateDiningTypeList) {
-            BigDecimal supportPrice = null;
-            if (diningType.equals(DiningType.MORNING))
-                supportPrice = updateSpotDetailRequestDto.getBreakfastSupportPrice();
-            else if (diningType.equals(DiningType.LUNCH))
-                supportPrice = updateSpotDetailRequestDto.getLunchSupportPrice();
-            else if (diningType.equals(DiningType.DINNER))
-                supportPrice = updateSpotDetailRequestDto.getDinnerSupportPrice();
-
-            List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
-            if (supportPrice != null && supportPrice.compareTo(BigDecimal.valueOf(0)) != 0)
-                serviceDaysAndSupportPriceList.add(groupMapper.toServiceDaysAndSupportPriceEntity(supportDays, supportPrice));
-
+        for (DiningType diningType : diningTypeList) {
             MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
             if (mealInfo == null) {
-                MealInfo newMealInfo = groupMapper.toMealInfo(group, diningType, "00:00", "00:00", updateSpotDetailRequestDto.getServiceDays(), "00:00", serviceDaysAndSupportPriceList);
+                GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
+                        .findAny().orElse(null);
+                MealInfo newMealInfo = groupMapper.toMealInfo(mealInfoDto, group);
                 newMealInfoList.add(newMealInfo);
             } else {
-                if (mealInfo instanceof CorporationMealInfo corporationMealInfo)
+                if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
+                    GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
+                            .findAny().orElse(null);
+                    List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = groupMapper.toServiceDaysAndSupportPrice(mealInfoDto.getSupportPriceByDays());
                     corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays, serviceDaysAndSupportPriceList);
-                else mealInfo.updateMealInfo(serviceDays);
+                } else mealInfo.updateMealInfo(serviceDays);
             }
-        }
-
-        Address address = new Address(updateSpotDetailRequestDto.getZipCode(), updateSpotDetailRequestDto.getAddress1(), updateSpotDetailRequestDto.getAddress2(), AddressUtil.getLocation(updateSpotDetailRequestDto.getAddress1()));
-
-        if (group instanceof Corporation corporation) {
-            LocalDate membershipEndDate = corporation.getMembershipEndDate();
-            LocalDate updateMembershipEndDate = DateUtils.stringToDate(updateSpotDetailRequestDto.getMembershipEndDate());
-            if (corporation.getIsMembershipSupport() && updateSpotDetailRequestDto.getMembershipEndDate() != null && !updateSpotDetailRequestDto.getMembershipEndDate().isEmpty()) {
-                // 멤버십 종료날짜가 새로 생성 또는 기존 날짜보다 이전으로 업데이트 한 경우
-                if (membershipEndDate == null || updateMembershipEndDate.isBefore(membershipEndDate)) {
-                    List<Membership> memberships = qmembershipSupportPriceRepository.findAllByGroupAndNow(corporation);
-                    for (Membership membership : memberships) {
-                        if (membership.getEndDate().isAfter(updateMembershipEndDate)) {
-                            membership.updateEndDate(updateMembershipEndDate);
-                        }
-                    }
-                }
-                // 멤버십 종료날짜가 기존 날짜 이후로 업데이트 된 경우
-                if (membershipEndDate != null && updateMembershipEndDate.isAfter(membershipEndDate)) {
-                    List<Membership> memberships = qmembershipSupportPriceRepository.findAllByGroupAndNow(corporation);
-                    for (Membership membership : memberships) {
-                        LocalDate limitEndDate = membership.getStartDate().plusMonths(1);
-                        if (limitEndDate.isBefore(updateMembershipEndDate)) {
-                            membership.updateEndDate(updateMembershipEndDate);
-                        }
-                    }
-                }
-            }
-            corporation.updateCorporation(updateSpotDetailRequestDto, address, updateDiningTypeList);
-            corporation.updatePrepaidCategories(spotMapper.toPrepaidCategories(updateSpotDetailRequestDto.getPrepaidCategoryList()));
-        } else if (group instanceof OpenGroup openGroup) {
-            openGroup.updateOpenSpot(address, updateDiningTypeList, updateSpotDetailRequestDto.getSpotName(), updateSpotDetailRequestDto.getEmployeeCount(), updateSpotDetailRequestDto.getIsActive());
         }
         mealInfoRepository.saveAll(newMealInfoList);
+
     }
 
     @Override
