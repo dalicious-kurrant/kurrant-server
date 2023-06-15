@@ -96,5 +96,5 @@ public class Address {
     return this.location.toString().replaceAll("POINT |[(]|[)]", "");
   }
 
-    public void updateLocationByAddress(String address1) throws ParseException { this.location = createPoint(AddressUtil.getLocation(address1)); }
+    public void updateAddress3(String address3) { this.address3 = address3; }
 }

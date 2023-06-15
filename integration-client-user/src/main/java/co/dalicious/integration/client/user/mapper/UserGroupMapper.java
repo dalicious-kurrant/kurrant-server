@@ -51,7 +51,6 @@ public interface UserGroupMapper {
         List<SpotListResponseDto.Spot> spotDtoList;
 
         if(group instanceof MySpotZone) {
-            List<Spot> spot = group.getSpots();
             spotDtoList = group.getSpots().stream()
                     .filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId()) && !((MySpot) mySpot).getIsDelete())
                     .map(this::toSpot).toList();

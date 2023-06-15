@@ -147,6 +147,12 @@ public class QGroupRepository {
                 .fetch();
     }
 
+    public List<Group> findGroupAndAddress3IsNull() {
+        return queryFactory.selectFrom(group)
+                .where(group.address.address3.isNull(), group.instanceOf(OpenGroup.class).or(group.instanceOf(Corporation.class)))
+                .fetch();
+    }
+
     public Page<Group> findOPenGroupByFilter (Boolean isRestriction, List<DiningType> diningType, Pageable pageable) {
         BooleanBuilder whereCause = new BooleanBuilder();
 

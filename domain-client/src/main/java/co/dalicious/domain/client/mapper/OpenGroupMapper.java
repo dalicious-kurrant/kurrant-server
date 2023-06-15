@@ -1,6 +1,7 @@
 package co.dalicious.domain.client.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
@@ -54,6 +55,7 @@ public interface OpenGroupMapper {
         dto.setId(group.getId());
         dto.setName(group.getName());
         dto.setAddress(group.getAddress().addressToString());
+        dto.setJibun(AddressUtil.getAddress3(group.getAddress().getAddress3()));
         dto.setUserCount(group.getOpenGroupUserCount());
 
         List<DiningType> diningTypes = group.getDiningTypes();
@@ -96,5 +98,13 @@ public interface OpenGroupMapper {
     @Named("mappingAddress")
     default String mappingAddress(Group group) {
         return group.getAddress().addressToString() + " " + group.getName();
+    }
+
+    @AfterMapping
+    default void afterMappingLocation(Address address, @MappingTarget OpenGroupListForKeywordDto dto) {
+        String[] location = address.locationToString().split(" ");
+
+        dto.setLatitude(location[0]);
+        dto.setLongitude(location[1]);
     }
 }
