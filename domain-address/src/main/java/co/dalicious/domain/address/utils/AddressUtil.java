@@ -15,7 +15,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,9 +32,9 @@ public class AddressUtil {
     @Value("${naver.secret.id}")
     public static String YOUR_CLIENT_SECRET;
 
-    public static String getLocation(String address) {
+    public static Map<String, String> getLocation(String address) {
 
-        String locationResult = null;
+        Map<String, String> map = new HashMap<>();
         try {
             String encodedAddress = java.net.URLEncoder.encode(address, "UTF-8");
             String apiURL = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=" + encodedAddress;
@@ -73,19 +75,22 @@ public class AddressUtil {
                 System.out.println("jibunAddress : " + temp.get("jibunAddress"));
                 String latitude = String.valueOf(temp.get("y"));
                 String longitude = String.valueOf(temp.get("x"));
+                String jibunAddress = String.valueOf(temp.get("jibunAddress"));
 
-                locationResult = latitude + " " + longitude;
+                String locationResult = latitude + " " + longitude;
+                map.put("location", locationResult);
+                map.put("jibunAddress", jibunAddress);
             }
 
         } catch (Exception e) {
             System.out.println("Error: " + e);
         }
-        return locationResult;
+        return map;
     }
 
     public static String getAddress3(String address) {
         StringBuilder stringBuilder = new StringBuilder();
-        String regex = "\\b\\w+(?:동|읍|리)\\b.*";
+        String regex = "(?:서울시|경기도)\\s[가-힣]+\\s([가-힣\\d\\s]+)";
 
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(address);
@@ -96,54 +101,4 @@ public class AddressUtil {
         }
         return null;
     }
-
-//    public static String getJibunAddress(String address) {
-//
-//        try {
-//            String encodedAddress = java.net.URLEncoder.encode(address, "UTF-8");
-//            String apiURL = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=" + encodedAddress;
-//            // HTTP 요청 보내기
-//            URL url = new URL(apiURL);
-//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//            conn.setRequestMethod("GET");
-//            conn.setRequestProperty("Content-Type", "application/json");
-//            conn.setRequestProperty("X-NCP-APIGW-API-KEY-ID", YOUR_CLIENT_ID);
-//            conn.setRequestProperty("X-NCP-APIGW-API-KEY", YOUR_CLIENT_SECRET);
-//            conn.connect();
-//
-//            int responseCode = conn.getResponseCode();
-//            System.out.println("responseCode = " + responseCode);
-//            BufferedReader br;
-//
-//            if (responseCode == 200) { // 정상 호출
-//                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-//            } else { // 에러 발생
-//                br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-//            }
-//
-//            String line;
-//            StringBuilder response = new StringBuilder();
-//            while ((line = br.readLine()) != null) {
-//                response.append(line);
-//            }
-//            br.close();
-//
-//            JSONTokener tokener = new JSONTokener(response.toString());
-//            JSONObject object = new JSONObject(tokener);
-//            JSONArray arr = object.getJSONArray("addresses");
-//
-//            if(arr.length() < 1) throw new Exception(address + ", 주소를 확인해주세요.");
-//
-//            for (int i = 0; i < arr.length(); i++) {
-//                JSONObject temp = (JSONObject) arr.get(i);
-//                System.out.println("address : " + temp.get("roadAddress"));
-//                System.out.println("jibunAddress : " + temp.get("jibunAddress"));
-//                return String.valueOf(temp.get("jibunAddress"));
-//            }
-//
-//        } catch (Exception e) {
-//            System.out.println("Error: " + e);
-//        }
-//        return null;
-//    }
 }
