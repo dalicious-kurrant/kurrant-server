@@ -29,6 +29,7 @@ public interface DeliveryInstanceMapper {
         return DeliveryInstance.builder()
                 .serviceDate(dailyFood.getServiceDate())
                 .deliveryTime(deliveryTime)
+                .pickUpTime(deliveryTime.minusMinutes(30))
                 .diningType(dailyFood.getDiningType())
                 .orderNumber(orderNumber)
                 .makers(dailyFood.getFood().getMakers())
