@@ -2,6 +2,7 @@ package co.dalicious.domain.delivery.mappper;
 
 import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.MySpot;
+import co.dalicious.domain.client.entity.OpenGroupSpot;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
@@ -137,9 +138,9 @@ public interface DeliveryInstanceMapper {
             foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot)).getCode());
             foodBySpot.setPickUpTime(DateUtils.timeToString(deliveryInstance.getPickUpTime()));
             foodBySpot.setAddress1(spot.getAddress().addressToString());
-            foodBySpot.setAddress2(spot.getAddress().getAddress2()); //수정 필요
+            foodBySpot.setAddress2(spot.getAddress().getAddress3());
             foodBySpot.setSpotName(spot.getName());
-            foodBySpot.setGroupName(spot instanceof MySpot ? null : spot.getGroup().getName());
+            foodBySpot.setGroupName(getGroupName(spot));
             foodBySpot.setUserName(Hibernate.getClass(spot) == CorporationSpot.class ? null : deliveryInstance.getOrderItemDailyFoods().get(0).getOrder().getUser().getName());
             foodBySpot.setPhone(Hibernate.getClass(spot) == CorporationSpot.class ? null : deliveryInstance.getOrderItemDailyFoods().get(0).getOrder().getUser().getPhone());
             foodBySpot.setFoods(toFood(Collections.singletonList(deliveryInstance)));
@@ -212,6 +213,16 @@ public interface DeliveryInstanceMapper {
     }
 
     default String deliveryIdGenerator(DeliveryInstance deliveryInstance) {
-        return DateUtils.formatWithoutSeparator(deliveryInstance.getServiceDate()) + deliveryInstance.getMakers().getId() + "_" + deliveryInstance.getId();
+        return DateUtils.formatWithoutSeparator(deliveryInstance.getServiceDate()) + deliveryInstance.getMakers().getId() + "-" + deliveryInstance.getId();
+    }
+
+    default String getGroupName(Spot spot) {
+        if(spot instanceof CorporationSpot corporationSpot) {
+            return "(" + corporationSpot.getGroup().getId() + ") " + spot.getGroup().getName();
+        }
+        if(spot instanceof OpenGroupSpot openGroupSpot) {
+            return spot.getGroup().getName();
+        }
+        return null;
     }
 }
