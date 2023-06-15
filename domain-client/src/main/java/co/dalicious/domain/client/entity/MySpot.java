@@ -26,9 +26,9 @@ import java.util.List;
 @Getter
 public class MySpot extends Spot {
 
-    @Column(name = "is_delete")
+    @Column(name = "is_delete", columnDefinition = "boolean default false")
     @Comment("마이 스팟 삭제 여부 - 1: 삭제")
-    private Boolean isDelete = false;
+    private Boolean isDelete;
 
     @Column(name = "user_Id")
     @Comment("유저 Id")
@@ -44,5 +44,6 @@ public class MySpot extends Spot {
     public void updateMySpotForDelete() {
         this.updateSpotStatus(SpotStatus.INACTIVE);
         this.isDelete = true;
+        if(this.getGroup() instanceof MySpotZone mySpotZone) mySpotZone.updateMySpotZoneUserCount(1, SpotStatus.INACTIVE);
     }
 }

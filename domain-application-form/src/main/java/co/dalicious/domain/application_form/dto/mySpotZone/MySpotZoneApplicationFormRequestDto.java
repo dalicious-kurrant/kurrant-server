@@ -11,8 +11,6 @@ import javax.validation.constraints.NotNull;
 public class MySpotZoneApplicationFormRequestDto {
     private CreateAddressRequestDto address;
     private String mySpotName;
-    @NotNull
-    private String jibunAddress;
     private String phone;
     private String memo;
 }

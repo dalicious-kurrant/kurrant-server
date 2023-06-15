@@ -19,4 +19,10 @@ public class QRequestedMySpotRepository {
                 .where(requestedMySpot.userId.eq(userId))
                 .fetchOne();
     }
+
+    public RequestedMySpot findRequestedMySpotById (BigInteger id) {
+        return queryFactory.selectFrom(requestedMySpot)
+                .where(requestedMySpot.id.eq(id))
+                .fetchOne();
+    }
 }
