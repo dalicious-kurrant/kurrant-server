@@ -23,9 +23,8 @@ public interface MySpotMapper {
 
         CreateAddressRequestDto addressRequestDto = mySpotZoneApplicationFormRequestDto.getAddress();
 
-        if (addressRequestDto.getAddress1() == null) {
-            addressRequestDto.setAddress1(mySpotZoneApplicationFormRequestDto.getJibunAddress());
-        }
+        if (addressRequestDto.getAddress1() == null) addressRequestDto.setAddress1(mySpotZoneApplicationFormRequestDto.getJibunAddress());
+        addressRequestDto.setAddress3(mySpotZoneApplicationFormRequestDto.getJibunAddress());
 
         Address address = new Address(mySpotZoneApplicationFormRequestDto.getAddress());
 
@@ -33,7 +32,7 @@ public interface MySpotMapper {
                 .address(address)
                 .diningTypes(mySpotZone.getDiningTypes())
                 .userId(userId)
-                .name(mySpotZoneApplicationFormRequestDto.getMySpotName())
+                .name(mySpotZoneApplicationFormRequestDto.getMySpotName() == null ? address.addressToString() : mySpotZoneApplicationFormRequestDto.getMySpotName())
                 .isDelete(false)
                 .build();
     }
