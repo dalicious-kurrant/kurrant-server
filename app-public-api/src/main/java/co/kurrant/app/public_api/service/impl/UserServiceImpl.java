@@ -1116,8 +1116,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void saveDailyReportFood(SaveDailyReportFoodReqDto dto) {
-        User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+    public void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto) {
+        User user = userUtil.getUser(securityUser);
 
         //해당 날짜에 주문한 내역을 불러오기
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllUserIdAndDate(user.getId(), LocalDate.parse(dto.getStartDate()), LocalDate.parse(dto.getEndDate()));

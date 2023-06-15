@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.food.dto.*;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -14,7 +15,7 @@ public interface FoodService {
     FoodDetailDto getFoodDetail(BigInteger dailyFoodId, SecurityUser securityUser);
     RetrieveDiscountDto getFoodDiscount(BigInteger dailyFoodId);
 
-    Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter,String keywordFilter, OffsetBasedPageRequest pageable);
+    ItemPageableResponseDto<GetFoodReviewResponseDto> getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter, String keywordFilter, OffsetBasedPageRequest pageable);
 
     String foodReviewLike(SecurityUser securityUser, FoodReviewLikeDto foodReviewLikeDto);
 

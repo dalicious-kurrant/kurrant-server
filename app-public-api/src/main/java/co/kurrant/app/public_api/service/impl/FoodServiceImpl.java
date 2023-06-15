@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.*;
@@ -181,7 +182,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public Object getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter, String keywordFilter, OffsetBasedPageRequest pageable) {
+    public ItemPageableResponseDto<GetFoodReviewResponseDto> getFoodReview(BigInteger dailyFoodId, SecurityUser securityUser, Integer sort, Integer photo, String starFilter, String keywordFilter, OffsetBasedPageRequest pageable) {
 
         User user = userUtil.getUser(securityUser);
 
@@ -193,9 +194,14 @@ public class FoodServiceImpl implements FoodService {
 
         //리뷰와 유저정보 가져오기
         Page<Reviews> pageReviews = null;
-
-
         List<Reviews> totalReviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+        if (totalReviewsList.size() == 0) {
+            GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
+                    BigInteger.valueOf(0));
+            return ItemPageableResponseDto.<GetFoodReviewResponseDto>builder().items(getFoodReviewResponseDto).count(0)
+                    .total(0).limit(pageable.getPageSize()).isLast(true).build();
+        }
+
         if ((photo != null && photo != 0) || (starFilter != null && starFilter.length() != 0) || (keywordFilter != null && !keywordFilter.equals(""))) {
             pageReviews = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), photo, starFilter, keywordFilter, pageable);
 
@@ -203,10 +209,7 @@ public class FoodServiceImpl implements FoodService {
             pageReviews = qReviewRepository.findAllByFoodId(dailyFood.getFood().getId(), pageable);
         }
 
-        if (totalReviewsList.size() == 0) {
-            return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
-                    true, 0, 0, 0, BigInteger.valueOf(0));
-        }
+
 
         //대댓글과 별점 추가
         double starAverage;
@@ -256,9 +259,10 @@ public class FoodServiceImpl implements FoodService {
             reviewWrite = BigInteger.valueOf(0);
         }
 
+        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort, reviewWrite);
 
-        return reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort,
-                pageReviews.isLast(), pageReviews.getTotalPages(), pageable.getPageSize(), pageReviews.getNumberOfElements(), reviewWrite);
+        return ItemPageableResponseDto.<GetFoodReviewResponseDto>builder().items(getFoodReviewResponseDto).count(pageReviews.getNumberOfElements())
+                .total(pageReviews.getTotalPages()).limit(pageable.getPageSize()).isLast(pageReviews.isLast()).build();
     }
 
     @Override

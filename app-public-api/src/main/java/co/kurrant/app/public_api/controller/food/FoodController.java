@@ -1,7 +1,9 @@
 package co.kurrant.app.public_api.controller.food;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.food.dto.GetFoodReviewResponseDto;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.FoodService;
@@ -69,7 +71,7 @@ public class FoodController {
                                          ){
         OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        Object foodReview = foodService.getFoodReview(dailyFoodId, securityUser, sort, photo, starFilter, keywordFilter, pageable);
+        ItemPageableResponseDto<GetFoodReviewResponseDto> foodReview = foodService.getFoodReview(dailyFoodId, securityUser, sort, photo, starFilter, keywordFilter, pageable);
         String message = "상품 리뷰 조회 성공!";
             //리뷰없을경우 message 내용변경
             if (foodReview.equals("리뷰없음")) message = "등록된 리뷰가 없습니다.";
