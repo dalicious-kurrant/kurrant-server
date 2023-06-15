@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
+import co.dalicious.domain.application_form.dto.PushAlarmSettingDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentMealInfoRequestDto;
@@ -18,6 +19,7 @@ import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
@@ -220,6 +222,19 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional
+    public void updateRequestedMySpotAlarmUser(SecurityUser securityUser, PushAlarmSettingDto dto) {
+        User user = userUtil.getUser(securityUser);
+
+        GroupDataType type = GroupDataType.ofCode(dto.getSpotType());
+
+        if(type.equals(GroupDataType.MY_SPOT)) {
+            RequestedMySpot requestedMySpot = qRequestedMySpotRepository.findRequestedMySpotById(dto.getId());
+            requestedMySpot.getRequestedMySpotZones().updatePushAlarmUserIds(user.getId());
+        }
+    }
+
+    @Override
+    @Transactional
     public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto requestDto) throws ParseException {
         // user 찾기
         User user = userUtil.getUser(securityUser);
@@ -233,7 +248,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
 
         if(mySpotZone != null) {
-            mySpotZone.updateMySpotZoneUserCount(1);
+            mySpotZone.updateMySpotZoneUserCount(1, SpotStatus.ACTIVE);
             // my spot 생성
             MySpot mySpot = mySpotMapper.toMySpot(user.getId(), mySpotZone, requestDto);
             mySpot.updateGroup(mySpotZone);
@@ -270,7 +285,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
         }
 
-        String[] jibunAddress = requestDto.getJibunAddress().split(" ");
+        String[] jibunAddress = requestDto.getAddress().getAddress3().split(" ");
         System.out.println("jibunAddress = " + Arrays.toString(jibunAddress));
         String county = null;
         String village = null;
@@ -291,7 +306,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
     }
 
-    //TODO: requested share spot limit => 10
     @Override
     @Transactional
     public void registerShareSpot(SecurityUser securityUser, Integer typeId, ShareSpotDto.Request request) throws ParseException {

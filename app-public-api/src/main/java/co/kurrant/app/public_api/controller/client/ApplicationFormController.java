@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.client;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.application_form.dto.PushAlarmSettingDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.mySpotZone.MySpotZoneApplicationFormRequestDto;
@@ -129,6 +130,16 @@ public class ApplicationFormController {
         applicationFormService.deleteRequestedMySpot(securityUser);
         return ResponseMessage.builder()
                 .message("스팟 신청 내역 삭제에 성공했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "스팟 신청 알림 설정 ", description = "스팟 신청 알림을 설정합니다.")
+    @PatchMapping("/spots/setting/alarm")
+    public ResponseMessage updateRequestedMySpotAlarmUser(Authentication authentication, @RequestBody PushAlarmSettingDto dto) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        applicationFormService.updateRequestedMySpotAlarmUser(securityUser, dto);
+        return ResponseMessage.builder()
+                .message("스팟 신청 알림 설정에 성공했습니다.")
                 .build();
     }
 }

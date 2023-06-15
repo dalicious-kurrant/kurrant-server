@@ -112,4 +112,14 @@ public class ClientController {
                 .message("오픈 그룹 전체 조회에 성공하셨습니다.")
                 .build();
     }
+
+    @Operation(summary = "초대된 기업 조회", description = "유저가 초대된 기업을 조회한다.")
+    @GetMapping("/corporation")
+    public ResponseMessage getUserCorporation(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userClientService.getUserCorporation(securityUser))
+                .message("오픈 그룹 전체 조회에 성공하셨습니다.")
+                .build();
+    }
 }
