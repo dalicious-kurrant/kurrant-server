@@ -1,5 +1,6 @@
 package co.kurrant.batch.service;
 
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ public class OrderItemService {
         log.info("[OrderItem id 찾기] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         // list up order item daily food by order status = delivering
-        String queryString = "SELECT df.serviceDate, dfg.pickupTime, oi.id " +
+        String queryString = "SELECT df.serviceDate, dfg.deliverySchedules, oi.id, oidf.deliveryTime " +
                 "FROM OrderItem oi " +
                 "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
                 "JOIN oidf.dailyFood df " +
@@ -43,9 +44,13 @@ public class OrderItemService {
         List<BigInteger> orderItemIds = new ArrayList<>();
         for(Object[] objects : results) {
             LocalDate serviceDate = (LocalDate) objects[0];
-            LocalTime pickupTime = (LocalTime) objects[1];
+            List<DeliverySchedule> deliverySchedules = List.of((DeliverySchedule) objects[1]);
             BigInteger orderItemId = (BigInteger) objects[2];
-            if(serviceDate.equals(today) && pickupTime.isBefore(now)) {
+            LocalTime deliveryTime = (LocalTime) objects[3];
+
+            LocalTime pickupTime = deliverySchedules.stream().filter(o -> o.getDeliveryTime().equals(deliveryTime)).map(DeliverySchedule::getPickupTime).findAny().orElse(null);
+
+            if(pickupTime != null && serviceDate.equals(today) && pickupTime.isBefore(now)) {
                 orderItemIds.add(orderItemId);
             }
         }
@@ -57,7 +62,7 @@ public class OrderItemService {
         log.info("[OrderItem id 찾기] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         // list up order item daily food by order status = delivering
-        String queryString = "SELECT oi.id, df.serviceDate, oidfg.deliveryTime " +
+        String queryString = "SELECT oi.id, df.serviceDate, oidf.deliveryTime " +
                 "FROM OrderItem oi " +
                 "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
                 "JOIN oidf.dailyFood df " +
