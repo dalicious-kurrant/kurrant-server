@@ -87,18 +87,4 @@ public class AddressUtil {
         }
         return map;
     }
-
-    public static String getAddress3(String address) {
-        StringBuilder stringBuilder = new StringBuilder();
-        String regex = "(?:서울시|경기도)\\s[가-힣]+\\s([가-힣\\d\\s]+)";
-
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(address);
-
-        if (matcher.find()) {
-            String result = matcher.group();
-            System.out.println(result);
-        }
-        return null;
-    }
 }
