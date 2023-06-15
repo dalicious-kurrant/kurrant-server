@@ -306,7 +306,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
     }
 
-    //TODO: requested share spot limit => 10
     @Override
     @Transactional
     public void registerShareSpot(SecurityUser securityUser, Integer typeId, ShareSpotDto.Request request) throws ParseException {

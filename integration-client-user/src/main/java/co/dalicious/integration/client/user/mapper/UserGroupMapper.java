@@ -2,6 +2,7 @@ package co.dalicious.integration.client.user.mapper;
 
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
+import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
@@ -13,6 +14,7 @@ import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -99,5 +101,20 @@ public interface UserGroupMapper {
                 .user(user)
                 .group(group)
                 .build();
+    }
+
+    CorporationResponseDto toCorporationResponseDto(Group group);
+    default List<CorporationResponseDto> toCorporationResponseDtoList(List<UserGroup> userGroups) {
+        return userGroups.stream()
+                .map(v -> {
+                    Group group = v.getGroup();
+                    CorporationResponseDto dto = toCorporationResponseDto(group);
+
+                    String[] location = group.getAddress().locationToString().split(" ");
+                    dto.setLatitude(location[0]);
+                    dto.setLongitude(location[1]);
+
+                    return dto;
+                }).toList();
     }
 }

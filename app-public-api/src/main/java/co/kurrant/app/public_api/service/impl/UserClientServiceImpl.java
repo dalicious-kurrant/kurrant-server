@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
+import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.OpenGroupMapper;
@@ -13,6 +14,7 @@ import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.client.entity.MySpot;
+import co.dalicious.integration.client.user.mapper.UserGroupMapper;
 import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
@@ -47,6 +49,7 @@ public class UserClientServiceImpl implements UserClientService {
     private final UserSpotMapper userSpotMapper;
     private final QGroupRepository qGroupRepository;
     private final OpenGroupMapper openGroupMapper;
+    private final UserGroupMapper userGroupMapper;
 
     @Override
     @Transactional
@@ -135,6 +138,18 @@ public class UserClientServiceImpl implements UserClientService {
         if(groups.isEmpty()) return  openGroupListForKeywordDtos;
 
         return groups.stream().map(openGroupMapper::toOpenGroupListForKeywordDto).toList();
+    }
+
+    @Override
+    @Transactional
+    public List<CorporationResponseDto> getUserCorporation(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        List<UserGroup> userGroups = user.getGroups().stream().filter(g -> g.getClientStatus().equals(ClientStatus.BELONG) && Hibernate.unproxy(g.getGroup()) instanceof Corporation).toList();
+
+        List<CorporationResponseDto> corporationResponseDtos = new ArrayList<>();
+        if(userGroups.isEmpty()) return corporationResponseDtos;
+
+        return userGroupMapper.toCorporationResponseDtoList(userGroups);
     }
 
     @Override
