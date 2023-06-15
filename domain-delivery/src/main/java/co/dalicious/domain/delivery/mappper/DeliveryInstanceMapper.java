@@ -214,7 +214,7 @@ public interface DeliveryInstanceMapper {
     }
 
     default String deliveryIdGenerator(DeliveryInstance deliveryInstance) {
-        return DateUtils.formatWithoutSeparator(deliveryInstance.getServiceDate()) + deliveryInstance.getMakers().getId() + "-" + deliveryInstance.getId();
+        return DateUtils.formatWithoutSeparator(deliveryInstance.getServiceDate()) + deliveryInstance.getMakers().getId() + "-" + deliveryInstance.getOrderNumber();
     }
 
     default String getGroupName(Spot spot) {

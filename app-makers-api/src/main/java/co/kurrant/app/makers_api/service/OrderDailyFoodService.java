@@ -7,4 +7,5 @@ import java.util.Map;
 
 public interface OrderDailyFoodService {
     OrderDailyFoodByMakersDto.ByPeriod getOrder(SecurityUser securityUser, Map<String, Object> parameter);
+    OrderDailyFoodByMakersDto.ByPeriod getOrderByDelivery(SecurityUser securityUser, Map<String, Object> parameter);
 }

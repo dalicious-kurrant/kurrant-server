@@ -136,8 +136,11 @@ public interface OrderDailyFoodByMakersMapper {
             foodBySpots.add(foodBySpot);
         }
         foodBySpots = foodBySpots.stream()
-                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.FoodBySpot::getPickUpTime))
-                .toList();
+                .sorted(Comparator.comparing(
+                        OrderDailyFoodByMakersDto.FoodBySpot::getPickUpTime,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                ))
+                .collect(Collectors.toList());
         return foodBySpots;
     }
 
