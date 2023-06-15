@@ -264,27 +264,42 @@ public class QReviewRepository {
     }
 
 
-    public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter,String keywordFilter, Pageable pageable) {
+    public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String star,String keyword, Pageable pageable) {
 
         QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id))
+                    .where(reviews.food.id.eq(id), photoFilter(photo), starFilter(star), keywordFilter(keyword))
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
                     .fetchResults();
 
-        if (keywordFilter != null && !keywordFilter.equals("")){
-            result.getResults().removeIf(keyword -> !keyword.getContent().contains(keywordFilter));
-        }
+        return new PageImpl<>(result.getResults(), pageable, result.getTotal());
+    }
 
-        if (starFilter != null && starFilter.length() != 0){
-            result.getResults().removeIf(reviews1 -> !starFilter.contains(reviews1.getSatisfaction().toString()));
+    //별점필터
+    private BooleanExpression starFilter(String starFilter){
+        if (starFilter == null){
+            return null;
         }
-
-        if (photo != null && photo == 1){
-            result.getResults().removeIf(v -> v.getImages().isEmpty());
+        List<Integer> stars = new ArrayList<>();
+        List<String> list = Arrays.stream(starFilter.split(",")).toList();
+        for (String star : list){
+            stars.add(Integer.parseInt(star));
         }
+        return reviews.satisfaction.in(stars);
+    }
 
-    return new PageImpl<>(result.getResults(), pageable, result.getTotal());
+    //키워드필터
+    private BooleanExpression keywordFilter(String keywordFilter){
+        if (keywordFilter == null || keywordFilter.equals("")) return null;
+
+        return reviews.content.contains(keywordFilter);
+    }
+
+    //포토필터
+    private BooleanExpression photoFilter(Integer photo){
+        if (photo == null) return null;
+
+        return reviews.images.isNotEmpty();
     }
 
     public void plusLike(BigInteger reviewId) {
