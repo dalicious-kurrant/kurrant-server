@@ -122,11 +122,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QFoundersRepository qFoundersRepository;
     private final CartDailyFoodRepository cartDailyFoodRepository;
     private final QUserRepository qUserRepository;
-    private final DeliveryInstanceMapper deliveryInstanceMapper;
     private final DeliveryUtils deliveryUtils;
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
-    private final DeliveryInstanceRepository deliveryInstanceRepository;
-    private final DailyFoodDeliveryRepository dailyFoodDeliveryRepository;
 
     @Override
     @Transactional

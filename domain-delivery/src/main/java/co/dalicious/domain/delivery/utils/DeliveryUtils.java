@@ -42,10 +42,7 @@ public class DeliveryUtils {
     }
 
     public DeliveryInstance getDeliveryInstance(Spot spot, User user, DailyFood dailyFood, LocalTime deliveryTime) {
-        if(Hibernate.getClass(spot).equals(MySpot.class)) {
-            return null;
-        }
-        if(Hibernate.getClass(spot).equals(OpenGroupSpot.class)) {
+        if(Hibernate.getClass(spot).equals(OpenGroupSpot.class) || Hibernate.getClass(spot).equals(MySpot.class)) {
             Optional<DailyFoodDelivery> dailyFoodDeliveryOptional =  qDailyFoodDeliveryRepository.findByFilter(user, dailyFood.getFood().getMakers(), spot, dailyFood.getServiceDate(), dailyFood.getDiningType(), deliveryTime);
             return dailyFoodDeliveryOptional.map(DailyFoodDelivery::getDeliveryInstance).orElse(null);
         }

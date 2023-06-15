@@ -14,6 +14,9 @@ import java.time.LocalTime;
 import java.util.Optional;
 
 import static co.dalicious.domain.delivery.entity.QDailyFoodDelivery.dailyFoodDelivery;
+import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.food.entity.QFood.food;
+import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 
@@ -22,12 +25,15 @@ import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDail
 public class QDailyFoodDeliveryRepository {
     private final JPAQueryFactory queryFactory;
 
-    public Optional<DailyFoodDelivery> findByFilter(User user, Makers makers, Spot spot, LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime) {
+    public Optional<DailyFoodDelivery> findByFilter(User user, Makers selectedMakers, Spot spot, LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime) {
         return Optional.ofNullable(queryFactory.selectFrom(dailyFoodDelivery)
                 .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood)
                 .leftJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(dailyFood.food, food)
+                .leftJoin(food.makers, makers)
                 .where(orderItemDailyFood.order.user.eq(user),
-                        orderItemDailyFood.dailyFood.food.makers.eq(makers),
+                        makers.eq(selectedMakers),
                         orderDailyFood.spot.eq(spot),
                         orderItemDailyFood.dailyFood.serviceDate.eq(serviceDate),
                         orderItemDailyFood.dailyFood.diningType.eq(diningType),
