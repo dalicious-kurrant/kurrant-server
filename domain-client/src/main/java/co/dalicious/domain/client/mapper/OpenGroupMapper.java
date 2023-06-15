@@ -55,7 +55,7 @@ public interface OpenGroupMapper {
         dto.setId(group.getId());
         dto.setName(group.getName());
         dto.setAddress(group.getAddress().addressToString());
-        dto.setJibun(AddressUtil.getAddress3(group.getAddress().getAddress3()));
+        dto.setJibun(group.getAddress().stringToAddress3());
         dto.setUserCount(group.getOpenGroupUserCount());
 
         List<DiningType> diningTypes = group.getDiningTypes();

@@ -97,4 +97,6 @@ public class Address {
   }
 
     public void updateAddress3(String address3) { this.address3 = address3; }
+
+    public String stringToAddress3() { return this.address3.replaceFirst(".*?(?:시|군|구)\\s", "").replaceFirst(".*?(?:군|구)\\s", ""); }
 }
