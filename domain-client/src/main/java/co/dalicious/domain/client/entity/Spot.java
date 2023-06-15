@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @Getter
-@Table(name = "client__spot", uniqueConstraints={@UniqueConstraint(columnNames={"name", "client_group_id"})})
+@Table(name = "client__spot")
 public class Spot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

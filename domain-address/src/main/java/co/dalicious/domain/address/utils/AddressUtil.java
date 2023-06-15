@@ -85,7 +85,7 @@ public class AddressUtil {
 
     public static String getAddress3(String address) {
         StringBuilder stringBuilder = new StringBuilder();
-        String regex = "(\\b\\w+(?:동|읍|리)\\b).+";
+        String regex = "\\b\\w+(?:동|읍|리)\\b.*";
 
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(address);
@@ -97,4 +97,53 @@ public class AddressUtil {
         return null;
     }
 
+//    public static String getJibunAddress(String address) {
+//
+//        try {
+//            String encodedAddress = java.net.URLEncoder.encode(address, "UTF-8");
+//            String apiURL = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=" + encodedAddress;
+//            // HTTP 요청 보내기
+//            URL url = new URL(apiURL);
+//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//            conn.setRequestMethod("GET");
+//            conn.setRequestProperty("Content-Type", "application/json");
+//            conn.setRequestProperty("X-NCP-APIGW-API-KEY-ID", YOUR_CLIENT_ID);
+//            conn.setRequestProperty("X-NCP-APIGW-API-KEY", YOUR_CLIENT_SECRET);
+//            conn.connect();
+//
+//            int responseCode = conn.getResponseCode();
+//            System.out.println("responseCode = " + responseCode);
+//            BufferedReader br;
+//
+//            if (responseCode == 200) { // 정상 호출
+//                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+//            } else { // 에러 발생
+//                br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+//            }
+//
+//            String line;
+//            StringBuilder response = new StringBuilder();
+//            while ((line = br.readLine()) != null) {
+//                response.append(line);
+//            }
+//            br.close();
+//
+//            JSONTokener tokener = new JSONTokener(response.toString());
+//            JSONObject object = new JSONObject(tokener);
+//            JSONArray arr = object.getJSONArray("addresses");
+//
+//            if(arr.length() < 1) throw new Exception(address + ", 주소를 확인해주세요.");
+//
+//            for (int i = 0; i < arr.length(); i++) {
+//                JSONObject temp = (JSONObject) arr.get(i);
+//                System.out.println("address : " + temp.get("roadAddress"));
+//                System.out.println("jibunAddress : " + temp.get("jibunAddress"));
+//                return String.valueOf(temp.get("jibunAddress"));
+//            }
+//
+//        } catch (Exception e) {
+//            System.out.println("Error: " + e);
+//        }
+//        return null;
+//    }
 }

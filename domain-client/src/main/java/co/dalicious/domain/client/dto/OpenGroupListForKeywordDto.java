@@ -12,4 +12,6 @@ public class OpenGroupListForKeywordDto {
     private String name;
     private String address;
     private String jibunAddress;
+    private String latitude;
+    private String longitude;
 }
