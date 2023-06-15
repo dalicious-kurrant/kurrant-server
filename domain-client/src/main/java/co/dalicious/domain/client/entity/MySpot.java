@@ -24,7 +24,6 @@ import java.util.List;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "integration_client_user__my_spot")
 public class MySpot extends Spot {
 
     @Column(name = "is_delete")

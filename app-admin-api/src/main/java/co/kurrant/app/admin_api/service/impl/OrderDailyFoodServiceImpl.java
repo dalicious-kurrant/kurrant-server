@@ -14,6 +14,7 @@ import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.delivery.utils.DeliveryUtils;
 import co.dalicious.domain.food.dto.DiscountDto;
@@ -114,6 +115,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QGroupRepository qGroupRepository;
     private final DeliveryUtils deliveryUtils;
     private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
+    private final DeliveryInstanceMapper deliveryInstanceMapper;
 
     @Override
     @Transactional
@@ -153,10 +155,23 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // FIXME: 기존 로직
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
+        return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList);
+    }
+
+    @Override
+    @Transactional
+    public OrderDailyFoodByMakersDto.ByPeriod retrieveOrderCountByMakersAndDelivery(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        List<Integer> diningTypes = !parameters.containsKey("diningTypes") || parameters.get("diningTypes").equals("") ? null : StringUtils.parseIntegerList((String) parameters.get("diningTypes"));
+        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
+
+        assert makersId != null;
+        Makers makers = makersRepository.findById(makersId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
 
         // FIXME: 배송 도메인 추가 로직
         List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByFilter(startDate, endDate, DiningTypesUtils.codesToDiningTypes(diningTypes), makers);
-        return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList);
+        return deliveryInstanceMapper.toDto(deliveryInstances);
     }
 
     @Override
