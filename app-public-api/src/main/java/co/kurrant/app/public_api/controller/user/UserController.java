@@ -355,8 +355,9 @@ public class UserController {
 
     @PostMapping("/daily/report/food")
     @Operation(summary = "주문내역을 리포트로 가져온다", description = "유저의 주문 내역을 리포트로 가져온다.")
-    public ResponseMessage insertFoodRecord(@RequestBody SaveDailyReportFoodReqDto dto){
-        userService.saveDailyReportFood(dto);
+    public ResponseMessage insertFoodRecord(Authentication authentication, @RequestBody SaveDailyReportFoodReqDto dto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.saveDailyReportFood(securityUser, dto);
         return ResponseMessage.builder()
                 .message("리포트에 음식을 추가햇습니다.")
                 .build();

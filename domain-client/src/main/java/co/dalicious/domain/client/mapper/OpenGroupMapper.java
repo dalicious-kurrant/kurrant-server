@@ -101,8 +101,8 @@ public interface OpenGroupMapper {
     }
 
     @AfterMapping
-    default void afterMappingLocation(Address address, @MappingTarget OpenGroupListForKeywordDto dto) {
-        String[] location = address.locationToString().split(" ");
+    default void afterMappingLocation(Group group, @MappingTarget OpenGroupListForKeywordDto dto) {
+        String[] location = group.getAddress().locationToString().split(" ");
 
         dto.setLatitude(location[0]);
         dto.setLongitude(location[1]);

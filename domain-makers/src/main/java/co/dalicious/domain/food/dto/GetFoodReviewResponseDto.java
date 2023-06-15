@@ -14,10 +14,6 @@ public class GetFoodReviewResponseDto {
 
     private List<FoodReviewListDto> items;
     private Double starAverage;
-    private Integer total;
-    private Integer count;
-    private Integer limit;
-    private Boolean isLast;
     private BigInteger foodId;
     private Integer totalReview;
     private BigInteger reviewWrite;

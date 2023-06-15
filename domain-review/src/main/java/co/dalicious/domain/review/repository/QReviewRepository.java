@@ -11,6 +11,9 @@ import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.beans.Expression;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -261,44 +265,26 @@ public class QReviewRepository {
 
 
     public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter,String keywordFilter, Pageable pageable) {
-        List<Reviews> reviewsList = new ArrayList<>();
 
-        List<Reviews> result = queryFactory.selectFrom(reviews)
+        QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id))
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
-                    .fetch();
-
-        int count = 0;
+                    .fetchResults();
 
         if (keywordFilter != null && !keywordFilter.equals("")){
-                count += 1;
-                reviewsList = queryFactory.selectFrom(reviews)
-                        .where(reviews.food.id.eq(id),
-                                reviews.content.contains(keywordFilter))
-                        .offset(pageable.getOffset())
-                        .limit(pageable.getPageSize())
-                        .fetch();
+            result.getResults().removeIf(keyword -> !keyword.getContent().contains(keywordFilter));
         }
 
         if (starFilter != null && starFilter.length() != 0){
-            if (count > 0){
-                reviewsList = reviewsList.stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
-            } else {
-                count += 1;
-                reviewsList = result.stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
-            }
+            result.getResults().removeIf(reviews1 -> !starFilter.contains(reviews1.getSatisfaction().toString()));
         }
 
         if (photo != null && photo == 1){
-            if (count > 0){
-                 reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
-            } else {
-                reviewsList = result.stream().filter(v -> !v.getImages().isEmpty()).toList();
-            }
+            result.getResults().removeIf(v -> v.getImages().isEmpty());
         }
 
-    return new PageImpl<>(reviewsList, pageable, result.size());
+    return new PageImpl<>(result.getResults(), pageable, result.getTotal());
     }
 
     public void plusLike(BigInteger reviewId) {

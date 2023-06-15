@@ -3,32 +3,27 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.address.repository.QRegionRepository;
-import co.dalicious.domain.application_form.dto.mySpotZone.UpdateStatusDto;
-import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.client.dto.GroupListDto;
-import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
-import co.dalicious.domain.client.dto.filter.FilterDto;
-import co.dalicious.domain.client.dto.FilterInfo;
+import co.dalicious.domain.address.repository.QRegionRepository;
+import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.application_form.dto.mySpotZone.AdminListResponseDto;
 import co.dalicious.domain.application_form.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.mySpotZone.UpdateRequestDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.UpdateStatusDto;
+import co.dalicious.domain.application_form.mapper.MySpotZoneMapper;
+import co.dalicious.domain.client.dto.FilterInfo;
+import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.dto.filter.FilterDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
-import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
-import co.dalicious.domain.client.mapper.MealInfoMapper;
-import co.dalicious.domain.application_form.mapper.MySpotZoneMapper;
+import co.dalicious.domain.client.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
-import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.domain.client.mapper.MySpotZoneMealInfoMapper;
-import co.dalicious.domain.client.repository.QMySpotRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
+import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -39,8 +34,6 @@ import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.GroupService;
-import co.dalicious.domain.client.repository.QMySpotZoneRepository;
-import co.dalicious.domain.address.utils.AddressUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -49,9 +42,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -418,8 +409,9 @@ public class GroupServiceImpl implements GroupService {
         List<Group> groupList = qGroupRepository.findGroupAndAddressIsNull();
 
         for(Group group : groupList) {
-            String updateLocation = addressUtil.getLocation(group.getAddress().getAddress1());
-            group.getAddress().updateLocation(updateLocation);
+            Map<String, String> updateLocation = addressUtil.getLocation(group.getAddress().getAddress1());
+            group.getAddress().updateLocation(updateLocation.get("location"));
+            group.getAddress().updateAddress3(updateLocation.get("jibunAddress"));
         }
     }
 

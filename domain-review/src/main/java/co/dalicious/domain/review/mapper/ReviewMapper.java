@@ -335,16 +335,12 @@ public interface ReviewMapper {
     }
 
     default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starAverage, Integer totalReview, BigInteger foodId, Integer sort,
-                                                                Boolean isLast, Integer total, Integer limit, Integer count, BigInteger reviewWrite){
+                                                                BigInteger reviewWrite){
         GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
 
         getFoodReviewResponseDto.setItems(foodReviewListDtoList);
         getFoodReviewResponseDto.setStarAverage(starAverage);
-        getFoodReviewResponseDto.setIsLast(isLast);
-        getFoodReviewResponseDto.setCount(count);
         getFoodReviewResponseDto.setTotalReview(totalReview);
-        getFoodReviewResponseDto.setTotal(total);
-        getFoodReviewResponseDto.setLimit(limit);
         getFoodReviewResponseDto.setFoodId(foodId);
         getFoodReviewResponseDto.setReviewWrite(reviewWrite);
 

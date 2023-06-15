@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
+import co.dalicious.domain.application_form.dto.PushAlarmSettingDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
@@ -19,7 +20,10 @@ public interface ApplicationFormService {
     ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException;
     // 공유 스팟 신청
     void registerShareSpot(SecurityUser securityUser, Integer typeId, ShareSpotDto.Request request) throws ParseException;
-
+    // 신청한 마이스팟 기록 삭제
+    void deleteRequestedMySpot(SecurityUser securityUser);
+    // 신청한 스팟 알림 신청
+    void updateRequestedMySpotAlarmUser(SecurityUser securityUser, PushAlarmSettingDto dto);
 
     // 아파트 스팟 개설 신청
     ApplicationFormDto registerApartmentSpot(SecurityUser securityuser, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto);
@@ -35,6 +39,5 @@ public interface ApplicationFormService {
     CorporationApplicationFormResponseDto getCorporationApplicationFormDetail(BigInteger userId, BigInteger id);
     // 스팟 신청 날짜 리스트
     List<ApplicationFormDto> getSpotsApplicationList(BigInteger userId);
-    // 신청한 마이스팟 기록 삭제
-    void deleteRequestedMySpot(SecurityUser securityUser);
+
 }
