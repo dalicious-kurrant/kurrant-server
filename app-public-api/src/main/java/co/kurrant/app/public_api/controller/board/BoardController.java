@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
 
-@Tag(name = "8. Board")
+@Tag(name = "게시판")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/boards")

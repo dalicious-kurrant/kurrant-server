@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
-@Tag(name = "5. Membership")
+@Tag(name = "c. 멤버십")
 @RequestMapping(value = "/v1/users/membership")
 @RestController
 @RequiredArgsConstructor

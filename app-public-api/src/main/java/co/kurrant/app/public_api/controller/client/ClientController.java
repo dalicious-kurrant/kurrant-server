@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigInteger;
 import java.util.Map;
 
-@Tag(name = "6. Group")
+@Tag(name = "그룹")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/users/me/groups")
 @RestController

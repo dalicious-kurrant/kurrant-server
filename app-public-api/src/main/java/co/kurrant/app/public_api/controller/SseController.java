@@ -6,6 +6,7 @@ import co.dalicious.client.sse.SseService;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Description;
@@ -15,7 +16,7 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigInteger;
 
-
+@Tag(name="SSE")
 @RestController
 @RequiredArgsConstructor
 public class SseController {
