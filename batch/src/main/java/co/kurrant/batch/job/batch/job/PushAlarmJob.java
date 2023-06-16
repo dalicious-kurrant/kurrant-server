@@ -73,7 +73,6 @@ public class PushAlarmJob {
     public Job pushAlarmJob3() {
         return jobBuilderFactory.get("pushAlarmJob3")
                 .start(pushAlarmJob3_step1())
-                .next(pushAlarmJob3_step2())
                 .build();
     }
 
@@ -117,6 +116,20 @@ public class PushAlarmJob {
 
     @Bean
     @JobScope
+    public Step pushAlarmJob2_step2() {
+        return stepBuilderFactory.get("pushAlarmJob2_step2")
+                .<User, User>chunk(CHUNK_SIZE)
+                .reader(openStatusMySpotZonePushAlarmReader())
+                .processor(openStatusMySpotZonePushAlarmProcessor())
+                .writer(openStatusMySpotZonePushAlarmWriter())
+                .faultTolerant()
+                .skip(ApiException.class) // Add the exception classes you want to skip
+                .skip(RuntimeException.class)
+                .build();
+    }
+
+    @Bean
+    @JobScope
     public Step pushAlarmJob3_step1() {
         return stepBuilderFactory.get("pushAlarmJob3_step1")
                 .tasklet(((contribution, chunkContext) -> {
@@ -137,34 +150,6 @@ public class PushAlarmJob {
                     log.info("마이스팟 존 상태 변경 완료 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
                     return RepeatStatus.FINISHED;
                 })).build();
-    }
-
-    @Bean
-    @JobScope
-    public Step pushAlarmJob2_step2() {
-        return stepBuilderFactory.get("pushAlarmJob2_step2")
-                .<User, User>chunk(CHUNK_SIZE)
-                .reader(openStatusMySpotZonePushAlarmReader())
-                .processor(openStatusMySpotZonePushAlarmProcessor())
-                .writer(openStatusMySpotZonePushAlarmWriter())
-                .faultTolerant()
-                .skip(ApiException.class) // Add the exception classes you want to skip
-                .skip(RuntimeException.class)
-                .build();
-    }
-
-    @Bean
-    @JobScope
-    public Step pushAlarmJob3_step2() {
-        return stepBuilderFactory.get("pushAlarmJob3_step2")
-                .<User, User>chunk(CHUNK_SIZE)
-                .reader(closeStatusMySpotZonePushAlarmReader())
-                .processor(closeStatusMySpotZonePushAlarmProcessor())
-                .writer(closeStatusMySpotZonePushAlarmWriter())
-                .faultTolerant()
-                .skip(ApiException.class) // Add the exception classes you want to skip
-                .skip(RuntimeException.class)
-                .build();
     }
 
     @Bean
@@ -206,25 +191,6 @@ public class PushAlarmJob {
                 "left join MySpot ms on ms.group = msz \n" +
                 "left join User u on ms.userId = u.id \n" +
                 "where msz.mySpotZoneStatus = 1";
-
-        return new JpaPagingItemReaderBuilder<User>()
-                .entityManagerFactory(entityManagerFactory) // Use the injected entityManagerFactory
-                .pageSize(100)
-                .queryString(queryString)
-                .name("JpaPagingItemReader")
-                .build();
-    }
-
-    @Bean
-    @StepScope
-    public JpaPagingItemReader<User> closeStatusMySpotZonePushAlarmReader() {
-        log.info("[my spot zone user 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
-
-        String queryString = "select u \n" +
-                "from MySpotZone msz \n" +
-                "left join MySpot ms on ms.group = msz \n" +
-                "left join User u on ms.userId = u.id \n" +
-                "where msz.mySpotZoneStatus = 2";
 
         return new JpaPagingItemReaderBuilder<User>()
                 .entityManagerFactory(entityManagerFactory) // Use the injected entityManagerFactory
@@ -280,30 +246,6 @@ public class PushAlarmJob {
 
     @Bean
     @JobScope
-    public ItemProcessor<User, User> closeStatusMySpotZonePushAlarmProcessor() {
-        return new ItemProcessor<User, User>() {
-            @Override
-            public User process(User user) throws Exception {
-                log.info("[User 푸시 알림 전송 시작] : {}", user.getId());
-                try {
-                    PushCondition pushCondition = PushCondition.NEW_SPOT_2;
-                    String customMessage = pushUtil.getContextOpenOrMySpot(user.getName(), GroupDataType.MY_SPOT.getType(), pushCondition);
-
-                    PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
-                    BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
-                    pushService.sendToPush(batchAlarmDto, pushCondition);
-
-                    log.info("[푸시알림 전송 성공] : {}", user.getId());
-                } catch (Exception ignored) {
-                    log.info("[푸시알림 전송 실패] : {}", user.getId());
-                }
-                return user;
-            }
-        };
-    }
-
-    @Bean
-    @JobScope
     public JpaItemWriter<User> lastOrderTimePushAlarmWriter() {
         log.info("리뷰 푸시전송 완료 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
         return new JpaItemWriterBuilder<User>().entityManagerFactory(entityManagerFactory).build();
@@ -312,13 +254,6 @@ public class PushAlarmJob {
     @Bean
     @JobScope
     public JpaItemWriter<User> openStatusMySpotZonePushAlarmWriter() {
-        log.info("리뷰 푸시전송 완료 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
-        return new JpaItemWriterBuilder<User>().entityManagerFactory(entityManagerFactory).build();
-    }
-
-    @Bean
-    @JobScope
-    public JpaItemWriter<User> closeStatusMySpotZonePushAlarmWriter() {
         log.info("리뷰 푸시전송 완료 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
         return new JpaItemWriterBuilder<User>().entityManagerFactory(entityManagerFactory).build();
     }
