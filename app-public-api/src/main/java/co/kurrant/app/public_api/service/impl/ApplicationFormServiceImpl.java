@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.address.repository.QRegionRepository;
-import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.PushAlarmSettingDto;
 import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
@@ -241,10 +240,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
 
         // 신청한 my spot이 이미 존재하면
-//        RequestedMySpot existRequestedMySpot = qRequestedMySpotRepository.findRequestedMySpotByUserId(user.getId());
-//        if(existRequestedMySpot != null) throw new ApiException(ExceptionEnum.OVER_MY_SPOT_LIMIT);
+        RequestedMySpot existRequestedMySpot = qRequestedMySpotRepository.findRequestedMySpotByUserId(user.getId());
+        if(existRequestedMySpot != null) updateRequestedMySpot(existRequestedMySpot, requestDto, user);
 
-        // my spot zone 찾기
+        // 신청한 my spot 없으면
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
 
         if(mySpotZone != null) {
@@ -272,33 +271,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         if(existRequestedMySpotZones != null) {
             RequestedMySpot requestedMySpot = requestedMySpotMapper.toEntity(user.getId(), existRequestedMySpotZones, requestDto);
             requestedMySpotRepository.save(requestedMySpot);
-
-            Set<BigInteger> userIds = existRequestedMySpotZones.getRequestedMySpots().stream()
-                    .map(RequestedMySpot::getUserId)
-                    .collect(Collectors.toSet());
-
-            if(!userIds.contains(user.getId())) {
-                userIds.add(user.getId());
-                existRequestedMySpotZones.updateWaitingUserCount(1);
-            }
+            updateRequestedMySpotZonesUserCount(user, existRequestedMySpotZones);
 
             return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
         }
 
-        String[] jibunAddress = requestDto.getAddress().getAddress3().split(" ");
-        System.out.println("jibunAddress = " + Arrays.toString(jibunAddress));
-        String county = null;
-        String village = null;
-
-        for(String addr : jibunAddress) {
-            if(addr.endsWith("구")) county = addr;
-            else if(addr.endsWith("동")) village = addr;
-        }
-
-        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));
-        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, null, region, user.getId());
-        requestedMySpotZonesRepository.save(requestedMySpotZones);
-
+        RequestedMySpotZones requestedMySpotZones = createRequestedMySpotZones(requestDto, user);
         RequestedMySpot requestedMySpot = requestedMySpotMapper.toEntity(user.getId(), requestedMySpotZones, requestDto);
         requestedMySpotRepository.save(requestedMySpot);
 
@@ -315,5 +293,60 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         requestedShareSpot.updateShareSpotRequestType(shareSpotRequestType);
         requestedShareSpot.updateUserId(user.getId());
         requestedShareSpotRepository.save(requestedShareSpot);
+    }
+    
+    private ApplicationFormDto updateRequestedMySpot(RequestedMySpot requestedMySpot, MySpotZoneApplicationFormRequestDto requestDto, User user) throws ParseException {
+
+        // 기존 신청 마이스팟 존에서 카운트 빼기
+        RequestedMySpotZones defaultRequestedMySpotZones = requestedMySpot.getRequestedMySpotZones();
+        defaultRequestedMySpotZones.updateWaitingUserCount(1, true);
+
+        // my spot zone 없으면 my spot zone 신청하기
+        RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestedMySpot.getAddress().getZipCode());
+        if(existRequestedMySpotZones != null) {
+            requestedMySpotMapper.updateRequestedMySpot(requestDto, requestedMySpot);
+            requestedMySpot.updateRequestedMySpotZones(existRequestedMySpotZones);
+            updateRequestedMySpotZonesUserCount(user, existRequestedMySpotZones);
+
+            return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
+        }
+
+        RequestedMySpotZones requestedMySpotZones = createRequestedMySpotZones(requestDto, user);
+        requestedMySpotMapper.updateRequestedMySpot(requestDto, requestedMySpot);
+        requestedMySpot.updateRequestedMySpotZones(requestedMySpotZones);
+
+        // my spot zone 존재 여부 response
+        return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
+        
+    }
+    
+    private RequestedMySpotZones createRequestedMySpotZones(MySpotZoneApplicationFormRequestDto requestDto, User user) {
+        String[] jibunAddress = requestDto.getAddress().getAddress3().split(" ");
+        System.out.println("jibunAddress = " + Arrays.toString(jibunAddress));
+        String county = null;
+        String village = null;
+
+        for(String addr : jibunAddress) {
+            if(addr.endsWith("구")) county = addr;
+            else if(addr.endsWith("동")) village = addr;
+        }
+
+        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));
+
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, null, region, user.getId());
+        requestedMySpotZonesRepository.save(requestedMySpotZones);
+
+        return requestedMySpotZones;
+    }
+
+    private static void updateRequestedMySpotZonesUserCount(User user, RequestedMySpotZones existRequestedMySpotZones) {
+        Set<BigInteger> userIds = existRequestedMySpotZones.getRequestedMySpots().stream()
+                .map(RequestedMySpot::getUserId)
+                .collect(Collectors.toSet());
+
+        if(!userIds.contains(user.getId())) {
+            userIds.add(user.getId());
+            existRequestedMySpotZones.updateWaitingUserCount(1, false);
+        }
     }
 }

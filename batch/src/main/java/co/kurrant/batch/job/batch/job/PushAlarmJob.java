@@ -1,7 +1,12 @@
 package co.kurrant.batch.job.batch.job;
 
+import co.dalicious.client.alarm.dto.BatchAlarmDto;
+import co.dalicious.client.alarm.dto.PushRequestDto;
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.entity.MySpotZone;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
@@ -45,6 +50,7 @@ public class PushAlarmJob {
     private final EntityManagerFactory entityManagerFactory;
     private final PushAlarmService pushAlarmService;
     private final PushUtil pushUtil;
+    private final PushService pushService;
     private final EntityManager entityManager;
     private final int CHUNK_SIZE = 500;
 
@@ -60,6 +66,13 @@ public class PushAlarmJob {
         return jobBuilderFactory.get("pushAlarmJob2")
                 .start(pushAlarmJob2_step1())
                 .next(pushAlarmJob2_step2())
+                .build();
+    }
+
+    @Bean(name = "pushAlarmJob3")
+    public Job pushAlarmJob3() {
+        return jobBuilderFactory.get("pushAlarmJob3")
+                .start(pushAlarmJob3_step1())
                 .build();
     }
 
@@ -84,7 +97,7 @@ public class PushAlarmJob {
                 .tasklet(((contribution, chunkContext) -> {
                     log.info("[my spot zone 찾기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
-                    final String queryString = "SELECT msz FROM MySpotZone msz WHERE msz.openDate = :currentDate";
+                    final String queryString = "SELECT msz FROM MySpotZone msz WHERE msz.openDate = :currentDate and msz.mySpotZoneStatus != 1";
                     final LocalDate currentDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
                     final TypedQuery<MySpotZone> query = entityManager.createQuery(queryString, MySpotZone.class);
                     query.setParameter("currentDate", currentDate);
@@ -113,6 +126,30 @@ public class PushAlarmJob {
                 .skip(ApiException.class) // Add the exception classes you want to skip
                 .skip(RuntimeException.class)
                 .build();
+    }
+
+    @Bean
+    @JobScope
+    public Step pushAlarmJob3_step1() {
+        return stepBuilderFactory.get("pushAlarmJob3_step1")
+                .tasklet(((contribution, chunkContext) -> {
+                    log.info("[my spot zone 찾기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
+
+                    final String queryString = "SELECT msz FROM MySpotZone msz WHERE msz.closeDate = :currentDate and msz.mySpotZoneStatus = 1";
+                    final LocalDate currentDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
+                    final TypedQuery<MySpotZone> query = entityManager.createQuery(queryString, MySpotZone.class);
+                    query.setParameter("currentDate", currentDate);
+
+                    final List<MySpotZone> mySpotZones = query.getResultList();
+
+                    for(MySpotZone mySpotZone : mySpotZones) {
+                        log.info("마이스팟 존 상태 변경 시작 : {}", mySpotZone.getId());
+                        mySpotZone.updateMySpotZoneStatus(MySpotZoneStatus.CLOSE);
+                    }
+
+                    log.info("마이스팟 존 상태 변경 완료 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
+                    return RepeatStatus.FINISHED;
+                })).build();
     }
 
     @Bean
@@ -171,7 +208,9 @@ public class PushAlarmJob {
             public User process(User user) throws Exception {
                 log.info("[User 푸시 알림 전송 시작] : {}", user.getId());
                 try {
-                    pushUtil.getBatchAlarmDto(user, PushCondition.LAST_ORDER_BY_DAILYFOOD);
+                    PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, PushCondition.LAST_ORDER_BY_DAILYFOOD, null);
+                    BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
+                    pushService.sendToPush(batchAlarmDto, PushCondition.LAST_ORDER_BY_DAILYFOOD);
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
                 } catch (Exception ignored) {
                     log.info("[푸시알림 전송 실패] : {}", user.getId());
@@ -189,8 +228,13 @@ public class PushAlarmJob {
             public User process(User user) throws Exception {
                 log.info("[User 푸시 알림 전송 시작] : {}", user.getId());
                 try {
-                    // TODO: 결제 수단이 추가 될 시 수정
-                    pushUtil.getBatchAlarmDto(user, PushCondition.LAST_ORDER_BY_DAILYFOOD);
+                    PushCondition pushCondition = PushCondition.NEW_SPOT;
+                    String customMessage = pushUtil.getContextOpenOrMySpot(user.getName(), GroupDataType.MY_SPOT.getType(), pushCondition);
+
+                    PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
+                    BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
+                    pushService.sendToPush(batchAlarmDto, pushCondition);
+
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
                 } catch (Exception ignored) {
                     log.info("[푸시알림 전송 실패] : {}", user.getId());
