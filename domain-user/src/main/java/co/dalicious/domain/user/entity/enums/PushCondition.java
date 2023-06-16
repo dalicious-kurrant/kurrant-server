@@ -25,7 +25,8 @@ public enum PushCondition {
     NEW_NOTICE("공지사항","새로운 혜택 및 소식", 3001),
 
     /*스팟*/
-    NEW_SPOT("신청 스팟 생성", "신청한 스팟 생성 때", 4001)
+    NEW_SPOT("신청 스팟 생성", "신청한 스팟 생성 때", 4001),
+    NEW_SPOT_2("신청 스팟 생성", "신청한 스팟 생성 때", 4002)
     ;
     private final String title;
     private final String condition;
@@ -45,7 +46,13 @@ public enum PushCondition {
     }
 
     public static List<PushCondition> getCustomMessageCondition() {
-        return Arrays.asList(NEW_DAILYFOOD, DELIVERED_ORDER_ITEM, LAST_ORDER_BY_DAILYFOOD);
+        return Arrays.asList(
+                NEW_DAILYFOOD,
+                DELIVERED_ORDER_ITEM,
+                LAST_ORDER_BY_DAILYFOOD,
+                NEW_SPOT,
+                NEW_SPOT_2
+        );
     }
 
     public static PushCondition ofCondition(String message) {
@@ -56,6 +63,15 @@ public enum PushCondition {
     }
 
     public static List<PushCondition> getBatchAlarmCondition() {
-        return List.of(REVIEW_DEADLINE, LAST_ORDER_BY_DAILYFOOD);
+        return List.of(
+                REVIEW_DEADLINE,
+                LAST_ORDER_BY_DAILYFOOD,
+                NEW_SPOT,
+                NEW_SPOT_2
+        );
+    }
+
+    public static List<PushCondition> getNoShowCondition() {
+        return List.of(NEW_SPOT_2);
     }
 }

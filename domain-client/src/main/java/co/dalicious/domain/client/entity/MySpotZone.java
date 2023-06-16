@@ -54,4 +54,8 @@ public class MySpotZone extends Group {
         if(status.equals(SpotStatus.ACTIVE)) this.mySpotZoneUserCount = this.mySpotZoneUserCount + count;
         else if (status.equals(SpotStatus.INACTIVE)) this.mySpotZoneUserCount = this.mySpotZoneUserCount - count;
     }
+
+    public void updateMySpotZoneStatus(MySpotZoneStatus mySpotZoneStatus) {
+        this.mySpotZoneStatus = mySpotZoneStatus;
+    }
 }
