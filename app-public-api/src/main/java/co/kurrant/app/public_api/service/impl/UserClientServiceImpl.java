@@ -111,7 +111,8 @@ public class UserClientServiceImpl implements UserClientService {
         Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
                 .findAny();
         userSpot.ifPresent(v -> {
-            if(v.getSpot() instanceof MySpot myspot) myspot.updateMySpotForDelete();
+            Spot spot = v.getSpot();
+            if(spot instanceof MySpot myspot) myspot.updateMySpotForDelete();
             userSpotRepository.delete(v);
         });
         // 다른 그룹이 존재하는지 여부에 따라 Return값 결정(스팟 선택 화면 || 그룹 신청 화면)

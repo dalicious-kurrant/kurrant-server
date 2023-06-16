@@ -79,8 +79,9 @@ public class RequestedMySpotZones {
         this.memo = updateRequestDto.getMemo();
     }
 
-    public void updateWaitingUserCount(Integer count) {
-        this.waitingUserCount = this.waitingUserCount + count;
+    public void updateWaitingUserCount(Integer count, Boolean isWithdrawal) {
+        if(!isWithdrawal) this.waitingUserCount = this.waitingUserCount + count;
+        else this.waitingUserCount = this.waitingUserCount - count;
     }
 
     public void updatePushAlarmUserIds(BigInteger userId) {

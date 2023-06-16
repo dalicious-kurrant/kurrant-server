@@ -1,9 +1,11 @@
 package co.kurrant.batch.job.batch.job;
 
 import co.dalicious.client.alarm.dto.BatchAlarmDto;
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.entity.RefreshToken;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.Membership;
@@ -50,6 +52,7 @@ public class ReviewJob {
     private final ReviewService reviewService;
     private final PushUtil pushUtil;
     private final EntityManagerFactory entityManagerFactory;
+    private final PushService pushService;
     private final int CHUNK_SIZE = 100;
 
     @Bean(name = "reviewJob1")
@@ -110,8 +113,12 @@ public class ReviewJob {
             public User process(User user) throws Exception {
                 log.info("[User 푸시 알림 전송 시작] : {}", user.getId());
                 try {
-                    // TODO: 결제 수단이 추가 될 시 수정
-                    pushUtil.getBatchAlarmDto(user, PushCondition.REVIEW_DEADLINE);
+                    PushCondition pushCondition = PushCondition.REVIEW_DEADLINE;
+
+                    PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, null);
+                    BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
+                    pushService.sendToPush(batchAlarmDto, pushCondition);
+
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
                 } catch (Exception ignored) {
                     log.info("[푸시알림 전송 실패] : {}", user.getId());

@@ -7,11 +7,13 @@ import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
 
 import co.dalicious.domain.user.entity.BatchPushAlarmLog;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import org.mapstruct.Mapper;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,11 +61,15 @@ public interface PushAlarmMapper {
                 .build();
     }
 
-    default BatchAlarmDto toBatchAlarmDto(Map<String, BigInteger> tokenList, String title, String page, String message) {
+    default BatchAlarmDto toBatchAlarmDto(PushRequestDtoByUser dto, User user) {
+
+        Map<String, BigInteger> tokenList = new HashMap<>();
+        tokenList.put(dto.getToken(), user.getId());
+
         BatchAlarmDto batchAlarmDto = new BatchAlarmDto();
-        batchAlarmDto.setMessage(message);
-        batchAlarmDto.setTitle(title);
-        batchAlarmDto.setPage(page);
+        batchAlarmDto.setMessage(dto.getMessage());
+        batchAlarmDto.setTitle(dto.getTitle());
+        batchAlarmDto.setPage(dto.getPage());
         batchAlarmDto.setTokenList(tokenList);
 
         return batchAlarmDto;

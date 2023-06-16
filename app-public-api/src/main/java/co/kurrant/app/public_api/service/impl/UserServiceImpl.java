@@ -325,7 +325,8 @@ public class UserServiceImpl implements UserService {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
         List<PushCondition> userPushConditionList = user.getPushConditionList();
-        List<PushCondition> pushConditionList = List.of(PushCondition.class.getEnumConstants());
+        List<PushCondition> pushConditionList = new ArrayList<>(Arrays.asList(PushCondition.values()));
+        pushConditionList.removeAll(PushCondition.getNoShowCondition());
 
         return pushConditionList.stream().map(c -> userPersonalInfoMapper.toMarketingAlarmResponseDto(userPushConditionList, c)).toList();
     }

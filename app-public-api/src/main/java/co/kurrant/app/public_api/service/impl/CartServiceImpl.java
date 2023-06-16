@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -205,7 +206,7 @@ public class CartServiceImpl implements CartService {
                     .spotName(spot.getName())
                     .groupName(spot.getGroup().getName())
                     // TODO: 스팟 변경시 변경 필요
-                    .clientStatus((spot instanceof ApartmentSpot) ? 0 : 1)
+                    .clientStatus(GroupDataType.ofClass(spot.getClass()).getCode())
                     .cartDailyFoodDtoList(cartDailyFoodListDtos)
                     .build();
             spotCartsList.add(spotCarts);
