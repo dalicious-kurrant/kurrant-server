@@ -8,18 +8,15 @@ import co.dalicious.domain.application_form.entity.RequestedMySpot;
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import java.math.BigInteger;
 
 @Mapper(componentModel = "spring")
 public interface RequestedMySpotMapper {
     default RequestedMySpot toEntity(BigInteger userId, RequestedMySpotZones requestedMySpotZones, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException, ParseException {
-
-        CreateAddressRequestDto addressRequestDto = mySpotZoneApplicationFormRequestDto.getAddress();
-
-        if(addressRequestDto.getAddress1() == null) addressRequestDto.setAddress1(mySpotZoneApplicationFormRequestDto.getAddress().getAddress3());
-
-        Address address = new Address(mySpotZoneApplicationFormRequestDto.getAddress());
+        Address address = createAddress(mySpotZoneApplicationFormRequestDto.getAddress());
 
         return RequestedMySpot.builder()
                 .userId(userId)
@@ -42,4 +39,13 @@ public interface RequestedMySpotMapper {
         dto.setAddress(requestedMySpot.getAddress().addressToString());
         return dto;
     };
+
+    @Mapping(target = "address", expression = "java(createAddress(requestDto.getAddress()))")
+    @Mapping(source = "mySpotName", target = "name")
+    void updateRequestedMySpot(MySpotZoneApplicationFormRequestDto requestDto, @MappingTarget RequestedMySpot requestedMySpot) throws ParseException;
+
+    default Address createAddress(CreateAddressRequestDto address) throws ParseException {
+        if(address.getAddress1() == null) address.setAddress1(address.getAddress3());
+        return new Address(address);
+    }
 }

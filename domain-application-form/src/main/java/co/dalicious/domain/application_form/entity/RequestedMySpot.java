@@ -62,4 +62,8 @@ public class RequestedMySpot {
     public void setAddress(CreateAddressRequestDto address) throws ParseException {
         this.address = new Address(address);
     }
+
+    public void updateRequestedMySpotZones(RequestedMySpotZones requestedMySpotZones) {
+        this.requestedMySpotZones = requestedMySpotZones;
+    }
 }
