@@ -6,6 +6,7 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.PointService;
 import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
+@Tag(name = "포인트")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "v1/users/me/point")

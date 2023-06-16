@@ -264,7 +264,7 @@ public class QReviewRepository {
     }
 
 
-    public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String star,String keyword, Pageable pageable) {
+    public Page<Reviews> findAllByFoodIdSort(BigInteger id, Integer photo, String star,String keyword, Pageable pageable) {
 
         QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
                     .where(reviews.food.id.eq(id), photoFilter(photo), starFilter(star), keywordFilter(keyword))

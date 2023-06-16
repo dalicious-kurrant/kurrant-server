@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
-@Tag(name = "4. Food")
+@Tag(name = "음식(FOOD)")
 @RequestMapping(value = "/v1/dailyfoods")
 @RestController
 @RequiredArgsConstructor
