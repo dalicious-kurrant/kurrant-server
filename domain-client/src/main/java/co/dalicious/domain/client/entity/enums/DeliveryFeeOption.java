@@ -22,7 +22,7 @@ public enum DeliveryFeeOption {
         return Arrays.stream(DeliveryFeeOption.values())
                 .filter(v -> v.getCode().equals(dbData))
                 .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+                .orElse(null);
     }
 
     public static DeliveryFeeOption ofString(String data) {
