@@ -32,7 +32,7 @@ public class CorsFilter implements Filter {
                 || origin.startsWith("https://prod.dalicious.co") || origin.startsWith("https://dev.dalicious.co")|| origin.startsWith("https://dalicious.co")
                 || origin.startsWith("https://kurrant.shop") || origin.startsWith("https://dev.server.kurrant.shop") || origin.startsWith("https://admin.server.kurrant.shop")
                 || origin.startsWith("https://makers.server.kurrant.shop") || origin.startsWith("https://group.server.kurrant.shop")
-                || origin.startsWith("https://admin.kurrant.shop/") || origin.startsWith("https://group.kurrant.shop/") ||origin.startsWith("https://makers.kurrant.shop/")
+                || origin.startsWith("https://admin.kurrant.shop") || origin.startsWith("https://group.kurrant.shop") ||origin.startsWith("https://makers.kurrant.shop")
                 || origin.startsWith("https://api.tosspayments.com/v1/payments/")){
             response.setHeader("Access-Control-Allow-Origin", origin); //허용대상 도메인
         }
