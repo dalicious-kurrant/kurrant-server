@@ -59,4 +59,8 @@ public class OrderItemMembership extends OrderItem{
     public void updateDiscountPrice(BigDecimal discountPrice) {
         this.discountPrice = discountPrice;
     }
+
+    public BigDecimal getPayPrice() {
+        return this.price.subtract(this.discountPrice);
+    }
 }
