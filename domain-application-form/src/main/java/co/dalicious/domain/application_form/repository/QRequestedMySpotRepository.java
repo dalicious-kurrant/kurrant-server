@@ -17,6 +17,7 @@ public class QRequestedMySpotRepository {
     public RequestedMySpot findRequestedMySpotByUserId (BigInteger userId) {
         return queryFactory.selectFrom(requestedMySpot)
                 .where(requestedMySpot.userId.eq(userId))
+                .limit(1)      //to.지성 -> 결과가 2개 일 경우 에러가 나서 수정했습니다.
                 .fetchOne();
     }
 

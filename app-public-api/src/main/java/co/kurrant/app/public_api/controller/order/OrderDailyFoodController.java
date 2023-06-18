@@ -22,7 +22,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-@Tag(name = "3. Order")
+@Tag(name = "주문")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/users/me/orders")
 @RestController

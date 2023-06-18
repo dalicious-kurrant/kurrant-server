@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Tag(name = "2. User")
+@Tag(name = "b. 유저")
 @RequestMapping(value = "/v1/users/me")
 @RestController
 @RequiredArgsConstructor
@@ -333,6 +333,7 @@ public class UserController {
                 .build();
     }
 
+    @Tag(name = "식단리포트")
     @PostMapping("/daily/report/me")
     @Operation(summary = "내 식사 추가하기", description = "식단 리포트에 내가 먹은 음식을 추가한다.")
     public ResponseMessage insertMyFood(Authentication authentication, @RequestBody SaveDailyReportDto saveDailyReportDto){
@@ -343,6 +344,7 @@ public class UserController {
                 .build();
     }
 
+    @Tag(name = "식단리포트")
     @GetMapping("/daily/report")
     @Operation(summary = "식단 리포트 조회", description = "식단 리포트를 조회한다.")
     public ResponseMessage getReport(Authentication authentication, @RequestParam String date){
@@ -353,6 +355,7 @@ public class UserController {
                 .build();
     }
 
+    @Tag(name = "식단리포트")
     @PostMapping("/daily/report/food")
     @Operation(summary = "주문내역을 리포트로 가져온다", description = "유저의 주문 내역을 리포트로 가져온다.")
     public ResponseMessage insertFoodRecord(Authentication authentication, @RequestBody SaveDailyReportFoodReqDto dto){
@@ -373,6 +376,7 @@ public class UserController {
                 .build();
     }
 
+    @Tag(name = "식단리포트")
     @DeleteMapping("/daily/report/{reportId}")
     @Operation(summary = "식단리포트 제거", description = "선택한 식단리포트를 제거 한다.")
     public ResponseMessage deleteDailyReport(Authentication authentication, @PathVariable BigInteger reportId){
@@ -383,6 +387,7 @@ public class UserController {
                 .build();
     }
 
+    @Tag(name = "식단리포트")
     @GetMapping("/daily/report/order")
     @Operation(summary = "주문내역 조회", description = "특정 날짜, 특정 식사타입으로 주문 내역 조회")
     public ResponseMessage getOrderByDateAndDiningType(Authentication authentication, @RequestParam String date, @RequestParam Integer diningType){
@@ -393,6 +398,7 @@ public class UserController {
                 .build();
     }
 
+    @Tag(name = "식단리포트")
     @GetMapping("/daily/report/history")
     @Operation(summary = "식사 히스토리", description = "식사 히스토리에 필요한 정보를 조회한다.")
     public ResponseMessage getMealHistory(Authentication authentication, @RequestParam String startDate, @RequestParam String endDate){
@@ -403,6 +409,7 @@ public class UserController {
                 .build();
     }
 
+    @Tag(name = "식단리포트")
     @PostMapping("/daily/report")
     @Operation(summary = "조회된 식사를 리포트에 추가", description = "식단 리포트 조회로 조회한 음식을 식단에 추가한다.")
     public ResponseMessage saveDailyReport(Authentication authentication, @RequestBody SaveDailyReportReqDto saveDailyReportDto){

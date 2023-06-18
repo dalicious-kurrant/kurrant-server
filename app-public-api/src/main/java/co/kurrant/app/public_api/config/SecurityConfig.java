@@ -39,7 +39,10 @@ public class SecurityConfig {
         .antMatchers("/v1/**").permitAll() // 테스트용
         // .antMatchers("/v1/boards/**").permitAll() // swagger
         // .antMatchers("/swagger-resources/**").permitAll() // swagger
+        .antMatchers("/swagger-ui.html").permitAll()
         .antMatchers("/swagger-ui/**").permitAll() // swagger
+        .antMatchers("/api-docs").permitAll() // swagger
+        .antMatchers("/v3/api-docs/**").permitAll() // swagger
         // .antMatchers("/v1/auth/**").permitAll() // 가입 및 인증 주소는 누구나 접근가능
         // .antMatchers(HttpMethod.GET, "/exception/**", "/helloworld/**",
         // "/actuator/health").permitAll() // 등록된 GET요청 리소스는 누구나 접근가능
@@ -54,7 +57,7 @@ public class SecurityConfig {
 
   @Bean
   public WebSecurityCustomizer webSecurityCustomizer() {
-    return (web) -> web.ignoring().antMatchers("/api-docs", "/api-docs/**", "/swagger-resources/**",
-        "/swagger-ui/**", "/webjars/**", "/swagger/**", "/swagger-ui.html");
+    return (web) -> web.ignoring().antMatchers("/api-docs", "/v3/api-docs/**", "/swagger-resources/**",
+        "/swagger-ui/**", "/webjars/**", "/swagger/**", "/swagger-ui.html", "/v3/api-docs/swagger-config");
   }
 }

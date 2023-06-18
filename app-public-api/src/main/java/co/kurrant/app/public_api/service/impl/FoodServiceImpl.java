@@ -2,17 +2,20 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
-import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
-import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.order.entity.QOrderItemDailyFood;
-import co.dalicious.domain.order.repository.*;
+import co.dalicious.domain.order.mapper.FoodMapper;
+import co.dalicious.domain.order.repository.DailyFoodSupportPriceRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
@@ -27,20 +30,17 @@ import co.dalicious.domain.review.mapper.ReviewMapper;
 import co.dalicious.domain.review.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.order.mapper.FoodMapper;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
-import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
+import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
-import co.kurrant.app.public_api.model.SecurityUser;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import io.swagger.models.auth.In;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
@@ -203,13 +203,11 @@ public class FoodServiceImpl implements FoodService {
         }
 
         if ((photo != null && photo != 0) || (starFilter != null && starFilter.length() != 0) || (keywordFilter != null && !keywordFilter.equals(""))) {
-            pageReviews = qReviewRepository.findAllByfoodIdSort(dailyFood.getFood().getId(), photo, starFilter, keywordFilter, pageable);
+            pageReviews = qReviewRepository.findAllByFoodIdSort(dailyFood.getFood().getId(), photo, starFilter, keywordFilter, pageable);
 
         } else {
             pageReviews = qReviewRepository.findAllByFoodId(dailyFood.getFood().getId(), pageable);
         }
-
-
 
         //대댓글과 별점 추가
         double starAverage;
