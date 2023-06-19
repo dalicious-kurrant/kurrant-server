@@ -335,30 +335,26 @@ public interface ReviewMapper {
     }
 
     default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starAverage, Integer totalReview, BigInteger foodId, Integer sort,
-                                                                Boolean isLast, Integer total, Integer limit, Integer count, BigInteger reviewWrite){
+                                                                BigInteger reviewWrite){
         GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
 
-        getFoodReviewResponseDto.setItems(foodReviewListDtoList);
+        getFoodReviewResponseDto.setReviewList(foodReviewListDtoList);
         getFoodReviewResponseDto.setStarAverage(starAverage);
-        getFoodReviewResponseDto.setIsLast(isLast);
-        getFoodReviewResponseDto.setCount(count);
         getFoodReviewResponseDto.setTotalReview(totalReview);
-        getFoodReviewResponseDto.setTotal(total);
-        getFoodReviewResponseDto.setLimit(limit);
         getFoodReviewResponseDto.setFoodId(foodId);
         getFoodReviewResponseDto.setReviewWrite(reviewWrite);
 
 
         if (sort == 0){ //별점순 같을 경우 최신순
-            getFoodReviewResponseDto.setItems(getFoodReviewResponseDto.getItems().stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction)
+            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction)
                     .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList()));
         }
         if (sort == 1){ //최신순 같을 경우 별점순
-            getFoodReviewResponseDto.setItems(getFoodReviewResponseDto.getItems().stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate)
+            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate)
                     .thenComparing(FoodReviewListDto::getSatisfaction).reversed()).collect(Collectors.toList()));
         }
         if (sort == 2){ //좋아요(도움이돼요)순 같을 경우 최신순
-            getFoodReviewResponseDto.setItems(getFoodReviewResponseDto.getItems().stream().sorted(Comparator.comparing(FoodReviewListDto::getGood)
+            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getGood)
                     .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList()));
         }
 

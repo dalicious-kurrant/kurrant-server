@@ -8,20 +8,19 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, BigDecimal.class})
 public interface OrderDailyFoodHistoryMapper {
-    @Mapping(source = "id", target = "id")
     @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
-    @Mapping(source = "name", target = "name")
     @Mapping(target = "image", expression = "java(orderItemDailyFood.getDailyFood().getFood().getImages() == null || orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty() ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")
     @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate()))")
     @Mapping(source = "orderItemDailyFoodGroup.diningType.code", target = "diningType")
-    @Mapping(source = "count", target = "count")
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())))")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
     @Mapping(source = "dailyFood.dailyFoodStatus.code", target = "dailyFoodStatus")
+    @Mapping(target = "deliveryTime", expression = "java(DateUtils.timeToString(orderItemDailyFood.getDeliveryTime()))")
     OrderHistoryDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
     @Mapping(source = "order.id", target = "id")

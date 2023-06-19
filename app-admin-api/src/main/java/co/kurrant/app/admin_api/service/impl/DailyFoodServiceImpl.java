@@ -19,6 +19,7 @@ import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.mapper.CapacityMapper;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.domain.food.repository.*;
+import co.dalicious.domain.food.util.FoodUtils;
 import co.dalicious.domain.order.dto.ServiceDateBy;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
@@ -223,6 +224,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             dailyFoodGroupMap.add(dailyFoodGroupDto, dailyFood);
         }
 
+        //FIXME: ???
         for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
             List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
             List<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()
@@ -307,7 +309,11 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
             Map<String, String> deliveryScheduleMap = new HashMap<>();
             for(FoodDto.DailyFood dailyFood : Objects.requireNonNull(dailyFoodDtos)) {
-                deliveryScheduleMap.put(dailyFood.getDeliveryTime(), dailyFood.getMakersPickupTime());
+                Makers makers = makersList.stream().filter(v -> v.getName().equals(dailyFood.getMakersName())).findAny()
+                        .orElse(null);
+                if(makers != null && FoodUtils.isValidDeliveryTime(makers, DiningType.ofCode(dailyFood.getDiningType()), DateUtils.stringToLocalTime(dailyFood.getDeliveryTime()))) {
+                    deliveryScheduleMap.put(dailyFood.getDeliveryTime(), dailyFood.getMakersPickupTime());
+                }
             }
 
             DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(deliveryScheduleMap));

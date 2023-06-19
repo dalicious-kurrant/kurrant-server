@@ -4,17 +4,13 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class DateUtils {
-    public static String toISO(Date date) {
-        SimpleDateFormat sdf;
-        sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        return sdf.format(date);
-    }
-
+    private static final String SEPARATOR = ",";
     public static String toISO(Timestamp ts) {
         SimpleDateFormat sdf;
         sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
@@ -50,6 +46,12 @@ public class DateUtils {
         return date.format(formatter);
     }
 
+    public static String formatWithoutSeparator(LocalDate date) {
+        if(date == null) return null;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        return date.format(formatter);
+    }
+
     public static String format(Timestamp timestamp) {
         SimpleDateFormat sdf;
         sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -74,6 +76,22 @@ public class DateUtils {
         return (time == null) ? null : time.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
+    public static String timesToString(List<LocalTime> times) {
+        if (times == null || times.isEmpty()) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (LocalTime deliveryTime : times) {
+            sb.append(DateUtils.timeToString(deliveryTime)).append(SEPARATOR);
+        }
+
+        // remove the last separator
+        sb.setLength(sb.length() - SEPARATOR.length());
+
+        return sb.toString();
+    }
+
     public static String timeToStringWithAMPM(LocalTime time) {
         return time.format(DateTimeFormatter.ofPattern("hh:mm a"));
     }
@@ -84,7 +102,7 @@ public class DateUtils {
         return LocalDate.of(Integer.parseInt(stringList[0]),Integer.parseInt(stringList[1]), Integer.parseInt(stringList[2]));
     }
 
-    public static String localDateToString(LocalDate date) { return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); }
+    public static String localDateToString(LocalDate date) { return date == null ? null : date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); }
 
     public static String localDateTimeToString(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
@@ -95,9 +113,29 @@ public class DateUtils {
         return LocalDateTime.parse(string, formatter);
     }
     public static LocalTime stringToLocalTime(String time) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        return (time == null) ? null : LocalTime.parse(time.trim(), formatter);
+        if (time == null) {
+            return null;
+        }
+
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .appendPattern("HH:mm")
+                .optionalStart()
+                .appendPattern(":ss")
+                .optionalEnd()
+                .toFormatter();
+
+        return LocalTime.parse(time.trim(), formatter);
     }
+
+    public static List<LocalTime> stringToLocalTimes(String timesStr) {
+        String[] timeStrArr = timesStr.split(",|, ");
+        List<LocalTime> times = new ArrayList<>();
+        for (String timeStr : timeStrArr) {
+            times.add(DateUtils.stringToLocalTime(timeStr));
+        }
+        return times;
+    }
+
 
     public static Map<String, LocalDate> getWeekOfDay(LocalDate today) {
         Map<String, LocalDate> weekOfDay = new HashMap<>();
@@ -148,5 +186,9 @@ public class DateUtils {
     public static String toISOLocalDateAndWeekOfDay(Timestamp ts) {
         SimpleDateFormat sdf = new SimpleDateFormat("MM월 dd일 E", Locale.KOREA);
         return sdf.format(ts);
+    }
+
+    public static boolean isBetween(LocalTime timeToCheck, LocalTime minTime, LocalTime maxTime) {
+        return !timeToCheck.isBefore(minTime) && !timeToCheck.isAfter(maxTime);
     }
 }

@@ -22,7 +22,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
-@Tag(name = "1. Auth")
+@Tag(name = "a. 인증")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/auth")
 @RestController

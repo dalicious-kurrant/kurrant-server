@@ -21,7 +21,7 @@ import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.util.ClientUtil;
+import co.dalicious.integration.client.user.utils.ClientUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
@@ -52,7 +52,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -65,8 +64,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 @Service
@@ -105,9 +102,8 @@ public class AuthServiceImpl implements AuthService {
         switch (requiredAuth) {
             case SIGNUP -> {
                 // 기존에 가입된 사용자인지 확인
-                Provider provider = Provider.GENERAL;
                 String mail = mailMessageDto.getReceivers().get(0);
-                userValidator.isEmailValid(provider, mail);
+                userValidator.isEmailValid(mail);
             }
             case FIND_PASSWORD -> {
                 // 존재하는 유저인지 확인
@@ -243,7 +239,7 @@ public class AuthServiceImpl implements AuthService {
         if (user == null) {
             UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail().trim()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
 
-            // Corporation과 Apartment가 null로 대입되는 오류 발생 -> nullable = true 설정
+            // Corporation가 null로 대입되는 오류 발생 -> nullable = true 설정
             user = userMapper.toEntity(userDto);
 
             // User 저장
@@ -281,9 +277,9 @@ public class AuthServiceImpl implements AuthService {
         Integer leftWithdrawDays = null;
 
         if (user.getUserStatus().equals(UserStatus.REQUEST_WITHDRAWAL)) {
-            LocalDateTime withdrawRequestDateTime = user.getUpdatedDateTime().toLocalDateTime();
-            Duration interval = Duration.between(withdrawRequestDateTime, LocalDateTime.now());
-            leftWithdrawDays = (int) interval.toDays();
+            LocalDateTime updatedDateTime = user.getUpdatedDateTime().toLocalDateTime().plusDays(8);
+            Duration duration = Duration.between(LocalDateTime.now(), updatedDateTime);
+            leftWithdrawDays = (int) duration.toDays();
         }
 
         return LoginResponseDto.builder()
@@ -588,6 +584,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void checkUser(FindPasswordUserCheckRequestDto findPasswordUserCheckRequestDto) {
         User user = userRepository.findOneByNameAndEmail(findPasswordUserCheckRequestDto.getName(), findPasswordUserCheckRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        if (user.getUserStatus().equals(UserStatus.REQUEST_WITHDRAWAL)) {
+            LocalDateTime updatedDateTime = user.getUpdatedDateTime().toLocalDateTime().plusDays(8);
+            Duration duration = Duration.between(LocalDateTime.now(), updatedDateTime);
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE400010", "탈퇴한 계정입니다. 계정을 복구하시겠습니까? 복구 가능 남은 기간 " + duration.toDays() + "일");
+        }
     }
 
     @Override

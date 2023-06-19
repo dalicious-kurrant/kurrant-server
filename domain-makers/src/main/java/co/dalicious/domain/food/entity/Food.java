@@ -20,7 +20,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
-import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -29,7 +28,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @DynamicInsert

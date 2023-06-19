@@ -44,10 +44,10 @@ public class DaysUtil {
         return serviceDaysList;
     }
 
-    public static String serviceDaysToDaysString(List<Days> daysList) {
+    public static String serviceDaysToDaysString(Collection<Days> daysCollection) {
         StringBuilder stringBuilder = new StringBuilder();
-        if(daysList == null || daysList.isEmpty()) return String.valueOf(stringBuilder);
-        for(Days days : daysList) {
+        if(daysCollection == null || daysCollection.isEmpty()) return null;
+        for(Days days : daysCollection) {
             stringBuilder.append(days.getDays()).append(", ");
         }
         return stringBuilder.substring(0, stringBuilder.length() - 2);
@@ -61,6 +61,15 @@ public class DaysUtil {
     }
 
     public static String serviceDaysSetToString(Set<Days> daysList) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if(daysList == null || daysList.isEmpty()) return String.valueOf(stringBuilder);
+        for(Days days : daysList) {
+            stringBuilder.append(days.getDays()).append(", ");
+        }
+        return stringBuilder.substring(0, stringBuilder.length() - 2);
+    }
+
+    public static String stringToDaysStringList(List<Days> daysList) {
         StringBuilder stringBuilder = new StringBuilder();
         if(daysList == null || daysList.isEmpty()) return String.valueOf(stringBuilder);
         for(Days days : daysList) {

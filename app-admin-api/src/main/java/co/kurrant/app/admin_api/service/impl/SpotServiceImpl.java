@@ -33,9 +33,6 @@ public class SpotServiceImpl implements SpotService {
     private final QGroupRepository qGroupRepository;
     private final GroupMapper groupMapper;
     private final GroupRepository groupRepository;
-    private final MealInfoRepository mealInfoRepository;
-
-    private final UserRepository userRepository;
 
     @Override
     public List<SpotResponseDto> getAllSpotList(Integer status) {
@@ -77,80 +74,8 @@ public class SpotServiceImpl implements SpotService {
         // TODO: 그룹이 가지고 있지 않은 스팟이면 생성금지
         for (Spot spot : spotMap.keySet()) {
             List<DiningType> spotDiningTypes = DiningTypesUtils.stringToDiningTypes(spotMap.get(spot).getDiningType());
-
-            MealInfo morningMealInfo = (spotDiningTypes.contains(DiningType.MORNING)) ? spotMapper.toMealInfo(spot.getGroup(), DiningType.MORNING, spotMap.get(spot).getBreakfastLastOrderTime(), spotMap.get(spot).getBreakfastDeliveryTime(), spotMap.get(spot).getBreakfastUseDays(), spotMap.get(spot).getBreakfastMembershipBenefitTime()) : null;
-            MealInfo lunchMealInfo = (spotDiningTypes.contains(DiningType.LUNCH)) ? spotMapper.toMealInfo(spot.getGroup(), DiningType.LUNCH, spotMap.get(spot).getLunchLastOrderTime(), spotMap.get(spot).getLunchDeliveryTime(), spotMap.get(spot).getLunchUseDays(), spotMap.get(spot).getLunchMembershipBenefitTime()) : null;
-            MealInfo dinnerMealInfo = (spotDiningTypes.contains(DiningType.DINNER)) ? spotMapper.toMealInfo(spot.getGroup(), DiningType.DINNER, spotMap.get(spot).getDinnerLastOrderTime(), spotMap.get(spot).getDinnerDeliveryTime(), spotMap.get(spot).getDinnerUseDays(), spotMap.get(spot).getDinnerMembershipBenefitTime()) : null;
-            // CASE 1: 스팟에 식사 정보가 존재하지 않을 경우
-            if (spot.getMealInfos().isEmpty()) {
-                if (morningMealInfo != null) {
-                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.MORNING);
-                    mealInfo.updateMealInfo(morningMealInfo, mealInfo);
-                }
-                if (lunchMealInfo != null) {
-                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.LUNCH);
-                    mealInfo.updateMealInfo(lunchMealInfo, mealInfo);
-                }
-                if (dinnerMealInfo != null) {
-                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.DINNER);
-                    mealInfo.updateMealInfo(dinnerMealInfo, mealInfo);
-                }
-                spot.updateSpot(spotMap.get(spot));
-                spot.updatedDiningTypes(morningMealInfo, lunchMealInfo, dinnerMealInfo);
-            }
-            // CASE 2: 스팟에 식사 정보가 존재하지만, 요청값에 없는 경우
-            else if (morningMealInfo == null && lunchMealInfo == null && dinnerMealInfo == null) {
-                spot.updateSpot(spotMap.get(spot));
-                spot.updatedDiningTypes(null, null, null);
-            }
-            // CASE 3: 스팟에 식사 정보가 존재하며 요청값에도 존재할 경우
-            else {
-                List<MealInfo> mealInfos = spot.getMealInfos();
-                Map<DiningType, MealInfo> updatedMealInfos = new HashMap<>();
-                updatedMealInfos.put(DiningType.MORNING, morningMealInfo);
-                updatedMealInfos.put(DiningType.LUNCH, lunchMealInfo);
-                updatedMealInfos.put(DiningType.DINNER, dinnerMealInfo);
-
-                for (MealInfo mealInfo : mealInfos) {
-                    DiningType diningType = mealInfo.getDiningType();
-                    if (updatedMealInfos.containsKey(diningType)) {
-                        MealInfo updatedMealInfo = updatedMealInfos.get(diningType);
-                        if (updatedMealInfo != null) {
-                            mealInfo.updateMealInfo(updatedMealInfo, mealInfo);
-                        }
-                        updatedMealInfos.remove(diningType);
-                    }
-                }
-
-                for (Map.Entry<DiningType, MealInfo> entry : updatedMealInfos.entrySet()) {
-                    DiningType diningType = entry.getKey();
-                    MealInfo updatedMealInfo = entry.getValue();
-                    if (updatedMealInfo != null) {
-                        switch (diningType) {
-                            case MORNING -> {
-                                if (morningMealInfo != null) {
-                                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.MORNING);
-                                    mealInfo.updateMealInfo(morningMealInfo, mealInfo);
-                                }
-                            }
-                            case LUNCH -> {
-                                if (lunchMealInfo != null) {
-                                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.LUNCH);
-                                    mealInfo.updateMealInfo(lunchMealInfo, mealInfo);
-                                }
-                            }
-                            case DINNER -> {
-                                if (dinnerMealInfo != null) {
-                                    MealInfo mealInfo = spot.getGroup().getMealInfo(DiningType.MORNING);
-                                    mealInfo.updateMealInfo(dinnerMealInfo, mealInfo);
-                                }
-                            }
-                        }
-                    }
-                }
-                spot.updateSpot(spotMap.get(spot));
-                spot.updatedDiningTypes(morningMealInfo, lunchMealInfo, dinnerMealInfo);
-            }
+            spotDiningTypes.retainAll(spot.getGroup().getDiningTypes());
+            spot.updateDiningTypes(spotDiningTypes);
         }
 
         // FIXME 스팟 생성

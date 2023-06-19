@@ -2,6 +2,7 @@ package co.dalicious.domain.paycheck.service;
 
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.dto.OrderCount;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -17,13 +18,13 @@ import java.util.List;
 public interface PaycheckService {
     TransactionInfoDefault getTransactionInfoDefault();
     // 월별 메이커스 정산.
-    List<MakersPaycheck> generateAllMakersPaycheck(List<? extends PaycheckDto.PaycheckDailyFood> paycheckDailyFoods);
+    List<MakersPaycheck> generateAllMakersPaycheck(List<? extends PaycheckDto.PaycheckDailyFood> paycheckDailyFoods, YearMonth yearMonth);
 
     // 메이커스 정산 Entity를 생성한다.
     MakersPaycheck generateMakersPaycheck(Makers makers, List<OrderItemDailyFood> dailyFoods);
 
     // 고객사 정산 Entity를 생성한다.
-    CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices, YearMonth yearMonth);
+    CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices, OrderCount count, YearMonth yearMonth);
 
     // 고객사 정산 Entity를 생성한다.
 //    CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer membershipSupportPriceCount);

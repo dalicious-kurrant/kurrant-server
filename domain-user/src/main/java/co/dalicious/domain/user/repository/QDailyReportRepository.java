@@ -1,10 +1,11 @@
 package co.dalicious.domain.user.repository;
 
+import co.dalicious.domain.user.dto.DailyReportByDate;
 import co.dalicious.domain.user.entity.DailyReport;
 import co.dalicious.system.enums.DiningType;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import net.bytebuddy.asm.Advice;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
@@ -46,5 +47,28 @@ public class QDailyReportRepository {
 
 
 
+    }
+
+    public long deleteReport(BigInteger userId, BigInteger reportId) {
+        return queryFactory.delete(dailyReport)
+                .where(dailyReport.user.id.eq(userId),
+                        dailyReport.id.eq(reportId))
+                .execute();
+    }
+
+    public List<DailyReportByDate> findByUserIdAndDateBetween(BigInteger userId, LocalDate startDate, LocalDate endDate) {
+
+        return queryFactory.select(Projections.constructor(DailyReportByDate.class,
+                        dailyReport.eatDate.as("eatDate"),
+                        dailyReport.calorie.sum().as("calorie"),
+                        dailyReport.carbohydrate.sum().as("carbohydrate"),
+                        dailyReport.protein.sum().as("protein"),
+                        dailyReport.fat.sum().as("fat")))
+                .from(dailyReport)
+                .groupBy(dailyReport.eatDate, dailyReport.user.id)
+                .having(dailyReport.user.id.eq(userId),
+                        dailyReport.eatDate.between(startDate, endDate))
+                .orderBy(dailyReport.eatDate.asc())
+                .fetch();
     }
 }

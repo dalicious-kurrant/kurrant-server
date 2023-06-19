@@ -68,10 +68,12 @@ public class QMembershipRepository {
             whereClause.and(membership.user.id.eq(userId));
         }
         if(userId == null && group != null) {
-            List<User> groupUsers = queryFactory.selectFrom(userGroup.user)
+            List<User> groupUsers = queryFactory.select(userGroup.user)
+                    .from(userGroup)
                     .where(userGroup.group.eq(group), userGroup.clientStatus.eq(ClientStatus.BELONG))
                     .fetch();
 
+            if(!groupUsers.isEmpty())
             whereClause.and(membership.user.in(groupUsers));
         }
         return queryFactory

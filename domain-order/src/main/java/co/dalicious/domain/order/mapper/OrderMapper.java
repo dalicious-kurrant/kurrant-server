@@ -80,7 +80,7 @@ public interface OrderMapper {
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getOrderItemTotalPrice())")
     @Mapping(target = "supplyPrice", expression = "java(orderItemDailyFood.getOrderItemSupplyPrice())")
     @Mapping(source = "count", target = "count")
-    @Mapping(target = "deliveryTime", expression = "java(DateUtils.timeToString(orderItemDailyFood.getOrderItemDailyFoodGroup().getDeliveryTime()))")
+    @Mapping(target = "deliveryTime", expression = "java(DateUtils.timeToString(orderItemDailyFood.getDeliveryTime()))")
     OrderDto.OrderItemDailyFood orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
 
     @Mapping(source = "id", target = "orderItemDailyFoodId")
@@ -301,7 +301,7 @@ public interface OrderMapper {
     @Mapping(target = "spotName", expression = "java(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpotName())")
     @Mapping(source = "dailyFood.diningType.diningType", target = "diningType")
     @Mapping(source = "createdDateTime", target = "orderDateTime", qualifiedByName = "timeStampToString")
-    @Mapping(target = "deliveryTime", expression = "java(DateUtils.timeToString(orderItemDailyFood.getOrderItemDailyFoodGroup().getDeliveryTime()))")
+    @Mapping(target = "deliveryTime", expression = "java(DateUtils.timeToString(orderItemDailyFood.getDeliveryTime()))")
     OrderDto.ClientOrderItemDailyFood orderItemDailyFoodToClientDto(OrderItemDailyFood orderItemDailyFood);
 
     default List<OrderDto.ClientOrderItemDailyFood> orderItemDailyFoodToClientDtos(List<OrderItemDailyFood> orderItemDailyFoods) {

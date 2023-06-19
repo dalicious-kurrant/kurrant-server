@@ -1,223 +1,217 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.client.dto.OpenGroupDetailDto;
+import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
+import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.mapper.GroupResponseMapper;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.mapper.OpenGroupMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.domain.user.entity.enums.ClientType;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
-import co.dalicious.domain.user.mapper.UserSpotDetailResMapper;
+import co.dalicious.domain.client.entity.MySpot;
+import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
+import co.dalicious.integration.client.user.mapper.UserSpotMapper;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DistanceUtil;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class UserClientServiceImpl implements UserClientService {
-    private final GroupResponseMapper groupResponseMapper;
     private final UserUtil userUtil;
     private final UserGroupRepository userGroupRepository;
     private final SpotRepository spotRepository;
     private final UserSpotRepository userSpotRepository;
     private final GroupRepository groupRepository;
     private final UserSpotDetailResMapper userSpotDetailResMapper;
+    private final UserSpotMapper userSpotMapper;
+    private final QGroupRepository qGroupRepository;
+    private final OpenGroupMapper openGroupMapper;
+    private final UserGroupMapper userGroupMapper;
 
     @Override
     @Transactional
     public ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-        // 유저가 가지고 있는 유저 스팟 가져오기
-        List<UserSpot> userSpots = user.getUserSpots();
-        // 스팟 정보 가져오기
-        Spot spot = spotRepository.findById(spotId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-        );
-        // 유저가 등록한 스팟인지 검증
-        UserSpot userSpot = userSpots.stream()
-                .filter(v -> v.getSpot().equals(spot))
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_SET_SPOT));
-        // 스팟에 속한 그룹 가져오기
-        Group group = spot.getGroup();
-        // 유저가 그룹에 속하지 않는다면 예외처리
-        user.getGroups().stream()
-                .filter(g -> g.getGroup().equals(group) && g.getClientStatus().equals(ClientStatus.BELONG))
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
-        // 식사 정보 가져오기
+        Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        Group group = (Group) Hibernate.unproxy(spot.getGroup());
+        isGroupMember(user, group);
+
+        UserSpot userSpot = getUserSpot(spotId, user);
+      
+        if(userSpot == null) throw new ApiException(ExceptionEnum.NOT_SET_SPOT);
         return userSpotDetailResMapper.toDto(userSpot);
     }
 
     @Override
     @Transactional
-    //TODO: 오픈 스팟 수정
     public BigInteger selectUserSpot(SecurityUser securityUser, BigInteger spotId) {
         // 유저를 조회한다.
         User user = userUtil.getUser(securityUser);
-        // 스팟을 가져온다.
-        Spot spot = spotRepository.findById(spotId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-        );
-        ClientType spotClientType = (spot instanceof ApartmentSpot) ? ClientType.APARTMENT : ClientType.CORPORATION;
-        // 유저가 스팟 그룹에 등록되었는지 검사한다.
-        Group group = spot.getGroup();
-        List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
-        groups.stream().filter(v -> v.getGroup().equals(group))
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
-        List<UserSpot> userSpots = user.getUserSpots();
 
-        // 등록하려는 스팟이 아파트일 경우
-        if (spotClientType.equals(ClientType.APARTMENT)) {
-            // 아파트 스팟이 존재할 경우, 이전에 등록된 스팟과 일치하는지 확인한다.
-            Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().equals(spot) && v.getClientType().equals(ClientType.APARTMENT)).findAny();
-            if (userSpot.isPresent()) {
-                user.userSpotSetNull();
-                userSpot.get().updateDefault(true);
-                return spot.getId();
-            }
-            return null;
-        }
-        // 등록하려는 스팟이 기업/오픈그룹일 경우
-        // 유저 스팟에서 기업/오픈그룹 스팟이 존재하는지 확인한다.
-        Optional<UserSpot> optionalUserSpot = userSpots.stream().filter(v -> v.getClientType().equals(ClientType.CORPORATION) || v.getClientType().equals(ClientType.OPEN_GROUP)).findAny();
-        ClientType clientType = null;
-        if(spot instanceof  CorporationSpot) {
-            clientType = ClientType.CORPORATION;
-        }
-        else if(spot instanceof OpenGroupSpot) {
-            clientType = ClientType.OPEN_GROUP;
-        }
-        // 기업/오픈그룹이 존재할 경우 업데이트 한다.
-        if (optionalUserSpot.isPresent()) {
-            UserSpot userSpot = optionalUserSpot.get();
-            user.userSpotSetNull();
-            if (!userSpot.getSpot().equals(spot)) {
-                userSpot.updateSpot(spot);
-                userSpot.updateClientType(clientType);
-            }
-            optionalUserSpot.get().updateDefault(true);
-            return spot.getId();
-        }
-        // 기업/오픈그룹 스팟이 존재하지 않을 경우 유저 스팟을 저장한다.
-        else {
-            UserSpot newUserSpot = UserSpot.builder()
-                    .spot(spot)
-                    .user(user)
-                    .clientType(clientType)
-                    .build();
-            user.userSpotSetNull();
-            newUserSpot.updateDefault(true);
-            userSpotRepository.save(newUserSpot);
-            return spot.getId();
-        }
-    }
+        // default spot update to false - 기존 디폴트 스팟을 false로 변경
+        resetDefaultSpot(user);
 
-    @Override
-    @Transactional
-    public BigInteger saveUserDefaultSpot(SecurityUser securityUser, ClientSpotDetailReqDto clientSpotDetailReqDto, BigInteger spotId) {
-        // 유저 정보를 가져온다.
-        User user = userUtil.getUser(securityUser);
-        // 스팟을 가져온다.
-        Spot spot = spotRepository.findById(spotId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-        );
-        // 기존에 존재하는 아파트 스팟이 있는지 확인한다.
-        Optional<UserSpot> userSpot = user.getUserSpots().stream()
-                .filter(v -> v.getClientType().equals(ClientType.APARTMENT))
-                .findAny();
-        // 존재하는 아파트 스팟이 있다면, 업데이트 시켜준다.
-        if(userSpot.isPresent()) {
-            UserSpot selectedUserSpot = userSpot.get();
-            user.getUserSpots().stream().filter(v -> !v.equals(selectedUserSpot)).forEach(us -> us.updateDefault(false));
-            selectedUserSpot.updateSpot(spot);
-            selectedUserSpot.updateHo(clientSpotDetailReqDto.getHo());
-            selectedUserSpot.updateDefault(true);
-            return selectedUserSpot.getId();
-        }
-        // 존재하는 아파트가 없다면 저장한다.
-        UserSpot newUserSpot = UserSpot.builder()
-                .clientType(ClientType.APARTMENT)
-                .isDefault(true)
-                .user(user)
-                .spot(spot)
-                .build();
-        newUserSpot.updateHo(clientSpotDetailReqDto.getHo());
+        // 유저가 가진 스팟 중에 해당 스팟이 있는지 확인
+        UserSpot userSpot = getUserSpot(spotId, user);
 
-        return userSpotRepository.save(newUserSpot).getId();
-
-    }
-
-    @Override
-    @Transactional
-    public BigInteger updateUserHo(SecurityUser securityUser, ClientSpotDetailReqDto spotDetailReqDto, BigInteger spotId) {
-        // 유저 정보를 가져온다.
-        User user = userUtil.getUser(securityUser);
-        // 스팟을 가져온다.
-        Spot spot = spotRepository.findById(spotId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-        );
-        // 기존에 존재하는 아파트 스팟이 있는지 확인한다.
-        Optional<UserSpot> userSpot = user.getUserSpots().stream()
-                .filter(v -> v.getSpot().equals(spot))
-                .findAny();
-        if(userSpot.isEmpty()) {
+        Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        // MySpot의 userId 와 일치하는지 검증
+        if (spot instanceof MySpot mySpot && !user.getId().equals(mySpot.getUserId())) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
-        userSpot.get().updateHo(spotDetailReqDto.getHo());
-        return userSpot.get().getId();
+        Group group = (Group) Hibernate.unproxy(spot.getGroup());
+        isGroupMember(user, group);
+
+        // 유저 스팟에 등록되지 않은 경우
+        if (userSpot == null) {
+            userSpot = registerNewUserSpot(spot, user);
+        }
+        userSpot.updateDefault(true);
+        return spot.getId();
+
     }
 
     @Override
     @Transactional
-    public Integer withdrawClient(SecurityUser securityUser, BigInteger clientId) {
+    public Integer withdrawClient(SecurityUser securityUser, BigInteger spotId) {
         // 유저를 조회한다.
         User user = userUtil.getUser(securityUser);
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
-        Group group = groupRepository.findById(clientId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)
-        );
-        UserGroup userGroup = groups.stream().filter(v -> v.getGroup().equals(group))
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        Group group = groupRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        Group unproxiedGroup = (Group) Hibernate.unproxy(group);
+        UserGroup userGroup = isGroupMember(user, unproxiedGroup);
         // 유저 그룹 상태를 탈퇴로 만든다.
         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
         List<UserSpot> userSpots = user.getUserSpots();
         Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
                 .findAny();
-        userSpot.ifPresent(userSpotRepository::delete);
+        userSpot.ifPresent(v -> {
+            Spot spot = v.getSpot();
+            if(spot instanceof MySpot myspot) myspot.updateMySpotForDelete();
+            userSpotRepository.delete(v);
+        });
         // 다른 그룹이 존재하는지 여부에 따라 Return값 결정(스팟 선택 화면 || 그룹 신청 화면)
         return (groups.size() - 1 > 0) ? SpotStatus.NO_SPOT_BUT_HAS_CLIENT.getCode() : SpotStatus.NO_SPOT_AND_CLIENT.getCode();
+
     }
 
     @Override
     @Transactional
-    public List<OpenGroupResponseDto> getOpenGroupsAndApartments(SecurityUser securityUser) {
-        List<Group> groups = groupRepository.findAll();
-        List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
-        for (Group group : groups) {
-            openGroupResponseDtos.add(groupResponseMapper.toOpenGroupDto(group));
-        }
-        openGroupResponseDtos = openGroupResponseDtos.stream().sorted(Comparator.comparing(OpenGroupResponseDto::getName)).toList();
-        return openGroupResponseDtos;
+    public OpenGroupDetailDto getOpenSpotDetail(SecurityUser securityUser, BigInteger groupId) {
+        User user = userUtil.getUser(securityUser);
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+
+        return openGroupMapper.toOpenGroupDetailDto((OpenGroup) group);
     }
+
+    @Override
+    @Transactional
+    public List<OpenGroupListForKeywordDto> getOpenGroupsForKeyword(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+
+        List<Group> groups = qGroupRepository.findAllOpenGroup();
+        List<OpenGroupListForKeywordDto> openGroupListForKeywordDtos = new ArrayList<>();
+        if(groups.isEmpty()) return  openGroupListForKeywordDtos;
+
+        return groups.stream().map(openGroupMapper::toOpenGroupListForKeywordDto).toList();
+    }
+
+    @Override
+    @Transactional
+    public List<CorporationResponseDto> getUserCorporation(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        List<UserGroup> userGroups = user.getGroups().stream().filter(g -> g.getClientStatus().equals(ClientStatus.BELONG) && Hibernate.unproxy(g.getGroup()) instanceof Corporation).toList();
+
+        List<CorporationResponseDto> corporationResponseDtos = new ArrayList<>();
+        if(userGroups.isEmpty()) return corporationResponseDtos;
+
+        return userGroupMapper.toCorporationResponseDtoList(userGroups);
+    }
+
+    @Override
+    @Transactional
+    public ListItemResponseDto<OpenGroupResponseDto> getOpenGroups(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
+        Boolean isRestriction = parameters.get("isRestriction") == null || !parameters.containsKey("isRestriction") ? null : Boolean.valueOf(String.valueOf(parameters.get("isRestriction")));
+        List<DiningType> diningType = parameters.get("diningType") == null || !parameters.containsKey("diningType") ? null : StringUtils.parseIntegerList(String.valueOf(parameters.get("diningType"))).stream().map(DiningType::ofCode).toList();
+        Double latitude = Double.valueOf(String.valueOf(location.get("lat")));
+        Double longitude = Double.valueOf(String.valueOf(location.get("long")));
+
+        Page<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType, pageable);
+        List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
+        if (groups.isEmpty() || groups == null) {
+            return ListItemResponseDto.<OpenGroupResponseDto>builder().items(openGroupResponseDtos).limit(pageable.getPageSize()).total(0L).count(0).offset(0L).isLast(true).build();
+        }
+
+        Map<BigInteger, List<Double>> locationMap = new HashMap<>();
+        groups.forEach(group -> {
+            List<Double> locationArr = DistanceUtil.parsLocationToDouble(group.getAddress().locationToString());
+            locationMap.put(group.getId(), locationArr);
+        });
+        List<Map.Entry<BigInteger, Double>> sortedDataList = DistanceUtil.sortByDistance(locationMap, latitude, longitude);
+
+        // 결과 출력
+        for (Map.Entry<BigInteger, Double> entry : sortedDataList) {
+            Group group = groups.stream().filter(g -> g.getId().equals(entry.getKey())).findAny().orElse(null);
+            if (group == null) continue;
+            double distance = entry.getValue();
+            openGroupResponseDtos.add(openGroupMapper.toOpenGroupDto((OpenGroup) group, distance));
+        }
+
+        return ListItemResponseDto.<OpenGroupResponseDto>builder().items(openGroupResponseDtos).limit(pageable.getPageSize()).total((long) groups.getTotalPages())
+                .count(groups.getNumberOfElements()).offset(pageable.getOffset()).isLast(groups.isLast()).build();
+    }
+
+    private void resetDefaultSpot(User user) {
+        UserSpot defaultSpot = user.getDefaultUserSpot();
+        if (defaultSpot != null) defaultSpot.updateDefault(false);
+    }
+
+    private UserGroup isGroupMember(User user, Group group) {
+        List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
+        return groups.stream()
+                .filter(v -> Hibernate.unproxy(v.getGroup()).equals(group))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+    }
+
+    private UserSpot getUserSpot(BigInteger spotId, User user) {
+        return user.getUserSpots().stream()
+                .filter(s -> s.getSpot() != null && s.getSpot().getId().equals(spotId))
+                .findAny()
+                .orElse(null);
+    }
+
+    private UserSpot registerNewUserSpot(Spot spot, User user) {
+        GroupDataType spotGroupDataType = (spot instanceof CorporationSpot) ? GroupDataType.CORPORATION : GroupDataType.OPEN_GROUP;
+        UserSpot newUserSpot = userSpotMapper.toUserSpot(spot, user, true, spotGroupDataType);
+        userSpotRepository.save(newUserSpot);
+
+        return newUserSpot;
+    }
+
 }

@@ -42,3 +42,6 @@ include 'domain-paycheck'
 include 'domain-event'
 include 'domain-logs'
 
+include 'integration-client-user'
+include 'domain-delivery'
+

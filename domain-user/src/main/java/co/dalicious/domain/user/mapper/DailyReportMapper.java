@@ -1,10 +1,12 @@
 package co.dalicious.domain.user.mapper;
 
+import co.dalicious.domain.user.dto.DailyReportByDate;
 import co.dalicious.domain.user.dto.FindDailyReportResDto;
-import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
+import co.dalicious.domain.user.dto.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.DailyReport;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
+import co.kurrant.app.public_api.dto.order.OrderItemDailyFoodToDailyReportDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -14,6 +16,18 @@ import java.time.LocalDate;
 @Mapper(componentModel = "spring")
 public interface DailyReportMapper {
 
+    @Mapping(source = "imageLocation", target = "imageLocation")
+    @Mapping(source = "saveDailyReportDto.name", target = "foodName")
+    @Mapping(source = "saveDailyReportDto.calorie", target = "calorie")
+    @Mapping(source = "saveDailyReportDto.protein", target = "protein")
+    @Mapping(source = "saveDailyReportDto.fat", target = "fat")
+    @Mapping(source = "saveDailyReportDto.carbohydrate", target = "carbohydrate")
+    @Mapping(source = "saveDailyReportDto.eatDate", target = "eatDate", qualifiedByName = "convertDate")
+    @Mapping(source = "saveDailyReportDto.diningType", target = "diningType", qualifiedByName = "generatedDiningType")
+    @Mapping(source = "title", target = "title")
+    @Mapping(source = "type", target = "type")
+    @Mapping(source = "user", target = "user")
+    DailyReport toEntity(User user, SaveDailyReportDto saveDailyReportDto, String type, String title, String imageLocation);
 
     @Mapping(source = "saveDailyReportDto.name", target = "foodName")
     @Mapping(source = "saveDailyReportDto.calorie", target = "calorie")
@@ -38,16 +52,41 @@ public interface DailyReportMapper {
     }
 
 
-    @Mapping(source = "diningType", target = "diningType")
-    @Mapping(source = "eatDate", target = "eatDate")
-    @Mapping(source = "calorie", target = "calorie")
-    @Mapping(source = "protein", target = "protein")
-    @Mapping(source = "fat", target = "fat")
-    @Mapping(source = "carbohydrate", target = "carbohydrate")
-    @Mapping(source = "title", target = "title")
+    @Mapping(source = "dailyReportDto.diningType", target = "diningType")
+    @Mapping(source = "dailyReportDto.eatDate", target = "eatDate")
+    @Mapping(source = "dailyReportDto.calorie", target = "calorie")
+    @Mapping(source = "dailyReportDto.protein", target = "protein")
+    @Mapping(source = "dailyReportDto.fat", target = "fat")
+    @Mapping(source = "dailyReportDto.carbohydrate", target = "carbohydrate")
+    @Mapping(source = "dailyReportDto.title", target = "title")
     @Mapping(source = "type", target = "type")
-    @Mapping(source = "name", target = "foodName")
+    @Mapping(source = "dailyReportDto.name", target = "foodName")
     @Mapping(source = "user", target = "user")
-    DailyReport toEntityByOrderItemDailyFood(User user, String name, Integer carbohydrate, Integer fat, Integer protein, Integer calorie, LocalDate eatDate, DiningType diningType, String type, String title);
+    DailyReport toEntityByOrderItemDailyFood(User user, OrderItemDailyFoodToDailyReportDto dailyReportDto, String type);
+
+
+
+    @Mapping(source = "dailyReport.id", target = "reportId")
+    @Mapping(source = "dailyReport.imageLocation", target = "imgLocation")
+    @Mapping(source = "dailyReport.carbohydrate", target = "carbohydrate")
+    @Mapping(source = "dailyReport.protein", target = "protein")
+    @Mapping(source = "dailyReport.fat", target = "fat")
+    @Mapping(source = "dailyReport.calorie", target = "calorie")
+    @Mapping(source = "dailyReport.foodName", target = "foodName")
+    @Mapping(source = "dailyReport.title", target = "title")
+    @Mapping(source = "dailyReport.diningType", target = "diningType", qualifiedByName = "diningTypeToInteger")
+    FindDailyReportResDto toFindDailyReportDto(DailyReport dailyReport);
+
+    @Named("diningTypeToInteger")
+    default Integer diningTypeToInteger(DiningType diningType){
+        return diningType.getCode();
+    }
+
+    @Mapping(source = "dailyReport.calorie", target = "calorie")
+    @Mapping(source = "dailyReport.protein", target = "protein")
+    @Mapping(source = "dailyReport.carbohydrate", target = "carbohydrate")
+    @Mapping(source = "dailyReport.fat", target = "fat")
+    @Mapping(source = "dailyReport.eatDate", target = "eatDate")
+    DailyReportByDate toDailyReportByDateDto(DailyReportByDate dailyReport);
 
 }

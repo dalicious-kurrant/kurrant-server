@@ -1,5 +1,6 @@
 package co.dalicious.domain.food.repository;
 
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.dto.UpdateMakersReqDto;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
@@ -53,6 +54,14 @@ public class QMakersCapacityRepository {
         queryFactory.delete(makersCapacity)
                 .where(makersCapacity.makers.id.eq(id))
                 .execute();
+    }
+
+    public List<DayAndTime> getMakersCapacityLastOrderTime() {
+        return queryFactory.select(makersCapacity.lastOrderTime)
+                .from(makersCapacity)
+                .where(makersCapacity.lastOrderTime.isNotNull())
+                .distinct()
+                .fetch();
     }
 
 }

@@ -1,9 +1,8 @@
 package co.dalicious.domain.client.repository;
 
-import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
-import co.dalicious.domain.client.entity.Apartment;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.OpenGroup;
+import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -17,7 +16,12 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
+import static co.dalicious.domain.client.entity.QCorporation.corporation;
 import static co.dalicious.domain.client.entity.QGroup.group;
+import static co.dalicious.domain.client.entity.QMealInfo.mealInfo;
+import static co.dalicious.domain.client.entity.QOpenGroup.openGroup;
+import static co.dalicious.domain.client.entity.QOpenGroupSpot.openGroupSpot;
+import static co.dalicious.domain.client.entity.QSpot.spot;
 
 
 @Repository
@@ -44,6 +48,26 @@ public class QGroupRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
+    public Page<Group> findAllExceptForMySpot(BigInteger groupId, Integer limit, Integer page, Pageable pageable) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if(groupId != null) {
+            whereClause.and(group.id.eq(groupId));
+        }
+
+        int offset = limit * (page - 1);
+
+        QueryResults<Group> results = queryFactory.selectFrom(group)
+                .leftJoin(corporation).on(group.id.eq(corporation.id))
+                .leftJoin(openGroup).on(group.id.eq(openGroup.id))
+                .where(whereClause, corporation.id.isNotNull().or(openGroup.id.isNotNull()))
+                .orderBy(group.id.asc())
+                .limit(limit)
+                .offset(offset)
+                .fetchResults();
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
     public List<Group> findAllByNames(Set<String> groupNames) {
         return queryFactory.selectFrom(group)
                 .where(group.name.in(groupNames))
@@ -62,9 +86,9 @@ public class QGroupRepository {
                 .fetch();
     }
 
-    public List<? extends Group> findAllOpenGroupAndApartment() {
+    public List<Group> findAllOpenGroup() {
         return queryFactory.selectFrom(group)
-                .where(group.instanceOf(Apartment.class).or(group.instanceOf(OpenGroup.class)))
+                .where(group.instanceOf(OpenGroup.class))
                 .fetch();
     }
 
@@ -96,6 +120,77 @@ public class QGroupRepository {
         return queryFactory.select(group.id)
                 .from(group)
                 .where(group.id.eq(groupId))
+                .fetchOne();
+    }
+
+    public List<? extends Group> findGroupByType(GroupDataType groupDataType) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+        if(groupDataType.equals(GroupDataType.CORPORATION)) {
+            whereCause.and(group.instanceOf(Corporation.class));
+        }
+
+        if(groupDataType.equals(GroupDataType.OPEN_GROUP)) {
+            whereCause.and(group.instanceOf(OpenGroup.class));
+        }
+
+        if(groupDataType.equals(GroupDataType.MY_SPOT)) {
+            whereCause.and(group.instanceOf(MySpotZone.class));
+        }
+
+        return queryFactory.selectFrom(group)
+                .where(whereCause)
+                .fetch();
+    }
+
+    public List<Group> findGroupAndAddressIsNull() {
+        return queryFactory.selectFrom(group)
+                .where(group.address.location.isNull(), group.instanceOf(OpenGroup.class).or(group.instanceOf(Corporation.class)))
+                .fetch();
+    }
+
+    public List<Group> findGroupAndAddress3IsNull() {
+        return queryFactory.selectFrom(group)
+                .where(group.address.address3.isNull(), group.instanceOf(OpenGroup.class).or(group.instanceOf(Corporation.class)))
+                .fetch();
+    }
+
+    public Page<Group> findOPenGroupByFilter (Boolean isRestriction, List<DiningType> diningType, Pageable pageable) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if (isRestriction != null) {
+            whereCause.and(openGroupSpot.isRestriction.eq(isRestriction));
+        }
+        if (diningType != null) {
+            List<Group> openGroupList = queryFactory.select(mealInfo.group)
+                    .from(mealInfo)
+                    .where(mealInfo.instanceOf(OpenGroupMealInfo.class), mealInfo.diningType.in(diningType))
+                    .fetch();
+            whereCause.and(group.in(openGroupList));
+        }
+
+        QueryResults<Group> resultList = queryFactory.selectFrom(group)
+                .leftJoin(mealInfo).on(group.eq(mealInfo.group))
+                .leftJoin(openGroupSpot).on(group.eq(openGroupSpot.group))
+                .where(group.instanceOf(OpenGroup.class), whereCause)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+        return new PageImpl<>(resultList.getResults(),pageable, resultList.getTotal());
+    }
+
+    public Group findGroupByTypeAndId(BigInteger id, GroupDataType groupDataType) {
+        BooleanBuilder whereCause =  new BooleanBuilder();
+
+        if(groupDataType.equals(GroupDataType.CORPORATION)) {
+            whereCause.and(group.instanceOf(Corporation.class));
+        }
+        if(groupDataType.equals(GroupDataType.OPEN_GROUP)) {
+            whereCause.and(group.instanceOf(OpenGroup.class));
+        }
+
+        return queryFactory.selectFrom(group)
+                .where(whereCause, group.id.eq(id))
                 .fetchOne();
     }
 }

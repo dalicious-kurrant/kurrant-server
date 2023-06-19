@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.mapper;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.SpotResponseDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
+import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
@@ -10,12 +11,9 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-
 import co.dalicious.system.util.DaysUtil;
-import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import exception.ApiException;
 import exception.ExceptionEnum;
-import org.hibernate.Hibernate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
@@ -101,15 +99,6 @@ public interface SpotMapper {
                     .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
                     .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
                     .build();
-        } else if (group instanceof Apartment apartment) {
-            return ApartmentMealInfo.builder()
-                    .group(apartment)
-                    .diningType(diningType)
-                    .lastOrderTime(DayAndTime.stringToDayAndTime(lastOrderTime))
-                    .deliveryTimes(deliveryTimes)
-                    .membershipBenefitTime(MealInfo.stringToDayAndTime(membershipBenefitTime))
-                    .serviceDays(DaysUtil.serviceDaysToDaysList(useDays))
-                    .build();
         } else if (group instanceof OpenGroup openGroup) {
             return OpenGroupMealInfo.builder()
                     .group(openGroup)
@@ -163,8 +152,6 @@ public interface SpotMapper {
         //TODO: Location 생성
         String location = spotInfo.getLocation();
         Address address = new Address(spotInfo.getZipCode(), spotInfo.getAddress1(), spotInfo.getAddress2(), location);
-        if (group instanceof Apartment)
-            return new ApartmentSpot(spotInfo.getSpotName(), address, diningTypes, group, spotInfo.getMemo());
         if (group instanceof Corporation)
             return new CorporationSpot(spotInfo.getSpotName(), address, diningTypes, group, spotInfo.getMemo());
         return null;
@@ -174,25 +161,6 @@ public interface SpotMapper {
     default Group generatedGroup(BigInteger groupId) {
         return new Group(groupId);
     }
-
-    @Mapping(source = "group.name", target = "name")
-    @Mapping(source = "group.address", target = "address")
-    @Mapping(source = "group.diningTypes", target = "diningTypes")
-    @Mapping(source = "group", target = "group")
-    CorporationSpot toCorporationSpotEntity(Group group);
-
-    @Mapping(source = "group.name", target = "name")
-    @Mapping(source = "group.address", target = "address")
-    @Mapping(source = "group.diningTypes", target = "diningTypes")
-    @Mapping(source = "group", target = "group")
-    ApartmentSpot toApartmentSpotEntity(Group group);
-
-    @Mapping(source = "group.name", target = "name")
-    @Mapping(source = "group.address", target = "address")
-    @Mapping(source = "group.diningTypes", target = "diningTypes")
-    @Mapping(source = "group", target = "group")
-    OpenGroupSpot toOpenGroupSpotEntity(Group group);
-
 
     default UpdateSpotDetailResponseDto toDetailDto(Group group, User manager, List<MealInfo> mealInfoList) {
         UpdateSpotDetailResponseDto spotDetailResDto = new UpdateSpotDetailResponseDto();
@@ -240,8 +208,6 @@ public interface SpotMapper {
                 spotDetailResDto.setMaxPrice(corporation.getMaximumSpend());
         } else if (group instanceof OpenGroup) {
             spotDetailResDto.setSpotType("OpenGroup");
-        } else if (group instanceof Apartment) {
-            spotDetailResDto.setSpotType("Apartment");
         } else {
             spotDetailResDto.setSpotType("없음");
         }

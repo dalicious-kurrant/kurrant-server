@@ -40,13 +40,12 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "refundDto", target = "refundDto")
     OrderDailyFoodDetailDto orderToDto(OrderDailyFood orderDailyFood, List<OrderDailyFoodDetailDto.OrderItem> orderItems, OrderDailyFoodDetailDto.RefundDto refundDto);
 
-    @Mapping(source = "id", target = "id")
     @Mapping(target = "image", expression = "java(orderItemDailyFood.getDailyFood().getFood().getImages() == null || orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty() ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")
     @Mapping(target = "serviceDate", expression = "java(DateUtils.format(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate()))")
     @Mapping(source = "orderItemDailyFoodGroup.diningType.code", target = "diningType")
     @Mapping(source = "dailyFood.food.makers.name", target = "makers")
     @Mapping(source = "name", target = "foodName")
-    @Mapping(source = "count", target = "count")
+    @Mapping(target = "deliveryTime", expression = "java(DateUtils.timeToString(orderItemDailyFood.getDeliveryTime()))")
     @Mapping(source = "orderStatus.code", target = "orderStatus")
     @Mapping(source = "dailyFood.dailyFoodStatus.code", target = "dailyFoodStatus")
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())))")

@@ -1,6 +1,7 @@
 package co.kurrant.batch.service;
 
 import co.dalicious.domain.client.entity.DayAndTime;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
