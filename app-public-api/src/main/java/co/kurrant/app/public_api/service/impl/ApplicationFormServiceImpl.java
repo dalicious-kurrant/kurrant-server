@@ -241,7 +241,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 신청한 my spot이 이미 존재하면
         RequestedMySpot existRequestedMySpot = qRequestedMySpotRepository.findRequestedMySpotByUserId(user.getId());
-        if(existRequestedMySpot != null) updateRequestedMySpot(existRequestedMySpot, requestDto, user);
+        if(existRequestedMySpot != null) return updateRequestedMySpot(existRequestedMySpot, requestDto, user);
 
         // 신청한 my spot 없으면
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
@@ -302,7 +302,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         defaultRequestedMySpotZones.updateWaitingUserCount(1, true);
 
         // my spot zone 없으면 my spot zone 신청하기
-        RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestedMySpot.getAddress().getZipCode());
+        RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
         if(existRequestedMySpotZones != null) {
             requestedMySpotMapper.updateRequestedMySpot(requestDto, requestedMySpot);
             requestedMySpot.updateRequestedMySpotZones(existRequestedMySpotZones);
@@ -327,8 +327,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         String village = null;
 
         for(String addr : jibunAddress) {
-            if(addr.endsWith("구")) county = addr;
-            else if(addr.endsWith("동")) village = addr;
+            if(addr.matches(".*?(?:시$|군$|구$)")) county = addr;
+            else if(addr.matches(".*?(?:동$|읍$|면$)")) village = addr;
         }
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));

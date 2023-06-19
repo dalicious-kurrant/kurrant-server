@@ -15,13 +15,13 @@ import java.math.BigInteger;
 
 @Mapper(componentModel = "spring")
 public interface RequestedMySpotMapper {
-    default RequestedMySpot toEntity(BigInteger userId, RequestedMySpotZones requestedMySpotZones, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException, ParseException {
+    default RequestedMySpot toEntity(BigInteger userId, RequestedMySpotZones requestedMySpotZones, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException {
         Address address = createAddress(mySpotZoneApplicationFormRequestDto.getAddress());
 
         return RequestedMySpot.builder()
                 .userId(userId)
                 .address(address)
-                .name(mySpotZoneApplicationFormRequestDto.getMySpotName() == null ? mySpotZoneApplicationFormRequestDto.getAddress().getAddress1() : mySpotZoneApplicationFormRequestDto.getMySpotName())
+                .name(mySpotZoneApplicationFormRequestDto.getMySpotName() == null ? address.addressToString() : mySpotZoneApplicationFormRequestDto.getMySpotName())
                 .memo(mySpotZoneApplicationFormRequestDto.getMemo())
                 .requestedMySpotZones(requestedMySpotZones)
                 .build();
@@ -41,7 +41,7 @@ public interface RequestedMySpotMapper {
     };
 
     @Mapping(target = "address", expression = "java(createAddress(requestDto.getAddress()))")
-    @Mapping(source = "mySpotName", target = "name")
+    @Mapping(target = "name", expression = "java(requestDto.getMySpotName() == null ? requestDto.getAddress().getAddress1() + requestDto.getAddress().getAddress2() : requestDto.getMySpotName())")
     void updateRequestedMySpot(MySpotZoneApplicationFormRequestDto requestDto, @MappingTarget RequestedMySpot requestedMySpot) throws ParseException;
 
     default Address createAddress(CreateAddressRequestDto address) throws ParseException {
