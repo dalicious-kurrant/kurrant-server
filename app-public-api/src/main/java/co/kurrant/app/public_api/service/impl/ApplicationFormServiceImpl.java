@@ -3,9 +3,6 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.PushAlarmSettingDto;
-import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormRequestDto;
-import co.dalicious.domain.application_form.dto.apartment.ApartmentApplicationFormResponseDto;
-import co.dalicious.domain.application_form.dto.apartment.ApartmentMealInfoRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationMealInfoRequestDto;
@@ -17,23 +14,22 @@ import co.dalicious.domain.application_form.entity.enums.ShareSpotRequestType;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
+import co.dalicious.domain.client.entity.MySpot;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
+import co.dalicious.domain.client.repository.MySpotRepository;
+import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.domain.client.entity.MySpot;
-import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.integration.client.user.mapper.UserGroupMapper;
 import co.dalicious.integration.client.user.mapper.UserSpotMapper;
-import co.dalicious.domain.client.repository.MySpotRepository;
-import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
-import co.dalicious.domain.application_form.mapper.MySpotMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -51,15 +47,10 @@ import java.util.stream.Collectors;
 public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserUtil userUtil;
     private final ApplicationFormValidator applicationFormValidator;
-    private final ApartmentApplicationFormMealRepository apartmentApplicationFormMealRepository;
-    private final ApartmentApplicationFormRepository apartmentApplicationFormRepository;
     private final CorporationApplicationFormRepository corporationApplicationFormRepository;
     private final CorporationApplicationFormSpotRepository corporationApplicationFormSpotRepository;
     private final CorporationApplicationMealRepository corporationApplicationMealRepository;
     private final CorporationMealInfoReqMapper corporationMealInfoReqMapper;
-    private final ApartmentApplicationFormResMapper apartmentApplicationFormResMapper;
-    private final ApartmentApplicationReqMapper apartmentApplicationReqMapper;
-    private final ApartmentApplicationMealInfoReqMapper apartmentApplicationMealInfoReqMapper;
     private final CorporationApplicationReqMapper corporationApplicationReqMapper;
     private final CorporationApplicationSpotReqMapper corporationApplicationSpotReqMapper;
     private final CorporationApplicationFormResMapper corporationApplicationFormResMapper;
@@ -80,38 +71,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserSpotMapper userSpotMapper;
     private final UserSpotRepository userSpotRepository;
     private final QRequestedMySpotRepository qRequestedMySpotRepository;
-
-    @Override
-    @Transactional
-    public ApplicationFormDto registerApartmentSpot(SecurityUser securityuser, ApartmentApplicationFormRequestDto apartmentApplicationFormRequestDto) {
-        // 유저 아이디 가져오기
-        BigInteger userId = userUtil.getUserId(securityuser);
-
-        // 스팟 신청 정보 저장
-        ApartmentApplicationForm apartmentApplicationForm = apartmentApplicationReqMapper.toEntity(apartmentApplicationFormRequestDto);
-        apartmentApplicationForm.setUserId(userId);
-        apartmentApplicationFormRepository.save(apartmentApplicationForm);
-
-        // 식사 정보 리스트 가져오기
-        List<ApartmentMealInfoRequestDto> apartmentMealInfoRequestDtoList = apartmentApplicationFormRequestDto.getMealDetails();
-        for (ApartmentMealInfoRequestDto apartmentMealInfoRequestDto : apartmentMealInfoRequestDtoList) {
-            ApartmentApplicationMealInfo apartmentApplicationMealInfo = apartmentApplicationMealInfoReqMapper.toEntity(apartmentMealInfoRequestDto);
-            apartmentApplicationMealInfo.setApartmentApplicationForm(apartmentApplicationForm);
-            apartmentApplicationFormMealRepository.save(apartmentApplicationMealInfo);
-        }
-
-        return ApplicationFormDto.builder()
-                .clientType(0)
-                .id(apartmentApplicationForm.getId())
-                .build();
-    }
-
-    @Override
-    @Transactional
-    public void updateApartmentApplicationFormMemo(SecurityUser securityuser, BigInteger id, ApplicationFormMemoDto applicationFormMemoDto) {
-        ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isValidApartmentApplicationForm(securityuser.getId(), id);
-        apartmentApplicationForm.updateMemo(applicationFormMemoDto.getMemo());
-    }
 
     @Override
     @Transactional
@@ -166,16 +125,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
     @Override
     @Transactional
-    public ApartmentApplicationFormResponseDto getApartmentApplicationFormDetail(BigInteger userId, BigInteger id) {
-        // 가져오는 신청서의 작성자가 로그인한 유저와 일치하는지 확인
-        ApartmentApplicationForm apartmentApplicationForm = applicationFormValidator.isValidApartmentApplicationForm(userId, id);
-
-        return apartmentApplicationFormResMapper.toDto(apartmentApplicationForm);
-
-    }
-
-    @Override
-    @Transactional
     public CorporationApplicationFormResponseDto getCorporationApplicationFormDetail(BigInteger userId, BigInteger id) {
         // 가져오는 신청서의 작성자가 로그인한 유저와 일치하는지 확인
         CorporationApplicationForm corporationApplicationForm = applicationFormValidator.isValidCorporationApplicationForm(userId, id);
@@ -188,7 +137,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     public List<ApplicationFormDto> getSpotsApplicationList(BigInteger userId) {
         // 유저가 등록한 기업/아파트 신청서 정보 리스트 가져오기
         List<CorporationApplicationForm> corporationApplicationForms = corporationApplicationFormRepository.findAllByUserId(userId);
-        List<ApartmentApplicationForm> apartmentApplicationForms = apartmentApplicationFormRepository.findAllByUserId(userId);
+        List<RequestedMySpot> requestedMySpotList = qRequestedMySpotRepository.findAllRequestedMySpotByUserId(userId);
         List<ApplicationFormDto> applicationFormDtos = new ArrayList<>();
         // 응답값 생성
         for (CorporationApplicationForm corporationApplicationForm : corporationApplicationForms) {
@@ -198,11 +147,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                     .name(corporationApplicationForm.getCorporationName())
                     .build());
         }
-        for (ApartmentApplicationForm apartmentApplicationForm : apartmentApplicationForms) {
+        for (RequestedMySpot requestedMySpot : requestedMySpotList) {
             applicationFormDtos.add(ApplicationFormDto.builder()
-                    .id(apartmentApplicationForm.getId())
+                    .id(requestedMySpot.getId())
                     .clientType(0)
-                    .name(apartmentApplicationForm.getApartmentName())
+                    .name(requestedMySpot.getName())
                     .build());
         }
 

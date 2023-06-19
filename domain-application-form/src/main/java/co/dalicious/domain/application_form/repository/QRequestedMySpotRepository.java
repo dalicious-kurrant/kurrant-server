@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import static co.dalicious.domain.application_form.entity.QRequestedMySpot.requestedMySpot;
 
@@ -24,5 +25,11 @@ public class QRequestedMySpotRepository {
         return queryFactory.selectFrom(requestedMySpot)
                 .where(requestedMySpot.id.eq(id))
                 .fetchOne();
+    }
+
+    public List<RequestedMySpot> findAllRequestedMySpotByUserId (BigInteger userId) {
+        return queryFactory.selectFrom(requestedMySpot)
+                .where(requestedMySpot.userId.eq(userId))
+                .fetch();
     }
 }

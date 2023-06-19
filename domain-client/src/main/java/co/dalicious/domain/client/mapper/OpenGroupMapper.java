@@ -1,7 +1,6 @@
 package co.dalicious.domain.client.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
@@ -13,7 +12,6 @@ import co.dalicious.system.util.DateUtils;
 import org.hibernate.Hibernate;
 import org.mapstruct.*;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +41,7 @@ public interface OpenGroupMapper {
     default Integer setSpotType(Group group) {
         Integer code = null;
         if(Hibernate.unproxy(group) instanceof Corporation) code = GroupDataType.CORPORATION.getCode();
-        if(Hibernate.unproxy(group) instanceof Apartment) code = GroupDataType.MY_SPOT.getCode();
+        if(Hibernate.unproxy(group) instanceof MySpotZone) code = GroupDataType.MY_SPOT.getCode();
         if(Hibernate.unproxy(group) instanceof OpenGroup) code = GroupDataType.OPEN_GROUP.getCode();
 
         return code;
