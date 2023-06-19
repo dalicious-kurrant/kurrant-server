@@ -316,6 +316,7 @@ public class User {
     }
 
     public String getActiveUserGrouptoString() {
+        if(getActiveUserGroup() == null) return null;
         List<String> groupNames = getActiveUserGroup().stream()
                 .map(v -> v.getGroup().getName())
                 .toList();
