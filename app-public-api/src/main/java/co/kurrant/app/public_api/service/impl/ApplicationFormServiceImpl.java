@@ -327,8 +327,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         String village = null;
 
         for(String addr : jibunAddress) {
-            if(addr.endsWith("구")) county = addr;
-            else if(addr.endsWith("동")) village = addr;
+            if(addr.matches(".*?(?:시$|군$|구$)")) county = addr;
+            else if(addr.matches(".*?(?:동$|읍$|면$)")) village = addr;
         }
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));
