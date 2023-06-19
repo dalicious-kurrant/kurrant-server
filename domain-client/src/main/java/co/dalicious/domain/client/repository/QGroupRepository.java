@@ -21,6 +21,7 @@ import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QMealInfo.mealInfo;
 import static co.dalicious.domain.client.entity.QOpenGroup.openGroup;
 import static co.dalicious.domain.client.entity.QOpenGroupSpot.openGroupSpot;
+import static co.dalicious.domain.client.entity.QSpot.spot;
 
 
 @Repository
@@ -169,7 +170,7 @@ public class QGroupRepository {
 
         QueryResults<Group> resultList = queryFactory.selectFrom(group)
                 .leftJoin(mealInfo).on(group.eq(mealInfo.group))
-                .leftJoin(openGroupSpot).on(group.id.eq(openGroupSpot.id))
+                .leftJoin(openGroupSpot).on(group.eq(openGroupSpot.group))
                 .where(group.instanceOf(OpenGroup.class), whereCause)
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
