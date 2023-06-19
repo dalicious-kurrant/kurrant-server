@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -17,6 +18,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class QuartzService {
     private final Scheduler scheduler;
+    private final QuartzSchedule quartzSchedule;
     public static final String JOB_NAME = "JOB_NAME";
 
     @PostConstruct
@@ -39,8 +41,8 @@ public class QuartzService {
 //            addJob(QuartzBatchJob.class, "dailyFoodJob1", "고객사 마감: DailyFood 상태 업데이트 Job", jobParameters, "0/10 * * * * ?");
 //            addJob(QuartzBatchJob.class, "userWithdrawalJob1", "User 탈퇴 Job", jobParameters, "0 * * * * ?");
 
-            addJob(QuartzBatchJob.class, "dailyFoodJob2", "메이커스 마감: DailyFood 상태 업데이트 Job", jobParameters, "0 0/30 0,18 * * ?");
-            addJob(QuartzBatchJob.class, "dailyFoodJob1", "고객사 마감: DailyFood 상태 업데이트 Job", jobParameters, "0 0/10 7-10,15-19,21-23,0-1 * * ?");
+            addJob(QuartzBatchJob.class, "dailyFoodJob2", "메이커스 마감: DailyFood 상태 업데이트 Job", jobParameters, quartzSchedule.getGroupLastOrderTimeCron());
+            addJob(QuartzBatchJob.class, "dailyFoodJob1", "고객사 마감: DailyFood 상태 업데이트 Job", jobParameters, quartzSchedule.getMakersAndFoodLastOrderTimeCron());
             addJob(QuartzBatchJob.class, "orderStatusToDeliveringJob", "배송중으로 상태 업테이트 Job", jobParameters, "0 30/10 5-8,10-12,18-20 * * ?");
             addJob(QuartzBatchJob.class, "reviewJob1", "review 마감시간 푸시알림 Job", jobParameters, "0 0/10 11 * * ?");
             addJob(QuartzBatchJob.class, "userWithdrawalJob1", "User 탈퇴 Job", jobParameters, "0 0 3 * * ?");
@@ -73,6 +75,7 @@ public class QuartzService {
     private Map<String, Object> createJobParameters() {
         return new HashMap<>();
     }
+
     // 5. Job 생성 및 Scheduler에 등록
     public <T extends Job> void addJob(Class<? extends Job> job, String name, String description, Map<String, Object> parameters, String cron) throws SchedulerException {
         JobDetail jobDetail = buildJobDetail(job, name, description, parameters);
@@ -81,6 +84,17 @@ public class QuartzService {
             scheduler.deleteJob(jobDetail.getKey());
         }
         scheduler.scheduleJob(jobDetail, trigger);
+    }
+
+    public <T extends Job> void addJob(Class<? extends Job> job, String name, String description, Map<String, Object> parameters, List<String> crons) throws SchedulerException {
+        for (String cron : crons) {
+            JobDetail jobDetail = buildJobDetail(job, createCronJobName(name, cron), description, parameters);
+            if (scheduler.checkExists(jobDetail.getKey())) {
+                scheduler.deleteJob(jobDetail.getKey());
+            }
+            Trigger trigger = buildCronTrigger(cron, jobDetail);
+            scheduler.scheduleJob(jobDetail, trigger);
+        }
     }
 
     private JobDetail buildJobDetail(Class<? extends Job> job, String name, String description, Map<String, Object> parameters) {
@@ -99,5 +113,16 @@ public class QuartzService {
         return TriggerBuilder.newTrigger()
                 .withSchedule(CronScheduleBuilder.cronSchedule(cron))
                 .build();
+    }
+
+    private Trigger buildCronTrigger(String cron, JobDetail jobDetail) {
+        return TriggerBuilder.newTrigger()
+                .forJob(jobDetail)
+                .withSchedule(CronScheduleBuilder.cronSchedule(cron))
+                .build();
+    }
+
+    private String createCronJobName(String name, String cron) {
+        return name + " (" + cron + ")";
     }
 }

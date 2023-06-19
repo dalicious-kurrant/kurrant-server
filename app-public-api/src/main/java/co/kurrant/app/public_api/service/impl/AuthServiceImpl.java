@@ -102,9 +102,8 @@ public class AuthServiceImpl implements AuthService {
         switch (requiredAuth) {
             case SIGNUP -> {
                 // 기존에 가입된 사용자인지 확인
-                Provider provider = Provider.GENERAL;
                 String mail = mailMessageDto.getReceivers().get(0);
-                userValidator.isEmailValid(provider, mail);
+                userValidator.isEmailValid(mail);
             }
             case FIND_PASSWORD -> {
                 // 존재하는 유저인지 확인

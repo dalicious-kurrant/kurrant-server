@@ -372,7 +372,7 @@ public class User {
             this.name = prefix + maskedPrefix;
         }
 
-
+        this.providerEmails.forEach(ProviderEmail::withdrawEmail);
         this.userStatus = UserStatus.INACTIVE;
         this.password = null;
         this.marketingAlarm = false;
