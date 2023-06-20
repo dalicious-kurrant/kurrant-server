@@ -294,7 +294,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 동일한 user group에 등록되어 있으면 패스
         UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
         // user group 생성
-        if(userGroup == null) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone));
+        if(userGroup == null) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone, ClientStatus.BELONG));
         else userGroup.updateStatus(ClientStatus.BELONG);
 
         // user spot 생성
