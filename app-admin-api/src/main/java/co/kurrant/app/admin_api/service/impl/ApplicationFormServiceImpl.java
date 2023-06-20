@@ -164,6 +164,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 마이스팟 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(existRequestedMySpotZones);
+        groupRepository.save(mySpotZone);
+
         // 지역에 마이스팟 fk
         List<Region> regions = existRequestedMySpotZones.stream().map(RequestedMySpotZones::getRegion).toList();
         regions.forEach(region -> region.updateMySpotZone(mySpotZone.getId()));
@@ -183,19 +185,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                     return mySpotZoneMealInfoMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime);
                 })
                 .collect(Collectors.toList());
-
-        groupRepository.save(mySpotZone);
         mealInfoRepository.saveAll(mealInfoList);
 
         // 마이스팟 생성
         List<RequestedMySpot> requestedMySpots = existRequestedMySpotZones.stream().flatMap(requestedMySpotZone -> requestedMySpotZone.getRequestedMySpots().stream()).toList();
-        List<MySpot> mySpotList = requestedMySpots.stream().map(v -> {
-            try {
-                return mySpotMapper.toEntity(v, mySpotZone);
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-        }).toList();
+        List<MySpot> mySpotList = mySpotMapper.toEntityList(mySpotZone, requestedMySpots);
         spotRepository.saveAll(mySpotList);
 
         // userGroup and user spot

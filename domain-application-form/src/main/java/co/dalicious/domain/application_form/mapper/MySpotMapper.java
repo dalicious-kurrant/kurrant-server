@@ -17,6 +17,8 @@ import java.util.List;
 
 import org.mapstruct.Mapping;
 
+import static java.util.stream.Collectors.toList;
+
 @Mapper(componentModel = "spring")
 public interface MySpotMapper {
     default MySpot toMySpot(BigInteger userId, MySpotZone mySpotZone, MySpotZoneApplicationFormRequestDto mySpotZoneApplicationFormRequestDto) throws ParseException {
@@ -36,21 +38,16 @@ public interface MySpotMapper {
                 .build();
     }
 
-    @Mapping(source = "requestedMySpot.name", target = "name")
-    @Mapping(source = "requestedMySpot.address", target = "address")
-    @Mapping(source = "requestedMySpot.memo", target = "memo")
-    @Mapping(source = "group.diningTypes", target = "diningTypes")
-    @Mapping(source = "group", target = "group")
-    @Mapping(source = "requestedMySpot.userId", target = "userId")
-    MySpot toEntity(RequestedMySpot requestedMySpot, Group group) throws ParseException;
-
     default List<MySpot> toEntityList(MySpotZone mySpotZone, List<RequestedMySpot> requestedMySpots){
-        return new ArrayList<>(requestedMySpots.stream().map(v -> {
-            try {
-                return toEntity(v, mySpotZone);
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-        }).toList());
+        return requestedMySpots.stream().map(v ->
+            MySpot.builder()
+                    .address(v.getAddress())
+                    .diningTypes(mySpotZone.getDiningTypes())
+                    .group(mySpotZone)
+                    .name(v.getName())
+                    .userId(v.getUserId())
+                    .isDelete(false)
+                    .memo(v.getMemo())
+                    .build()).toList();
     }
 }
