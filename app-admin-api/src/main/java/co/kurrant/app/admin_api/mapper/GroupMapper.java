@@ -147,8 +147,10 @@ public interface GroupMapper {
             }
             mealInfoDtos.add(mealInfoDto);
         }
-        groupInfoList.setServiceDays(DaysUtil.serviceDaysToDaysString(serviceDays));
-        groupInfoList.setMealInfos(mealInfoDtos);
+        if(groupInfoList != null) {
+            groupInfoList.setServiceDays(DaysUtil.serviceDaysToDaysString(serviceDays));
+            groupInfoList.setMealInfos(mealInfoDtos);
+        }
 
         return groupInfoList;
     }
