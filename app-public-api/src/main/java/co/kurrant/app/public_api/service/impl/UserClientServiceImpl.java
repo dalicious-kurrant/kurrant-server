@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
@@ -9,23 +10,26 @@ import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.OpenGroupMapper;
-import co.dalicious.domain.client.repository.*;
-import co.dalicious.domain.user.entity.*;
+import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
-import co.dalicious.domain.client.entity.MySpot;
-import co.dalicious.integration.client.user.mapper.UserGroupMapper;
-import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
+import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
 import co.dalicious.integration.client.user.mapper.UserSpotMapper;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DistanceUtil;
 import co.dalicious.system.util.StringUtils;
-import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
+import co.kurrant.app.public_api.service.UserUtil;
+import com.querydsl.core.Tuple;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -161,7 +165,7 @@ public class UserClientServiceImpl implements UserClientService {
         Double latitude = Double.valueOf(String.valueOf(location.get("lat")));
         Double longitude = Double.valueOf(String.valueOf(location.get("long")));
 
-        Page<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType, pageable);
+        Page<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType, pageable, latitude, longitude);
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
         if (groups.isEmpty() || groups == null) {
             return ListItemResponseDto.<OpenGroupResponseDto>builder().items(openGroupResponseDtos).limit(pageable.getPageSize()).total(0L).count(0).offset(0L).isLast(true).build();
@@ -174,7 +178,7 @@ public class UserClientServiceImpl implements UserClientService {
         });
         List<Map.Entry<BigInteger, Double>> sortedDataList = DistanceUtil.sortByDistance(locationMap, latitude, longitude);
 
-        // 결과 출력
+        //  결과 출력
         for (Map.Entry<BigInteger, Double> entry : sortedDataList) {
             Group group = groups.stream().filter(g -> g.getId().equals(entry.getKey())).findAny().orElse(null);
             if (group == null) continue;
