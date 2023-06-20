@@ -1,11 +1,7 @@
 package co.kurrant.batch.service;
 
-import co.dalicious.domain.order.repository.QOrderItemRepository;
-import co.dalicious.domain.user.entity.User;
-import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -13,7 +9,6 @@ import javax.persistence.TypedQuery;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 

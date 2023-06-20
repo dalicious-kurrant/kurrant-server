@@ -46,7 +46,6 @@ public class OrderMembershipUtil {
     private final MembershipSupportPriceRepository membershipSupportPriceRepository;
     private final FoundersUtil foundersUtil;
     private final FoundersMapper foundersMapper;
-    private final QMembershipRepository qMembershipRepository;
     private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
 
     // 기업 멤버십 가입 로직
@@ -59,11 +58,11 @@ public class OrderMembershipUtil {
         PeriodDto membershipPeriod = new PeriodDto(membershipStartDate, membershipEndDate);
 
         // 멤버십 등록
-        Membership membership = orderMembershipMapper.toMembership(MembershipSubscriptionType.MONTH, user, membershipPeriod);
+        Membership membership = orderMembershipMapper.toMembership(MembershipSubscriptionType.CORPORATION_MONTH, user, membershipPeriod);
         membershipRepository.save(membership);
 
         // 결제 내역 등록
-        OrderMembership order = orderMembershipMapper.toOrderMembership(user, corporation.getAddress(), null, MembershipSubscriptionType.MONTH, BigDecimal.ZERO, BigDecimal.ZERO, PaymentType.SUPPORT_PRICE, membership);
+        OrderMembership order = orderMembershipMapper.toOrderMembership(user, corporation.getAddress(), null, MembershipSubscriptionType.CORPORATION_MONTH, BigDecimal.ZERO, BigDecimal.ZERO, PaymentType.SUPPORT_PRICE, membership);
         orderMembershipRepository.save(order);
 
         // 멤버십 결제 내역 등록(진행중 상태)

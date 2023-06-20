@@ -21,6 +21,7 @@ import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
@@ -337,15 +338,14 @@ public class UserServiceImpl implements UserService {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
         List<PushCondition> userPushConditionList = new ArrayList<>();
-        if(user.getPushConditionList() != null && !user.getPushConditionList().isEmpty()) {
+        if (user.getPushConditionList() != null && !user.getPushConditionList().isEmpty()) {
             userPushConditionList = user.getPushConditionList();
         }
 
-        if(marketingAlarmDto.getIsActive()){
+        if (marketingAlarmDto.getIsActive()) {
             PushCondition pushCondition = PushCondition.ofCode(marketingAlarmDto.getCode());
             userPushConditionList.add(pushCondition);
-        }
-        else {
+        } else {
             PushCondition pushCondition = userPushConditionList.stream()
                     .filter(c -> c.getCode().equals(marketingAlarmDto.getCode()))
                     .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_NOT_ACTIVE));
@@ -382,27 +382,8 @@ public class UserServiceImpl implements UserService {
         Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
 
         // 식사 일정 개수 구하기
-        Integer dailyMealCount = 0;
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllMealScheduleByUser(user);
-        List<OrderItemDailyFood> selectedOrderDailyDailyFoods = new ArrayList<>();
-        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            OrderDailyFood orderDailyFood = (OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder());
-            if (orderItemDailyFood.getDailyFood().getServiceDate().equals(LocalDate.now())) {
-                Optional<MealInfo> mealInfo = orderDailyFood.getSpot().getMealInfos().stream()
-                        .filter(v -> v.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType())).findAny();
-                if (mealInfo.isEmpty()) {
-                    throw new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO);
-                }
-                LocalTime deliveryTime = orderItemDailyFood.getDeliveryTime();
-                if (LocalTime.now().isAfter(deliveryTime)) {
-                    continue;
-                }
-            }
-            selectedOrderDailyDailyFoods.add(orderItemDailyFood);
-        }
-        for (OrderItemDailyFood orderItemDailyFood : selectedOrderDailyDailyFoods) {
-            dailyMealCount += orderItemDailyFood.getCount();
-        }
+        Integer dailyMealCount = getDailyFoodScheduleCount(orderItemDailyFoods);
 
         return UserInfoDto.builder()
                 .user(user)
@@ -416,7 +397,7 @@ public class UserServiceImpl implements UserService {
     public void settingOpenGroup(SecurityUser securityUser, BigInteger groupId) {
         User user = userUtil.getUser(securityUser);
         Group group = qGroupRepository.findGroupByTypeAndId(groupId, GroupDataType.OPEN_GROUP);
-        if(group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
+        if (group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
 
         List<UserGroup> userGroups = user.getGroups();
 
@@ -481,10 +462,9 @@ public class UserServiceImpl implements UserService {
                 .filter(v -> v.getProvider().equals(Provider.GENERAL))
                 .findAny();
 
-        if(user.getEmail().contains("appleid")) {
+        if (user.getEmail().contains("appleid")) {
             return 3;
-        }
-        else return 2;
+        } else return 2;
     }
 
     @Override
@@ -885,7 +865,7 @@ public class UserServiceImpl implements UserService {
         List<UserPreference> preferenceList = userPreferenceRepository.findAllByUserId(user.getId());
 
         UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
-        List<FoodTag> foodTags  = userPreference.getFavoriteCountryFood();
+        List<FoodTag> foodTags = userPreference.getFavoriteCountryFood();
 
 //        foodTags = foodTags.stream()
 //                .filter(v -> v.getCode().equals(1))
@@ -893,12 +873,12 @@ public class UserServiceImpl implements UserService {
 //        userPreference.updateFavoriteCountryFood(foodTags);
 
         //기존에 있는 정보라면 수정
-        if (!preferenceList.isEmpty()){
+        if (!preferenceList.isEmpty()) {
             //삭제 후 저장
             qUserPreferenceRepository.deleteOthers(user.getId());
             userPreferenceRepository.save(userPreference);
 
-            for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
+            for (UserSelectTestDataDto selectData : userPreferenceDto.getUserSelectTestDataList()) {
                 UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), userPreference.getId(), userPreference.getUser());
                 userSelectTestDataRepository.save(userSelectTestData);
             }
@@ -907,14 +887,13 @@ public class UserServiceImpl implements UserService {
         }
 
         UserPreference saveResult = userPreferenceRepository.save(userPreference);
-        if (saveResult.getId() == null){
+        if (saveResult.getId() == null) {
             return "유저 정보 저장에 실패했습니다.";
         }
-        for (UserSelectTestDataDto selectData :  userPreferenceDto.getUserSelectTestDataList()){
+        for (UserSelectTestDataDto selectData : userPreferenceDto.getUserSelectTestDataList()) {
             UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), saveResult.getId(), saveResult.getUser());
             userSelectTestDataRepository.save(userSelectTestData);
         }
-
 
 
         return "유저 정보 저장에 성공했습니다.";
@@ -924,7 +903,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Object getCountry() {
         List<String> countryList = new ArrayList<>();
-        for (int i = 1; i < Country.values().length+1; i++) {
+        for (int i = 1; i < Country.values().length + 1; i++) {
             countryList.add(Country.ofCodeByString(i));
         }
         return countryList;
@@ -940,7 +919,7 @@ public class UserServiceImpl implements UserService {
                     .filter(v -> v.getCategory().equals("알레르기 체크"))
                     .toList();
 
-            for (FoodTag tag : tagList){
+            for (FoodTag tag : tagList) {
                 foodTagList.add(tag.getTag());
             }
 
@@ -952,7 +931,7 @@ public class UserServiceImpl implements UserService {
                 .filter(v -> v.getCategory().equals("국가"))
                 .toList();
 
-        for (FoodTag countryTag : countryList){
+        for (FoodTag countryTag : countryList) {
             foodTagList.add(countryTag.getTag());
         }
 
@@ -963,16 +942,16 @@ public class UserServiceImpl implements UserService {
     public Object getJobType(Integer category, String code) {
         //묶여있는 직종의 코드까지 같이 보내주기 위해 맵으로 된 목록 생성
         List<Map<String, String>> jobTypeResultList = new ArrayList<>();
-        Map<String,String> jobTypeMap = new HashMap<>();
+        Map<String, String> jobTypeMap = new HashMap<>();
 
-        if (category == 1){
-        //코드가 1이라면 상세 직종을 반환
+        if (category == 1) {
+            //코드가 1이라면 상세 직종을 반환
             List<JobType> jobTypeList = Arrays.stream(JobType.values())
                     .filter(v -> v.getCategory().equals(code))
                     .toList();
             //상세 직종을 반환할 목록 생성
             List<String> jobTypeDetailList = new ArrayList<>();
-            for (JobType jobType : jobTypeList){
+            for (JobType jobType : jobTypeList) {
                 jobTypeDetailList.add(jobType.getName());
             }
 
@@ -983,7 +962,7 @@ public class UserServiceImpl implements UserService {
                 .filter(v -> v.getCategory().equals("묶음"))
                 .toList();
         //이름과 코드를 같이 보내준다.
-        for (JobType jobType : jobTypeList){
+        for (JobType jobType : jobTypeList) {
             jobTypeMap.put(jobType.getCode().toString(), jobType.getName());
         }
         jobTypeResultList.add(jobTypeMap);
@@ -996,7 +975,7 @@ public class UserServiceImpl implements UserService {
         //값을 저장해줄 LIST 생성
         List<UserPreferenceFoodImageResponseDto> resultList = new ArrayList<>();
 
-        for (BigInteger foodId: foodIds ) {
+        for (BigInteger foodId : foodIds) {
 
             UserPreferenceFoodImageResponseDto responseDto = new UserPreferenceFoodImageResponseDto();
             //유효한 FoodId 인지 검증
@@ -1022,17 +1001,17 @@ public class UserServiceImpl implements UserService {
         List<UserTestDataDto> userTestDataList = new ArrayList<>();
         //테스트데이터 조회
         List<UserTasteTestData> userTasteTestDataList = userTasteTestDataRepository.findAll();
-        for (UserTasteTestData testData : userTasteTestDataList){
+        for (UserTasteTestData testData : userTasteTestDataList) {
             UserTestDataDto userTestData = new UserTestDataDto();
             Map<BigInteger, String> foodImageMap = new HashMap<>();
             List<String> stringList = Arrays.stream(testData.getFoodIds().split(",")).toList();
-            for (String id : stringList){
+            for (String id : stringList) {
                 String foodId = id.replace(" ", "");
                 //food 조회
                 Food food = foodRepository.findById(BigInteger.valueOf(Long.parseLong(foodId)))
                         .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
                 //food의 imageUrl 가져오기
-                if (food.getImages().size() != 0){
+                if (food.getImages().size() != 0) {
                     String url = food.getImages().get(0).getLocation();
                     //id와 url을 같이 보내주기 위해 맵에 put
                     foodImageMap.put(food.getId(), url);
@@ -1077,7 +1056,7 @@ public class UserServiceImpl implements UserService {
         DailyReport dailyReport = dailyReportMapper.toEntity(user, saveDailyReportDto, type, title);
 
         DailyReport saved = dailyReportRepository.save(dailyReport);
-        if (saved.getId() == null){
+        if (saved.getId() == null) {
             throw new ApiException(ExceptionEnum.SAVE_FAILED);
         }
 
@@ -1092,7 +1071,7 @@ public class UserServiceImpl implements UserService {
 
         List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDate(user.getId(), date);
 
-        if (dailyReportList.isEmpty()){
+        if (dailyReportList.isEmpty()) {
             result.setTotalProtein(0);
             result.setTotalFat(0);
             result.setTotalCarbohydrate(0);
@@ -1101,7 +1080,7 @@ public class UserServiceImpl implements UserService {
             return result;
         }
 
-        for (DailyReport dailyReport : dailyReportList){
+        for (DailyReport dailyReport : dailyReportList) {
             FindDailyReportResDto findDailyReportDto = dailyReportMapper.toFindDailyReportDto(dailyReport);
             resDtoArrayList.add(findDailyReportDto);
         }
@@ -1123,14 +1102,14 @@ public class UserServiceImpl implements UserService {
         //해당 날짜에 주문한 내역을 불러오기
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllUserIdAndDate(user.getId(), LocalDate.parse(dto.getStartDate()), LocalDate.parse(dto.getEndDate()));
 
-        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
             //매핑 후 저장
             String imageLocation = null;
-            if (!orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty()){
+            if (!orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty()) {
                 imageLocation = orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation();
             }
             OrderItemDailyFoodToDailyReportDto dailyReportDto = orderItemDailyFoodDailyReportMapper.toDailyReportDto(orderItemDailyFood, imageLocation);
-            DailyReport dailyReport = dailyReportMapper.toEntityByOrderItemDailyFood(user, dailyReportDto,  "order");
+            DailyReport dailyReport = dailyReportMapper.toEntityByOrderItemDailyFood(user, dailyReportDto, "order");
             dailyReportRepository.save(dailyReport);
         }
     }
@@ -1157,10 +1136,11 @@ public class UserServiceImpl implements UserService {
         if (orderItemDailyFoodList.isEmpty()) return resultList;
 
 
-        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList){
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
             String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
             String location = null;
-            if (!orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty()) location = orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation();
+            if (!orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty())
+                location = orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation();
             OrderByDateAndDiningTypeResDto orderByDateDto = orderItemDailyFoodDailyReportMapper.toOrderByDateDto(orderItemDailyFood, location, spotName);
             resultList.add(orderByDateDto);
         }
@@ -1201,17 +1181,17 @@ public class UserServiceImpl implements UserService {
         DailyFood dailyFood = dailyFoodRepository.findById(saveDailyReportDto.getDailyFoodId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
 
         SaveDailyReportDto dailyReportDto = generatedSaveDailyReportDto(dailyFood);
-        if (!dailyFood.getFood().getImages().isEmpty()){
-            dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(),dailyFood.getFood().getImages().get(0).getLocation()));
+        if (!dailyFood.getFood().getImages().isEmpty()) {
+            dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(), dailyFood.getFood().getImages().get(0).getLocation()));
         } else {
-            dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(),null));
+            dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(), null));
         }
 
     }
 
     private SaveDailyReportDto generatedSaveDailyReportDto(DailyFood dailyFood) {
         return SaveDailyReportDto.builder()
-                .fat(dailyFood.getFood().getFat() == null ? 0: dailyFood.getFood().getFat())
+                .fat(dailyFood.getFood().getFat() == null ? 0 : dailyFood.getFood().getFat())
                 .carbohydrate(dailyFood.getFood().getCarbohydrate() == null ? 0 : dailyFood.getFood().getCarbohydrate())
                 .protein(dailyFood.getFood().getProtein() == null ? 0 : dailyFood.getFood().getProtein())
                 .calorie(dailyFood.getFood().getCalorie() == null ? 0 : dailyFood.getFood().getCalorie())
@@ -1219,5 +1199,12 @@ public class UserServiceImpl implements UserService {
                 .name(dailyFood.getFood().getName())
                 .diningType(dailyFood.getDiningType().getCode())
                 .build();
+    }
+
+    private Integer getDailyFoodScheduleCount(List<OrderItemDailyFood> orderItemDailyFoods) {
+        return orderItemDailyFoods.stream()
+                .filter(orderItemDailyFood -> OrderStatus.beforeDelivered().contains(orderItemDailyFood.getOrderStatus()))
+                .mapToInt(OrderItemDailyFood::getCount)
+                .sum();
     }
 }

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
 
-@Tag(name = "7. Application Form ClientType")
+@Tag(name = "Application Form ClientType")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/application-forms")
 @RestController

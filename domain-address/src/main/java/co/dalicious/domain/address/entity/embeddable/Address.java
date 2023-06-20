@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 @Embeddable
@@ -102,4 +104,12 @@ public class Address {
     public void updateAddress3(String address3) { this.address3 = address3; }
 
     public String stringToAddress3() { return this.address3.replaceFirst(".*?(?:시|군|구)\\s", "").replaceFirst(".*?(?:군|구)\\s", ""); }
+
+    public Map<String, String> getLatitudeAndLongitude() {
+        Map<String, String> locationMap = new HashMap<>();
+        String[] locationArr = this.locationToString().split(" ");
+        locationMap.put("longitude", locationArr[0]);
+        locationMap.put("latitude", locationArr[1]);
+        return locationMap;
+    }
 }

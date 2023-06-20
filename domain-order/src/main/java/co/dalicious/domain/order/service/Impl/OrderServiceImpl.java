@@ -132,7 +132,7 @@ public class OrderServiceImpl implements OrderService {
                             Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup()) instanceof Corporation corporation &&
                             corporation.getIsMembershipSupport()) {
                         Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
-                        if(orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
+                        if(membership != null && orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
                             orderMembershipUtil.refundCorporationMembership(membership);
                         }
                     }
@@ -220,7 +220,7 @@ public class OrderServiceImpl implements OrderService {
                         Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup()) instanceof Corporation corporation &&
                         corporation.getIsMembershipSupport()) {
                     Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
-                    if(orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
+                    if(membership != null && orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
                         orderMembershipUtil.refundCorporationMembership(membership);
                     }
                 }

@@ -1,11 +1,13 @@
 package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
 import exception.ApiException;
 import exception.ExceptionEnum;
+import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -29,7 +31,7 @@ public interface OrderUserInfoMapper {
             }
         }
         if (userDefaultSpot != null) {
-            return userDefaultSpot.getSpot().getGroup().getName();
+            return ((Group) Hibernate.unproxy( userDefaultSpot.getSpot().getGroup())).getName();
         }
         throw new ApiException(ExceptionEnum.SPOT_NOT_FOUND);
     }

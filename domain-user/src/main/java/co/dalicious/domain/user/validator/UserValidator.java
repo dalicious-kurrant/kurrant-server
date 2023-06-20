@@ -35,6 +35,13 @@ public class UserValidator {
         }
     }
 
+    public void isEmailValid(String email) {
+        List<ProviderEmail> providerEmail = providerEmailRepository.findAllByEmail(email);
+        if(!providerEmail.isEmpty()) {
+            throw new ApiException(ExceptionEnum.EXCEL_EMAIL_DUPLICATION);
+        }
+    }
+
     public void isEmailValid(User user, String email) {
         List<ProviderEmail> providerEmails = providerEmailRepository.findAllByEmail(email);
         for (ProviderEmail providerEmail : providerEmails) {
