@@ -22,14 +22,15 @@ public interface OpenGroupMapper {
     @Mapping(target = "diningType", expression = "java(group.getDiningTypes().stream().map(DiningType::getCode).toList())")
     @Mapping(source = "group", target = "spotType", qualifiedByName = "setSpotType")
     @Mapping(source = "group.openGroupUserCount", target = "userCount")
+    @Mapping(source = "distance", target = "distance")
     OpenGroupResponseDto toOpenGroupDto(OpenGroup group, Double distance) ;
 
     @AfterMapping
     default void toLocation(OpenGroup group, @MappingTarget OpenGroupResponseDto dto) {
         String location = group.getAddress().locationToString();
 
-        dto.setLatitude(location.split(" ")[0]);
-        dto.setLongitude(location.split(" ")[1]);
+        dto.setLongitude(location.split(" ")[0]);
+        dto.setLatitude(location.split(" ")[1]);
     }
 
     @Named("addressToString")
@@ -102,7 +103,7 @@ public interface OpenGroupMapper {
     default void afterMappingLocation(Group group, @MappingTarget OpenGroupListForKeywordDto dto) {
         String[] location = group.getAddress().locationToString().split(" ");
 
-        dto.setLatitude(location[0]);
-        dto.setLongitude(location[1]);
+        dto.setLongitude(location[0]);
+        dto.setLatitude(location[1]);
     }
 }

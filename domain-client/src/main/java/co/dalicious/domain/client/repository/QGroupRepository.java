@@ -1,10 +1,16 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.mapper.OpenGroupMapper;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -21,7 +28,6 @@ import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QMealInfo.mealInfo;
 import static co.dalicious.domain.client.entity.QOpenGroup.openGroup;
 import static co.dalicious.domain.client.entity.QOpenGroupSpot.openGroupSpot;
-import static co.dalicious.domain.client.entity.QSpot.spot;
 
 
 @Repository
@@ -29,6 +35,7 @@ import static co.dalicious.domain.client.entity.QSpot.spot;
 public class QGroupRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final OpenGroupMapper openGroupMapper;
 
     public Page<Group> findAll(BigInteger groupId, Integer limit, Integer page, Pageable pageable) {
         BooleanBuilder whereClause = new BooleanBuilder();
@@ -144,7 +151,7 @@ public class QGroupRepository {
 
     public List<Group> findGroupAndAddressIsNull() {
         return queryFactory.selectFrom(group)
-                .where(group.address.location.isNull(), group.instanceOf(OpenGroup.class).or(group.instanceOf(Corporation.class)))
+                .where(/*group.address.location.isNull(), */group.instanceOf(OpenGroup.class).or(group.instanceOf(Corporation.class)))
                 .fetch();
     }
 
@@ -154,7 +161,7 @@ public class QGroupRepository {
                 .fetch();
     }
 
-    public Page<Group> findOPenGroupByFilter (Boolean isRestriction, List<DiningType> diningType, Pageable pageable) {
+    public Page<Group> findOPenGroupByFilter (Boolean isRestriction, List<DiningType> diningType, Pageable pageable, Double let, Double lon) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if (isRestriction != null) {
@@ -168,10 +175,12 @@ public class QGroupRepository {
             whereCause.and(group.in(openGroupList));
         }
 
-        QueryResults<Group> resultList = queryFactory.selectFrom(group)
+        QueryResults<Group> resultList = queryFactory.select(group)
+                .from(group)
                 .leftJoin(mealInfo).on(group.eq(mealInfo.group))
                 .leftJoin(openGroupSpot).on(group.eq(openGroupSpot.group))
                 .where(group.instanceOf(OpenGroup.class), whereCause)
+                .orderBy(Expressions.stringTemplate("ST_Distance_Sphere({0}, {1})", Expressions.stringTemplate("POINT({0}, {1})", lon, let), group.address.location).asc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .fetchResults();

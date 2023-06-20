@@ -71,13 +71,12 @@ public class AddressUtil {
 
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject temp = (JSONObject) arr.get(i);
-                System.out.println("address : " + temp.get("roadAddress"));
                 System.out.println("jibunAddress : " + temp.get("jibunAddress"));
                 String latitude = String.valueOf(temp.get("y"));
                 String longitude = String.valueOf(temp.get("x"));
                 String jibunAddress = String.valueOf(temp.get("jibunAddress"));
 
-                String locationResult = latitude + " " + longitude;
+                String locationResult = longitude + " " + latitude;
                 map.put("location", locationResult);
                 map.put("jibunAddress", jibunAddress);
             }

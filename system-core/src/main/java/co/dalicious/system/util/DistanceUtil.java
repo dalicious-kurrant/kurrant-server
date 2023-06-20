@@ -24,7 +24,7 @@ public class DistanceUtil {
         for (Map.Entry<BigInteger, List<Double>> entry : locationMap.entrySet()) {
             BigInteger id = entry.getKey();
             List<Double> location = entry.getValue();
-            double distance = calculateDistance(myLatitude, myLongitude, location.get(0), location.get(1));
+            double distance = calculateDistance(myLatitude, myLongitude, location.get(1), location.get(0));
 
             sortedDataList.add(new AbstractMap.SimpleEntry<>(id, distance));
         }
