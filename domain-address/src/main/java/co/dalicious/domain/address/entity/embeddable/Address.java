@@ -47,7 +47,7 @@ public class Address {
         this.address2 = createAddressRequestDto.getAddress2();
         this.address3 = createAddressRequestDto.getAddress3();
         this.location = (createAddressRequestDto.getLatitude() == null || createAddressRequestDto.getLongitude() == null) ?
-                null : createPoint(createAddressRequestDto.getLatitude() + " " + createAddressRequestDto.getLongitude());
+                null : createPoint(createAddressRequestDto.getLongitude() + " " + createAddressRequestDto.getLatitude());
     }
 
 
