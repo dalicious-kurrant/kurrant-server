@@ -26,6 +26,7 @@ import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
@@ -264,7 +265,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private void createUserGroupAndUserSpot (List<RequestedMySpot> requestedMySpots, MySpotZone mySpotZone, List<MySpot> mySpotList) {
         List<BigInteger> userIds = requestedMySpots.stream().map(RequestedMySpot::getUserId).toList();
         List<User> users = qUserRepository.getUserAllById(userIds);
-        List<UserGroup> userGroups = users.stream().map(user -> userGroupMapper.toUserGroup(user, mySpotZone)).toList();
+        List<UserGroup> userGroups = users.stream().map(user -> userGroupMapper.toUserGroup(user, mySpotZone, ClientStatus.WAITING)).toList();
         List<UserSpot> userSpots = userSpotMapper.toEntityList(mySpotList, users, GroupDataType.MY_SPOT, false);
         userSpotRepository.saveAll(userSpots);
         userGroupRepository.saveAll(userGroups);

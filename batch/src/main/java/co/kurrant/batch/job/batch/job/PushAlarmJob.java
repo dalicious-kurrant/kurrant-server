@@ -9,6 +9,8 @@ import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.batch.service.PushAlarmService;
@@ -66,6 +68,7 @@ public class PushAlarmJob {
         return jobBuilderFactory.get("pushAlarmJob2")
                 .start(pushAlarmJob2_step1())
                 .next(pushAlarmJob2_step2())
+                .next(pushAlarmJob2_step3())
                 .build();
     }
 
@@ -118,6 +121,28 @@ public class PushAlarmJob {
     @JobScope
     public Step pushAlarmJob2_step2() {
         return stepBuilderFactory.get("pushAlarmJob2_step2")
+                .tasklet(((contribution, chunkContext) -> {
+                    log.info("[user group 찾기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
+
+                    final String queryString = "SELECT ug FROM UserGroup ug LEFT JOIN MySpotZone msz ON ug.group = msz WHERE ug.clientStatus = 2 and msz.mySpotZoneStatus = 1";
+                    final TypedQuery<UserGroup> query = entityManager.createQuery(queryString, UserGroup.class);
+
+                    final List<UserGroup> userGroups = query.getResultList();
+
+                    for(UserGroup userGroup : userGroups) {
+                        log.info("user group 상태 변경 시작 : {}", userGroup.getId());
+                        userGroup.updateStatus(ClientStatus.BELONG);
+                    }
+
+                    log.info("마이스팟 존 상태 변경 완료 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
+                    return RepeatStatus.FINISHED;
+                })).build();
+    }
+
+    @Bean
+    @JobScope
+    public Step pushAlarmJob2_step3() {
+        return stepBuilderFactory.get("pushAlarmJob2_step3")
                 .<User, User>chunk(CHUNK_SIZE)
                 .reader(openStatusMySpotZonePushAlarmReader())
                 .processor(openStatusMySpotZonePushAlarmProcessor())
@@ -186,17 +211,27 @@ public class PushAlarmJob {
     public JpaPagingItemReader<User> openStatusMySpotZonePushAlarmReader() {
         log.info("[my spot zone user 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
-        String queryString = "select u \n" +
-                "from MySpotZone msz \n" +
-                "left join MySpot ms on ms.group = msz \n" +
-                "left join User u on ms.userId = u.id \n" +
-                "where msz.mySpotZoneStatus = 1";
+        List<BigInteger> userIds = pushAlarmService.getMySpotZoneOpenPushAlarmUserId();
+
+        Map<String, Object> parameterValues = new HashMap<>();
+        parameterValues.put("userIds", userIds);
+
+        if (userIds.isEmpty()) {
+            // Return an empty reader if orderItemIds is empty
+            return new JpaPagingItemReaderBuilder<User>()
+                    .name("EmptyReviewReader")
+                    .build();
+        }
+
+        String queryString = "SELECT u FROM User u WHERE u.id in :userIds";
+
 
         return new JpaPagingItemReaderBuilder<User>()
                 .entityManagerFactory(entityManagerFactory) // Use the injected entityManagerFactory
                 .pageSize(100)
                 .queryString(queryString)
                 .name("JpaPagingItemReader")
+                .parameterValues(Collections.singletonMap("userIds", userIds))
                 .build();
     }
 
@@ -237,6 +272,7 @@ public class PushAlarmJob {
 
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
                 } catch (Exception ignored) {
+                    log.info("Exeption : " + ignored);
                     log.info("[푸시알림 전송 실패] : {}", user.getId());
                 }
                 return user;

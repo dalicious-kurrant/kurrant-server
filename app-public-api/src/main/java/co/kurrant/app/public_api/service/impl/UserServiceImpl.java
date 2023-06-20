@@ -438,7 +438,7 @@ public class UserServiceImpl implements UserService {
             return;
         }
 
-        UserGroup userCorporation = userGroupMapper.toUserGroup(user, group);
+        UserGroup userCorporation = userGroupMapper.toUserGroup(user, group, ClientStatus.BELONG);
         userGroupRepository.save(userCorporation);
     }
 

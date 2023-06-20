@@ -95,9 +95,9 @@ public interface UserGroupMapper {
         return groupCountDto;
     }
 
-    default UserGroup toUserGroup(User user, Group group) {
+    default UserGroup toUserGroup(User user, Group group, ClientStatus clientStatus) {
         return UserGroup.builder()
-                .clientStatus(ClientStatus.BELONG)
+                .clientStatus(clientStatus)
                 .user(user)
                 .group(group)
                 .build();
