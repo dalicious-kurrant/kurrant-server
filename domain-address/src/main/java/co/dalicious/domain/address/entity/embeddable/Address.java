@@ -74,6 +74,9 @@ public class Address {
     }
 
     public String addressToString() {
+        if (this.address2 == null) {
+            return this.address1;
+        }
         return this.address1 + " " + this.address2;
     }
 
