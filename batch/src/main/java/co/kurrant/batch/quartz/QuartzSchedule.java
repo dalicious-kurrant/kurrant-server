@@ -2,11 +2,13 @@ package co.kurrant.batch.quartz;
 
 import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.client.repository.QMealInfoRepository;
+import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.repository.QFoodCapacityRepository;
 import co.dalicious.domain.food.repository.QMakersCapacityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalTime;
 import java.util.*;
 
 @Component
@@ -15,6 +17,7 @@ public class QuartzSchedule {
     private final QMealInfoRepository qMealInfoRepository;
     private final QMakersCapacityRepository qMakersCapacityRepository;
     private final QFoodCapacityRepository qFoodCapacityRepository;
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
     public List<String> getGroupLastOrderTimeCron() {
         List<String> crons = new ArrayList<>();
         List<DayAndTime> groupLastOrderTimes = getGroupLastOrderTime();
@@ -35,6 +38,15 @@ public class QuartzSchedule {
         }
         return crons;
     }
+
+    public List<String> getDeliveryTimeCron() {
+        List<String> crons = new ArrayList<>();
+        List<LocalTime> deliveryTimes = getDeliveryTimes();
+        for (LocalTime deliveryTime : deliveryTimes) {
+            crons.add(String.format("0 %d %d * * ?", deliveryTime.getMinute(), deliveryTime.getHour()));
+        }
+        return crons;
+    }
     private List<DayAndTime> getGroupLastOrderTime() {
         return qMealInfoRepository.getMealInfoLastOrderTime();
     }
@@ -43,5 +55,9 @@ public class QuartzSchedule {
     }
     private List<DayAndTime> getFoodsLastOrderTime() {
         return qFoodCapacityRepository.getFoodCapacityLastOrderTime();
+    }
+
+    private List<LocalTime> getDeliveryTimes() {
+        return qDeliveryInstanceRepository.getTodayDeliveryTimes();
     }
 }

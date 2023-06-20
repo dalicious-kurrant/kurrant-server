@@ -147,8 +147,10 @@ public interface GroupMapper {
             }
             mealInfoDtos.add(mealInfoDto);
         }
-        groupInfoList.setServiceDays(DaysUtil.serviceDaysToDaysString(serviceDays));
-        groupInfoList.setMealInfos(mealInfoDtos);
+        if(groupInfoList != null) {
+            groupInfoList.setServiceDays(DaysUtil.serviceDaysToDaysString(serviceDays));
+            groupInfoList.setMealInfos(mealInfoDtos);
+        }
 
         return groupInfoList;
     }
@@ -277,5 +279,29 @@ public interface GroupMapper {
     @Mapping(target = "deliveryFeeOption", expression = "java(DeliveryFeeOption.ofString(groupDto.getDeliveryFeeOption()))")
     @Mapping(target = "mealInfos", ignore = true)
     void updateCorporation(GroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;
+
+    default void updateMealInfo(GroupListDto.MealInfo mealInfoDto, Group group, @MappingTarget MealInfo mealInfo) {
+        if(mealInfo instanceof CorporationMealInfo corporationMealInfo) {
+            updateCorporationMealInfo(mealInfoDto, group, corporationMealInfo);
+        }
+        else {
+            DiningType diningType = DiningType.ofCode(mealInfoDto.getDiningType());
+            List<LocalTime> deliveryTimes = DateUtils.stringToLocalTimes(mealInfoDto.getDeliveryTimes());
+            DayAndTime membershipBenefitTime = DayAndTime.stringToDayAndTime(mealInfoDto.getMembershipBenefitTime());
+            DayAndTime lastOrderTime = DayAndTime.stringToDayAndTime(mealInfoDto.getLastOrderTime());
+            List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(mealInfoDto.getServiceDays()).stream().sorted().toList();
+            mealInfo.updateMealInfo(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group);
+        }
+    }
+
+    default void updateCorporationMealInfo(GroupListDto.MealInfo mealInfoDto, Group group, @MappingTarget CorporationMealInfo mealInfo) {
+        List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = toServiceDaysAndSupportPrice(mealInfoDto.getSupportPriceByDays());
+        DiningType diningType = DiningType.ofCode(mealInfoDto.getDiningType());
+        List<LocalTime> deliveryTimes = DateUtils.stringToLocalTimes(mealInfoDto.getDeliveryTimes());
+        DayAndTime membershipBenefitTime = DayAndTime.stringToDayAndTime(mealInfoDto.getMembershipBenefitTime());
+        DayAndTime lastOrderTime = DayAndTime.stringToDayAndTime(mealInfoDto.getLastOrderTime());
+        List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(mealInfoDto.getServiceDays()).stream().sorted().toList();
+        mealInfo.updateCorporationMealInfo(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group, serviceDaysAndSupportPriceList);
+    };
 }
 

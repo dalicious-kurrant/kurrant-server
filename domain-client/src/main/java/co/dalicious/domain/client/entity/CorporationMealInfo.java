@@ -27,6 +27,10 @@ public class CorporationMealInfo extends MealInfo{
         this.serviceDaysAndSupportPrices = serviceDaysAndSupportPrices;
     }
 
+    public void updateCorporationMealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
+        super.updateMealInfo(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group);
+        this.serviceDaysAndSupportPrices = serviceDaysAndSupportPrices;
+    }
     public void updateCorporationMealInfo(CorporationMealInfo mealInfo) {
         super.updateMealInfo(mealInfo);
         this.serviceDaysAndSupportPrices = mealInfo.getServiceDaysAndSupportPrices();
