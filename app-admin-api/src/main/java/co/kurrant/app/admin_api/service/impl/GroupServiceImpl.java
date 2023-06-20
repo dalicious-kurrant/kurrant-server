@@ -156,18 +156,13 @@ public class GroupServiceImpl implements GroupService {
                 List<MealInfo> mealInfoList = group.getMealInfos();
                 for (DiningType diningType : diningTypeList) {
                     MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
+                    GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
+                            .findAny().orElse(null);
                     if (mealInfo == null) {
-                        GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
-                                .findAny().orElse(null);
                         MealInfo newMealInfo = groupMapper.toMealInfo(mealInfoDto, group);
                         newMealInfoList.add(newMealInfo);
                     } else {
-                        if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
-                            GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
-                                    .findAny().orElse(null);
-                            List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = groupMapper.toServiceDaysAndSupportPrice(mealInfoDto.getSupportPriceByDays());
-                            corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays, serviceDaysAndSupportPriceList);
-                        } else mealInfo.updateMealInfo(serviceDays);
+                        groupMapper.updateMealInfo(mealInfoDto, group, mealInfo);
                     }
                 }
 
@@ -248,18 +243,13 @@ public class GroupServiceImpl implements GroupService {
         List<MealInfo> newMealInfoList = new ArrayList<>();
         for (DiningType diningType : diningTypeList) {
             MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
+            GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
+                    .findAny().orElse(null);
             if (mealInfo == null) {
-                GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
-                        .findAny().orElse(null);
                 MealInfo newMealInfo = groupMapper.toMealInfo(mealInfoDto, group);
                 newMealInfoList.add(newMealInfo);
             } else {
-                if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
-                    GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
-                            .findAny().orElse(null);
-                    List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = groupMapper.toServiceDaysAndSupportPrice(mealInfoDto.getSupportPriceByDays());
-                    corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays, serviceDaysAndSupportPriceList);
-                } else mealInfo.updateMealInfo(serviceDays);
+                groupMapper.updateMealInfo(mealInfoDto, group, mealInfo);
             }
         }
         mealInfoRepository.saveAll(newMealInfoList);
