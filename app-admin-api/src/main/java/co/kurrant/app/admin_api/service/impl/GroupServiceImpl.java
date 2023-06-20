@@ -183,7 +183,6 @@ public class GroupServiceImpl implements GroupService {
         if (groupAllList.isEmpty()) {
             return groupListDtoList;
         }
-
         List<BigInteger> managerIds = groupAllList.stream()
                 .filter(group -> group instanceof Corporation)
                 .map(group -> ((Corporation) group).getManagerId())
@@ -398,7 +397,7 @@ public class GroupServiceImpl implements GroupService {
     public void updateLocation() throws ParseException {
         List<Group> groupList = qGroupRepository.findGroupAndAddressIsNull();
 
-        for(Group group : groupList) {
+        for (Group group : groupList) {
             Map<String, String> updateLocation = addressUtil.getLocation(group.getAddress().getAddress1());
             group.getAddress().updateLocation(updateLocation.get("location"));
             group.getAddress().updateAddress3(updateLocation.get("jibunAddress"));

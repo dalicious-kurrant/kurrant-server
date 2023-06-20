@@ -45,12 +45,12 @@ public class QuartzService {
             addJob(QuartzBatchJob.class, "dailyFoodJob2", "메이커스 마감: DailyFood 상태 업데이트 Job", jobParameters, quartzSchedule.getMakersAndFoodLastOrderTimeCron());
             addJob(QuartzBatchJob.class, "dailyFoodJob1", "고객사 마감: DailyFood 상태 업데이트 Job", jobParameters, quartzSchedule.getGroupLastOrderTimeCron());
             addJob(QuartzBatchJob.class, "orderStatusToDeliveringJob", "배송중으로 상태 업테이트 Job", jobParameters, quartzSchedule.getDeliveryTimeCron());
-//            addJob(QuartzBatchJob.class, "reviewJob1", "review 마감시간 푸시알림 Job", jobParameters, "0 0/10 11 * * ?");
-//            addJob(QuartzBatchJob.class, "userWithdrawalJob1", "User 탈퇴 Job", jobParameters, "0 0 3 * * ?");
-//            addJob(QuartzBatchJob.class, "refreshTokenJob1", "Refresh Token 삭제 Job", jobParameters, "0 0 4 * * ?");
-//            addJob(QuartzBatchJob.class, "membershipPayJob1", "Membership 결제 Job", jobParameters, "0 0/5 13 * * ?");
+            addJob(QuartzBatchJob.class, "reviewJob1", "review 마감시간 푸시알림 Job", jobParameters, "0 0/10 11 * * ?");
+            addJob(QuartzBatchJob.class, "userWithdrawalJob1", "User 탈퇴 Job", jobParameters, "0 0 3 * * ?");
+            addJob(QuartzBatchJob.class, "refreshTokenJob1", "Refresh Token 삭제 Job", jobParameters, "0 0 4 * * ?");
+            addJob(QuartzBatchJob.class, "membershipPayJob1", "Membership 결제 Job", jobParameters, "0 0/5 13 * * ?");
 
-            addJob(RescheduleQuartzBatchJob.class, "rescheduleJob", "Reschedule Job", jobParameters, "0 * * * * ?");
+            addJob(RescheduleQuartzBatchJob.class, "rescheduleJob", "Reschedule Job", jobParameters, "0 0 0 * * ?");
 //            addJob(QuartzBatchJob.class, "pushAlarmJob1", "음식 마감시간 푸시알림 Job", jobParameters, "0 5/7 7-10,15-19,21-23,0-1 * * ?");
 
         } catch (SchedulerException e) {
@@ -131,7 +131,7 @@ public class QuartzService {
                 .build();
     }
 
-    public void rescheduleJob(String jobName, List<String> newCrons) throws SchedulerException {
+    public void rescheduleJob(String jobName, List<String> newCrons) throws SchedulerException  {
         // Generate the job key
         JobKey jobKey = JobKey.jobKey(jobName);
 

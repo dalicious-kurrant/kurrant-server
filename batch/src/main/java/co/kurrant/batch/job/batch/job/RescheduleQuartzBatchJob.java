@@ -5,6 +5,7 @@ import co.kurrant.batch.quartz.QuartzService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,10 +14,11 @@ import java.util.List;
 @Component
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
-@RequiredArgsConstructor
 public class RescheduleQuartzBatchJob implements Job {
-    private final QuartzService quartzService;
-    private final QuartzSchedule quartzSchedule;
+    @Autowired
+    private QuartzService quartzService;
+    @Autowired
+    private QuartzSchedule quartzSchedule;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
