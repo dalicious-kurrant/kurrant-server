@@ -39,18 +39,18 @@ public class QuartzService {
 //            addJob(QuartzBatchJob.class, "membershipPayJob1", "Membership 결제 Job", jobParameters, "0/10 * * * * ?");
 //            addJob(QuartzBatchJob.class, "makersPaycheckJob", "메이커스 정산 배치 시작", jobParameters, "0/10 * * * * ?");
 //            addJob(QuartzBatchJob.class, "orderStatusToDeliveredJob", "배송완료로 상태 업테이트 Job", jobParameters, "0 45/10 7-9,11-13,19-21 * * ?");
-            addJob(QuartzBatchJob.class, "dailyFoodJob1", "고객사 마감: DailyFood 상태 업데이트 Job", jobParameters, "0/10 * * * * ?");
+//            addJob(QuartzBatchJob.class, "dailyFoodJob1", "고객사 마감: DailyFood 상태 업데이트 Job", jobParameters, "0/10 * * * * ?");
 //            addJob(QuartzBatchJob.class, "userWithdrawalJob1", "User 탈퇴 Job", jobParameters, "0 * * * * ?");
 
             addJob(QuartzBatchJob.class, "dailyFoodJob2", "메이커스 마감: DailyFood 상태 업데이트 Job", jobParameters, quartzSchedule.getMakersAndFoodLastOrderTimeCron());
-//            addJob(QuartzBatchJob.class, "dailyFoodJob1", "고객사 마감: DailyFood 상태 업데이트 Job", jobParameters, quartzSchedule.getGroupLastOrderTimeCron());
+            addJob(QuartzBatchJob.class, "dailyFoodJob1", "고객사 마감: DailyFood 상태 업데이트 Job", jobParameters, quartzSchedule.getGroupLastOrderTimeCron());
             addJob(QuartzBatchJob.class, "orderStatusToDeliveringJob", "배송중으로 상태 업테이트 Job", jobParameters, quartzSchedule.getDeliveryTimeCron());
-            addJob(QuartzBatchJob.class, "reviewJob1", "review 마감시간 푸시알림 Job", jobParameters, "0 0/10 11 * * ?");
-            addJob(QuartzBatchJob.class, "userWithdrawalJob1", "User 탈퇴 Job", jobParameters, "0 0 3 * * ?");
-            addJob(QuartzBatchJob.class, "refreshTokenJob1", "Refresh Token 삭제 Job", jobParameters, "0 0 4 * * ?");
-            addJob(QuartzBatchJob.class, "membershipPayJob1", "Membership 결제 Job", jobParameters, "0 0/5 13 * * ?");
+//            addJob(QuartzBatchJob.class, "reviewJob1", "review 마감시간 푸시알림 Job", jobParameters, "0 0/10 11 * * ?");
+//            addJob(QuartzBatchJob.class, "userWithdrawalJob1", "User 탈퇴 Job", jobParameters, "0 0 3 * * ?");
+//            addJob(QuartzBatchJob.class, "refreshTokenJob1", "Refresh Token 삭제 Job", jobParameters, "0 0 4 * * ?");
+//            addJob(QuartzBatchJob.class, "membershipPayJob1", "Membership 결제 Job", jobParameters, "0 0/5 13 * * ?");
 
-            addJob(RescheduleQuartzBatchJob.class, "rescheduleJob", "Reschedule Job", jobParameters, "0 0 0 * * ?");
+            addJob(RescheduleQuartzBatchJob.class, "rescheduleJob", "Reschedule Job", jobParameters, "0 * * * * ?");
 //            addJob(QuartzBatchJob.class, "pushAlarmJob1", "음식 마감시간 푸시알림 Job", jobParameters, "0 5/7 7-10,15-19,21-23,0-1 * * ?");
 
         } catch (SchedulerException e) {
@@ -91,11 +91,16 @@ public class QuartzService {
 
     public <T extends Job> void addJob(Class<? extends Job> job, String name, String description, Map<String, Object> parameters, List<String> crons) throws SchedulerException {
         for (String cron : crons) {
-            JobDetail jobDetail = buildJobDetail(job, createCronJobName(name, cron), description, parameters);
+            // Don't append the cron expression to the job name
+            JobDetail jobDetail = buildJobDetail(job, name, description, parameters);
+
+            // Check if the job with the given key already exists
             if (scheduler.checkExists(jobDetail.getKey())) {
                 scheduler.deleteJob(jobDetail.getKey());
             }
-            Trigger trigger = buildCronTrigger(cron, jobDetail);
+
+            // When building the trigger, use a different identity for each cron trigger
+            Trigger trigger = buildCronTrigger(name + createCronJobName(name, cron), cron, jobDetail);
             scheduler.scheduleJob(jobDetail, trigger);
         }
     }
@@ -118,11 +123,52 @@ public class QuartzService {
                 .build();
     }
 
-    private Trigger buildCronTrigger(String cron, JobDetail jobDetail) {
+    public Trigger buildCronTrigger(String triggerIdentity, String cronExpression, JobDetail jobDetail) {
         return TriggerBuilder.newTrigger()
+                .withIdentity(triggerIdentity)
+                .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
                 .forJob(jobDetail)
-                .withSchedule(CronScheduleBuilder.cronSchedule(cron))
                 .build();
+    }
+
+    public void rescheduleJob(String jobName, List<String> newCrons) throws SchedulerException {
+        // Generate the job key
+        JobKey jobKey = JobKey.jobKey(jobName);
+
+        if (!scheduler.checkExists(jobKey)) {
+            throw new SchedulerException("Job with key " + jobKey + " not found");
+        }
+
+        // Get the triggers of the current job
+        List<? extends Trigger> existingTriggers = scheduler.getTriggersOfJob(jobKey);
+
+        // Unscheduling existing triggers which are not part of newCrons
+        for (Trigger existingTrigger : existingTriggers) {
+            if (!newCrons.contains(((CronTrigger) existingTrigger).getCronExpression())) {
+                scheduler.unscheduleJob(existingTrigger.getKey());
+            }
+        }
+
+        // Adding new triggers which are not part of existing triggers
+        for (String newCron : newCrons) {
+            boolean isTriggerExist = false;
+
+            for (Trigger existingTrigger : existingTriggers) {
+                if (newCron.equals(((CronTrigger) existingTrigger).getCronExpression())) {
+                    isTriggerExist = true;
+                    break;
+                }
+            }
+
+            if (!isTriggerExist) {
+                Trigger newTrigger = TriggerBuilder.newTrigger()
+                        .withIdentity(jobName + "_trigger_" + newCron.hashCode())
+                        .withSchedule(CronScheduleBuilder.cronSchedule(newCron))
+                        .forJob(jobKey)
+                        .build();
+                scheduler.scheduleJob(newTrigger);
+            }
+        }
     }
 
     private String createCronJobName(String name, String cron) {
