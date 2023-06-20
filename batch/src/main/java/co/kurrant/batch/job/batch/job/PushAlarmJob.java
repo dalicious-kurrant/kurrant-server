@@ -134,7 +134,7 @@ public class PushAlarmJob {
                         userGroup.updateStatus(ClientStatus.BELONG);
                     }
 
-                    log.info("마이스팟 존 상태 변경 완료 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
+                    log.info("user group 상태 변경 완료 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
                     return RepeatStatus.FINISHED;
                 })).build();
     }
@@ -173,6 +173,28 @@ public class PushAlarmJob {
                     }
 
                     log.info("마이스팟 존 상태 변경 완료 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
+                    return RepeatStatus.FINISHED;
+                })).build();
+    }
+
+    @Bean
+    @JobScope
+    public Step pushAlarmJob3_step2() {
+        return stepBuilderFactory.get("pushAlarmJob3_step2")
+                .tasklet(((contribution, chunkContext) -> {
+                    log.info("[user group 찾기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
+
+                    final String queryString = "SELECT ug FROM UserGroup ug LEFT JOIN MySpotZone msz ON ug.group = msz WHERE ug.clientStatus = 1 and msz.mySpotZoneStatus = 2";
+                    final TypedQuery<UserGroup> query = entityManager.createQuery(queryString, UserGroup.class);
+
+                    final List<UserGroup> userGroups = query.getResultList();
+
+                    for(UserGroup userGroup : userGroups) {
+                        log.info("user group 상태 변경 시작 : {}", userGroup.getId());
+                        userGroup.updateStatus(ClientStatus.WAITING);
+                    }
+
+                    log.info("user group 상태 변경 완료 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
                     return RepeatStatus.FINISHED;
                 })).build();
     }
