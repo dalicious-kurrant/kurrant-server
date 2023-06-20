@@ -42,6 +42,7 @@ public interface MySpotMapper {
     @Mapping(source = "group.diningTypes", target = "diningTypes")
     @Mapping(source = "group", target = "group")
     @Mapping(source = "requestedMySpot.userId", target = "userId")
+    @Mapping(target = "isDelete", defaultValue = "false")
     MySpot toEntity(RequestedMySpot requestedMySpot, Group group) throws ParseException;
 
     default List<MySpot> toEntityList(MySpotZone mySpotZone, List<RequestedMySpot> requestedMySpots){

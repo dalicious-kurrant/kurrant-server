@@ -164,6 +164,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 마이스팟 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(existRequestedMySpotZones);
+        groupRepository.save(mySpotZone);
+
         // 지역에 마이스팟 fk
         List<Region> regions = existRequestedMySpotZones.stream().map(RequestedMySpotZones::getRegion).toList();
         regions.forEach(region -> region.updateMySpotZone(mySpotZone.getId()));
@@ -183,8 +185,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                     return mySpotZoneMealInfoMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime);
                 })
                 .collect(Collectors.toList());
-
-        groupRepository.save(mySpotZone);
         mealInfoRepository.saveAll(mealInfoList);
 
         // 마이스팟 생성
