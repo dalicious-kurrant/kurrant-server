@@ -36,6 +36,7 @@ public class QRequestedShareSpotRepository {
                 .where(whereClause)
                 .limit(limit)
                 .offset(offset)
+                .orderBy(requestedShareSpot.createdDateTime.desc())
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
