@@ -115,7 +115,7 @@ public class GroupServiceImpl implements GroupService {
         // 그룹이 있는지 찾아보기
         for (GroupListDto.GroupInfoList groupInfoList : groupListDtoList) {
             Group group = groupList.stream().filter(groupMatch -> groupMatch.getId().equals(groupInfoList.getId())).findFirst().orElse(null);
-            Address address = new Address(groupInfoList.getZipCode(), groupInfoList.getAddress1(), groupInfoList.getAddress2(), groupInfoList.getLocation());
+            Address address = new Address(groupInfoList.getZipCode(), groupInfoList.getAddress1(), groupInfoList.getAddress2());
 
             // 겹치는 요일이 있으면 패스
             List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(groupInfoList.getServiceDays());
@@ -220,7 +220,7 @@ public class GroupServiceImpl implements GroupService {
         Group group = groupRepository.findById(groupInfoList.getId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
         List<DiningType> diningTypeList = DiningTypesUtils.codesToDiningTypes(groupInfoList.getDiningTypes());
 
-        Address address = new Address(groupInfoList.getZipCode(), groupInfoList.getAddress1(), groupInfoList.getAddress2(), groupInfoList.getLocation());
+        Address address = new Address(groupInfoList.getZipCode(), groupInfoList.getAddress1(), groupInfoList.getAddress2());
 
         // 겹치는 요일이 있으면 패스
         List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(groupInfoList.getServiceDays());
