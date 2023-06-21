@@ -1,4 +1,4 @@
-`package co.dalicious.domain.banner.converter;
+package co.dalicious.domain.banner.converter;
 
 import co.dalicious.domain.banner.enums.BannerSection;
 
