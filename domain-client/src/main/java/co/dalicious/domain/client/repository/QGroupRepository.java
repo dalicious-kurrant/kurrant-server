@@ -75,6 +75,16 @@ public class QGroupRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
+    public List<Group> findAllExceptForMySpot() {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        return queryFactory.selectFrom(group)
+                .leftJoin(corporation).on(group.id.eq(corporation.id))
+                .leftJoin(openGroup).on(group.id.eq(openGroup.id))
+                .where(whereClause, corporation.id.isNotNull().or(openGroup.id.isNotNull()))
+                .orderBy(group.id.asc())
+                .fetch();
+    }
+
     public List<Group> findAllByNames(Set<String> groupNames) {
         return queryFactory.selectFrom(group)
                 .where(group.name.in(groupNames))
