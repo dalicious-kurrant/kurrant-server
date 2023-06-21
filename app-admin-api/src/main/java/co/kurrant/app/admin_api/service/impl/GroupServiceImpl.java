@@ -19,7 +19,6 @@ import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.client.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.domain.client.repository.*;
-import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
@@ -32,7 +31,6 @@ import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
-import co.kurrant.app.admin_api.mapper.SpotMapper;
 import co.kurrant.app.admin_api.service.GroupService;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -58,13 +56,10 @@ public class GroupServiceImpl implements GroupService {
     public final GroupRepository groupRepository;
     private final MealInfoRepository mealInfoRepository;
     private final UserRepository userRepository;
-    private final SpotMapper spotMapper;
-    private final QMembershipSupportPriceRepository qmembershipSupportPriceRepository;
     private final MySpotZoneMapper mySpotZoneMapper;
     private final QMySpotZoneRepository qMySpotZoneRepository;
     private final QRegionRepository qRegionRepository;
     private final MySpotZoneMealInfoMapper mySpotZoneMealInfoMapper;
-    private final AddressUtil addressUtil;
 
     @Override
     @Transactional
@@ -322,18 +317,13 @@ public class GroupServiceImpl implements GroupService {
         List<MealInfo> mealInfoList = mySpotZone.getDiningTypes().stream()
                 .map(diningType -> {
                     List<LocalTime> mealTime = switch (diningType) {
-                        case MORNING ->
-                                createRequestDto.getBreakfastDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
-                        case LUNCH ->
-                                createRequestDto.getLunchDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
-                        case DINNER ->
-                                createRequestDto.getDinnerDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case MORNING -> createRequestDto.getBreakfastDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case LUNCH -> createRequestDto.getLunchDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
+                        case DINNER -> createRequestDto.getDinnerDeliveryTime().stream().map(DateUtils::stringToLocalTime).toList();
                     };
-
                     return mySpotZoneMealInfoMapper.toMealInfo(mySpotZone, diningType, mealTime, defaultTime, defaultDays, defaultTime);
                 })
                 .collect(Collectors.toList());
-
 
         mealInfoRepository.saveAll(mealInfoList);
     }
@@ -358,16 +348,12 @@ public class GroupServiceImpl implements GroupService {
         mySpotZone.getDiningTypes()
                 .forEach(diningType -> {
                     List<LocalTime> deliveryTimes = switch (diningType) {
-                        case MORNING ->
-                                updateRequestDto.getBreakfastDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
-                        case LUNCH ->
-                                updateRequestDto.getLunchDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
-                        case DINNER ->
-                                updateRequestDto.getDinnerDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
+                        case MORNING -> updateRequestDto.getBreakfastDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
+                        case LUNCH -> updateRequestDto.getLunchDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
+                        case DINNER -> updateRequestDto.getDinnerDeliveryTime().stream().map(time -> DateUtils.stringToTime(time, ":")).toList();
                     };
                     mySpotZone.getMealInfo(diningType).updateDeliveryTimes(deliveryTimes);
                 });
-
     }
 
     @Override
@@ -397,8 +383,8 @@ public class GroupServiceImpl implements GroupService {
     public void updateLocation() throws ParseException {
         List<Group> groupList = qGroupRepository.findGroupAndAddressIsNull();
 
-        for (Group group : groupList) {
-            Map<String, String> updateLocation = addressUtil.getLocation(group.getAddress().getAddress1());
+        for(Group group : groupList) {
+            Map<String, String> updateLocation = AddressUtil.getLocation(group.getAddress().getAddress1());
             group.getAddress().updateLocation(updateLocation.get("location"));
             group.getAddress().updateAddress3(updateLocation.get("jibunAddress"));
         }

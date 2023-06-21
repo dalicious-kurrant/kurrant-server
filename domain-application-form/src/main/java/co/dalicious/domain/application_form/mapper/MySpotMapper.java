@@ -48,6 +48,7 @@ public interface MySpotMapper {
                     .userId(v.getUserId())
                     .isDelete(false)
                     .memo(v.getMemo())
-                    .build()).toList();
+                    .build()
+                ).toList();
     }
 }

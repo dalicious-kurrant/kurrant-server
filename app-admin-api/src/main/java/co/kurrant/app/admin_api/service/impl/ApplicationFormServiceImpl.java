@@ -153,7 +153,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 신청 유저의 마이 스팟 삭제
         List<RequestedMySpot> requestedMySpots= existRequestedMySpotZones.stream().flatMap(r -> r.getRequestedMySpots().stream()).toList();
         requestedMySpotRepository.deleteAll(requestedMySpots);
-
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
 
     }
@@ -181,6 +180,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                         case MORNING -> "07:00";
                         case LUNCH -> "12:00";
                         case DINNER -> "19:00";
+                        default -> throw new ApiException(ExceptionEnum.ENUM_NOT_FOUND);
                     };
 
                     return mySpotZoneMealInfoMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime);
