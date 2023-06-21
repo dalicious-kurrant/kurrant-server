@@ -2,11 +2,13 @@ package co.dalicious.domain.order.service;
 
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.util.PeriodDto;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.transaction.annotation.Propagation;
 
@@ -14,6 +16,8 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 
 public interface OrderService {
+    // 정기식사 주문을 한다.
+    JSONObject payDailyFood(User user, CreditCardInfo creditCardInfo, Integer amount, String orderCode, String orderName) throws IOException, ParseException;
     // 정기식사 주문을 모두 취소한다
     void cancelOrderDailyFoodNice(OrderDailyFood orderDailyFood, User user) throws IOException, ParseException;
     // 정기식사 주문 상품 하나를 취소한다.
