@@ -99,14 +99,15 @@ public class UserClientServiceImpl implements UserClientService {
 
     }
 
+    //TODO :  추후 마이 스팟 이용 갯수가 늘어나면 spotId 삭제 방식으로 변경 필요
     @Override
     @Transactional
-    public Integer withdrawClient(SecurityUser securityUser, BigInteger spotId) {
+    public Integer withdrawClient(SecurityUser securityUser, BigInteger clientId) {
         // 유저를 조회한다.
         User user = userUtil.getUser(securityUser);
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
-        Group group = groupRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        Group group = groupRepository.findById(clientId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
         Group unproxiedGroup = (Group) Hibernate.unproxy(group);
         UserGroup userGroup = isGroupMember(user, unproxiedGroup);
         // 유저 그룹 상태를 탈퇴로 만든다.
@@ -115,8 +116,10 @@ public class UserClientServiceImpl implements UserClientService {
         Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
                 .findAny();
         userSpot.ifPresent(v -> {
-            Spot spot = v.getSpot();
-            if(spot instanceof MySpot myspot) myspot.updateMySpotForDelete();
+            if(unproxiedGroup instanceof MySpotZone mySpotZone) {
+                List<MySpot> mySpots = mySpotZone.getSpots().stream().filter(s -> s instanceof MySpot mySpot && mySpot.getUserId().equals(user.getId())).map(s -> ((MySpot) s)).toList();
+                mySpots.forEach(MySpot::updateMySpotForDelete);
+            }
             userSpotRepository.delete(v);
         });
         // 다른 그룹이 존재하는지 여부에 따라 Return값 결정(스팟 선택 화면 || 그룹 신청 화면)
