@@ -390,6 +390,7 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
+    // TODO: 오픈으로 변경됐을 때 푸시알림 추가
     @Override
     @Transactional
     public void updateMySpotZoneStatus(UpdateStatusDto updateStatusDto) {
