@@ -5,6 +5,10 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.repository.QDailyFoodDeliveryRepository;
+import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
@@ -45,6 +49,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final GroupRepository groupRepository;
     private final SpotRepository spotRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -59,9 +64,13 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
 
         List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
+        List<DeliveryInstance> deliveryInstanceList = qDeliveryInstanceRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
+        if(deliveryInstanceList.isEmpty() || deliveryInstanceList == null) return null;
 
-        if(orderItemDailyFoods.isEmpty() || orderItemDailyFoods == null) return null;
+        deliveryInstanceList.forEach(v ->{
+            List<DailyFoodDelivery> dailyFoodDeliveries = v.getDailyFoodDeliveries();
+
+        });
 
         // service date 묶기
         MultiValueMap<ServiceDateDto, OrderItemDailyFood> serviceDateDtoMap = new LinkedMultiValueMap<>();

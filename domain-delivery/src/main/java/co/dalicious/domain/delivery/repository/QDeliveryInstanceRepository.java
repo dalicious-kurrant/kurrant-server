@@ -1,8 +1,11 @@
 package co.dalicious.domain.delivery.repository;
 
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -15,7 +18,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static co.dalicious.domain.delivery.entity.QDailyFoodDelivery.dailyFoodDelivery;
 import static co.dalicious.domain.delivery.entity.QDeliveryInstance.deliveryInstance;
+import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 
 @Repository
 @RequiredArgsConstructor
@@ -59,5 +65,14 @@ public class QDeliveryInstanceRepository {
                 .fetchOne();
 
         return Objects.requireNonNullElse(maxOrderNumber, 0);
+    }
+
+    public List<DeliveryInstance> findByDailyFoodAndOrderStatus(List<DailyFood> dailyFoodList) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .leftJoin(dailyFoodDelivery).on(deliveryInstance.dailyFoodDeliveries.contains(dailyFoodDelivery))
+                .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .where(dailyFood.in(dailyFoodList), orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .fetch();
     }
 }
