@@ -68,9 +68,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         if(deliveryInstanceList.isEmpty() || deliveryInstanceList == null) return null;
 
         deliveryInstanceList.forEach(v ->{
-            List<DailyFoodDelivery> dailyFoodDeliveries = v.getDailyFoodDeliveries();
 
-            
 
         });
 
