@@ -151,18 +151,13 @@ public class GroupServiceImpl implements GroupService {
                 List<MealInfo> mealInfoList = group.getMealInfos();
                 for (DiningType diningType : diningTypeList) {
                     MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
+                    GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
+                            .findAny().orElse(null);
                     if (mealInfo == null) {
-                        GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
-                                .findAny().orElse(null);
                         MealInfo newMealInfo = groupMapper.toMealInfo(mealInfoDto, group);
                         newMealInfoList.add(newMealInfo);
                     } else {
-                        if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
-                            GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
-                                    .findAny().orElse(null);
-                            List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = groupMapper.toServiceDaysAndSupportPrice(mealInfoDto.getSupportPriceByDays());
-                            corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays, serviceDaysAndSupportPriceList);
-                        } else mealInfo.updateMealInfo(serviceDays);
+                        groupMapper.updateMealInfo(mealInfoDto, group, mealInfo);
                     }
                 }
 
@@ -176,14 +171,13 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional(readOnly = true)
     public List<GroupListDto.GroupInfoList> getAllGroupForExcel() {
-        List<Group> groupAllList = groupRepository.findAll();
+        List<Group> groupAllList = qGroupRepository.findAllExceptForMySpot();
         // 기업 정보 dto 맵핑하기
         List<GroupListDto.GroupInfoList> groupListDtoList = new ArrayList<>();
 
         if (groupAllList.isEmpty()) {
             return groupListDtoList;
         }
-
         List<BigInteger> managerIds = groupAllList.stream()
                 .filter(group -> group instanceof Corporation)
                 .map(group -> ((Corporation) group).getManagerId())
@@ -243,18 +237,13 @@ public class GroupServiceImpl implements GroupService {
         List<MealInfo> newMealInfoList = new ArrayList<>();
         for (DiningType diningType : diningTypeList) {
             MealInfo mealInfo = mealInfoList.stream().filter(m -> m.getDiningType().equals(diningType)).findAny().orElse(null);
+            GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
+                    .findAny().orElse(null);
             if (mealInfo == null) {
-                GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
-                        .findAny().orElse(null);
                 MealInfo newMealInfo = groupMapper.toMealInfo(mealInfoDto, group);
                 newMealInfoList.add(newMealInfo);
             } else {
-                if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
-                    GroupListDto.MealInfo mealInfoDto = groupInfoList.getMealInfos().stream().filter(v -> v.getDiningType().equals(diningType.getCode()))
-                            .findAny().orElse(null);
-                    List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = groupMapper.toServiceDaysAndSupportPrice(mealInfoDto.getSupportPriceByDays());
-                    corporationMealInfo.updateServiceDaysAndSupportPrice(serviceDays, serviceDaysAndSupportPriceList);
-                } else mealInfo.updateMealInfo(serviceDays);
+                groupMapper.updateMealInfo(mealInfoDto, group, mealInfo);
             }
         }
         mealInfoRepository.saveAll(newMealInfoList);

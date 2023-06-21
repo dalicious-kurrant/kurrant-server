@@ -154,4 +154,13 @@ public class MealInfo {
     public void updateDeliveryTimes(List<LocalTime> deliveryTimes) {
         this.deliveryTimes = deliveryTimes;
     }
+
+    public void updateMealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group) {
+        this.diningType = diningType;
+        this.deliveryTimes = deliveryTimes;
+        this.membershipBenefitTime = membershipBenefitTime;
+        this.lastOrderTime = lastOrderTime;
+        this.serviceDays = serviceDays;
+        this.group = group;
+    }
 }

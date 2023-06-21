@@ -60,4 +60,12 @@ public class QDeliveryInstanceRepository {
 
         return Objects.requireNonNullElse(maxOrderNumber, 0);
     }
+
+    public List<LocalTime> getTodayDeliveryTimes() {
+        return queryFactory.select(deliveryInstance.deliveryTime)
+                .from(deliveryInstance)
+                .where(deliveryInstance.serviceDate.eq(LocalDate.now()))
+                .distinct()
+                .fetch();
+    }
 }
