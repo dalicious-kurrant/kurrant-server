@@ -5,6 +5,7 @@ import co.dalicious.domain.client.dto.GroupInfo;
 import co.dalicious.domain.client.dto.SpotInfo;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
@@ -71,4 +72,9 @@ public interface DeliveryMapper {
     @Mapping(target = "address", expression = "java(makers.getAddress().addressToString())")
     DeliveryDto.DeliveryMakers toDeliveryMakers(Makers makers, List<DeliveryDto.DeliveryFood> deliveryFoodList, LocalTime pickupTime);
 
+//
+//    default List<DeliveryDto.DeliveryInfo> getDeliveryInfoList(List<DeliveryInstance> deliveryInstances) {
+//
+//
+//    }
 }
