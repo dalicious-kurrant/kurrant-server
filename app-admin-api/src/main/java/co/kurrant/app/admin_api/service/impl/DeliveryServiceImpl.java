@@ -3,19 +3,26 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
+import co.dalicious.domain.delivery.repository.QDailyFoodDeliveryRepository;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
+import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
 import co.kurrant.app.admin_api.dto.delivery.ServiceDateDto;
 import co.kurrant.app.admin_api.mapper.DeliveryMapper;
@@ -45,6 +52,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final GroupRepository groupRepository;
     private final SpotRepository spotRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
+    private final QDailyFoodDeliveryRepository qDailyFoodDeliveryRepository;
+    private final MakersRepository makersRepository;
+    private final UserRepository userRepository;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -128,5 +139,32 @@ public class DeliveryServiceImpl implements DeliveryService {
             }
         }
         return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
+    }
+
+    @Override
+    @Transactional
+    public List<DeliveryDto.DeliveryManifest> getDeliveryManifest(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        Integer spotType = !parameters.containsKey("spotType") || parameters.get("spotType").equals("") ? null : Integer.parseInt((String) parameters.get("spotType"));
+        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
+        Integer diningTypeCode = !parameters.containsKey("diningType") || parameters.get("diningType").equals("") ? null : Integer.parseInt((String) parameters.get("diningType"));
+        LocalTime deliveryTime = !parameters.containsKey("deliveryTime") || parameters.get("deliveryTime").equals("") ? null : DateUtils.stringToLocalTime((String) parameters.get("deliveryTime"));
+        String orderNumber = !parameters.containsKey("orderNumber") || parameters.get("orderNumber").equals("") ? null : (String) parameters.get("orderNumber");
+        BigInteger userId = !parameters.containsKey("userId") || parameters.get("userId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("userId")));
+
+        Makers makers = null;
+        User user = null;
+        if(makersId != null) {
+            makers = makersRepository.findById(makersId).orElse(null);
+
+        }
+        if(userId != null) {
+            user = userRepository.findById(userId).orElse(null);
+        }
+
+        List<DailyFoodDelivery> dailyFoodDeliveries = qDailyFoodDeliveryRepository.findByFilter(startDate, endDate, (spotType == null) ? null : GroupDataType.ofCode(spotType), makers, (diningTypeCode == null) ? null : DiningType.ofCode(diningTypeCode), deliveryTime, orderNumber, user);
+
+        return deliveryMapper.toDeliveryManifests(dailyFoodDeliveries);
     }
 }

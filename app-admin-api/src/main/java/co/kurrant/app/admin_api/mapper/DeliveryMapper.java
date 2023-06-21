@@ -5,6 +5,8 @@ import co.dalicious.domain.client.dto.GroupInfo;
 import co.dalicious.domain.client.dto.SpotInfo;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
@@ -26,7 +28,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = {DateUtils.class})
 public interface DeliveryMapper {
 
     @Mapping(source = "group.id", target = "groupId")
@@ -71,4 +73,28 @@ public interface DeliveryMapper {
     @Mapping(target = "address", expression = "java(makers.getAddress().addressToString())")
     DeliveryDto.DeliveryMakers toDeliveryMakers(Makers makers, List<DeliveryDto.DeliveryFood> deliveryFoodList, LocalTime pickupTime);
 
+    default DeliveryDto.DeliveryManifest toDeliveryManifest(DailyFoodDelivery dailyFoodDelivery) {
+        return DeliveryDto.DeliveryManifest.builder()
+                .spotType(GroupDataType.ofClass(Hibernate.getClass(dailyFoodDelivery.getDeliveryInstance().getSpot())).getType())
+                .serviceDate(DateUtils.format(dailyFoodDelivery.getDeliveryInstance().getServiceDate()))
+                .diningType(dailyFoodDelivery.getDeliveryInstance().getDiningType().getCode())
+                .deliveryTime(DateUtils.timeToString(dailyFoodDelivery.getDeliveryInstance().getDeliveryTime()))
+                .orderNumber(dailyFoodDelivery.getDeliveryInstance().getDeliveryCode())
+                .makersName(dailyFoodDelivery.getDeliveryInstance().getMakers().getName())
+                .makersAddress(dailyFoodDelivery.getDeliveryInstance().getMakers().getAddress().addressToString())
+                .makersPhone(dailyFoodDelivery.getDeliveryInstance().getMakers().getCEOPhone())
+                .foodName(dailyFoodDelivery.getOrderItemDailyFood().getName())
+                .count(dailyFoodDelivery.getOrderItemDailyFood().getCount())
+                .userName(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getUser().getName())
+                .userAddress(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getAddress().addressToString())
+                .userPhone(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getUser().getPhone())
+                .memo(null) // 추후수정
+                .build();
+    }
+
+    default List<DeliveryDto.DeliveryManifest> toDeliveryManifests(List<DailyFoodDelivery> dailyFoodDeliveries) {
+        return dailyFoodDeliveries.stream()
+                .map(this::toDeliveryManifest)
+                .toList();
+    }
 }

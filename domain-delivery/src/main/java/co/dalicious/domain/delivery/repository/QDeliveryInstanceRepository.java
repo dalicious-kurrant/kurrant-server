@@ -1,8 +1,13 @@
 package co.dalicious.domain.delivery.repository;
 
+import co.dalicious.domain.client.entity.CorporationSpot;
+import co.dalicious.domain.client.entity.MySpot;
+import co.dalicious.domain.client.entity.OpenGroupSpot;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;

@@ -96,6 +96,42 @@ public class DeliveryDto {
         }
     }
 
+    @Getter
+    public static class DeliveryManifest {
+        private String spotType;
+        private String serviceDate;
+        private Integer diningType;
+        private String deliveryTime;
+        private String orderNumber;
+        private String makersName;
+        private String makersAddress;
+        private String makersPhone;
+        private String foodName;
+        private Integer count;
+        private String userName;
+        private String userAddress;
+        private String userPhone;
+        private String memo;
+
+        @Builder
+        public DeliveryManifest(String spotType, String serviceDate, Integer diningType, String deliveryTime, String orderNumber, String makersName, String makersAddress, String makersPhone, String foodName, Integer count, String userName, String userAddress, String userPhone, String memo) {
+            this.spotType = spotType;
+            this.serviceDate = serviceDate;
+            this.diningType = diningType;
+            this.deliveryTime = deliveryTime;
+            this.orderNumber = orderNumber;
+            this.makersName = makersName;
+            this.makersAddress = makersAddress;
+            this.makersPhone = makersPhone;
+            this.foodName = foodName;
+            this.count = count;
+            this.userName = userName;
+            this.userAddress = userAddress;
+            this.userPhone = userPhone;
+            this.memo = memo;
+        }
+    }
+
     public static DeliveryDto create (List<Group> groupList, List<DeliveryInfo> deliveryInfoList, List<Spot> spotList) {
         List<GroupInfo> groupInfos = groupList.stream().map(group -> GroupInfo.create(group.getId(), group.getName())).toList();
         List<SpotInfo> spotInfos = spotList.stream().map(spot -> SpotInfo.create(spot.getId(), spot.getName())).toList();
