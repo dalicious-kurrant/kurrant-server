@@ -276,6 +276,8 @@ public interface GroupMapper {
     @Mapping(source = "zipCode", target = "address.zipCode")
     @Mapping(source = "address1", target = "address.address1")
     @Mapping(source = "address2", target = "address.address2")
+    @Mapping(target = "address.address3", expression = "java(AddressUtil.getLocation(groupDto.getAddress1()).get(\"jibunAddress\"))")
+    @Mapping(target = "address.location", expression = "java(AddressUtil.getLocation(groupDto.getAddress1()).get(\"location\"))")
     @Mapping(target = "deliveryFeeOption", expression = "java(DeliveryFeeOption.ofString(groupDto.getDeliveryFeeOption()))")
     @Mapping(target = "mealInfos", ignore = true)
     void updateCorporation(GroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;
