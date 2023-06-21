@@ -67,10 +67,17 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<DeliveryInstance> deliveryInstanceList = qDeliveryInstanceRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
         if(deliveryInstanceList.isEmpty() || deliveryInstanceList == null) return null;
 
-        deliveryInstanceList.forEach(v ->{
+        Map<LocalDate, List<DeliveryInstance>> serviceDateMap = deliveryInstanceList.stream()
+                .collect(Collectors.groupingBy(DeliveryInstance::getServiceDate));
 
+        List<DeliveryDto.DeliveryInfo> deliveryInfoList = serviceDateMap.entrySet().stream()
+                .map(entry -> {
+                    Map<LocalTime, List<DeliveryInstance>> deliveryTimeMap = serviceDateMap.get(entry.getKey()).stream().collect(Collectors.groupingBy(DeliveryInstance::getDeliveryTime));
 
-        });
+                    deliveryTimeMap.entrySet().stream()
+
+                        }
+                ).toList();
 
         // service date 묶기
         MultiValueMap<ServiceDateDto, OrderItemDailyFood> serviceDateDtoMap = new LinkedMultiValueMap<>();
@@ -78,7 +85,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             ServiceDateDto serviceDateDto = new ServiceDateDto(orderItemDailyFood.getDailyFood().getServiceDate(), orderItemDailyFood.getDeliveryTime());
             serviceDateDtoMap.add(serviceDateDto, orderItemDailyFood);
         }
-        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
+
         for (ServiceDateDto serviceDateDto : serviceDateDtoMap.keySet()) {
             List<OrderItemDailyFood> serviceDaysOrderItemDailyFoodList = serviceDateDtoMap.get(serviceDateDto);
 
