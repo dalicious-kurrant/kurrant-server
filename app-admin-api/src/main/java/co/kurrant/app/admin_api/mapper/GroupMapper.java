@@ -273,9 +273,6 @@ public interface GroupMapper {
 
     @Mapping(target = "membershipEndDate", expression = "java(DateUtils.stringToDate(groupDto.getMembershipEndDate()))")
     @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.codesToDiningTypes(groupDto.getDiningTypes()))")
-    @Mapping(source = "zipCode", target = "address.zipCode")
-    @Mapping(source = "address1", target = "address.address1")
-    @Mapping(source = "address2", target = "address.address2")
     @Mapping(target = "deliveryFeeOption", expression = "java(DeliveryFeeOption.ofString(groupDto.getDeliveryFeeOption()))")
     @Mapping(target = "mealInfos", ignore = true)
     void updateCorporation(GroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;

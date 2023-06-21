@@ -33,4 +33,5 @@ public class QRequestedMySpotRepository {
                 .where(requestedMySpot.userId.eq(userId))
                 .fetch();
     }
+
 }

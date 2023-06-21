@@ -26,11 +26,18 @@ import java.util.regex.Pattern;
 @PropertySource("classpath:application-map.properties")
 public class AddressUtil {
 
-    @Value("${naver.client.id}")
     public static String YOUR_CLIENT_ID;
+    public static String YOUR_CLIENT_SECRET;
+
+    @Value("${naver.client.id}")
+    public void setYourClientId(String clientId) {
+        YOUR_CLIENT_ID = clientId;
+    }
 
     @Value("${naver.secret.id}")
-    public static String YOUR_CLIENT_SECRET;
+    public void setYourClientSecret(String clientSecret) {
+        YOUR_CLIENT_SECRET = clientSecret;
+    }
 
     public static Map<String, String> getLocation(String address) {
 
@@ -71,7 +78,6 @@ public class AddressUtil {
 
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject temp = (JSONObject) arr.get(i);
-                System.out.println("jibunAddress : " + temp.get("jibunAddress"));
                 String latitude = String.valueOf(temp.get("y"));
                 String longitude = String.valueOf(temp.get("x"));
                 String jibunAddress = String.valueOf(temp.get("jibunAddress"));

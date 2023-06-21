@@ -28,9 +28,11 @@ public class OrderItemService {
         log.info("[OrderItem id 찾기] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         // list up order item daily food by order status = delivering
-        String queryString = "SELECT df.serviceDate, dfg.deliverySchedules, oi.id, oidf.deliveryTime " +
+        String queryString = "SELECT df.serviceDate, di.pickUpTime, oi.id " +
                 "FROM OrderItem oi " +
                 "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
+                "JOIN DailyFoodDelivery dfd ON oidf = dfd.orderItemDailyFood " +
+                "JOIN DeliveryInstance di ON dfd.deliveryInstance = di AND oidf.deliveryTime = di.deliveryTime " +
                 "JOIN oidf.dailyFood df " +
                 "JOIN df.dailyFoodGroup dfg " +
                 "WHERE oi.orderStatus = 6L";
@@ -44,11 +46,8 @@ public class OrderItemService {
         List<BigInteger> orderItemIds = new ArrayList<>();
         for(Object[] objects : results) {
             LocalDate serviceDate = (LocalDate) objects[0];
-            List<DeliverySchedule> deliverySchedules = List.of((DeliverySchedule) objects[1]);
+            LocalTime pickupTime = (LocalTime) objects[1];
             BigInteger orderItemId = (BigInteger) objects[2];
-            LocalTime deliveryTime = (LocalTime) objects[3];
-
-            LocalTime pickupTime = deliverySchedules.stream().filter(o -> o.getDeliveryTime().equals(deliveryTime)).map(DeliverySchedule::getPickupTime).findAny().orElse(null);
 
             if(pickupTime != null && serviceDate.equals(today) && pickupTime.isBefore(now)) {
                 orderItemIds.add(orderItemId);
