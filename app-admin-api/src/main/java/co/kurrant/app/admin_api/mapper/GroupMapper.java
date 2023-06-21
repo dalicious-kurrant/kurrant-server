@@ -189,7 +189,7 @@ public interface GroupMapper {
         for (ServiceDaysAndSupportPrice serviceDaysAndSupportPrice : serviceDaysAndSupportPrices) {
             supportPriceByDays.addAll(toSupportPriceByDay(serviceDaysAndSupportPrice));
         }
-        return supportPriceByDays.stream().sorted(Comparator.comparing(GroupListDto.SupportPriceByDay::getServiceDay))
+        return supportPriceByDays.stream().sorted(Comparator.comparing(v -> Days.ofString(v.getServiceDay())))
                 .toList();
     }
 
