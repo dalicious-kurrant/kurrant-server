@@ -45,11 +45,18 @@ public class DaysUtil {
     }
 
     public static String serviceDaysToDaysString(Collection<Days> daysCollection) {
+        if (daysCollection == null || daysCollection.isEmpty()) {
+            return null;
+        }
+        List<Days> sortedDays = daysCollection.stream()
+                .sorted(Comparator.comparing(Days::getCode))
+                .toList();
+
         StringBuilder stringBuilder = new StringBuilder();
-        if(daysCollection == null || daysCollection.isEmpty()) return null;
-        for(Days days : daysCollection) {
+        for (Days days : sortedDays) {
             stringBuilder.append(days.getDays()).append(", ");
         }
+
         return stringBuilder.substring(0, stringBuilder.length() - 2);
     }
 

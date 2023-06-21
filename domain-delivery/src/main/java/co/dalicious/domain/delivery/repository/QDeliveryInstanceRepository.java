@@ -75,4 +75,12 @@ public class QDeliveryInstanceRepository {
                 .where(dailyFood.in(dailyFoodList), orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
                 .fetch();
     }
+
+    public List<LocalTime> getTodayDeliveryTimes() {
+        return queryFactory.select(deliveryInstance.deliveryTime)
+                .from(deliveryInstance)
+                .where(deliveryInstance.serviceDate.eq(LocalDate.now()))
+                .distinct()
+                .fetch();
+    }
 }
