@@ -151,13 +151,7 @@ public class QGroupRepository {
 
     public List<Group> findGroupAndAddressIsNull() {
         return queryFactory.selectFrom(group)
-                .where(/*group.address.location.isNull(), */group.instanceOf(OpenGroup.class).or(group.instanceOf(Corporation.class)))
-                .fetch();
-    }
-
-    public List<Group> findGroupAndAddress3IsNull() {
-        return queryFactory.selectFrom(group)
-                .where(group.address.address3.isNull(), group.instanceOf(OpenGroup.class).or(group.instanceOf(Corporation.class)))
+                .where(group.address.location.isNull().or(group.address.address3.isNull()), group.instanceOf(OpenGroup.class).or(group.instanceOf(Corporation.class)))
                 .fetch();
     }
 
