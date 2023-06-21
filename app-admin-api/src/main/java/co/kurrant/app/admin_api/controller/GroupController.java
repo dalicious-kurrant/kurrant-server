@@ -4,12 +4,11 @@ import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
-import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
-import co.dalicious.integration.client.user.dto.mySpotZone.CreateRequestDto;
-import co.dalicious.integration.client.user.dto.mySpotZone.UpdateRequestDto;
-import co.dalicious.integration.client.user.dto.mySpotZone.UpdateStatusDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.CreateRequestDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.UpdateRequestDto;
+import co.dalicious.domain.application_form.dto.mySpotZone.UpdateStatusDto;
 import co.kurrant.app.admin_api.service.GroupService;
 import co.dalicious.domain.address.utils.AddressUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -74,7 +73,7 @@ public class GroupController {
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "기업 정보 상세 수정", description = "기업 의 상세정보를 수정합니다.")
     @PatchMapping("/detail")
-    public ResponseMessage updateSpotDetail(@RequestBody UpdateSpotDetailRequestDto updateSpotDetailRequestDto) throws ParseException {
+    public ResponseMessage updateSpotDetail(@RequestBody GroupListDto.GroupInfoList updateSpotDetailRequestDto) throws ParseException {
         groupService.updateGroupDetail(updateSpotDetailRequestDto);
         return ResponseMessage.builder()
                 .message("기업  상세 정보를 수정했습니다.")

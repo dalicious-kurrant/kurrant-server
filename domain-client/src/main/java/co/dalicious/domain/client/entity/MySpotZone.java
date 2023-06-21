@@ -3,6 +3,7 @@ package co.dalicious.domain.client.entity;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.converter.MySpotZoneStatusConverter;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
+import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import lombok.*;
@@ -49,7 +50,12 @@ public class MySpotZone extends Group {
         this.mySpotZoneUserCount = mySpotZoneUserCount;
     }
 
-    public void updateMySpotZoneUserCount(Integer count) {
-        this.mySpotZoneUserCount = this.mySpotZoneUserCount + count;
+    public void updateMySpotZoneUserCount(Integer count, SpotStatus status) {
+        if(status.equals(SpotStatus.ACTIVE)) this.mySpotZoneUserCount = this.mySpotZoneUserCount + count;
+        else if (status.equals(SpotStatus.INACTIVE)) this.mySpotZoneUserCount = this.mySpotZoneUserCount - count;
+    }
+
+    public void updateMySpotZoneStatus(MySpotZoneStatus mySpotZoneStatus) {
+        this.mySpotZoneStatus = mySpotZoneStatus;
     }
 }

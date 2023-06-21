@@ -248,7 +248,7 @@ public class QOrderDailyFoodRepository {
                 .innerJoin(dailyFood.food, food)
                 .innerJoin(food.makers, makers)
                 .where(whereClause)
-                .orderBy(orderItemDailyFood.dailyFood.serviceDate.asc())
+                .orderBy(orderItemDailyFood.dailyFood.serviceDate.asc(), orderItemDailyFood.deliveryTime.asc())
                 .fetch();
     }
 

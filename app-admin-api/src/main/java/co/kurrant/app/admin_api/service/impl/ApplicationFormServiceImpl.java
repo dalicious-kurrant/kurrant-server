@@ -16,23 +16,24 @@ import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
 import co.dalicious.domain.application_form.mapper.RequestedShareSpotMapper;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.domain.client.entity.MealInfo;
-import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.application_form.mapper.MySpotMapper;
+import co.dalicious.domain.application_form.mapper.MySpotZoneMapper;
+import co.dalicious.domain.client.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.MealInfoRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.integration.client.user.mapper.*;
-import co.dalicious.integration.client.user.reposiitory.MySpotRepository;
-import co.dalicious.integration.client.user.reposiitory.QMySpotRepository;
 import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
@@ -152,7 +153,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 신청 유저의 마이 스팟 삭제
         List<RequestedMySpot> requestedMySpots= existRequestedMySpotZones.stream().flatMap(r -> r.getRequestedMySpots().stream()).toList();
         requestedMySpotRepository.deleteAll(requestedMySpots);
-
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
 
     }
@@ -164,6 +164,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 마이스팟 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(existRequestedMySpotZones);
+        groupRepository.save(mySpotZone);
+
         // 지역에 마이스팟 fk
         List<Region> regions = existRequestedMySpotZones.stream().map(RequestedMySpotZones::getRegion).toList();
         regions.forEach(region -> region.updateMySpotZone(mySpotZone.getId()));
@@ -178,24 +180,17 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                         case MORNING -> "07:00";
                         case LUNCH -> "12:00";
                         case DINNER -> "19:00";
+                        default -> throw new ApiException(ExceptionEnum.ENUM_NOT_FOUND);
                     };
 
                     return mySpotZoneMealInfoMapper.toMealInfo(mySpotZone, diningType, DateUtils.stringToLocalTime(mealTime), defaultTime, defaultDays, defaultTime);
                 })
                 .collect(Collectors.toList());
-
-        groupRepository.save(mySpotZone);
         mealInfoRepository.saveAll(mealInfoList);
 
         // 마이스팟 생성
         List<RequestedMySpot> requestedMySpots = existRequestedMySpotZones.stream().flatMap(requestedMySpotZone -> requestedMySpotZone.getRequestedMySpots().stream()).toList();
-        List<MySpot> mySpotList = requestedMySpots.stream().map(v -> {
-            try {
-                return mySpotMapper.toEntity(v, mySpotZone);
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-        }).toList();
+        List<MySpot> mySpotList = mySpotMapper.toEntityList(mySpotZone, requestedMySpots);
         spotRepository.saveAll(mySpotList);
 
         // userGroup and user spot
@@ -270,7 +265,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private void createUserGroupAndUserSpot (List<RequestedMySpot> requestedMySpots, MySpotZone mySpotZone, List<MySpot> mySpotList) {
         List<BigInteger> userIds = requestedMySpots.stream().map(RequestedMySpot::getUserId).toList();
         List<User> users = qUserRepository.getUserAllById(userIds);
-        List<UserGroup> userGroups = users.stream().map(user -> userGroupMapper.toUserGroup(user, mySpotZone)).toList();
+        List<UserGroup> userGroups = users.stream().map(user -> userGroupMapper.toUserGroup(user, mySpotZone, ClientStatus.WAITING)).toList();
         List<UserSpot> userSpots = userSpotMapper.toEntityList(mySpotList, users, GroupDataType.MY_SPOT, false);
         userSpotRepository.saveAll(userSpots);
         userGroupRepository.saveAll(userGroups);

@@ -102,9 +102,8 @@ public class AuthServiceImpl implements AuthService {
         switch (requiredAuth) {
             case SIGNUP -> {
                 // 기존에 가입된 사용자인지 확인
-                Provider provider = Provider.GENERAL;
                 String mail = mailMessageDto.getReceivers().get(0);
-                userValidator.isEmailValid(provider, mail);
+                userValidator.isEmailValid(mail);
             }
             case FIND_PASSWORD -> {
                 // 존재하는 유저인지 확인
@@ -240,7 +239,7 @@ public class AuthServiceImpl implements AuthService {
         if (user == null) {
             UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail().trim()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
 
-            // Corporation과 Apartment가 null로 대입되는 오류 발생 -> nullable = true 설정
+            // Corporation가 null로 대입되는 오류 발생 -> nullable = true 설정
             user = userMapper.toEntity(userDto);
 
             // User 저장

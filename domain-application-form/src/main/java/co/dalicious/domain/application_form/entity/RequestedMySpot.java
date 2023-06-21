@@ -58,8 +58,12 @@ public class RequestedMySpot {
         this.memo = memo;
         this.requestedMySpotZones = requestedMySpotZones;
     }
+//
+//    public void setAddress(CreateAddressRequestDto address) throws ParseException {
+//        this.address = new Address(address);
+//    }
 
-    public void setAddress(CreateAddressRequestDto address) throws ParseException {
-        this.address = new Address(address);
+    public void updateRequestedMySpotZones(RequestedMySpotZones requestedMySpotZones) {
+        this.requestedMySpotZones = requestedMySpotZones;
     }
 }

@@ -14,21 +14,34 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
 @PropertySource("classpath:application-map.properties")
 public class AddressUtil {
 
-    @Value("${naver.client.id}")
     public static String YOUR_CLIENT_ID;
-
-    @Value("${naver.secret.id}")
     public static String YOUR_CLIENT_SECRET;
 
-    public static String getLocation(String address) {
+    @Value("${naver.client.id}")
+    public void setYourClientId(String clientId) {
+        YOUR_CLIENT_ID = clientId;
+    }
 
-        String locationResult = null;
+    @Value("${naver.secret.id}")
+    public void setYourClientSecret(String clientSecret) {
+        YOUR_CLIENT_SECRET = clientSecret;
+    }
+
+    public static Map<String, String> getLocation(String address) {
+
+        Map<String, String> map = new HashMap<>();
         try {
             String encodedAddress = java.net.URLEncoder.encode(address, "UTF-8");
             String apiURL = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=" + encodedAddress;
@@ -65,18 +78,18 @@ public class AddressUtil {
 
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject temp = (JSONObject) arr.get(i);
-                System.out.println("address : " + temp.get("roadAddress"));
-                System.out.println("jibunAddress : " + temp.get("jibunAddress"));
                 String latitude = String.valueOf(temp.get("y"));
                 String longitude = String.valueOf(temp.get("x"));
+                String jibunAddress = String.valueOf(temp.get("jibunAddress"));
 
-                locationResult = latitude + " " + longitude;
+                String locationResult = longitude + " " + latitude;
+                map.put("location", locationResult);
+                map.put("jibunAddress", jibunAddress);
             }
 
         } catch (Exception e) {
             System.out.println("Error: " + e);
         }
-        return locationResult;
+        return map;
     }
-
 }

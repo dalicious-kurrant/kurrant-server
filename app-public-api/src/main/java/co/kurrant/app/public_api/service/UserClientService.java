@@ -2,11 +2,11 @@ package co.kurrant.app.public_api.service;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.address.dto.LocationDto;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
+import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
-import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
-import co.dalicious.integration.client.user.dto.ClientSpotDetailResDto;
+import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
+import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 
 import java.math.BigInteger;
@@ -24,4 +24,7 @@ public interface UserClientService {
     Integer withdrawClient(SecurityUser securityUser, BigInteger groupId);
     // 공유 스팟의 상세조회
     OpenGroupDetailDto getOpenSpotDetail(SecurityUser securityUser, BigInteger groupId);
+    List<OpenGroupListForKeywordDto> getOpenGroupsForKeyword(SecurityUser securityUser);
+    // 유저가 초대된 기업 조회
+    List<CorporationResponseDto> getUserCorporation(SecurityUser securityUser);
 }

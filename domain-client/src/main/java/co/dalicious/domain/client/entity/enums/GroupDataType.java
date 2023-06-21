@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.entity.enums;
 
+import co.dalicious.domain.client.entity.*;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -23,6 +24,12 @@ public enum GroupDataType {
                 .filter(v -> v.getCode().equals(dbData))
                 .findAny()
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 그룹 상태입니다."));
-    }
+     }
 
+    public static GroupDataType ofClass(Class<? extends Spot> spotClass) {
+        if(spotClass.equals(CorporationSpot.class)) return CORPORATION;
+        if(spotClass.equals(OpenGroupSpot.class)) return OPEN_GROUP;
+        if(spotClass.equals(MySpot.class)) return MY_SPOT;
+        return null;
+    }
 }

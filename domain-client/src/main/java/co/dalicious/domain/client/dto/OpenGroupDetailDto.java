@@ -12,6 +12,7 @@ public class OpenGroupDetailDto {
     private BigInteger id;
     private String name;
     private String address;
+    private String jibun;
     private List<Integer> diningTypes;
     private List<String> breakfastDeliveryTime;
     private List<String> lunchDeliveryTime;

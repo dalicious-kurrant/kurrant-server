@@ -2,18 +2,21 @@ package co.dalicious.integration.client.user.mapper;
 
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
+import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
-import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.domain.client.entity.MySpot;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Mapper(componentModel = "spring")
@@ -51,7 +54,6 @@ public interface UserGroupMapper {
         List<SpotListResponseDto.Spot> spotDtoList;
 
         if(group instanceof MySpotZone) {
-            List<Spot> spot = group.getSpots();
             spotDtoList = group.getSpots().stream()
                     .filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId()) && !((MySpot) mySpot).getIsDelete())
                     .map(this::toSpot).toList();
@@ -94,11 +96,26 @@ public interface UserGroupMapper {
         return groupCountDto;
     }
 
-    default UserGroup toUserGroup(User user, Group group) {
+    default UserGroup toUserGroup(User user, Group group, ClientStatus clientStatus) {
         return UserGroup.builder()
-                .clientStatus(ClientStatus.BELONG)
+                .clientStatus(clientStatus)
                 .user(user)
                 .group(group)
                 .build();
+    }
+
+    CorporationResponseDto toCorporationResponseDto(Group group);
+    default List<CorporationResponseDto> toCorporationResponseDtoList(List<UserGroup> userGroups) {
+        return userGroups.stream()
+                .map(v -> {
+                    Group group = v.getGroup();
+                    CorporationResponseDto dto = toCorporationResponseDto(group);
+
+                    Map<String, String> location = group.getAddress().getLatitudeAndLongitude();
+                    dto.setLatitude(location.get("latitude"));
+                    dto.setLongitude(location.get("longitude"));
+
+                    return dto;
+                }).toList();
     }
 }

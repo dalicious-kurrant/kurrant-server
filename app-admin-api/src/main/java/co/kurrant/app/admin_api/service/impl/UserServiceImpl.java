@@ -2,7 +2,6 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Department;
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.mapper.DepartmentMapper;
 import co.dalicious.domain.client.repository.DepartmentRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -18,7 +17,6 @@ import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.user.validator.UserValidator;
-import co.dalicious.integration.client.user.entity.MySpot;
 import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;

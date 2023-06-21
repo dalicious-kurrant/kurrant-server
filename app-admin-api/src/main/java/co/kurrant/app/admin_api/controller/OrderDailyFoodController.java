@@ -44,6 +44,15 @@ public class OrderDailyFoodController {
     }
 
     @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
+    @GetMapping("/by/deliveries")
+    public ResponseMessage retrieveOrderCountByMakersAndDelivery(@RequestParam Map<String, Object> parameters) {
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.retrieveOrderCountByMakersAndDelivery(parameters))
+                .message("메이커스별 식수 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @GetMapping("/{orderCode}")
     public ResponseMessage getOrderDetail(@PathVariable String orderCode) {
         return ResponseMessage.builder()

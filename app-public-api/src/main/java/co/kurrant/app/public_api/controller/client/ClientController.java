@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigInteger;
 import java.util.Map;
 
-@Tag(name = "6. Group")
+@Tag(name = "그룹")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/users/me/groups")
 @RestController
@@ -100,6 +100,26 @@ public class ClientController {
         return ResponseMessage.builder()
                 .data(userClientService.getOpenSpotDetail(securityUser, groupId))
                 .message("오픈 그룹 상세 조회에 성공하셨습니다.")
+                .build();
+    }
+
+    @Operation(summary = "등록된 오픈 그룹 전체 조회", description = "고객사로 등록된 오픈 그룹을 전체를 조회한다.")
+    @GetMapping("/spots/share/keyword")
+    public ResponseMessage getOpenGroupsForKeyword(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userClientService.getOpenGroupsForKeyword(securityUser))
+                .message("오픈 그룹 전체 조회에 성공하셨습니다.")
+                .build();
+    }
+
+    @Operation(summary = "초대된 기업 조회", description = "유저가 초대된 기업을 조회한다.")
+    @GetMapping("/corporation")
+    public ResponseMessage getUserCorporation(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userClientService.getUserCorporation(securityUser))
+                .message("오픈 그룹 전체 조회에 성공하셨습니다.")
                 .build();
     }
 }

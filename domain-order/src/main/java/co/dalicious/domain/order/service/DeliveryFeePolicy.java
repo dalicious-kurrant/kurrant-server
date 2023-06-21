@@ -1,7 +1,6 @@
 package co.dalicious.domain.order.service;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.client.entity.Apartment;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;

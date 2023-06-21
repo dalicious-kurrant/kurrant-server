@@ -9,6 +9,13 @@ import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
+import co.dalicious.domain.delivery.repository.DailyFoodDeliveryRepository;
+import co.dalicious.domain.delivery.repository.DeliveryInstanceRepository;
+import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
+import co.dalicious.domain.delivery.utils.DeliveryUtils;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
@@ -115,6 +122,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QFoundersRepository qFoundersRepository;
     private final CartDailyFoodRepository cartDailyFoodRepository;
     private final QUserRepository qUserRepository;
+    private final DeliveryUtils deliveryUtils;
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
 
     @Override
@@ -223,6 +231,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     System.out.println(selectedCartDailyFood.getDailyFood().getFood().getId() + "foodId");
                     orderItemDailyFood = orderDailyFoodItemMapper.dtoToOrderItemDailyFood(cartDailyFood, selectedCartDailyFood, orderDailyFood, orderItemDailyFoodGroup);
                     orderItemDailyFoods.add(orderItemDailyFoodRepository.save(orderItemDailyFood));
+
+                    // 배송정보 입력
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, user, selectedCartDailyFood.getDailyFood(), selectedCartDailyFood.getDeliveryTime());
 
                     defaultPrice = defaultPrice.add(selectedCartDailyFood.getDailyFood().getFood().getPrice().multiply(BigDecimal.valueOf(cartDailyFood.getCount())));
                     BigDecimal dailyFoodPrice = cartDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(cartDailyFood.getCount()));

@@ -13,6 +13,10 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.*;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
+import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
+import co.dalicious.domain.delivery.utils.DeliveryUtils;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
@@ -45,6 +49,7 @@ import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
@@ -108,6 +113,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PushService pushService;
     private final QMembershipRepository qMembershipRepository;
     private final QGroupRepository qGroupRepository;
+    private final DeliveryUtils deliveryUtils;
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
+    private final DeliveryInstanceMapper deliveryInstanceMapper;
 
     @Override
     @Transactional
@@ -145,9 +153,25 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         assert makersId != null;
         Makers makers = makersRepository.findById(makersId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
 
+        // FIXME: 기존 로직
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
-
         return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList);
+    }
+
+    @Override
+    @Transactional
+    public OrderDailyFoodByMakersDto.ByPeriod retrieveOrderCountByMakersAndDelivery(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        List<Integer> diningTypes = !parameters.containsKey("diningTypes") || parameters.get("diningTypes").equals("") ? null : StringUtils.parseIntegerList((String) parameters.get("diningTypes"));
+        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
+
+        assert makersId != null;
+        Makers makers = makersRepository.findById(makersId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+
+        // FIXME: 배송 도메인 추가 로직
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByFilter(startDate, endDate, DiningTypesUtils.codesToDiningTypes(diningTypes), makers);
+        return deliveryInstanceMapper.toDto(deliveryInstances);
     }
 
     @Override
@@ -383,6 +407,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
                     // 8. 주문 상품(OrderItemDailyFood) 저장
                     OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
+                    // 배송정보 입력
+                    // TODO: 배송시간 추가
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, user, dailyFood, null);
                     orderItemDailyFoods.add(orderItemDailyFood);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
                     supportPrice = supportPrice.add(orderItemDailyFood.getOrderItemTotalPrice());

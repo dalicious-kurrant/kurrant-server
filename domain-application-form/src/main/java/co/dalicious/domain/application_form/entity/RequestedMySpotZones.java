@@ -17,6 +17,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -78,9 +79,14 @@ public class RequestedMySpotZones {
         this.memo = updateRequestDto.getMemo();
     }
 
-    public void updateWaitingUserCount(Integer count) {
-        this.waitingUserCount = this.waitingUserCount + count;
+    public void updateWaitingUserCount(Integer count, Boolean isWithdrawal) {
+        if(!isWithdrawal) this.waitingUserCount = this.waitingUserCount + count;
+        else this.waitingUserCount = this.waitingUserCount - count;
     }
 
-    public void updatePushAlarmUserIds(List<BigInteger> userIds) { this.pushAlarmUserIds = userIds; }
+    public void updatePushAlarmUserIds(BigInteger userId) {
+        List<BigInteger> userIds = this.pushAlarmUserIds == null || this.pushAlarmUserIds.isEmpty() ? new ArrayList<>() : this.pushAlarmUserIds;
+        userIds.add(userId);
+
+        this.pushAlarmUserIds = userIds; }
 }

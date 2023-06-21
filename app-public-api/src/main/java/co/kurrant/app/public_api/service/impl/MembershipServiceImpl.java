@@ -303,7 +303,7 @@ public class MembershipServiceImpl implements MembershipService {
         Specification<Membership> specification = (root, query, builder) ->
                 builder.and(
                         builder.equal(root.get("user"), user),
-                        builder.in(root.get("membershipStatus")).value(1).value(2)
+                        builder.in(root.get("membershipStatus")).value(1).value(2).value(3)
                 );
 
         // create a Sort object to specify the ordering of the query

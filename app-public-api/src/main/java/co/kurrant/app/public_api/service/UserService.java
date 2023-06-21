@@ -1,17 +1,14 @@
 package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.client.dto.GroupCountDto;
-import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
-import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
 import co.dalicious.domain.user.dto.SaveDailyReportFoodReqDto;
 import co.dalicious.domain.user.dto.SaveDailyReportReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
-import co.dalicious.domain.user.dto.pointPolicyResponse.SaveDailyReportDto;
-import co.kurrant.app.public_api.dto.board.AlarmResponseDto;
+import co.dalicious.domain.user.dto.SaveDailyReportDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -88,7 +85,7 @@ public interface UserService {
     List<PushResponseDto> getAlarms(SecurityUser securityUser);
     void insertMyFood(SecurityUser securityUser, SaveDailyReportDto saveDailyReportDto);
     Object getReport(SecurityUser securityUser, String date);
-    void saveDailyReportFood(SaveDailyReportFoodReqDto dto);
+    void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto);
     String deleteReport(SecurityUser securityUser, BigInteger reportId);
     Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType);
     void allChangeAlarmSetting(SecurityUser securityUser, Boolean isActive);

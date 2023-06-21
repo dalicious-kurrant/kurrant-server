@@ -2,6 +2,7 @@ package co.dalicious.domain.client.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
+import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.dto.OpenGroupSpotDetailDto;
 import co.dalicious.domain.client.entity.*;
@@ -13,6 +14,7 @@ import org.mapstruct.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, DiningType.class})
 public interface OpenGroupMapper {
@@ -21,14 +23,14 @@ public interface OpenGroupMapper {
     @Mapping(target = "diningType", expression = "java(group.getDiningTypes().stream().map(DiningType::getCode).toList())")
     @Mapping(source = "group", target = "spotType", qualifiedByName = "setSpotType")
     @Mapping(source = "group.openGroupUserCount", target = "userCount")
+    @Mapping(source = "distance", target = "distance")
     OpenGroupResponseDto toOpenGroupDto(OpenGroup group, Double distance) ;
 
     @AfterMapping
     default void toLocation(OpenGroup group, @MappingTarget OpenGroupResponseDto dto) {
-        String location = group.getAddress().locationToString();
-
-        dto.setLatitude(location.split(" ")[0]);
-        dto.setLongitude(location.split(" ")[1]);
+        Map<String, String> location = group.getAddress().getLatitudeAndLongitude();
+        dto.setLatitude(location.get("latitude"));
+        dto.setLongitude(location.get("longitude"));
     }
 
     @Named("addressToString")
@@ -40,7 +42,7 @@ public interface OpenGroupMapper {
     default Integer setSpotType(Group group) {
         Integer code = null;
         if(Hibernate.unproxy(group) instanceof Corporation) code = GroupDataType.CORPORATION.getCode();
-        if(Hibernate.unproxy(group) instanceof Apartment) code = GroupDataType.MY_SPOT.getCode();
+        if(Hibernate.unproxy(group) instanceof MySpotZone) code = GroupDataType.MY_SPOT.getCode();
         if(Hibernate.unproxy(group) instanceof OpenGroup) code = GroupDataType.OPEN_GROUP.getCode();
 
         return code;
@@ -52,6 +54,7 @@ public interface OpenGroupMapper {
         dto.setId(group.getId());
         dto.setName(group.getName());
         dto.setAddress(group.getAddress().addressToString());
+        dto.setJibun(group.getAddress().stringToAddress3());
         dto.setUserCount(group.getOpenGroupUserCount());
 
         List<DiningType> diningTypes = group.getDiningTypes();
@@ -85,5 +88,21 @@ public interface OpenGroupMapper {
         });
 
         return openGroupSpotDetailDtoList;
+    }
+
+    @Mapping(source = "address.address3", target = "jibunAddress")
+    @Mapping(source = "group", target = "address", qualifiedByName = "mappingAddress")
+    OpenGroupListForKeywordDto toOpenGroupListForKeywordDto(Group group);
+
+    @Named("mappingAddress")
+    default String mappingAddress(Group group) {
+        return group.getAddress().addressToString() + " " + group.getName();
+    }
+
+    @AfterMapping
+    default void afterMappingLocation(Group group, @MappingTarget OpenGroupListForKeywordDto dto) {
+        Map<String, String> location = group.getAddress().getLatitudeAndLongitude();
+        dto.setLatitude(location.get("latitude"));
+        dto.setLongitude(location.get("longitude"));
     }
 }

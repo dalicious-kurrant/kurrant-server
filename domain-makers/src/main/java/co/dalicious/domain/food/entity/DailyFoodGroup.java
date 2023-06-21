@@ -43,6 +43,14 @@ public class DailyFoodGroup {
         this.deliverySchedules = deliverySchedules;
     }
 
+    public LocalTime getPickUpTime(LocalTime deliveryTime){
+        DeliverySchedule deliverySchedule = deliverySchedules.stream()
+                .filter(v -> v.getDeliveryTime().equals(deliveryTime))
+                .findAny()
+                .orElse(null);
+        return deliverySchedule == null ? null : deliverySchedule.getPickupTime();
+    }
+
     public void updatePickupTime(LocalTime pickupTime, LocalTime deliveryTime) {
         this.deliverySchedules.forEach(deliverySchedule -> {
             if(deliverySchedule.getDeliveryTime().equals(deliveryTime)) {

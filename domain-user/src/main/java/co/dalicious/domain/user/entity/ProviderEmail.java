@@ -45,4 +45,20 @@ public class ProviderEmail {
     public void updateEmail(String email) {
         this.email = email;
     }
+
+    public void withdrawEmail() {
+        if (this.email != null && email.contains("@") && email.indexOf("@") >= 2) {
+            // extract the email prefix and domain
+            String prefix = this.email.substring(0, 2);
+            String domain = this.email.substring(this.email.indexOf("@"));
+            // replace the prefix with asterisks
+            String maskedPrefix = "*".repeat(this.email.substring(2, this.email.indexOf("@")).length());
+            // set the modified email address
+            double dValue = Math.random();
+            int iValue = (int)(dValue * 10000);
+            this.email = prefix + maskedPrefix + domain + "(" + iValue + ")";
+        } else {
+            this.email = email; // use the original email if it doesn't meet the criteria
+        }
+    }
 }

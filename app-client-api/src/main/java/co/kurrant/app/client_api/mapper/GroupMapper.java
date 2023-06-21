@@ -207,7 +207,7 @@ public interface GroupMapper {
     @Named("getEmployeeCount")
     default Integer getEmployeeCount(Group group) {
         if (group instanceof Corporation corporation) return corporation.getEmployeeCount();
-        else if (group instanceof Apartment apartment) return apartment.getFamilyCount();
+        else if (group instanceof MySpotZone mySpotZone) return mySpotZone.getMySpotZoneUserCount();
         else if (group instanceof OpenGroup openGroup) return openGroup.getOpenGroupUserCount();
         else return null;
     }
@@ -289,8 +289,8 @@ public interface GroupMapper {
     @Mapping(source = "address", target = "address")
     @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")
     @Mapping(source = "groupInfoList.name", target = "name")
-    @Mapping(source = "groupInfoList.employeeCount", target = "familyCount")
-    Apartment groupInfoListToApartmentEntity(GroupExcelRequestDto groupInfoList, Address address);
+    @Mapping(source = "groupInfoList.employeeCount", target = "mySpotZoneUserCount")
+    MySpotZone groupInfoListToMySpotZoneEntity(GroupExcelRequestDto groupInfoList, Address address);
 
     @Mapping(source = "address", target = "address")
     @Mapping(source = "groupInfoList.diningTypes", target = "diningTypes", qualifiedByName = "getDiningType")

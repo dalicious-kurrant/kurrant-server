@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 @Embeddable
@@ -33,6 +35,9 @@ public class Address {
     @Column(name = "address_depth_2", columnDefinition = "VARCHAR(255) COMMENT '상세주소'")
     private String address2;
 
+    @Column(name = "address_depth_3", columnDefinition = "VARCHAR(255) COMMENT '지번주소'")
+    private String address3;
+
     @Column(name = "address_location")
     @Comment("위치")
     private Geometry location;
@@ -42,16 +47,35 @@ public class Address {
         this.zipCode = createAddressRequestDto.getZipCode();
         this.address1 = createAddressRequestDto.getAddress1();
         this.address2 = createAddressRequestDto.getAddress2();
+        this.address3 = createAddressRequestDto.getAddress3();
         this.location = (createAddressRequestDto.getLatitude() == null || createAddressRequestDto.getLongitude() == null) ?
-                null : createPoint(createAddressRequestDto.getLatitude() + " " + createAddressRequestDto.getLongitude());
+                null : createPoint(createAddressRequestDto.getLongitude() + " " + createAddressRequestDto.getLatitude());
     }
 
+
+    public Address(String zipCode, String address1, String address2, String address3, String location) throws ParseException {
+        this.zipCode = zipCode;
+        this.address1 = address1;
+        this.address2 = address2;
+        this.address3 = address3;
+        this.location = createPoint(location);
+    }
 
     public Address(String zipCode, String address1, String address2, String location) throws ParseException {
         this.zipCode = zipCode;
         this.address1 = address1;
         this.address2 = address2;
         this.location = createPoint(location);
+    }
+
+    public Address(String zipCode, String address1, String address2) throws ParseException {
+        this.zipCode = zipCode;
+        this.address1 = address1;
+        this.address2 = address2;
+
+        Map<String, String> map = AddressUtil.getLocation(address1);
+        this.location = createPoint(map.get("location"));
+        this.address3 = map.get("jibunAddress");
     }
 
     public void makeAddress(String address1, String address2, String zipcode, String location) throws ParseException {
@@ -62,6 +86,9 @@ public class Address {
     }
 
     public String addressToString() {
+        if (this.address2 == null || this.address2.isBlank() || this.address2.isEmpty()) {
+            return this.address1;
+        }
         return this.address1 + " " + this.address2;
     }
 
@@ -84,5 +111,15 @@ public class Address {
     return this.location.toString().replaceAll("POINT |[(]|[)]", "");
   }
 
-    public void updateLocationByAddress(String address1) throws ParseException { this.location = createPoint(AddressUtil.getLocation(address1)); }
+    public void updateAddress3(String address3) { this.address3 = address3; }
+
+    public String stringToAddress3() { return this.address3.replaceFirst(".*?(?:시|군|구)\\s", "").replaceFirst(".*?(?:군|구)\\s", ""); }
+
+    public Map<String, String> getLatitudeAndLongitude() {
+        Map<String, String> locationMap = new HashMap<>();
+        String[] locationArr = this.locationToString().split(" ");
+        locationMap.put("longitude", locationArr[0]);
+        locationMap.put("latitude", locationArr[1]);
+        return locationMap;
+    }
 }

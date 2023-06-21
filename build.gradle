@@ -161,6 +161,7 @@ project(':app-public-api') {
         implementation project(':domain-user')
         implementation project(':domain-application-form')
         implementation project(':domain-address')
+        implementation project(':domain-delivery')
         implementation project(':domain-makers')
         implementation project(':domain-client')
         implementation project(':domain-order')
@@ -187,6 +188,7 @@ project(':app-admin-api') {
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
+        implementation project(':domain-delivery')
         implementation project(':domain-makers')
         implementation project(':domain-order')
         implementation project(':domain-client')
@@ -207,6 +209,7 @@ project(':app-client-api') {
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
+        implementation project(':domain-delivery')
         implementation project(':domain-client')
         implementation project(':data-redis')
         implementation project(':domain-address')
@@ -223,6 +226,7 @@ project(':app-makers-api') {
         implementation project(':client-core')
         implementation project(':client-alarm')
         implementation project(':domain-user')
+        implementation project(':domain-delivery')
         implementation project(':domain-application-form')
         implementation project(':domain-address')
         implementation project(':domain-makers')
@@ -250,6 +254,7 @@ project(':batch') {
         implementation project(':domain-client')
         implementation project(':domain-payment')
         implementation project(':domain-paycheck')
+        implementation project(':domain-delivery')
     }
 }
 
@@ -406,6 +411,17 @@ project(':domain-paycheck') {
         implementation project(':system-core')
         implementation project(':domain-client')
         implementation project(':domain-file')
+        implementation project(':domain-makers')
+        implementation project(':domain-order')
+        implementation project(':domain-user')
+        implementation project(':domain-address')
+    }
+}
+
+project(':domain-delivery') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-client')
         implementation project(':domain-makers')
         implementation project(':domain-order')
         implementation project(':domain-user')

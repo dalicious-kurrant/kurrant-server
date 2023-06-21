@@ -11,6 +11,9 @@ import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.beans.Expression;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -260,39 +264,42 @@ public class QReviewRepository {
     }
 
 
-    public Page<Reviews> findAllByfoodIdSort(BigInteger id, Integer photo, String starFilter,String keywordFilter, Pageable pageable) {
-        List<Reviews> reviewsList = new ArrayList<>();
+    public Page<Reviews> findAllByFoodIdSort(BigInteger id, Integer photo, String star,String keyword, Pageable pageable) {
 
         QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id))
-                    .limit(pageable.getPageSize())
+                    .where(reviews.food.id.eq(id), photoFilter(photo), starFilter(star), keywordFilter(keyword))
                     .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
                     .fetchResults();
-        int count = 0;
 
-        if (starFilter != null && starFilter.length() != 0){
-            count += 1;
-            reviewsList = result.getResults().stream().filter(v -> starFilter.contains(v.getSatisfaction().toString())).toList();
+        return new PageImpl<>(result.getResults(), pageable, result.getTotal());
+    }
+
+    //별점필터
+    private BooleanExpression starFilter(String starFilter){
+        if (starFilter == null){
+            return null;
         }
-
-        if (keywordFilter != null && !keywordFilter.equals("")){
-            if (count > 0){
-                reviewsList = reviewsList.stream().filter(v -> v.getContent().contains(keywordFilter)).toList();
-            }else {
-                count += 1;
-                reviewsList = result.getResults().stream().filter(v -> v.getContent().contains(keywordFilter)).toList();
-            }
+        List<Integer> stars = new ArrayList<>();
+        List<String> list = Arrays.stream(starFilter.split(",")).toList();
+        for (String star : list){
+            stars.add(Integer.parseInt(star));
         }
+        return reviews.satisfaction.in(stars);
+    }
 
-        if (photo != null && photo == 1){
-            if (count > 0){
-                 reviewsList = reviewsList.stream().filter(v -> !v.getImages().isEmpty()).toList();
-            } else {
-                reviewsList = result.getResults().stream().filter(v -> !v.getImages().isEmpty()).toList();
-            }
-        }
+    //키워드필터
+    private BooleanExpression keywordFilter(String keywordFilter){
+        if (keywordFilter == null || keywordFilter.equals("")) return null;
 
-    return new PageImpl<>(reviewsList, pageable, result.getTotal());
+        return reviews.content.contains(keywordFilter);
+    }
+
+    //포토필터
+    private BooleanExpression photoFilter(Integer photo){
+        if (photo == null) return null;
+
+        return reviews.images.isNotEmpty();
     }
 
     public void plusLike(BigInteger reviewId) {

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigInteger;
 import java.util.List;
 
-@Tag(name = "3. Cart")
+@Tag(name = "장바구니")
 @RequestMapping(value = "/v1/users/me/carts")
 @RestController
 @RequiredArgsConstructor

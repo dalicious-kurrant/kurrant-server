@@ -2,7 +2,7 @@ package co.kurrant.app.public_api.mapper.user;
 
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
-import co.dalicious.integration.client.user.entity.MySpot;
+import co.dalicious.domain.client.entity.MySpot;
 import co.kurrant.app.public_api.dto.user.UserHomeResponseDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

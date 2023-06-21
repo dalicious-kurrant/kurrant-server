@@ -316,6 +316,7 @@ public class User {
     }
 
     public String getActiveUserGrouptoString() {
+        if(getActiveUserGroup() == null) return null;
         List<String> groupNames = getActiveUserGroup().stream()
                 .map(v -> v.getGroup().getName())
                 .toList();
@@ -372,7 +373,7 @@ public class User {
             this.name = prefix + maskedPrefix;
         }
 
-
+        this.providerEmails.forEach(ProviderEmail::withdrawEmail);
         this.userStatus = UserStatus.INACTIVE;
         this.password = null;
         this.marketingAlarm = false;
