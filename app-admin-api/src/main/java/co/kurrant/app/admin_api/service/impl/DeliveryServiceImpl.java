@@ -70,6 +70,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         deliveryInstanceList.forEach(v ->{
             List<DailyFoodDelivery> dailyFoodDeliveries = v.getDailyFoodDeliveries();
 
+            
+
         });
 
         // service date 묶기
