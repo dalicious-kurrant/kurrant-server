@@ -1,5 +1,10 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.dto.BatchAlarmDto;
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
+import co.dalicious.client.alarm.service.PushService;
+import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
@@ -16,10 +21,12 @@ import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.filter.FilterDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.client.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.integration.client.user.entity.Region;
@@ -60,6 +67,8 @@ public class GroupServiceImpl implements GroupService {
     private final QMySpotZoneRepository qMySpotZoneRepository;
     private final QRegionRepository qRegionRepository;
     private final MySpotZoneMealInfoMapper mySpotZoneMealInfoMapper;
+    private final PushUtil pushUtil;
+    private final PushService pushService;
 
     @Override
     @Transactional
@@ -356,6 +365,21 @@ public class GroupServiceImpl implements GroupService {
                     };
                     mySpotZone.getMealInfo(diningType).updateDeliveryTimes(deliveryTimes);
                 });
+
+
+        // push alarm
+        List<BigInteger> userIds = mySpotZone.getSpots().stream().filter(s -> s instanceof MySpot).map(spot -> ((MySpot) spot).getUserId()).toList();
+        List<User> users = qUserRepository.getUserAllById(userIds);
+        PushCondition pushCondition = PushCondition.NEW_SPOT;
+
+        users.forEach(user -> {
+            String customMessage = pushUtil.getContextOpenOrMySpot(user.getName(), GroupDataType.MY_SPOT.getType(), pushCondition);
+
+            PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
+            BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
+            pushService.sendToPush(batchAlarmDto, pushCondition);
+            pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user, AlarmType.SPOT_NOTICE, null);
+        });
     }
 
     @Override
@@ -392,7 +416,6 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
-    // TODO: 오픈으로 변경됐을 때 푸시알림 추가
     @Override
     @Transactional
     public void updateMySpotZoneStatus(UpdateStatusDto updateStatusDto) {
