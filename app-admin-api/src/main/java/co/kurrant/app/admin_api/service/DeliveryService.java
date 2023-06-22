@@ -12,7 +12,6 @@ import java.util.Map;
 public interface DeliveryService {
     DeliveryDto getDeliverySchedule(String startDate, String endDate, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll);
     List<DeliveryDto.DeliveryManifest> getDeliveryManifest(Map<String, Object> parameters);
-
     List<MakersDto.Makers> getDeliverMakersByDate(Map<String, Object> parameters);
     List<String> getDeliveryTimesByDate(Map<String, Object> parameters);
     List<String> getDeliveryCodesByDate(Map<String, Object> parameters);

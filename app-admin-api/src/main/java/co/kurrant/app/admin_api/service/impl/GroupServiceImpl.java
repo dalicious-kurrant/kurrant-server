@@ -122,7 +122,7 @@ public class GroupServiceImpl implements GroupService {
 
             // group 없으면
             if (group == null) {
-                Group newGroup = groupMapper.toEntity(groupInfoList);
+                Group newGroup = groupMapper.toEntity(groupInfoList, address);
                 newGroupList.add(newGroup);
 
                 List<DiningType> diningTypeList = newGroup.getDiningTypes();
@@ -392,6 +392,7 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
+    // TODO: 오픈으로 변경됐을 때 푸시알림 추가
     @Override
     @Transactional
     public void updateMySpotZoneStatus(UpdateStatusDto updateStatusDto) {

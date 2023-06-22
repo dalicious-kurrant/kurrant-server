@@ -306,8 +306,7 @@ public class UserServiceImpl implements UserService {
                     .forEach(userGroupRepository::save);
         }
 
-
-
+        // TODO: 프라이빗 스팟 초대 시 푸시알림 추가
     }
 
     @Override
