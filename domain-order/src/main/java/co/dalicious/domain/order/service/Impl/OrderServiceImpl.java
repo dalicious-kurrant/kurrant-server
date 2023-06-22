@@ -117,7 +117,7 @@ public class OrderServiceImpl implements OrderService {
         System.out.println(jsonObject + "결제 Response값");
 
 
-        return (JSONObject) jsonObject.get("response");
+        return jsonObject;
     }
 
     @Override
