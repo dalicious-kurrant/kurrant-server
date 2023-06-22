@@ -433,6 +433,7 @@ project(':client-alarm') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
+        implementation project(':data-redis')
     }
 }
 
