@@ -122,7 +122,7 @@ public class GroupServiceImpl implements GroupService {
 
             // group 없으면
             if (group == null) {
-                Group newGroup = groupMapper.toEntity(groupInfoList);
+                Group newGroup = groupMapper.toEntity(groupInfoList, address);
                 newGroupList.add(newGroup);
 
                 List<DiningType> diningTypeList = newGroup.getDiningTypes();
