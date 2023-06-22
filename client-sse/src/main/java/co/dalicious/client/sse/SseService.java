@@ -103,7 +103,10 @@ public class SseService {
                 notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
 
         //읽을 알림이 있는지 확인
-        if(notificationList.size() == 0) { log.info("읽을 알림이 없습니다."); }
+        if(notificationList.size() == 0) {
+            log.info("읽을 알림이 없습니다.");
+            return;
+        }
 
         // 알림 읽기
         for(NotificationHash noty : notificationList) {
