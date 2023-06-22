@@ -149,15 +149,9 @@ public class ReviewServiceImpl implements ReviewService {
         BigDecimal redeemablePoints = BigDecimal.ZERO;
         if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList, redeemablePoints, 0); }
 
-        // 이미 리뷰가 작성된 아이템 예외
-        List<Reviews> reviewsList = qReviewRepository.findAllByUserAndOrderItem(user, receiptCompleteItem);
-        List<OrderItem> reviewOrderItem = reviewsList.stream().map(Reviews::getOrderItem).filter(receiptCompleteItem::contains).toList();
-
         Map<LocalDate, String> leftDayMap = new HashMap<>();
         MultiValueMap<LocalDate, OrderItemDailyFood> orderItemDailyFoodByServiceDateMap = new LinkedMultiValueMap<>();
         for(OrderItem item : receiptCompleteItem) {
-
-//            if(reviewOrderItem.contains(item)) continue;
 
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
 
