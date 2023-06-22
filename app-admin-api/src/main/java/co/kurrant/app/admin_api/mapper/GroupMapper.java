@@ -69,7 +69,7 @@ public interface GroupMapper {
                 .collect(Collectors.toList());
     }
 
-    default List<GroupDto.User> usersToDtos(List<User> users) {
+    default List<GroupDto.User> usersToDtos(Collection<User> users) {
         return users.stream()
                 .map(this::userToDto)
                 .collect(Collectors.toList());

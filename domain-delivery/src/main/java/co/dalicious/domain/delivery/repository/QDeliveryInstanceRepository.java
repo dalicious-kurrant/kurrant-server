@@ -54,6 +54,20 @@ public class QDeliveryInstanceRepository {
                 .fetch();
     }
 
+    public List<DeliveryInstance> findByPeriod(LocalDate startDate, LocalDate endDate) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if (startDate != null) {
+            whereClause.and(deliveryInstance.serviceDate.goe(startDate));
+        }
+        if (endDate != null) {
+            whereClause.and(deliveryInstance.serviceDate.loe(endDate));
+        }
+        return queryFactory.selectFrom(deliveryInstance)
+                .where(whereClause)
+                .fetch();
+    }
+
+
     public Integer getMaxOrderNumber(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Makers makers) {
         Integer maxOrderNumber = queryFactory.select(deliveryInstance.orderNumber.max())
                 .from(deliveryInstance)
