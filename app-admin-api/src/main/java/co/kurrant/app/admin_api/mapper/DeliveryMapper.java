@@ -40,6 +40,7 @@ public interface DeliveryMapper {
                                             .map(deliveryInstanceList -> {
                                                 List<DeliveryDto.DeliveryFood> deliveryFoodList = deliveryInstanceList.stream()
                                                         .map(v -> toDeliveryFood(v.getOrderItemDailyFoods().get(0).getDailyFood(), v.getItemCount()))
+                                                        .sorted(Comparator.comparing(DeliveryDto.DeliveryFood::getFoodId))
                                                         .toList();
 
                                                 DeliveryDto.DeliveryMakers deliveryMakers = toDeliveryMakers(deliveryInstanceList.get(0));
@@ -48,12 +49,14 @@ public interface DeliveryMapper {
                                             }).toList();
 
                                     DeliveryDto.DeliveryGroup deliveryGroup = toDeliveryGroup(instances.get(0));
-                                    deliveryGroup.setMakersList(deliveryMakersList);
+                                    deliveryGroup.setMakersList(deliveryMakersList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryMakers::getPickupTime)).toList());
                                     return deliveryGroup;
                                 }).toList());
                     });
-                    return toDeliveryInfo(serviceDate.getKey(), deliveryGroupList.get());
-                }).toList();
+                    return toDeliveryInfo(serviceDate.getKey(), deliveryGroupList.get().stream().sorted(Comparator.comparing(DeliveryDto.DeliveryGroup::getDeliveryTime)).toList());
+                })
+                .sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate))
+                .toList();
     }
 
     @Mapping(source = "deliveryGroupList", target = "group")
