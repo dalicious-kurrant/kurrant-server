@@ -37,7 +37,7 @@ public class QOrderItemRepository {
                 .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
                 .where(orderItem.orderStatus.eq(orderStatus),
                         orderItem.order.user.eq(user),
-                        orderItemDailyFood.dailyFood.serviceDate.before(today).or(orderItemDailyFood.dailyFood.serviceDate.eq(today)))
+                        orderItemDailyFood.dailyFood.serviceDate.between(today.minusDays(5), today))
                 .fetch();
     }
 
