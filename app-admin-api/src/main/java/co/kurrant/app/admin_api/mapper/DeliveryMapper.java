@@ -1,26 +1,29 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.client.dto.GroupInfo;
-import co.dalicious.domain.client.dto.SpotInfo;
-import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
-import co.kurrant.app.admin_api.dto.delivery.ServiceDateDto;
+import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = {DateUtils.class})
 public interface DeliveryMapper {
 
     default List<DeliveryDto.DeliveryInfo> getDeliveryInfoList(List<DeliveryInstance> deliveryInstances) {
@@ -89,4 +92,28 @@ public interface DeliveryMapper {
     @Mapping(target = "address", expression = "java(dto.getMakers().getAddress().addressToString())")
     DeliveryDto.DeliveryMakers toDeliveryMakers(DeliveryInstance dto);
 
+    default DeliveryDto.DeliveryManifest toDeliveryManifest(DailyFoodDelivery dailyFoodDelivery) {
+        return DeliveryDto.DeliveryManifest.builder()
+                .spotType(GroupDataType.ofClass(Hibernate.getClass(dailyFoodDelivery.getDeliveryInstance().getSpot())).getType())
+                .serviceDate(DateUtils.format(dailyFoodDelivery.getDeliveryInstance().getServiceDate()))
+                .diningType(dailyFoodDelivery.getDeliveryInstance().getDiningType().getCode())
+                .deliveryTime(DateUtils.timeToString(dailyFoodDelivery.getDeliveryInstance().getDeliveryTime()))
+                .orderNumber(dailyFoodDelivery.getDeliveryInstance().getDeliveryCode())
+                .makersName(dailyFoodDelivery.getDeliveryInstance().getMakers().getName())
+                .makersAddress(dailyFoodDelivery.getDeliveryInstance().getMakers().getAddress().addressToString())
+                .makersPhone(dailyFoodDelivery.getDeliveryInstance().getMakers().getCEOPhone())
+                .foodName(dailyFoodDelivery.getOrderItemDailyFood().getName())
+                .count(dailyFoodDelivery.getOrderItemDailyFood().getCount())
+                .userName(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getUser().getName())
+                .userAddress(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getAddress().addressToString())
+                .userPhone(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getUser().getPhone())
+                .memo(null) // 추후수정
+                .build();
+    }
+
+    default List<DeliveryDto.DeliveryManifest> toDeliveryManifests(List<DailyFoodDelivery> dailyFoodDeliveries) {
+        return dailyFoodDeliveries.stream()
+                .map(this::toDeliveryManifest)
+                .toList();
+    }
 }
