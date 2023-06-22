@@ -135,7 +135,7 @@ public interface DeliveryInstanceMapper {
             OrderDailyFoodByMakersDto.FoodBySpot foodBySpot = new OrderDailyFoodByMakersDto.FoodBySpot();
             Spot spot = deliveryInstance.getSpot();
 
-            foodBySpot.setDeliveryId(deliveryIdGenerator(deliveryInstance));
+            foodBySpot.setDeliveryId(deliveryInstance.getDeliveryCode());
             foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot)).getCode());
             foodBySpot.setPickUpTime(DateUtils.timeToString(deliveryInstance.getPickUpTime()));
             foodBySpot.setAddress1(spot.getAddress().addressToString());
@@ -211,10 +211,6 @@ public interface DeliveryInstanceMapper {
         foodsList = foodsList.stream()
                 .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.Foods::getFoodId)).toList();
         return foodsList;
-    }
-
-    default String deliveryIdGenerator(DeliveryInstance deliveryInstance) {
-        return DateUtils.formatWithoutSeparator(deliveryInstance.getServiceDate()) + deliveryInstance.getMakers().getId() + "-" + deliveryInstance.getOrderNumber();
     }
 
     default String getGroupName(Spot spot) {

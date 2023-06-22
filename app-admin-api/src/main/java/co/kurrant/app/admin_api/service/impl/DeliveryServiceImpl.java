@@ -1,50 +1,33 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
-import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
-import co.dalicious.domain.delivery.repository.QDailyFoodDeliveryRepository;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
-import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.order.entity.OrderDailyFood;
-import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
-import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import co.kurrant.app.admin_api.dto.GroupDto;
+import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
-import co.kurrant.app.admin_api.dto.delivery.ServiceDateDto;
 import co.kurrant.app.admin_api.mapper.DeliveryMapper;
 import co.kurrant.app.admin_api.service.DeliveryService;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DeliveryServiceImpl implements DeliveryService {
-
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final DeliveryMapper deliveryMapper;
     private final GroupRepository groupRepository;
     private final SpotRepository spotRepository;
@@ -76,5 +59,30 @@ public class DeliveryServiceImpl implements DeliveryService {
         }
 
         return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
+    }
+
+    @Override
+    public List<DeliveryDto.DeliveryManifest> getDeliveryManifest(Map<String, Object> parameters) {
+        return null;
+    }
+
+    @Override
+    public List<MakersDto.Makers> getDeliverMakersByDate(Map<String, Object> parameters) {
+        return null;
+    }
+
+    @Override
+    public List<String> getDeliveryTimesByDate(Map<String, Object> parameters) {
+        return null;
+    }
+
+    @Override
+    public List<String> getDeliveryCodesByDate(Map<String, Object> parameters) {
+        return null;
+    }
+
+    @Override
+    public List<GroupDto.User> getDeliverUsersByDate(Map<String, Object> parameters) {
+        return null;
     }
 }

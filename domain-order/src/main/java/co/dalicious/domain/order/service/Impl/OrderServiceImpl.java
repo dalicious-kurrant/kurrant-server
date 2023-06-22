@@ -17,6 +17,8 @@ import co.dalicious.domain.order.util.OrderMembershipUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.entity.enums.PaymentCompany;
+import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.util.CreditCardValidator;
 import co.dalicious.domain.payment.util.NiceUtil;
@@ -53,6 +55,7 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +99,25 @@ public class OrderServiceImpl implements OrderService {
         membership.changeAutoPaymentStatus(false);
         membership.getUser().changeMembershipStatus(false);
         entityManager.merge(membership);
+    }
+
+    @Override
+    @Transactional
+    public JSONObject payDailyFood(User user, CreditCardInfo creditCardInfo, Integer amount, String orderCode, String orderName) throws IOException, ParseException {
+        if (!creditCardInfo.getUser().equals(user)) {
+            throw new ApiException(ExceptionEnum.NOT_MATCH_USER_CARD);
+        }
+
+        if (creditCardInfo.getNiceBillingKey() == null) {
+            throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
+        }
+
+        String token = niceUtil.getToken();
+        JSONObject jsonObject = niceUtil.niceBilling(creditCardInfo.getNiceBillingKey(), amount, orderCode, token, orderName);
+        System.out.println(jsonObject + "결제 Response값");
+
+
+        return jsonObject;
     }
 
     @Override

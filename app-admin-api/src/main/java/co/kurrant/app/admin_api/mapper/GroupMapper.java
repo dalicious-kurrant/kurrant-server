@@ -70,7 +70,7 @@ public interface GroupMapper {
                 .collect(Collectors.toList());
     }
 
-    default List<GroupDto.User> usersToDtos(List<User> users) {
+    default List<GroupDto.User> usersToDtos(Collection<User> users) {
         return users.stream()
                 .map(this::userToDto)
                 .collect(Collectors.toList());
@@ -267,11 +267,6 @@ public interface GroupMapper {
 
     @Mapping(target = "membershipEndDate", expression = "java(DateUtils.stringToDate(groupDto.getMembershipEndDate()))")
     @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.codesToDiningTypes(groupDto.getDiningTypes()))")
-    @Mapping(source = "zipCode", target = "address.zipCode")
-    @Mapping(source = "address1", target = "address.address1")
-    @Mapping(source = "address2", target = "address.address2")
-    @Mapping(target = "address.address3", expression = "java(AddressUtil.getLocation(groupDto.getAddress1()).get(\"jibunAddress\"))")
-    @Mapping(target = "address.location", expression = "java(AddressUtil.getLocation(groupDto.getAddress1()).get(\"location\"))")
     @Mapping(target = "deliveryFeeOption", expression = "java(DeliveryFeeOption.ofString(groupDto.getDeliveryFeeOption()))")
     @Mapping(target = "mealInfos", ignore = true)
     void updateCorporation(GroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;

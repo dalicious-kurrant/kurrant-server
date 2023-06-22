@@ -143,6 +143,7 @@ public class GroupServiceImpl implements GroupService {
                 // group update
                 if (group instanceof Corporation corporation) {
                     groupMapper.updateCorporation(groupInfoList, corporation);
+                    corporation.updateAddress(address);
                 } else if (group instanceof OpenGroup openGroup) {
                     openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
                 }
@@ -228,6 +229,7 @@ public class GroupServiceImpl implements GroupService {
         // group update
         if (group instanceof Corporation corporation) {
             groupMapper.updateCorporation(groupInfoList, corporation);
+            corporation.updateAddress(address);
         } else if (group instanceof OpenGroup openGroup) {
             openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
         }

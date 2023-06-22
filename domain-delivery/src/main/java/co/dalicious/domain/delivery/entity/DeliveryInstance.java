@@ -5,6 +5,7 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -63,5 +64,9 @@ public class DeliveryInstance {
         return dailyFoodDeliveries.stream()
                 .map(DailyFoodDelivery::getOrderItemDailyFood)
                 .toList();
+    }
+
+    public String getDeliveryCode() {
+        return DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
     }
 }
