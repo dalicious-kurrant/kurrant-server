@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface NotificationHashRepository extends CrudRepository<NotificationHash, BigInteger> {
     List<NotificationHash> findAllByUserIdAndTypeAndIsRead(BigInteger userId, Integer type, boolean isRead);
-    List<NotificationHash> findByUserIdAndTypeAndIsRead(BigInteger userId, Integer type, boolean isRead);
+    NotificationHash findByUserIdAndTypeAndIsRead(BigInteger userId, Integer type, boolean isRead);
 }

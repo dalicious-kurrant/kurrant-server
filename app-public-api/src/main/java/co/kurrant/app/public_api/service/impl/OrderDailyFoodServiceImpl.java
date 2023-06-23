@@ -448,15 +448,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // 다음주 주문이 없을 때
         // 하루에 한 번만 알림 보내기 - 알림을 읽었으면 그날 하루는 더 이상 보내지 않음.
-        List<NotificationHash> todayAlreadySendNotys = notificationHashRepository.findByUserIdAndTypeAndIsRead(user.getId(), 5, true);
-        todayAlreadySendNotys.forEach(n -> {
-            System.out.println("n.getId() = " + n.getId());
-            System.out.println("n.getUserId() = " + n.getUserId());
-            System.out.println("n.getType() = " + n.getType());
-            System.out.println("n.getContent() = " + n.getContent());
-            System.out.println("n.getCreateDate() = " + n.getCreateDate());
-        });
-        if (!todayAlreadySendNotys.isEmpty()) return;
+        List<NotificationHash> todayAlreadySendNotys = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 5, true);
+        if(todayAlreadySendNotys.stream().anyMatch(v -> v.getCreateDate().equals(now))) return;
 
         // 알림을 보낸적 없으면
         Map<String, LocalDate> weekOfDay = DateUtils.getWeekOfDay(now);
@@ -535,6 +528,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 qUserRepository.updateUserPoint(user.getId(), point, PointStatus.FOUNDERS_REWARD);
             }
         }
+
+        // sse
+        sseService.send(user.getId(), 3, null);
     }
 
     @Override
