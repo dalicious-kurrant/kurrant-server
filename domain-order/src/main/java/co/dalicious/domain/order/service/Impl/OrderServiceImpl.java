@@ -48,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 
@@ -93,6 +94,7 @@ public class OrderServiceImpl implements OrderService {
     private final ConcurrentHashMap<User, Object> tossItemsLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<User, Object> tossItemLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<User, Object> niceItemsLocks = new ConcurrentHashMap<>();
+
     @Override
     @Transactional
     public void updateFailedMembershipPayment(Membership membership) {
@@ -154,7 +156,7 @@ public class OrderServiceImpl implements OrderService {
                             Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup()) instanceof Corporation corporation &&
                             corporation.getIsMembershipSupport()) {
                         Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
-                        if(membership != null && orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
+                        if (membership != null && orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
                             orderMembershipUtil.refundCorporationMembership(membership);
                         }
                     }
@@ -242,7 +244,7 @@ public class OrderServiceImpl implements OrderService {
                         Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup()) instanceof Corporation corporation &&
                         corporation.getIsMembershipSupport()) {
                     Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
-                    if(membership != null && orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
+                    if (membership != null && orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
                         orderMembershipUtil.refundCorporationMembership(membership);
                     }
                 }
@@ -318,7 +320,7 @@ public class OrderServiceImpl implements OrderService {
                         Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup()) instanceof Corporation corporation &&
                         corporation.getIsMembershipSupport()) {
                     Membership membership = qMembershipRepository.findUserCurrentMembership(user, LocalDate.now());
-                    if(orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
+                    if (orderMembershipUtil.isFirstItemInMembershipPeriod(membership, user, orderItemDailyFood)) {
                         orderMembershipUtil.refundCorporationMembership(membership);
                     }
                 }
@@ -397,36 +399,36 @@ public class OrderServiceImpl implements OrderService {
             membershipDiscountPolicyRepository.save(periodDiscountPolicy);
         }
 
-        //카드정보 가져오기
-        Optional<CreditCardInfo> creditCardInfo = qCreditCardInfoRepository.findOneByUser(user);
-        if (creditCardInfo.isEmpty()) {
-            throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
-        }
-        CreditCardValidator.isValidCreditCard(creditCardInfo.get(), user);
-
-        // 멤버십 결제 요청
-        OrderUserInfoDto orderUserInfoDto = orderUserInfoMapper.toDto(user);
-        OrderMembership order = orderMembershipRepository.save(orderMembershipMapper.toOrderMembership(orderUserInfoDto, creditCardInfo.get(), membershipSubscriptionType, BigDecimal.ZERO, totalPrice, paymentType, membership));
-
-        // 멤버십 결제 내역 등록(진행중 상태)
-        OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership, periodDiscountRate));
-
-        // 파운더스 확인
-        if (!foundersUtil.isFounders(user) && !foundersUtil.isOverFoundersLimit()) {
-            Founders founders = foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber() + 1);
-            foundersUtil.saveFounders(founders);
-        }
-
-        // 결제 진행. 실패시 오류 날림
-        BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
-
-        String billingKey = creditCardInfo.get().getNiceBillingKey();
-
-        //String billingKey, Integer amount, String orderId, String token, String orderName
-        String token = niceUtil.getToken();
-        JSONObject payResult = niceUtil.niceBilling(billingKey, totalPrice.intValue(), orderItemMembership.getOrder().getCode(), token, orderItemMembership.getMembershipSubscriptionType());
-
         try {
+            //카드정보 가져오기
+            Optional<CreditCardInfo> creditCardInfo = qCreditCardInfoRepository.findOneByUser(user);
+            if (creditCardInfo.isEmpty()) {
+                throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
+            }
+            CreditCardValidator.isValidCreditCard(creditCardInfo.get(), user);
+
+            // 멤버십 결제 요청
+            OrderMembership order = orderMembershipRepository.save(orderMembershipMapper.toOrderMembership(user, null, creditCardInfo.get(), membershipSubscriptionType, BigDecimal.ZERO, totalPrice, paymentType, membership));
+
+            // 멤버십 결제 내역 등록(진행중 상태)
+            OrderItemMembership orderItemMembership = orderItemMembershipRepository.save(orderMembershipMapper.toOrderItemMembership(order, membership, periodDiscountRate));
+
+            // 파운더스 확인
+            if (!foundersUtil.isFounders(user) && !foundersUtil.isOverFoundersLimit()) {
+                Founders founders = foundersMapper.toEntity(user, membership, foundersUtil.getMaxFoundersNumber() + 1);
+                foundersUtil.saveFounders(founders);
+            }
+
+            // 결제 진행. 실패시 오류 날림
+            BigDecimal price = discountPolicy.orderItemTotalPrice(orderItemMembership);
+
+            String billingKey = creditCardInfo.get().getNiceBillingKey();
+
+            //String billingKey, Integer amount, String orderId, String token, String orderName
+            String token = niceUtil.getToken();
+            JSONObject payResult = niceUtil.niceBilling(billingKey, totalPrice.intValue(), orderItemMembership.getOrder().getCode(), token, orderItemMembership.getMembershipSubscriptionType());
+
+
             if (payResult == null) throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
             Long code = (Long) payResult.get("code");
             JSONObject JSONResult = (JSONObject) payResult.get("response");
@@ -542,9 +544,8 @@ public class OrderServiceImpl implements OrderService {
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
         }
     }
-    
-    
-    
+
+
     // FIXME: 토스 결제
     @Override
     @Transactional
@@ -772,5 +773,5 @@ public class OrderServiceImpl implements OrderService {
         }
         user.changeMembershipStatus(true);
     }
-    
+
 }
