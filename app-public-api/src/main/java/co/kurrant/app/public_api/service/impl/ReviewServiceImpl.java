@@ -206,9 +206,9 @@ public class ReviewServiceImpl implements ReviewService {
 
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
 
-        List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 3, true);
-        if(leftDayMap.containsValue("5") && (notificationHashList == null || notificationHashList.isEmpty())) {
-            sseService.send(user.getId(), 3, "리뷰를 작성해야하는 상품이 있습니다.");
+        List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 3, false);
+        if(!notificationHashList.isEmpty()) {
+            sseService.send(user.getId(), 3, null);
         }
 
         return ReviewableItemResDto.create(orderFoodList, redeemablePoints, size);
