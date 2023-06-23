@@ -17,6 +17,7 @@ import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.domain.client.repository.MySpotRepository;
 import co.dalicious.domain.client.repository.QMySpotZoneRepository;
@@ -301,6 +302,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         UserSpot userSpot = userSpotMapper.toUserSpot(mySpot, user, false, GroupDataType.MY_SPOT);
         userSpotRepository.save(userSpot);
 
-        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(),true);
+        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), mySpotZone.getMySpotZoneStatus().equals(MySpotZoneStatus.OPEN));
     }
 }
