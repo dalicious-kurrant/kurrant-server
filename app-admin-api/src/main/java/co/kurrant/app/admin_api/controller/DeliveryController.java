@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
+import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
 import co.kurrant.app.admin_api.service.DeliveryService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,6 +31,56 @@ public class DeliveryController {
         return ResponseMessage.builder()
                 .message(startDate + " ~ " + endDate + "사이의 배송 현황을 조회했습니다.")
                 .data(deliveryService.getDeliverySchedule(startDate, endDate, groupIds, spotIds, isAll))
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DELIVERY)
+    @Operation(summary = "배송 업체 일정 조회", description = "배송 업체 일정을 조회한다.")
+    @GetMapping("/drivers")
+    public ResponseMessage getDeliveryForDriver(@RequestParam Map<String, Object> parameters) {
+        return ResponseMessage.builder()
+                .message("배송 업체 배송일정 조회에 성공하였습니다.")
+                .data(deliveryService.getDeliveryManifest(parameters))
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DELIVERY)
+    @Operation(summary = "기간별 배송 메이커스 조회", description = "기간별 배송하는 메이커스 조회한다")
+    @GetMapping("/makers")
+    public ResponseMessage getDeliverMakesByDate(@RequestParam Map<String, Object> parameters) {
+        return ResponseMessage.builder()
+                .message("기간별 배송 메이커스 조회에 성공했습니다.")
+                .data(deliveryService.getDeliverMakersByDate(parameters))
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DELIVERY)
+    @Operation(summary = "기간별 배송 시간 조회", description = "기간별 배송하는 시간 조회한다")
+    @GetMapping("/times")
+    public ResponseMessage getDeliveryTimesByDate(@RequestParam Map<String, Object> parameters) {
+        return ResponseMessage.builder()
+                .message("기간별 배송 시간 조회에 성공했습니다.")
+                .data(deliveryService.getDeliveryTimesByDate(parameters))
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DELIVERY)
+    @Operation(summary = "기간별 배송 번호 조회", description = "기간별 배송하는 번호 조회한다")
+    @GetMapping("/codes")
+    public ResponseMessage getDeliveryCodesByDate(@RequestParam Map<String, Object> parameters) {
+        return ResponseMessage.builder()
+                .message("기간별 배송 번호 조회에 성공했습니다.")
+                .data(deliveryService.getDeliveryCodesByDate(parameters))
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DELIVERY)
+    @Operation(summary = "기간별 배송 유저 조회", description = "기간별 배송하는 유저 조회한다")
+    @GetMapping("/users")
+    public ResponseMessage getDeliverUsersByDate(@RequestParam Map<String, Object> parameters) {
+        return ResponseMessage.builder()
+                .message("기간별 배송 유저 조회에 성공했습니다.")
+                .data(deliveryService.getDeliverUsersByDate(parameters))
                 .build();
     }
 }

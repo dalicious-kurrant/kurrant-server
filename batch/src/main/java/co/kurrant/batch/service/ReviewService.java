@@ -1,5 +1,6 @@
 package co.kurrant.batch.service;
 
+import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import javax.persistence.TypedQuery;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -25,7 +27,7 @@ public class ReviewService {
         LocalDate limitDay = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(5);
         LocalDateTime before24ByNow = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(1);
 
-        String queryString = "SELECT u.id, bpal.pushDateTime " +
+        String queryString = "SELECT u.id, bpal.pushDateTime, df.serviceDate, oidf.deliveryTime " +
                 "FROM OrderItem oi " +
                 "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
                 "JOIN oidf.dailyFood df " +
@@ -46,8 +48,13 @@ public class ReviewService {
         for (Object[] result : results) {
             BigInteger userId = (BigInteger) result[0];
             LocalDateTime pushDateTime = (LocalDateTime) result[1];
+            LocalDate serviceDate = (LocalDate) result[2];
+            LocalTime pickupTime = (LocalTime) result[3];
 
-            if (pushDateTime == null || pushDateTime.isBefore(before24ByNow)) {
+            String deadlineTime = DateUtils.calculatedDDayAndTime(serviceDate.atTime(pickupTime));
+            String day = deadlineTime.split(" ")[0];
+
+            if (day.equals("0") && (pushDateTime == null || pushDateTime.isBefore(before24ByNow))) {
                 userIds.add(userId);
             }
         }

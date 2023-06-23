@@ -1,8 +1,16 @@
 package co.dalicious.domain.delivery.repository;
 
+import co.dalicious.domain.client.entity.CorporationSpot;
+import co.dalicious.domain.client.entity.MySpot;
+import co.dalicious.domain.client.entity.OpenGroupSpot;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -15,7 +23,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static co.dalicious.domain.delivery.entity.QDailyFoodDelivery.dailyFoodDelivery;
 import static co.dalicious.domain.delivery.entity.QDeliveryInstance.deliveryInstance;
+import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 
 @Repository
 @RequiredArgsConstructor
@@ -49,6 +60,20 @@ public class QDeliveryInstanceRepository {
                 .fetch();
     }
 
+    public List<DeliveryInstance> findByPeriod(LocalDate startDate, LocalDate endDate) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if (startDate != null) {
+            whereClause.and(deliveryInstance.serviceDate.goe(startDate));
+        }
+        if (endDate != null) {
+            whereClause.and(deliveryInstance.serviceDate.loe(endDate));
+        }
+        return queryFactory.selectFrom(deliveryInstance)
+                .where(whereClause)
+                .fetch();
+    }
+
+
     public Integer getMaxOrderNumber(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Makers makers) {
         Integer maxOrderNumber = queryFactory.select(deliveryInstance.orderNumber.max())
                 .from(deliveryInstance)
@@ -59,6 +84,15 @@ public class QDeliveryInstanceRepository {
                 .fetchOne();
 
         return Objects.requireNonNullElse(maxOrderNumber, 0);
+    }
+
+    public List<DeliveryInstance> findByDailyFoodAndOrderStatus(List<DailyFood> dailyFoodList) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .leftJoin(dailyFoodDelivery).on(deliveryInstance.dailyFoodDeliveries.contains(dailyFoodDelivery))
+                .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .where(dailyFood.in(dailyFoodList), orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .fetch();
     }
 
     public List<LocalTime> getTodayDeliveryTimes() {
