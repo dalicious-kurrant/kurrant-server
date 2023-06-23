@@ -535,6 +535,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 qUserRepository.updateUserPoint(user.getId(), point, PointStatus.FOUNDERS_REWARD);
             }
         }
+
+        // sse
+        sseService.send(user.getId(), 3, null);
     }
 
     @Override
