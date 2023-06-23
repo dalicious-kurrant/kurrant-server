@@ -26,6 +26,8 @@ import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.client.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
@@ -366,6 +368,17 @@ public class GroupServiceImpl implements GroupService {
                     mySpotZone.getMealInfo(diningType).updateDeliveryTimes(deliveryTimes);
                 });
 
+        // user group 수정
+        List<User> userList = qUserRepository.getUserAllById(mySpotZone.getSpots().stream().filter(s -> s instanceof MySpot).map(s -> ((MySpot) s).getUserId()).toList());
+        userList.forEach(user -> {
+            List<UserGroup> userGroups = user.getGroups();
+            Optional<UserGroup> userGroup = userGroups.stream().filter(v -> v.getGroup().equals(mySpotZone)).findAny();
+
+            userGroup.ifPresent(v -> {
+                if(MySpotZoneStatus.ofCode(updateRequestDto.getStatus()).equals(MySpotZoneStatus.OPEN)) v.updateStatus(ClientStatus.BELONG);
+                else if(MySpotZoneStatus.ofCode(updateRequestDto.getStatus()).equals(MySpotZoneStatus.CLOSE)) v.updateStatus(ClientStatus.WAITING);
+            });
+        });
 
         // push alarm
         List<BigInteger> userIds = mySpotZone.getSpots().stream().filter(s -> s instanceof MySpot).map(spot -> ((MySpot) spot).getUserId()).toList();
