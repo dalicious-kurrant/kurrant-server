@@ -63,7 +63,7 @@ public class QCreditCardInfoRepository {
         List<Integer> defaultTypes = Arrays.asList(2, 3);
         return Optional.ofNullable(
                 queryFactory.selectFrom(creditCardInfo)
-                        .where(creditCardInfo.user.eq(user), creditCardInfo.defaultType.in(defaultTypes))
+                        .where(creditCardInfo.user.eq(user), creditCardInfo.defaultType.in(defaultTypes), creditCardInfo.status.eq(1))
                         .fetchFirst()
         );
     }

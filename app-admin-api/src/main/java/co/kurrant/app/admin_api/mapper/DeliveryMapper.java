@@ -114,6 +114,7 @@ public interface DeliveryMapper {
     default List<DeliveryDto.DeliveryManifest> toDeliveryManifests(List<DailyFoodDelivery> dailyFoodDeliveries) {
         return dailyFoodDeliveries.stream()
                 .map(this::toDeliveryManifest)
+                .sorted(Comparator.comparing(DeliveryDto.DeliveryManifest::getServiceDate))
                 .toList();
     }
 }

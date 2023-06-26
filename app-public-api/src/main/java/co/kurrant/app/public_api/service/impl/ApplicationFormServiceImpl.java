@@ -292,16 +292,23 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         mySpot.updateGroup(mySpotZone);
         mySpotRepository.save(mySpot);
 
+        Boolean zoneStatus = mySpotZone.getMySpotZoneStatus().equals(MySpotZoneStatus.OPEN);
+
         // 동일한 user group에 등록되어 있으면 패스
         UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
-        // user group 생성
-        if(userGroup == null) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone, ClientStatus.BELONG));
-        else userGroup.updateStatus(ClientStatus.BELONG);
+        // user group 생성 - 없으면 생성 / 오픈이면 활성 / 오픈 대기면 비활성
+        if (userGroup != null) {
+            if (zoneStatus) userGroup.updateStatus(ClientStatus.BELONG);
+            else userGroup.updateStatus(ClientStatus.WAITING);
+        } else {
+            if (zoneStatus) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone, ClientStatus.BELONG));
+            else userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone, ClientStatus.WAITING));
+        }
 
         // user spot 생성
         UserSpot userSpot = userSpotMapper.toUserSpot(mySpot, user, false, GroupDataType.MY_SPOT);
         userSpotRepository.save(userSpot);
 
-        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), mySpotZone.getMySpotZoneStatus().equals(MySpotZoneStatus.OPEN));
+        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), zoneStatus);
     }
 }
