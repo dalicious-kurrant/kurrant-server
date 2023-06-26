@@ -245,15 +245,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
             return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
         }
+        // 기존 신청 마이스팟 존에서 카운트 빼기
+        requestedMySpot.getRequestedMySpotZones().updateWaitingUserCount(1, true);
 
         RequestedMySpotZones requestedMySpotZones = createRequestedMySpotZones(requestDto, user);
         requestedMySpotMapper.updateRequestedMySpot(requestDto, requestedMySpot);
         requestedMySpot.updateRequestedMySpotZones(requestedMySpotZones);
-
-        // 기존 신청 마이스팟 존에서 카운트 빼기
-        RequestedMySpotZones defaultRequestedMySpotZones = requestedMySpot.getRequestedMySpotZones();
-        defaultRequestedMySpotZones.updateWaitingUserCount(1, true);
-
 
         // my spot zone 존재 여부 response
         return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
@@ -268,7 +265,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         for(String addr : jibunAddress) {
             if(addr.matches(".*?(?:시$|군$|구$)")) county = addr;
-            else if(addr.matches(".*?(?:동$|읍$|면$)")) village = addr;
+            else if(addr.matches(".*?(?:동$|읍$|면$|가$)")) village = addr;
         }
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, village);
