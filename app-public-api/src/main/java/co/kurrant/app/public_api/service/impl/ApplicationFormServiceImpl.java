@@ -193,7 +193,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional
     public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto requestDto) throws ParseException {
-        if(requestDto.getAddress().getZipCode() == null || requestDto.getAddress().getAddress3() == null) throw new ApiException(ExceptionEnum.CANT_NOT_REQUESTED_SPOT);
+        if(requestDto.getAddress().getZipCode().isEmpty() || requestDto.getAddress().getZipCode().isBlank() || requestDto.getAddress().getAddress3() == null) throw new ApiException(ExceptionEnum.CANT_NOT_REQUESTED_SPOT);
 
         // user 찾기
         User user = userUtil.getUser(securityUser);
