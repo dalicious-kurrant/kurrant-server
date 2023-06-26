@@ -38,7 +38,7 @@ public interface MySpotMapper {
                 .build();
     }
 
-    default List<MySpot> toEntityList(MySpotZone mySpotZone, List<RequestedMySpot> requestedMySpots){
+    default List<MySpot> toEntityList(MySpotZone mySpotZone, List<RequestedMySpot> requestedMySpots, List<BigInteger> pushAlarmUserIds){
         return requestedMySpots.stream().map(v ->
             MySpot.builder()
                     .address(v.getAddress())
@@ -48,6 +48,7 @@ public interface MySpotMapper {
                     .userId(v.getUserId())
                     .isDelete(false)
                     .memo(v.getMemo())
+                    .isAlarm(pushAlarmUserIds.contains(v.getUserId()))
                     .build()
                 ).toList();
     }

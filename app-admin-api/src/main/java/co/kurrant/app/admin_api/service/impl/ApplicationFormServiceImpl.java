@@ -161,6 +161,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public void createMySpotZonesFromRequest(List<BigInteger> ids) {
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
+        List<BigInteger> pushAlarmUserIds = existRequestedMySpotZones.stream().flatMap(v -> v.getPushAlarmUserIds().stream()).toList();
 
         // 마이스팟 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(existRequestedMySpotZones);
@@ -190,7 +191,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 마이스팟 생성
         List<RequestedMySpot> requestedMySpots = existRequestedMySpotZones.stream().flatMap(requestedMySpotZone -> requestedMySpotZone.getRequestedMySpots().stream()).toList();
-        List<MySpot> mySpotList = mySpotMapper.toEntityList(mySpotZone, requestedMySpots);
+        List<MySpot> mySpotList = mySpotMapper.toEntityList(mySpotZone, requestedMySpots, pushAlarmUserIds);
         spotRepository.saveAll(mySpotList);
 
         // userGroup and user spot
@@ -249,10 +250,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             Optional<RequestedMySpotZones> requestedMySpotZone = requestedMySpotZones.stream().filter(v -> mySpotZones.get(mySpotZone).contains(v.getRegion().getZipcode())).findAny();
             requestedMySpotZone.ifPresent(v -> {
 
-                List<MySpot> mySpots = mySpotMapper.toEntityList(mySpotZone, v.getRequestedMySpots());
+                List<BigInteger> userIds = v.getPushAlarmUserIds();
+                List<MySpot> mySpots = mySpotMapper.toEntityList(mySpotZone, v.getRequestedMySpots(), userIds);
                 spotRepository.saveAll(mySpots);
 
                 createUserGroupAndUserSpot(v.getRequestedMySpots(), mySpotZone, mySpots);
+
 
                 deleteRequestedMySpot.addAll(v.getRequestedMySpots());
             });
