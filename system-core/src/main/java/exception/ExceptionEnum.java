@@ -62,6 +62,7 @@ public enum ExceptionEnum {
 	ALREADY_EXIST_MY_SPOT_ZONE(HttpStatus.BAD_REQUEST, "E4000108", "요청하신 우편번호와 동일한 마이 스팟이 존재합니다."),
 	OVER_MY_SPOT_LIMIT(HttpStatus.BAD_REQUEST, "E4000109", "이미 신청한 마이스팟이 존재합니다."),
 	ALREADY_REQUESTED_MY_SPOT_ZONE(HttpStatus.BAD_REQUEST, "E4000109", "이미 신청하신 마이스팟 존입니다."),
+	CANT_NOT_REQUESTED_SPOT(HttpStatus.BAD_REQUEST, "E4000109", "신청할 수 없는 지역입니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),
