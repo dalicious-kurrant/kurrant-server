@@ -34,6 +34,8 @@ import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
@@ -191,6 +193,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional
     public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto requestDto) throws ParseException {
+        if(requestDto.getAddress().getZipCode() == null || requestDto.getAddress().getAddress3() == null) throw new ApiException(ExceptionEnum.CANT_NOT_REQUESTED_SPOT);
+
         // user 찾기
         User user = userUtil.getUser(securityUser);
         if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
@@ -265,7 +269,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         for(String addr : jibunAddress) {
             if(addr.matches(".*?(?:시$|군$|구$)")) county = addr;
-            else if(addr.matches(".*?(?:동$|읍$|면$|가$)")) village = addr;
+            else if(addr.matches(".*?(?:동$|읍$|면$|가$|로$)")) village = addr;
         }
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, village);
