@@ -34,16 +34,25 @@ public class MySpot extends Spot {
     @Comment("유저 Id")
     private BigInteger userId;
 
+    @Column(name = "is_alarm", columnDefinition = "boolean default false")
+    @Comment("마이 스팟 푸시알림 여부 - 1: 수신")
+    private Boolean isAlarm;
+
     @Builder
-    public MySpot(String name, Address address, List<DiningType> diningTypes, Group group, String memo, Boolean isDelete, BigInteger userId) {
+    public MySpot(String name, Address address, List<DiningType> diningTypes, Group group, String memo, Boolean isDelete, BigInteger userId, Boolean isAlarm) {
         super(name, address, diningTypes, group, memo);
         this.isDelete = isDelete;
         this.userId = userId;
+        this.isAlarm = isAlarm;
     }
 
     public void updateMySpotForDelete() {
         this.updateSpotStatus(SpotStatus.INACTIVE);
         this.isDelete = true;
         if(this.getGroup() instanceof MySpotZone mySpotZone) mySpotZone.updateMySpotZoneUserCount(1, SpotStatus.INACTIVE);
+    }
+
+    public void updateAlarm(Boolean alarm) {
+        this.isAlarm = alarm;
     }
 }
