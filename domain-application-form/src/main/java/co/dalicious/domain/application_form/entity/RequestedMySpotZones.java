@@ -86,7 +86,8 @@ public class RequestedMySpotZones {
 
     public void updatePushAlarmUserIds(BigInteger userId) {
         List<BigInteger> userIds = this.pushAlarmUserIds == null || this.pushAlarmUserIds.isEmpty() ? new ArrayList<>() : this.pushAlarmUserIds;
-        userIds.add(userId);
+        if(userIds.contains(userId)) return;
 
+        userIds.add(userId);
         this.pushAlarmUserIds = userIds; }
 }
