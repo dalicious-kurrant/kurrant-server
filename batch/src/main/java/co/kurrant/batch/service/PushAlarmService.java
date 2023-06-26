@@ -80,8 +80,9 @@ public class PushAlarmService {
                                      "from MySpotZone msz " +
                                      "left join UserGroup ug on ug.group = msz and ug.clientStatus = 1 " +
                                      "left join User u on ug.user = u " +
+                                     "left join MySpot ms on ms.group = msz and ms.userId = u.id " +
                                      "left join BatchPushAlarmLog bpal on bpal.userId = u.id and bpal.pushCondition = 4001 " +
-                                     "where msz.mySpotZoneStatus = 1 and u.firebaseToken is not null";
+                                     "where msz.mySpotZoneStatus = 1 and u.firebaseToken is not null and ms.isAlarm = true";
 
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
         List<Object[]> results = query.getResultList();
