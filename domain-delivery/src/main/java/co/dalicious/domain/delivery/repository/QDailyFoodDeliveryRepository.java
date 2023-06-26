@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
@@ -66,7 +67,8 @@ public class QDailyFoodDeliveryRepository {
         }
         if (groupDataType != null) {
             switch (groupDataType) {
-                case CORPORATION -> whereClause.and(spot.instanceOf(CorporationSpot.class));
+                // FIXME: 체인로지스 페이지에는 기업이 추가되지 않음
+                //case CORPORATION -> whereClause.and(spot.instanceOf(CorporationSpot.class));
                 case MY_SPOT -> whereClause.and(spot.instanceOf(MySpot.class));
                 case OPEN_GROUP -> whereClause.and(spot.instanceOf(OpenGroupSpot.class));
             }
@@ -101,7 +103,7 @@ public class QDailyFoodDeliveryRepository {
                 .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood)
                 .leftJoin(orderItemDailyFood.order, order)
                 .leftJoin(order.user, user)
-                .where(whereClause)
+                .where(whereClause, orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()), spot.instanceOf(MySpot.class).or(spot.instanceOf(OpenGroupSpot.class)))
                 .fetch();
     }
 }
