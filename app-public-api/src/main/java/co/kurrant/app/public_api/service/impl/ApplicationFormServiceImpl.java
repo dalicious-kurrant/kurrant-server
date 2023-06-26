@@ -233,12 +233,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     }
     
     private ApplicationFormDto updateRequestedMySpot(RequestedMySpot requestedMySpot, MySpotZoneApplicationFormRequestDto requestDto, User user) throws ParseException {
-
-        // 기존 신청 마이스팟 존에서 카운트 빼기
-        RequestedMySpotZones defaultRequestedMySpotZones = requestedMySpot.getRequestedMySpotZones();
-        defaultRequestedMySpotZones.updateWaitingUserCount(1, true);
-
-        // 마이스팟이 있으면
+        // my spot zone 있으면
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
         if(mySpotZone != null) return updateMySpotZone(user, requestDto, mySpotZone);
 
@@ -247,7 +242,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         if(existRequestedMySpotZones != null) {
             requestedMySpotMapper.updateRequestedMySpot(requestDto, requestedMySpot);
             requestedMySpot.updateRequestedMySpotZones(existRequestedMySpotZones);
-            updateRequestedMySpotZonesUserCount(user, existRequestedMySpotZones);
 
             return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
         }
@@ -256,6 +250,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         requestedMySpotMapper.updateRequestedMySpot(requestDto, requestedMySpot);
         requestedMySpot.updateRequestedMySpotZones(requestedMySpotZones);
 
+        // 기존 신청 마이스팟 존에서 카운트 빼기
+        RequestedMySpotZones defaultRequestedMySpotZones = requestedMySpot.getRequestedMySpotZones();
+        defaultRequestedMySpotZones.updateWaitingUserCount(1, true);
+
+
         // my spot zone 존재 여부 response
         return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
         
@@ -263,7 +262,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     
     private RequestedMySpotZones createRequestedMySpotZones(MySpotZoneApplicationFormRequestDto requestDto, User user) {
         String[] jibunAddress = requestDto.getAddress().getAddress3().split(" ");
-        System.out.println("jibunAddress = " + Arrays.toString(jibunAddress));
+        System.out.println("jibunAddress = " + Arrays.toString(jibunAddress) + ", zipcode = " + requestDto.getAddress().getZipCode());
         String county = null;
         String village = null;
 
@@ -272,7 +271,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             else if(addr.matches(".*?(?:동$|읍$|면$)")) village = addr;
         }
 
-        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));
+        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, village);
 
         RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, null, region, user.getId());
         requestedMySpotZonesRepository.save(requestedMySpotZones);

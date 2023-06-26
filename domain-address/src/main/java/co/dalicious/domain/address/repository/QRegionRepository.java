@@ -22,10 +22,8 @@ public class QRegionRepository {
     private final JPAQueryFactory queryFactory;
 
     public Region findRegionByZipcodeAndCountyAndVillage(String zipcode, String county, String village) {
-        String village1 = !village.matches(".*\\d.*") ? village : village.replaceAll("\\d+동$", "");
-
         return queryFactory.selectFrom(region)
-                .where(region.zipcode.eq(zipcode), region.county.contains(county), region.village.contains(village1))
+                .where(region.zipcode.eq(zipcode), region.county.contains(county), region.village.contains(village))
                 .fetchFirst();
     }
 
@@ -149,14 +147,11 @@ public class QRegionRepository {
     }
 
     public List<Region> findRegionByZipcodesAndCountiesAndVillages(List<String> zipcodes, List<String> counties, List<String> villages) {
-        List<String> villages1 = villages.stream()
-                .map(village -> village.matches(".*\\d.*") ? village.replaceAll("\\d+동$", "") : village)
-                .toList();
 
         BooleanBuilder whereCuase = new BooleanBuilder();
 
         counties.forEach(county -> whereCuase.or(region.county.contains(county)));
-        villages1.forEach(village -> whereCuase.or(region.village.contains(village)));
+        villages.forEach(village -> whereCuase.or(region.village.contains(village)));
 
         List<Region> resultByZipcodes = queryFactory.selectFrom(region)
                 .where(region.zipcode.in(zipcodes), whereCuase)
