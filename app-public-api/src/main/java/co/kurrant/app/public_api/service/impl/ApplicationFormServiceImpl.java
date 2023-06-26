@@ -178,7 +178,13 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         if(type.equals(GroupDataType.MY_SPOT)) {
             RequestedMySpot requestedMySpot = qRequestedMySpotRepository.findRequestedMySpotById(dto.getId());
-            requestedMySpot.getRequestedMySpotZones().updatePushAlarmUserIds(user.getId());
+            if(requestedMySpot != null) requestedMySpot.getRequestedMySpotZones().updatePushAlarmUserIds(user.getId());
+            else {
+                Optional<UserSpot> userSpot = user.getUserSpots().stream().filter(s -> s.getSpot().getId().equals(dto.getId())).findAny();
+                userSpot.ifPresent(v -> {
+                    if(v.getSpot() instanceof MySpot mySpot) mySpot.updateAlarm(true);
+                });
+            }
         }
     }
 
