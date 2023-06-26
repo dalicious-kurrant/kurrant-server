@@ -22,7 +22,6 @@ import java.util.List;
 @Mapper(componentModel = "spring", imports = {DateUtils.class, UserValidator.class, Provider.class})
 public interface UserMapper {
 
-    @Mapping(target = "departmentName", expression = "java(user.getDepartment())")
     @Mapping(source = "user.userStatus", target = "status", qualifiedByName = "getUserStatus")
     @Mapping(source = "user.updatedDateTime", target = "userUpdatedDateTime", qualifiedByName = "TimeFormat")
     @Mapping(source = "user.createdDateTime", target = "userCreatedDateTime", qualifiedByName = "TimeFormat")

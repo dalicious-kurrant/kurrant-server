@@ -164,7 +164,7 @@ public class UserServiceImpl implements UserService {
                 user.changePaymentPassword(paymentPassword);
             }
 
-            //부서명이 변경 되었을 경우
+            /* 부서명이 변경 되었을 경우
             if (!saveUserListRequestDto.getDepartmentName().equals(user.getDepartment())){
                 Department department = departmentRepository.findByName(saveUserListRequestDto.getDepartmentName());
                 //존재하지 않는 부서면 생성
@@ -178,6 +178,7 @@ public class UserServiceImpl implements UserService {
                     userDepartmentRepository.save(userDepartmentMapper.toEntity(user,department));
                 }
             }
+            */
 
 
             // 그룹 변경
@@ -234,7 +235,7 @@ public class UserServiceImpl implements UserService {
             }
             if (saveUserListRequestDto.getName() != null && !user.getName().equals(saveUserListRequestDto.getName()))
                 user.updateName(saveUserListRequestDto.getName());
-            if (saveUserListRequestDto.getPhone() != null && !user.getPhone().equals(saveUserListRequestDto.getPhone()))
+            if (saveUserListRequestDto.getPhone() != null && user.getPhone() != null && !user.getPhone().equals(saveUserListRequestDto.getPhone()))
                 user.changePhoneNumber(saveUserListRequestDto.getPhone());
             if (saveUserListRequestDto.getRole() != null && !user.getRole().equals(Role.ofRoleName(saveUserListRequestDto.getRole())))
                 user.updateRole(Role.ofRoleName(saveUserListRequestDto.getRole()));
