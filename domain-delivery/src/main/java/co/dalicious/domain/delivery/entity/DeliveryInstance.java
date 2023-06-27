@@ -3,6 +3,7 @@ package co.dalicious.domain.delivery.entity;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -56,6 +57,7 @@ public class DeliveryInstance {
 
     public Integer getItemCount() {
         return dailyFoodDeliveries.stream()
+                .filter(v -> OrderStatus.completePayment().contains(v.getOrderItemDailyFood().getOrderStatus()))
                 .map(v -> v.getOrderItemDailyFood().getCount())
                 .reduce(0, Integer::sum);
     }
