@@ -7,10 +7,8 @@ import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.mapper.PushAlarmMapper;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
-import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
-import co.dalicious.domain.user.entity.BatchPushAlarmLog;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.*;
@@ -22,8 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 @Component
@@ -148,6 +144,18 @@ public class PushUtil {
         StringSubstitutor sub = new StringSubstitutor(valuesMap);
         template = sub.replace(template);
         return template;
+    }
+
+    @Transactional
+    public PushAlarmHash createPushAlarmHash (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger reviewId) {
+        return PushAlarmHash.builder()
+                .title(title)
+                .message(message)
+                .isRead(false)
+                .userId(userId)
+                .type(alarmType.getAlarmType())
+                .reviewId(reviewId)
+                .build();
     }
 
     @Transactional
