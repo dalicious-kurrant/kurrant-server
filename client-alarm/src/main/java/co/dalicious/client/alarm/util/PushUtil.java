@@ -151,12 +151,12 @@ public class PushUtil {
     }
 
     @Transactional
-    public void savePushAlarmHash (String title, String message, User user, AlarmType alarmType, BigInteger reviewId) {
+    public void savePushAlarmHash (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger reviewId) {
         PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
                 .title(title)
                 .message(message)
                 .isRead(false)
-                .userId(user.getId())
+                .userId(userId)
                 .type(alarmType.getAlarmType())
                 .reviewId(reviewId)
                 .build();

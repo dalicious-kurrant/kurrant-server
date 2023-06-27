@@ -7,6 +7,7 @@ import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.entity.enums.PushStatus;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.KakaoUtil;
+import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.user.entity.User;
@@ -22,6 +23,7 @@ import co.dalicious.domain.client.repository.GroupRepository;
 import co.kurrant.app.admin_api.dto.alimtalk.AlimtalkTestDto;
 import co.kurrant.app.admin_api.mapper.PushAlarmTypeMapper;
 import co.kurrant.app.admin_api.service.PushAlarmService;
+import com.querydsl.core.Tuple;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +55,7 @@ public class PushAlarmServiceImpl implements PushAlarmService {
     private final QUserSpotRepository qUserSpotRepository;
     private final PushService pushService;
     private final KakaoUtil kakaoUtil;
+    private final PushUtil pushUtil;
 
     @Override
     @Transactional(readOnly = true)
@@ -128,7 +131,8 @@ public class PushAlarmServiceImpl implements PushAlarmService {
         // TODO: 유저마다 다른 타입의 메세지를 보낼 경우 수정 필요
         for (HandlePushAlarmDto.HandlePushAlarmReqDto reqDto : reqDtoList) {
             if (HandlePushAlarmType.ALL.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
-                List<String> allUserFcmToken = qUserRepository.findAllUserFirebaseToken();
+                List<Tuple> allUserWithFcmToken = qUserRepository.findAllUserFirebaseToken();
+                List<String> allUserFcmToken = allUserWithFcmToken.stream().map(tuple -> tuple.get(0)).toList();
                 PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserFcmToken, null, reqDto.getMessage(), reqDto.getPage(), null);
                 pushRequestDtoList.add(pushRequestDto);
             } else if (HandlePushAlarmType.GROUP.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
@@ -146,7 +150,10 @@ public class PushAlarmServiceImpl implements PushAlarmService {
             }
         }
 
-        pushRequestDtoList.forEach(pushService::sendToPush);
+        pushRequestDtoList.forEach(v -> {
+            pushUtil.savePushAlarmHash(v.getTitle(), v.getMessage(), );
+            pushService::sendToPush
+        });
     }
 
     @Override

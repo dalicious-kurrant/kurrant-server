@@ -10,6 +10,7 @@ import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
@@ -210,8 +211,8 @@ public class QUserRepository {
                 .execute();
     }
 
-    public List<String> findAllUserFirebaseToken() {
-        return queryFactory.select(user.firebaseToken)
+    public List<Tuple> findAllUserFirebaseToken() {
+        return queryFactory.select(user.firebaseToken, user.id)
                 .from(user)
                 .where(user.firebaseToken.isNotNull())
                 .fetch();
