@@ -4,15 +4,17 @@ import co.dalicious.client.alarm.dto.AutoPushAlarmDto;
 import co.dalicious.client.alarm.dto.HandlePushAlarmDto;
 import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.entity.enums.PushStatus;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.KakaoUtil;
+import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.QUserSpotRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.client.alarm.mapper.PushAlarmMapper;
 import co.dalicious.client.alarm.repository.PushAlarmRepository;
@@ -29,10 +31,8 @@ import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.text.DateFormatter;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -49,10 +49,10 @@ public class PushAlarmServiceImpl implements PushAlarmService {
     private final UserRepository userRepository;
     private final QUserRepository qUserRepository;
     private final PushAlarmTypeMapper pushAlarmTypeMapper;
-    private final QUserGroupRepository qUserGroupRepository;
-    private final QUserSpotRepository qUserSpotRepository;
     private final PushService pushService;
     private final KakaoUtil kakaoUtil;
+    private final PushUtil pushUtil;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -126,27 +126,41 @@ public class PushAlarmServiceImpl implements PushAlarmService {
     public void createHandlePushAlarmList(List<HandlePushAlarmDto.HandlePushAlarmReqDto> reqDtoList) {
         List<PushRequestDto> pushRequestDtoList = new ArrayList<>();
         // TODO: 유저마다 다른 타입의 메세지를 보낼 경우 수정 필요
+
+        int chunkSize = 500;
+
+        List<PushAlarmHash> pushAlarmHashList = new ArrayList<>();
         for (HandlePushAlarmDto.HandlePushAlarmReqDto reqDto : reqDtoList) {
-            if (HandlePushAlarmType.ALL.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
-                List<String> allUserFcmToken = qUserRepository.findAllUserFirebaseToken();
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserFcmToken, null, reqDto.getMessage(), reqDto.getPage(), null);
-                pushRequestDtoList.add(pushRequestDto);
-            } else if (HandlePushAlarmType.GROUP.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
-                List<String> allUserGroupFcmToken = qUserGroupRepository.findUserGroupFirebaseToken(reqDto.getGroupIds());
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserGroupFcmToken, null, reqDto.getMessage(), reqDto.getPage(), null);
-                pushRequestDtoList.add(pushRequestDto);
-            } else if (HandlePushAlarmType.SPOT.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
-                List<String> allUserSpotFcmToken = qUserSpotRepository.findAllUserSpotFirebaseToken(reqDto.getSpotIds());
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(allUserSpotFcmToken, null, reqDto.getMessage(), reqDto.getPage(), null);
-                pushRequestDtoList.add(pushRequestDto);
-            } else if (HandlePushAlarmType.USER.equals(HandlePushAlarmType.ofCode(reqDto.getType()))) {
-                List<String> userFirebaseToken = qUserRepository.findUserFirebaseToken(reqDto.getUserIds());
-                PushRequestDto pushRequestDto = pushAlarmMapper.toPushRequestDto(userFirebaseToken, null, reqDto.getMessage(), reqDto.getPage(), null);
-                pushRequestDtoList.add(pushRequestDto);
+            Map<BigInteger, String> userWithFcmToken = qUserRepository.findAllUserFirebaseToken(reqDto.getGroupIds(), reqDto.getSpotIds(), reqDto.getUserIds());
+            List<String> allUserFcmToken = new ArrayList<>(userWithFcmToken.values());
+
+            // 푸시 알림은 한 api에 500개만 전공가능 함으로 500개가 넘어가면 잘라야 한다.
+            if(allUserFcmToken.size() > chunkSize) {
+                int originalListSize = allUserFcmToken.size();
+                int numOfChunks = (int) Math.ceil((double) originalListSize / chunkSize);
+
+                List<List<String>> splitList = new ArrayList<>(numOfChunks);
+
+                for (int i = 0; i < numOfChunks; i++) {
+                    int startIndex = i * chunkSize;
+                    int endIndex = Math.min(startIndex + chunkSize, originalListSize);
+
+                    List<String> sublist = allUserFcmToken.subList(startIndex, endIndex);
+                    splitList.add(sublist);
+                }
+
+                splitList.forEach(v -> pushRequestDtoList.add(pushAlarmMapper.toPushRequestDto(v, null, reqDto.getMessage(), reqDto.getPage(), null)));
             }
+            else pushRequestDtoList.add(pushAlarmMapper.toPushRequestDto(allUserFcmToken, null, reqDto.getMessage(), reqDto.getPage(), null));
+
+            userWithFcmToken.keySet().forEach(v -> pushAlarmHashList.add(pushUtil.createPushAlarmHash(null, reqDto.getMessage(), v, AlarmType.NOTICE, null)));
         }
 
-        pushRequestDtoList.forEach(pushService::sendToPush);
+        for (PushRequestDto pushRequestDto : pushRequestDtoList) {
+            pushService.sendToPush(pushRequestDto);
+        }
+
+        pushAlarmHashRepository.saveAll(pushAlarmHashList);
     }
 
     @Override

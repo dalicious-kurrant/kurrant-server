@@ -38,14 +38,6 @@ public class QUserSpotRepository {
         return user;
     }
 
-    public List<String> findAllUserSpotFirebaseToken(List<BigInteger> spotIds){
-        return queryFactory.select(user.firebaseToken)
-                .from(userSpot)
-                .leftJoin(userSpot.user, user)
-                .where(userSpot.spot.id.in(spotIds), user.firebaseToken.isNotNull())
-                .fetch();
-    }
-
     public List<User> findAllUserSpotFirebaseToken(Set<BigInteger> spotIds) {
         return queryFactory.select(user)
                 .from(userSpot)
