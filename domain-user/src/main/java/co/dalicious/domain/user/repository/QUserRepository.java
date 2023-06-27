@@ -10,6 +10,7 @@ import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.user.entity.QUser.user;
@@ -210,11 +212,27 @@ public class QUserRepository {
                 .execute();
     }
 
-    public List<String> findAllUserFirebaseToken() {
-        return queryFactory.select(user.firebaseToken)
+    public Map<BigInteger, String> findAllUserFirebaseToken(List<BigInteger> groupIds, List<BigInteger> spotIds, List<BigInteger> userIds) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(groupIds != null && !groupIds.isEmpty()) {
+            whereCause.and(user.groups.any().group.id.in(groupIds));
+        }
+        if(spotIds != null && !spotIds.isEmpty()) {
+            whereCause.and(user.userSpots.any().spot.id.in(spotIds));
+        }
+        if(userIds != null && !userIds.isEmpty()) {
+            whereCause.and(user.id.in(userIds));
+        }
+
+        List<Tuple> userResult = queryFactory.select(user.firebaseToken, user.id)
                 .from(user)
-                .where(user.firebaseToken.isNotNull())
+                .where(whereCause, user.firebaseToken.isNotNull())
                 .fetch();
+
+        Map<BigInteger, String> userIdMap = new HashMap<>();
+        userResult.forEach(v -> userIdMap.put(v.get(user.id), v.get(user.firebaseToken)));
+        return userIdMap;
     }
 
     public List<String> findUserFirebaseToken(List<BigInteger> userIds) {

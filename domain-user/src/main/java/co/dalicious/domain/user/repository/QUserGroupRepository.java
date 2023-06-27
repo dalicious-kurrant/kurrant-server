@@ -69,14 +69,6 @@ public class QUserGroupRepository {
         return groupIntegerMap;
     }
 
-    public List<String> findUserGroupFirebaseToken(List<BigInteger> groupIds) {
-        return queryFactory.select(user.firebaseToken)
-                .from(userGroup)
-                .leftJoin(userGroup.user, user)
-                .where(userGroup.group.id.in(groupIds), user.firebaseToken.isNotNull())
-                .fetch();
-    }
-
     public Map<User, Group> findUserGroupFirebaseToken(Set<BigInteger> groupIds) {
         List<Tuple> results = queryFactory.select(user, userGroup.group)
                 .from(userGroup)

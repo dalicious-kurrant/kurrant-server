@@ -50,6 +50,8 @@ public class MySpot extends Spot {
         this.updateSpotStatus(SpotStatus.INACTIVE);
         this.isDelete = true;
         if(this.getGroup() instanceof MySpotZone mySpotZone) mySpotZone.updateMySpotZoneUserCount(1, SpotStatus.INACTIVE);
+
+        this.getAddress().deleteAddress();
     }
 
     public void updateAlarm(Boolean alarm) {
