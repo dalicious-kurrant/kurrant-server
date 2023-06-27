@@ -20,6 +20,8 @@ import javax.persistence.Embeddable;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Getter
 @Embeddable
@@ -122,4 +124,20 @@ public class Address {
         locationMap.put("latitude", locationArr[1]);
         return locationMap;
     }
+
+    public void deleteAddress() {
+        // 신(구)주소, 도로명 주소
+        String regex = "(([가-힣]+(\\d{1,5}|\\d{1,5}(,|.)\\d{1,5}|)+([읍면동가리]))(^구|)((\\d{1,5}([~|-])\\d{1,5}|\\d{1,5})(가|리|)|))( (산(\\d{1,5}([~|-])\\d{1,5}|\\d{1,5}))|)|";
+        String newRegx = "(([가-힣]|(\\d{1,5}([~|-])\\d{1,5})|\\d{1,5})+([로길])|(\\d))";
+
+        Matcher matcher = Pattern.compile(regex).matcher(this.address3);
+        Matcher newMatcher = Pattern.compile(newRegx).matcher(this.address1);
+
+        if(matcher.find()) {
+            this.address3 = matcher.group().replaceAll("[0-9]", "*");
+        } else if(newMatcher.find()) {
+            this.address1 = matcher.group().replaceAll("[0-9]", "*");
+        }
+    }
+
 }
