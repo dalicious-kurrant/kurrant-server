@@ -30,6 +30,7 @@ public class SseService {
     public SseEmitter subscribe(BigInteger userId, String lastEventId) {
         //구독한 유저를 특정하기 위한 id.
         String id = userId + "_" + System.currentTimeMillis();
+        System.out.println("id = " + id);
 
         //생성한 emitter를 저장한다. emitter는 HTTP/2기준 브라우저 당 100개 만들 수 있다.
         SseEmitter emitter = emitterRepository.save(id, new SseEmitter(DEFAULT_TIMEOUT));
