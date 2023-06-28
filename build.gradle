@@ -392,7 +392,6 @@ project(':domain-review') {
 project(':domain-recommend') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':client-core')
     }
 }
 
@@ -455,9 +454,11 @@ project(':data-flyway') {
     dependencies {
         rootProject.subprojects.each { subproject ->
             if (subproject.name.startsWith("domain-")) {
-                compile project(":${subproject.name}")
+                implementation project(":${subproject.name}")
             }
         }
         implementation project(':data-mysql')
+        implementation project(':client-core')
+        implementation project(':client-alarm')
     }
 }

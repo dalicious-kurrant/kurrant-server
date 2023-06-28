@@ -35,6 +35,26 @@ public class ClientController {
                 .build();
     }
 
+    @Operation(summary = "스팟 관리", description = "스팟 관리 페이지에 필요한 정보를 가져온다.")
+    @GetMapping("")
+    public ResponseMessage getClientManagement(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.getClientManagement(securityUser))
+                .message("그룹 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "스팟 상세정보", description = "고객사로 등록된 그룹을 상세 조회한다.")
+    @GetMapping("/spots/share/{groupId}")
+    public ResponseMessage getGroupDetail(Authentication authentication, @PathVariable BigInteger groupId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userClientService.getGroupDetail(securityUser, groupId))
+                .message("오픈 그룹 상세 조회에 성공하셨습니다.")
+                .build();
+    }
+
     @Operation(summary = "등록된 오픈 그룹 전체 조회", description = "고객사로 등록된 오픈 그룹을 전체를 조회한다.")
     @GetMapping("/spots/share")
     public ResponseMessage getOpenGroups(Authentication authentication,

@@ -1,4 +1,4 @@
-package co.dalicious.integration.client.user.mapper;
+package co.dalicious.domain.user.mapper;
 
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
@@ -6,13 +6,16 @@ import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
+import co.dalicious.domain.user.dto.UserGroupDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.client.entity.MySpot;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,16 +29,15 @@ public interface UserGroupMapper {
         SpotListResponseDto spotListResponseDto = new SpotListResponseDto();
 
         Group group = (Group) Hibernate.unproxy(userGroup.getGroup());
-        if(group instanceof MySpotZone mySpotZone) {
+        if (group instanceof MySpotZone mySpotZone) {
             spotListResponseDto.setClientId(mySpotZone.getId());
             spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
-        }
-        else {
+        } else {
             spotListResponseDto.setClientId(group.getId());
             spotListResponseDto.setClientName(group.getName());
             spotListResponseDto.setSpots(getSpots(group, userGroup.getUser()));
         }
-      
+
         if (group instanceof Corporation)
             spotListResponseDto.setSpotType(GroupDataType.CORPORATION.getCode());
         else if (group instanceof MySpotZone)
@@ -53,21 +55,21 @@ public interface UserGroupMapper {
     default List<SpotListResponseDto.Spot> getSpots(Group group, User user) {
         List<SpotListResponseDto.Spot> spotDtoList;
 
-        if(group instanceof MySpotZone) {
+        if (group instanceof MySpotZone) {
             spotDtoList = group.getSpots().stream()
                     .filter(mySpot -> mySpot.getStatus().equals(SpotStatus.ACTIVE) && ((MySpot) mySpot).getUserId().equals(user.getId()) && !((MySpot) mySpot).getIsDelete())
                     .map(this::toSpot).toList();
-        }
-        else {
+        } else {
             spotDtoList = group.getSpots().stream().filter(spot -> spot.getStatus().equals(SpotStatus.ACTIVE))
                     .map(spot -> {
                         SpotListResponseDto.Spot s = toSpot(spot);
-                        if(spot instanceof OpenGroupSpot openGroupSpot) s.setIsRestriction(openGroupSpot.getIsRestriction());
+                        if (spot instanceof OpenGroupSpot openGroupSpot)
+                            s.setIsRestriction(openGroupSpot.getIsRestriction());
 
                         return s;
                     }).toList();
         }
-      
+
         return spotDtoList;
     }
 
@@ -105,6 +107,7 @@ public interface UserGroupMapper {
     }
 
     CorporationResponseDto toCorporationResponseDto(Group group);
+
     default List<CorporationResponseDto> toCorporationResponseDtoList(List<UserGroup> userGroups) {
         return userGroups.stream()
                 .map(v -> {
@@ -118,4 +121,68 @@ public interface UserGroupMapper {
                     return dto;
                 }).toList();
     }
+
+    default UserGroupDto toUserGroupDto(User user) {
+        UserGroupDto userGroupDto = new UserGroupDto();
+        List<UserGroup> userGroups = user.getGroups();
+        Integer mySpotCount = 0;
+        Integer shareSpotCount = 0;
+        Integer privateSpotCount = 0;
+        String defaultSpotName = null;
+        List<UserGroupDto.GroupInfo> groups = new ArrayList<>();
+
+        for (UserGroup userGroup : userGroups) {
+            if (Hibernate.unproxy(userGroup.getGroup()) instanceof MySpotZone mySpotZone) {
+                mySpotCount++;
+                groups.add(MySpotZonetoGroupInfo(mySpotZone, user));
+            }
+            if (Hibernate.getClass(userGroup.getGroup()).equals(OpenGroup.class)) {
+                shareSpotCount++;
+                groups.add(toGroupInfo(userGroup.getGroup()));
+            }
+            if (Hibernate.getClass(userGroup.getGroup()).equals(Corporation.class)) {
+                privateSpotCount++;
+                groups.add(toGroupInfo(userGroup.getGroup()));
+            }
+        }
+        UserSpot userSpot = user.getDefaultUserSpot();
+        if(!Hibernate.getClass(userSpot.getSpot()).equals(MySpot.class)) {
+            defaultSpotName = userSpot.getSpot().getGroup().getName() + userSpot.getSpot().getName();
+        }
+        else {
+            defaultSpotName = userSpot.getSpot().getName() == null ?
+                    userSpot.getSpot().getAddress().addressToString() : userSpot.getSpot().getName();
+        }
+
+        userGroupDto.setMySpotCount(mySpotCount);
+        userGroupDto.setShareSpotCount(shareSpotCount);
+        userGroupDto.setPrivateSpotCount(privateSpotCount);
+        userGroupDto.setDefaultSpotName(defaultSpotName);
+        userGroupDto.setGroups(groups);
+        return userGroupDto;
+    }
+
+    default UserGroupDto.GroupInfo toGroupInfo(Group group) {
+        UserGroupDto.GroupInfo groupInfo = new UserGroupDto.GroupInfo();
+        groupInfo.setGroupId(group.getId());
+        groupInfo.setGroupType(getGroupType(group));
+        groupInfo.setGroupName(group.getName());
+        return groupInfo;
+    }
+
+    default UserGroupDto.GroupInfo MySpotZonetoGroupInfo(MySpotZone mySpotZone, User user) {
+        UserGroupDto.GroupInfo groupInfo = new UserGroupDto.GroupInfo();
+        groupInfo.setGroupId(mySpotZone.getId());
+        groupInfo.setGroupType(getGroupType(mySpotZone));
+        groupInfo.setGroupName(mySpotZone.getMySpot(user.getId()).getName());
+        return groupInfo;
+    }
+
+    default String getGroupType(Group group) {
+        if (Hibernate.getClass(group).equals(MySpotZone.class)) return "프라이빗스팟";
+        if (Hibernate.getClass(group).equals(OpenGroup.class)) return "공유스팟";
+        if (Hibernate.getClass(group).equals(Corporation.class)) return "마이스팟";
+        return null;
+    }
+
 }

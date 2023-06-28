@@ -1,4 +1,4 @@
-package co.dalicious.integration.client.user.utils;
+package co.dalicious.domain.user.util;
 
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.EmployeeRepository;

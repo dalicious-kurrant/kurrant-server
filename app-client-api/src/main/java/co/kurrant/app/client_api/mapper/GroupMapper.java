@@ -1,6 +1,7 @@
 package co.kurrant.app.client_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.dto.GroupDetailDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -10,6 +11,8 @@ import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.domain.order.dto.GroupDto;
+import co.dalicious.system.util.DiningTypesUtils;
+import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -308,6 +311,82 @@ public interface GroupMapper {
             return diningTypeList;
         }
         return null;
+    }
+
+    default GroupDetailDto toGroupDetailDto(Group group) {
+        if(Hibernate.getClass(group).equals(Corporation.class)) {
+            return GroupDetailDto.builder()
+                    .id(group.getId())
+                    .name(group.getName())
+                    .address(toAddressString(group.getAddress()))
+                    .diningTypes(DiningTypesUtils.diningTypesToCodes(group.getDiningTypes()))
+                    .mealInfos(toMealInfoDtos(group.getMealInfos()))
+                    .spots(toSpotDtos(group.getSpots()))
+                    .build();
+        }
+        if(Hibernate.unproxy(group) instanceof OpenGroup openGroup) {
+            return GroupDetailDto.builder()
+                    .id(openGroup.getId())
+                    .name(openGroup.getName())
+                    .address(toAddressString(openGroup.getAddress()))
+                    .userCount(openGroup.getOpenGroupUserCount())
+                    .diningTypes(DiningTypesUtils.diningTypesToCodes(openGroup.getDiningTypes()))
+                    .mealInfos(toMealInfoDtos(openGroup.getMealInfos()))
+                    .spots(toSpotDtos(openGroup.getSpots()))
+                    .build();
+        }
+        if(Hibernate.getClass(group).equals(MySpotZone.class)) {
+            return GroupDetailDto.builder()
+                    .id(group.getId())
+                    .name(group.getName())
+                    .address(toAddressString(group.getAddress()))
+                    .phone()
+                    .diningTypes(DiningTypesUtils.diningTypesToCodes(group.getDiningTypes()))
+                    .mealInfos(toMealInfoDtos(group.getMealInfos()))
+                    .build();
+        }
+    }
+
+    default String toAddressString(Address address) {
+        return address.addressToString() + " (" + address.stringToAddress3() + ")";
+    }
+
+    default GroupDetailDto.MealInfo toMealInfoDto(MealInfo mealInfo) {
+        return GroupDetailDto.MealInfo.builder()
+                .diningType(mealInfo.getDiningType().getCode())
+                .lastOrderTime(DayAndTime.dayAndTimeToString(mealInfo.getLastOrderTime()))
+                .membershipBenefitTime(DayAndTime.dayAndTimeToString(mealInfo.getMembershipBenefitTime()))
+                .deliveryTimes(DateUtils.timesToStringList(mealInfo.getDeliveryTimes()))
+                .build();
+    }
+
+    default List<GroupDetailDto.MealInfo> toMealInfoDtos(List<MealInfo> mealInfos) {
+        return mealInfos.stream()
+                .map(this::toMealInfoDto)
+                .toList();
+    }
+
+    default GroupDetailDto.SpotInfo toSpotDto(Spot spot) {
+        if(Hibernate.unproxy(spot) instanceof OpenGroupSpot openGroupSpot) {
+            return GroupDetailDto.SpotInfo.builder()
+                    .spotId(openGroupSpot.getId())
+                    .spotName(openGroupSpot.getName())
+                    .isRestriction(openGroupSpot.getIsRestriction())
+                    .build();
+        }
+        if(Hibernate.unproxy(spot) instanceof CorporationSpot corporationSpot) {
+            return GroupDetailDto.SpotInfo.builder()
+                    .spotId(corporationSpot.getId())
+                    .spotName(corporationSpot.getName())
+                    .build();
+        }
+        return null;
+    }
+
+    default List<GroupDetailDto.SpotInfo> toSpotDtos(List<Spot> spots) {
+        return spots.stream()
+                .map(this::toSpotDto)
+                .toList();
     }
 }
 

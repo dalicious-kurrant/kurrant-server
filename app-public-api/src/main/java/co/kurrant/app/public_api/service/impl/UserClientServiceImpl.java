@@ -2,10 +2,7 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
-import co.dalicious.domain.client.dto.OpenGroupDetailDto;
-import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
-import co.dalicious.domain.client.dto.OpenGroupResponseDto;
+import co.dalicious.domain.client.dto.*;
 import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -20,16 +17,15 @@ import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.integration.client.user.mapper.UserGroupMapper;
-import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
-import co.dalicious.integration.client.user.mapper.UserSpotMapper;
+import co.dalicious.domain.user.mapper.UserGroupMapper;
+import co.dalicious.domain.user.mapper.UserSpotDetailResMapper;
+import co.dalicious.domain.user.mapper.UserSpotMapper;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DistanceUtil;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
 import co.kurrant.app.public_api.service.UserUtil;
-import com.querydsl.core.Tuple;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +64,16 @@ public class UserClientServiceImpl implements UserClientService {
       
         if(userSpot == null) throw new ApiException(ExceptionEnum.NOT_SET_SPOT);
         return userSpotDetailResMapper.toDto(userSpot);
+    }
+
+    @Override
+    @Transactional
+    public GroupDetailDto getGroupDetail(SecurityUser securityUser, BigInteger groupId) {
+        User user = userUtil.getUser(securityUser);
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        isGroupMember(user, group);
+
     }
 
     @Override
