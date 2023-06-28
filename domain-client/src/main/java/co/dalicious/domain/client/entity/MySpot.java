@@ -38,12 +38,17 @@ public class MySpot extends Spot {
     @Comment("마이 스팟 푸시알림 여부 - 1: 수신")
     private Boolean isAlarm;
 
+    @Column(name = "user_phone")
+    @Comment("유저 핸드폰 번호")
+    private String phone;
+
     @Builder
-    public MySpot(String name, Address address, List<DiningType> diningTypes, Group group, String memo, Boolean isDelete, BigInteger userId, Boolean isAlarm) {
+    public MySpot(String name, Address address, List<DiningType> diningTypes, Group group, String memo, Boolean isDelete, BigInteger userId, Boolean isAlarm, String phone) {
         super(name, address, diningTypes, group, memo);
         this.isDelete = isDelete;
         this.userId = userId;
         this.isAlarm = isAlarm;
+        this.phone = phone;
     }
 
     public void updateMySpotForDelete() {

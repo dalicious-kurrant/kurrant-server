@@ -197,7 +197,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // user 찾기
         User user = userUtil.getUser(securityUser);
-        if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
+        if(user.getPhone() == null) user.updatePhone(requestDto.getPhone());
+        else if(requestDto.getPhone() == null) requestDto.setPhone(user.getPhone());
 
         // 신청한 my spot이 이미 존재하면
         RequestedMySpot existRequestedMySpot = qRequestedMySpotRepository.findRequestedMySpotByUserId(user.getId());
