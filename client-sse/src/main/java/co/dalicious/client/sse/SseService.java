@@ -33,6 +33,7 @@ public class SseService {
 
         //생성한 emitter를 저장한다. emitter는 HTTP/2기준 브라우저 당 100개 만들 수 있다.
         SseEmitter emitter = emitterRepository.save(id, new SseEmitter(DEFAULT_TIMEOUT));
+        System.out.println("emitter = " + emitter);
 
         //기존 emitter 중 완료 되거나 시간이 초과되어 연결이 끊긴 emitter를 삭제한다.
         emitter.onCompletion(() -> emitterRepository.deleteById(id));
@@ -86,6 +87,7 @@ public class SseService {
 
     //client에게 이벤트 보내기
     private void sendToClient(SseEmitter emitter, String id, Object data) {
+        System.out.println("emitter = " + emitter);
         try {
             emitter.send(SseEmitter.event()
                     .id(id)
