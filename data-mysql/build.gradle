@@ -1,0 +1,7 @@
+bootJar.enabled = false
+jar.enabled = true
+
+dependencies {
+    implementation 'org.hibernate:hibernate-core'
+    implementation 'org.hibernate:hibernate-spatial'
+}
