@@ -35,6 +35,7 @@ public interface MySpotMapper {
                 .userId(userId)
                 .name(mySpotZoneApplicationFormRequestDto.getMySpotName() == null ? address.addressToString() : mySpotZoneApplicationFormRequestDto.getMySpotName())
                 .isDelete(false)
+                .phone(mySpotZoneApplicationFormRequestDto.getPhone())
                 .build();
     }
 
@@ -49,6 +50,7 @@ public interface MySpotMapper {
                     .isDelete(false)
                     .memo(v.getMemo())
                     .isAlarm(pushAlarmUserIds.contains(v.getUserId()))
+                    .phone(v.getPhone())
                     .build()
                 ).toList();
     }
