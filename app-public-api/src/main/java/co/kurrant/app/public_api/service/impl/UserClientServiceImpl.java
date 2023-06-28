@@ -123,7 +123,10 @@ public class UserClientServiceImpl implements UserClientService {
                 .findAny();
         userSpot.ifPresent(v -> {
             if(unproxiedGroup instanceof MySpotZone mySpotZone) {
-                List<MySpot> mySpots = mySpotZone.getSpots().stream().filter(s -> s instanceof MySpot mySpot && mySpot.getUserId().equals(user.getId())).map(s -> ((MySpot) s)).toList();
+                List<MySpot> mySpots = mySpotZone.getSpots().stream()
+                        .filter(s -> s instanceof MySpot mySpot && mySpot.getUserId().equals(user.getId()) && !mySpot.getIsDelete())
+                        .map(s -> ((MySpot) s))
+                        .toList();
                 mySpots.forEach(MySpot::updateMySpotForDelete);
             }
             userSpotRepository.delete(v);

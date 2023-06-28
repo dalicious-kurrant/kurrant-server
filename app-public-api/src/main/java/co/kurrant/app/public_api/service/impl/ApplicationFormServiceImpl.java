@@ -34,6 +34,8 @@ import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
@@ -191,9 +193,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional
     public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto requestDto) throws ParseException {
+        if(requestDto.getAddress().getZipCode().isEmpty() || requestDto.getAddress().getZipCode().isBlank() || requestDto.getAddress().getAddress3() == null) throw new ApiException(ExceptionEnum.CANT_NOT_REQUESTED_SPOT);
+
         // user 찾기
         User user = userUtil.getUser(securityUser);
-        if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
+        if(user.getPhone() == null) user.updatePhone(requestDto.getPhone());
+        else if(requestDto.getPhone() == null) requestDto.setPhone(user.getPhone());
 
         // 신청한 my spot이 이미 존재하면
         RequestedMySpot existRequestedMySpot = qRequestedMySpotRepository.findRequestedMySpotByUserId(user.getId());
@@ -245,15 +250,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
             return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
         }
+        // 기존 신청 마이스팟 존에서 카운트 빼기
+        requestedMySpot.getRequestedMySpotZones().updateWaitingUserCount(1, true);
 
         RequestedMySpotZones requestedMySpotZones = createRequestedMySpotZones(requestDto, user);
         requestedMySpotMapper.updateRequestedMySpot(requestDto, requestedMySpot);
         requestedMySpot.updateRequestedMySpotZones(requestedMySpotZones);
-
-        // 기존 신청 마이스팟 존에서 카운트 빼기
-        RequestedMySpotZones defaultRequestedMySpotZones = requestedMySpot.getRequestedMySpotZones();
-        defaultRequestedMySpotZones.updateWaitingUserCount(1, true);
-
 
         // my spot zone 존재 여부 response
         return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
@@ -268,7 +270,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         for(String addr : jibunAddress) {
             if(addr.matches(".*?(?:시$|군$|구$)")) county = addr;
-            else if(addr.matches(".*?(?:동$|읍$|면$)")) village = addr;
+            else if(addr.matches(".*?(?:동$|읍$|면$|가$|로$)")) village = addr;
         }
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, village);

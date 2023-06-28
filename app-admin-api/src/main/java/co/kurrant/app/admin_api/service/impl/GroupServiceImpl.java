@@ -391,7 +391,7 @@ public class GroupServiceImpl implements GroupService {
             PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
             BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
             pushService.sendToPush(batchAlarmDto, pushCondition);
-            pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user, AlarmType.SPOT_NOTICE, null);
+            pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
         });
     }
 
