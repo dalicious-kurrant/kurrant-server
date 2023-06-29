@@ -25,4 +25,5 @@ public interface UserClientService {
     List<OpenGroupListForKeywordDto> getOpenGroupsForKeyword(SecurityUser securityUser);
     // 유저가 초대된 기업 조회
     List<CorporationResponseDto> getUserCorporation(SecurityUser securityUser);
+    void updateMySpotInformation (SecurityUser securityUser, BigInteger mySpotZoneId, String target, String value);
 }

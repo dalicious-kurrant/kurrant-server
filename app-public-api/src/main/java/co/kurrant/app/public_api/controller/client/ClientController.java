@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.controller.client;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.dto.GroupAndSpotIdReqDto;
+import co.kurrant.app.public_api.dto.StringDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
 import co.kurrant.app.public_api.service.UserService;
@@ -25,33 +26,23 @@ public class ClientController {
     private final UserClientService userClientService;
     private final UserService userService;
 
-    @Operation(summary = "유저가 속한 그룹의 정보 리스트", description = "유저가 속한 그룹의 정보 리스트를 조회한다.")
-    @GetMapping("")
-    public ResponseMessage getClients(Authentication authentication) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(userService.getClients(securityUser))
-                .message("그룹 조회에 성공하였습니다.")
-                .build();
-    }
-
     @Operation(summary = "스팟 관리", description = "스팟 관리 페이지에 필요한 정보를 가져온다.")
-    @GetMapping("")
+    @GetMapping("/management")
     public ResponseMessage getClientManagement(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(userService.getClientManagement(securityUser))
-                .message("그룹 조회에 성공하였습니다.")
+                .message("스팟 조회에 성공하였습니다.")
                 .build();
     }
 
     @Operation(summary = "스팟 상세정보", description = "고객사로 등록된 그룹을 상세 조회한다.")
-    @GetMapping("/spots/share/{groupId}")
+    @GetMapping("/{groupId}/details")
     public ResponseMessage getGroupDetail(Authentication authentication, @PathVariable BigInteger groupId) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(userClientService.getGroupDetail(securityUser, groupId))
-                .message("오픈 그룹 상세 조회에 성공하셨습니다.")
+                .message("스팟 상세 조회에 성공하셨습니다.")
                 .build();
     }
 
@@ -88,17 +79,6 @@ public class ClientController {
         return ResponseMessage.builder()
                 .data(result)
                 .message((result == null) ? "스팟 상세 주소 등록이 필요합니다" : "스팟 등록에 성공하였습니다.")
-                .build();
-    }
-
-    @Operation(summary = "그룹별 스팟 상세 조회", description = "유저가 속한 그룹의 스팟들의 상세 정보를 조회한다.")
-    @GetMapping("/spots/{spotId}")
-    public ResponseMessage getSpotDetail(Authentication authentication,
-                                         @PathVariable BigInteger spotId) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(userClientService.getSpotDetail(securityUser, spotId))
-                .message("스팟 상세 조회에 성공하였습니다.")
                 .build();
     }
 
@@ -140,6 +120,42 @@ public class ClientController {
         return ResponseMessage.builder()
                 .data(userClientService.getUserCorporation(securityUser))
                 .message("오픈 그룹 전체 조회에 성공하셨습니다.")
+                .build();
+    }
+
+    @Operation(summary = "마이스팟 정보 변경", description = "마이스팟 정보를 변경")
+    @PostMapping("/{myspotZoneId}/myspots")
+    public ResponseMessage updateMySpotInformation(Authentication authentication,
+                                          @PathVariable BigInteger myspotZoneId,
+                                          @RequestParam String target,
+                                          @RequestBody StringDto stringDto) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userClientService.updateMySpotInformation(securityUser, myspotZoneId, target, stringDto.getValue());
+        return ResponseMessage.builder()
+                .message("마이 스팟 정보 변경에 성공하였습니다.")
+                .build();
+    }
+
+    
+    // TODO: 추후 삭제
+    @Operation(summary = "유저가 속한 그룹의 정보 리스트", description = "유저가 속한 그룹의 정보 리스트를 조회한다.")
+    @GetMapping("")
+    public ResponseMessage getClients(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.getClients(securityUser))
+                .message("그룹 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "그룹별 스팟 상세 조회", description = "유저가 속한 그룹의 스팟들의 상세 정보를 조회한다.")
+    @GetMapping("/spots/{spotId}")
+    public ResponseMessage getSpotDetail(Authentication authentication,
+                                         @PathVariable BigInteger spotId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userClientService.getSpotDetail(securityUser, spotId))
+                .message("스팟 상세 조회에 성공하였습니다.")
                 .build();
     }
 }

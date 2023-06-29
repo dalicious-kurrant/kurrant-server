@@ -8,6 +8,7 @@ import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.OpenGroupMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.MySpotZoneRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.user.entity.User;
@@ -27,10 +28,12 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
 import co.kurrant.app.public_api.service.UserUtil;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -50,6 +53,7 @@ public class UserClientServiceImpl implements UserClientService {
     private final QGroupRepository qGroupRepository;
     private final OpenGroupMapper openGroupMapper;
     private final UserGroupMapper userGroupMapper;
+    private final MySpotZoneRepository mySpotZoneRepository;
 
     @Override
     @Transactional
@@ -73,7 +77,7 @@ public class UserClientServiceImpl implements UserClientService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
         isGroupMember(user, group);
-
+        return userGroupMapper.toGroupDetailDto(group, user);
     }
 
     @Override
@@ -167,6 +171,26 @@ public class UserClientServiceImpl implements UserClientService {
         if(userGroups.isEmpty()) return corporationResponseDtos;
 
         return userGroupMapper.toCorporationResponseDtoList(userGroups);
+    }
+
+    @Override
+    @Transactional
+    public void updateMySpotInformation(SecurityUser securityUser, BigInteger mySpotZoneId, String target, String value) {
+        User user = userUtil.getUser(securityUser);
+        MySpotZone mySpotZone = mySpotZoneRepository.findById(mySpotZoneId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        MySpot mySpot = mySpotZone.getMySpot(user.getId());
+        if(mySpot == null) {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
+        if(target.equals("name")) {
+            mySpot.updateName(value);
+            return;
+        }
+        if(target.equals("phone")) {
+            mySpot.updatePhone(value);
+            return;
+        }
+        throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000016", "파라미터(target)의 명칭이 일치하지 않습니다.");
     }
 
     @Override

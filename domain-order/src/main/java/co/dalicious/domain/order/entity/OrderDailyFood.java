@@ -41,6 +41,11 @@ public class OrderDailyFood extends Order{
     @Comment("상세주소")
     private String ho;
 
+    @Comment("배송 메모")
+    private String memo;
+
+    @Comment("전화번호")
+    private String phone;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
     private Spot spot;

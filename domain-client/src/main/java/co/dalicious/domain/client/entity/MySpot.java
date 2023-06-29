@@ -62,4 +62,12 @@ public class MySpot extends Spot {
     public void updateAlarm(Boolean alarm) {
         this.isAlarm = alarm;
     }
+
+    public void updatePhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void updateName(String name) {
+        super.setName(name);
+    }
 }

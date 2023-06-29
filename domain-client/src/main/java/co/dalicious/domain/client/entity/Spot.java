@@ -182,4 +182,8 @@ public class Spot {
     }
 
     public void updateSpotStatus(SpotStatus status) { this.status = status; }
+
+    protected void setName(String name) {
+        this.name = name;
+    }
 }

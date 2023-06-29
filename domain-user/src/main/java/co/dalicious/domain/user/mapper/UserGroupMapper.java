@@ -1,6 +1,8 @@
 package co.dalicious.domain.user.mapper;
 
+import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.GroupCountDto;
+import co.dalicious.domain.client.dto.GroupDetailDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
@@ -12,6 +14,8 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.client.entity.MySpot;
+import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DiningTypesUtils;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -124,7 +128,7 @@ public interface UserGroupMapper {
 
     default UserGroupDto toUserGroupDto(User user) {
         UserGroupDto userGroupDto = new UserGroupDto();
-        List<UserGroup> userGroups = user.getGroups();
+        List<UserGroup> userGroups = user.getActiveUserGroups();
         Integer mySpotCount = 0;
         Integer shareSpotCount = 0;
         Integer privateSpotCount = 0;
@@ -146,10 +150,10 @@ public interface UserGroupMapper {
             }
         }
         UserSpot userSpot = user.getDefaultUserSpot();
-        if(!Hibernate.getClass(userSpot.getSpot()).equals(MySpot.class)) {
+        if(userSpot != null && !Hibernate.getClass(userSpot.getSpot()).equals(MySpot.class)) {
             defaultSpotName = userSpot.getSpot().getGroup().getName() + userSpot.getSpot().getName();
         }
-        else {
+        if(userSpot != null && Hibernate.getClass(userSpot.getSpot()).equals(MySpot.class)) {
             defaultSpotName = userSpot.getSpot().getName() == null ?
                     userSpot.getSpot().getAddress().addressToString() : userSpot.getSpot().getName();
         }
@@ -179,10 +183,86 @@ public interface UserGroupMapper {
     }
 
     default String getGroupType(Group group) {
-        if (Hibernate.getClass(group).equals(MySpotZone.class)) return "프라이빗스팟";
+        if (Hibernate.getClass(group).equals(Corporation.class)) return "프라이빗스팟";
         if (Hibernate.getClass(group).equals(OpenGroup.class)) return "공유스팟";
-        if (Hibernate.getClass(group).equals(Corporation.class)) return "마이스팟";
+        if (Hibernate.getClass(group).equals(MySpotZone.class)) return "마이스팟";
         return null;
     }
 
+    default GroupDetailDto toGroupDetailDto(Group group, User user) {
+        if(Hibernate.getClass(group).equals(Corporation.class)) {
+            return GroupDetailDto.builder()
+                    .id(group.getId())
+                    .name(group.getName())
+                    .address(toAddressString(group.getAddress()))
+                    .diningTypes(DiningTypesUtils.diningTypesToCodes(group.getDiningTypes()))
+                    .mealInfos(toMealInfoDtos(group.getMealInfos()))
+                    .spots(toSpotDtos(group.getSpots()))
+                    .build();
+        }
+        if(Hibernate.unproxy(group) instanceof OpenGroup openGroup) {
+            return GroupDetailDto.builder()
+                    .id(openGroup.getId())
+                    .name(openGroup.getName())
+                    .address(toAddressString(openGroup.getAddress()))
+                    .userCount(openGroup.getOpenGroupUserCount())
+                    .diningTypes(DiningTypesUtils.diningTypesToCodes(openGroup.getDiningTypes()))
+                    .mealInfos(toMealInfoDtos(openGroup.getMealInfos()))
+                    .spots(toSpotDtos(openGroup.getSpots()))
+                    .build();
+        }
+        if(Hibernate.unproxy(group) instanceof MySpotZone mySpotZone) {
+            return GroupDetailDto.builder()
+                    .id(mySpotZone.getId())
+                    .name(mySpotZone.getMySpot(user.getId()).getName())
+                    .address(toAddressString(mySpotZone.getMySpot(user.getId()).getAddress()))
+                    .phone(mySpotZone.getMySpot(user.getId()).getPhone())
+                    .diningTypes(DiningTypesUtils.diningTypesToCodes(mySpotZone.getDiningTypes()))
+                    .mealInfos(toMealInfoDtos(mySpotZone.getMealInfos()))
+                    .build();
+        }
+        return null;
+    }
+
+    default String toAddressString(Address address) {
+        return address.addressToString() + " (" + address.stringToAddress3() + ")";
+    }
+
+    default GroupDetailDto.MealInfo toMealInfoDto(MealInfo mealInfo) {
+        return GroupDetailDto.MealInfo.builder()
+                .diningType(mealInfo.getDiningType().getCode())
+                .lastOrderTime(DayAndTime.dayAndTimeToString(mealInfo.getLastOrderTime()))
+                .membershipBenefitTime(DayAndTime.dayAndTimeToString(mealInfo.getMembershipBenefitTime()))
+                .deliveryTimes(DateUtils.timesToStringList(mealInfo.getDeliveryTimes()))
+                .build();
+    }
+
+    default List<GroupDetailDto.MealInfo> toMealInfoDtos(List<MealInfo> mealInfos) {
+        return mealInfos.stream()
+                .map(this::toMealInfoDto)
+                .toList();
+    }
+
+    default GroupDetailDto.SpotInfo toSpotDto(Spot spot) {
+        if(Hibernate.unproxy(spot) instanceof OpenGroupSpot openGroupSpot) {
+            return GroupDetailDto.SpotInfo.builder()
+                    .spotId(openGroupSpot.getId())
+                    .spotName(openGroupSpot.getName())
+                    .isRestriction(openGroupSpot.getIsRestriction())
+                    .build();
+        }
+        if(Hibernate.unproxy(spot) instanceof CorporationSpot corporationSpot) {
+            return GroupDetailDto.SpotInfo.builder()
+                    .spotId(corporationSpot.getId())
+                    .spotName(corporationSpot.getName())
+                    .build();
+        }
+        return null;
+    }
+
+    default List<GroupDetailDto.SpotInfo> toSpotDtos(List<Spot> spots) {
+        return spots.stream()
+                .map(this::toSpotDto)
+                .toList();
+    }
 }

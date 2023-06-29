@@ -205,6 +205,7 @@ public class CartServiceImpl implements CartService {
                     .spotId(spot.getId())
                     .spotName(spot.getName())
                     .groupName(spot.getGroup().getName())
+                    .phone(getPhoneNumberForOrder(user, spot))
                     // TODO: 스팟 변경시 변경 필요
                     .clientStatus(GroupDataType.ofClass(spot.getClass()).getCode())
                     .cartDailyFoodDtoList(cartDailyFoodListDtos)
@@ -266,5 +267,12 @@ public class CartServiceImpl implements CartService {
                     .findAny();
             selectedCart.ifPresent(cartDailyFood -> cartDailyFood.updateCount(updateCart.getCount()));
         }
+    }
+
+    private String getPhoneNumberForOrder(User user, Spot spot) {
+        if(spot instanceof MySpot mySpot && mySpot.getPhone() != null) {
+            return mySpot.getPhone();
+        }
+        return user.getPhone();
     }
 }
