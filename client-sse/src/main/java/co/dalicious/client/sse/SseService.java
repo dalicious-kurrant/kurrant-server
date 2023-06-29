@@ -29,14 +29,17 @@ public class SseService {
 
     public SseEmitter subscribe(BigInteger userId, String lastEventId) {
         //구독한 유저를 특정하기 위한 id.
-        String id = userId + "_" + System.currentTimeMillis();
+        String id = String.valueOf(userId);
 
         //생성한 emitter를 저장한다. emitter는 HTTP/2기준 브라우저 당 100개 만들 수 있다.
-        SseEmitter emitter = emitterRepository.save(id, new SseEmitter(DEFAULT_TIMEOUT));
+        SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
+        System.out.println("emitter = " + emitter);
 
         //기존 emitter 중 완료 되거나 시간이 초과되어 연결이 끊긴 emitter를 삭제한다.
         emitter.onCompletion(() -> emitterRepository.deleteById(id));
         emitter.onTimeout(() -> emitterRepository.deleteById(id));
+
+        emitterRepository.save(id, emitter);
 
         // 503 에러를 방지하기 위한 더미 이벤트 전송. 연결 중 한 번도 이벤트를 보낸 적이 없다면 다음 연결 때 503에러를 낸다.
         sendToClient(emitter, id, "EventStream Created. [userId=" + userId + "]");
@@ -86,6 +89,7 @@ public class SseService {
 
     //client에게 이벤트 보내기
     private void sendToClient(SseEmitter emitter, String id, Object data) {
+        System.out.println("emitter = " + emitter);
         try {
             emitter.send(SseEmitter.event()
                     .id(id)
@@ -99,8 +103,7 @@ public class SseService {
 
     @Transactional
     public void readNotification(BigInteger userId, Integer type) {
-        List<NotificationHash> notificationList =
-                notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
+        List<NotificationHash> notificationList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
 
         //읽을 알림이 있는지 확인
         if(notificationList.size() == 0) {
