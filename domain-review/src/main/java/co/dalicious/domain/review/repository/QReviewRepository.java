@@ -343,12 +343,12 @@ public class QReviewRepository {
         return new PageImpl<>(reviewsList.getResults(), pageable, reviewsList.getTotal());
     }
 
-    public Integer findKeywordCount(String name, BigInteger foodId) {
-        return Math.toIntExact(queryFactory.select(reviews.count())
+    public Long findKeywordCount(String name, BigInteger foodId) {
+        return queryFactory.select(reviews.count())
                 .from(reviews)
                 .where(reviews.content.contains(name),
                         reviews.food.id.eq(foodId))
-                .fetchOne());
+                .fetchOne();
     }
 
      /*

@@ -201,7 +201,8 @@ public class ReviewServiceImpl implements ReviewService {
         keywordRepository.deleteAllByFoodId(food.getId());
 
         for (String name : keywordDto.getNames()) {
-            Integer keywordCount = qReviewRepository.findKeywordCount(name, food.getId());
+            Long keywordCount1 = qReviewRepository.findKeywordCount(name, food.getId());
+            int keywordCount = keywordCount1.intValue();
             Keyword keyword = keywordMapper.toEntity(name, keywordCount, food);
             keywordRepository.save(keyword);
         }
