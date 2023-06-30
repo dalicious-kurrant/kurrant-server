@@ -27,10 +27,13 @@ import co.dalicious.domain.client.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.PushCondition;
+import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
+import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
@@ -71,6 +74,8 @@ public class GroupServiceImpl implements GroupService {
     private final MySpotZoneMealInfoMapper mySpotZoneMealInfoMapper;
     private final PushUtil pushUtil;
     private final PushService pushService;
+    private final QUserGroupRepository qUserGroupRepository;
+    private final UserSpotRepository userSpotRepository;
 
     @Override
     @Transactional
@@ -415,6 +420,19 @@ public class GroupServiceImpl implements GroupService {
             // my spot zone update isActive false
             mySpotZoneList.forEach(mySpotZone -> mySpotZone.updateIsActive(false));
         }
+
+        List<User> users = qUserGroupRepository.findAllUserByGroupIds(mySpotZoneList);
+        users.forEach(user -> {
+            Optional<UserGroup> userGroup = user.getGroups().stream()
+                    .filter(v -> v.getGroup() instanceof MySpotZone mySpotZone && mySpotZoneList.contains(mySpotZone))
+                    .findAny();
+            userGroup.ifPresent(v -> v.updateStatus(ClientStatus.WITHDRAWAL));
+
+            Optional<UserSpot> userSpot = user.getUserSpots().stream()
+                    .filter(v -> v.getSpot() instanceof MySpot mySpot && mySpotList.contains(mySpot))
+                    .findAny();
+            userSpot.ifPresent(userSpotRepository::delete);
+        });
     }
 
     @Override

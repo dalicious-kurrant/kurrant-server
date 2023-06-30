@@ -104,4 +104,11 @@ public class QUserGroupRepository {
 
         return userGroupMap;
     }
+
+    public List<User> findAllUserByGroupIds(List<? extends Group> groups) {
+        return queryFactory.select(user)
+                .from(userGroup)
+                .where(userGroup.group.in(groups))
+                .fetch();
+    }
 }
