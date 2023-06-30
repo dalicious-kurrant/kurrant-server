@@ -26,6 +26,7 @@ public class DailyFoodDto {
     private String vegan;
     private String image;
     private double reviewAverage;
+    private Integer totalReviewCount;
     private String description;
     private BigDecimal price;
     private BigDecimal discountedPrice;
