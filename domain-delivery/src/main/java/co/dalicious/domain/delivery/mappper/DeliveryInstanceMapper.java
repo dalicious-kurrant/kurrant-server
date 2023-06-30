@@ -12,6 +12,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import org.hibernate.Hibernate;
@@ -19,6 +20,7 @@ import org.mapstruct.Mapper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import javax.swing.text.html.Option;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -108,14 +110,20 @@ public interface DeliveryInstanceMapper {
         List<OrderDailyFoodByMakersDto.Food> foodDtoList = new ArrayList<>();
         List<OrderItemDailyFood> orderItemDailyFoods = deliveryInstances.stream()
                 .flatMap(deliveryInstance -> deliveryInstance.getOrderItemDailyFoods().stream())
+                .filter(v -> OrderStatus.completePayment().contains(v.getOrderStatus()))
                 .toList();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            foodMap.add(orderItemDailyFood.getDailyFood().getFood(), orderItemDailyFood);
+            if(OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
+                foodMap.add(orderItemDailyFood.getDailyFood().getFood(), orderItemDailyFood);
+            }
         }
 
         for (Food food : foodMap.keySet()) {
             OrderDailyFoodByMakersDto.Food foodDto = new OrderDailyFoodByMakersDto.Food();
             Integer count = 0;
+            if (Optional.ofNullable(foodMap.get(food)).isEmpty()) {
+                continue;
+            }
             for (OrderItemDailyFood orderItemDailyFood : foodMap.get(food)) {
                 count += orderItemDailyFood.getCount();
             }
@@ -188,6 +196,7 @@ public interface DeliveryInstanceMapper {
         List<OrderItemDailyFood> orderItemDailyFoodList = deliveryInstances.stream()
                 .flatMap(deliveryInstance -> deliveryInstance.getDailyFoodDeliveries().stream())
                 .map(DailyFoodDelivery::getOrderItemDailyFood)
+                .filter(v -> OrderStatus.completePayment().contains(v.getOrderStatus()))
                 .toList();
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
