@@ -4,6 +4,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.review.dto.AverageAndTotalCount;
 import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.QComments;
@@ -351,7 +352,8 @@ public class QReviewRepository {
                 .fetchOne();
     }
 
-    public double findAllByFoodIdPageableLess(BigInteger foodId) {
+    public AverageAndTotalCount findAllByFoodIdPageableLess(BigInteger foodId) {
+        AverageAndTotalCount averageAndTotalCount = new AverageAndTotalCount();
         Integer total = 0;
 
         List<Reviews> reviewsList = queryFactory.selectFrom(reviews)
@@ -361,20 +363,10 @@ public class QReviewRepository {
         for (Reviews reviews: reviewsList){
             total += reviews.getSatisfaction();
         }
-        //Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
-        return Math.round(total / reviewsList.size() * 100) / 100.0;
 
+        averageAndTotalCount.setReviewAverage(Math.round(total / reviewsList.size() * 100) / 100.0);
+        averageAndTotalCount.setTotalCount(reviewsList.size());
+
+        return averageAndTotalCount;
     }
-
-     /*
-    *   QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
-                .orderBy(pointHistory.id.desc())
-                .limit(pageable.getPageSize())
-                .offset(pageable.getOffset())
-                .fetchResults();
-
-        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
-    * */
-
 }
