@@ -422,17 +422,13 @@ public class GroupServiceImpl implements GroupService {
         }
 
         List<User> users = qUserGroupRepository.findAllUserByGroupIds(mySpotZoneList);
-        users.forEach(user -> {
-            Optional<UserGroup> userGroup = user.getGroups().stream()
-                    .filter(v -> v.getGroup() instanceof MySpotZone mySpotZone && mySpotZoneList.contains(mySpotZone))
-                    .findAny();
-            userGroup.ifPresent(v -> v.updateStatus(ClientStatus.WITHDRAWAL));
+        for (User user : users) {
+            List<UserGroup> userGroups = user.getGroups().stream().filter(v -> v.getGroup() instanceof MySpotZone mySpotZone && mySpotZoneList.contains(mySpotZone) && v.getClientStatus().equals(ClientStatus.BELONG)).toList();
+            userGroups.forEach(v -> v.updateStatus(ClientStatus.WITHDRAWAL));
 
-            Optional<UserSpot> userSpot = user.getUserSpots().stream()
-                    .filter(v -> v.getSpot() instanceof MySpot mySpot && mySpotList.contains(mySpot))
-                    .findAny();
-            userSpot.ifPresent(userSpotRepository::delete);
-        });
+            List<UserSpot> userSpots = user.getUserSpots().stream().filter(v -> v.getSpot() instanceof MySpot mySpot && mySpotList.contains(mySpot)).toList();
+            userSpotRepository.deleteAll(userSpots);
+        }
     }
 
     @Override
