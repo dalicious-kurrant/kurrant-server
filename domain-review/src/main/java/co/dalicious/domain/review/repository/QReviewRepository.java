@@ -62,7 +62,7 @@ public class QReviewRepository {
     }
 
     public Page<Reviews> findAllByFilter(BigInteger makersId, String orderCode, String orderItemName, String userName, LocalDate startDate, LocalDate endDate, Boolean isReport,
-                                         Boolean isMakersComment, Boolean isAdminComment, Integer limit, Integer page, Pageable pageable) {
+                                         Boolean forMakers, Boolean isMakersComment, Boolean isAdminComment, Integer limit, Integer page, Pageable pageable) {
         BooleanBuilder filter = new BooleanBuilder();
 
         if(startDate != null) {
@@ -84,6 +84,11 @@ public class QReviewRepository {
         if(isReport != null) {
             filter.and(reviews.isReports.eq(isReport));
         }
+
+        if(forMakers != null){
+            filter.and(reviews.forMakers.eq(forMakers));
+        }
+
         if(isMakersComment != null) {
             if(isMakersComment){
                 filter.and(comments.instanceOf(MakersComments.class));
