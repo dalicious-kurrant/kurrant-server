@@ -70,7 +70,6 @@ public class FoodServiceImpl implements FoodService {
     private final QReviewRepository qReviewRepository;
     private final ReviewMapper reviewMapper;
     private final UserRepository userRepository;
-
     private final CommentsRepository commentsRepository;
     private final ReviewGoodRepository reviewGoodRepository;
     private final LikeMapper likeMapper;
@@ -319,8 +318,11 @@ public class FoodServiceImpl implements FoodService {
                 UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, selectedDate));
 
         for (DailyFood dailyFood : dailyFoodList) {
+
+            Integer reviewAverage = qReviewRepository.findAllByFoodIdPageableLess(dailyFood.getFood().getId());
+
             DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
-            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList);
+            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList, reviewAverage);
             dailyFoodDtos.add(dailyFoodDto);
         }
 
