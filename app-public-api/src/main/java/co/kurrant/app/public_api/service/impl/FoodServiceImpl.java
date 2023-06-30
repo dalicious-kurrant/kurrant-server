@@ -319,7 +319,7 @@ public class FoodServiceImpl implements FoodService {
 
         for (DailyFood dailyFood : dailyFoodList) {
 
-            Integer reviewAverage = qReviewRepository.findAllByFoodIdPageableLess(dailyFood.getFood().getId());
+            double reviewAverage = qReviewRepository.findAllByFoodIdPageableLess(dailyFood.getFood().getId());
 
             DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
             DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList, reviewAverage);

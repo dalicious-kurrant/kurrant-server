@@ -351,7 +351,7 @@ public class QReviewRepository {
                 .fetchOne();
     }
 
-    public Integer findAllByFoodIdPageableLess(BigInteger foodId) {
+    public double findAllByFoodIdPageableLess(BigInteger foodId) {
         Integer total = 0;
 
         List<Reviews> reviewsList = queryFactory.selectFrom(reviews)
@@ -361,8 +361,8 @@ public class QReviewRepository {
         for (Reviews reviews: reviewsList){
             total += reviews.getSatisfaction();
         }
-
-        return total / reviewsList.size();
+        //Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
+        return Math.round(total / reviewsList.size() * 100) / 100.0;
 
     }
 

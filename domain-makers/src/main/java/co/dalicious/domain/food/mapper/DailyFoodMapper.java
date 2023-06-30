@@ -119,7 +119,7 @@ public interface DailyFoodMapper {
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
-    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, Integer reviewAverage);
+    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage);
 
     @AfterMapping
     default void afterMapping(@MappingTarget DailyFoodDto dto, DailyFood dailyFood, Integer capacity, List<UserRecommends> userRecommends) {
