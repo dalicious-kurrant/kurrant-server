@@ -454,11 +454,10 @@ project(':data-flyway') {
     dependencies {
         rootProject.subprojects.each { subproject ->
             if (subproject.name.startsWith("domain-")) {
-                implementation project(":${subproject.name}")
+                compile project(":${subproject.name}")
             }
         }
         implementation project(':data-mysql')
-        implementation project(':client-core')
         implementation project(':client-alarm')
     }
 }

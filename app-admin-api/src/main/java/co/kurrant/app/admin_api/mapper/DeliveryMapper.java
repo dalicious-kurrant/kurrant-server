@@ -7,6 +7,7 @@ import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
 import org.hibernate.Hibernate;
@@ -106,8 +107,8 @@ public interface DeliveryMapper {
                 .count(dailyFoodDelivery.getOrderItemDailyFood().getCount())
                 .userName(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getUser().getName())
                 .userAddress(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getAddress().addressToString())
-                .userPhone(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getUser().getPhone())
-                .memo(null) // 추후수정
+                .userPhone(((OrderDailyFood) Hibernate.unproxy(dailyFoodDelivery.getOrderItemDailyFood().getOrder())).getPhone())
+                .memo(((OrderDailyFood) Hibernate.unproxy(dailyFoodDelivery.getOrderItemDailyFood().getOrder())).getMemo()) // 추후수정
                 .build();
     }
 
