@@ -351,6 +351,21 @@ public class QReviewRepository {
                 .fetchOne();
     }
 
+    public Integer findAllByFoodIdPageableLess(BigInteger foodId) {
+        Integer total = 0;
+
+        List<Reviews> reviewsList = queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId))
+                .fetch();
+
+        for (Reviews reviews: reviewsList){
+            total += reviews.getSatisfaction();
+        }
+
+        return total / reviewsList.size();
+
+    }
+
      /*
     *   QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
