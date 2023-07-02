@@ -1,14 +1,9 @@
 package co.kurrant.app.public_api.mapper.user;
 
-import co.dalicious.domain.client.entity.Apartment;
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.OpenGroup;
-import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserSpot;
+import co.dalicious.domain.client.entity.MySpot;
 import co.kurrant.app.public_api.dto.user.UserHomeResponseDto;
-import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -16,7 +11,6 @@ import org.mapstruct.Named;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
 
 
 @Mapper(componentModel = "spring")
@@ -34,13 +28,7 @@ public interface UserHomeInfoMapper {
     default Integer getSpotTypeCode(List<UserSpot> userSpots) {
         return userSpots.stream()
                 .filter(UserSpot::getIsDefault)
-                .map(spot -> spot.getClientType().getCode())
-                .map(code -> {
-                    if (code == 0) return GroupDataType.APARTMENT.getCode();
-                    else if (code == 1) return GroupDataType.CORPORATION.getCode();
-                    else if (code == 2) return GroupDataType.OPEN_GROUP.getCode();
-                    return null;
-                })
+                .map(spot -> spot.getGroupDataType().getCode())
                 .findAny()
                 .orElse(null);
     }
@@ -48,29 +36,29 @@ public interface UserHomeInfoMapper {
     @Named("getSpotId")
     default BigInteger getSpotId(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
-        Optional<UserSpot> userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny();
-        return userSpot.map(spot -> spot.getSpot().getId()).orElse(null);
+        UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
+        return userSpot == null ? null : userSpot.getSpot().getId();
     }
 
     @Named("getSpotName")
     default String getSpotName(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
-        Optional<UserSpot> userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny();
-        return userSpot.map(spot -> spot.getSpot().getName()).orElse(null);
+        UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
+        return userSpot == null ? null : userSpot.getSpot().getName();
     }
 
     @Named("getGroupId")
     default BigInteger getGroupId(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
-        Optional<UserSpot> userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny();
-        return userSpot.map(spot -> spot.getSpot().getGroup().getId()).orElse(null);
+        UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
+        return userSpot == null ? null : userSpot.getSpot().getGroup().getId();
     }
 
     @Named("getGroupName")
     default String getGroupName(List<UserSpot> userSpots) {
         if(userSpots.isEmpty()) return null;
-        Optional<UserSpot> userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny();
-        return userSpot.map(spot -> spot.getSpot().getGroup().getName()).orElse(null);
+        UserSpot userSpot = userSpots.stream().filter(UserSpot::getIsDefault).findAny().orElse(null);
+        return userSpot == null ? null : userSpot.getSpot() instanceof MySpot ? null : userSpot.getSpot().getGroup().getName();
     }
 
 }

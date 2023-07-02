@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -63,7 +64,7 @@ public class BoardServiceImpl implements BoardService {
         for (Notice notice:noticeList){
            result.add(noticeMapper.toDto(notice));
         }
-        return result;
+        return result.stream().sorted(Comparator.comparing(NoticeDto::getCreated).reversed()).toList();
     }
 
     @Override

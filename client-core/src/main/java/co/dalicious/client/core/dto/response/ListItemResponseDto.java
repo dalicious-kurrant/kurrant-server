@@ -33,4 +33,6 @@ public class ListItemResponseDto<T> {
   @NotNull
   @Comment("현재 페이지의 아이템")
   private List<T> items;
+
+  private Boolean isLast;
 }

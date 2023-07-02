@@ -4,10 +4,11 @@ import co.dalicious.client.alarm.dto.BatchAlarmDto;
 import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.mapper.PushAlarmMapper;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
-import co.dalicious.client.alarm.service.PushService;
-import co.dalicious.domain.user.entity.BatchPushAlarmLog;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.*;
@@ -19,8 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 @Component
@@ -29,11 +28,10 @@ public class PushUtil {
     private final QUserSpotRepository qUserSpotRepository;
     private final QUserRepository qUserRepository;
     private final QPushAlarmsRepository qPushAlarmsRepository;
-    private final PushService pushService;
     private final PushAlarmMapper pushAlarmMapper;
-    private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
-    private final QBatchPushAlarmLogRepository qBatchPushAlarmLogRepository;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
 
+    @Transactional(readOnly = true)
     public PushRequestDto sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, String customMessage) {
         Set<BigInteger> spotIds = !ids.containsKey("spotIds") || ids.get("spotIds") == null ? null : ids.get("spotIds");
         Set<BigInteger> userIds = !ids.containsKey("userIds") || ids.get("userIds") == null ? null : ids.get("userIds");
@@ -79,6 +77,7 @@ public class PushUtil {
         return pushAlarmMapper.toPushRequestDto(firebaseTokenList, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl(), keys);
     }
 
+    @Transactional(readOnly = true)
     public PushRequestDtoByUser getPushRequest(User user, PushCondition pushCondition, String customMessage) {
         // 활성화 된 자동 알람을 불러오기
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
@@ -107,6 +106,10 @@ public class PushUtil {
         return pushRequestDto;
     }
 
+    public BatchAlarmDto getBatchAlarmDto(PushRequestDtoByUser pushRequestDtoByUser, User user) {
+        return pushAlarmMapper.toBatchAlarmDto(pushRequestDtoByUser, user);
+    }
+
     public static String getContextNewDailyFood(String template, String spotName, LocalDate startDate, LocalDate endDate) {
         // 식단이 생성 됐을 때 푸시알림
         Map<String, String> valuesMap = new HashMap<>();
@@ -130,30 +133,41 @@ public class PushUtil {
         return template;
     }
 
-    public void getBatchAlarmDto(User user, PushCondition pushCondition) {
-        // 활성화 된 자동 알람을 불러오기
+    @Transactional(readOnly = true)
+    public String getContextOpenOrMySpot(String userName, String spotType, PushCondition pushCondition) {
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
-        // 비활성인 경우 알람 안보냄
-        if (pushAlarms == null) return;
+        String template = pushAlarms.getMessage();
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("user", userName);
+        valuesMap.put("spotType", spotType);
 
-        Map<String, BigInteger> token = new HashMap<>();
-        BatchAlarmDto pushRequestDto = null;
+        StringSubstitutor sub = new StringSubstitutor(valuesMap);
+        template = sub.replace(template);
+        return template;
+    }
 
-        List<PushCondition> pushConditionList = user.getPushConditionList();
-        if (pushConditionList == null || pushConditionList.isEmpty()) {
-            return;
-        }
-        if (pushConditionList.contains(pushCondition)) {
-            token.put(user.getFirebaseToken(), user.getId());
-        }
+    @Transactional
+    public PushAlarmHash createPushAlarmHash (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger reviewId) {
+        return PushAlarmHash.builder()
+                .title(title)
+                .message(message)
+                .isRead(false)
+                .userId(userId)
+                .type(alarmType.getAlarmType())
+                .reviewId(reviewId)
+                .build();
+    }
 
-        String message = pushAlarms.getMessage();
-        if (!token.isEmpty()) {
-            pushRequestDto = pushAlarmMapper.toBatchAlarmDto(token, pushCondition.getTitle(), pushAlarms.getRedirectUrl(), message);
-        }
-
-        if(pushRequestDto != null) {
-            pushService.sendToPush(pushRequestDto, pushCondition);
-        }
+    @Transactional
+    public void savePushAlarmHash (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger reviewId) {
+        PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                .title(title)
+                .message(message)
+                .isRead(false)
+                .userId(userId)
+                .type(alarmType.getAlarmType())
+                .reviewId(reviewId)
+                .build();
+        pushAlarmHashRepository.save(pushAlarmHash);
     }
 }

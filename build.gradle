@@ -144,7 +144,6 @@ subprojects {
 
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter-web:2.6.1'
-        implementation 'org.hibernate:hibernate-envers'
     }
 
 }
@@ -162,6 +161,7 @@ project(':app-public-api') {
         implementation project(':domain-user')
         implementation project(':domain-application-form')
         implementation project(':domain-address')
+        implementation project(':domain-delivery')
         implementation project(':domain-makers')
         implementation project(':domain-client')
         implementation project(':domain-order')
@@ -175,6 +175,8 @@ project(':app-public-api') {
         implementation project(':client-sse')
         implementation project(':domain-recommend')
         implementation project(':domain-event')
+        implementation project(':integration-client-user')
+        implementation project(':data-mysql')
     }
 }
 
@@ -187,6 +189,7 @@ project(':app-admin-api') {
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
+        implementation project(':domain-delivery')
         implementation project(':domain-makers')
         implementation project(':domain-order')
         implementation project(':domain-client')
@@ -194,7 +197,10 @@ project(':app-admin-api') {
         implementation project(':domain-review')
         implementation project(':domain-paycheck')
         implementation project(':client-alarm')
+        implementation project(':domain-application-form')
         implementation project(':data-redis')
+        implementation project(':integration-client-user')
+        implementation project(':data-mysql')
     }
 }
 
@@ -205,12 +211,15 @@ project(':app-client-api') {
         implementation project(':domain-file')
         implementation project(':domain-banner')
         implementation project(':domain-user')
+        implementation project(':domain-delivery')
         implementation project(':domain-client')
         implementation project(':data-redis')
         implementation project(':domain-address')
         implementation project(':domain-order')
         implementation project(':domain-makers')
         implementation project(':domain-paycheck')
+        implementation project(':integration-client-user')
+        implementation project(':data-mysql')
     }
 }
 
@@ -220,6 +229,7 @@ project(':app-makers-api') {
         implementation project(':client-core')
         implementation project(':client-alarm')
         implementation project(':domain-user')
+        implementation project(':domain-delivery')
         implementation project(':domain-application-form')
         implementation project(':domain-address')
         implementation project(':domain-makers')
@@ -233,6 +243,7 @@ project(':app-makers-api') {
         implementation project(':client-sse')
         implementation project(':domain-recommend')
         implementation project(':domain-paycheck')
+        implementation project(':data-mysql')
     }
 }
 
@@ -247,6 +258,7 @@ project(':batch') {
         implementation project(':domain-client')
         implementation project(':domain-payment')
         implementation project(':domain-paycheck')
+        implementation project(':domain-delivery')
     }
 }
 
@@ -325,6 +337,7 @@ project(':domain-order') {
         implementation project(':domain-client')
         implementation project(':domain-payment')
         implementation project(':domain-event')
+        implementation project(':integration-client-user')
     }
 }
 
@@ -339,7 +352,7 @@ project(':domain-payment') {
 project(':domain-application-form') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':domain-user')
+        implementation project(':domain-client')
         implementation project(':domain-address')
     }
 }
@@ -409,9 +422,42 @@ project(':domain-paycheck') {
     }
 }
 
+project(':domain-delivery') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-client')
+        implementation project(':domain-makers')
+        implementation project(':domain-order')
+        implementation project(':domain-user')
+        implementation project(':domain-address')
+    }
+}
+
 project(':client-alarm') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
+        implementation project(':data-redis')
+    }
+}
+
+project(':integration-client-user') {
+    dependencies {
+        implementation project(':system-core')
+        implementation project(':domain-user')
+        implementation project(':domain-client')
+        implementation project(':domain-application-form')
+        implementation project(':domain-address')
+    }
+}
+
+project(':data-flyway') {
+    dependencies {
+        rootProject.subprojects.each { subproject ->
+            if (subproject.name.startsWith("domain-")) {
+                compile project(":${subproject.name}")
+            }
+        }
+        implementation project(':data-mysql')
     }
 }

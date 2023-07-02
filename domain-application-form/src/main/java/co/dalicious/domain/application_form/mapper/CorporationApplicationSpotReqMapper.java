@@ -5,11 +5,11 @@ import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.dto.corporation.CorporationSpotRequestDto;
 import co.dalicious.domain.application_form.entity.CorporationApplicationFormSpot;
 import co.dalicious.system.enums.DiningType;
+import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +35,7 @@ public interface CorporationApplicationSpotReqMapper {
             return new Address(createAddressRequestDto.getZipCode(),
                     createAddressRequestDto.getAddress1(),
                     createAddressRequestDto.getAddress2(),
+                    createAddressRequestDto.getAddress3(),
                     null);
 
     }

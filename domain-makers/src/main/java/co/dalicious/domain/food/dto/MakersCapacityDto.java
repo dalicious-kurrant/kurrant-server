@@ -11,4 +11,6 @@ public class MakersCapacityDto {
     private String lastOrderTime;
     private Integer diningType;
     private Integer capacity;
+    private String minTime;
+    private String maxTime;
 }

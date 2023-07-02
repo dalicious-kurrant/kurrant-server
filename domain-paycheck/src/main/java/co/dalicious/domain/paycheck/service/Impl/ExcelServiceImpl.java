@@ -134,7 +134,7 @@ public class ExcelServiceImpl implements ExcelService {
     public ExcelPdfDto createCorporationPaycheckExcel(CorporationPaycheck corporationPaycheck, PaycheckDto.CorporationOrder corporationOrder) {
         Workbook workbook = new XSSFWorkbook();
 
-        String dirName = "paycheck/corporations/" + corporationPaycheck.getCorporation().getId().toString() + "/" + corporationPaycheck.getYearAndMonthString() + "/";
+        String dirName = "paycheck/corporations/" + corporationPaycheck.getCorporation().getId().toString() + "/" + corporationPaycheck.getYearAndMonthString();
 
         String fileName = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".xlsx";
         String fileName2 = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".pdf";
@@ -543,7 +543,7 @@ public class ExcelServiceImpl implements ExcelService {
         sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 0, 3));
         sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 4, 7));
 
-        titleCell6.setCellValue("총액(VAT 포함)");
+        titleCell6.setCellValue("총액(VAT 별도)");
         titleCell6.setCellStyle(boldCenterGray(workbook));
         contextCell6.setCellValue(corporationInfo.getTotalPrice());
         contextCell6.setCellStyle(priceStyle(workbook));

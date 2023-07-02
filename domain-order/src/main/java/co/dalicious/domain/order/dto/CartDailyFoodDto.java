@@ -22,22 +22,23 @@ public class CartDailyFoodDto {
     @Setter
     @NoArgsConstructor
     public static class DailyFood {
-        BigInteger id;
-        BigInteger dailyFoodId;
-        Integer status;
-        Integer capacity;
-        String name;
-        String image;
-        String makers;
-        Integer count;
-        BigDecimal price;
-        BigDecimal discountedPrice;
-        Integer membershipDiscountRate;
-        BigDecimal membershipDiscountPrice;
-        Integer makersDiscountRate;
-        BigDecimal makersDiscountPrice;
-        Integer periodDiscountRate;
-        BigDecimal periodDiscountPrice;
+        private BigInteger id;
+        private BigInteger dailyFoodId;
+        private String deliveryTime;
+        private Integer status;
+        private Integer capacity;
+        private String name;
+        private String image;
+        private String makers;
+        private Integer count;
+        private BigDecimal price;
+        private BigDecimal discountedPrice;
+        private Integer membershipDiscountRate;
+        private BigDecimal membershipDiscountPrice;
+        private Integer makersDiscountRate;
+        private BigDecimal makersDiscountPrice;
+        private Integer periodDiscountRate;
+        private BigDecimal periodDiscountPrice;
     }
 
     @Builder

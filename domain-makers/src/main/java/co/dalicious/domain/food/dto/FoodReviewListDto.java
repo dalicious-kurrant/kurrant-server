@@ -16,9 +16,9 @@ public class FoodReviewListDto {
     private List<String> imageLocation;
     private String userName;
     private Boolean isWriter;
-    private Integer like;
+    private Integer good;
     @Schema(description = "내가 좋아요를 눌렀는지 여부")
-    private Boolean isLike;
+    private Boolean isGood;
     private String content;
     private Integer satisfaction;
     private String createDate;
@@ -36,7 +36,7 @@ public class FoodReviewListDto {
 
     @Builder
     public FoodReviewListDto(BigInteger reviewId, List<String> imageLocation, String content, Integer satisfaction, String createDate,
-                             String updateDate, List<Comment> commentList, String userName, Integer like, Boolean isLike,
+                             String updateDate, List<Comment> commentList, String userName, Integer good, Boolean isGood,
                              Boolean isWriter) {
         this.reviewId = reviewId;
         this.imageLocation = imageLocation;
@@ -46,8 +46,8 @@ public class FoodReviewListDto {
         this.updateDate = updateDate;
         this.commentList = commentList;
         this.userName = userName;
-        this.like = like;
-        this.isLike = isLike;
+        this.good = good;
+        this.isGood = isGood;
         this.isWriter = isWriter;
     }
 }

@@ -154,4 +154,9 @@ public class PointUtil {
 
         return foundersPointPolicyDtos.get(0).getMaxPoint();
     }
+
+    public void updateUserPoint(User user, BigInteger orderId, BigDecimal point) {
+        createPointHistoryByOthers(user, orderId, PointStatus.USED, point);
+        user.updatePoint(user.getPoint().subtract(point));
+    }
 }

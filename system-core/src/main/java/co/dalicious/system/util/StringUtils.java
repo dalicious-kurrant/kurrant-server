@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ public class StringUtils {
     }
 
     public static List<Integer> parseIntegerList(String str) {
+        if(str == null) return null;
         str = str.replaceAll("[\\[\\]]", ""); // remove opening and closing brackets
         String[] parts = str.split(","); // split comma-separated values
         List<Integer> result = new ArrayList<>();
@@ -43,7 +45,20 @@ public class StringUtils {
         return resultName.substring(0, resultName.length() - 2);
     }
 
+    public static List<String> StringToStringList(String stringList) {
+        if (stringList == null || stringList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return Arrays.asList(stringList.split(", "));
+    }
+
     public static String integerListToString(List<Integer> integers) {
+        return integers == null ? null : integers.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
+    }
+
+    public static String BigIntegerListToString(List<BigInteger> integers) {
         return integers == null ? null : integers.stream()
                 .map(Object::toString)
                 .collect(Collectors.joining(","));

@@ -43,4 +43,6 @@ public interface FoodGroupMapper {
                 .groupNumbers(StringUtils.parseIntegerList(request.getGroupNumbers()))
                 .build();
     }
+
+    FoodGroupDto.NameList toNameList(FoodGroup foodGroup);
 }

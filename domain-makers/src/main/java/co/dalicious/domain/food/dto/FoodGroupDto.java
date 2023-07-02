@@ -2,6 +2,7 @@ package co.dalicious.domain.food.dto;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigInteger;
@@ -9,7 +10,7 @@ import java.math.BigInteger;
 public class FoodGroupDto {
 
     @Getter
-    @Setter
+    @NoArgsConstructor
     public static class Response {
         private String makers;
         private BigInteger id;
@@ -24,7 +25,6 @@ public class FoodGroupDto {
         private String conveniencePercent;
 
         @Builder
-
         public Response(String makers, BigInteger id, String name, String groupNumbers, String saladPercent, String dinnerBoxPercent, String proteinPercent, String dietPercent, String postpartumPercent, String singleBowlPercent, String conveniencePercent) {
             this.makers = makers;
             this.id = id;
@@ -47,6 +47,13 @@ public class FoodGroupDto {
         private BigInteger id;
         private String name;
         private String groupNumbers;
+    }
+
+    @Getter
+    @Setter
+    public static class NameList {
+        private BigInteger id;
+        private String name;
     }
 
 }

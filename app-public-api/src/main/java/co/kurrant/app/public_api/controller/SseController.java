@@ -6,6 +6,7 @@ import co.dalicious.client.sse.SseService;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Description;
@@ -15,7 +16,7 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigInteger;
 
-
+@Tag(name="SSE")
 @RestController
 @RequiredArgsConstructor
 public class SseController {
@@ -45,9 +46,12 @@ public class SseController {
 
     @Description(value = "sse 알림 읽기(읽은 알림 삭제)")
     @PutMapping("/v1/notification/read")
-    public void readNotification(Authentication authentication, @RequestParam Integer type) {
+    public ResponseMessage readNotification(Authentication authentication, @RequestBody Integer type) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);
         sseService.readNotification(userId, type);
+        return ResponseMessage.builder()
+                .message("알림 읽기에 성공했습니다.")
+                .build();
     }
 }

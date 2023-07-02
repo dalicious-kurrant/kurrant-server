@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.mapper;
 
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.ScheduleStatus;
@@ -13,6 +14,8 @@ import exception.ExceptionEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, DiningType.class, ScheduleStatus.class, ConfirmStatus.class})
@@ -27,11 +30,22 @@ public interface ExcelPresetDailyFoodMapper {
     @Mapping(target = "confirmStatus", source = "confirmStatus")
     PresetMakersDailyFood toMakersDailyFoodEntity(ExcelPresetDto presetDto, Integer scheduleStatus, Makers makers, String deadLine, ConfirmStatus confirmStatus, List<MakersCapacity> makersCapacities);
 
-    @Mapping(source = "data.groupCapacity", target = "capacity")
-    @Mapping(source = "group", target = "group")
-    @Mapping(target = "pickupTime", expression = "java(DateUtils.stringToLocalTime(data.getPickupTime()))")
-    @Mapping(source = "presetMakersDailyFood", target = "presetMakersDailyFood")
-    PresetGroupDailyFood toGroupDailyFoodEntity(ExcelPresetDailyFoodDto.ExcelData data, Group group, PresetMakersDailyFood presetMakersDailyFood);
+    default PresetGroupDailyFood toGroupDailyFoodEntity(ExcelPresetDailyFoodDto.ExcelData data, Group group, PresetMakersDailyFood presetMakersDailyFood) {
+        List<LocalTime> deliveryTimes = group.getMealInfo((DiningType.ofString(data.getDiningType()))).getDeliveryTimes();
+        List<DeliverySchedule> deliveryScheduleList = new ArrayList<>();
+
+        deliveryTimes.forEach(deliveryTime ->{
+            DeliverySchedule deliverySchedule = DeliverySchedule.builder().deliveryTime(deliveryTime).pickupTime(DateUtils.stringToLocalTime(data.getPickupTime())).build();
+            deliveryScheduleList.add(deliverySchedule);
+        });
+
+        return PresetGroupDailyFood.builder()
+                .capacity(data.getGroupCapacity())
+                .group(group)
+                .deliveryScheduleList(deliveryScheduleList)
+                .presetMakersDailyFood(presetMakersDailyFood)
+                .build();
+    };
 
     @Mapping(target = "capacity", expression = "java(checkFoodCapacity(food.getFoodCapacities(), data))")
     @Mapping(source = "food", target = "food")

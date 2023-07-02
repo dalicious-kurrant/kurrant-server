@@ -49,4 +49,12 @@ public enum OrderStatus {
         orderStatuses.add(OrderStatus.WRITTEN_REVIEW);
         return orderStatuses;
     }
+
+    public static List<OrderStatus> beforeDelivered() {
+        List<OrderStatus> orderStatuses = new ArrayList<>();
+        orderStatuses.add(OrderStatus.COMPLETED);
+        orderStatuses.add(OrderStatus.WAIT_DELIVERY);
+        orderStatuses.add(OrderStatus.DELIVERING);
+        return orderStatuses;
+    }
 }

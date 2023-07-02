@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Set;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
-import static co.dalicious.domain.client.entity.QSpot.spot;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 
 @Repository
@@ -166,12 +165,11 @@ public class QDailyFoodRepository {
             whereClause.and(group.in(groups));
         }
         if (spotList != null && !spotList.isEmpty()) {
-            whereClause.and(spot.in(spotList));
+            whereClause.and(group.spots.any().in(spotList));
         }
 
         return queryFactory.selectFrom(dailyFood)
                 .leftJoin(dailyFood.group, group)
-                .leftJoin(group.spots, spot)
                 .where(whereClause)
                 .distinct()
                 .fetch();

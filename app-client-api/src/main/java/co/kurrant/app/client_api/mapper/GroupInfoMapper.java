@@ -32,10 +32,6 @@ public interface GroupInfoMapper {
             groupInfoList.setMinimumSpend(corporation.getMinimumSpend());
             groupInfoList.setMaximumSpend(corporation.getMaximumSpend());
         }
-        else if(group instanceof Apartment apartment) {
-            groupType = GroupDataType.APARTMENT.getCode();
-            employeeCount = apartment.getFamilyCount();
-        }
         else if(group instanceof OpenGroup openGroup) {
             groupType = GroupDataType.OPEN_GROUP.getCode();
             employeeCount = openGroup.getOpenGroupUserCount();
@@ -93,11 +89,6 @@ public interface GroupInfoMapper {
         supportDays.removeAll(notSupportDays);
 
         groupInfoList.setServiceDays(DaysUtil.serviceDaysToDaysString(serviceDays));
-        groupInfoList.setSupportDays(DaysUtil.serviceDaysToDaysString(supportDays));
-        groupInfoList.setNotSupportDays(DaysUtil.serviceDaysToDaysString(notSupportDays));
-        groupInfoList.setMorningSupportPrice(morningSupportPrice);
-        groupInfoList.setLunchSupportPrice(lunchSupportPrice);
-        groupInfoList.setDinnerSupportPrice(dinnerSupportPrice);
 
         return groupInfoList;
     }

@@ -7,7 +7,8 @@ import java.util.Arrays;
 @Getter
 public enum ClientStatus {
     WITHDRAWAL("탈퇴", 0),
-    BELONG("가입", 1);
+    BELONG("가입", 1),
+    WAITING("대기", 2);
 
     private final String clientStatus;
     private final Integer code;
