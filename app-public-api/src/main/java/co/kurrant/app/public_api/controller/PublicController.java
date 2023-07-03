@@ -12,7 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins="*", allowedHeaders = "*")
-@Tag(name = "5. Public")
+@Tag(name = "멤버십")
 @RequestMapping(value = "/v1/public")
 @RestController
 @RequiredArgsConstructor

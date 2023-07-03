@@ -21,6 +21,20 @@ public class DiningTypesUtils {
         return diningTypes;
     }
 
+    public static List<DiningType> codesToDiningTypes(List<Integer> codes) {
+        if(codes == null) return null;
+        List<DiningType> diningTypes = new ArrayList<>();
+
+        for (Integer code : codes) {
+            diningTypes.add(DiningType.ofCode(code));
+        }
+        return diningTypes;
+    }
+
+    public static List<Integer> diningTypesToCodes(List<DiningType> diningTypes) {
+        return diningTypes.stream().map(DiningType::getCode).toList();
+    }
+
     public static List<DiningType> stringCodeToDiningTypes(String strDiningTypes) {
         if (strDiningTypes == null || strDiningTypes.isEmpty()) {
             return null;

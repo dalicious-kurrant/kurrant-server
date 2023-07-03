@@ -22,7 +22,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
-@Tag(name = "1. Auth")
+@Tag(name = "a. 인증")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/auth")
 @RestController
@@ -134,7 +134,7 @@ public class AuthController {
     @Operation(summary = "로그인", description = "로그인을 수행한다.")
     @PostMapping("/login")
     public ResponseMessage login(@Parameter(name = "로그인정보", description = "",
-            required = true) @Valid @RequestBody LoginRequestDto dto) {
+            required = true) @RequestBody LoginRequestDto dto) {
         return ResponseMessage.builder()
                 .message("로그인에 성공하였습니다.")
                 .data(authService.login(dto))

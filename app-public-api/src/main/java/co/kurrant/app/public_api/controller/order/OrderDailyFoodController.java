@@ -5,6 +5,7 @@ import co.dalicious.domain.payment.dto.OrderCreateBillingKeySecondReqDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodByNiceReqDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
 import co.kurrant.app.public_api.dto.order.IdDto;
+import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -20,32 +21,24 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
-@CrossOrigin(origins="*", allowedHeaders = "*")
-@Tag(name = "3. Order")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@Tag(name = "주문")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/users/me/orders")
 @RestController
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
-    @Operation(summary = "유저 식사 일정 가져오기", description  = "유저의 주문 정보를 가져온다.")
+
+    @Operation(summary = "유저 식사 일정 가져오기", description = "유저의 주문 정보를 가져온다.")
     @GetMapping("")
     public ResponseMessage userOrderByDate(Authentication authentication,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+                                           @RequestParam(required = false) BigInteger spotId,
+                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.findOrderByServiceDate(securityUser, startDate, endDate))
+                .data(orderDailyFoodService.findOrderByServiceDate(securityUser, spotId, startDate, endDate))
                 .message("식사 일정 불러오기에 성공하였습니다.")
-                .build();
-    }
-
-    @Operation(summary = "정기 식사 주문하기", description = "정기 식사를 구매한다.")
-    @PostMapping("")
-    public ResponseMessage userOrderByDate(Authentication authentication, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto))
-                .message("식사 주문에 성공하였습니다.")
                 .build();
     }
 
@@ -131,4 +124,25 @@ public class OrderDailyFoodController {
                 .message("주문의 상태를 수령 완료로 변경했습니다.")
                 .build();
     }
+
+    @Operation(summary = "카드할부 처리를 위한 기능(로컬전용)", description = "카드 할부로 결제한다")
+    @PostMapping("/card/quota")
+    public ResponseMessage OrderCardQuota(Authentication authentication, @RequestBody OrderCardQuotaDto orderCardQuotaDto) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.orderCardQuota(securityUser, orderCardQuotaDto))
+                .message("식사 주문에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "정기 식사 주문하기", description = "정기 식사를 구매한다.")
+    @PostMapping("")
+    public ResponseMessage userOrderByDate(Authentication authentication, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto))
+                .message("식사 주문에 성공하였습니다.")
+                .build();
+    }
+
 }

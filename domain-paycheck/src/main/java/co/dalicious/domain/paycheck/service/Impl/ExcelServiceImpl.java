@@ -134,7 +134,7 @@ public class ExcelServiceImpl implements ExcelService {
     public ExcelPdfDto createCorporationPaycheckExcel(CorporationPaycheck corporationPaycheck, PaycheckDto.CorporationOrder corporationOrder) {
         Workbook workbook = new XSSFWorkbook();
 
-        String dirName = "paycheck/corporations/" + corporationPaycheck.getCorporation().getId().toString() + "/" + corporationPaycheck.getYearAndMonthString() + "/";
+        String dirName = "paycheck/corporations/" + corporationPaycheck.getCorporation().getId().toString() + "/" + corporationPaycheck.getYearAndMonthString();
 
         String fileName = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".xlsx";
         String fileName2 = corporationPaycheck.getCorporation().getName() + corporationPaycheck.getOrdersFileName() + ".pdf";
@@ -232,7 +232,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         // 추가 요청 헤더 생성
         List<PaycheckAdd> paycheckAdds = corporationPaycheck.getPaycheckAdds();
-        if (!paycheckAdds.isEmpty()) {
+        if (paycheckAdds != null && !paycheckAdds.isEmpty()) {
             currentRow = createHeaderTitle(workbook, sheet, currentRow, 1,7, "추가이슈");
             Row row = sheet.createRow(currentRow);
             createDailyFoodAddHeader(workbook, sheet, row);
@@ -415,7 +415,7 @@ public class ExcelServiceImpl implements ExcelService {
     private void createDailyFoodHeader(Workbook workbook, Sheet sheet) {
         // 거래 내역 헤더
         Row row12 = sheet.createRow(12);
-        String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat별도)"};
+        String[] headers = {"일자", "메뉴명", "금액", "수량", "금액(vat포함)"};
         for (int i = 1; i <= headers.length; i++) {
             Cell cell13 = null;
             if (i < 2) {
@@ -543,7 +543,7 @@ public class ExcelServiceImpl implements ExcelService {
         sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 0, 3));
         sheet.addMergedRegion(new CellRangeAddress(currantRow, currantRow, 4, 7));
 
-        titleCell6.setCellValue("총액(VAT 포함)");
+        titleCell6.setCellValue("총액(VAT 별도)");
         titleCell6.setCellStyle(boldCenterGray(workbook));
         contextCell6.setCellValue(corporationInfo.getTotalPrice());
         contextCell6.setCellStyle(priceStyle(workbook));

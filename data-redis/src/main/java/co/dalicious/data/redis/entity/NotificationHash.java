@@ -11,7 +11,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 
 @Getter
-@RedisHash(value = "notificationHash", timeToLive = 12 * 60 * 60 ) // 만료시간 12시간
+@RedisHash(value = "notificationHash", timeToLive = 30 * 24 * 60 * 60) // 만료시간 30일
 public class NotificationHash {
     @Id
     String id;

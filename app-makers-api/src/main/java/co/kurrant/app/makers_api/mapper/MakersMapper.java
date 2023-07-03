@@ -10,6 +10,7 @@ import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DaysUtil;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.mapstruct.Mapper;
@@ -19,9 +20,8 @@ import org.mapstruct.Named;
 import java.sql.Timestamp;
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = DaysUtil.class)
 public interface MakersMapper {
-
     @Mapping(source = "diningTypes", target = "diningTypes")
     @Mapping(source = "makers.address.location", target = "location", qualifiedByName = "getLocation")
     @Mapping(source = "makers.address.address2", target = "address2")
@@ -51,6 +51,7 @@ public interface MakersMapper {
     @Mapping(source = "makers.name", target = "name")
     @Mapping(source = "makers.code", target = "code")
     @Mapping(source = "makers.id", target = "id")
+    @Mapping(target = "serviceDays", expression = "java(DaysUtil.serviceDaysToDaysString(makers.getServiceDays()))")
     MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<String> diningTypes);
 
     OriginDto.WithId originToDto(Origin origin);

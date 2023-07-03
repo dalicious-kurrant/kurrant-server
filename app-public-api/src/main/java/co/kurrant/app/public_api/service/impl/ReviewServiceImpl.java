@@ -9,10 +9,12 @@ import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.QOrderItemRepository;
+import co.dalicious.domain.review.repository.QKeywordRepository;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.review.dto.*;
@@ -22,7 +24,6 @@ import co.dalicious.domain.review.repository.QReviewRepository;
 import co.dalicious.domain.review.repository.ReviewRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ReviewService;
@@ -63,6 +64,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final NotificationHashRepository notificationHashRepository;
     private final SseService sseService;
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
+    private final QKeywordRepository qKeywordRepository;
+    private final DailyFoodRepository dailyFoodRepository;
 
     @Override
     @Transactional
@@ -126,6 +129,11 @@ public class ReviewServiceImpl implements ReviewService {
                 if (!rewardPoint.equals(BigDecimal.ZERO))
                     pointUtil.createPointHistoryByOthers(user, reviews.getId(), PointStatus.REVIEW_REWARD, rewardPoint);
             }
+            //키워드 검색 후 해당되는 키워드 언급시 +1처리
+            List<String> keywordList = qKeywordRepository.findAllByFoodId(((OrderItemDailyFood) orderItem).getDailyFood().getFood().getId());
+            qKeywordRepository.plusKeyword(keywordList, ((OrderItemDailyFood) orderItem).getDailyFood().getFood().getId(), reviewDto.getContent());
+
+
         }
     }
 
@@ -141,21 +149,13 @@ public class ReviewServiceImpl implements ReviewService {
         BigDecimal redeemablePoints = BigDecimal.ZERO;
         if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList, redeemablePoints, 0); }
 
-        // 이미 리뷰가 작성된 아이템 예외
-        List<Reviews> reviewsList = qReviewRepository.findAllByUserAndOrderItem(user, receiptCompleteItem);
-        List<OrderItem> reviewOrderItem = reviewsList.stream().map(Reviews::getOrderItem).filter(receiptCompleteItem::contains).toList();
-
         Map<LocalDate, String> leftDayMap = new HashMap<>();
         MultiValueMap<LocalDate, OrderItemDailyFood> orderItemDailyFoodByServiceDateMap = new LinkedMultiValueMap<>();
         for(OrderItem item : receiptCompleteItem) {
 
-//            if(reviewOrderItem.contains(item)) continue;
-
             if(item instanceof OrderItemDailyFood orderItemDailyFood) {
-                MealInfo mealInfos = orderItemDailyFood.getDailyFood().getGroup().getMealInfos().stream()
-                        .filter(m -> m.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType()))
-                        .findAny().orElse(null);
-                LocalTime deliveryTime = mealInfos != null ? mealInfos.getDeliveryTime() : LocalTime.MAX;
+
+                LocalTime deliveryTime = orderItemDailyFood.getDeliveryTime() != null ? orderItemDailyFood.getDeliveryTime() : LocalTime.MAX;
 
                 LocalDate serviceDate = orderItemDailyFood.getDailyFood().getServiceDate();
                 //리뷰 가능일 구하기
@@ -205,11 +205,10 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         orderFoodList = orderFoodList.stream().sorted(Comparator.comparing(ReviewableItemResDto.OrderFood::getServiceDate).reversed()).collect(Collectors.toList());
-        //TODO: sse 보내기
 
-        List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 3, true);
-        if(notificationHashList == null || notificationHashList.isEmpty()) {
-            sseService.send(user.getId(), 3, "리뷰를 작성해야하는 상품이 있습니다.");
+        List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 3, false);
+        if(!notificationHashList.isEmpty()) {
+            sseService.send(user.getId(), 3, null);
         }
 
         return ReviewableItemResDto.create(orderFoodList, redeemablePoints, size);
@@ -301,5 +300,21 @@ public class ReviewServiceImpl implements ReviewService {
         if (content == null || content.length() < 10 || content.length() >= 501) {
             throw new ApiException(ExceptionEnum.FILL_OUT_THE_REVIEW);
         }
+    }
+
+    @Override
+    public Object reviewStarCount(BigInteger dailyFoodId) {
+        Map<Integer, Integer> starCountMap = new ConcurrentHashMap<>();
+        DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+        List<Reviews> reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+            starCountMap.put(1, 0);
+            starCountMap.put(2, 0);
+            starCountMap.put(3, 0);
+            starCountMap.put(4, 0);
+            starCountMap.put(5, 0);
+        for (Reviews reviews : reviewsList){
+            starCountMap.merge(reviews.getSatisfaction(), 1, (k, v) -> starCountMap.get(reviews.getSatisfaction())+1);
+        }
+        return starCountMap;
     }
 }

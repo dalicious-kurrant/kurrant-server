@@ -13,6 +13,5 @@ public interface FoodService {
     List<FoodListDto.FoodList> getAllFoodListByMakers(SecurityUser securityUser);
     MakersFoodDetailDto getFoodDetail(BigInteger foodId, SecurityUser securityUser);
     void updateFoodStatus(FoodStatusUpdateDto foodStatusUpdateDto);
-    void updateFoodMass(List<FoodListDto.FoodList> foodListDto);
     void updateFood(MakersFoodDetailReqDto foodDetailDto);
 }

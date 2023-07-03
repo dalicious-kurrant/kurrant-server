@@ -5,7 +5,7 @@
 # This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
 
-name: Java CI with Gradle
+name: 개발상용 테스트 서버 배포
 
 on:
   push:
@@ -32,9 +32,9 @@ jobs:
           mkdir resources
           cd resources
           touch ./application.yaml
-          echo "${{ secrets.APP_PUBLIC_API_PROD_YAML }}" > ./application.yaml
-          touch ./application-prod.yaml
-          echo "${{ secrets.APP_PUBLIC_API_PROD_PROD_YAML }}" > ./application-prod.yaml
+          echo "${{ secrets.APP_PUBLIC_API_RELEASE_TEST_YML }}" > ./application.yaml
+          touch ./application-dev.yaml
+          echo "${{ secrets.APP_PUBLIC_API_RELEASE_TEST_RELEASE_TEST_YML }}" > ./application-dev.yaml
         shell: bash
 
       - name: client-core application-jwt.properties 생성
@@ -79,7 +79,7 @@ jobs:
           mkdir resources
           cd resources
           touch ./application-payment.properties
-          echo "${{ secrets.DOMAIN_PAYMENT_PROD_PROPERTIES }}" > ./application-payment.properties
+          echo "${{ secrets.DOMAIN_PAYMENT_DEV_PROPERTIES }}" > ./application-payment.properties
         shell: bash
 
       - name: domain-file application-s3.properties 생성
@@ -98,6 +98,15 @@ jobs:
           cd resources
           touch ./application-alimtalk.properties
           echo "${{ secrets.SYSTEM_CORE_ALIMTALK }}" > ./application-alimtalk.properties
+        shell: bash
+
+      - name: client-alarm application-map.properties 생성
+        run: |
+          cd ./domain-address/src/main
+          mkdir resources
+          cd resources
+          touch ./application-map.properties
+          echo "${{ secrets.SYSTEM_CORE_MAP }}" > ./application-map.properties
         shell: bash
 
       - name: gradlew 실행 권한 추가
@@ -126,5 +135,5 @@ jobs:
             docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1_prod_test:${GITHUB_SHA::7} kurrant_v1_prod_test
             docker stop kurrant_v1_prod_test
             sleep 5
-            docker run -d --rm --net redis_redis_cluster --name kurrant_v1_prod_test -p 8880:8880 kurrant_v1_prod_test
+            docker run -i -t --log-driver=awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=kurrant/dev --log-opt awslogs-stream=test_app -d --rm --net redis_redis_cluster --name kurrant_v1_prod_test -p 8880:8880 kurrant_v1_prod_test
 

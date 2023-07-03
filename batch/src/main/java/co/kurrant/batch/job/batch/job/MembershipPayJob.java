@@ -12,6 +12,7 @@ import co.kurrant.batch.service.MembershipService;
 import exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.parser.ParseException;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -19,6 +20,7 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
@@ -31,12 +33,11 @@ import org.springframework.context.annotation.Configuration;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Configuration
@@ -91,11 +92,11 @@ public class MembershipPayJob {
                     .build();
         }
 
-        String queryString = "SELECT m FROM OrderItemMembership om\n" +
-                "INNER JOIN Order o ON om.order = o\n" +
-                "INNER JOIN Membership m ON om.membership = m\n" +
+        String queryString = "SELECT m FROM OrderItemMembership om " +
+                "INNER JOIN Order o ON om.order = o " +
+                "INNER JOIN Membership m ON om.membership = m " +
                 "JOIN FETCH m.user u " + // Add JOIN FETCH here for the User entity
-                "WHERE o.orderType = 3 and o.paymentType = 1 AND om.membership.id IN :membershipIds";
+                "WHERE o.orderType = 3 AND o.paymentType = 1 AND u.userStatus = 1 AND om.membership.id IN :membershipIds";
 
 
         return new JpaPagingItemReaderBuilder<Membership>()
@@ -112,30 +113,42 @@ public class MembershipPayJob {
     public ItemProcessor<Membership, Membership> membershipProcessor() {
         return new ItemProcessor<Membership, Membership>() {
             @Override
-            public Membership process(Membership membership) throws Exception {
+            public Membership process(Membership membership) throws IOException, ParseException {
                 log.info("[Membership 상태 업데이트 시작] : {}", membership.getId());
+                // TODO: 결제 수단이 추가 될 시 수정
                 try {
-                    // TODO: 결제 수단이 추가 될 시 수정
-                    PeriodDto periodDto = (membership.getMembershipSubscriptionType().equals(MembershipSubscriptionType.MONTH)) ?
-                            MembershipUtil.getStartAndEndDateMonthly(membership.getEndDate()) :
-                            MembershipUtil.getStartAndEndDateYearly(membership.getEndDate().plusMonths(1));
-                    orderService.payMembership(membership.getUser(), membership.getMembershipSubscriptionType(), periodDto, PaymentType.CREDIT_CARD);
-                    log.info("[Membership 결제 성공] : {}", membership.getId());
-                } catch (Exception ignored) {
-                    membership.changeAutoPaymentStatus(false);
-                    membership.getUser().changeMembershipStatus(false);
-                    log.info("[Membership 결제 실패] : {}", membership.getId());
+                    orderService.payMembershipNice(membership, PaymentType.CREDIT_CARD);
+                    return membership;
+                } catch (ApiException e) {
+                    // Handle ApiException gracefully
+                    log.error("ApiException encountered while processing membership {}: {}", membership.getId(), e.getMessage());
+                    return null; // Return null to skip this item
+                } catch (IOException | ParseException e) {
+                    // Handle other exceptions
+                    throw new RuntimeException(e);
                 }
-                return membership;
             }
         };
     }
 
     @Bean
     @JobScope
-    public JpaItemWriter<Membership> membershipWriter() {
+    public ItemWriter<Membership> membershipWriter() {
         log.info("Membership 상태 저장 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
-        return new JpaItemWriterBuilder<Membership>().entityManagerFactory(entityManagerFactory).build();
+
+        JpaItemWriter<Membership> jpaItemWriter = new JpaItemWriterBuilder<Membership>()
+                .entityManagerFactory(entityManagerFactory)
+                .build();
+
+        return new ItemWriter<Membership>() {
+            @Override
+            public void write(List<? extends Membership> items) throws Exception {
+                List<Membership> nonNullItems = items.stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+                jpaItemWriter.write(nonNullItems);
+            }
+        };
     }
 
     @Bean

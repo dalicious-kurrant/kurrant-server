@@ -1,7 +1,9 @@
 package co.kurrant.app.admin_api.controller;
 
+import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.service.UserService;
@@ -25,6 +27,7 @@ public class UserController {
 
     private final UserService userService;
 
+    @ControllerMarker(ControllerType.USER)
     @Operation(summary = "유저조회", description = "유저 목록을 조회한다.")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/all")
@@ -35,6 +38,7 @@ public class UserController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.USER)
     @Operation(summary = "선택 유저 탈퇴처리", description = "선택한 유저를 탈퇴처리한다")
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("")
@@ -45,7 +49,7 @@ public class UserController {
                 .build();
     }
 
-
+    @ControllerMarker(ControllerType.USER)
     @Operation(summary = "저장하기", description = "수정사항을 저장한다.")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("")
@@ -56,6 +60,7 @@ public class UserController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.USER)
     @Operation(summary = "비밀번호 리셋하기", description = "비밀번호를 리셋한다")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/reset/password")
@@ -66,6 +71,7 @@ public class UserController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.USER)
     @Operation(summary = "테스트 데이터 입력 Dto")
     @PostMapping("/test/data")
     @ResponseStatus(HttpStatus.OK)

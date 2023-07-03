@@ -2,12 +2,13 @@ package co.dalicious.domain.client.dto;
 
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
+import co.dalicious.domain.client.entity.MySpotZoneMealInfo;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DaysUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -21,7 +22,6 @@ public class ClientSpotDetailResDto {
     private BigInteger spotId;
     private String spotName;
     private String address;
-    private Integer ho;
     private List<MealTypeInfo> mealTypeInfoList;
     private BigInteger clientId;
     private String clientName;
@@ -38,28 +38,19 @@ public class ClientSpotDetailResDto {
 
         @Builder
         public MealTypeInfo(MealInfo mealInfo) {
-            StringBuilder serviceDays = new StringBuilder();
             BigDecimal bigDecimal = BigDecimal.ZERO;
             if(mealInfo instanceof CorporationMealInfo corporationMealInfo) {
-                List<Days> allServiceDays = corporationMealInfo.getServiceDays();
-                serviceDays.append(allServiceDays.stream().map(Days::getDays)).append(", ");
                 BigDecimal supportPrice = corporationMealInfo.getServiceDaysAndSupportPrices().stream()
                         .filter(o -> o.getSupportPrice().compareTo(BigDecimal.valueOf(0)) != 0).findAny()
                         .map(ServiceDaysAndSupportPrice::getSupportPrice).orElse(null);
-                bigDecimal = bigDecimal.add(supportPrice);
-            }
-            else if(mealInfo instanceof ApartmentMealInfo apartmentMealInfo) {
-                serviceDays.append(apartmentMealInfo.getServiceDays().stream().map(Days::getDays)).append(", ");
-            }
-            else if (mealInfo instanceof OpenGroupMealInfo openGroupMealInfo) {
-                serviceDays.append(openGroupMealInfo.getServiceDays().stream().map(Days::getDays)).append(", ");
+                if(supportPrice != null) bigDecimal = bigDecimal.add(supportPrice);
             }
 
             this.diningType = mealInfo.getDiningType().getCode();
-            this.serviceDays = String.valueOf(serviceDays);
+            this.serviceDays = DaysUtil.stringToDaysStringList(mealInfo.getServiceDays());
             this.membershipBenefitTime = DayAndTime.dayAndTimeToString(mealInfo.getMembershipBenefitTime());
             this.lastOrderTime = DayAndTime.dayAndTimeToString(mealInfo.getLastOrderTime());
-            this.deliveryTime =  DateUtils.timeToString(mealInfo.getDeliveryTime());
+            this.deliveryTime = DateUtils.timesToString(mealInfo.getDeliveryTimes());
             this.supportPrice = !(mealInfo instanceof CorporationMealInfo) ? bigDecimal : null;
         }
     }

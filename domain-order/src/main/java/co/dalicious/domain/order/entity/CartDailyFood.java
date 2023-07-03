@@ -13,6 +13,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.*;
+import java.time.LocalTime;
 
 @DynamicInsert
 @DynamicUpdate
@@ -21,6 +22,7 @@ import javax.persistence.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "order__cart_item")
 public class CartDailyFood extends Cart {
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="dailyFood_id")
     @Comment("장바구니에 담긴 음식 ID")
@@ -31,10 +33,14 @@ public class CartDailyFood extends Cart {
     @Comment("장바구니에 담긴 음식 상품의 배송지")
     private Spot spot;
 
+    @Comment("배송 시간")
+    private LocalTime deliveryTime;
+
     @Builder
-    public CartDailyFood(User user, Integer count, DailyFood dailyFood, Spot spot) {
+    public CartDailyFood(User user, Integer count, DailyFood dailyFood, Spot spot, LocalTime deliveryTime) {
         super(user, count);
         this.dailyFood = dailyFood;
         this.spot = spot;
+        this.deliveryTime = deliveryTime;
     }
 }

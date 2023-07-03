@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -31,7 +32,7 @@ public class PushAlarms {
 
     @Convert(converter = PushStatusConverter.class)
     @Column(name = "e_push_status")
-    @Comment("푸시알림 상태 - 0. 활성 / 1. 비활성")
+    @Comment("푸시알림 상태 - 0. 비활성 / 1. 활성")
     private PushStatus pushStatus;
 
     @Convert(converter = PushConditionConverter.class)
