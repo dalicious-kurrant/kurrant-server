@@ -8,6 +8,7 @@ import co.dalicious.domain.review.dto.ReviewKeywordSaveReqDto;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 
 public interface ReviewService {
@@ -28,4 +29,6 @@ public interface ReviewService {
     void deleteComment(BigInteger commentId);
 
     void reviewKeywordSave(ReviewKeywordSaveReqDto keywordDto);
+
+    List<String> foodReviewKeyword(BigInteger foodId);
 }

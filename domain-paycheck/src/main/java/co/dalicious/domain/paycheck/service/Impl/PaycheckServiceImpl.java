@@ -46,7 +46,6 @@ public class PaycheckServiceImpl implements PaycheckService {
     private final ExcelService excelService;
     private final DeliveryFeePolicy deliveryFeePolicy;
     private final CorporationPaycheckMapper corporationPaycheckMapper;
-    private final QUserRepository qUserRepository;
     private final CorporationPaycheckRepository corporationPaycheckRepository;
     private final ExpectedPaycheckRepository expectedPaycheckRepository;
     private final EntityManager entityManager;
@@ -68,7 +67,7 @@ public class PaycheckServiceImpl implements PaycheckService {
 
     @Override
     @Transactional
-    public List<MakersPaycheck> generateAllMakersPaycheck(List<? extends PaycheckDto.PaycheckDailyFood> paycheckDailyFoodDtos) {
+    public List<MakersPaycheck> generateAllMakersPaycheck(List<? extends PaycheckDto.PaycheckDailyFood> paycheckDailyFoodDtos, YearMonth yearMonth) {
         MultiValueMap<Makers, PaycheckDailyFood> paycheckDailyFoodMap = new LinkedMultiValueMap<>();
         for (PaycheckDto.PaycheckDailyFood paycheckDailyFoodDto : paycheckDailyFoodDtos) {
             PaycheckDailyFood paycheckDailyFood = makersPaycheckMapper.toPaycheckDailyFood(paycheckDailyFoodDto);
@@ -76,7 +75,7 @@ public class PaycheckServiceImpl implements PaycheckService {
         }
         for (Makers makers : paycheckDailyFoodMap.keySet()) {
             // 메이커스 정산 생성 및 저장
-            MakersPaycheck makersPaycheck = makersPaycheckMapper.toInitiateEntity(paycheckDailyFoodMap.get(makers), makers);
+            MakersPaycheck makersPaycheck = makersPaycheckMapper.toInitiateEntity(paycheckDailyFoodMap.get(makers), makers, yearMonth);
             makersPaycheck = makersPaycheckRepository.save(makersPaycheck);
             // 정산 엑셀 생성
             ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
@@ -85,7 +84,7 @@ public class PaycheckServiceImpl implements PaycheckService {
             makersPaycheck.updateExcelFile(excelFile);
             makersPaycheck.updatePdfFile(pdfFile);
         }
-        return makersPaycheckRepository.findAllByYearMonth(YearMonth.now());
+        return makersPaycheckRepository.findAllByYearMonth(yearMonth);
     }
 
     @Override

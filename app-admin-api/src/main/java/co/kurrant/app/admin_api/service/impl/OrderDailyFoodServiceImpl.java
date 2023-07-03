@@ -11,10 +11,12 @@ import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.client.repository.ApartmentRepository;
-import co.dalicious.domain.client.repository.CorporationRepository;
-import co.dalicious.domain.client.repository.GroupRepository;
-import co.dalicious.domain.client.repository.QSpotRepository;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.repository.*;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
+import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
+import co.dalicious.domain.delivery.utils.DeliveryUtils;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
@@ -37,14 +39,17 @@ import co.dalicious.domain.order.util.OrderMembershipUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
+import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.*;
+import co.dalicious.domain.user.repository.QMembershipRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
@@ -80,8 +85,6 @@ import java.util.stream.Collectors;
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final GroupRepository groupRepository;
-    private final ApartmentRepository apartmentRepository;
-    private final CorporationRepository corporationRepository;
     private final GroupMapper groupMapper;
     private final OrderMapper orderMapper;
     private final MakersMapper makersMapper;
@@ -108,15 +111,21 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PushUtil pushUtil;
     private final OrderMembershipUtil orderMembershipUtil;
     private final PushService pushService;
+    private final QMembershipRepository qMembershipRepository;
+    private final QGroupRepository qGroupRepository;
+    private final DeliveryUtils deliveryUtils;
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
+    private final DeliveryInstanceMapper deliveryInstanceMapper;
 
     @Override
     @Transactional
-    public List<OrderDto.OrderItemDailyFoodList> retrieveOrder(Map<String, Object> parameters) {
+    public List<OrderDto.OrderItemDailyFoodGroupList> retrieveOrder(Map<String, Object> parameters) {
         LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
         BigInteger groupId = !parameters.containsKey("group") || parameters.get("group").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("group")));
         List<BigInteger> spotIds = !parameters.containsKey("spots") || parameters.get("spots").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("spots"));
         Integer diningTypeCode = !parameters.containsKey("diningType") || parameters.get("diningType").equals("") ? null : Integer.parseInt((String) parameters.get("diningType"));
+        Integer spotType = !parameters.containsKey("spotType") || parameters.get("spotType").equals("") ? null : Integer.parseInt((String) parameters.get("spotType"));
         Long status = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : Long.parseLong((String) parameters.get("status"));
         BigInteger userId = !parameters.containsKey("userId") || parameters.get("userId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("userId")));
         BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
@@ -127,9 +136,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
         OrderStatus orderStatus = status == null ? null : OrderStatus.ofCode(status);
 
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, group, spotIds, diningTypeCode, userId, makers, orderStatus);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, spotType, group, spotIds, diningTypeCode, userId, makers, orderStatus);
+        List<Membership> memberships = qMembershipRepository.findAllByFilter(startDate, endDate, group, userId);
 
-        return orderMapper.ToDtoByGroup(orderItemDailyFoods);
+        return orderMapper.toOrderItemDailyFoodGroupList(orderItemDailyFoods, memberships);
     }
 
     @Override
@@ -143,9 +153,25 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         assert makersId != null;
         Makers makers = makersRepository.findById(makersId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
 
+        // FIXME: 기존 로직
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
-
         return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList);
+    }
+
+    @Override
+    @Transactional
+    public OrderDailyFoodByMakersDto.ByPeriod retrieveOrderCountByMakersAndDelivery(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        List<Integer> diningTypes = !parameters.containsKey("diningTypes") || parameters.get("diningTypes").equals("") ? null : StringUtils.parseIntegerList((String) parameters.get("diningTypes"));
+        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
+
+        assert makersId != null;
+        Makers makers = makersRepository.findById(makersId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+
+        // FIXME: 배송 도메인 추가 로직
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByFilter(startDate, endDate, DiningTypesUtils.codesToDiningTypes(diningTypes), makers);
+        return deliveryInstanceMapper.toDto(deliveryInstances);
     }
 
     @Override
@@ -157,16 +183,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    public List<GroupDto.Group> getGroup(Integer clientType) {
+    public List<GroupDto.Group> getGroup(Integer spotType) {
         List<? extends Group> groups = new ArrayList<>();
-        if (clientType == null) {
+        if (spotType == null) {
             groups = groupRepository.findAll();
-        } else if (ClientType.ofCode(clientType) == ClientType.APARTMENT) {
-            groups = apartmentRepository.findAll();
-        } else if (ClientType.ofCode(clientType) == ClientType.CORPORATION) {
-            groups = corporationRepository.findAll();
+        } else {
+            groups = qGroupRepository.findGroupByType(GroupDataType.ofCode(spotType));
         }
-
         return groupMapper.groupsToDtos(groups);
     }
 
@@ -215,11 +238,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             optionalUser.ifPresent(user -> userPhoneNumber.add(user.getPhone()));
 
             // 배송완료 푸시 알림 전송 및 멤버십 추가
-            if (OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
+            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.DELIVERED) && OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
                 // 멤버십 추가
                 User user = orderItemDailyFood.getOrder().getUser();
                 Group group = (Group) Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup());
-                if (group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
                     orderMembershipUtil.joinCorporationMembership(user, corporation);
                 }
 
@@ -384,6 +407,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
                     // 8. 주문 상품(OrderItemDailyFood) 저장
                     OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
+                    // 배송정보 입력
+                    // TODO: 배송시간 추가
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, user, dailyFood, null);
                     orderItemDailyFoods.add(orderItemDailyFood);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
                     supportPrice = supportPrice.add(orderItemDailyFood.getOrderItemTotalPrice());

@@ -174,12 +174,17 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 //        makersPaycheck.updateMakersPaycheck(YearMonth.of(paycheckDto.getYear(), paycheckDto.getMonth()), PaycheckStatus.ofString(paycheckDto.getPaycheckStatus()));
 //    }
 
-    //메이커스 정산 삭제
     @Override
-    public void deleteMakersPaycheck(List<BigInteger> ids) {
-        List<MakersPaycheck> makersPaychecks = makersPaycheckRepository.findAllByIdIn(ids);
+    public void deleteMakersPaycheck(PaycheckDto.Request request) {
+        YearMonth yearMonth = DateUtils.stringToYearMonth(request.getDate());
+        List<MakersPaycheck> makersPaychecks = qMakersPaycheckRepository.getMakersPaychecksByFilter(request.getId(), yearMonth);
+        for (MakersPaycheck makersPaycheck : makersPaychecks) {
+            imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
+            imageService.delete(getImagePrefix(makersPaycheck.getPdfFile()));
+        }
         makersPaycheckRepository.deleteAll(makersPaychecks);
     }
+    //메이커스 정산 삭제
 
     @Override
     @Transactional
@@ -192,6 +197,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         // 요청 Body에 파일이 존재하지 않는다면 삭제
         if (makersPaycheck.getExcelFile() != null) {
             imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
+            imageService.delete(getImagePrefix(makersPaycheck.getPdfFile()));
         }
         // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
         ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
@@ -226,29 +232,6 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         makersPaycheck.updateMemo(paycheckMemo);
     }
 
-    //    @Override
-//    @Transactional
-//    public void postCorporationPaycheck(MultipartFile corporationXlsx, MultipartFile corporationPdf, PaycheckDto.CorporationRequest paycheckDto) throws IOException {
-//        Corporation corporation = corporationRepository.findById(paycheckDto.getCorporationId())
-//                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
-//
-//        String dirName = "paycheck/corporations/" + paycheckDto.getCorporationId().toString() + "/" + paycheckDto.getYear().toString() + paycheckDto.getMonth().toString();
-//
-//        Image excelFile = null;
-//        if(corporationXlsx != null && !corporationXlsx.isEmpty()) {
-//            ImageResponseDto excelFileDto = imageService.upload(corporationXlsx, dirName);
-//            excelFile = new Image(excelFileDto);
-//        }
-//
-//        Image pdfFile = null;
-//        if(corporationPdf != null && !corporationPdf.isEmpty()) {
-//            ImageResponseDto pdfFileDto = imageService.upload(corporationPdf, dirName);
-//            pdfFile = new Image(pdfFileDto);
-//        }
-//
-//        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toEntity(paycheckDto, corporation, excelFile, pdfFile);
-//        corporationPaycheckRepository.save(corporationPaycheck);
-//    }
     @Override
     @Transactional
     public void postCorporationPaycheckExcel(PaycheckDto.Request request) {
@@ -256,6 +239,10 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         // 기존에 존재하던 정산 삭제
         List<CorporationPaycheck> corporationPaychecks = qCorporationPaycheckRepository.getCorporationPaychecksByFilter(request.getId(), yearMonth);
         List<ExpectedPaycheck> expectedPaychecks = qExpectedPaycheckRepository.findAllByCorporationPaychecks(corporationPaychecks);
+        for (CorporationPaycheck corporationPaycheck : corporationPaychecks) {
+            imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
+            imageService.delete(getImagePrefix(corporationPaycheck.getPdfFile()));
+        }
         expectedPaycheckRepository.deleteAll(expectedPaychecks);
         corporationPaycheckRepository.deleteAll(corporationPaychecks);
         
@@ -402,6 +389,10 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         YearMonth yearMonth = DateUtils.stringToYearMonth(request.getDate());
         List<CorporationPaycheck> corporationPaychecks = qCorporationPaycheckRepository.getCorporationPaychecksByFilter(request.getId(), yearMonth);
         List<ExpectedPaycheck> expectedPaychecks = qExpectedPaycheckRepository.findAllByCorporationPaychecks(corporationPaychecks);
+        for (CorporationPaycheck corporationPaycheck : corporationPaychecks) {
+            imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
+            imageService.delete(getImagePrefix(corporationPaycheck.getPdfFile()));
+        }
         expectedPaycheckRepository.deleteAll(expectedPaychecks);
         corporationPaycheckRepository.deleteAll(corporationPaychecks);
     }
@@ -436,6 +427,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         // 요청 Body에 파일이 존재하지 않는다면 삭제
         if (corporationPaycheck.getExcelFile() != null) {
             imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
+            imageService.delete(getImagePrefix(corporationPaycheck.getPdfFile()));
         }
         // 수정된 정산 S3에 업로드 후 Entity 엑셀 파일 경로 저장
         ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices));
@@ -473,9 +465,15 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
     @Override
     @Transactional
-    public List<MakersPaycheck> postMakersPaycheckExcel(String yearMonthStr) {
-        YearMonth yearMonth = DateUtils.stringToYearMonth(yearMonthStr);
-        return paycheckService.generateAllMakersPaycheck(qMakersPaycheckRepository.getPaycheckDto(yearMonth));
+    public List<MakersPaycheck> postMakersPaycheckExcel(PaycheckDto.Request request) {
+        YearMonth yearMonth = DateUtils.stringToYearMonth(request.getDate());
+        List<MakersPaycheck> makersPaychecks = qMakersPaycheckRepository.getMakersPaychecksByFilter(request.getId(), yearMonth);
+        for (MakersPaycheck makersPaycheck : makersPaychecks) {
+            imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
+            imageService.delete(getImagePrefix(makersPaycheck.getPdfFile()));
+        }
+        makersPaycheckRepository.deleteAll(makersPaychecks);
+        return paycheckService.generateAllMakersPaycheck(qMakersPaycheckRepository.getPaycheckDto(yearMonth, request.getId()), yearMonth);
     }
 
     @Override

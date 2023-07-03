@@ -92,11 +92,11 @@ public class MembershipPayJob {
                     .build();
         }
 
-        String queryString = "SELECT m FROM OrderItemMembership om\n" +
-                "INNER JOIN Order o ON om.order = o\n" +
-                "INNER JOIN Membership m ON om.membership = m\n" +
+        String queryString = "SELECT m FROM OrderItemMembership om " +
+                "INNER JOIN Order o ON om.order = o " +
+                "INNER JOIN Membership m ON om.membership = m " +
                 "JOIN FETCH m.user u " + // Add JOIN FETCH here for the User entity
-                "WHERE o.orderType = 3 and o.paymentType = 1 AND om.membership.id IN :membershipIds";
+                "WHERE o.orderType = 3 AND o.paymentType = 1 AND u.userStatus = 1 AND om.membership.id IN :membershipIds";
 
 
         return new JpaPagingItemReaderBuilder<Membership>()

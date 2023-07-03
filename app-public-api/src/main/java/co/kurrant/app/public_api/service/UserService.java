@@ -1,13 +1,14 @@
 package co.kurrant.app.public_api.service;
 
-import co.dalicious.domain.client.dto.SpotListResponseDto;
+import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.CreditCardResponseDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
-import co.dalicious.domain.user.dto.MembershipSubscriptionTypeDto;
+import co.dalicious.domain.user.dto.SaveDailyReportFoodReqDto;
+import co.dalicious.domain.user.dto.SaveDailyReportReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
-import co.kurrant.app.public_api.dto.board.AlarmResponseDto;
+import co.dalicious.domain.user.dto.SaveDailyReportDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -39,18 +40,14 @@ public interface UserService {
     void changePassword(SecurityUser securityUser, ChangePasswordDto changePasswordRequestDto);
     // 이메일/비밀번호 설정
     void setEmailAndPassword(SecurityUser securityUser, SetEmailAndPasswordDto setEmailAndPasswordDto);
-    // 알람/마케팅 설정 조회
-//    MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser);
     List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser);
-    // 알람/마케팅 설정 변경
-//    MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto);
     List<MarketingAlarmResponseDto> changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto);
     // 마이페이지(개인정보) 유저 정보 가져오기
     UserPersonalInfoDto getPersonalUserInfo(SecurityUser securityUser);
     // 오픈스팟 그룹 설정
-    void settingGroup(SecurityUser securityUser, BigInteger groupId);
+    void settingOpenGroup(SecurityUser securityUser, BigInteger groupId);
     // 유저가 속한 그룹 정보 리스트
-    List<SpotListResponseDto> getClients(SecurityUser securityUser);
+    GroupCountDto getClients(SecurityUser securityUser);
     Integer isHideEmail(SecurityUser securityUser);
     Object createNiceBillingKeyFirst(SecurityUser securityUser, Integer typeId, BillingKeyDto billingKeyDto) throws IOException, ParseException;
     List<CreditCardResponseDto> getCardList(SecurityUser securityUser);
@@ -86,4 +83,14 @@ public interface UserService {
     Boolean userPreferenceCheck(SecurityUser securityUser);
 
     List<PushResponseDto> getAlarms(SecurityUser securityUser);
+    void insertMyFood(SecurityUser securityUser, SaveDailyReportDto saveDailyReportDto);
+    Object getReport(SecurityUser securityUser, String date);
+    void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto);
+    String deleteReport(SecurityUser securityUser, BigInteger reportId);
+    Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType);
+    void allChangeAlarmSetting(SecurityUser securityUser, Boolean isActive);
+
+    Object getMealHistory(SecurityUser securityUser, String startDate, String endDate);
+
+    void saveDailyReport(SecurityUser securityUser, SaveDailyReportReqDto saveDailyReportDto);
 }

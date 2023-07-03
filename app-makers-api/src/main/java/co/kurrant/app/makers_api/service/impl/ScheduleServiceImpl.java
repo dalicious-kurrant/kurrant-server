@@ -50,18 +50,18 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         presetMakersDailyFoods.forEach(makersPreset -> {
             List<PresetGroupDailyFood> groupDailyFoods = makersPreset.getPresetGroupDailyFoods();
-            List<PresetScheduleResponseDto.clientSchedule> clientSchedules = new ArrayList<>();
+            List<PresetScheduleResponseDto.ClientSchedule> clientSchedules = new ArrayList<>();
 
             groupDailyFoods.forEach(groupPreset -> {
                 List<PresetDailyFood> presetDailyFoods = groupPreset.getPresetDailyFoods();
-                List<PresetScheduleResponseDto.foodSchedule> foodSchedules = new ArrayList<>();
+                List<PresetScheduleResponseDto.FoodSchedule> foodSchedules = new ArrayList<>();
                 //foodSchedules 만들기
                 presetDailyFoods.forEach(dailyPreset -> {
-                    PresetScheduleResponseDto.foodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyPreset);
+                    PresetScheduleResponseDto.FoodSchedule foodSchedule = presetDailyFoodMapper.toFoodScheduleDto(dailyPreset);
                     foodSchedules.add(foodSchedule);
                 });
                 //clientSchedules 만들기
-                PresetScheduleResponseDto.clientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupPreset, foodSchedules);
+                PresetScheduleResponseDto.ClientSchedule clientSchedule = presetDailyFoodMapper.toClientScheduleDto(groupPreset, foodSchedules);
                 clientSchedules.add(clientSchedule);
             });
             //response 할 DTO 만들기

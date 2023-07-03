@@ -1,206 +1,147 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.client.repository.GroupRepository;
-import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.repository.QDailyFoodDeliveryRepository;
+import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
-import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.order.entity.OrderDailyFood;
-import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import co.kurrant.app.admin_api.dto.DeliveryDto;
+import co.kurrant.app.admin_api.dto.GroupDto;
+import co.kurrant.app.admin_api.dto.MakersDto;
+import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
 import co.kurrant.app.admin_api.mapper.DeliveryMapper;
+import co.kurrant.app.admin_api.mapper.GroupMapper;
+import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.service.DeliveryService;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DeliveryServiceImpl implements DeliveryService {
-
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final DeliveryMapper deliveryMapper;
-    private final GroupRepository groupRepository;
-    private final SpotRepository spotRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
+    private final QDailyFoodDeliveryRepository qDailyFoodDeliveryRepository;
+    private final MakersRepository makersRepository;
+    private final UserRepository userRepository;
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
+    private final MakersMapper makersMapper;
+    private final GroupMapper groupMapper;
+    private final QGroupRepository qGroupRepository;
 
     @Override
     @Transactional(readOnly = true)
     public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
-        List<Group> groupAllList = groupRepository.findAll();
-        // 그룹과 연관된 스팟만 보여주기
-        List<Spot> spotAllList = spotRepository.findAll();;
-
-        List<Group> groups = (groupIds == null) ? null : groupAllList.stream().filter(group -> groupIds.contains(group.getId())).collect(Collectors.toList());
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
+
+        List<Group> groupAllList = qGroupRepository.findAllExceptForMySpot();
+        List<Group> groups = (groupIds == null) ? null : groupAllList.stream().filter(group -> groupIds.contains(group.getId())).toList();
+        // 그룹과 연관된 스팟만 보여주기
+        List<Spot> spotAllList = groups == null || groups.isEmpty() ? groupAllList.stream().flatMap(group -> group.getSpots().stream()).toList() : groups.stream().flatMap(group -> group.getSpots().stream()).toList();
         List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
+
         List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
-
-        MultiValueMap<Spot, OrderItemDailyFood> spotOrderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
-        for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            Order order = (Order) Hibernate.unproxy(orderItemDailyFood.getOrder());
-            if(order instanceof OrderDailyFood orderDailyFood) {
-                Spot spot = orderDailyFood.getSpot();
-                spotOrderItemDailyFoodMultiValueMap.add(spot, orderItemDailyFood);
-            }
-        }
-
-        // service date 묶기
-        MultiValueMap<LocalDate, DailyFood> serviceDateMap = new LinkedMultiValueMap<>();
-        for(DailyFood dailyFood : dailyFoodList) {
-            LocalDate serviceDate = dailyFood.getServiceDate();
-            serviceDateMap.add(serviceDate, dailyFood);
-        }
+        List<DeliveryInstance> deliveryInstanceList = qDeliveryInstanceRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
 
         List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
-        for(LocalDate serviceDate : serviceDateMap.keySet()) {
-            List<DailyFood> serviceDateDailyFoodList = serviceDateMap.get(serviceDate);
+        if(deliveryInstanceList.isEmpty()) return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
+        return DeliveryDto.create(groupAllList, deliveryMapper.getDeliveryInfoList(deliveryInstanceList), spotAllList);
+    }
 
-            // spot 묶기
-            MultiValueMap<Spot, DailyFood> spotDailyFoodMap = new LinkedMultiValueMap<>();
-            if(isAll == null) {
-                for(Spot spot : spotOrderItemDailyFoodMultiValueMap.keySet()) {
-                    List<OrderItemDailyFood> orderItemDailyFoodList = spotOrderItemDailyFoodMultiValueMap.get(spot);
+    @Override
+    @Transactional
+    public List<DeliveryDto.DeliveryManifest> getDeliveryManifest(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        Integer spotType = !parameters.containsKey("spotType") || parameters.get("spotType").equals("") ? null : Integer.parseInt((String) parameters.get("spotType"));
+        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
+        Integer diningTypeCode = !parameters.containsKey("diningType") || parameters.get("diningType").equals("") ? null : Integer.parseInt((String) parameters.get("diningType"));
+        LocalTime deliveryTime = !parameters.containsKey("deliveryTime") || parameters.get("deliveryTime").equals("") ? null : DateUtils.stringToLocalTime((String) parameters.get("deliveryTime"));
+        String orderNumber = !parameters.containsKey("orderNumber") || parameters.get("orderNumber").equals("") ? null : (String) parameters.get("orderNumber");
+        BigInteger userId = !parameters.containsKey("userId") || parameters.get("userId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("userId")));
 
-                    // daily food 추출
-                    Set<DailyFood> dailyFoodSet = Objects.requireNonNull(orderItemDailyFoodList).stream()
-                            .map(OrderItemDailyFood::getDailyFood)
-                            .filter(dailyFood -> dailyFood.getServiceDate().equals(serviceDate))
-                            .collect(Collectors.toSet());
-                    for(DailyFood dailyFood : dailyFoodSet) {
-                        spotDailyFoodMap.add(spot, dailyFood);
-                    }
-                }
-            }
-            else {
-                for(DailyFood dailyFood : Objects.requireNonNull(serviceDateDailyFoodList)) {
-                    Spot spot = spotAllList.stream()
-                            .filter(s -> s.getGroup().equals(dailyFood.getGroup()))
-                            .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        Makers makers = null;
+        User user = null;
+        if(makersId != null) {
+            makers = makersRepository.findById(makersId).orElse(null);
 
-                    spotDailyFoodMap.add(spot, dailyFood);
-                }
-            }
-
-            List<DeliveryDto.DeliveryGroup> deliveryGroupList = new ArrayList<>();
-            for(Spot spot : spotDailyFoodMap.keySet()) {
-                List<DailyFood> spotDailyFoodList = spotDailyFoodMap.get(spot);
-
-                // makers 묶기
-                MultiValueMap<Makers, DailyFood> makersMap = new LinkedMultiValueMap<>();
-                if(isAll == null) {
-                    for(DailyFood dailyFood : Objects.requireNonNull(spotDailyFoodList)) {
-                        Makers makers = orderItemDailyFoods.stream()
-                                .map(OrderItemDailyFood::getDailyFood)
-                                .filter(df -> df.equals(dailyFood))
-                                .map(DailyFood::getFood)
-                                .map(Food::getMakers)
-                                .findFirst().orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
-
-                        makersMap.add(makers, dailyFood);
-                    }
-                }
-                else {
-                    for(DailyFood dailyFood : Objects.requireNonNull(spotDailyFoodList)) {
-                        Makers makers = dailyFood.getFood().getMakers();
-                        makersMap.add(makers, dailyFood);
-                    }
-                }
-
-                DiningType diningType = null;
-                LocalTime deliveryTime = null;
-
-                List<DeliveryDto.DeliveryMakers> deliveryMakersList = new ArrayList<>();
-                for(Makers makers : makersMap.keySet()) {
-                    List<DailyFood> makersDailyFoodList = makersMap.get(makers);
-
-                    LocalTime pickupTime = null;
-                    List<DeliveryDto.DeliveryFood> deliveryFoodList = new ArrayList<>();
-                    for(DailyFood dailyFood : Objects.requireNonNull(makersDailyFoodList)) {
-
-                        // pickup time
-                        if(pickupTime == null) {
-                            pickupTime = dailyFood.getDailyFoodGroup().getPickupTime();
-                        }
-                        // dining type
-                        if(diningType == null) {
-                            diningType = dailyFood.getDiningType();
-                        }
-
-                        // count 구하기
-                        int count = 0;
-                        List<OrderItemDailyFood> spotOrderItemDailyFood = spotOrderItemDailyFoodMultiValueMap.get(spot);
-                        if(spotOrderItemDailyFood == null || spotOrderItemDailyFood.isEmpty()) continue;
-                        for(OrderItemDailyFood orderItemDailyFood : spotOrderItemDailyFood) {
-                            if(orderItemDailyFood.getDailyFood().equals(dailyFood)) {
-                                count += orderItemDailyFood.getCount();
-                            }
-                        }
-
-                        // 주문한 delivery food 만 dto 만들기
-                        if(count == 0) continue;
-                        DeliveryDto.DeliveryFood deliveryFood = deliveryMapper.toDeliveryFood(dailyFood, count);
-
-                        deliveryFoodList.add(deliveryFood);
-
-                    }
-                    deliveryFoodList = deliveryFoodList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryFood::getFoodName)).collect(Collectors.toList());
-
-                    // delivery makers 만들기
-                    DeliveryDto.DeliveryMakers deliveryMakers = deliveryMapper.toDeliveryMakers(makers, deliveryFoodList, pickupTime);
-                    deliveryMakersList.add(deliveryMakers);
-                }
-
-                if(diningType != null) {
-                    DiningType finalDiningType = diningType;
-                    deliveryTime = spot.getGroup().getMealInfos().stream()
-                            .filter(mealInfo -> mealInfo.getDiningType().equals(finalDiningType))
-                            .map(MealInfo::getDeliveryTime)
-                            .findFirst().orElse(null);
-                }
-
-                // delivery makers list 를 pickup time 으로 정렬
-                deliveryMakersList = deliveryMakersList.stream()
-                        .sorted(Comparator.comparing(deliveryMakers -> LocalTime.parse(deliveryMakers.getPickupTime()))).collect(Collectors.toList());
-
-                // delivery group 만들기
-                DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(spot, Objects.requireNonNull(diningType).getCode(), deliveryTime, deliveryMakersList);
-                deliveryGroupList.add(deliveryGroup);
-            }
-
-            // delivery info 만들기
-            DeliveryDto.DeliveryInfo deliveryInfo = deliveryMapper.toDeliveryInfo(serviceDate, deliveryGroupList);
-            deliveryInfoList.add(deliveryInfo);
+        }
+        if(userId != null) {
+            user = userRepository.findById(userId).orElse(null);
         }
 
-        // service date 로 정렬
-        deliveryInfoList = deliveryInfoList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate)).collect(Collectors.toList());
+        List<DailyFoodDelivery> dailyFoodDeliveries = qDailyFoodDeliveryRepository.findByFilter(startDate, endDate, (spotType == null) ? null : GroupDataType.ofCode(spotType), makers, (diningTypeCode == null) ? null : DiningType.ofCode(diningTypeCode), deliveryTime, orderNumber, user);
 
-        if(groups != null && !groups.isEmpty()) {
-            spotAllList = spotAllList.stream().filter(spot -> groups.contains(spot.getGroup())).toList();
-        }
+        return deliveryMapper.toDeliveryManifests(dailyFoodDeliveries);
+    }
 
-        return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
+    @Override
+    @Transactional
+    public List<MakersDto.Makers> getDeliverMakersByDate(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByPeriod(startDate, endDate);
+        Set<Makers> makers = deliveryInstances.stream()
+                .map(DeliveryInstance::getMakers)
+                .collect(Collectors.toSet());
+        return makersMapper.makersToDtos(makers);
+    }
+
+    @Override
+    public List<String> getDeliveryTimesByDate(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByPeriod(startDate, endDate);
+        Set<LocalTime> deliveryTimes = deliveryInstances.stream()
+                .map(DeliveryInstance::getDeliveryTime)
+                .collect(Collectors.toSet());
+        return deliveryTimes.stream()
+                .map(DateUtils::timeToString)
+                .sorted()
+                .toList();
+    }
+
+    @Override
+    public List<String> getDeliveryCodesByDate(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByPeriod(startDate, endDate);
+        return deliveryInstances.stream()
+                .map(DeliveryInstance::getDeliveryCode)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public List<GroupDto.User> getDeliverUsersByDate(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByPeriod(startDate, endDate);
+        Set<User> users = deliveryInstances.stream()
+                .flatMap(v -> v.getOrderItemDailyFoods().stream())
+                .map(v -> v.getOrder().getUser())
+                .collect(Collectors.toSet());
+        return groupMapper.usersToDtos(users);
     }
 }

@@ -15,11 +15,12 @@ import java.util.List;
 @Mapper(componentModel = "spring", imports = {OrderDailyFood.class, DateUtils.class})
 public interface OrderItemDailyFoodListMapper {
 
-    default OrderItemDto toDto(OrderItemDailyFood orderItemDailyFood){
+    default OrderItemDto toDto(OrderItemDailyFood orderItemDailyFood) {
         OrderItemDto orderItemDto = new OrderItemDto();
 
         orderItemDto.setId(orderItemDailyFood.getId());
         orderItemDto.setDailyFoodId(orderItemDailyFood.getDailyFood().getId());
+        orderItemDto.setDeliveryTime(DateUtils.timeToString(orderItemDailyFood.getDeliveryTime()));
         orderItemDto.setName(orderItemDailyFood.getDailyFood().getFood().getName());
         orderItemDto.setDailyFoodStatus(orderItemDailyFood.getDailyFood().getDailyFoodStatus().getCode());
         orderItemDto.setOrderStatus(Math.toIntExact(orderItemDailyFood.getOrderStatus().getCode()));
@@ -33,9 +34,9 @@ public interface OrderItemDailyFoodListMapper {
         orderItemDto.setSpotName(orderDailyFood.getSpotName());
 
         return orderItemDto;
-    };
+    }
 
-    default OrderDetailDto toOrderDetailDto(OrderDetailDto.OrderDetail orderDetail, List<OrderItemDto>orderItemDtoList) {
+    default OrderDetailDto toOrderDetailDto(OrderDetailDto.OrderDetail orderDetail, List<OrderItemDto> orderItemDtoList) {
         OrderDetailDto orderDetailDto = new OrderDetailDto();
 
         orderDetailDto.setServiceDate(DateUtils.localDateToString(orderDetail.getServiceDate()));

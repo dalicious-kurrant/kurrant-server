@@ -254,4 +254,11 @@ public class QUserRepository {
                         user.firebaseToken.isNotNull())
                 .fetch();
     }
+
+    public Optional<User> findOneByPhone(String to) {
+        return Optional.ofNullable(queryFactory.selectFrom(user)
+                .where(user.phone.eq(to))
+                .limit(1)
+                .fetchOne());
+    }
 }

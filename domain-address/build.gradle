@@ -8,4 +8,9 @@ dependencies {
 	implementation 'org.hibernate:hibernate-spatial'
 	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	implementation 'com.querydsl:querydsl-jpa:4.4.0'
+	implementation "com.querydsl:querydsl-core:4.4.0"
+
+	implementation 'org.json:json:20210307'
 }

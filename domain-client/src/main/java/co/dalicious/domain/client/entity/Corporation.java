@@ -1,20 +1,18 @@
 package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.converter.DeliveryFeeOptionConverter;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
+import co.dalicious.domain.client.entity.enums.DeliveryFeeOption;
 import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.converter.IdListConverter;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import exception.ApiException;
 import exception.CustomException;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -32,6 +30,7 @@ import java.util.List;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Setter
 @Table(name = "client__corporation")
 public class Corporation extends Group {
     @Comment("그룹 코드")
@@ -51,6 +50,10 @@ public class Corporation extends Group {
     @Column(name = "is_membership_support", columnDefinition = "BIT(1) DEFAULT 0")
     @Comment("기업 멤버십 지원 여부")
     private Boolean isMembershipSupport;
+
+    @Convert(converter = DeliveryFeeOptionConverter.class)
+    @Comment("배송비 처리 옵션")
+    private DeliveryFeeOption deliveryFeeOption;
 
     @Column(name = "employee_count")
     @Comment("사원수")
@@ -111,7 +114,7 @@ public class Corporation extends Group {
     private BigInteger managerId;
 
     @Builder
-    public Corporation(Address address, LocalDate membershipEndDate, List<DiningType> diningTypes, String name, BigInteger managerId, String memo, String code, Boolean isPrepaid, List<PrepaidCategory> prepaidCategories, Boolean isMembershipSupport, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, Boolean isSaladRequired, List<FoodTag> requiredFoodTags, List<FoodTag> excludedFoodTags, List<BigInteger> requiredMakers, List<BigInteger> excludedMakers, List<BigInteger> requiredFood, List<BigInteger> excludedFood, BigDecimal minimumSpend, BigDecimal maximumSpend) {
+    public Corporation(Address address, LocalDate membershipEndDate, List<DiningType> diningTypes, String name, BigInteger managerId, String memo, String code, Boolean isPrepaid, List<PrepaidCategory> prepaidCategories, Boolean isMembershipSupport, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, Boolean isSaladRequired, List<FoodTag> requiredFoodTags, List<FoodTag> excludedFoodTags, List<BigInteger> requiredMakers, List<BigInteger> excludedMakers, List<BigInteger> requiredFood, List<BigInteger> excludedFood, BigDecimal minimumSpend, BigDecimal maximumSpend, DeliveryFeeOption deliveryFeeOption) {
         super(address, diningTypes, name, memo);
         this.code = code;
         this.isPrepaid = isPrepaid;
@@ -132,6 +135,7 @@ public class Corporation extends Group {
         this.minimumSpend = minimumSpend;
         this.maximumSpend = maximumSpend;
         this.managerId = managerId;
+        this.deliveryFeeOption = deliveryFeeOption;
     }
 
     public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {
@@ -178,6 +182,13 @@ public class Corporation extends Group {
         else if (data.equals("미지원") || data.equals("미사용") || data.equals("false")) return false;
         else if (data.equals("지원") || data.equals("사용") || data.equals("true")) return true;
         else return null;
+    }
+
+    public void setMembershipEndDate(LocalDate membershipEndDate) {
+        if (membershipEndDate != null && membershipEndDate.isBefore(LocalDate.now())) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000004", "멤버십 종료 날짜는 현재보다 이전 날짜로 설정할 수 없습니다");
+        }
+        this.membershipEndDate = membershipEndDate;
     }
 
     public PrepaidCategory getPrepaidCategory(PaycheckCategoryItem paycheckCategoryItem) {

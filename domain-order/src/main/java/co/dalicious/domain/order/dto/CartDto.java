@@ -9,9 +9,10 @@ import java.util.List;
 @Schema(description = "장바구니 담기 요청 DTO")
 @Getter
 public class CartDto {
-    BigInteger spotId;
-    BigInteger dailyFoodId;
-    Integer count;
+    private BigInteger spotId;
+    private BigInteger dailyFoodId;
+    private Integer count;
+    private String deliveryTime;
 
     @Getter
     public static class Response {

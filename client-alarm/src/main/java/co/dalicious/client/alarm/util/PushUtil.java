@@ -9,7 +9,6 @@ import co.dalicious.client.alarm.mapper.PushAlarmMapper;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
-import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.*;
@@ -29,7 +28,6 @@ public class PushUtil {
     private final QUserSpotRepository qUserSpotRepository;
     private final QUserRepository qUserRepository;
     private final QPushAlarmsRepository qPushAlarmsRepository;
-    private final PushService pushService;
     private final PushAlarmMapper pushAlarmMapper;
     private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
     private final QBatchPushAlarmLogRepository qBatchPushAlarmLogRepository;
@@ -110,6 +108,10 @@ public class PushUtil {
         return pushRequestDto;
     }
 
+    public BatchAlarmDto getBatchAlarmDto(PushRequestDtoByUser pushRequestDtoByUser, User user) {
+        return pushAlarmMapper.toBatchAlarmDto(pushRequestDtoByUser, user);
+    }
+
     public static String getContextNewDailyFood(String template, String spotName, LocalDate startDate, LocalDate endDate) {
         // 식단이 생성 됐을 때 푸시알림
         Map<String, String> valuesMap = new HashMap<>();
@@ -133,32 +135,34 @@ public class PushUtil {
         return template;
     }
 
-    public void getBatchAlarmDto(User user, PushCondition pushCondition) {
-        // 활성화 된 자동 알람을 불러오기
+    @Transactional(readOnly = true)
+    public String getContextOpenOrMySpot(String userName, String spotType, PushCondition pushCondition) {
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
-        // 비활성인 경우 알람 안보냄
-        if (pushAlarms == null) return;
+        String template = pushAlarms.getMessage();
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("user", userName);
+        valuesMap.put("spotType", spotType);
 
-        Map<String, BigInteger> token = new HashMap<>();
-        BatchAlarmDto pushRequestDto = null;
-
-        List<PushCondition> pushConditionList = user.getPushConditionList();
-        if (pushConditionList == null || pushConditionList.isEmpty()) {
-            return;
-        }
-        if (pushConditionList.contains(pushCondition)) {
-            token.put(user.getFirebaseToken(), user.getId());
-        }
-        String message = pushAlarms.getMessage();
-        if (!token.isEmpty()) {
-            pushRequestDto = pushAlarmMapper.toBatchAlarmDto(token, pushCondition.getTitle(), pushAlarms.getRedirectUrl(), message);
-        }
-
-        if (pushRequestDto != null) {
-            pushService.sendToPush(pushRequestDto, pushCondition);
-        }
+        StringSubstitutor sub = new StringSubstitutor(valuesMap);
+        template = sub.replace(template);
+        return template;
     }
 
+//        List<PushCondition> pushConditionList = user.getPushConditionList();
+//        if (pushConditionList == null || pushConditionList.isEmpty()) {
+//            return;
+//        }
+//        if (pushConditionList.contains(pushCondition)) {
+//            token.put(user.getFirebaseToken(), user.getId());
+//        }
+//        String message = pushAlarms.getMessage();
+//        if (!token.isEmpty()) {
+//            pushRequestDto = pushAlarmMapper.toBatchAlarmDto(token, pushCondition.getTitle(), pushAlarms.getRedirectUrl(), message);
+//        }
+//
+//        if (pushRequestDto != null) {
+//            pushService.sendToPush(pushRequestDto, pushCondition);
+//        }
     @Transactional
     public PushAlarmHash createPushAlarmHash (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger reviewId) {
         return PushAlarmHash.builder()

@@ -1,22 +1,17 @@
-//package co.dalicious.domain.client.mapper;
-//
-//import co.dalicious.domain.client.dto.SpotResponseDto;
-//import co.kurrant.app.admin_api.dto.client.UpdateSpotDetailRequestDto;
-//import co.dalicious.domain.client.entity.*;
-//import co.dalicious.system.enums.DiningType;
-//import jdk.jfr.Name;
-//import org.mapstruct.Mapper;
-//import org.mapstruct.Mapping;
-//import org.mapstruct.Named;
-//
-//import javax.annotation.MatchesPattern;
-//import javax.persistence.NamedEntityGraph;
-//import java.math.BigDecimal;
-//import java.math.BigInteger;
-//import java.time.LocalTime;
-//
-//@Mapper(componentModel = "spring")
-//public interface MealInfoMapper {
+package co.dalicious.domain.client.mapper;
+
+import co.dalicious.domain.client.entity.DayAndTime;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DaysUtil;
+import org.mapstruct.Mapper;
+
+import java.time.LocalTime;
+import java.util.List;
+
+@Mapper(componentModel = "spring")
+public interface MealInfoMapper {
 //    @Mapping(source = "lastOrderTime", target = "lastOrderTime")
 //    @Mapping(source = "serviceDays", target = "serviceDays")
 //    @Mapping(source = "deliveryTime", target = "deliveryTime", qualifiedByName = "getDeliveryTime")
@@ -69,5 +64,5 @@
 //    default DiningType getDiningTypeByString(String diningType){
 //        return DiningType.ofCode(Integer.valueOf(diningType));
 //    }
-//
-//}
+
+}
