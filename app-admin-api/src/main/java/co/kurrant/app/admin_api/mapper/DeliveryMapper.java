@@ -138,20 +138,4 @@ public interface DeliveryMapper {
     @Mapping(source = "serviceDateDto.serviceDate", target = "serviceDate")
     @Mapping(source = "deliveryGroupList", target = "group")
     DeliveryDto.DeliveryInfo toDeliveryInfo(ServiceDateDto serviceDateDto, List<DeliveryDto.DeliveryGroup> deliveryGroupList);
-
-    @Mapping(source = "makers.id", target = "makersId")
-    @Mapping(source = "makers.name", target = "makersName")
-    @Mapping(source = "pickupTime", target = "pickupTime")
-    @Mapping(source = "deliveryFoodList", target = "foods")
-    @Mapping(target = "address", expression = "java(makers.getAddress().addressToString())")
-    DeliveryDto.DeliveryMakers toDeliveryMakers(Makers makers, List<DeliveryDto.DeliveryFood> deliveryFoodList, LocalTime pickupTime);
-    @Mapping(source = "spot.group.id", target = "groupId")
-    @Mapping(source = "spot.group.name", target = "groupName")
-    @Mapping(source = "deliveryTime", target = "deliveryTime")
-    @Mapping(source = "diningType", target = "diningType")
-    @Mapping(source = "spot.name", target = "spotName")
-    @Mapping(source = "spot.id", target = "spotId")
-    @Mapping(source = "spot.address", target = "address", qualifiedByName = "getAddress")
-    @Mapping(source = "deliveryMakersList", target = "makersList")
-    DeliveryDto.DeliveryGroup toDeliveryGroup(Spot spot, Integer diningType, LocalTime deliveryTime, List<DeliveryDto.DeliveryMakers> deliveryMakersList);
 }
