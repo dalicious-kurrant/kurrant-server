@@ -354,18 +354,21 @@ public class QReviewRepository {
 
     public AverageAndTotalCount findAllByFoodIdPageableLess(BigInteger foodId) {
         AverageAndTotalCount averageAndTotalCount = new AverageAndTotalCount();
-        Integer total = 0;
+        double total = 0.0;
 
         List<Reviews> reviewsList = queryFactory.selectFrom(reviews)
                 .where(reviews.food.id.eq(foodId))
                 .fetch();
 
         for (Reviews reviews: reviewsList){
-            total += reviews.getSatisfaction();
+            total += (double) reviews.getSatisfaction();
         }
 
-        averageAndTotalCount.setReviewAverage(Math.round(total / reviewsList.size() * 100) / 100.0);
-        averageAndTotalCount.setTotalCount(reviewsList.size());
+        if (!reviewsList.isEmpty()){
+            double totalTemp = total / reviewsList.size();
+            averageAndTotalCount.setReviewAverage(Math.round(totalTemp * 100) / 100.0);
+            averageAndTotalCount.setTotalCount(reviewsList.size());
+        }
 
         return averageAndTotalCount;
     }
