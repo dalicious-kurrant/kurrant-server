@@ -314,7 +314,9 @@ public class AuthServiceImpl implements AuthService {
         SpotStatus spotStatus = clientUtil.getSpotStatus(user);
 
         //fcm토큰 저장 로직 추가
-        qUserRepository.saveFcmToken(dto.getFcmToken(), user.getId());
+        if (dto.getFcmToken() != null && dto.getFcmToken().equals("")){
+            qUserRepository.saveFcmToken(dto.getFcmToken(), user.getId());
+        }
 
         return getLoginAccessToken(user, spotStatus);
     }

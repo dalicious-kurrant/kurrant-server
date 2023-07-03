@@ -22,6 +22,7 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.recommend.dto.UserRecommendWhereData;
 import co.dalicious.domain.recommend.entity.UserRecommends;
 import co.dalicious.domain.recommend.repository.QUserRecommendRepository;
+import co.dalicious.domain.review.dto.AverageAndTotalCount;
 import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.ReviewGood;
 import co.dalicious.domain.review.entity.Reviews;
@@ -70,7 +71,6 @@ public class FoodServiceImpl implements FoodService {
     private final QReviewRepository qReviewRepository;
     private final ReviewMapper reviewMapper;
     private final UserRepository userRepository;
-
     private final CommentsRepository commentsRepository;
     private final ReviewGoodRepository reviewGoodRepository;
     private final LikeMapper likeMapper;
@@ -319,8 +319,14 @@ public class FoodServiceImpl implements FoodService {
                 UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, selectedDate));
 
         for (DailyFood dailyFood : dailyFoodList) {
+
+            AverageAndTotalCount averageAndTotalCount = qReviewRepository.findAllByFoodIdPageableLess(dailyFood.getFood().getId());
+
+            double reviewAverage = averageAndTotalCount.getReviewAverage();
+            Integer totalCount = averageAndTotalCount.getTotalCount();
+
             DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
-            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList);
+            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList, reviewAverage, totalCount);
             dailyFoodDtos.add(dailyFoodDto);
         }
 
