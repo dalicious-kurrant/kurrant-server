@@ -29,6 +29,8 @@ public class PushUtil {
     private final QUserRepository qUserRepository;
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushAlarmMapper pushAlarmMapper;
+    private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
+    private final QBatchPushAlarmLogRepository qBatchPushAlarmLogRepository;
     private final PushAlarmHashRepository pushAlarmHashRepository;
 
     @Transactional(readOnly = true)
@@ -146,6 +148,21 @@ public class PushUtil {
         return template;
     }
 
+//        List<PushCondition> pushConditionList = user.getPushConditionList();
+//        if (pushConditionList == null || pushConditionList.isEmpty()) {
+//            return;
+//        }
+//        if (pushConditionList.contains(pushCondition)) {
+//            token.put(user.getFirebaseToken(), user.getId());
+//        }
+//        String message = pushAlarms.getMessage();
+//        if (!token.isEmpty()) {
+//            pushRequestDto = pushAlarmMapper.toBatchAlarmDto(token, pushCondition.getTitle(), pushAlarms.getRedirectUrl(), message);
+//        }
+//
+//        if (pushRequestDto != null) {
+//            pushService.sendToPush(pushRequestDto, pushCondition);
+//        }
     @Transactional
     public PushAlarmHash createPushAlarmHash (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger reviewId) {
         return PushAlarmHash.builder()
