@@ -74,12 +74,20 @@ public interface DeliveryMapper {
     @Mapping(source = "spot.address", target = "address", qualifiedByName = "getAddress")
     DeliveryDto.DeliveryGroup toDeliveryGroup(DeliveryInstance dto);
 
+    @Mapping(source = "spot.group.id", target = "groupId")
+    @Mapping(source = "spot.group.name", target = "groupName")
+    @Mapping(source = "deliveryTime", target = "deliveryTime")
+    @Mapping(source = "diningType", target = "diningType")
+    @Mapping(source = "spot.name", target = "spotName")
+    @Mapping(source = "spot.id", target = "spotId")
+    @Mapping(target = "address", expression = "java(spot.getAddress().addressToString())")
+    @Mapping(source = "deliveryMakersList", target = "makersList")
+    DeliveryDto.DeliveryGroup toDeliveryGroup(Spot spot, Integer diningType, LocalTime deliveryTime, List<DeliveryDto.DeliveryMakers> deliveryMakersList);
+
     @Named("getAddress")
     default String getAddress(Address address) {
         if(address == null) return null;
-        StringBuilder addressBuider = new StringBuilder();
-        addressBuider.append(address.getAddress1()).append(", ").append(address.getAddress2());
-        return String.valueOf(addressBuider);
+        return String.valueOf(address.getAddress1() + ", " + address.getAddress2());
     }
 
     @Mapping(source = "dailyFood.food.name", target = "foodName")
@@ -91,6 +99,13 @@ public interface DeliveryMapper {
     @Mapping(source = "makers.name", target = "makersName")
     @Mapping(target = "address", expression = "java(dto.getMakers().getAddress().addressToString())")
     DeliveryDto.DeliveryMakers toDeliveryMakers(DeliveryInstance dto);
+
+    @Mapping(source = "makers.id", target = "makersId")
+    @Mapping(source = "makers.name", target = "makersName")
+    @Mapping(source = "pickupTime", target = "pickupTime")
+    @Mapping(source = "deliveryFoodList", target = "foods")
+    @Mapping(target = "address", expression = "java(makers.getAddress().addressToString())")
+    DeliveryDto.DeliveryMakers toDeliveryMakers(Makers makers, List<DeliveryDto.DeliveryFood> deliveryFoodList, LocalTime pickupTime);
 
     default DeliveryDto.DeliveryManifest toDeliveryManifest(DailyFoodDelivery dailyFoodDelivery) {
         return DeliveryDto.DeliveryManifest.builder()

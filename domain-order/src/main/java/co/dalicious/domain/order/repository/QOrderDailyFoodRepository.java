@@ -398,6 +398,12 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
+    public List<OrderItemDailyFood> findByDailyFoodAndOrderStatus(List<DailyFood> dailyFoodList) {
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.dailyFood.in(dailyFoodList), orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .fetch();
+    }
+
     public OrderItemDailyFood findByUserAndId(User user, BigInteger id) {
         return queryFactory.selectFrom(orderItemDailyFood)
                 .where(orderItemDailyFood.order.user.eq(user),
