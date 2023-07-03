@@ -96,7 +96,7 @@ public class PushUtil {
         }
 
         String message = pushAlarms.getMessage();
-        if (PushCondition.getCustomMessageCondition().contains(pushCondition)) {
+        if (PushCondition.getCustomMessageCondition().contains(pushCondition) || PushCondition.getNoShowCondition().contains(pushCondition)) {
             message = customMessage;
         }
         if (token != null) {
