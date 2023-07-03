@@ -513,4 +513,11 @@ public class QOrderDailyFoodRepository {
                         dailyFood.diningType.eq(DiningType.ofCode(diningType)))
                 .fetch();
     }
+
+    public List<OrderItemDailyFood> findByDailyFoodAndOrderStatus(List<DailyFood> dailyFoodList) {
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.dailyFood.in(dailyFoodList), orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .fetch();
+    }
+
 }
