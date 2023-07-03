@@ -122,7 +122,7 @@ public interface OrderDailyFoodByMakersMapper {
         for (Spot spot : spotMap.keySet()) {
             OrderDailyFoodByMakersDto.FoodBySpot foodBySpot = new OrderDailyFoodByMakersDto.FoodBySpot();
             //FIXME: 배송 ID 설정
-            foodBySpot.setDeliveryId(null);
+            foodBySpot.setDeliveryId(spot.getId().toString());
             foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot)).getCode());
             foodBySpot.setPickUpTime(DateUtils.timeToString(spotMap.get(spot).get(0).getDailyFood().getDailyFoodGroup().getPickUpTime(spotMap.get(spot).get(0).getDeliveryTime())));
             foodBySpot.setAddress1(spot.getAddress().addressToString());
