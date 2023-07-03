@@ -16,6 +16,7 @@ import org.mapstruct.Mapping;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Mapper(componentModel = "spring")
@@ -95,9 +96,9 @@ public interface UserGroupMapper {
         return groupCountDto;
     }
 
-    default UserGroup toUserGroup(User user, Group group) {
+    default UserGroup toUserGroup(User user, Group group, ClientStatus clientStatus) {
         return UserGroup.builder()
-                .clientStatus(ClientStatus.BELONG)
+                .clientStatus(clientStatus)
                 .user(user)
                 .group(group)
                 .build();
@@ -110,9 +111,9 @@ public interface UserGroupMapper {
                     Group group = v.getGroup();
                     CorporationResponseDto dto = toCorporationResponseDto(group);
 
-                    String[] location = group.getAddress().locationToString().split(" ");
-                    dto.setLatitude(location[0]);
-                    dto.setLongitude(location[1]);
+                    Map<String, String> location = group.getAddress().getLatitudeAndLongitude();
+                    dto.setLatitude(location.get("latitude"));
+                    dto.setLongitude(location.get("longitude"));
 
                     return dto;
                 }).toList();

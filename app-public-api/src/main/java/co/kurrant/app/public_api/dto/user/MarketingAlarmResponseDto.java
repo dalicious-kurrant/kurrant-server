@@ -26,6 +26,7 @@ public class MarketingAlarmResponseDto {
 //        this.marketingAlarm = marketingAlarm;
 //        this.orderAlarm = orderAlarm;
 //    }
+
     private Integer code;
     private String condition;
     private Boolean isActive;

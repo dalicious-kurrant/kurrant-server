@@ -318,8 +318,49 @@ public class UserServiceImpl implements UserService {
                 .build();
         providerEmailRepository.save(providerEmail);
     }
+/*
+    @Override
+    @Transactional
+    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
+        // 유저 정보 가져오기
+        User user = userUtil.getUser(securityUser);
+        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
+        return MarketingAlarmResponseDto.builder()
+                .marketingAgree(user.getMarketingAgree())
+                .orderAlarm(user.getOrderAlarm())
+                .marketingAlarm(user.getMarketingAlarm())
+                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
+                .build();
+    }
 
 
+    @Override
+    @Transactional
+    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+            // 유저 정보 가져오기
+            User user = userUtil.getUser(securityUser);
+            Boolean currantMarketingInfoAgree = user.getMarketingAgree();
+            Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
+            Boolean currantOrderAlarmAgree = user.getOrderAlarm();
+
+            // 현재 시간 가져오기
+            Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+
+            // 변수 설정
+            Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
+            Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
+            Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
+
+            user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
+
+            return MarketingAlarmResponseDto.builder()
+                    .marketingAgree(currantMarketingInfoAgree)
+                    .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
+                    .marketingAlarm(currantMarketingAlarmAgree)
+                    .orderAlarm(currantOrderAlarmAgree)
+                    .build();
+        }
+    */
     @Override
     @Transactional
     public List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser) {
@@ -419,7 +460,7 @@ public class UserServiceImpl implements UserService {
             return;
         }
 
-        UserGroup userCorporation = userGroupMapper.toUserGroup(user, group);
+        UserGroup userCorporation = userGroupMapper.toUserGroup(user, group, ClientStatus.BELONG);
         userGroupRepository.save(userCorporation);
     }
 

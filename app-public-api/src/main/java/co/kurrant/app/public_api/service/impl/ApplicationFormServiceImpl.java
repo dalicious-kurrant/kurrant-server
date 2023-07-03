@@ -17,6 +17,7 @@ import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.domain.client.repository.MySpotRepository;
 import co.dalicious.domain.client.repository.QMySpotZoneRepository;
@@ -33,6 +34,8 @@ import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
 import co.kurrant.app.public_api.service.UserUtil;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
@@ -177,16 +180,25 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         if(type.equals(GroupDataType.MY_SPOT)) {
             RequestedMySpot requestedMySpot = qRequestedMySpotRepository.findRequestedMySpotById(dto.getId());
-            requestedMySpot.getRequestedMySpotZones().updatePushAlarmUserIds(user.getId());
+            if(requestedMySpot != null) requestedMySpot.getRequestedMySpotZones().updatePushAlarmUserIds(user.getId());
+            else {
+                Optional<UserSpot> userSpot = user.getUserSpots().stream().filter(s -> s.getSpot().getId().equals(dto.getId())).findAny();
+                userSpot.ifPresent(v -> {
+                    if(v.getSpot() instanceof MySpot mySpot) mySpot.updateAlarm(true);
+                });
+            }
         }
     }
 
     @Override
     @Transactional
     public ApplicationFormDto registerMySpot(SecurityUser securityUser, MySpotZoneApplicationFormRequestDto requestDto) throws ParseException {
+        if(requestDto.getAddress().getZipCode().isEmpty() || requestDto.getAddress().getZipCode().isBlank() || requestDto.getAddress().getAddress3() == null) throw new ApiException(ExceptionEnum.CANT_NOT_REQUESTED_SPOT);
+
         // user 찾기
         User user = userUtil.getUser(securityUser);
-        if(user.getPhone() == null || !user.getPhone().equals(requestDto.getPhone())) user.updatePhone(requestDto.getPhone());
+        if(user.getPhone() == null) user.updatePhone(requestDto.getPhone());
+        else if(requestDto.getPhone() == null) requestDto.setPhone(user.getPhone());
 
         // 신청한 my spot이 이미 존재하면
         RequestedMySpot existRequestedMySpot = qRequestedMySpotRepository.findRequestedMySpotByUserId(user.getId());
@@ -194,26 +206,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         // 신청한 my spot 없으면
         MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
-
-        if(mySpotZone != null) {
-            mySpotZone.updateMySpotZoneUserCount(1, SpotStatus.ACTIVE);
-            // my spot 생성
-            MySpot mySpot = mySpotMapper.toMySpot(user.getId(), mySpotZone, requestDto);
-            mySpot.updateGroup(mySpotZone);
-            mySpotRepository.save(mySpot);
-
-            // 동일한 user group에 등록되어 있으면 패스
-            UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
-            // user group 생성
-            if(userGroup == null) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone));
-            else userGroup.updateStatus(ClientStatus.BELONG);
-
-            // user spot 생성
-            UserSpot userSpot = userSpotMapper.toUserSpot(mySpot, user, false, GroupDataType.MY_SPOT);
-            userSpotRepository.save(userSpot);
-
-            return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(),true);
-        }
+        if(mySpotZone != null) return updateMySpotZone(user, requestDto, mySpotZone);
 
         // my spot zone 없으면 my spot zone 신청하기
         RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
@@ -245,20 +238,20 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     }
     
     private ApplicationFormDto updateRequestedMySpot(RequestedMySpot requestedMySpot, MySpotZoneApplicationFormRequestDto requestDto, User user) throws ParseException {
-
-        // 기존 신청 마이스팟 존에서 카운트 빼기
-        RequestedMySpotZones defaultRequestedMySpotZones = requestedMySpot.getRequestedMySpotZones();
-        defaultRequestedMySpotZones.updateWaitingUserCount(1, true);
+        // my spot zone 있으면
+        MySpotZone mySpotZone = qMySpotZoneRepository.findExistMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
+        if(mySpotZone != null) return updateMySpotZone(user, requestDto, mySpotZone);
 
         // my spot zone 없으면 my spot zone 신청하기
         RequestedMySpotZones existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZoneByZipcode(requestDto.getAddress().getZipCode());
         if(existRequestedMySpotZones != null) {
             requestedMySpotMapper.updateRequestedMySpot(requestDto, requestedMySpot);
             requestedMySpot.updateRequestedMySpotZones(existRequestedMySpotZones);
-            updateRequestedMySpotZonesUserCount(user, existRequestedMySpotZones);
 
             return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
         }
+        // 기존 신청 마이스팟 존에서 카운트 빼기
+        requestedMySpot.getRequestedMySpotZones().updateWaitingUserCount(1, true);
 
         RequestedMySpotZones requestedMySpotZones = createRequestedMySpotZones(requestDto, user);
         requestedMySpotMapper.updateRequestedMySpot(requestDto, requestedMySpot);
@@ -271,16 +264,16 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     
     private RequestedMySpotZones createRequestedMySpotZones(MySpotZoneApplicationFormRequestDto requestDto, User user) {
         String[] jibunAddress = requestDto.getAddress().getAddress3().split(" ");
-        System.out.println("jibunAddress = " + Arrays.toString(jibunAddress));
+        System.out.println("jibunAddress = " + Arrays.toString(jibunAddress) + ", zipcode = " + requestDto.getAddress().getZipCode());
         String county = null;
         String village = null;
 
         for(String addr : jibunAddress) {
             if(addr.matches(".*?(?:시$|군$|구$)")) county = addr;
-            else if(addr.matches(".*?(?:동$|읍$|면$)")) village = addr;
+            else if(addr.matches(".*?(?:동$|읍$|면$|가$|로$)")) village = addr;
         }
 
-        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, Objects.requireNonNull(village));
+        Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestDto.getAddress().getZipCode(), county, village);
 
         RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(1, null, region, user.getId());
         requestedMySpotZonesRepository.save(requestedMySpotZones);
@@ -297,5 +290,32 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             userIds.add(user.getId());
             existRequestedMySpotZones.updateWaitingUserCount(1, false);
         }
+    }
+
+    private ApplicationFormDto updateMySpotZone(User user, MySpotZoneApplicationFormRequestDto requestDto, MySpotZone mySpotZone) throws ParseException {
+        mySpotZone.updateMySpotZoneUserCount(1, SpotStatus.ACTIVE);
+        // my spot 생성
+        MySpot mySpot = mySpotMapper.toMySpot(user.getId(), mySpotZone, requestDto);
+        mySpot.updateGroup(mySpotZone);
+        mySpotRepository.save(mySpot);
+
+        Boolean zoneStatus = mySpotZone.getMySpotZoneStatus().equals(MySpotZoneStatus.OPEN);
+
+        // 동일한 user group에 등록되어 있으면 패스
+        UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
+        // user group 생성 - 없으면 생성 / 오픈이면 활성 / 오픈 대기면 비활성
+        if (userGroup != null) {
+            if (zoneStatus) userGroup.updateStatus(ClientStatus.BELONG);
+            else userGroup.updateStatus(ClientStatus.WAITING);
+        } else {
+            if (zoneStatus) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone, ClientStatus.BELONG));
+            else userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone, ClientStatus.WAITING));
+        }
+
+        // user spot 생성
+        UserSpot userSpot = userSpotMapper.toUserSpot(mySpot, user, false, GroupDataType.MY_SPOT);
+        userSpotRepository.save(userSpot);
+
+        return applicationMapper.toApplicationFromDto(mySpot.getId(), mySpot.getName(), mySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), zoneStatus);
     }
 }

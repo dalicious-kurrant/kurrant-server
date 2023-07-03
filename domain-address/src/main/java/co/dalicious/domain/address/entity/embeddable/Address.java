@@ -18,6 +18,10 @@ import org.springframework.http.HttpStatus;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Getter
 @Embeddable
@@ -47,7 +51,7 @@ public class Address {
         this.address2 = createAddressRequestDto.getAddress2();
         this.address3 = createAddressRequestDto.getAddress3();
         this.location = (createAddressRequestDto.getLatitude() == null || createAddressRequestDto.getLongitude() == null) ?
-                null : createPoint(createAddressRequestDto.getLatitude() + " " + createAddressRequestDto.getLongitude());
+                null : createPoint(createAddressRequestDto.getLongitude() + " " + createAddressRequestDto.getLatitude());
     }
 
 
@@ -66,6 +70,16 @@ public class Address {
         this.location = createPoint(location);
     }
 
+    public Address(String zipCode, String address1, String address2) throws ParseException {
+        this.zipCode = zipCode;
+        this.address1 = address1;
+        this.address2 = address2;
+
+        Map<String, String> map = AddressUtil.getLocation(address1);
+        this.location = createPoint(map.get("location"));
+        this.address3 = map.get("jibunAddress");
+    }
+
     public void makeAddress(String address1, String address2, String zipcode, String location) throws ParseException {
         this.address1 = address1;
         this.address2 = address2;
@@ -74,6 +88,9 @@ public class Address {
     }
 
     public String addressToString() {
+        if (this.address2 == null || this.address2.isBlank() || this.address2.isEmpty()) {
+            return this.address1;
+        }
         return this.address1 + " " + this.address2;
     }
 
@@ -99,4 +116,28 @@ public class Address {
     public void updateAddress3(String address3) { this.address3 = address3; }
 
     public String stringToAddress3() { return this.address3.replaceFirst(".*?(?:시|군|구)\\s", "").replaceFirst(".*?(?:군|구)\\s", ""); }
+
+    public Map<String, String> getLatitudeAndLongitude() {
+        Map<String, String> locationMap = new HashMap<>();
+        String[] locationArr = this.locationToString().split(" ");
+        locationMap.put("longitude", locationArr[0]);
+        locationMap.put("latitude", locationArr[1]);
+        return locationMap;
+    }
+
+    public void deleteAddress() {
+        // 신(구)주소, 도로명 주소
+        String regex = "(([가-힣]+(\\d{1,5}|\\d{1,5}(,|.)\\d{1,5}|)+([읍면동가리]))(^구|)((\\d{1,5}([~|-])\\d{1,5}|\\d{1,5})(가|리|)|))( (산(\\d{1,5}([~|-])\\d{1,5}|\\d{1,5}))|)|";
+        String newRegx = "(([가-힣]|(\\d{1,5}([~|-])\\d{1,5})|\\d{1,5})+([로길])|(\\d))";
+
+        Matcher matcher = Pattern.compile(regex).matcher(this.address3);
+        Matcher newMatcher = Pattern.compile(newRegx).matcher(this.address1);
+
+        if(matcher.find()) {
+            this.address3 = matcher.group().replaceAll("[0-9]", "*");
+        } else if(newMatcher.find()) {
+            this.address1 = matcher.group().replaceAll("[0-9]", "*");
+        }
+    }
+
 }

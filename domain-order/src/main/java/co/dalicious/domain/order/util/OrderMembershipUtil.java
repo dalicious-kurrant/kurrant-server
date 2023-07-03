@@ -1,8 +1,6 @@
 package co.dalicious.domain.order.util;
 
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.order.dto.OrderUserInfoDto;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.OrderItemMembership;
@@ -10,7 +8,6 @@ import co.dalicious.domain.order.entity.OrderMembership;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.mapper.OrderMembershipMapper;
-import co.dalicious.domain.order.mapper.OrderUserInfoMapper;
 import co.dalicious.domain.order.repository.MembershipSupportPriceRepository;
 import co.dalicious.domain.order.repository.OrderItemMembershipRepository;
 import co.dalicious.domain.order.repository.OrderMembershipRepository;
@@ -23,13 +20,11 @@ import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.mapper.FoundersMapper;
 import co.dalicious.domain.user.repository.MembershipRepository;
-import co.dalicious.domain.user.repository.QMembershipRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.system.util.PeriodDto;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

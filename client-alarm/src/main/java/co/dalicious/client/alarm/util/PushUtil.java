@@ -4,10 +4,11 @@ import co.dalicious.client.alarm.dto.BatchAlarmDto;
 import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.mapper.PushAlarmMapper;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
-import co.dalicious.client.alarm.service.PushService;
-import co.dalicious.domain.user.entity.BatchPushAlarmLog;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.*;
@@ -19,8 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 @Component
@@ -30,7 +29,9 @@ public class PushUtil {
     private final QUserRepository qUserRepository;
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushAlarmMapper pushAlarmMapper;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
 
+    @Transactional(readOnly = true)
     public PushRequestDto sendToType(Map<String, Set<BigInteger>> ids, PushCondition pushCondition, BigInteger contentId, String key, String customMessage) {
         Set<BigInteger> spotIds = !ids.containsKey("spotIds") || ids.get("spotIds") == null ? null : ids.get("spotIds");
         Set<BigInteger> userIds = !ids.containsKey("userIds") || ids.get("userIds") == null ? null : ids.get("userIds");
@@ -76,6 +77,7 @@ public class PushUtil {
         return pushAlarmMapper.toPushRequestDto(firebaseTokenList, pushCondition.getTitle(), message, pushAlarms.getRedirectUrl(), keys);
     }
 
+    @Transactional(readOnly = true)
     public PushRequestDtoByUser getPushRequest(User user, PushCondition pushCondition, String customMessage) {
         // 활성화 된 자동 알람을 불러오기
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
@@ -131,6 +133,7 @@ public class PushUtil {
         return template;
     }
 
+    @Transactional(readOnly = true)
     public String getContextOpenOrMySpot(String userName, String spotType, PushCondition pushCondition) {
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
         String template = pushAlarms.getMessage();
@@ -141,5 +144,30 @@ public class PushUtil {
         StringSubstitutor sub = new StringSubstitutor(valuesMap);
         template = sub.replace(template);
         return template;
+    }
+
+    @Transactional
+    public PushAlarmHash createPushAlarmHash (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger reviewId) {
+        return PushAlarmHash.builder()
+                .title(title)
+                .message(message)
+                .isRead(false)
+                .userId(userId)
+                .type(alarmType.getAlarmType())
+                .reviewId(reviewId)
+                .build();
+    }
+
+    @Transactional
+    public void savePushAlarmHash (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger reviewId) {
+        PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                .title(title)
+                .message(message)
+                .isRead(false)
+                .userId(userId)
+                .type(alarmType.getAlarmType())
+                .reviewId(reviewId)
+                .build();
+        pushAlarmHashRepository.save(pushAlarmHash);
     }
 }

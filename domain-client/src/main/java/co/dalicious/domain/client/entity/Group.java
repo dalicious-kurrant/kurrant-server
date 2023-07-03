@@ -179,4 +179,8 @@ public class Group {
     public void setMemo(String memo) {
         this.memo = memo;
     }
+
+    public void updateAddress(Address address){
+        this.address = address;
+    }
 }

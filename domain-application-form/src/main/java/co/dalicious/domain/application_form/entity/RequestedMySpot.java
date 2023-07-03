@@ -44,6 +44,10 @@ public class RequestedMySpot {
     @Comment("메모")
     private String memo;
 
+    @Column(name = "user_phone")
+    @Comment("유저 핸드폰 번호")
+    private String phone;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "application_form__requested_my_spot_zones_id")
     @JsonManagedReference(value = "application_form__requested_my_spot_zones_fk")
@@ -51,12 +55,13 @@ public class RequestedMySpot {
     private RequestedMySpotZones requestedMySpotZones;
 
     @Builder
-    public RequestedMySpot(BigInteger userId, Address address, String name, String memo, RequestedMySpotZones requestedMySpotZones) {
+    public RequestedMySpot(BigInteger userId, Address address, String name, String memo, RequestedMySpotZones requestedMySpotZones, String phone) {
         this.userId = userId;
         this.address = address;
         this.name = name;
         this.memo = memo;
         this.requestedMySpotZones = requestedMySpotZones;
+        this.phone = phone;
     }
 //
 //    public void setAddress(CreateAddressRequestDto address) throws ParseException {

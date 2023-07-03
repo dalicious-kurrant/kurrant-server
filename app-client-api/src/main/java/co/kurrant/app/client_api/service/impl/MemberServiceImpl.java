@@ -230,5 +230,7 @@ public class MemberServiceImpl implements MemberService {
                 employeeRepository.save(newEmployee);
             }
         }
+
+        // TODO: 프라이빗 스팟 초대 시 푸시알림 추가
     }
 }

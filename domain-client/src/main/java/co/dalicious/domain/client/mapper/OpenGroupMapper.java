@@ -14,6 +14,7 @@ import org.mapstruct.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, DiningType.class})
 public interface OpenGroupMapper {
@@ -22,14 +23,14 @@ public interface OpenGroupMapper {
     @Mapping(target = "diningType", expression = "java(group.getDiningTypes().stream().map(DiningType::getCode).toList())")
     @Mapping(source = "group", target = "spotType", qualifiedByName = "setSpotType")
     @Mapping(source = "group.openGroupUserCount", target = "userCount")
+    @Mapping(source = "distance", target = "distance")
     OpenGroupResponseDto toOpenGroupDto(OpenGroup group, Double distance) ;
 
     @AfterMapping
     default void toLocation(OpenGroup group, @MappingTarget OpenGroupResponseDto dto) {
-        String location = group.getAddress().locationToString();
-
-        dto.setLatitude(location.split(" ")[0]);
-        dto.setLongitude(location.split(" ")[1]);
+        Map<String, String> location = group.getAddress().getLatitudeAndLongitude();
+        dto.setLatitude(location.get("latitude"));
+        dto.setLongitude(location.get("longitude"));
     }
 
     @Named("addressToString")
@@ -100,9 +101,8 @@ public interface OpenGroupMapper {
 
     @AfterMapping
     default void afterMappingLocation(Group group, @MappingTarget OpenGroupListForKeywordDto dto) {
-        String[] location = group.getAddress().locationToString().split(" ");
-
-        dto.setLatitude(location[0]);
-        dto.setLongitude(location[1]);
+        Map<String, String> location = group.getAddress().getLatitudeAndLongitude();
+        dto.setLatitude(location.get("latitude"));
+        dto.setLongitude(location.get("longitude"));
     }
 }

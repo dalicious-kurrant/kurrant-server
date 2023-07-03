@@ -24,6 +24,7 @@ public interface RequestedMySpotMapper {
                 .name(mySpotZoneApplicationFormRequestDto.getMySpotName() == null ? address.addressToString() : mySpotZoneApplicationFormRequestDto.getMySpotName())
                 .memo(mySpotZoneApplicationFormRequestDto.getMemo())
                 .requestedMySpotZones(requestedMySpotZones)
+                .phone(mySpotZoneApplicationFormRequestDto.getPhone())
                 .build();
     }
 

@@ -42,7 +42,7 @@ public class SecurityConfig {
             .antMatchers("/success").permitAll()
             .antMatchers("/v1/clients/all").permitAll()
             .antMatchers("/v1/auth/login").permitAll()
-            .antMatchers("/v1/delivery").permitAll()// 테스트용
+            .antMatchers("/v1/delivery/**").permitAll()// 테스트용
             //.antMatchers("/v1/users/all").permitAll() // 테스트용
             // .antMatchers("/v1/boards/**").permitAll() // swagger
             // .antMatchers("/swagger-resources/**").permitAll() // swagger

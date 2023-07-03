@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
 import co.dalicious.domain.client.dto.OpenGroupDetailDto;
 import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
@@ -9,23 +10,26 @@ import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.OpenGroupMapper;
-import co.dalicious.domain.client.repository.*;
-import co.dalicious.domain.user.entity.*;
+import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
-import co.dalicious.domain.client.entity.MySpot;
-import co.dalicious.integration.client.user.mapper.UserGroupMapper;
-import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
+import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
 import co.dalicious.integration.client.user.mapper.UserSpotMapper;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DistanceUtil;
 import co.dalicious.system.util.StringUtils;
-import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
+import co.kurrant.app.public_api.service.UserUtil;
+import com.querydsl.core.Tuple;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -95,14 +99,15 @@ public class UserClientServiceImpl implements UserClientService {
 
     }
 
+    //TODO :  추후 마이 스팟 이용 갯수가 늘어나면 spotId 삭제 방식으로 변경 필요
     @Override
     @Transactional
-    public Integer withdrawClient(SecurityUser securityUser, BigInteger spotId) {
+    public Integer withdrawClient(SecurityUser securityUser, BigInteger clientId) {
         // 유저를 조회한다.
         User user = userUtil.getUser(securityUser);
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         // 유저가 해당 아파트 스팟 그룹에 등록되었는지 검사한다.
-        Group group = groupRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        Group group = groupRepository.findById(clientId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
         Group unproxiedGroup = (Group) Hibernate.unproxy(group);
         UserGroup userGroup = isGroupMember(user, unproxiedGroup);
         // 유저 그룹 상태를 탈퇴로 만든다.
@@ -111,8 +116,13 @@ public class UserClientServiceImpl implements UserClientService {
         Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
                 .findAny();
         userSpot.ifPresent(v -> {
-            Spot spot = v.getSpot();
-            if(spot instanceof MySpot myspot) myspot.updateMySpotForDelete();
+            if(unproxiedGroup instanceof MySpotZone mySpotZone) {
+                List<MySpot> mySpots = mySpotZone.getSpots().stream()
+                        .filter(s -> s instanceof MySpot mySpot && mySpot.getUserId().equals(user.getId()) && !mySpot.getIsDelete())
+                        .map(s -> ((MySpot) s))
+                        .toList();
+                mySpots.forEach(MySpot::updateMySpotForDelete);
+            }
             userSpotRepository.delete(v);
         });
         // 다른 그룹이 존재하는지 여부에 따라 Return값 결정(스팟 선택 화면 || 그룹 신청 화면)
@@ -161,7 +171,7 @@ public class UserClientServiceImpl implements UserClientService {
         Double latitude = Double.valueOf(String.valueOf(location.get("lat")));
         Double longitude = Double.valueOf(String.valueOf(location.get("long")));
 
-        Page<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType, pageable);
+        Page<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType, pageable, latitude, longitude);
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
         if (groups.isEmpty() || groups == null) {
             return ListItemResponseDto.<OpenGroupResponseDto>builder().items(openGroupResponseDtos).limit(pageable.getPageSize()).total(0L).count(0).offset(0L).isLast(true).build();
@@ -174,7 +184,7 @@ public class UserClientServiceImpl implements UserClientService {
         });
         List<Map.Entry<BigInteger, Double>> sortedDataList = DistanceUtil.sortByDistance(locationMap, latitude, longitude);
 
-        // 결과 출력
+        //  결과 출력
         for (Map.Entry<BigInteger, Double> entry : sortedDataList) {
             Group group = groups.stream().filter(g -> g.getId().equals(entry.getKey())).findAny().orElse(null);
             if (group == null) continue;

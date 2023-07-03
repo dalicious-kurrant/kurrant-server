@@ -2,6 +2,7 @@ package co.kurrant.batch.job.batch.job;
 
 import co.dalicious.client.alarm.dto.BatchAlarmDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.entity.RefreshToken;
@@ -118,6 +119,7 @@ public class ReviewJob {
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, null);
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, pushCondition);
+                    pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.REVIEW, null);
 
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
                 } catch (Exception ignored) {

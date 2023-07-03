@@ -18,6 +18,7 @@ import org.mapstruct.*;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +28,7 @@ public interface MakersMapper {
     @Mapping(source = "name", target = "makersName")
     MakersDto.Makers makersToDto(Makers makers);
 
-    default List<MakersDto.Makers> makersToDtos(List<Makers> makers) {
+    default List<MakersDto.Makers> makersToDtos(Collection<Makers> makers) {
         return makers.stream()
                 .map(this::makersToDto)
                 .collect(Collectors.toList());

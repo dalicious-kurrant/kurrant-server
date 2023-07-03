@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.mapper;
 
+import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.*;
@@ -69,7 +70,7 @@ public interface GroupMapper {
                 .collect(Collectors.toList());
     }
 
-    default List<GroupDto.User> usersToDtos(List<User> users) {
+    default List<GroupDto.User> usersToDtos(Collection<User> users) {
         return users.stream()
                 .map(this::userToDto)
                 .collect(Collectors.toList());
@@ -98,9 +99,6 @@ public interface GroupMapper {
     @Mapping(target = "membershipEndDate", expression = "java(DateUtils.stringToDate(groupDto.getMembershipEndDate()))")
     @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.codesToDiningTypes(groupDto.getDiningTypes()))")
     @Mapping(target = "deliveryFeeOption", expression = "java(DeliveryFeeOption.ofString(groupDto.getDeliveryFeeOption()))")
-    @Mapping(source = "zipCode", target = "address.zipCode")
-    @Mapping(source = "address1", target = "address.address1")
-    @Mapping(source = "address2", target = "address.address2")
     Corporation toCorporation(GroupListDto.GroupInfoList groupDto) throws ParseException;
 
     @Mapping(source = "address.zipCode", target = "zipCode")
@@ -147,26 +145,24 @@ public interface GroupMapper {
             }
             mealInfoDtos.add(mealInfoDto);
         }
-        groupInfoList.setServiceDays(DaysUtil.serviceDaysToDaysString(serviceDays));
-        groupInfoList.setMealInfos(mealInfoDtos);
+        if(groupInfoList != null) {
+            groupInfoList.setServiceDays(DaysUtil.serviceDaysToDaysString(serviceDays));
+            groupInfoList.setMealInfos(mealInfoDtos);
+        }
 
         return groupInfoList;
     }
 
-    default Group toEntity(GroupListDto.GroupInfoList groupDto) throws ParseException {
+    default Group toEntity(GroupListDto.GroupInfoList groupDto, Address address) throws ParseException {
         Group group;
         if(GroupDataType.ofCode(groupDto.getGroupType()).equals(GroupDataType.CORPORATION)) {
             group = toCorporation(groupDto);
-            Map<String, String> addressMap = AddressUtil.getLocation(groupDto.getAddress1());
-            group.getAddress().setAddress3(addressMap.get("jibunAddress"));
-            group.getAddress().setLocation(addressMap.get("location"));
+            group.setAddress(address);
             return group;
         }
         if(GroupDataType.ofCode(groupDto.getGroupType()).equals(GroupDataType.OPEN_GROUP)) {
             group = toOpenGroup(groupDto);
-            Map<String, String> addressMap = AddressUtil.getLocation(groupDto.getAddress1());
-            group.getAddress().setAddress3(addressMap.get("jibunAddress"));
-            group.getAddress().setLocation(addressMap.get("location"));
+            group.setAddress(address);
             return group;
         }
         return null;
@@ -187,7 +183,7 @@ public interface GroupMapper {
         for (ServiceDaysAndSupportPrice serviceDaysAndSupportPrice : serviceDaysAndSupportPrices) {
             supportPriceByDays.addAll(toSupportPriceByDay(serviceDaysAndSupportPrice));
         }
-        return supportPriceByDays.stream().sorted(Comparator.comparing(GroupListDto.SupportPriceByDay::getServiceDay))
+        return supportPriceByDays.stream().sorted(Comparator.comparing(v -> Days.ofString(v.getServiceDay())))
                 .toList();
     }
 
@@ -271,11 +267,32 @@ public interface GroupMapper {
 
     @Mapping(target = "membershipEndDate", expression = "java(DateUtils.stringToDate(groupDto.getMembershipEndDate()))")
     @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.codesToDiningTypes(groupDto.getDiningTypes()))")
-    @Mapping(source = "zipCode", target = "address.zipCode")
-    @Mapping(source = "address1", target = "address.address1")
-    @Mapping(source = "address2", target = "address.address2")
     @Mapping(target = "deliveryFeeOption", expression = "java(DeliveryFeeOption.ofString(groupDto.getDeliveryFeeOption()))")
     @Mapping(target = "mealInfos", ignore = true)
     void updateCorporation(GroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;
+
+    default void updateMealInfo(GroupListDto.MealInfo mealInfoDto, Group group, @MappingTarget MealInfo mealInfo) {
+        if(mealInfo instanceof CorporationMealInfo corporationMealInfo) {
+            updateCorporationMealInfo(mealInfoDto, group, corporationMealInfo);
+        }
+        else {
+            DiningType diningType = DiningType.ofCode(mealInfoDto.getDiningType());
+            List<LocalTime> deliveryTimes = DateUtils.stringToLocalTimes(mealInfoDto.getDeliveryTimes());
+            DayAndTime membershipBenefitTime = DayAndTime.stringToDayAndTime(mealInfoDto.getMembershipBenefitTime());
+            DayAndTime lastOrderTime = DayAndTime.stringToDayAndTime(mealInfoDto.getLastOrderTime());
+            List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(mealInfoDto.getServiceDays()).stream().sorted().toList();
+            mealInfo.updateMealInfo(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group);
+        }
+    }
+
+    default void updateCorporationMealInfo(GroupListDto.MealInfo mealInfoDto, Group group, @MappingTarget CorporationMealInfo mealInfo) {
+        List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = toServiceDaysAndSupportPrice(mealInfoDto.getSupportPriceByDays());
+        DiningType diningType = DiningType.ofCode(mealInfoDto.getDiningType());
+        List<LocalTime> deliveryTimes = DateUtils.stringToLocalTimes(mealInfoDto.getDeliveryTimes());
+        DayAndTime membershipBenefitTime = DayAndTime.stringToDayAndTime(mealInfoDto.getMembershipBenefitTime());
+        DayAndTime lastOrderTime = DayAndTime.stringToDayAndTime(mealInfoDto.getLastOrderTime());
+        List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(mealInfoDto.getServiceDays()).stream().sorted().toList();
+        mealInfo.updateCorporationMealInfo(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group, serviceDaysAndSupportPriceList);
+    };
 }
 

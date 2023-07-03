@@ -266,7 +266,7 @@ public class PushServiceImpl implements PushService {
     public void saveBatchLog(List<BigInteger> userIds, PushCondition pushCondition) {
         LocalDateTime logDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
-        List<BatchPushAlarmLog> existPushAlarmLogList = qBatchPushAlarmLogRepository.findAllBatchAlarmLogByUserIds(userIds);
+        List<BatchPushAlarmLog> existPushAlarmLogList = qBatchPushAlarmLogRepository.findAllBatchAlarmLogByUserIds(userIds, pushCondition);
         List<BatchPushAlarmLog> pushAlarmLogList = new ArrayList<>();
 
         // 업데이트 할 아이디와 생성할 아이디 분리
