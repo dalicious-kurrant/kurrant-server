@@ -15,6 +15,7 @@ dependencies {
     implementation group: 'org.apache.tika', name: 'tika-core', version: '2.3.0'
     implementation 'com.google.firebase:firebase-admin:9.1.1'
     implementation 'org.apache.commons:commons-text:1.10.0'
+    implementation project(path: ':data-redis')
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 
