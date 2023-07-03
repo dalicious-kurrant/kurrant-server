@@ -15,6 +15,10 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static co.dalicious.domain.user.entity.QPointHistory.pointHistory;
@@ -64,7 +68,7 @@ public class QPointHistoryRepository {
     public Page<PointHistory> findAllPointHistoryByUseStatus(User user, Pageable pageable) {
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.eq(PointStatus.USED))
+                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.userStatus()))
                 .orderBy(pointHistory.id.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
@@ -91,6 +95,16 @@ public class QPointHistoryRepository {
 
         return jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), whereCause)
+                .fetch();
+    }
+
+    public List<PointHistory> findPointHistoryByPointStatusAndUser(User user, PointStatus pointStatus) {
+        Timestamp start = Timestamp.valueOf(LocalDate.now(ZoneId.of("Asia/Seoul")).atTime(LocalTime.MIN));
+        Timestamp end = Timestamp.valueOf(LocalDate.now(ZoneId.of("Asia/Seoul")).atTime(LocalTime.MAX));
+
+
+        return jpaQueryFactory.selectFrom(pointHistory)
+                .where(pointHistory.user.eq(user), pointHistory.pointStatus.eq(pointStatus), pointHistory.createdDateTime.between(start, end))
                 .fetch();
     }
 }

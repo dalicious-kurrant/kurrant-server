@@ -1,8 +1,8 @@
 package co.kurrant.app.public_api.controller.client;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.client.dto.GroupAndSpotIdReqDto;
-import co.dalicious.domain.client.dto.ClientSpotDetailReqDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
 import co.kurrant.app.public_api.service.UserService;
@@ -10,12 +10,14 @@ import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
+import java.util.Map;
 
-@Tag(name = "6. Group")
+@Tag(name = "그룹")
 @RequiredArgsConstructor
 @RequestMapping(value = "/v1/users/me/groups")
 @RestController
@@ -33,47 +35,27 @@ public class ClientController {
                 .build();
     }
 
-    @Operation(summary = "고객사로 등록된 오픈 그룹/아파트 전체 조회", description = "고객사로 등록된 오픈 그룹/아파트들 전체를 조회한다.")
-    @GetMapping("/apartments")
-    public ResponseMessage getOpenGroupsAndApartments(Authentication authentication) {
+    @Operation(summary = "등록된 오픈 그룹 전체 조회", description = "고객사로 등록된 오픈 그룹을 전체를 조회한다.")
+    @GetMapping("/spots/share")
+    public ResponseMessage getOpenGroups(Authentication authentication,
+                                                      @RequestParam Map<String, Object> location,
+                                                      @RequestParam(required = false) Map<String, Object> parameters,
+                                                      @RequestParam(required = false, defaultValue = "20") Integer limit, @RequestParam Integer page) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
+        OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
         return ResponseMessage.builder()
-                .data(userClientService.getOpenGroupsAndApartments(securityUser))
-                .message("아파트 전체 조회에 성공하셨습니다.")
+                .data(userClientService.getOpenGroups(securityUser, location, parameters, pageable))
+                .message("오픈 그룹 전체 조회에 성공하셨습니다.")
                 .build();
     }
 
     @Operation(summary = "고객사로 등록된 오픈 그룹/아파트 선택", description = "고객사로 등록된 오픈 그룹/아파트를 그룹에 추가한다.")
-    @PostMapping("/apartments")
-    public ResponseMessage settingGroup(Authentication authentication, @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
+    @PostMapping("/spots/share")
+    public ResponseMessage settingOpenGroup(Authentication authentication, @RequestBody GroupAndSpotIdReqDto groupAndSpotIdReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.settingGroup(securityUser, groupAndSpotIdReqDto.getId());
+        userService.settingOpenGroup(securityUser, groupAndSpotIdReqDto.getId());
         return ResponseMessage.builder()
                 .message("유저 그룹(기업) 설정에 성공하였습니다.")
-                .build();
-    }
-
-    @Operation(summary = "아파트 상세 스팟(호) 선택", description = "유저의 기본 스팟을 등록한다.")
-    @PostMapping("/apartments/spots/{spotId}")
-    public ResponseMessage saveUserSpot(Authentication authentication,
-                                        @PathVariable BigInteger spotId,
-                                        @RequestBody(required = false) ClientSpotDetailReqDto spotDetailReqDto) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(userClientService.saveUserDefaultSpot(securityUser, spotDetailReqDto, spotId))
-                .message("스팟 등록에 성공하였습니다.")
-                .build();
-    }
-
-    @Operation(summary = "아파트 스팟 상세주소 변경", description = "유저 스팟의 상세주소를 변경한다..")
-    @PutMapping("/apartments/spots/{spotId}")
-    public ResponseMessage updateUserHo(Authentication authentication,
-                                        @PathVariable BigInteger spotId,
-                                        @RequestBody(required = false) ClientSpotDetailReqDto spotDetailReqDto) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(userClientService.saveUserDefaultSpot(securityUser, spotDetailReqDto, spotId))
-                .message("스팟 등록에 성공하였습니다.")
                 .build();
     }
 
@@ -108,6 +90,36 @@ public class ClientController {
         return ResponseMessage.builder()
                 .data(userClientService.withdrawClient(securityUser, groupAndSpotIdReqDto.getId()))
                 .message("그룹 탈퇴에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "등록된 오픈 그룹 상세 조회", description = "고객사로 등록된 오픈 그룹을 상세 조회한다.")
+    @GetMapping("/spots/share/{groupId}")
+    public ResponseMessage getOpenSpotDetail(Authentication authentication, @PathVariable BigInteger groupId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userClientService.getOpenSpotDetail(securityUser, groupId))
+                .message("오픈 그룹 상세 조회에 성공하셨습니다.")
+                .build();
+    }
+
+    @Operation(summary = "등록된 오픈 그룹 전체 조회", description = "고객사로 등록된 오픈 그룹을 전체를 조회한다.")
+    @GetMapping("/spots/share/keyword")
+    public ResponseMessage getOpenGroupsForKeyword(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userClientService.getOpenGroupsForKeyword(securityUser))
+                .message("오픈 그룹 전체 조회에 성공하셨습니다.")
+                .build();
+    }
+
+    @Operation(summary = "초대된 기업 조회", description = "유저가 초대된 기업을 조회한다.")
+    @GetMapping("/corporation")
+    public ResponseMessage getUserCorporation(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userClientService.getUserCorporation(securityUser))
+                .message("오픈 그룹 전체 조회에 성공하셨습니다.")
                 .build();
     }
 }

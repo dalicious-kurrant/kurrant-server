@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -110,6 +111,7 @@ public class PointUtil {
     }
 
     // 리뷰 수정 시 포인트 산정
+    @Transactional
     public BigDecimal findReviewPointWhenUpdate(User user, BigInteger reviewId) {
         List<PointHistory> pointHistory = qPointHistoryRepository.findByContentId(user, reviewId, PointStatus.REVIEW_REWARD);
 
@@ -139,6 +141,22 @@ public class PointUtil {
         return foundersPointPolicyList.stream().map(pointMapper::toReviewPointPolicyResponseDto).collect(Collectors.toList());
     }
 
-    // 지난 파운더스 포인트 적립 list
-//    public
+    // 파운더스 적립 포인트
+    @Transactional(readOnly = true)
+    public BigDecimal findFoundersPoint(User user) {
+        List<PointHistory> pointHistoryList = qPointHistoryRepository.findPointHistoryByPointStatusAndUser(user, PointStatus.FOUNDERS_REWARD);
+
+        if(!pointHistoryList.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        List<FoundersPointPolicyDto> foundersPointPolicyDtos = findFoundersPointPolicyDto();
+
+        return foundersPointPolicyDtos.get(0).getMaxPoint();
+    }
+
+    public void updateUserPoint(User user, BigInteger orderId, BigDecimal point) {
+        createPointHistoryByOthers(user, orderId, PointStatus.USED, point);
+        user.updatePoint(user.getPoint().subtract(point));
+    }
 }

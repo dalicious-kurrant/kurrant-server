@@ -144,7 +144,7 @@ public class MakersPaycheck {
 
     // TODO: 수정 필요
     public Double getCommission() {
-        return 7.7;
+        return Double.valueOf(this.makers.getFee());
     }
 
     public BigDecimal getCommissionPrice() {

@@ -9,9 +9,7 @@ import org.hibernate.annotations.Comment;
 import javax.persistence.*;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -24,17 +22,22 @@ public class CorporationMealInfo extends MealInfo{
     private List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices;
 
     @Builder
-    public CorporationMealInfo(DiningType diningType, LocalTime deliveryTime, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
-        super(diningType, deliveryTime, membershipBenefitTime, lastOrderTime, serviceDays, group);
+    public CorporationMealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
+        super(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group);
         this.serviceDaysAndSupportPrices = serviceDaysAndSupportPrices;
     }
 
+    public void updateCorporationMealInfo(DiningType diningType, List<LocalTime> deliveryTimes, DayAndTime membershipBenefitTime, DayAndTime lastOrderTime, List<Days> serviceDays, Group group, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
+        super.updateMealInfo(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group);
+        this.serviceDaysAndSupportPrices = serviceDaysAndSupportPrices;
+    }
     public void updateCorporationMealInfo(CorporationMealInfo mealInfo) {
         super.updateMealInfo(mealInfo);
         this.serviceDaysAndSupportPrices = mealInfo.getServiceDaysAndSupportPrices();
     }
 
-    public void updateServiceDaysAndSupportPrice(List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
+    public void updateServiceDaysAndSupportPrice(List<Days> serviceDays, List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices) {
+        super.updateMealInfo(serviceDays);
         this.serviceDaysAndSupportPrices = serviceDaysAndSupportPrices;
     }
 

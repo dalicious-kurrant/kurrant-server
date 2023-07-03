@@ -1,6 +1,8 @@
 package co.dalicious.domain.review.mapper;
 
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.food.dto.FoodReviewListDto;
+import co.dalicious.domain.food.dto.GetFoodReviewResponseDto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -10,6 +12,7 @@ import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -19,14 +22,15 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.util.MultiValueMap;
 
-import javax.persistence.criteria.CriteriaBuilder;
+import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, Math.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, Math.class, UserRepository.class})
 public interface ReviewMapper {
 
     @Mapping(source = "imageList", target = "images")
@@ -64,6 +68,24 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.comments", target = "commentList", qualifiedByName = "setCommentList")
     ReviewListDto toReviewListDto(Reviews reviews);
 
+
+    @Mapping(source = "isGood", target = "isGood")
+    @Mapping(source = "isWriter", target = "isWriter")
+    @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocations")
+    @Mapping(source = "reviews.comments", target = "commentList", qualifiedByName = "setCommentList2")
+    @Mapping(source = "reviews.createdDateTime", target = "createDate", qualifiedByName = "getCreateDate")
+    @Mapping(source = "reviews.updatedDateTime", target = "updateDate", qualifiedByName = "getCreateDate")
+    @Mapping(source = "reviews.satisfaction", target = "satisfaction")
+    @Mapping(source = "user.name", target = "userName")
+    @Mapping(source = "reviews.good", target = "good")
+    @Mapping(source = "reviews.id", target = "reviewId")
+    FoodReviewListDto toFoodReviewListDto(Reviews reviews, User user, List<Comments> commentsList, boolean isGood, boolean isWriter);
+
+    @Named("getCreateDate")
+    default String getCreateDate(Timestamp createdDateTime){
+        return createdDateTime.toString().substring(0,10);
+    }
+
     @Named("setCommentList")
     default List<ReviewListDto.Comment> setCommentList(List<Comments> commentsList) {
         List<ReviewListDto.Comment> commentList = new ArrayList<>();
@@ -90,6 +112,34 @@ public interface ReviewMapper {
         }
         return commentList;
     }
+
+    @Named("setCommentList2")
+    default List<FoodReviewListDto.Comment> setCommentList2(List<Comments> commentsList) {
+        List<FoodReviewListDto.Comment> commentList = new ArrayList<>();
+
+        if(commentsList.isEmpty()) return commentList;
+
+        commentsList = commentsList.stream().sorted(Comparator.comparing(Comments::getCreatedDateTime)).toList();
+
+        for(Comments comments : commentsList) {
+            FoodReviewListDto.Comment comment = new FoodReviewListDto.Comment();
+            if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
+                comment.setWriter(makersComments.getReviews().getFood().getMakers().getName());
+                comment.setContent(makersComments.getContent());
+                comment.setCreateDate(DateUtils.toISOLocalDate(makersComments.getCreatedDateTime()));
+                comment.setUpdateDate(DateUtils.toISOLocalDate(makersComments.getUpdatedDateTime()));
+                commentList.add(comment);
+            } else if(comments instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
+                comment.setWriter("admin");
+                comment.setContent(adminComments.getContent());
+                comment.setCreateDate(DateUtils.toISOLocalDate(adminComments.getCreatedDateTime()));
+                comment.setUpdateDate(DateUtils.toISOLocalDate(adminComments.getUpdatedDateTime()));
+                commentList.add(comment);
+            }
+        }
+        return commentList;
+    }
+
 
     @Mapping(source = "reviews.id", target = "reviewId")
     @Mapping(source = "reviews.orderItem", target = "serviceDate", qualifiedByName = "getServiceDate")
@@ -216,10 +266,11 @@ public interface ReviewMapper {
 
     @Named("getImagesLocations")
     default List<String>  getImagesLocations(List<Image> imageList) {
+        List<String> nullList = new ArrayList<>();
         if(imageList != null && !imageList.isEmpty()) {
             return imageList.stream().map(Image::getLocation).toList();
         }
-        return null;
+        return nullList;
     }
 
     @Named("getMakersName")
@@ -283,4 +334,42 @@ public interface ReviewMapper {
         return imageList.isEmpty() ? null : imageList.get(0).getLocation();
     }
 
+    default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starAverage, Integer totalReview, BigInteger foodId, Integer sort,
+                                                                BigInteger reviewWrite){
+        GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
+
+        getFoodReviewResponseDto.setReviewList(foodReviewListDtoList);
+        getFoodReviewResponseDto.setStarAverage(starAverage);
+        getFoodReviewResponseDto.setTotalReview(totalReview);
+        getFoodReviewResponseDto.setFoodId(foodId);
+        getFoodReviewResponseDto.setReviewWrite(reviewWrite);
+
+
+        if (sort == 0){ //별점순 같을 경우 최신순
+            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction)
+                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList()));
+        }
+        if (sort == 1){ //최신순 같을 경우 별점순
+            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate)
+                    .thenComparing(FoodReviewListDto::getSatisfaction).reversed()).collect(Collectors.toList()));
+        }
+        if (sort == 2){ //좋아요(도움이돼요)순 같을 경우 최신순
+            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getGood)
+                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList()));
+        }
+
+        return getFoodReviewResponseDto;
+
+    };
+
+
+
+    /* point쪽 무한스크롤 참고해서 만들기
+    * private BigInteger reviewId;
+    private String userName;
+    private String content;
+    private String writeDate;
+    private Integer like;
+    *
+    * */
 }

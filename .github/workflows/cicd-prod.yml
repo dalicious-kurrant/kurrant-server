@@ -5,7 +5,7 @@
 # This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
 
-name: Java CI with Gradle
+name: 상용 앱 배포
 
 on:
   push:
@@ -127,4 +127,4 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
           docker stop kurrant_v1
           sleep 5
-          docker run -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1
+          docker run -i -t --log-driver=awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=kurrant/prod --log-opt awslogs-stream=app -d --rm --net redis_redis_cluster --name kurrant_v1 -p 8882:8882 kurrant_v1

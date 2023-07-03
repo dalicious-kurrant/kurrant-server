@@ -112,7 +112,7 @@ public class PaycheckJob {
         return new ItemWriter<PaycheckDto.PaycheckDailyFood>() {
             @Override
             public void write(List<? extends PaycheckDto.PaycheckDailyFood> items) throws Exception {
-                paycheckService.generateAllMakersPaycheck(items);
+//                paycheckService.generateAllMakersPaycheck(items);
             }
         };
     }

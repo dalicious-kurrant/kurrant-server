@@ -1,12 +1,24 @@
 package co.kurrant.batch.job.batch.job;
 
+import co.dalicious.client.alarm.dto.BatchAlarmDto;
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
+import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.entity.RefreshToken;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
+import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.entity.enums.PushCondition;
+import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.PeriodDto;
 import co.kurrant.batch.service.ReviewService;
+import exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -38,9 +50,10 @@ public class ReviewJob {
 
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
-    private final EntityManager entityManager;
     private final ReviewService reviewService;
     private final PushUtil pushUtil;
+    private final EntityManagerFactory entityManagerFactory;
+    private final PushService pushService;
     private final int CHUNK_SIZE = 100;
 
     @Bean(name = "reviewJob1")
@@ -53,25 +66,76 @@ public class ReviewJob {
     @Bean
     @JobScope
     public Step reviewJob1_step() {
-        // 식사 정보를 통해 주문 마감 시간 가져오기
-        return stepBuilderFactory.get("reviewJob1_step")
-                .tasklet((contribution, chunkContext) -> {
-                    log.info("[review 마감 시간 알림 전송] : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
-
-                    final String queryString = "SELECT u FROM OrderItem oi JOIN Order o ON oi.order = o JOIN User u ON o.user = u WHERE oi.id in :orderItemIds";
-                    List<BigInteger> orderItemIds = reviewService.findOrderItemByReviewDeadline();
-                    final TypedQuery<User> query = entityManager.createQuery(queryString, User.class);
-                    query.setParameter("orderItemIds", orderItemIds);
-
-                    final List<User> userList = query.getResultList();
-
-                    for(User user : userList) {
-                        Map<String, Set<BigInteger>> map = Collections.singletonMap("userIds", new HashSet<>(Collections.singletonList(user.getId())));
-                        pushUtil.sendToType(map, PushCondition.REVIEW_DEADLINE, null, null, null);
-                    }
-                    return RepeatStatus.FINISHED;
-                        }
-                ).build();
+        return stepBuilderFactory.get("reviewJob1_step1")
+                .<User, User>chunk(CHUNK_SIZE)
+                .reader(reviewReader())
+                .processor(reviewProcessor())
+                .writer(reviewWriter())
+                .faultTolerant()
+                .skip(ApiException.class) // Add the exception classes you want to skip
+                .skip(RuntimeException.class)
+                .build();
     }
+
+    @Bean
+    @StepScope
+    public JpaPagingItemReader<User> reviewReader() {
+        log.info("[user 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
+
+        List<BigInteger> userIds = reviewService.findUserIdsByReviewDeadline();
+
+        Map<String, Object> parameterValues = new HashMap<>();
+        parameterValues.put("userIds", userIds);
+
+
+        if (userIds.isEmpty()) {
+            // Return an empty reader if orderItemIds is empty
+            return new JpaPagingItemReaderBuilder<User>()
+                    .name("EmptyReviewReader")
+                    .build();
+        }
+
+        String queryString = "SELECT u FROM User u WHERE u.id in :userIds";
+
+        return new JpaPagingItemReaderBuilder<User>()
+                .entityManagerFactory(entityManagerFactory) // Use the injected entityManagerFactory
+                .pageSize(100)
+                .queryString(queryString)
+                .name("JpaPagingItemReader")
+                .parameterValues(Collections.singletonMap("userIds", userIds))
+                .build();
+    }
+
+    @Bean
+    @JobScope
+    public ItemProcessor<User, User> reviewProcessor() {
+        return new ItemProcessor<User, User>() {
+            @Override
+            public User process(User user) throws Exception {
+                log.info("[User 푸시 알림 전송 시작] : {}", user.getId());
+                try {
+                    PushCondition pushCondition = PushCondition.REVIEW_DEADLINE;
+
+                    PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, null);
+                    BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
+                    pushService.sendToPush(batchAlarmDto, pushCondition);
+                    pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.REVIEW, null);
+
+                    log.info("[푸시알림 전송 성공] : {}", user.getId());
+                } catch (Exception ignored) {
+                    log.info("[푸시알림 전송 실패] : {}", user.getId());
+                }
+                return user;
+            }
+        };
+    }
+
+    @Bean
+    @JobScope
+    public JpaItemWriter<User> reviewWriter() {
+        log.info("리뷰 푸시전송 완료 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
+        return new JpaItemWriterBuilder<User>().entityManagerFactory(entityManagerFactory).build();
+    }
+
 
 }

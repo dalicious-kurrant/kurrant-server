@@ -37,7 +37,13 @@ include 'app-makers-api'
 include 'app-client-api'
 
 include 'data-redis'
+include 'data-flyway'
 include 'batch'
 include 'domain-paycheck'
 include 'domain-event'
+include 'domain-logs'
+
+include 'integration-client-user'
+include 'domain-delivery'
+include 'data-mysql'
 

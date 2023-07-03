@@ -40,4 +40,6 @@ public class UpdateMakersReqDto {
     private String depositHolder;
     private String accountNumber;
     private String memo;
+    private Boolean isActive;
+    private String serviceDays;
 }

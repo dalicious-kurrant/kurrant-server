@@ -36,6 +36,7 @@ public class OrderDailyFoodDetailDto {
     @Setter
     public static class OrderItem {
         private BigInteger id;
+        private String deliveryTime;
         private String image;
         private String serviceDate;
         private Integer diningType;
@@ -44,6 +45,7 @@ public class OrderDailyFoodDetailDto {
         private Integer count;
         private BigDecimal price;
         private Integer orderStatus;
+        private Integer dailyFoodStatus;
         private Boolean isBeforeLastOrderTime;
 
     }

@@ -6,6 +6,7 @@ import co.dalicious.system.enums.DiningType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Converter
@@ -19,8 +20,11 @@ public class DaysListConverter implements AttributeConverter<List<Days>, String>
             return null;
         }
 
+        List<Days> sortedDays = new ArrayList<>(days);
+        Collections.sort(sortedDays);
+
         StringBuilder sb = new StringBuilder();
-        for (Days day : days) {
+        for (Days day : sortedDays) {
             sb.append(day.getCode()).append(SEPARATOR);
         }
 

@@ -1,6 +1,5 @@
 package co.dalicious.system.util;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +15,7 @@ public class PriceTest {
 
         BigDecimal membershipDiscountPrice = price.multiply(BigDecimal.valueOf(0.15));
         System.out.println("membershipDiscountPrice = " + membershipDiscountPrice);
-        membershipDiscountPrice = PriceUtils.roundToOneDigit(membershipDiscountPrice);
+        membershipDiscountPrice = NumberUtils.roundToOneDigit(membershipDiscountPrice);
         BigDecimal newMembershipDiscountPrice = membershipDiscountPrice;
         System.out.println("membershipDiscountPrice = " + membershipDiscountPrice);
         System.out.println("newMembershipDiscountPrice = " + newMembershipDiscountPrice);
@@ -24,13 +23,13 @@ public class PriceTest {
 
         BigDecimal makersDiscountPrice = price.multiply(BigDecimal.valueOf(0.2));
         System.out.println("makersDiscountPrice = " + makersDiscountPrice);
-        makersDiscountPrice = PriceUtils.roundToOneDigit(makersDiscountPrice);
+        makersDiscountPrice = NumberUtils.roundToOneDigit(makersDiscountPrice);
         System.out.println("makersDiscountPrice = " + makersDiscountPrice);
         price = price.subtract(makersDiscountPrice);
 
         BigDecimal periodDiscountPrice = price.multiply(BigDecimal.valueOf(0.07));
         System.out.println("periodDiscountPrice = " + periodDiscountPrice);
-        periodDiscountPrice = PriceUtils.roundToOneDigit(periodDiscountPrice);
+        periodDiscountPrice = NumberUtils.roundToOneDigit(periodDiscountPrice);
         System.out.println("periodDiscountPrice = " + periodDiscountPrice);
         price = price.subtract(periodDiscountPrice);
 

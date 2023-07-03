@@ -4,7 +4,10 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.user.dto.SaveDailyReportFoodReqDto;
+import co.dalicious.domain.user.dto.SaveDailyReportReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
+import co.dalicious.domain.user.dto.SaveDailyReportDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserService;
@@ -13,7 +16,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import net.bytebuddy.asm.Advice;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Tag(name = "2. User")
+@Tag(name = "b. 유저")
 @RequestMapping(value = "/v1/users/me")
 @RestController
 @RequiredArgsConstructor
@@ -323,7 +325,7 @@ public class UserController {
 
     @PostMapping("/payment/password/check")
     @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
-    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
+    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
         return ResponseMessage.builder()
@@ -331,30 +333,57 @@ public class UserController {
                 .build();
     }
 
-//
-//    @PostMapping("/payment/password")
-//    @Operation(summary = "결제 비밀번호 등록하기", description = "결제 비밀번호 등록")
-//    public ResponseMessage savePaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto){
-//        SecurityUser securityUser = UserUtil.securityUser(authentication);
-//        String result = userService.savePaymentPassword(securityUser, savePaymentPasswordDto);
-//        return ResponseMessage.builder()
-//                .message(result)
-//                .build();
-//    }
-//    @Operation(summary = "결제 카드 등록", description = "결제 카드를 등록한다.")
-//    @PostMapping("/cards")
-//    public ResponseMessage saveCreditCard(Authentication authentication,
-//                                          @RequestBody SaveCreditCardRequestDto saveCreditCardRequestDto) throws IOException, ParseException {
-//        SecurityUser securityUser = UserUtil.securityUser(authentication);
-//        Integer result = userService.saveCreditCard(securityUser, saveCreditCardRequestDto);
-//        if (result == 2){
-//            return ResponseMessage.builder()
-//                    .message("같은 카드가 이미 등록되어 있습니다.")
-//                    .build();
-//        }
-//        return ResponseMessage.builder()
-//                .message("결제 카드 등록에 성공하셨습니다.")
-//                .build();
-//
-//    }
+    @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
+    @PostMapping("/setting/all")
+    public ResponseMessage allChangeAlarmSetting(Authentication authentication, Boolean isActive) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.allChangeAlarmSetting(securityUser, isActive);
+        return ResponseMessage.builder()
+                .message("마케팅 수신 정보 변경에 성공하였습니다.")
+                .build();
+    }
+
+    @Tag(name = "식단리포트")
+    @DeleteMapping("/daily/report/{reportId}")
+    @Operation(summary = "식단리포트 제거", description = "선택한 식단리포트를 제거 한다.")
+    public ResponseMessage deleteDailyReport(Authentication authentication, @PathVariable BigInteger reportId){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String message = userService.deleteReport(securityUser, reportId);
+        return ResponseMessage.builder()
+                .message(message)
+                .build();
+    }
+
+    @Tag(name = "식단리포트")
+    @GetMapping("/daily/report/order")
+    @Operation(summary = "주문내역 조회", description = "특정 날짜, 특정 식사타입으로 주문 내역 조회")
+    public ResponseMessage getOrderByDateAndDiningType(Authentication authentication, @RequestParam String date, @RequestParam Integer diningType){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.getOrderByDateAndDiningType(securityUser, date, diningType))
+                .message("주문내역 조회에 성공했습니다.")
+                .build();
+    }
+
+    @Tag(name = "식단리포트")
+    @GetMapping("/daily/report/history")
+    @Operation(summary = "식사 히스토리", description = "식사 히스토리에 필요한 정보를 조회한다.")
+    public ResponseMessage getMealHistory(Authentication authentication, @RequestParam String startDate, @RequestParam String endDate){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(userService.getMealHistory(securityUser, startDate, endDate))
+                .message("조회에 성공했습니다.")
+                .build();
+    }
+
+    @Tag(name = "식단리포트")
+    @PostMapping("/daily/report")
+    @Operation(summary = "조회된 식사를 리포트에 추가", description = "식단 리포트 조회로 조회한 음식을 식단에 추가한다.")
+    public ResponseMessage saveDailyReport(Authentication authentication, @RequestBody SaveDailyReportReqDto saveDailyReportDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.saveDailyReport(securityUser, saveDailyReportDto);
+        return ResponseMessage.builder()
+                .message("저장에 성공했습니다.")
+                .build();
+    }
 }

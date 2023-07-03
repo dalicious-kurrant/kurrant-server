@@ -1,11 +1,15 @@
 package co.kurrant.app.makers_api.service.impl;
 
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
+import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.system.util.DateUtils;
+import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.makers_api.model.SecurityUser;
 import co.kurrant.app.makers_api.service.OrderDailyFoodService;
@@ -24,6 +28,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final UserUtil userUtil;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final OrderDailyFoodByMakersMapper orderDailyFoodByMakersMapper;
+    private final DeliveryInstanceMapper deliveryInstanceMapper;
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
     @Override
     @Transactional
     public OrderDailyFoodByMakersDto.ByPeriod getOrder(SecurityUser securityUser, Map<String, Object> parameters) {
@@ -36,5 +42,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
 
         return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList);
+    }
+
+    @Override
+    @Transactional
+    public OrderDailyFoodByMakersDto.ByPeriod getOrderByDelivery(SecurityUser securityUser, Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+        List<Integer> diningTypes = !parameters.containsKey("diningTypes") || parameters.get("diningTypes").equals("") ? null : StringUtils.parseIntegerList((String) parameters.get("diningTypes"));
+        Makers makers = userUtil.getMakers(securityUser);
+
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByFilter(startDate, endDate, DiningTypesUtils.codesToDiningTypes(diningTypes), makers);
+        return deliveryInstanceMapper.toDto(deliveryInstances);
     }
 }

@@ -101,6 +101,11 @@ public class Reviews{
     @Comment("댓글 리스트")
     private List<Comments> comments;
 
+    @ColumnDefault("0")
+    @Comment("좋아요")
+    @Column(name ="good", columnDefinition = "INT")
+    private Integer good;
+
     @Builder
     public Reviews(String content, String contentOrigin, Integer satisfaction, Integer satisfactionOrigin, Boolean forMakers, User user, OrderItem orderItem, Food food, List<Image> images) {
         this.content = content;
@@ -112,6 +117,10 @@ public class Reviews{
         this.orderItem = orderItem;
         this.food = food;
         this.images = images;
+    }
+
+    public Reviews(Integer good){
+        this.good = good;
     }
 
     public void updatedReviews(ReviewUpdateReqDto updateReqDto, List<Image> images) {

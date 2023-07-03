@@ -5,6 +5,7 @@ import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.dto.OrderCount;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.YearMonth;
@@ -44,9 +46,9 @@ public class PaycheckServiceImpl implements PaycheckService {
     private final ExcelService excelService;
     private final DeliveryFeePolicy deliveryFeePolicy;
     private final CorporationPaycheckMapper corporationPaycheckMapper;
-    private final QUserRepository qUserRepository;
     private final CorporationPaycheckRepository corporationPaycheckRepository;
     private final ExpectedPaycheckRepository expectedPaycheckRepository;
+    private final EntityManager entityManager;
 
     @Override
     public TransactionInfoDefault getTransactionInfoDefault() {
@@ -65,7 +67,7 @@ public class PaycheckServiceImpl implements PaycheckService {
 
     @Override
     @Transactional
-    public List<MakersPaycheck> generateAllMakersPaycheck(List<? extends PaycheckDto.PaycheckDailyFood> paycheckDailyFoodDtos) {
+    public List<MakersPaycheck> generateAllMakersPaycheck(List<? extends PaycheckDto.PaycheckDailyFood> paycheckDailyFoodDtos, YearMonth yearMonth) {
         MultiValueMap<Makers, PaycheckDailyFood> paycheckDailyFoodMap = new LinkedMultiValueMap<>();
         for (PaycheckDto.PaycheckDailyFood paycheckDailyFoodDto : paycheckDailyFoodDtos) {
             PaycheckDailyFood paycheckDailyFood = makersPaycheckMapper.toPaycheckDailyFood(paycheckDailyFoodDto);
@@ -73,7 +75,7 @@ public class PaycheckServiceImpl implements PaycheckService {
         }
         for (Makers makers : paycheckDailyFoodMap.keySet()) {
             // 메이커스 정산 생성 및 저장
-            MakersPaycheck makersPaycheck = makersPaycheckMapper.toInitiateEntity(paycheckDailyFoodMap.get(makers), makers);
+            MakersPaycheck makersPaycheck = makersPaycheckMapper.toInitiateEntity(paycheckDailyFoodMap.get(makers), makers, yearMonth);
             makersPaycheck = makersPaycheckRepository.save(makersPaycheck);
             // 정산 엑셀 생성
             ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);
@@ -82,7 +84,7 @@ public class PaycheckServiceImpl implements PaycheckService {
             makersPaycheck.updateExcelFile(excelFile);
             makersPaycheck.updatePdfFile(pdfFile);
         }
-        return makersPaycheckRepository.findAllByYearMonth(YearMonth.now());
+        return makersPaycheckRepository.findAllByYearMonth(yearMonth);
     }
 
     @Override
@@ -133,18 +135,36 @@ public class PaycheckServiceImpl implements PaycheckService {
      * 2. 추가 주문
      * 이 존재한다. 정산에서는 PaymentType에 따라 구분하였지만, 식사 구매에서 더 많은 예외 상황이 생긴다면, 구분이 필요하다.
      */
+
+//    @Override
+//    @Transactional
+//    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer membershipSupportPriceCount) {
+//
+//        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPriceCount);
+//        corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
+//
+//        // 선불 정산인 경우 체크
+//        ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation, corporationPaycheck);
+//        if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
+//        return corporationPaycheck;
+//    }
+
     @Override
     @Transactional
-    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices) {
+    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices, OrderCount orderCount, YearMonth yearMonth) {
         // 1. 매니저 계정 확인
 
         // 2. CorporationPaycheck 생성
-        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices);
+        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices, orderCount, yearMonth);
         corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
 
         // 선불 정산인 경우 체크
         ExpectedPaycheck expectedPaycheck = corporationPaycheckMapper.toExpectedPaycheck(corporation, corporationPaycheck);
-        if(expectedPaycheck != null) expectedPaycheckRepository.save(expectedPaycheck);
+        if (expectedPaycheck != null) {
+            corporationPaycheckRepository.saveAndFlush(corporationPaycheck);
+            expectedPaycheckRepository.save(expectedPaycheck);
+            entityManager.refresh(corporationPaycheck);
+        }
         return corporationPaycheck;
     }
 

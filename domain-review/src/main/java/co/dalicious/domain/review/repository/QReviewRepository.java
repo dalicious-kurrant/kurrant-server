@@ -11,6 +11,9 @@ import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -23,17 +26,17 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.beans.Expression;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
-import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static co.dalicious.domain.review.entity.QComments.comments;
+import static co.dalicious.domain.review.entity.QReviewGood.reviewGood;
 import static co.dalicious.domain.review.entity.QReviews.reviews;
 
 @Repository
@@ -259,4 +262,99 @@ public class QReviewRepository {
                 .fetchCount();
 
     }
+
+
+    public Page<Reviews> findAllByFoodIdSort(BigInteger id, Integer photo, String star,String keyword, Pageable pageable) {
+
+        QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
+                    .where(reviews.food.id.eq(id), photoFilter(photo), starFilter(star), keywordFilter(keyword))
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .fetchResults();
+
+        return new PageImpl<>(result.getResults(), pageable, result.getTotal());
+    }
+
+    //별점필터
+    private BooleanExpression starFilter(String starFilter){
+        if (starFilter == null){
+            return null;
+        }
+        List<Integer> stars = new ArrayList<>();
+        List<String> list = Arrays.stream(starFilter.split(",")).toList();
+        for (String star : list){
+            stars.add(Integer.parseInt(star));
+        }
+        return reviews.satisfaction.in(stars);
+    }
+
+    //키워드필터
+    private BooleanExpression keywordFilter(String keywordFilter){
+        if (keywordFilter == null || keywordFilter.equals("")) return null;
+
+        return reviews.content.contains(keywordFilter);
+    }
+
+    //포토필터
+    private BooleanExpression photoFilter(Integer photo){
+        if (photo == null) return null;
+
+        return reviews.images.isNotEmpty();
+    }
+
+    public void plusLike(BigInteger reviewId) {
+        queryFactory.update(reviews)
+                .set(reviews.good, reviews.good.add(1))
+                .where(reviews.id.eq(reviewId))
+                .execute();
+
+    }
+
+    public void minusLike(BigInteger reviewId) {
+
+        queryFactory.update(reviews)
+                .set(reviews.good, reviews.good.subtract(1))
+                .where(reviews.id.eq(reviewId))
+                .execute();
+
+
+    }
+
+    public void deleteLike(BigInteger reviewId, BigInteger id) {
+        queryFactory.delete(reviewGood)
+                .where(reviewGood.reviewId.id.eq(reviewId),
+                        reviewGood.user.id.eq(id))
+                .execute();
+    }
+
+    public Page<Reviews> findAllByFoodId(BigInteger foodId, Pageable pageable) {
+        QueryResults<Reviews> reviewsList = queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId))
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+
+        return new PageImpl<>(reviewsList.getResults(), pageable, reviewsList.getTotal());
+    }
+
+    public Integer findKeywordCount(String name, BigInteger foodId) {
+        return Math.toIntExact(queryFactory.select(reviews.count())
+                .from(reviews)
+                .where(reviews.content.contains(name),
+                        reviews.food.id.eq(foodId))
+                .fetchOne());
+    }
+
+     /*
+    *   QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
+                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
+                .orderBy(pointHistory.id.desc())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    * */
+
 }

@@ -8,6 +8,7 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ReviewService;
 import co.kurrant.app.public_api.service.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.List;
 
+@Tag(name = "리뷰")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "v1/users/me/reviews")
@@ -78,6 +80,15 @@ public class ReviewController {
         reviewService.deleteReviews(securityUser, idDto.getId());
         return ResponseMessage.builder()
                 .message("리뷰를 삭제했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "리뷰 별점 조회", description = "리뷰의 별점 갯수를 조회한다.")
+    @GetMapping("/satisfaction")
+    public ResponseMessage reviewStarCount(@RequestParam BigInteger dailyFoodId){
+        return ResponseMessage.builder()
+                .data(reviewService.reviewStarCount(dailyFoodId))
+                .message("리뷰 별점 갯수 조회")
                 .build();
     }
 }

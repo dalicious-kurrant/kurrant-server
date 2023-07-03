@@ -1,0 +1,18 @@
+jar {
+    enabled = false
+}
+
+bootJar{
+    archivesBaseName = 'data-flyway'
+    archiveFileName = 'data-flyway.jar'
+    archiveVersion = "0.0.0"
+}
+
+
+dependencies {
+    implementation 'org.flywaydb:flyway-core'
+    implementation "org.flywaydb:flyway-mysql"
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'mysql:mysql-connector-java'
+    implementation 'org.hibernate:hibernate-spatial'
+}

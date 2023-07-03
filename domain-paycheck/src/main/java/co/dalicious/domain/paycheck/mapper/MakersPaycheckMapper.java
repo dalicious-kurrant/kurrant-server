@@ -33,12 +33,12 @@ public interface MakersPaycheckMapper {
 
     @Mapping(source = "paycheckDailyFoods", target = "paycheckDailyFoods")
     @Mapping(source = "makers", target = "makers")
-    @Mapping(target = "yearMonth", expression = "java(YearMonth.now())")
+    @Mapping(source = "yearMonth", target = "yearMonth")
     @Mapping(target = "paycheckStatus", constant = "REGISTER")
-    MakersPaycheck toInitiateEntity(List<PaycheckDailyFood> paycheckDailyFoods, Makers makers);
+    MakersPaycheck toInitiateEntity(List<PaycheckDailyFood> paycheckDailyFoods, Makers makers, YearMonth yearMonth);
 
     @Mapping(source = "makers", target = "makers")
-    @Mapping(target = "yearMonth", expression = "java(YearMonth.now().minusMonths(1))")
+    @Mapping(target = "yearMonth", expression = "java(YearMonth.now())")
     @Mapping(target = "paycheckStatus", constant = "REGISTER")
     @Mapping(source = "excelFile", target = "excelFile")
     @Mapping(source = "pdfFile", target = "pdfFile")
@@ -139,11 +139,6 @@ public interface MakersPaycheckMapper {
                 .excelFile(makersPaycheck.getExcelFile() == null ? null : makersPaycheck.getExcelFile().getLocation())
                 .pdfFile(makersPaycheck.getPdfFile() == null ? null : makersPaycheck.getPdfFile().getLocation())
                 .build();
-    }
-
-    @Named("getNowYearMonth")
-    default YearMonth getNowYearMonth() {
-        return YearMonth.now();
     }
 
     @Named("stringToLocalDate")

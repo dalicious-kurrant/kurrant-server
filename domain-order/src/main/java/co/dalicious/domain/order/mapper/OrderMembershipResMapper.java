@@ -17,6 +17,6 @@ public interface OrderMembershipResMapper {
     @Mapping(source = "orderItemMembership.membership.endDate", target = "endDate")
     @Mapping(source = "orderItemMembership.price", target = "price")
     @Mapping(source = "membershipUsingPeriod", target = "membershipUsingPeriod")
-    @Mapping(target = "discountedPrice", expression = "java(orderItemMembership.getPrice().subtract(orderItemMembership.getDiscountPrice()))")
+    @Mapping(target = "discountedPrice", expression = "java(orderItemMembership.getPayPrice())")
     MembershipDto toDto(OrderItemMembership orderItemMembership, int membershipUsingPeriod);
 }

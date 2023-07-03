@@ -20,7 +20,10 @@ public class DailyFoodDto {
     private BigInteger spotId;
     private String serviceDate;
     private String makersName;
+    private String minTime;
+    private String maxTime;
     private String spicy;
+    private String vegan;
     private String image;
     private String description;
     private BigDecimal price;

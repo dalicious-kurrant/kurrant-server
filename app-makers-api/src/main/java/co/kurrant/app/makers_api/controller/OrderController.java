@@ -25,4 +25,13 @@ public class OrderController {
                 .message("음식별 판매 수량 조회에 성공하였습니다.")
                 .build();
     }
+
+    @GetMapping("/deliveies")
+    public ResponseMessage getOrderByDelivery(Authentication authentication, @RequestParam Map<String, Object> parameter) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.getOrderByDelivery(securityUser, parameter))
+                .message("음식별 판매 수량 조회에 성공하였습니다.")
+                .build();
+    }
 }

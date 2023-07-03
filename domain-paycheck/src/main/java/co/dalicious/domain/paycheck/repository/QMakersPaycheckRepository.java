@@ -7,7 +7,6 @@ import co.dalicious.domain.paycheck.entity.MakersPaycheck;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.Coalesce;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -33,13 +32,18 @@ import static co.dalicious.domain.paycheck.entity.QMakersPaycheck.makersPaycheck
 public class QMakersPaycheckRepository {
     private final JPAQueryFactory queryFactory;
 
-    public List<PaycheckDto.PaycheckDailyFood> getPaycheckDto() {
-        LocalDate now = LocalDate.now();
-        LocalDate startOfMonth = now.withDayOfMonth(1);
-        LocalDate endOfMonth = now.withDayOfMonth(now.lengthOfMonth());
+    public List<PaycheckDto.PaycheckDailyFood> getPaycheckDto(YearMonth yearMonth, List<BigInteger> makersIds) {
+        LocalDate startOfMonth = yearMonth.atDay(1);
+        LocalDate endOfMonth = yearMonth.atEndOfMonth();
 
         SimpleExpression<Integer> countSumExpression = orderItemDailyFood.count.sum();
         Coalesce<BigDecimal> supplyPriceCoalesce = new Coalesce<BigDecimal>().add(dailyFood.supplyPrice).add(food.supplyPrice);
+
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if(makersIds != null && !makersIds.isEmpty()) {
+            whereClause.and(makers.id.in(makersIds));
+        }
 
         List<Tuple> result = queryFactory.select(makers, dailyFood.serviceDate, dailyFood.diningType, food, food.name, supplyPriceCoalesce, countSumExpression)
                 .from(food)
@@ -47,7 +51,10 @@ public class QMakersPaycheckRepository {
                 .leftJoin(orderItemDailyFood).on(orderItemDailyFood.dailyFood.eq(dailyFood))
                 .leftJoin(orderItem).on(orderItem.id.eq(orderItemDailyFood.id))
                 .leftJoin(makers).on(food.makers.eq(makers))
-                .where(dailyFood.serviceDate.goe(startOfMonth), dailyFood.serviceDate.loe(endOfMonth), orderItem.orderStatus.in(OrderStatus.completePayment()))
+                .where(dailyFood.serviceDate.goe(startOfMonth),
+                        dailyFood.serviceDate.loe(endOfMonth),
+                        orderItem.orderStatus.in(OrderStatus.completePayment()),
+                        whereClause)
                 .groupBy(makers.id, dailyFood.serviceDate, dailyFood.diningType, food.id)
                 .having(countSumExpression.isNotNull())
                 .orderBy(makers.id.asc(), dailyFood.serviceDate.asc(), dailyFood.diningType.asc(), food.id.asc())
@@ -114,6 +121,16 @@ public class QMakersPaycheckRepository {
         return queryFactory.selectFrom(makersPaycheck)
                 .where(whereClause)
                 .orderBy(makersPaycheck.createdDateTime.asc())
+                .fetch();
+    }
+
+    public List<MakersPaycheck> getMakersPaychecksByFilter(List<BigInteger> makersIds, YearMonth yearMonth) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(makersIds != null && !makersIds.isEmpty()) {
+            whereClause.and(makersPaycheck.makers.id.in(makersIds));
+        }
+        return queryFactory.selectFrom(makersPaycheck)
+                .where(makersPaycheck.yearMonth.eq(yearMonth), whereClause)
                 .fetch();
     }
 }

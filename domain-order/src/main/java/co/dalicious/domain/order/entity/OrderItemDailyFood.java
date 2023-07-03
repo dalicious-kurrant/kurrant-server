@@ -1,9 +1,8 @@
 package co.dalicious.domain.order.entity;
 
-import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.system.util.PriceUtils;
+import co.dalicious.system.util.NumberUtils;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -15,6 +14,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 @DynamicInsert
 @DynamicUpdate
@@ -27,6 +27,9 @@ public class OrderItemDailyFood extends OrderItem {
     @JoinColumn(name = "daily_food_id")
     @Comment("식품 ID")
     private DailyFood dailyFood;
+
+    @Comment("배송 시간")
+    private LocalTime deliveryTime;
 
     @Comment("식품 이름")
     private String name;
@@ -66,22 +69,23 @@ public class OrderItemDailyFood extends OrderItem {
     private OrderItemDailyFoodGroup orderItemDailyFoodGroup;
 
     @Builder
-    public OrderItemDailyFood(OrderStatus orderStatus, Order order, String usage, DailyFood dailyFood, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, Integer makersDiscountRate, Integer membershipDiscountRate, Integer periodDiscountRate, OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
+    public OrderItemDailyFood(OrderStatus orderStatus, Order order, DailyFood dailyFood, LocalTime deliveryTime, String name, BigDecimal price, BigDecimal discountedPrice, Integer count, String usage, Integer membershipDiscountRate, Integer makersDiscountRate, Integer periodDiscountRate, OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
         super(orderStatus, order);
         this.dailyFood = dailyFood;
+        this.deliveryTime = deliveryTime;
         this.name = name;
-        this.usage = usage;
         this.price = price;
         this.discountedPrice = discountedPrice;
         this.count = count;
-        this.makersDiscountRate = makersDiscountRate;
+        this.usage = usage;
         this.membershipDiscountRate = membershipDiscountRate;
+        this.makersDiscountRate = makersDiscountRate;
         this.periodDiscountRate = periodDiscountRate;
         this.orderItemDailyFoodGroup = orderItemDailyFoodGroup;
     }
 
     public BigDecimal getMembershipDiscountPrice() {
-        return PriceUtils.roundToTenDigit(this.price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
+        return NumberUtils.roundToTenDigit(this.price.multiply(BigDecimal.valueOf((this.membershipDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
     }
 
     public BigDecimal getMakersDiscountPrice() {
@@ -92,7 +96,7 @@ public class OrderItemDailyFood extends OrderItem {
             ;
             price = price.subtract(membershipDiscountedPrice);
         }
-        return PriceUtils.roundToTenDigit(price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
+        return NumberUtils.roundToTenDigit(price.multiply(BigDecimal.valueOf((this.makersDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
     }
 
     public BigDecimal getPeriodDiscountPrice() {
@@ -109,7 +113,7 @@ public class OrderItemDailyFood extends OrderItem {
             ;
             price = price.subtract(makersDiscountPrice);
         }
-        return PriceUtils.roundToTenDigit(price.multiply(BigDecimal.valueOf((this.periodDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
+        return NumberUtils.roundToTenDigit(price.multiply(BigDecimal.valueOf((this.periodDiscountRate / 100.0))).multiply(BigDecimal.valueOf(this.count)));
     }
 
     public BigDecimal getOrderItemTotalPrice() {
@@ -117,6 +121,12 @@ public class OrderItemDailyFood extends OrderItem {
     }
 
     public BigDecimal getOrderItemSupplyPrice() {
-        return (this.getDailyFood().getFood().getSupplyPrice() == null) ? null : this.getDailyFood().getFood().getSupplyPrice().multiply(BigDecimal.valueOf(this.count));
+        if(this.getDailyFood().getSupplyPrice() != null) {
+            return this.getDailyFood().getSupplyPrice().multiply(BigDecimal.valueOf(this.count));
+        }
+        if(this.getDailyFood().getFood().getSupplyPrice() != null) {
+            return this.getDailyFood().getFood().getSupplyPrice().multiply(BigDecimal.valueOf(this.count));
+        }
+        return null;
     }
 }
