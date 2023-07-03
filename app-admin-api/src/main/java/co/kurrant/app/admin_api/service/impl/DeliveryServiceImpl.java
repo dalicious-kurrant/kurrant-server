@@ -90,7 +90,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                     .filter(orderItemDailyFood -> Hibernate.unproxy(orderItemDailyFood.getOrder()) instanceof OrderDailyFood)
                     .collect(Collectors.groupingBy(orderItemDailyFood -> ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot()));
 
-            deliveryInfoList = spotDailyFoodMap.entrySet().stream()
+            List<DeliveryDto.DeliveryGroup> deliveryGroupList = spotDailyFoodMap.entrySet().stream()
                     .map(entry -> {
                         Spot spot = entry.getKey();
                         List<OrderItemDailyFood> spotOrderItemDailyFoodList = entry.getValue();
@@ -129,16 +129,15 @@ public class DeliveryServiceImpl implements DeliveryService {
                                 .sorted(Comparator.comparing(deliveryMakers -> LocalTime.parse(deliveryMakers.getPickupTime())))
                                 .collect(Collectors.toList());
 
-                        DeliveryDto.DeliveryGroup deliveryGroup = deliveryMapper.toDeliveryGroup(spot, diningType.getCode(), serviceDateDto.getDeliveryTime(), deliveryMakersList);
-                        return deliveryMapper.toDeliveryInfo(serviceDateDto, Collections.singletonList(deliveryGroup));
-                    })
-                    .collect(Collectors.toList());
+                        return deliveryMapper.toDeliveryGroup(spot, diningType.getCode(), serviceDateDto.getDeliveryTime(), deliveryMakersList);
+                    }).toList();
 
-            if (groups != null && !groups.isEmpty()) {
-                spotAllList = spotAllList.stream()
-                        .filter(spot -> groups.contains(spot.getGroup()))
-                        .collect(Collectors.toList());
-            }
+            deliveryInfoList.add(deliveryMapper.toDeliveryInfo(serviceDateDto.getServiceDate(), deliveryGroupList));
+        }
+        if (groups != null && !groups.isEmpty()) {
+            spotAllList = spotAllList.stream()
+                    .filter(spot -> groups.contains(spot.getGroup()))
+                    .collect(Collectors.toList());
         }
         return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
     }
