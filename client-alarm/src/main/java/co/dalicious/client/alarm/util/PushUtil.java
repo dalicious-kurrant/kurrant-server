@@ -146,6 +146,18 @@ public class PushUtil {
         return template;
     }
 
+    @Transactional(readOnly = true)
+    public String getContextCorporationSpot(String userName, PushCondition pushCondition) {
+        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
+        String template = pushAlarms.getMessage();
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("user", userName);
+
+        StringSubstitutor sub = new StringSubstitutor(valuesMap);
+        template = sub.replace(template);
+        return template;
+    }
+
     @Transactional
     public PushAlarmHash createPushAlarmHash (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger reviewId) {
         return PushAlarmHash.builder()
