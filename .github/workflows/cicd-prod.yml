@@ -101,13 +101,13 @@ jobs:
       shell: bash
       
     - name: client-alarm application-map.properties 생성
-        run: |
-          cd ./domain-address/src/main
-          mkdir resources
-          cd resources
-          touch ./application-map.properties
-          echo "${{ secrets.SYSTEM_CORE_MAP }}" > ./application-map.properties
-        shell: bash
+      run: |
+        cd ./domain-address/src/main
+        mkdir resources
+        cd resources
+        touch ./application-map.properties
+        echo "${{ secrets.SYSTEM_CORE_MAP }}" > ./application-map.properties
+      shell: bash
 
     - name: gradlew 실행 권한 추가
       run: chmod +x gradlew
