@@ -8,7 +8,6 @@ import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.repository.QCustomerBoardRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
-import co.dalicious.domain.user.entity.BatchPushAlarmLog;
 import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.kurrant.app.public_api.service.BoardService;
@@ -109,7 +108,7 @@ public class BoardServiceImpl implements BoardService {
     @Transactional
     public void readAllAlarm(SecurityUser securityUser, List<String> ids) {
         User user = userUtil.getUser(securityUser);
-        List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllPushAlarmHashByUserIdAndIds(user.getId(), ids);
+        List<PushAlarmHash> pushAlarmHashes = ids.stream().map(id ->pushAlarmHashRepository.findAllPushAlarmHashByUserIdAndId(user.getId(), id)).toList();
         pushAlarmHashes.forEach(v -> v.updateRead(true));
     }
 }
