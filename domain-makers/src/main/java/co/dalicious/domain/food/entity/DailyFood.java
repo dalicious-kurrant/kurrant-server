@@ -33,7 +33,7 @@ public class DailyFood {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "BIGINT")
+    @Column(columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
     @Convert(converter = DiningTypeConverter.class)

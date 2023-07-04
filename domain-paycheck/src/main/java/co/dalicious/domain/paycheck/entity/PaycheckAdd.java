@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ public class PaycheckAdd {
     private LocalDate issueDate;
 
     @Comment("금액")
+    @Column(columnDefinition="Decimal(15,2) default '0.00'")
     private BigDecimal price;
 
     @Comment("이슈 내용")

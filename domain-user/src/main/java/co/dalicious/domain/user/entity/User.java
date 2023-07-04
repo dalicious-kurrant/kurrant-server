@@ -1,5 +1,7 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.user.converter.GourmetTypeConverter;
 import co.dalicious.domain.user.converter.PushConditionsConverter;
@@ -409,5 +411,18 @@ public class User {
 
     public void updatePhone(String phone) {
         this.phone = phone;
+    }
+
+    public List<UserGroup> getActiveUserGroups() {
+        return this.getGroups().stream()
+                .filter(v -> v.getGroup().getIsActive() == null || v.getGroup().getIsActive())
+                .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
+                .toList();
+    }
+
+    public List<UserSpot> getActiveUserSpot() {
+        return this.getUserSpots().stream()
+                .filter(v -> v.getSpot().getStatus().equals(SpotStatus.ACTIVE))
+                .toList();
     }
 }
