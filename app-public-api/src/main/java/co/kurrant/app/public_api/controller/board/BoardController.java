@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @Tag(name = "게시판")
 @RestController
@@ -22,9 +23,10 @@ public class BoardController {
 
     @Operation(summary = "공지사항 조회", description = "공지사항을 불러온다.")
     @GetMapping("notices")
-    public ResponseMessage noticeList(@RequestParam Integer status, @RequestParam (required = false) BigInteger spotId){
+    public ResponseMessage noticeList(Authentication authentication, @RequestParam Integer status, @RequestParam (required = false) BigInteger spotId){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(boardService.noticeList(status, spotId))
+                .data(boardService.noticeList(status, spotId, securityUser))
                 .message("공지사항을 불러오는데 성공했습니다.")
                 .build();
     }
@@ -55,6 +57,16 @@ public class BoardController {
         boardService.deleteAllAlarm(securityUser);
         return ResponseMessage.builder()
                 .message("알림을 모두 지웠습니다.")
+                .build();
+    }
+
+    @Operation(summary = "모든 알림 읽기", description = "모든 알림 읽기")
+    @PatchMapping("alarms")
+    public ResponseMessage readAllAlarm(Authentication authentication, @RequestBody List<String> ids){
+        SecurityUser securityUser =  UserUtil.securityUser(authentication);
+        boardService.readAllAlarm(securityUser, ids);
+        return ResponseMessage.builder()
+                .message("알림을 모두 읽었습니다.")
                 .build();
     }
 

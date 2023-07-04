@@ -89,10 +89,7 @@ public class ReviewJob {
 
 
         if (userIds.isEmpty()) {
-            // Return an empty reader if orderItemIds is empty
-            return new JpaPagingItemReaderBuilder<User>()
-                    .name("EmptyReviewReader")
-                    .build();
+            return null;
         }
 
         String queryString = "SELECT u FROM User u WHERE u.id in :userIds";
