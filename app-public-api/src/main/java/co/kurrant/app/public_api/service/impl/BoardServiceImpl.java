@@ -108,8 +108,8 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public void readAllAlarm(SecurityUser securityUser, List<String> ids) {
-        userUtil.getUser(securityUser);
-        List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllPushAlarmHashByIds(ids);
+        User user = userUtil.getUser(securityUser);
+        List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllPushAlarmHashByUserIdAndIds(user.getId(), ids);
         pushAlarmHashes.forEach(v -> v.updateRead(true));
     }
 }
