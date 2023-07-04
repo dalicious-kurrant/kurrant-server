@@ -1,16 +1,26 @@
 package co.kurrant.app.client_api.service.impl;
 
+import co.dalicious.domain.user.repository.QUserGroupRepository;
+import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.StatsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
+
 @Slf4j
 @Transactional(rollbackFor = Exception.class)
 @RequiredArgsConstructor
 @Service
 public class StatsServiceImpl implements StatsService {
+    private final QUserGroupRepository qUserGroupRepository;
+    @Override
+    @Transactional
+    public Object test(SecurityUser securityUser) {
+        return qUserGroupRepository.findAllByUserIdAndGroupId(BigInteger.valueOf(8), BigInteger.valueOf(93));
+    }
   /*
   private final OrderItemRepository orderItemRepository;
 

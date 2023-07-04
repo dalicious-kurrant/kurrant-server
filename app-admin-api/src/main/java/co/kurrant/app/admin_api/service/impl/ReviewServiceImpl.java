@@ -64,11 +64,12 @@ public class ReviewServiceImpl implements ReviewService {
         Boolean isMakersComment = !parameters.containsKey("isMakersComment") || parameters.get("isMakersComment") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isMakersComment")));
         Boolean isAdminComment = !parameters.containsKey("isAdminComment") || parameters.get("isAdminComment") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isAdminComment")));
         Boolean isReport = !parameters.containsKey("isReport") || parameters.get("isReport") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isReport")));
+        Boolean forMakers = !parameters.containsKey("forMakers") || parameters.get("forMakers") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("forMakers")));
         LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate") == null ? null : DateUtils.stringToDate(String.valueOf(parameters.get("startDate")));
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate") == null ? null : DateUtils.stringToDate(String.valueOf(parameters.get("endDate")));
 
         //서비스 날 기준으로 작성자, 주문번호, 주문 상품 이름, 작성자, 메이커스 댓글 여부, 관리자 댓글 여부, 신고여부, 메이커스로 필터링한 리뷰 조회 - 삭제 포함
-        Page<Reviews> reviewsList = qReviewRepository.findAllByFilter(makersId, orderCode, orderItemName, writer, startDate, endDate, isReport, isMakersComment, isAdminComment, limit, page, pageable);
+        Page<Reviews> reviewsList = qReviewRepository.findAllByFilter(makersId, orderCode, orderItemName, writer, startDate, endDate, isReport, forMakers, isMakersComment, isAdminComment, limit, page, pageable);
         List<Makers> makersList = makersRepository.findAll();
         long count = qReviewRepository.pendingReviewCount();
 
@@ -200,7 +201,8 @@ public class ReviewServiceImpl implements ReviewService {
         keywordRepository.deleteAllByFoodId(food.getId());
 
         for (String name : keywordDto.getNames()) {
-            Integer keywordCount = qReviewRepository.findKeywordCount(name, food.getId());
+            Long keywordCount1 = qReviewRepository.findKeywordCount(name, food.getId());
+            int keywordCount = keywordCount1.intValue();
             Keyword keyword = keywordMapper.toEntity(name, keywordCount, food);
             keywordRepository.save(keyword);
         }

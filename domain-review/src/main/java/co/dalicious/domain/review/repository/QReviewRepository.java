@@ -4,6 +4,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.review.dto.AverageAndTotalCount;
 import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.QComments;
@@ -62,7 +63,7 @@ public class QReviewRepository {
     }
 
     public Page<Reviews> findAllByFilter(BigInteger makersId, String orderCode, String orderItemName, String userName, LocalDate startDate, LocalDate endDate, Boolean isReport,
-                                         Boolean isMakersComment, Boolean isAdminComment, Integer limit, Integer page, Pageable pageable) {
+                                         Boolean forMakers, Boolean isMakersComment, Boolean isAdminComment, Integer limit, Integer page, Pageable pageable) {
         BooleanBuilder filter = new BooleanBuilder();
 
         if(startDate != null) {
@@ -84,6 +85,11 @@ public class QReviewRepository {
         if(isReport != null) {
             filter.and(reviews.isReports.eq(isReport));
         }
+
+        if(forMakers != null){
+            filter.and(reviews.forMakers.eq(forMakers));
+        }
+
         if(isMakersComment != null) {
             if(isMakersComment){
                 filter.and(comments.instanceOf(MakersComments.class));
@@ -338,23 +344,32 @@ public class QReviewRepository {
         return new PageImpl<>(reviewsList.getResults(), pageable, reviewsList.getTotal());
     }
 
-    public Integer findKeywordCount(String name, BigInteger foodId) {
-        return Math.toIntExact(queryFactory.select(reviews.count())
+    public Long findKeywordCount(String name, BigInteger foodId) {
+        return queryFactory.select(reviews.count())
                 .from(reviews)
                 .where(reviews.content.contains(name),
                         reviews.food.id.eq(foodId))
-                .fetchOne());
+                .fetchOne();
     }
 
-     /*
-    *   QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
-                .orderBy(pointHistory.id.desc())
-                .limit(pageable.getPageSize())
-                .offset(pageable.getOffset())
-                .fetchResults();
+    public AverageAndTotalCount findAllByFoodIdPageableLess(BigInteger foodId) {
+        AverageAndTotalCount averageAndTotalCount = new AverageAndTotalCount();
+        double total = 0.0;
 
-        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
-    * */
+        List<Reviews> reviewsList = queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId))
+                .fetch();
 
+        for (Reviews reviews: reviewsList){
+            total += (double) reviews.getSatisfaction();
+        }
+
+        if (!reviewsList.isEmpty()){
+            double totalTemp = total / reviewsList.size();
+            averageAndTotalCount.setReviewAverage(Math.round(totalTemp * 100) / 100.0);
+            averageAndTotalCount.setTotalCount(reviewsList.size());
+        }
+
+        return averageAndTotalCount;
+    }
 }

@@ -99,6 +99,8 @@ public interface DailyFoodMapper {
 
     ;
 
+    @Mapping(source = "totalCount", target = "totalReviewCount")
+    @Mapping(source = "reviewAverage", target = "reviewAverage")
     @Mapping(source = "dailyFood.diningType.code", target = "diningType")
     @Mapping(source = "dailyFood.food.id", target = "foodId")
     @Mapping(source = "dailyFood.food.name", target = "foodName")
@@ -118,7 +120,7 @@ public interface DailyFoodMapper {
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
-    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends);
+    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount);
 
     @AfterMapping
     default void afterMapping(@MappingTarget DailyFoodDto dto, DailyFood dailyFood, Integer capacity, List<UserRecommends> userRecommends) {

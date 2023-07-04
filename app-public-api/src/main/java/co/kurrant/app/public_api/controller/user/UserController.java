@@ -333,39 +333,6 @@ public class UserController {
                 .build();
     }
 
-    @Tag(name = "식단리포트")
-    @PostMapping("/daily/report/me")
-    @Operation(summary = "내 식사 추가하기", description = "식단 리포트에 내가 먹은 음식을 추가한다.")
-    public ResponseMessage insertMyFood(Authentication authentication, @RequestBody SaveDailyReportDto saveDailyReportDto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.insertMyFood(securityUser, saveDailyReportDto);
-        return ResponseMessage.builder()
-                .message("식단을 추가했습니다.")
-                .build();
-    }
-
-    @Tag(name = "식단리포트")
-    @GetMapping("/daily/report")
-    @Operation(summary = "식단 리포트 조회", description = "식단 리포트를 조회한다.")
-    public ResponseMessage getReport(Authentication authentication, @RequestParam String date){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(userService.getReport(securityUser, date))
-                .message("식단 조회 성공!")
-                .build();
-    }
-
-    @Tag(name = "식단리포트")
-    @PostMapping("/daily/report/food")
-    @Operation(summary = "주문내역을 리포트로 가져온다", description = "유저의 주문 내역을 리포트로 가져온다.")
-    public ResponseMessage insertFoodRecord(Authentication authentication, @RequestBody SaveDailyReportFoodReqDto dto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.saveDailyReportFood(securityUser, dto);
-        return ResponseMessage.builder()
-                .message("리포트에 음식을 추가햇습니다.")
-                .build();
-    }
-
     @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
     @PostMapping("/setting/all")
     public ResponseMessage allChangeAlarmSetting(Authentication authentication, Boolean isActive) {
@@ -419,6 +386,4 @@ public class UserController {
                 .message("저장에 성공했습니다.")
                 .build();
     }
-
-
 }

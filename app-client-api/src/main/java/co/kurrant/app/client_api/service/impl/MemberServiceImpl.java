@@ -109,21 +109,25 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public void deleteMember(SecurityUser securityUser, MemberIdListDto deleteMemberRequestDto) {
         Corporation corporation = userUtil.getCorporation(securityUser);
-        //userId 리스트 가져오기
+
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
 
-        if (userIdList.size() == 0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        if (userIdList.isEmpty()) {
+            throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        }
 
-        for (BigInteger userId : userIdList) {
+        userIdList.forEach(userId -> {
             User deleteUser = qUserRepository.findByUserId(userId);
             EmployeeHistoryType type = EmployeeHistoryType.USER;
             EmployeeHistory employeeHistory = employeeHistoryMapper.toEntity(userId, deleteUser.getName(), deleteUser.getEmail(), deleteUser.getPhone(), type);
             employeeHistoryRepository.save(employeeHistory);
-            Long deleteResult = qUserGroupRepository.deleteMember(userId, corporation.getId());
-            if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
-        }
+
+            qUserGroupRepository.findAllByUserIdAndGroupId(userId, corporation.getId())
+                    .forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
+        });
     }
 
     @Override
