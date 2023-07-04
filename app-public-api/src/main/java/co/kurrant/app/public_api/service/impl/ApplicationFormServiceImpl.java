@@ -13,6 +13,7 @@ import co.dalicious.domain.application_form.entity.*;
 import co.dalicious.domain.application_form.entity.enums.ShareSpotRequestType;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
+import co.dalicious.domain.application_form.utils.ApplicationSlackUtil;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
@@ -49,6 +50,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserUtil userUtil;
+    private final ApplicationSlackUtil applicationSlackUtil;
     private final ApplicationFormValidator applicationFormValidator;
     private final CorporationApplicationFormRepository corporationApplicationFormRepository;
     private final CorporationApplicationFormSpotRepository corporationApplicationFormSpotRepository;
@@ -107,6 +109,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             corporationApplicationMealInfo.setApplicationFormCorporation(corporationApplicationForm);
             corporationApplicationMealRepository.save(corporationApplicationMealInfo);
         }
+
+        applicationSlackUtil.sendSlack("[기업스팟] 신청 내역이 있어요!");
 
         return ApplicationFormDto.builder()
                 .clientType(1)
@@ -222,6 +226,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         RequestedMySpot requestedMySpot = requestedMySpotMapper.toEntity(user.getId(), requestedMySpotZones, requestDto);
         requestedMySpotRepository.save(requestedMySpot);
 
+        applicationSlackUtil.sendSlack("[마이스팟] 등록 신청 내역이 있어요!");
+
+
         // my spot zone 존재 여부 response
         return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
     }
@@ -235,6 +242,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         requestedShareSpot.updateShareSpotRequestType(shareSpotRequestType);
         requestedShareSpot.updateUserId(user.getId());
         requestedShareSpotRepository.save(requestedShareSpot);
+
+        applicationSlackUtil.sendSlack("[공유스팟] 등록 신청 내역이 있어요!");
     }
     
     private ApplicationFormDto updateRequestedMySpot(RequestedMySpot requestedMySpot, MySpotZoneApplicationFormRequestDto requestDto, User user) throws ParseException {

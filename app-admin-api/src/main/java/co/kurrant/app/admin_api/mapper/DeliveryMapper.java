@@ -9,6 +9,7 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
+import co.kurrant.app.admin_api.dto.delivery.ServiceDateDto;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -114,6 +115,28 @@ public interface DeliveryMapper {
     default List<DeliveryDto.DeliveryManifest> toDeliveryManifests(List<DailyFoodDelivery> dailyFoodDeliveries) {
         return dailyFoodDeliveries.stream()
                 .map(this::toDeliveryManifest)
+                .sorted(Comparator.comparing(DeliveryDto.DeliveryManifest::getServiceDate))
                 .toList();
     }
+
+    // TODO: 추후 삭제 (DeliveryInstance 활성화시)
+    @Mapping(source = "serviceDateDto.serviceDate", target = "serviceDate")
+    @Mapping(source = "deliveryGroupList", target = "group")
+    DeliveryDto.DeliveryInfo toDeliveryInfo(ServiceDateDto serviceDateDto, List<DeliveryDto.DeliveryGroup> deliveryGroupList);
+
+    @Mapping(source = "makers.id", target = "makersId")
+    @Mapping(source = "makers.name", target = "makersName")
+    @Mapping(source = "pickupTime", target = "pickupTime")
+    @Mapping(source = "deliveryFoodList", target = "foods")
+    @Mapping(target = "address", expression = "java(makers.getAddress().addressToString())")
+    DeliveryDto.DeliveryMakers toDeliveryMakers(Makers makers, List<DeliveryDto.DeliveryFood> deliveryFoodList, LocalTime pickupTime);
+    @Mapping(source = "spot.group.id", target = "groupId")
+    @Mapping(source = "spot.group.name", target = "groupName")
+    @Mapping(source = "deliveryTime", target = "deliveryTime")
+    @Mapping(source = "diningType", target = "diningType")
+    @Mapping(source = "spot.name", target = "spotName")
+    @Mapping(source = "spot.id", target = "spotId")
+    @Mapping(source = "spot.address", target = "address", qualifiedByName = "getAddress")
+    @Mapping(source = "deliveryMakersList", target = "makersList")
+    DeliveryDto.DeliveryGroup toDeliveryGroup(Spot spot, Integer diningType, LocalTime deliveryTime, List<DeliveryDto.DeliveryMakers> deliveryMakersList);
 }

@@ -14,9 +14,7 @@ import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.QUserSpotRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.client.alarm.mapper.PushAlarmMapper;
 import co.dalicious.client.alarm.repository.PushAlarmRepository;
@@ -35,7 +33,6 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.text.DateFormatter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.DateFormat;
@@ -56,8 +53,6 @@ public class PushAlarmServiceImpl implements PushAlarmService {
     private final UserRepository userRepository;
     private final QUserRepository qUserRepository;
     private final PushAlarmTypeMapper pushAlarmTypeMapper;
-    private final QUserGroupRepository qUserGroupRepository;
-    private final QUserSpotRepository qUserSpotRepository;
     private final PushService pushService;
     private final KakaoUtil kakaoUtil;
     private final PushUtil pushUtil;

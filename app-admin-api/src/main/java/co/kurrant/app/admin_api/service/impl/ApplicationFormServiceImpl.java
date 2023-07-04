@@ -15,6 +15,7 @@ import co.dalicious.domain.application_form.entity.RequestedShareSpot;
 import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
 import co.dalicious.domain.application_form.mapper.RequestedShareSpotMapper;
 import co.dalicious.domain.application_form.repository.*;
+import co.dalicious.domain.application_form.utils.ApplicationSlackUtil;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.application_form.mapper.MySpotMapper;
@@ -54,6 +55,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ApplicationFormServiceImpl implements ApplicationFormService {
 
+    private final ApplicationSlackUtil applicationSlackUtil;
     private final QRequestedMySpotZonesRepository qRequestedMySpotZonesRepository;
     private final RequestedMySpotZonesMapper requestedMySpotZonesMapper;
     private final RequestedMySpotZonesRepository requestedMySpotZonesRepository;
@@ -200,6 +202,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 신청된 마이스팟 존 삭제
         requestedMySpotRepository.deleteAll(requestedMySpots);
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
+
+        applicationSlackUtil.sendSlack("[마이스팟] 신청 내역이 있어요!");
+
     }
 
     @Override
@@ -215,6 +220,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     public void createShareSpotRequest(ShareSpotDto.AdminRequest request) throws ParseException {
         RequestedShareSpot requestedShareSpot = requestedShareSpotMapper.toEntity(request);
         requestedShareSpotRepository.save(requestedShareSpot);
+
+        applicationSlackUtil.sendSlack("[공유스팟] 신청 내역이 있어요!");
+
     }
 
     @Override

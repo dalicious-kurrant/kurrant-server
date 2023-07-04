@@ -31,9 +31,9 @@ public interface OrderUserInfoMapper {
             }
         }
         if (userDefaultSpot != null) {
-            return ((Group) Hibernate.unproxy( userDefaultSpot.getSpot().getGroup())).getName();
+            return ((Group) Hibernate.unproxy(userDefaultSpot.getSpot().getGroup())).getName();
         }
-        throw new ApiException(ExceptionEnum.SPOT_NOT_FOUND);
+        return null;
     }
 
     @Named("getDefaultSpotName")
@@ -47,7 +47,7 @@ public interface OrderUserInfoMapper {
         if (userDefaultSpot != null) {
             return userDefaultSpot.getSpot().getName();
         }
-        throw new ApiException(ExceptionEnum.SPOT_NOT_FOUND);
+        return null;
     }
 
     @Named("getAddress")
@@ -61,7 +61,7 @@ public interface OrderUserInfoMapper {
         if (userDefaultSpot != null) {
             return userDefaultSpot.getSpot().getAddress();
         }
-        throw new ApiException(ExceptionEnum.SPOT_NOT_FOUND);
+        return null;
     }
 
     @Named("setUser")

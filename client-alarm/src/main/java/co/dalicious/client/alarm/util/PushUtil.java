@@ -29,6 +29,8 @@ public class PushUtil {
     private final QUserRepository qUserRepository;
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushAlarmMapper pushAlarmMapper;
+    private final BatchPushAlarmLogRepository batchPushAlarmLogRepository;
+    private final QBatchPushAlarmLogRepository qBatchPushAlarmLogRepository;
     private final PushAlarmHashRepository pushAlarmHashRepository;
 
     @Transactional(readOnly = true)
