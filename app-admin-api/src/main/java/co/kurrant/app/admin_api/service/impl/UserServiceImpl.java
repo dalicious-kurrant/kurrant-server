@@ -327,12 +327,19 @@ public class UserServiceImpl implements UserService {
         // TODO: 프라이빗 스팟 초대 시 푸시알림 추가
         List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmForCorporationUser.stream()
                 .map(user -> {
-                    PushCondition pushCondition = PushCondition.NEW_SPOT_2;
+                    PushCondition pushCondition = PushCondition.NEW_SPOT;
                     String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
                     pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
                     return pushUtil.getPushRequest(user, pushCondition, message);
                 }).toList();
-        pushService.sendToPush(pushRequestDtoByUsers);
+        if(pushRequestDtoByUsers.size() > 500) {
+            List<List<PushRequestDtoByUser>> slicePushRequestDtoByUsers = pushUtil.sliceByChunkSize(pushRequestDtoByUsers);
+
+            for(List<PushRequestDtoByUser> list : slicePushRequestDtoByUsers) {
+                pushService.sendToPush(list);
+            }
+        }
+        else pushService.sendToPush(pushRequestDtoByUsers);
 
     }
 

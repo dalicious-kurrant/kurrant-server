@@ -182,4 +182,23 @@ public class PushUtil {
                 .build();
         pushAlarmHashRepository.save(pushAlarmHash);
     }
+
+    public List<List<PushRequestDtoByUser>> sliceByChunkSize(List<PushRequestDtoByUser> pushRequestDtoByUsers) {
+        int chuckSize = 500;
+
+        int originalListSize = pushRequestDtoByUsers.size();
+        int numOfChunks = (int) Math.ceil((double) originalListSize / chuckSize);
+
+        List<List<PushRequestDtoByUser>> chunkSizeList = new ArrayList<>(numOfChunks);
+
+        for (int i = 0; i < numOfChunks; i++) {
+            int startIndex = i * chuckSize;
+            int endIndex = Math.min(startIndex + chuckSize, originalListSize);
+
+            List<PushRequestDtoByUser> sublist = pushRequestDtoByUsers.subList(startIndex, endIndex);
+            chunkSizeList.add(sublist);
+        }
+
+        return chunkSizeList;
+    }
 }
