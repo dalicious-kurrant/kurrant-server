@@ -233,12 +233,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if (!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
                 throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
             }
+            OrderStatus defaultOrderStatus = orderItemDailyFood.getOrderStatus();
             orderItemDailyFood.updateOrderStatus(orderStatus);
             Optional<User> optionalUser = userRepository.findById(orderItemDailyFood.getOrder().getUser().getId());
             optionalUser.ifPresent(user -> userPhoneNumber.add(user.getPhone()));
 
             // 배송완료 푸시 알림 전송 및 멤버십 추가
-            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.DELIVERED) && OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
+            if (!defaultOrderStatus.equals(OrderStatus.DELIVERED) && OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
                 // 멤버십 추가
                 User user = orderItemDailyFood.getOrder().getUser();
                 Group group = (Group) Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup());
