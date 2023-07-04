@@ -176,7 +176,6 @@ project(':app-public-api') {
         implementation project(':domain-recommend')
         implementation project(':domain-event')
         implementation project(':integration-client-user')
-        implementation project(':data-mysql')
     }
 }
 
@@ -200,7 +199,6 @@ project(':app-admin-api') {
         implementation project(':domain-application-form')
         implementation project(':data-redis')
         implementation project(':integration-client-user')
-        implementation project(':data-mysql')
     }
 }
 
@@ -219,7 +217,6 @@ project(':app-client-api') {
         implementation project(':domain-makers')
         implementation project(':domain-paycheck')
         implementation project(':integration-client-user')
-        implementation project(':data-mysql')
     }
 }
 
@@ -243,7 +240,6 @@ project(':app-makers-api') {
         implementation project(':client-sse')
         implementation project(':domain-recommend')
         implementation project(':domain-paycheck')
-        implementation project(':data-mysql')
     }
 }
 
@@ -278,7 +274,6 @@ project(':client-oauth') {
 project(':domain-address') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':data-mysql')
     }
 }
 

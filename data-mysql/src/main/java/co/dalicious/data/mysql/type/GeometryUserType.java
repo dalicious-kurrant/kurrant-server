@@ -16,7 +16,7 @@ import java.sql.Types;
 
 public class GeometryUserType implements UserType {
 
-    private final int[] sqlTypesSupported = new int[] { Types.VARBINARY };
+    private final int[] sqlTypesSupported = new int[] { Types.BINARY };
 
     @Override
     public int[] sqlTypes() {
@@ -43,7 +43,7 @@ public class GeometryUserType implements UserType {
     public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException {
         if (value == null) {
-            st.setNull(index, Types.VARBINARY);
+            st.setNull(index, Types.BINARY);
         } else {
             Geometry geometry = (Geometry) value;
             String geometryAsString = new WKTWriter().write(geometry);

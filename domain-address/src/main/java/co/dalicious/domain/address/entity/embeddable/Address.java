@@ -3,7 +3,6 @@ package co.dalicious.domain.address.entity.embeddable;
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.utils.AddressUtil;
 import exception.CustomException;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,12 +11,10 @@ import org.hibernate.annotations.Type;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.locationtech.jts.io.WKTWriter;
 import org.springframework.http.HttpStatus;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -41,7 +38,6 @@ public class Address {
     private String address3;
 
     @Column(name = "address_location")
-    @Type(type = "co.dalicious.data.mysql.type.GeometryUserType")
     @Comment("위치")
     private Geometry location;
 

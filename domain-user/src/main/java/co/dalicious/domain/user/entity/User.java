@@ -415,7 +415,7 @@ public class User {
 
     public List<UserGroup> getActiveUserGroups() {
         return this.getGroups().stream()
-                .filter(v -> v.getGroup().getIsActive())
+                .filter(v -> v.getGroup().getIsActive() == null || v.getGroup().getIsActive())
                 .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
                 .toList();
     }

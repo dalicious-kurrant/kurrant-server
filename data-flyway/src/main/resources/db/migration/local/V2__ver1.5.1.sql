@@ -132,6 +132,6 @@ alter table `user__user_department`
 alter table client__meal_info
     modify delivery_time varchar(255) not null comment '배송 시간';
 alter table client__spot
-    add column is_alarm boolean default false comment '마이 스팟 푸시알림 여부 - 1: 수신';
+    add column is_alarm BIT(1) DEFAULT 0 comment '마이 스팟 푸시알림 여부 - 1: 수신';
 alter table application_form__requested_my_spot
     add column user_phone varchar(255) comment '유저 핸드폰 번호';
