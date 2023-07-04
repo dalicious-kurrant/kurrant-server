@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -150,6 +151,7 @@ public class UserServiceImpl implements UserService {
         }
 
         Set<User> pushAlarmForCorporationUser = new HashSet<>();
+//        MultiValueMap<BigInteger, >
 
         for (User user : userUpdateMap.keySet()) {
             SaveUserListRequestDto saveUserListRequestDto = userUpdateMap.get(user);
