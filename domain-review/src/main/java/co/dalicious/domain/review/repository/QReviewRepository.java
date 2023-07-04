@@ -273,7 +273,7 @@ public class QReviewRepository {
     public Page<Reviews> findAllByFoodIdSort(BigInteger id, Integer photo, String star,String keyword, Pageable pageable) {
 
         QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id), photoFilter(photo), starFilter(star), keywordFilter(keyword))
+                    .where(reviews.food.id.eq(id), photoFilter(photo), starFilter(star), keywordFilter(keyword), reviews.forMakers.eq(false))
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
                     .fetchResults();
@@ -335,7 +335,7 @@ public class QReviewRepository {
 
     public Page<Reviews> findAllByFoodId(BigInteger foodId, Pageable pageable) {
         QueryResults<Reviews> reviewsList = queryFactory.selectFrom(reviews)
-                .where(reviews.food.id.eq(foodId))
+                .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(false))
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .fetchResults();
