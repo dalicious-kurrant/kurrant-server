@@ -114,8 +114,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         Optional<User> optionalUser = userRepository.findById(userId);
         String message = null;
-        if (!spots.isEmpty() && optionalUser.isPresent()) {
-            message = "[기업스팟] 신청 내역이 있어요!\n" + " 스팟 이름 : " + spots.get(0).getSpotName() +
+        if (optionalUser.isPresent()) {
+            message = "[기업스팟] 신청 내역이 있어요!\n" + " 스팟 이름 : " + corporationApplicationForm.getCorporationName() +
+                    "\n 인원 수 : " + corporationApplicationForm.getEmployeeCount() +
                     "\n 신청자 이름 : " + optionalUser.get().getName() +
                     "\n 연락처 : " + optionalUser.get().getPhone();
         }
