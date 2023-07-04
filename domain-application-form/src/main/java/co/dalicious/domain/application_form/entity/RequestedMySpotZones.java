@@ -1,8 +1,7 @@
 package co.dalicious.domain.application_form.entity;
 
+import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
-import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.system.converter.IdListConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
