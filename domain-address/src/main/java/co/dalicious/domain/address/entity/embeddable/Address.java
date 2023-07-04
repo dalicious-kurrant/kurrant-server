@@ -1,6 +1,5 @@
 package co.dalicious.domain.address.entity.embeddable;
 
-import ch.qos.logback.core.util.LocationUtil;
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.utils.AddressUtil;
 import exception.CustomException;
@@ -9,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.Type;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -41,6 +41,7 @@ public class Address {
     private String address3;
 
     @Column(name = "address_location")
+    @Type(type = "co.dalicious.data.mysql.type.GeometryUserType")
     @Comment("위치")
     private Geometry location;
 

@@ -278,6 +278,7 @@ project(':client-oauth') {
 project(':domain-address') {
     dependencies {
         implementation project(':system-core')
+        implementation project(':data-mysql')
     }
 }
 

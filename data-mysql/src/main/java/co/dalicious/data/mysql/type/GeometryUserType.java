@@ -4,8 +4,9 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.WKBReader;
-import org.locationtech.jts.io.WKBWriter;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -15,11 +16,11 @@ import java.sql.Types;
 
 public class GeometryUserType implements UserType {
 
-    private static final int[] SQL_TYPES = new int[] { Types.BINARY };
+    private final int[] sqlTypesSupported = new int[] { Types.VARBINARY };
 
     @Override
     public int[] sqlTypes() {
-        return SQL_TYPES;
+        return sqlTypesSupported;
     }
 
     @Override
@@ -28,37 +29,25 @@ public class GeometryUserType implements UserType {
     }
 
     @Override
-    public boolean equals(Object x, Object y) throws HibernateException {
-        return x.equals(y);
-    }
-
-    @Override
-    public int hashCode(Object x) throws HibernateException {
-        return x.hashCode();
-    }
-
-    @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws HibernateException, SQLException {
-        byte[] bytes = rs.getBytes(names[0]);
-        if (bytes == null) {
-            return null;
-        }
-
+    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+            throws HibernateException, SQLException {
+        String geometryAsString = rs.getString(names[0]);
         try {
-            return new WKBReader().read(bytes);
-        } catch (Exception e) {
-            throw new HibernateException("Could not deserialize geometry object", e);
+            return new WKTReader().read(geometryAsString);
+        } catch (ParseException e) {
+            throw new HibernateException("Failed to convert String to Geometry: " + geometryAsString, e);
         }
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws HibernateException, SQLException {
+    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session)
+            throws HibernateException, SQLException {
         if (value == null) {
-            st.setNull(index, Types.BINARY);
+            st.setNull(index, Types.VARBINARY);
         } else {
             Geometry geometry = (Geometry) value;
-            byte[] bytes = new WKBWriter().write(geometry);
-            st.setBytes(index, bytes);
+            String geometryAsString = new WKTWriter().write(geometry);
+            st.setString(index, geometryAsString);
         }
     }
 
@@ -74,16 +63,30 @@ public class GeometryUserType implements UserType {
 
     @Override
     public Serializable disassemble(Object value) throws HibernateException {
-        return (Serializable) value;
+        return (Geometry) deepCopy(value);
     }
 
     @Override
     public Object assemble(Serializable cached, Object owner) throws HibernateException {
-        return cached;
+        return deepCopy(cached);
     }
 
     @Override
     public Object replace(Object original, Object target, Object owner) throws HibernateException {
-        return original;
+        return deepCopy(original);
+    }
+
+    @Override
+    public boolean equals(Object x, Object y) throws HibernateException {
+        if (x == null) {
+            return y == null;
+        } else {
+            return x.equals(y);
+        }
+    }
+
+    @Override
+    public int hashCode(Object x) throws HibernateException {
+        return x.hashCode();
     }
 }
