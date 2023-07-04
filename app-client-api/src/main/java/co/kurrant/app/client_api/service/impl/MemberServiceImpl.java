@@ -1,5 +1,9 @@
 package co.kurrant.app.client_api.service.impl;
 
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
+import co.dalicious.client.alarm.service.PushService;
+import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.dto.*;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Employee;
@@ -12,6 +16,7 @@ import co.dalicious.domain.user.entity.ProviderEmail;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.*;
 import co.kurrant.app.client_api.dto.MemberIdListDto;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
@@ -48,6 +53,8 @@ public class MemberServiceImpl implements MemberService {
     private final QProviderEmailRepository qProviderEmailRepository;
     private final UserGroupRepository userGroupRepository;
     private final UserUtil userUtil;
+    private final PushUtil pushUtil;
+    private final PushService pushService;
 
     @Override
     @Transactional
@@ -184,6 +191,7 @@ public class MemberServiceImpl implements MemberService {
                 .map(ProviderEmail::getEmail)
                 .collect(Collectors.toSet());
 
+        List<User> pushAlarmUserList = new ArrayList<>();
         if (!providerEmails.isEmpty()) {
             // 기존에 그룹에 포함된 인원인지 체크한다.
             for (ProviderEmail providerEmail : providerEmailMap.values()) {
@@ -201,10 +209,12 @@ public class MemberServiceImpl implements MemberService {
                             .clientStatus(ClientStatus.BELONG)
                             .build();
                     userGroupRepository.save(userGroup);
+                    pushAlarmUserList.add(user);
                 } else {
                     userGroups.stream()
                             .filter(ug -> ug.getGroup().equals(corporation))
                             .forEach(ug -> ug.updateStatus(ClientStatus.BELONG));
+                    pushAlarmUserList.add(user);
                 }
 
             }
@@ -236,5 +246,14 @@ public class MemberServiceImpl implements MemberService {
         }
 
         // TODO: 프라이빗 스팟 초대 시 푸시알림 추가
+        List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmUserList.stream()
+                .map(user -> {
+                    PushCondition pushCondition = PushCondition.NEW_SPOT;
+                    String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
+                    pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
+                    return pushUtil.getPushRequest(user, pushCondition, message);
+                }).toList();
+
+        pushService.sendToPush(pushRequestDtoByUsers);
     }
 }

@@ -220,6 +220,7 @@ project(':app-client-api') {
         implementation project(':domain-paycheck')
         implementation project(':integration-client-user')
         implementation project(':data-mysql')
+        implementation project(':client-alarm')
     }
 }
 
