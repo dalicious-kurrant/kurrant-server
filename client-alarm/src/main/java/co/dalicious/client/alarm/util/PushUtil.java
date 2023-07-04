@@ -91,12 +91,12 @@ public class PushUtil {
         if (pushConditionList == null || pushConditionList.isEmpty()) {
             return null;
         }
-        if (pushConditionList.contains(pushCondition)) {
+        if (pushConditionList.contains(pushCondition) || PushCondition.getNoShowCondition().contains(pushCondition)) {
             token = user.getFirebaseToken();
         }
 
         String message = pushAlarms.getMessage();
-        if (PushCondition.getCustomMessageCondition().contains(pushCondition) || PushCondition.getNoShowCondition().contains(pushCondition)) {
+        if (PushCondition.getCustomMessageCondition().contains(pushCondition)) {
             message = customMessage;
         }
         if (token != null) {

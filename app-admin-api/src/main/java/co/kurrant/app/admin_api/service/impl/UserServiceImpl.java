@@ -220,11 +220,12 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toMap(Group::getName, Function.identity()));
 
                 user.getGroups().forEach(userGroup -> {
+                    ClientStatus defaultStatus = userGroup.getClientStatus();
                     if (nameToGroupMap.containsKey(userGroup.getGroup().getName())) {
                         // 기존에 존재할 경우 상태값 변경(BELONG)
                         userGroup.updateStatus(ClientStatus.BELONG);
                         nameToGroupMap.remove(userGroup.getGroup().getName());
-                        if(userGroup.getGroup() instanceof Corporation) {
+                        if(defaultStatus.equals(ClientStatus.WITHDRAWAL) && userGroup.getGroup() instanceof Corporation) {
                             pushAlarmForCorporationUser.add(user);
                         }
                     } else {
