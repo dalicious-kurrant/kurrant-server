@@ -1,12 +1,18 @@
 package co.dalicious.domain.application_form.mapper;
 
 import co.dalicious.domain.address.entity.Region;
+import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
+import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
 
+import co.dalicious.domain.application_form.entity.RequestedShareSpot;
+import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -39,12 +45,16 @@ public interface RequestedMySpotZonesMapper {
         return listResponseDto;
     }
 
-    default RequestedMySpotZones toRequestedMySpotZones (Integer count, String memo, Region region, BigInteger userIds) {
+    default RequestedMySpotZones toRequestedMySpotZones(Integer count, String memo, Region region, BigInteger userIds) {
         return RequestedMySpotZones.builder()
                 .region(region)
-                .waitingUserCount(count)
+                .waitingUserCount(0)
                 .memo(memo)
                 .build();
     }
 
+    @Mapping(target = "waitingUserCount", ignore = true)
+    @Mapping(target = "memo", source = "memo")
+    void updateRequestedMySpotZoneFromRequest(RequestedMySpotDetailDto updateRequestDto, @MappingTarget RequestedMySpotZones requestedMySpotZones);
 }
+

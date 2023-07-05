@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -145,7 +146,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestedMySpotDetailDto.getZipcode(), requestedMySpotDetailDto.getCounty(), requestedMySpotDetailDto.getVillage());
         if(region == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
-        existRequestedMySpotZones.updateRequestedMySpotZones(requestedMySpotDetailDto, region);
+        requestedMySpotZonesMapper.updateRequestedMySpotZoneFromRequest(requestedMySpotDetailDto, existRequestedMySpotZones);
+        existRequestedMySpotZones.updateRegion(region);
     }
 
     @Override
@@ -164,7 +166,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public void createMySpotZonesFromRequest(List<BigInteger> ids) {
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
-        List<BigInteger> pushAlarmUserIds = existRequestedMySpotZones.stream().flatMap(v -> v.getPushAlarmUserIds().stream()).toList();
+        List<BigInteger> pushAlarmUserIds = existRequestedMySpotZones.stream()
+                .flatMap(requestedMySpotZones -> {
+                    List<BigInteger> alarmUserIds = requestedMySpotZones.getPushAlarmUserIds();
+                    return alarmUserIds != null ? alarmUserIds.stream() : Stream.empty();
+                })
+                .collect(Collectors.toList());
 
         // 마이스팟 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(existRequestedMySpotZones);
