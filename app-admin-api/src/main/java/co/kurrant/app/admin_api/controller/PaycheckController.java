@@ -105,8 +105,8 @@ public class PaycheckController {
 
     @ControllerMarker(ControllerType.PAYCHECK)
     @Operation(summary = "메이커스 정산 삭제", description = "메이커스 정산 삭제")
-    @DeleteMapping("/makers")
-    public ResponseMessage deleteMakersPaycheckById(@RequestBody BigInteger makersPaycheckId) {
+    @DeleteMapping("/makers/{makersPaycheckId}")
+    public ResponseMessage deleteMakersPaycheckById(@PathVariable BigInteger makersPaycheckId) {
         adminPaycheckService.deleteMakersPaycheckById(makersPaycheckId);
         return ResponseMessage.builder()
                 .message("메이커스 정산 상태 변경에 성공하였습니다.")
