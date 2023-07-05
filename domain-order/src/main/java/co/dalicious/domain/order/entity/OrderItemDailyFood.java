@@ -38,7 +38,7 @@ public class OrderItemDailyFood extends OrderItem {
     @Comment("상품 가격")
     private BigDecimal price;
 
-    @Column(name = "discounted_price")
+    @Column(name = "discounted_price", columnDefinition = "DECIMAL(15, 2)")
     @Comment("할인된 가격")
     private BigDecimal discountedPrice;
 
