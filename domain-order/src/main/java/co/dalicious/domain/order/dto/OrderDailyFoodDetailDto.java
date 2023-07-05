@@ -17,6 +17,8 @@ public class OrderDailyFoodDetailDto {
     private String groupName;
     private String spotName;
     private String ho;
+    private String phone;
+    private String memo;
     private String address;
     private BigDecimal defaultPrice;
     private BigDecimal supportPrice;

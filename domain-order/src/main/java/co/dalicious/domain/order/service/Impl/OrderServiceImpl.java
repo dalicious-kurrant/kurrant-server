@@ -220,7 +220,8 @@ public class OrderServiceImpl implements OrderService {
 
             RefundPriceDto refundPriceDto = null;
 
-            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉")) {
+            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉") ||
+                    ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("밀당PT")) {
                 refundPriceDto = OrderUtil.getMedtronicRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
                 refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
@@ -297,7 +298,8 @@ public class OrderServiceImpl implements OrderService {
 
             RefundPriceDto refundPriceDto = null;
 
-            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉")) {
+            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉") ||
+                ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("밀당PT")) {
                 refundPriceDto = OrderUtil.getMedtronicRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
                 refundPriceDto = OrderUtil.getRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
@@ -638,7 +640,8 @@ public class OrderServiceImpl implements OrderService {
 
             RefundPriceDto refundPriceDto = null;
 
-            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉")) {
+            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉") ||
+                ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("밀당PT")) {
                 refundPriceDto = OrderUtil.getMedtronicRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
                 refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());

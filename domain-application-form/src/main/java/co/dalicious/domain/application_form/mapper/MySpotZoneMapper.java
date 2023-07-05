@@ -1,11 +1,11 @@
 package co.dalicious.domain.application_form.mapper;
 
+import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.application_form.dto.mySpotZone.UpdateRequestDto;
 import co.dalicious.domain.application_form.dto.mySpotZone.UpdateStatusDto;
-import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;

@@ -1,5 +1,7 @@
 package co.dalicious.system.util;
 
+import org.springframework.cglib.core.Local;
+
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.*;
@@ -90,6 +92,14 @@ public class DateUtils {
         sb.setLength(sb.length() - SEPARATOR.length());
 
         return sb.toString();
+    }
+
+    public static List<String> timesToStringList(List<LocalTime> times) {
+        List<String> stringList = new ArrayList<>();
+        for (LocalTime time : times) {
+            stringList.add(timeToString(time));
+        }
+        return stringList;
     }
 
     public static String timeToStringWithAMPM(LocalTime time) {

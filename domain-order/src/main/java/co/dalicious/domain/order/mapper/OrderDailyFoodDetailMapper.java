@@ -38,6 +38,8 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "orderDailyFood.receiptUrl", target = "receiptUrl")
     @Mapping(source = "orderDailyFood.paymentCompany.paymentCompany", target = "paymentCompany")
     @Mapping(source = "refundDto", target = "refundDto")
+    @Mapping(source = "orderDailyFood.phone", target = "phone")
+    @Mapping(source = "orderDailyFood.memo", target = "memo")
     OrderDailyFoodDetailDto orderToDto(OrderDailyFood orderDailyFood, List<OrderDailyFoodDetailDto.OrderItem> orderItems, OrderDailyFoodDetailDto.RefundDto refundDto);
 
     @Mapping(target = "image", expression = "java(orderItemDailyFood.getDailyFood().getFood().getImages() == null || orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty() ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation())")

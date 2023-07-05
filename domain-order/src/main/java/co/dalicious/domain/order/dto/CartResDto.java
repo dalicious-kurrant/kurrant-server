@@ -29,15 +29,17 @@ public class CartResDto {
         private String spotName;
         private String groupName;
         private Integer clientStatus;
+        private String phone;
         private List<CartDailyFoodDto> cartDailyFoodDtoList;
 
         @Builder
-        public SpotCarts(BigInteger spotId, String spotName, String groupName, Integer clientStatus, List<CartDailyFoodDto> cartDailyFoodDtoList) {
+        public SpotCarts(BigInteger spotId, String spotName, String groupName, Integer clientStatus, List<CartDailyFoodDto> cartDailyFoodDtoList, String phone) {
             this.spotId = spotId;
             this.spotName = spotName;
             this.groupName = groupName;
             this.clientStatus = clientStatus;
             this.cartDailyFoodDtoList = cartDailyFoodDtoList;
+            this.phone = phone;
         }
     }
 }

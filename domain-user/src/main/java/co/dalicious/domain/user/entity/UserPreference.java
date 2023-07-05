@@ -67,7 +67,7 @@ public class UserPreference {
     @Comment("알러지 정보")
     private String allergyInfoEtc;
 
-    @Column(name = "is_began", columnDefinition = "Boolean")
+    @Column(name = "is_began")
     @Comment("비건 여부")
     private Boolean isBegan;
 
@@ -75,7 +75,7 @@ public class UserPreference {
     @Comment("비건 정도")
     private Integer veganLevel;
 
-    @Column(name = "is_protein", columnDefinition = "Boolean")
+    @Column(name = "is_protein")
     @Comment("프로틴 섭취여부")
     private Boolean isProtein;
 

@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
+import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.PushAlarmSettingDto;
@@ -29,10 +30,10 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.integration.client.user.entity.Region;
-import co.dalicious.integration.client.user.mapper.UserGroupMapper;
-import co.dalicious.integration.client.user.mapper.UserSpotMapper;
+import co.dalicious.domain.user.mapper.UserGroupMapper;
+import co.dalicious.domain.user.mapper.UserSpotMapper;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
@@ -82,6 +83,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final QRequestedMySpotRepository qRequestedMySpotRepository;
     private final SseService sseService;
     private final NotificationHashRepository notificationHashRepository;
+    private final UserRepository userRepository;
+
 
     @Override
     @Transactional
@@ -116,7 +119,16 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             corporationApplicationMealRepository.save(corporationApplicationMealInfo);
         }
 
-        applicationSlackUtil.sendSlack("[기업스팟] 신청 내역이 있어요!");
+        Optional<User> optionalUser = userRepository.findById(userId);
+        String message = null;
+        if (optionalUser.isPresent()) {
+            message = "[기업스팟] 신청 내역이 있어요!\n" + " 스팟 이름 : " + corporationApplicationForm.getCorporationName() +
+                    "\n 인원 수 : " + corporationApplicationForm.getEmployeeCount() +
+                    "\n 신청자 이름 : " + optionalUser.get().getName() +
+                    "\n 연락처 : " + optionalUser.get().getPhone();
+        }
+
+        applicationSlackUtil.sendSlack(message);
 
         return ApplicationFormDto.builder()
                 .clientType(1)
@@ -232,7 +244,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         RequestedMySpot requestedMySpot = requestedMySpotMapper.toEntity(user.getId(), requestedMySpotZones, requestDto);
         requestedMySpotRepository.save(requestedMySpot);
 
-        applicationSlackUtil.sendSlack("[마이스팟] 등록 신청 내역이 있어요!");
+        String message = "[마이스팟] 등록 신청 내역이 있어요! \n"
+                        +" 스팟 이름 : " +requestedMySpot.getName()
+                        +"\n 신청자 이름 : " + user.getName()
+                        +"\n 연락처 : " + user.getPhone();
+
+        applicationSlackUtil.sendSlack(message);
 
 
         // my spot zone 존재 여부 response
@@ -249,7 +266,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         requestedShareSpot.updateUserId(user.getId());
         requestedShareSpotRepository.save(requestedShareSpot);
 
-        applicationSlackUtil.sendSlack("[공유스팟] 등록 신청 내역이 있어요!");
+        String message = "[공유스팟] 등록 신청 내역이 있어요!"
+                +"\n 스팟 주소 : " + requestedShareSpot.getAddress().getAddress1() + requestedShareSpot.getAddress().getAddress2()
+                +"\n 신청자 이름 : " + user.getName()
+                +"\n 연락처  : " + user.getPhone();
+
+        applicationSlackUtil.sendSlack(message);
     }
     
     private ApplicationFormDto updateRequestedMySpot(RequestedMySpot requestedMySpot, MySpotZoneApplicationFormRequestDto requestDto, User user) throws ParseException {

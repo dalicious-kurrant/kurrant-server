@@ -43,10 +43,7 @@ import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.*;
-import co.dalicious.domain.user.repository.QMembershipRepository;
-import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.UserGroupRepository;
-import co.dalicious.domain.user.repository.UserRepository;
+import co.dalicious.domain.user.repository.*;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DiningTypesUtils;
@@ -116,6 +113,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DeliveryUtils deliveryUtils;
     private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
     private final DeliveryInstanceMapper deliveryInstanceMapper;
+    private final QUserGroupRepository qUserGroupRepository;
 
     @Override
     @Transactional
@@ -205,7 +203,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Group group = groupRepository.findById(groupId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)
         );
-        List<UserGroup> userGroups = userGroupRepository.findAllByGroupAndClientStatus(group, ClientStatus.BELONG);
+        List<UserGroup> userGroups =  qUserGroupRepository.findAllByGroupAndClientStatus(groupId);
         for (UserGroup userGroup : userGroups) {
             users.add(userGroup.getUser());
         }
@@ -233,12 +231,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if (!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
                 throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
             }
+            OrderStatus defaultOrderStatus = orderItemDailyFood.getOrderStatus();
             orderItemDailyFood.updateOrderStatus(orderStatus);
             Optional<User> optionalUser = userRepository.findById(orderItemDailyFood.getOrder().getUser().getId());
             optionalUser.ifPresent(user -> userPhoneNumber.add(user.getPhone()));
 
             // 배송완료 푸시 알림 전송 및 멤버십 추가
-            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.DELIVERED) && OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
+            if (!defaultOrderStatus.equals(OrderStatus.DELIVERED) && OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
                 // 멤버십 추가
                 User user = orderItemDailyFood.getOrder().getUser();
                 Group group = (Group) Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup());
