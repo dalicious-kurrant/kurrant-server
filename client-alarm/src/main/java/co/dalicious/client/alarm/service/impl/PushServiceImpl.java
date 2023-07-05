@@ -109,6 +109,7 @@ public class PushServiceImpl implements PushService {
         List<Message> messages = new ArrayList<>();
 
         for (PushRequestDtoByUser requestDtoByUser : pushRequestDtoByUsers) {
+            if(requestDtoByUser == null) continue;
             Message message = Message.builder()
                     .putData("time", LocalDateTime.now().toString())
                     .putData("page", requestDtoByUser.getPage())

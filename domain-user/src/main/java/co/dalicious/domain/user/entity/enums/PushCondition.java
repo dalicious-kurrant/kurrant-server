@@ -25,8 +25,8 @@ public enum PushCondition {
     NEW_NOTICE("공지사항","새로운 혜택 및 소식", 3001),
 
     /*스팟*/
-    NEW_SPOT("신청 스팟 생성", "신청한 스팟 생성 때", 4001),
-    NEW_SPOT_2("신청 스팟 생성", "신청한 스팟 생성 때", 4002)
+    NEW_SPOT("신청 스팟 생성", "신청한 스팟 생성 때", 4001), // 프라이빗스팟
+    NEW_SPOT_2("신청 스팟 생성", "신청한 스팟 생성 때", 4002) // 마이스팟, 공유스팟
     ;
     private final String title;
     private final String condition;
@@ -72,6 +72,6 @@ public enum PushCondition {
     }
 
     public static List<PushCondition> getNoShowCondition() {
-        return List.of(NEW_SPOT);
+        return List.of(NEW_SPOT_2);
     }
 }

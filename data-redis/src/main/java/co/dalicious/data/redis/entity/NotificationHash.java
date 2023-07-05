@@ -16,7 +16,7 @@ public class NotificationHash {
     @Id
     String id;
 
-    // 1: 전체공지, 2: 스팟공지, 3: 구매후기, 4: 마감시간, 5: 다음주 주문, 6: 푸시알림
+    // 1: 전체공지, 2: 스팟공지, 3: 구매후기, 4: 마감시간, 5: 다음주 주문, 6: 푸시알림, 7: 그룹
     @Indexed
     Integer type;
 
@@ -29,15 +29,19 @@ public class NotificationHash {
     String content;
 
     LocalDate createDate;
+    BigInteger groupId;
+    BigInteger commentId;
 
     @Builder
-    public NotificationHash(String id, Integer type, BigInteger userId, boolean isRead, String content, LocalDate createDate) {
+    public NotificationHash(String id, Integer type, BigInteger userId, boolean isRead, String content, LocalDate createDate, BigInteger groupId, BigInteger commentId) {
         this.id = id;
         this.type = type;
         this.userId = userId;
         this.isRead = isRead;
         checkNotificationContent(content);
         this.createDate = createDate;
+        this.groupId = groupId;
+        this.commentId = commentId;
     }
 
     private void checkNotificationContent(String content){
@@ -52,5 +56,13 @@ public class NotificationHash {
 
     public void updateRead(boolean isRead) {
         this.isRead = isRead;
+    }
+
+    public void setGroupId(BigInteger groupId) {
+        this.groupId = groupId;
+    }
+
+    public void setCommentId(BigInteger commentId) {
+        this.commentId = commentId;
     }
 }
