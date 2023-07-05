@@ -109,15 +109,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final NotificationHashRepository notificationHashRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QDailyFoodRepository qDailyFoodRepository;
-    private final MembershipRepository membershipRepository;
-    private final OrderMembershipMapper orderMembershipMapper;
-    private final OrderUserInfoMapper orderUserInfoMapper;
-    private final OrderMembershipRepository orderMembershipRepository;
-    private final OrderItemMembershipRepository orderItemMembershipRepository;
-    private final MembershipSupportPriceRepository membershipSupportPriceRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
-    private final FoundersMapper foundersMapper;
-    private final FoundersUtil foundersUtil;
     private final OrderService orderService;
     private final PointUtil pointUtil;
     private final QFoundersRepository qFoundersRepository;
@@ -171,7 +163,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             }
 
             // 1. 주문서 저장하기
-            OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId()));
+            OrderDailyFood orderDailyFood = orderDailyFoodRepository.save(orderMapper.toEntity(user, spot, orderItemDailyFoodReqDto.getOrderId(), orderItemDailyFoodReqDto.getPhone(), orderItemDailyFoodReqDto.getMemo()));
 
             // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
             PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
@@ -544,7 +536,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         return null;
     }
-
+    /*
     @Override
     @Transactional
     public BigInteger orderDailyFoods(SecurityUser securityUser, OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
@@ -816,6 +808,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             return orderDailyFood.getId();
         }
     }
+    */
 
     @Override
     @Transactional

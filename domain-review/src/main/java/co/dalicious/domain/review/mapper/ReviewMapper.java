@@ -344,32 +344,8 @@ public interface ReviewMapper {
         getFoodReviewResponseDto.setFoodId(foodId);
         getFoodReviewResponseDto.setReviewWrite(reviewWrite);
 
-
-        if (sort == 0){ //별점순 같을 경우 최신순
-            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction)
-                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList()));
-        }
-        if (sort == 1){ //최신순 같을 경우 별점순
-            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate)
-                    .thenComparing(FoodReviewListDto::getSatisfaction).reversed()).collect(Collectors.toList()));
-        }
-        if (sort == 2){ //좋아요(도움이돼요)순 같을 경우 최신순
-            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getGood)
-                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList()));
-        }
-
         return getFoodReviewResponseDto;
 
     };
 
-
-
-    /* point쪽 무한스크롤 참고해서 만들기
-    * private BigInteger reviewId;
-    private String userName;
-    private String content;
-    private String writeDate;
-    private Integer like;
-    *
-    * */
 }

@@ -164,13 +164,18 @@ public class FoodServiceImpl implements FoodService {
                 foodRepository.save(newFood);
 
                 // 푸드 할인 정책 생성
-                FoodDiscountPolicy membershipDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.MEMBERSHIP_DISCOUNT, foodListDto.getMembershipDiscount(), newFood);
-                FoodDiscountPolicy makersDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.MAKERS_DISCOUNT, foodListDto.getMakersDiscount(), newFood);
-                FoodDiscountPolicy periodDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.PERIOD_DISCOUNT, foodListDto.getEventDiscount(), newFood);
-
-                foodDiscountPolicyRepository.save(membershipDiscount);
-                foodDiscountPolicyRepository.save(makersDiscount);
-                foodDiscountPolicyRepository.save(periodDiscount);
+                if(foodListDto.getMembershipDiscount() != null && foodListDto.getMembershipDiscount() != 0) {
+                    FoodDiscountPolicy membershipDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.MEMBERSHIP_DISCOUNT, foodListDto.getMembershipDiscount(), newFood);
+                    foodDiscountPolicyRepository.save(membershipDiscount);
+                }
+                if(foodListDto.getMakersDiscount() != null && foodListDto.getMakersDiscount() != 0) {
+                    FoodDiscountPolicy makersDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.MAKERS_DISCOUNT, foodListDto.getMakersDiscount(), newFood);
+                    foodDiscountPolicyRepository.save(makersDiscount);
+                }
+                if(foodListDto.getEventDiscount() != null && foodListDto.getEventDiscount() != 0) {
+                    FoodDiscountPolicy periodDiscount = foodDiscountPolicyMapper.toEntity(DiscountType.PERIOD_DISCOUNT, foodListDto.getEventDiscount(), newFood);
+                    foodDiscountPolicyRepository.save(periodDiscount);
+                }
 
                 // 푸드 capacity 생성
                 List<MakersCapacity> makersCapacityList = maker.getMakersCapacities();
@@ -196,12 +201,24 @@ public class FoodServiceImpl implements FoodService {
                 List<FoodDiscountPolicy> discountPolicyList = food.getFoodDiscountPolicyList();
                 for (FoodDiscountPolicy discountPolicy : discountPolicyList) {
                     if (discountPolicy.getDiscountType().equals(DiscountType.MEMBERSHIP_DISCOUNT)) {
+                        if(foodListDto.getMembershipDiscount() == null || foodListDto.getMembershipDiscount() == 0) {
+                            foodDiscountPolicyRepository.delete(discountPolicy);
+                            continue;
+                        }
                         discountPolicy.updateFoodDiscountPolicy(foodListDto.getMembershipDiscount());
                         foodDiscountPolicyRepository.save(discountPolicy);
                     } else if (discountPolicy.getDiscountType().equals(DiscountType.MAKERS_DISCOUNT)) {
+                        if(foodListDto.getMakersDiscount() == null || foodListDto.getMakersDiscount() == 0) {
+                            foodDiscountPolicyRepository.delete(discountPolicy);
+                            continue;
+                        }
                         discountPolicy.updateFoodDiscountPolicy(foodListDto.getMakersDiscount());
                         foodDiscountPolicyRepository.save(discountPolicy);
                     } else if (discountPolicy.getDiscountType().equals(DiscountType.PERIOD_DISCOUNT)) {
+                        if(foodListDto.getEventDiscount() == null || foodListDto.getEventDiscount() == 0) {
+                            foodDiscountPolicyRepository.delete(discountPolicy);
+                            continue;
+                        }
                         discountPolicy.updateFoodDiscountPolicy(foodListDto.getEventDiscount());
                         foodDiscountPolicyRepository.save(discountPolicy);
                     }
@@ -215,8 +232,8 @@ public class FoodServiceImpl implements FoodService {
     public void updateFood(List<MultipartFile> files, MakersFoodDetailReqDto foodDetailDto) throws IOException {
         Food food = foodRepository.findById(foodDetailDto.getFoodId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
 
-        FoodGroup foodGroup = (foodDetailDto.getFoodGroupId() == null) ? null : foodGroupRepository.findById(foodDetailDto.getFoodGroupId()).orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400006", "일치하는 식품 그룹이 없습니다"));
-
+        FoodGroup foodGroup = (foodDetailDto.getFoodGroupId() == null) ? null : foodGroupRepository.findById(foodDetailDto.getFoodGroupId())
+                .orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400006", "일치하는 식품 그룹이 없습니다"));
         // 이미지가 삭제되었다면 S3에서도 삭제
         List<Image> images = new ArrayList<>();
         List<String> requestImage = foodDetailDto.getImages();

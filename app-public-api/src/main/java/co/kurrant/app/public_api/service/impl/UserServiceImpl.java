@@ -11,7 +11,6 @@ import co.dalicious.domain.application_form.utils.ApplicationUtil;
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -19,7 +18,6 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
-import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
@@ -38,14 +36,15 @@ import co.dalicious.domain.user.mapper.DailyReportMapper;
 import co.dalicious.domain.user.mapper.UserPreferenceMapper;
 import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
 import co.dalicious.domain.user.repository.*;
-import co.dalicious.integration.client.user.utils.ClientUtil;
+import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
-import co.dalicious.integration.client.user.mapper.UserGroupMapper;
+import co.dalicious.domain.user.mapper.UserGroupMapper;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
+import co.dalicious.domain.user.dto.UserGroupDto;
 import co.kurrant.app.public_api.dto.order.OrderItemDailyFoodToDailyReportDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.DailyReport.OrderItemDailyFoodDailyReportMapper;
@@ -56,13 +55,10 @@ import co.kurrant.app.public_api.service.UserService;
 import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.querydsl.core.Tuple;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -77,7 +73,6 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 
 @Service
@@ -319,7 +314,49 @@ public class UserServiceImpl implements UserService {
         providerEmailRepository.save(providerEmail);
     }
 
+    /*
+        @Override
+        @Transactional
+        public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
+            // 유저 정보 가져오기
+            User user = userUtil.getUser(securityUser);
+            Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
+            return MarketingAlarmResponseDto.builder()
+                    .marketingAgree(user.getMarketingAgree())
+                    .orderAlarm(user.getOrderAlarm())
+                    .marketingAlarm(user.getMarketingAlarm())
+                    .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
+                    .build();
+        }
 
+
+        @Override
+        @Transactional
+        public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+                // 유저 정보 가져오기
+                User user = userUtil.getUser(securityUser);
+                Boolean currantMarketingInfoAgree = user.getMarketingAgree();
+                Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
+                Boolean currantOrderAlarmAgree = user.getOrderAlarm();
+
+                // 현재 시간 가져오기
+                Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+
+                // 변수 설정
+                Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
+                Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
+                Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
+
+                user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
+
+                return MarketingAlarmResponseDto.builder()
+                        .marketingAgree(currantMarketingInfoAgree)
+                        .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
+                        .marketingAlarm(currantMarketingAlarmAgree)
+                        .orderAlarm(currantOrderAlarmAgree)
+                        .build();
+            }
+        */
     @Override
     @Transactional
     public List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser) {
@@ -399,12 +436,12 @@ public class UserServiceImpl implements UserService {
         Group group = qGroupRepository.findGroupByTypeAndId(groupId, GroupDataType.OPEN_GROUP);
         if (group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
 
-        List<UserGroup> userGroups = user.getGroups();
+        List<UserGroup> userGroups = user.getActiveUserGroups();
 
         // TODO: 그룹 슬롯 증가의 경우 반영 필요
         // 오픈 스팟 그룹의 개수가 2개 이상일 떄
-        long userGroupCount = userGroups.stream().
-                filter(v -> v.getClientStatus().equals(ClientStatus.BELONG) && v.getGroup() instanceof OpenGroup)
+        long userGroupCount = userGroups.stream()
+                .filter(v -> v.getGroup() instanceof OpenGroup)
                 .count();
         if (userGroupCount >= 2) {
             throw new ApiException(ExceptionEnum.REQUEST_OVER_GROUP);
@@ -427,17 +464,15 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public GroupCountDto getClients(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
-        // 그룹/스팟 정보 가져오기
-        List<UserGroup> userGroups = user.getGroups();
+        // 현재 활성화된 유저 그룹일 경우만 가져오기
+        List<UserGroup> userGroups = user.getActiveUserGroups();
         // 그룹/스팟 리스트를 담아줄 Dto 생성하기
         List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
         // 그룹 추가
         for (UserGroup userGroup : userGroups) {
-            // 현재 활성화된 유저 그룹일 경우만 가져오기
-            if (userGroup.getClientStatus() == ClientStatus.BELONG) {
-                SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(userGroup);
-                spotListResponseDtoList.add(spotListResponseDto);
-            }
+            SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(userGroup);
+            spotListResponseDtoList.add(spotListResponseDto);
+
         }
         // 기업 -> 공유 -> 마이 스팟 별로 정렬.
         spotListResponseDtoList = spotListResponseDtoList.stream().sorted(Comparator.comparing(SpotListResponseDto::getSpotType)).sorted(Comparator.comparingInt(dto -> {
@@ -452,6 +487,13 @@ public class UserServiceImpl implements UserService {
                 }))
                 .toList();
         return userGroupMapper.toGroupCountDto(spotListResponseDtoList);
+    }
+
+    @Override
+    @Transactional
+    public UserGroupDto getClientManagement(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        return userGroupMapper.toUserGroupDto(user);
     }
 
     @Override

@@ -48,8 +48,8 @@ public class PointPolicy {
     @Comment("계정 당 횟수")
     private Integer accountCompletionLimit;
 
-    @Column(name = "reward_point")
     @Comment("보상 포인트")
+    @Column(columnDefinition="Decimal(15,2) default '0.00'")
     private BigDecimal rewardPoint;
 
     @Column(name = "event_start_date")

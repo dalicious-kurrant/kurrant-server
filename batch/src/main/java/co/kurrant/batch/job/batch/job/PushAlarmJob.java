@@ -287,7 +287,7 @@ public class PushAlarmJob {
             public User process(User user) throws Exception {
                 log.info("[User 푸시 알림 전송 시작] : {}", user.getId());
                 try {
-                    PushCondition pushCondition = PushCondition.NEW_SPOT;
+                    PushCondition pushCondition = PushCondition.NEW_SPOT_2;
                     String customMessage = pushUtil.getContextOpenOrMySpot(user.getName(), GroupDataType.MY_SPOT.getType(), pushCondition);
 
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);

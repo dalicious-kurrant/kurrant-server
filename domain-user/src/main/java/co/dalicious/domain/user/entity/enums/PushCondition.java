@@ -72,6 +72,6 @@ public enum PushCondition {
     }
 
     public static List<PushCondition> getNoShowCondition() {
-        return List.of(NEW_SPOT_2);
+        return List.of(NEW_SPOT);
     }
 }

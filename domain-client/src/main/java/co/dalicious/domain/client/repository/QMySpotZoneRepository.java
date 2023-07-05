@@ -17,7 +17,8 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.util.*;
 
-import static co.dalicious.integration.client.user.entity.QRegion.region;
+import static co.dalicious.domain.address.entity.QRegion.region;
+
 
 @Repository
 @RequiredArgsConstructor

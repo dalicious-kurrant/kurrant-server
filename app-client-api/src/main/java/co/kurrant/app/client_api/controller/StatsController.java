@@ -1,5 +1,11 @@
 package co.kurrant.app.client_api.controller;
 
+import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.client_api.model.SecurityUser;
+import co.kurrant.app.client_api.util.UserUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import co.kurrant.app.client_api.service.StatsService;
@@ -10,11 +16,20 @@ import lombok.extern.slf4j.Slf4j;
 @Tag(name = "ORDER")
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping(value = "/v1/stats")
+@RequestMapping(value = "/v1/status")
 @RestController
 public class StatsController {
 
   private final StatsService statsService;
+  @GetMapping("")
+  public ResponseMessage getGroupList(Authentication authentication) {
+    SecurityUser securityUser = UserUtil.securityUser(authentication);
+    return ResponseMessage.builder()
+            .message("기업 정보를 조회했습니다.")
+            .data(statsService.test(securityUser))
+            .build();
+  }
+
 /*
   @Operation(summary = "일간통계항목 조회", description = "일간통계 항목을 조회한다.")
   @ResponseStatus(HttpStatus.OK)

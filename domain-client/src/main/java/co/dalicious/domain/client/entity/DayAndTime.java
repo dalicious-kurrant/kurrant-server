@@ -17,6 +17,15 @@ public class DayAndTime {
         this.time = time;
     }
 
+    public String dayAndTimeToString() {
+        String timeStr = this.getTime().toString();
+        if (this.getDay() == null) {
+            return "0일전 " + timeStr;
+        } else {
+            return this.getDay() + "일전 " + timeStr;
+        }
+    }
+
     public static String dayAndTimeToString(DayAndTime dayAndTime) {
         if(dayAndTime == null) {
             return "정보 없음";

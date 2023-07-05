@@ -100,6 +100,15 @@ jobs:
         echo "${{ secrets.SYSTEM_CORE_ALIMTALK }}" > ./application-alimtalk.properties
       shell: bash
 
+    - name: client-alarm application-map.properties 생성
+      run: |
+        cd ./domain-address/src/main
+        mkdir resources
+        cd resources
+        touch ./application-map.properties
+        echo "${{ secrets.SYSTEM_CORE_MAP }}" > ./application-map.properties
+      shell: bash
+
     - name: gradlew 실행 권한 추가
       run: chmod +x gradlew
 
@@ -123,10 +132,11 @@ jobs:
         key: ${{ secrets.PROD_PRIVATE_KEY }}
         envs: GITHUB_SHA
         script: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker pull ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
           docker tag ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7} client_kurrant_v1
           docker stop client_kurrant_v1
           sleep 5
-          docker run -i -t --log-driver=awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=kurrant/prod --log-opt awslogs-stream=client -d --rm --name kurrant_batch -p 8890:8890 kurrant_batch
+          docker run -i -t --log-driver=awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=kurrant/prod --log-opt awslogs-stream=client -d --rm --net redis_redis_cluster --name client_kurrant_v1 -p 8886:8886 client_kurrant_v1
           
 

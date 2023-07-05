@@ -1,6 +1,6 @@
 package co.dalicious.domain.address.repository;
 
-import co.dalicious.integration.client.user.entity.Region;
+import co.dalicious.domain.address.entity.Region;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -8,12 +8,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static co.dalicious.integration.client.user.entity.QRegion.region;
+import static co.dalicious.domain.address.entity.QRegion.region;
+
 
 @Repository
 @RequiredArgsConstructor

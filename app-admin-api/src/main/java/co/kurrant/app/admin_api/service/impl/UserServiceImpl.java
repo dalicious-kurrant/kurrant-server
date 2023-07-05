@@ -1,5 +1,10 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
+import co.dalicious.client.alarm.service.PushService;
+import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Department;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.mapper.DepartmentMapper;
@@ -62,6 +67,8 @@ public class UserServiceImpl implements UserService {
     private final UserTasteTestDataRepository userTasteTestDataRepository;
     private final QUserTasteTestDataRepository qUserTasteTestDataRepository;
     private final PointUtil pointUtil;
+    private final PushUtil pushUtil;
+    private final PushService pushService;
 
 
     @Override
@@ -142,6 +149,8 @@ public class UserServiceImpl implements UserService {
                     .findAny().ifPresent(saveUserListRequestDto -> userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto));
         }
 
+        Set<User> pushAlarmForCorporationUser = new HashSet<>();
+
         for (User user : userUpdateMap.keySet()) {
             SaveUserListRequestDto saveUserListRequestDto = userUpdateMap.get(user);
             // 비밀번호에 데이터가 없을 경우
@@ -202,6 +211,9 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toList());
 
                 userGroupRepository.saveAll(userGroups);
+                if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
+                    pushAlarmForCorporationUser.add(user);
+                }
             } else {
                 // Case 3: 유저에 포함된 그룹이 존재할 때
                 Map<String, Group> nameToGroupMap = groups.stream()
@@ -209,10 +221,14 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toMap(Group::getName, Function.identity()));
 
                 user.getGroups().forEach(userGroup -> {
+                    ClientStatus defaultStatus = userGroup.getClientStatus();
                     if (nameToGroupMap.containsKey(userGroup.getGroup().getName())) {
                         // 기존에 존재할 경우 상태값 변경(BELONG)
                         userGroup.updateStatus(ClientStatus.BELONG);
                         nameToGroupMap.remove(userGroup.getGroup().getName());
+                        if(defaultStatus.equals(ClientStatus.WITHDRAWAL) && userGroup.getGroup() instanceof Corporation) {
+                            pushAlarmForCorporationUser.add(user);
+                        }
                     } else {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
@@ -232,6 +248,9 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toList());
 
                 userGroupRepository.saveAll(userGroups);
+                if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
+                    pushAlarmForCorporationUser.add(user);
+                }
             }
             if (saveUserListRequestDto.getName() != null && !user.getName().equals(saveUserListRequestDto.getName()))
                 user.updateName(saveUserListRequestDto.getName());
@@ -308,6 +327,22 @@ public class UserServiceImpl implements UserService {
         }
 
         // TODO: 프라이빗 스팟 초대 시 푸시알림 추가
+        List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmForCorporationUser.stream()
+                .map(user -> {
+                    PushCondition pushCondition = PushCondition.NEW_SPOT;
+                    String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
+                    pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
+                    return pushUtil.getPushRequest(user, pushCondition, message);
+                }).toList();
+        if(pushRequestDtoByUsers.size() > 500) {
+            List<List<PushRequestDtoByUser>> slicePushRequestDtoByUsers = pushUtil.sliceByChunkSize(pushRequestDtoByUsers);
+
+            for(List<PushRequestDtoByUser> list : slicePushRequestDtoByUsers) {
+                pushService.sendToPush(list);
+            }
+        }
+        else pushService.sendToPush(pushRequestDtoByUsers);
+
     }
 
     @Override
