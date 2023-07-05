@@ -4,9 +4,12 @@ import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Department;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.DepartmentMapper;
 import co.dalicious.domain.client.repository.DepartmentRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -31,9 +34,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -69,6 +76,7 @@ public class UserServiceImpl implements UserService {
     private final PointUtil pointUtil;
     private final PushUtil pushUtil;
     private final PushService pushService;
+    private final NotificationHashRepository notificationHashRepository;
 
 
     @Override
@@ -150,6 +158,7 @@ public class UserServiceImpl implements UserService {
         }
 
         Set<User> pushAlarmForCorporationUser = new HashSet<>();
+        List<NotificationHash> newNotificationHash = new ArrayList<>();
 
         for (User user : userUpdateMap.keySet()) {
             SaveUserListRequestDto saveUserListRequestDto = userUpdateMap.get(user);
@@ -200,6 +209,13 @@ public class UserServiceImpl implements UserService {
             if (groupsName.isEmpty()) {
                 // Case 1: 요청의 groupName 값이 null일 경우 기존의 UserGroup 철회
                 user.getGroups().forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
+
+                // open group의 경우 count 빼기
+                user.getGroups().stream()
+                        .filter(userGroup -> userGroup.getGroup() instanceof OpenGroup)
+                        .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
+                        .forEach(g -> g.updateOpenGroupUserCount(1, false));
+
             } else if (user.getGroups().isEmpty()) {
                 // Case 2: 유저에 포함된 그룹이 없을 때
                 List<UserGroup> userGroups = Group.getGroups(groups, groupsName).stream()
@@ -211,9 +227,19 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toList());
 
                 userGroupRepository.saveAll(userGroups);
+
+                // open group의 경우 count 넣기
+                userGroups.stream()
+                        .filter(userGroup -> userGroup.getGroup() instanceof OpenGroup)
+                        .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
+                        .forEach(g -> g.updateOpenGroupUserCount(1, true));
+
+                userGroups.forEach(v -> newNotificationHash.add(createNotificationHashForGroup(user, v.getGroup())));
+
                 if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
                     pushAlarmForCorporationUser.add(user);
                 }
+
             } else {
                 // Case 3: 유저에 포함된 그룹이 존재할 때
                 Map<String, Group> nameToGroupMap = groups.stream()
@@ -226,9 +252,13 @@ public class UserServiceImpl implements UserService {
                         // 기존에 존재할 경우 상태값 변경(BELONG)
                         userGroup.updateStatus(ClientStatus.BELONG);
                         nameToGroupMap.remove(userGroup.getGroup().getName());
-                        if(defaultStatus.equals(ClientStatus.WITHDRAWAL) && userGroup.getGroup() instanceof Corporation) {
-                            pushAlarmForCorporationUser.add(user);
+
+                        if(defaultStatus.equals(ClientStatus.WITHDRAWAL)) {
+                            if (userGroup.getGroup() instanceof Corporation) pushAlarmForCorporationUser.add(user);
+                            newNotificationHash.add(createNotificationHashForGroup(user, userGroup.getGroup()));
                         }
+
+                        if (userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, true);
                     } else {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
@@ -236,6 +266,8 @@ public class UserServiceImpl implements UserService {
                                     .filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
                                     .toList();
                         userSpotRepository.deleteAll(deleteUserSpots);
+
+                        if (userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
                     }
                 });
                 // 유저 내에 존재하지 않는 그룹은 추가
@@ -248,9 +280,18 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toList());
 
                 userGroupRepository.saveAll(userGroups);
+
                 if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
                     pushAlarmForCorporationUser.add(user);
                 }
+
+                userGroups.forEach(v -> newNotificationHash.add(createNotificationHashForGroup(user, v.getGroup())));
+
+                // open group의 경우 count 넣기
+                userGroups.stream()
+                        .filter(userGroup -> userGroup.getGroup() instanceof OpenGroup)
+                        .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
+                        .forEach(g -> g.updateOpenGroupUserCount(1, true));
             }
             if (saveUserListRequestDto.getName() != null && !user.getName().equals(saveUserListRequestDto.getName()))
                 user.updateName(saveUserListRequestDto.getName());
@@ -343,6 +384,8 @@ public class UserServiceImpl implements UserService {
         }
         else pushService.sendToPush(pushRequestDtoByUsers);
 
+        // 신규 그룹 추가 sse
+        notificationHashRepository.saveAll(newNotificationHash);
     }
 
     @Override
@@ -435,5 +478,17 @@ public class UserServiceImpl implements UserService {
         }
 
         return "테스트 데이터 삭제 성공!";
+    }
+
+    private NotificationHash createNotificationHashForGroup (User user, Group group) {
+        return NotificationHash.builder()
+                .userId(user.getId())
+                .createDate(LocalDate.now(ZoneId.of("Asia/Seoul")))
+                .isRead(false)
+                .content(null)
+                .type(7)
+                .groupId(group.getId())
+                .commentId(null)
+                .build();
     }
 }

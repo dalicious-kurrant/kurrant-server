@@ -208,7 +208,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 3, false);
         if(!notificationHashList.isEmpty()) {
-            sseService.send(user.getId(), 3, null);
+            sseService.send(user.getId(), 3, null, null, null);
         }
 
         return ReviewableItemResDto.create(orderFoodList, redeemablePoints, size);
