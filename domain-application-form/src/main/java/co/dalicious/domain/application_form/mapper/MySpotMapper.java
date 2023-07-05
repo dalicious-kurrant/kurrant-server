@@ -49,7 +49,7 @@ public interface MySpotMapper {
                     .userId(v.getUserId())
                     .isDelete(false)
                     .memo(v.getMemo())
-                    .isAlarm(pushAlarmUserIds.contains(v.getUserId()))
+                    .isAlarm(!pushAlarmUserIds.isEmpty() && pushAlarmUserIds.contains(v.getUserId()))
                     .phone(v.getPhone())
                     .build()
                 ).toList();
