@@ -1,12 +1,10 @@
 package co.dalicious.domain.client.entity;
 
-import org.hibernate.annotations.Comment;
-
 import javax.persistence.*;
 import java.math.BigInteger;
 
 @Entity
-public class TestEntity {
+public class TestEntity2 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)
