@@ -211,7 +211,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                     if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
                         DailyFoodSupportPrice dailyFoodSupportPrice;
-                        if (spot.getGroup().getName().contains("메드트로닉")) {
+                        if (spot.getGroup().getName().contains("메드트로닉") || spot.getGroup().getName().contains("밀당PT")) {
                             dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
                         } else {
                             dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, usableSupportPrice);
@@ -836,7 +836,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         BigDecimal supportPrice = BigDecimal.ZERO;
         if (spot instanceof CorporationSpot) {
             supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType()));
-            if (!spot.getGroup().getName().contains("메드트로닉") && cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
+            if (!spot.getGroup().getName().contains("메드트로닉") && !spot.getGroup().getName().contains("밀당PT") && cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
                 throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);
             }
         }
