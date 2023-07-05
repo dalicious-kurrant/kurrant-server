@@ -35,6 +35,7 @@ public class QUserGroupRepository {
         return queryFactory.select(userGroup.user)
                 .from(userGroup)
                 .where(userGroup.group.id.eq(corporationId),
+                        userGroup.group.isActive,
                         userGroup.clientStatus.ne(ClientStatus.WITHDRAWAL))
                 .fetch();
     }
@@ -43,10 +44,19 @@ public class QUserGroupRepository {
         return queryFactory.selectFrom(userGroup)
                 .where(userGroup.user.id.eq(userId),
                         userGroup.group.id.eq(groupId),
+                        userGroup.group.isActive,
                         userGroup.clientStatus.eq(ClientStatus.BELONG))
                 .fetch();
     }
 
+    public List<UserGroup> findAllByGroupAndClientStatus(BigInteger groupId) {
+        return queryFactory.selectFrom(userGroup)
+                .where(
+                        userGroup.group.id.eq(groupId),
+                        userGroup.group.isActive,
+                        userGroup.clientStatus.eq(ClientStatus.BELONG))
+                .fetch();
+    }
     public Long deleteMember(BigInteger userId, BigInteger groupId) {
         return queryFactory.update(userGroup)
                 .set(userGroup.clientStatus, ClientStatus.WITHDRAWAL)
