@@ -4,6 +4,7 @@ import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Department;
 import co.dalicious.domain.client.entity.Group;
@@ -153,7 +154,7 @@ public class UserServiceImpl implements UserService {
         }
 
         Set<User> pushAlarmForCorporationUser = new HashSet<>();
-        MultiValueMap<BigInteger, BigInteger> userIdAndGroupIdListMap = new LinkedMultiValueMap<>();
+        List<NotificationHash> newNotificationHash = new ArrayList<>();
 
         for (User user : userUpdateMap.keySet()) {
             SaveUserListRequestDto saveUserListRequestDto = userUpdateMap.get(user);
@@ -232,6 +233,7 @@ public class UserServiceImpl implements UserService {
                 if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
                     pushAlarmForCorporationUser.add(user);
                 }
+
             } else {
                 // Case 3: 유저에 포함된 그룹이 존재할 때
                 Map<String, Group> nameToGroupMap = groups.stream()
@@ -274,6 +276,12 @@ public class UserServiceImpl implements UserService {
                 if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
                     pushAlarmForCorporationUser.add(user);
                 }
+
+                // open group의 경우 count 넣기
+                userGroups.stream()
+                        .filter(userGroup -> userGroup.getGroup() instanceof OpenGroup)
+                        .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
+                        .forEach(g -> g.updateOpenGroupUserCount(1, true));
             }
             if (saveUserListRequestDto.getName() != null && !user.getName().equals(saveUserListRequestDto.getName()))
                 user.updateName(saveUserListRequestDto.getName());

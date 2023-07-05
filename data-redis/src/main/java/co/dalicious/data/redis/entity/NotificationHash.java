@@ -29,6 +29,8 @@ public class NotificationHash {
     String content;
 
     LocalDate createDate;
+    BigInteger groupId;
+    BigInteger commentId;
 
     @Builder
     public NotificationHash(String id, Integer type, BigInteger userId, boolean isRead, String content, LocalDate createDate) {
@@ -52,5 +54,13 @@ public class NotificationHash {
 
     public void updateRead(boolean isRead) {
         this.isRead = isRead;
+    }
+
+    public void setGroupId(BigInteger groupId) {
+        this.groupId = groupId;
+    }
+
+    public void setCommentId(BigInteger commentId) {
+        this.commentId = commentId;
     }
 }
