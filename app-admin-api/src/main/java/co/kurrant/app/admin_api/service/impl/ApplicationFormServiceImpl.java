@@ -204,8 +204,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         requestedMySpotRepository.deleteAll(requestedMySpots);
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
 
-        applicationSlackUtil.sendSlack("[마이스팟] 신청 내역이 있어요!");
-
     }
 
     @Override
@@ -221,8 +219,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     public void createShareSpotRequest(ShareSpotDto.AdminRequest request) throws ParseException {
         RequestedShareSpot requestedShareSpot = requestedShareSpotMapper.toEntity(request);
         requestedShareSpotRepository.save(requestedShareSpot);
-
-        applicationSlackUtil.sendSlack("[공유스팟] 신청 내역이 있어요!");
 
     }
 
