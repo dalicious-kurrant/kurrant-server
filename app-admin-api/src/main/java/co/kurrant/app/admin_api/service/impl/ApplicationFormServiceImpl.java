@@ -134,7 +134,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 동일한 우편번호가 없으면? -> 생성
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(createRequestDto.getZipcode(), createRequestDto.getCounty(), createRequestDto.getVillage());
         if(region == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
-        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(createRequestDto.getWaitingUserCount(), createRequestDto.getMemo(), region, null);
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(0, createRequestDto.getMemo(), region, null);
         requestedMySpotZonesRepository.save(requestedMySpotZones);
     }
 
@@ -267,7 +267,6 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
                 spotRepository.saveAll(mySpots);
 
                 createUserGroupAndUserSpot(v.getRequestedMySpots(), mySpotZone, mySpots);
-
 
                 deleteRequestedMySpot.addAll(v.getRequestedMySpots());
             });

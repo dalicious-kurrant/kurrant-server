@@ -48,7 +48,7 @@ public interface RequestedMySpotZonesMapper {
     default RequestedMySpotZones toRequestedMySpotZones(Integer count, String memo, Region region, BigInteger userIds) {
         return RequestedMySpotZones.builder()
                 .region(region)
-                .waitingUserCount(0)
+                .waitingUserCount(count)
                 .memo(memo)
                 .build();
     }
