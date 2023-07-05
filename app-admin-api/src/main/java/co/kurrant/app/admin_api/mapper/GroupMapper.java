@@ -113,7 +113,7 @@ public interface GroupMapper {
     @Mapping(source = "zipCode", target = "address.zipCode")
     @Mapping(source = "address1", target = "address.address1")
     @Mapping(source = "address2", target = "address.address2")
-    @Mapping(target = "openGroupUserCount", defaultValue = "0")
+    @Mapping(target = "openGroupUserCount", defaultValue = "0", ignore = true)
     OpenGroup toOpenGroup(GroupListDto.GroupInfoList groupDto) throws ParseException;
 
     default GroupListDto.GroupInfoList toGroupListDto(Group group, User managerUser) {

@@ -31,6 +31,7 @@ import co.kurrant.app.admin_api.service.UserService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -255,10 +256,10 @@ public class UserServiceImpl implements UserService {
 
                         if(defaultStatus.equals(ClientStatus.WITHDRAWAL)) {
                             if (userGroup.getGroup() instanceof Corporation) pushAlarmForCorporationUser.add(user);
+                            if (userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, true);
                             newNotificationHash.add(createNotificationHashForGroup(user, userGroup.getGroup()));
                         }
 
-                        if (userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, true);
                     } else {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
@@ -267,7 +268,7 @@ public class UserServiceImpl implements UserService {
                                     .toList();
                         userSpotRepository.deleteAll(deleteUserSpots);
 
-                        if (userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
+                        if (defaultStatus.equals(ClientStatus.BELONG) && Hibernate.unproxy(userGroup.getGroup()) instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
                     }
                 });
                 // 유저 내에 존재하지 않는 그룹은 추가
