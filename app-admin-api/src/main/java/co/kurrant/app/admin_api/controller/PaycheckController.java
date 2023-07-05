@@ -104,6 +104,16 @@ public class PaycheckController {
     }
 
     @ControllerMarker(ControllerType.PAYCHECK)
+    @Operation(summary = "메이커스 정산 삭제", description = "메이커스 정산 삭제")
+    @DeleteMapping("/makers")
+    public ResponseMessage deleteMakersPaycheckById(@RequestBody BigInteger makersPaycheckId) {
+        adminPaycheckService.deleteMakersPaycheckById(makersPaycheckId);
+        return ResponseMessage.builder()
+                .message("메이커스 정산 상태 변경에 성공하였습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.PAYCHECK)
     @Operation(summary = "기업 정산 등록", description = "기업 정산 등록")
     @PostMapping("/corporations")
     public ResponseMessage postCorporationPaycheck(@RequestBody PaycheckDto.Request request) {
@@ -160,6 +170,16 @@ public class PaycheckController {
     @DeleteMapping("/corporations")
     public ResponseMessage deleteCorporationPaycheck(@RequestBody PaycheckDto.Request request) {
         adminPaycheckService.deleteCorporationPaycheck(request);
+        return ResponseMessage.builder()
+                .message("기업 정산 상태 변경에 성공하였습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.PAYCHECK)
+    @Operation(summary = "기업 정산 ID별 삭제", description = "기업 정산 삭제")
+    @DeleteMapping("/corporations/{corporationPaycheckId}")
+    public ResponseMessage deleteCorporationPaycheckById(@PathVariable BigInteger corporationPaycheckId) {
+        adminPaycheckService.deleteCorporationPaycheckById(corporationPaycheckId);
         return ResponseMessage.builder()
                 .message("기업 정산 상태 변경에 성공하였습니다.")
                 .build();
