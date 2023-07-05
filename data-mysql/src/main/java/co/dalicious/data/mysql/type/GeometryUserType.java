@@ -17,7 +17,7 @@ public class GeometryUserType implements UserType {
 
     @Override
     public int[] sqlTypes() {
-        // This will map to LONGVARBINARY.
+        // This is the "default" type we will map to.
         return new int[]{Types.LONGVARBINARY};
     }
 
@@ -33,7 +33,7 @@ public class GeometryUserType implements UserType {
         try {
             return new WKBReader().read(bytes);
         } catch (ParseException e) {
-            throw new HibernateException("Failed to convert byte array to Geometry: " + Arrays.toString(bytes), e);
+            throw new HibernateException("Failed to convert String to Geometry: " + Arrays.toString(bytes), e);
         }
     }
 
@@ -45,9 +45,14 @@ public class GeometryUserType implements UserType {
         } else {
             Geometry geometry = (Geometry) value;
             byte[] bytes = new WKBWriter().write(geometry);
-            st.setBytes(index, bytes);
+            if (bytes.length <= 255) {
+                st.setBinaryStream(index, new ByteArrayInputStream(bytes), bytes.length);
+            } else {
+                st.setBinaryStream(index, new ByteArrayInputStream(bytes), bytes.length);
+            }
         }
     }
+
 
     @Override
     public Object deepCopy(Object value) throws HibernateException {
