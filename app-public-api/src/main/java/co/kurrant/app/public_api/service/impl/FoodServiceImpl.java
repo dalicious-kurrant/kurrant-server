@@ -203,10 +203,10 @@ public class FoodServiceImpl implements FoodService {
         }
 
         if ((photo != null && photo != 0) || (starFilter != null && starFilter.length() != 0) || (keywordFilter != null && !keywordFilter.equals(""))) {
-            pageReviews = qReviewRepository.findAllByFoodIdSort(dailyFood.getFood().getId(), photo, starFilter, keywordFilter, pageable);
+            pageReviews = qReviewRepository.findAllByFoodIdSort(dailyFood.getFood().getId(), photo, starFilter, keywordFilter, pageable, sort);
 
         } else {
-            pageReviews = qReviewRepository.findAllByFoodId(dailyFood.getFood().getId(), pageable);
+            pageReviews = qReviewRepository.findAllByFoodId(dailyFood.getFood().getId(), pageable, sort);
         }
 
         //대댓글과 별점 추가
@@ -232,10 +232,6 @@ public class FoodServiceImpl implements FoodService {
             sumStar += reviews.getSatisfaction();
         }
 
-        //기본 정렬
-        sortedFoodReviewListDtoList = foodReviewListDtoList.stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction)
-                .thenComparing(FoodReviewListDto::getCreateDate)).collect(Collectors.toList());
-
 
         Integer totalReviewSize = totalReviewsList.size();
         starAverage = Math.round(sumStar / (double) totalReviewSize * 100) / 100.0;
@@ -246,7 +242,7 @@ public class FoodServiceImpl implements FoodService {
         if (isReview == 1) reviewWrite = BigInteger.valueOf(0);
         //주문 한 적 있는지
         OrderItemDailyFood orderItemDailyFood = qOrderItemDailyFoodRepository.findAllByUserAndDailyFood(user.getId(), dailyFood.getFood().getId());
-        if (orderItemDailyFood != null) {
+        if (orderItemDailyFood != null && isReview != 1) {
             reviewWrite = orderItemDailyFood.getId();
         } else {
             reviewWrite = BigInteger.valueOf(0);
@@ -257,7 +253,7 @@ public class FoodServiceImpl implements FoodService {
             reviewWrite = BigInteger.valueOf(0);
         }
 
-        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort, reviewWrite);
+        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort, reviewWrite);
 
         return ItemPageableResponseDto.<GetFoodReviewResponseDto>builder().items(getFoodReviewResponseDto).count(pageReviews.getNumberOfElements())
                 .total(pageReviews.getTotalPages()).limit(pageable.getPageSize()).isLast(pageReviews.isLast()).build();

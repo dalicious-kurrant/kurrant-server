@@ -8,10 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
-import javax.persistence.Embeddable;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -29,6 +26,7 @@ public class PaycheckDailyFood {
     private String name;
 
     @Comment("공급가")
+    @Column(columnDefinition="Decimal(15,2) default '0.00'")
     private BigDecimal supplyPrice;
 
     @Comment("개수")

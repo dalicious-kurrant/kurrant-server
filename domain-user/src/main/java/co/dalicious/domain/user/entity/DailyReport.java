@@ -19,6 +19,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 @DynamicInsert
 @DynamicUpdate
@@ -64,8 +65,8 @@ public class DailyReport {
     private Integer carbohydrate;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
-    @Column(name ="eat_date", columnDefinition = "DATE DEFAULT NOW()")
-    private LocalDate eatDate;
+    @Column(name ="eat_date")
+    private LocalDate eatDate = LocalDate.now(ZoneId.of("Asia/Seoul"));;
 
     @Convert(converter = DiningTypeConverter.class)
     @Column(name = "e_dining_type", nullable = false)

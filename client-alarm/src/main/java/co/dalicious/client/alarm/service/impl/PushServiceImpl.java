@@ -144,7 +144,7 @@ public class PushServiceImpl implements PushService {
                 System.out.println("List of tokens are not valid FCM token : " + failedTokens);
             }
         } catch (FirebaseMessagingException e) {
-            System.out.println(e.getMessage());
+            System.out.println("firebase error = " + e.getMessage());
         }
     }
 

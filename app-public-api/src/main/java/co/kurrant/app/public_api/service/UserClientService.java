@@ -2,10 +2,7 @@ package co.kurrant.app.public_api.service;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.client.dto.OpenGroupDetailDto;
-import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
-import co.dalicious.domain.client.dto.OpenGroupResponseDto;
-import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
+import co.dalicious.domain.client.dto.*;
 import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 
@@ -18,6 +15,7 @@ public interface UserClientService {
     ListItemResponseDto<OpenGroupResponseDto> getOpenGroups(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters, OffsetBasedPageRequest pageable);
     // 그룹별 스팟 상세조회
     ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId);
+    GroupDetailDto getGroupDetail(SecurityUser securityUser, BigInteger groupId);
     // 유저 스팟을 선택한다
     BigInteger selectUserSpot(SecurityUser securityUser, BigInteger spotId);
     // 유저가 속한 그룹을 탈퇴한다.
@@ -27,4 +25,5 @@ public interface UserClientService {
     List<OpenGroupListForKeywordDto> getOpenGroupsForKeyword(SecurityUser securityUser);
     // 유저가 초대된 기업 조회
     List<CorporationResponseDto> getUserCorporation(SecurityUser securityUser);
+    void updateMySpotInformation (SecurityUser securityUser, BigInteger mySpotZoneId, String target, String value);
 }
