@@ -165,7 +165,9 @@ public class UserClientServiceImpl implements UserClientService {
     @Transactional
     public List<CorporationResponseDto> getUserCorporation(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
-        List<UserGroup> userGroups = user.getGroups().stream().filter(g -> g.getClientStatus().equals(ClientStatus.BELONG) && Hibernate.unproxy(g.getGroup()) instanceof Corporation).toList();
+        List<UserGroup> userGroups = user.getActiveUserGroups().stream()
+                .filter(g -> Hibernate.unproxy(g.getGroup()) instanceof Corporation)
+                .toList();
 
         List<CorporationResponseDto> corporationResponseDtos = new ArrayList<>();
         if(userGroups.isEmpty()) return corporationResponseDtos;

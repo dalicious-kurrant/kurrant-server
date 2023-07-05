@@ -311,15 +311,9 @@ public class User {
         }
     }
 
-    public List<UserGroup> getActiveUserGroup() {
-        return this.getGroups().stream()
-                .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
-                .collect(Collectors.toList());
-    }
-
     public String getActiveUserGrouptoString() {
-        if(getActiveUserGroup() == null) return null;
-        List<String> groupNames = getActiveUserGroup().stream()
+        if(getActiveUserGroups() == null) return null;
+        List<String> groupNames = getActiveUserGroups().stream()
                 .map(v -> v.getGroup().getName())
                 .toList();
         if(groupNames.isEmpty()) {

@@ -105,7 +105,7 @@ public class QGroupRepository {
 
     public List<Group> findAllOpenGroup() {
         return queryFactory.selectFrom(group)
-                .where(group.instanceOf(OpenGroup.class))
+                .where(group.instanceOf(OpenGroup.class), group.isActive)
                 .fetch();
     }
 
@@ -183,7 +183,7 @@ public class QGroupRepository {
                 .from(group)
                 .leftJoin(mealInfo).on(group.eq(mealInfo.group))
                 .leftJoin(openGroupSpot).on(group.eq(openGroupSpot.group))
-                .where(group.instanceOf(OpenGroup.class), whereCause)
+                .where(group.instanceOf(OpenGroup.class), whereCause, group.isActive)
                 .orderBy(Expressions.stringTemplate("ST_Distance_Sphere({0}, {1})", Expressions.stringTemplate("POINT({0}, {1})", lon, let), group.address.location).asc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
