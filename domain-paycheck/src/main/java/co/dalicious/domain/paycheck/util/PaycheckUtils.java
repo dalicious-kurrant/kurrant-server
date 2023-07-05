@@ -43,7 +43,7 @@ public class PaycheckUtils {
             return PaycheckType.POSTPAID_MEMBERSHIP;
         }
         // TODO: 예외 멤버십 선불 추가
-        if (corporation.getName().contains("메드트로닉") || corporation.getName().contains("밀당PT")) {
+        if (corporation.getId().equals(BigInteger.valueOf(97)) || corporation.getId().equals(BigInteger.valueOf(154))) {
             return PaycheckType.PREPAID_MEMBERSHIP_EXCEPTION_MEDTRONIC;
         }
 
