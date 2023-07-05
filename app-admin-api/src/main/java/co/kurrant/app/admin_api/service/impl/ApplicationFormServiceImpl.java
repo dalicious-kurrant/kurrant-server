@@ -262,7 +262,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             Optional<RequestedMySpotZones> requestedMySpotZone = requestedMySpotZones.stream().filter(v -> mySpotZones.get(mySpotZone).contains(v.getRegion().getZipcode())).findAny();
             requestedMySpotZone.ifPresent(v -> {
 
-                List<BigInteger> userIds = v.getPushAlarmUserIds();
+                List<BigInteger> userIds = v.getPushAlarmUserIds() == null || v.getPushAlarmUserIds().isEmpty() ? null : v.getPushAlarmUserIds();
                 List<MySpot> mySpots = mySpotMapper.toEntityList(mySpotZone, v.getRequestedMySpots(), userIds);
                 spotRepository.saveAll(mySpots);
 
