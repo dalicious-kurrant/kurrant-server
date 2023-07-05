@@ -7,6 +7,7 @@ import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Department;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.DepartmentMapper;
 import co.dalicious.domain.client.repository.DepartmentRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -31,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
@@ -151,7 +153,7 @@ public class UserServiceImpl implements UserService {
         }
 
         Set<User> pushAlarmForCorporationUser = new HashSet<>();
-//        MultiValueMap<BigInteger, >
+        MultiValueMap<BigInteger, BigInteger> userIdAndGroupIdListMap = new LinkedMultiValueMap<>();
 
         for (User user : userUpdateMap.keySet()) {
             SaveUserListRequestDto saveUserListRequestDto = userUpdateMap.get(user);
@@ -202,6 +204,13 @@ public class UserServiceImpl implements UserService {
             if (groupsName.isEmpty()) {
                 // Case 1: 요청의 groupName 값이 null일 경우 기존의 UserGroup 철회
                 user.getGroups().forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
+
+                // open group의 경우 count 빼기
+                user.getGroups().stream()
+                        .filter(userGroup -> userGroup.getGroup() instanceof OpenGroup)
+                        .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
+                        .forEach(g -> g.updateOpenGroupUserCount(1, false));
+
             } else if (user.getGroups().isEmpty()) {
                 // Case 2: 유저에 포함된 그룹이 없을 때
                 List<UserGroup> userGroups = Group.getGroups(groups, groupsName).stream()
@@ -213,6 +222,13 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toList());
 
                 userGroupRepository.saveAll(userGroups);
+
+                // open group의 경우 count 넣기
+                user.getGroups().stream()
+                        .filter(userGroup -> userGroup.getGroup() instanceof OpenGroup)
+                        .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
+                        .forEach(g -> g.updateOpenGroupUserCount(1, true));
+
                 if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
                     pushAlarmForCorporationUser.add(user);
                 }
@@ -228,9 +244,12 @@ public class UserServiceImpl implements UserService {
                         // 기존에 존재할 경우 상태값 변경(BELONG)
                         userGroup.updateStatus(ClientStatus.BELONG);
                         nameToGroupMap.remove(userGroup.getGroup().getName());
+
                         if(defaultStatus.equals(ClientStatus.WITHDRAWAL) && userGroup.getGroup() instanceof Corporation) {
                             pushAlarmForCorporationUser.add(user);
                         }
+
+                        if (userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, true);
                     } else {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
@@ -238,6 +257,8 @@ public class UserServiceImpl implements UserService {
                                     .filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
                                     .toList();
                         userSpotRepository.deleteAll(deleteUserSpots);
+
+                        if (userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
                     }
                 });
                 // 유저 내에 존재하지 않는 그룹은 추가

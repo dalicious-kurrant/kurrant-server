@@ -451,10 +451,12 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ExceptionEnum.REQUEST_OVER_GROUP);
         }
 
+        OpenGroup openGroup = (OpenGroup) group;
         Optional<UserGroup> selectedGroup = userGroups.stream().filter(g -> g.getGroup().equals(group)).findAny();
         if (selectedGroup.isPresent()) {
             if (selectedGroup.get().getClientStatus() == ClientStatus.WITHDRAWAL) {
                 selectedGroup.get().updateStatus(ClientStatus.BELONG);
+                openGroup.updateOpenGroupUserCount(1, true);
                 return;
             }
             return;
@@ -462,6 +464,7 @@ public class UserServiceImpl implements UserService {
 
         UserGroup userCorporation = userGroupMapper.toUserGroup(user, group, ClientStatus.BELONG);
         userGroupRepository.save(userCorporation);
+        openGroup.updateOpenGroupUserCount(1, true);
     }
 
     @Override

@@ -161,7 +161,7 @@ public class GroupServiceImpl implements GroupService {
                     groupMapper.updateCorporation(groupInfoList, corporation);
                     corporation.updateAddress(address);
                 } else if (group instanceof OpenGroup openGroup) {
-                    openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
+                    openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), true);
                 }
 
                 // dining type 체크해서 있으면 업데이트, 없으면 생성
@@ -247,7 +247,7 @@ public class GroupServiceImpl implements GroupService {
             groupMapper.updateCorporation(groupInfoList, corporation);
             corporation.updateAddress(address);
         } else if (group instanceof OpenGroup openGroup) {
-            openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
+            openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), true);
         }
 
         // dining type 체크해서 있으면 업데이트, 없으면 생성
@@ -388,7 +388,7 @@ public class GroupServiceImpl implements GroupService {
         // push alarm
         List<BigInteger> userIds = mySpotZone.getSpots().stream().filter(s -> s instanceof MySpot).map(spot -> ((MySpot) spot).getUserId()).toList();
         List<User> users = qUserRepository.getUserAllById(userIds);
-        PushCondition pushCondition = PushCondition.NEW_SPOT;
+        PushCondition pushCondition = PushCondition.NEW_SPOT_2;
 
         users.forEach(user -> {
             String customMessage = pushUtil.getContextOpenOrMySpot(user.getName(), GroupDataType.MY_SPOT.getType(), pushCondition);
