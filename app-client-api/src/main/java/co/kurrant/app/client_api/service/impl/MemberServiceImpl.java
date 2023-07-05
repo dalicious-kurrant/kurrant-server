@@ -90,6 +90,7 @@ public class MemberServiceImpl implements MemberService {
 
         List<UserGroup> userGroups = userGroupRepository.findAllByGroup(corporation);
         Set<User> usersInGroup = userGroups.stream()
+                .filter(v -> v.getGroup().getIsActive() == null || v.getGroup().getIsActive().equals(true))
                 .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
                 .map(UserGroup::getUser)
                 .collect(Collectors.toSet());

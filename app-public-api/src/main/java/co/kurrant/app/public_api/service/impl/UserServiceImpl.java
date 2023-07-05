@@ -318,49 +318,50 @@ public class UserServiceImpl implements UserService {
                 .build();
         providerEmailRepository.save(providerEmail);
     }
-/*
-    @Override
-    @Transactional
-    public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
-        // 유저 정보 가져오기
-        User user = userUtil.getUser(securityUser);
-        Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
-        return MarketingAlarmResponseDto.builder()
-                .marketingAgree(user.getMarketingAgree())
-                .orderAlarm(user.getOrderAlarm())
-                .marketingAlarm(user.getMarketingAlarm())
-                .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
-                .build();
-    }
 
-
-    @Override
-    @Transactional
-    public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+    /*
+        @Override
+        @Transactional
+        public MarketingAlarmResponseDto getAlarmSetting(SecurityUser securityUser) {
             // 유저 정보 가져오기
             User user = userUtil.getUser(securityUser);
-            Boolean currantMarketingInfoAgree = user.getMarketingAgree();
-            Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
-            Boolean currantOrderAlarmAgree = user.getOrderAlarm();
-
-            // 현재 시간 가져오기
-            Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-
-            // 변수 설정
-            Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
-            Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
-            Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
-
-            user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
-
+            Timestamp marketingAgreedDateTime = user.getMarketingAgreedDateTime();
             return MarketingAlarmResponseDto.builder()
-                    .marketingAgree(currantMarketingInfoAgree)
-                    .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
-                    .marketingAlarm(currantMarketingAlarmAgree)
-                    .orderAlarm(currantOrderAlarmAgree)
+                    .marketingAgree(user.getMarketingAgree())
+                    .orderAlarm(user.getOrderAlarm())
+                    .marketingAlarm(user.getMarketingAlarm())
+                    .marketingAgreedDateTime(marketingAgreedDateTime == null ? null : DateUtils.format(user.getMarketingAgreedDateTime(), "yyyy년 MM월 dd일"))
                     .build();
         }
-    */
+
+
+        @Override
+        @Transactional
+        public MarketingAlarmResponseDto changeAlarmSetting(SecurityUser securityUser, MarketingAlarmRequestDto marketingAlarmDto) {
+                // 유저 정보 가져오기
+                User user = userUtil.getUser(securityUser);
+                Boolean currantMarketingInfoAgree = user.getMarketingAgree();
+                Boolean currantMarketingAlarmAgree = user.getMarketingAlarm();
+                Boolean currantOrderAlarmAgree = user.getOrderAlarm();
+
+                // 현재 시간 가져오기
+                Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+
+                // 변수 설정
+                Boolean isMarketingInfoAgree = marketingAlarmDto.getIsMarketingInfoAgree();
+                Boolean isMarketingAlarmAgree = marketingAlarmDto.getIsMarketingAlarmAgree();
+                Boolean isOrderAlarmAgree = marketingAlarmDto.getIsOrderAlarmAgree();
+
+                user.changeMarketingAgreement(isMarketingInfoAgree, isMarketingAlarmAgree, isOrderAlarmAgree);
+
+                return MarketingAlarmResponseDto.builder()
+                        .marketingAgree(currantMarketingInfoAgree)
+                        .marketingAgreedDateTime(DateUtils.format(now, "yyyy년 MM월 dd일"))
+                        .marketingAlarm(currantMarketingAlarmAgree)
+                        .orderAlarm(currantOrderAlarmAgree)
+                        .build();
+            }
+        */
     @Override
     @Transactional
     public List<MarketingAlarmResponseDto> getAlarmSetting(SecurityUser securityUser) {
@@ -440,12 +441,12 @@ public class UserServiceImpl implements UserService {
         Group group = qGroupRepository.findGroupByTypeAndId(groupId, GroupDataType.OPEN_GROUP);
         if (group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
 
-        List<UserGroup> userGroups = user.getGroups();
+        List<UserGroup> userGroups = user.getActiveUserGroups();
 
         // TODO: 그룹 슬롯 증가의 경우 반영 필요
         // 오픈 스팟 그룹의 개수가 2개 이상일 떄
-        long userGroupCount = userGroups.stream().
-                filter(v -> v.getClientStatus().equals(ClientStatus.BELONG) && v.getGroup() instanceof OpenGroup)
+        long userGroupCount = userGroups.stream()
+                .filter(v -> v.getGroup() instanceof OpenGroup)
                 .count();
         if (userGroupCount >= 2) {
             throw new ApiException(ExceptionEnum.REQUEST_OVER_GROUP);
@@ -468,17 +469,15 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public GroupCountDto getClients(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
-        // 그룹/스팟 정보 가져오기
-        List<UserGroup> userGroups = user.getGroups();
+        // 현재 활성화된 유저 그룹일 경우만 가져오기
+        List<UserGroup> userGroups = user.getActiveUserGroups();
         // 그룹/스팟 리스트를 담아줄 Dto 생성하기
         List<SpotListResponseDto> spotListResponseDtoList = new ArrayList<>();
         // 그룹 추가
         for (UserGroup userGroup : userGroups) {
-            // 현재 활성화된 유저 그룹일 경우만 가져오기
-            if (userGroup.getClientStatus() == ClientStatus.BELONG) {
-                SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(userGroup);
-                spotListResponseDtoList.add(spotListResponseDto);
-            }
+            SpotListResponseDto spotListResponseDto = userGroupMapper.toSpotListResponseDto(userGroup);
+            spotListResponseDtoList.add(spotListResponseDto);
+
         }
         // 기업 -> 공유 -> 마이 스팟 별로 정렬.
         spotListResponseDtoList = spotListResponseDtoList.stream().sorted(Comparator.comparing(SpotListResponseDto::getSpotType)).sorted(Comparator.comparingInt(dto -> {
