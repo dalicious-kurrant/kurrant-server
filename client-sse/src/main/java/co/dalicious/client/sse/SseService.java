@@ -56,9 +56,9 @@ public class SseService {
     }
 
     @Transactional
-    public void send(BigInteger receiver, Integer type, String content) {
+    public void send(BigInteger receiver, Integer type, String content, BigInteger groupId, BigInteger commentId) {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        NotificationHash notification = createNotification(receiver, type, content, today);
+        NotificationHash notification = createNotification(receiver, type, content, today, groupId, commentId);
         String id = String.valueOf(receiver);
 
         // 로그인 한 유저의 SseEmitter 모두 가져오기
@@ -77,13 +77,15 @@ public class SseService {
     }
 
     //notification 생성
-    private NotificationHash createNotification(BigInteger receiverId, Integer type, String content, LocalDate today) {
+    public NotificationHash createNotification(BigInteger receiverId, Integer type, String content, LocalDate today, BigInteger groupId, BigInteger commentId) {
         return NotificationHash.builder()
                 .type(type)
                 .userId(receiverId)
                 .isRead(false)
                 .content(content)
                 .createDate(today)
+                .groupId(groupId)
+                .commentId(commentId)
                 .build();
     }
 

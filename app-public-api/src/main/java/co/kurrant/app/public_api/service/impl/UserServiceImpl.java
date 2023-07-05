@@ -5,7 +5,10 @@ import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.client.core.repository.RefreshTokenRepository;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
+import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.application_form.utils.ApplicationUtil;
 import co.dalicious.domain.client.dto.GroupCountDto;
@@ -74,10 +77,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.*;
 
 @Service
@@ -121,6 +121,8 @@ public class UserServiceImpl implements UserService {
     private final QGroupRepository qGroupRepository;
     private final DailyFoodRepository dailyFoodRepository;
     private final ApplicationUtil applicationUtil;
+    private final SseService sseService;
+    private final NotificationHashRepository notificationHashRepository;
 
 
     @Override
@@ -465,6 +467,7 @@ public class UserServiceImpl implements UserService {
         UserGroup userCorporation = userGroupMapper.toUserGroup(user, group, ClientStatus.BELONG);
         userGroupRepository.save(userCorporation);
         openGroup.updateOpenGroupUserCount(1, true);
+        notificationHashRepository.save(sseService.createNotification(user.getId(), 7, null, LocalDate.now(ZoneId.of("Asia/Seoul")), openGroup.getId(), null));
     }
 
     @Override
@@ -495,6 +498,10 @@ public class UserServiceImpl implements UserService {
                     }
                 }))
                 .toList();
+
+        List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 7, false);
+        if(!notificationHashList.isEmpty()) notificationHashList.forEach(v -> sseService.send(v.getUserId(), v.getType(), v.getContent(), v.getGroupId(), v.getCommentId()));
+
         return userGroupMapper.toGroupCountDto(spotListResponseDtoList);
     }
 

@@ -467,7 +467,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         //다음주 주문 중 모든 서비스 날이 포함 되었는지 확인
         if (nextWeekOrderFoods.isEmpty() || nextWeekOrderFoodServiceDays.size() < mealInfoServiceDays.size()) {
             // 모든 서비스 날이 포함 되지 않았다면
-            sseService.send(user.getId(), 5, "다음주 식사 구매하셨나요?");
+            sseService.send(user.getId(), 5, "다음주 식사 구매하셨나요?", null, null);
         }
 
     }
@@ -488,7 +488,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
                 if (dayOfWeek.equalsIgnoreCase(membershipDayOfWeek) && curranTime.isAfter(membershipTime) && curranTime.isBefore(time)) {
                     String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "까지 해야 멤버십 할인을 받을 수 있어요!";
-                    sseService.send(user.getId(), 4, content);
+                    sseService.send(user.getId(), 4, content, null, null);
                     return;
                 }
             }
@@ -501,7 +501,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 // 서비스 가능일 이고, 오늘이 서비스 가능일이 아니면 나가기
                 if (dayOfWeek.equalsIgnoreCase(lastOrderDayOfWeek) && curranTime.isAfter(lastOrderNoticeTime) && curranTime.isBefore(time)) {
                     String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "에 마감이예요!";
-                    sseService.send(user.getId(), 4, content);
+                    sseService.send(user.getId(), 4, content, null, null);
                     return;
                 }
             }
@@ -530,7 +530,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // sse
-        sseService.send(user.getId(), 3, null);
+        sseService.send(user.getId(), 3, null, null, null);
     }
 
     @Override

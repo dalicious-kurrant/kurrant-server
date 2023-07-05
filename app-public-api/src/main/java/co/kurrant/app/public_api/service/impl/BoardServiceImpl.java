@@ -69,7 +69,7 @@ public class BoardServiceImpl implements BoardService {
         }
 
         List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllPushAlarmHashByUserIdAndIsRead(securityUser.getId(), false);
-        if(!pushAlarmHashes.isEmpty()) sseService.send(securityUser.getId(), 6, null);
+        if(!pushAlarmHashes.isEmpty()) sseService.send(securityUser.getId(), 6, null, null, null);
 
         return result.stream().sorted(Comparator.comparing(NoticeDto::getCreated).reversed()).toList();
     }

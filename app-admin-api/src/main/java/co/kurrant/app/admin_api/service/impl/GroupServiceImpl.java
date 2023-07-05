@@ -8,6 +8,8 @@ import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.address.utils.AddressUtil;
@@ -53,7 +55,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,6 +80,7 @@ public class GroupServiceImpl implements GroupService {
     private final PushService pushService;
     private final QUserGroupRepository qUserGroupRepository;
     private final UserSpotRepository userSpotRepository;
+    private final NotificationHashRepository notificationHashRepository;
 
     @Override
     @Transactional
@@ -353,6 +358,7 @@ public class GroupServiceImpl implements GroupService {
         MySpotZone mySpotZone = qMySpotZoneRepository.findMySpotZoneById(updateRequestDto.getId());
         if (mySpotZone == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
 
+        MySpotZoneStatus defaultStatus = mySpotZone.getMySpotZoneStatus();
         // my spot zone 수정
         mySpotZoneMapper.updateMySpotZone(updateRequestDto, mySpotZone);
 
@@ -386,18 +392,35 @@ public class GroupServiceImpl implements GroupService {
         });
 
         // push alarm
-        List<BigInteger> userIds = mySpotZone.getSpots().stream().filter(s -> s instanceof MySpot).map(spot -> ((MySpot) spot).getUserId()).toList();
-        List<User> users = qUserRepository.getUserAllById(userIds);
-        PushCondition pushCondition = PushCondition.NEW_SPOT_2;
+        if(!defaultStatus.equals(MySpotZoneStatus.OPEN) && updateRequestDto.getStatus().equals(MySpotZoneStatus.OPEN.getCode())) {
+            List<MySpot> mySpotList = mySpotZone.getSpots().stream().map(s -> ((MySpot) s)).toList();
+            List<BigInteger> userIds = mySpotList.stream().map(MySpot::getUserId).toList();
+            List<BigInteger> pushAlarmUserIds = mySpotList.stream().filter(MySpot::getIsAlarm).map(MySpot::getUserId).toList();
+            List<User> users = qUserRepository.getUserAllById(userIds);
+            PushCondition pushCondition = PushCondition.NEW_SPOT_2;
 
-        users.forEach(user -> {
-            String customMessage = pushUtil.getContextOpenOrMySpot(user.getName(), GroupDataType.MY_SPOT.getType(), pushCondition);
+            users.forEach(user -> {
+                if(pushAlarmUserIds.contains(user.getId())) {
+                    String customMessage = pushUtil.getContextOpenOrMySpot(user.getName(), GroupDataType.MY_SPOT.getType(), pushCondition);
 
-            PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
-            BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
-            pushService.sendToPush(batchAlarmDto, pushCondition);
-            pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
-        });
+                    PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
+                    BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
+                    pushService.sendToPush(batchAlarmDto, pushCondition);
+                    pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
+                }
+
+                notificationHashRepository.save(
+                        NotificationHash.builder()
+                        .userId(user.getId())
+                        .type(7)
+                        .content(null)
+                        .createDate(LocalDate.now(ZoneId.of("Asia/Seoul")))
+                        .isRead(false)
+                        .groupId(mySpotZone.getId())
+                        .commentId(null)
+                        .build());
+            });
+        }
     }
 
     @Override
