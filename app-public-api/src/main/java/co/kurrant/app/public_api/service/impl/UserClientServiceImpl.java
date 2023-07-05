@@ -200,12 +200,12 @@ public class UserClientServiceImpl implements UserClientService {
     public ListItemResponseDto<OpenGroupResponseDto> getOpenGroups(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
         Boolean isRestriction = parameters.get("isRestriction") == null || !parameters.containsKey("isRestriction") ? null : Boolean.valueOf(String.valueOf(parameters.get("isRestriction")));
         List<DiningType> diningType = parameters.get("diningType") == null || !parameters.containsKey("diningType") ? null : StringUtils.parseIntegerList(String.valueOf(parameters.get("diningType"))).stream().map(DiningType::ofCode).toList();
-        Double latitude = Double.valueOf(String.valueOf(location.get("lat")));
-        Double longitude = Double.valueOf(String.valueOf(location.get("long")));
+        double latitude = Double.parseDouble(String.valueOf(location.get("lat")));
+        double longitude = Double.parseDouble(String.valueOf(location.get("long")));
 
         Page<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType, pageable, latitude, longitude);
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
-        if (groups.isEmpty() || groups == null) {
+        if (groups.isEmpty()) {
             return ListItemResponseDto.<OpenGroupResponseDto>builder().items(openGroupResponseDtos).limit(pageable.getPageSize()).total(0L).count(0).offset(0L).isLast(true).build();
         }
 
