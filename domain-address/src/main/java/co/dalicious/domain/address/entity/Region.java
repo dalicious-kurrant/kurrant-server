@@ -1,4 +1,4 @@
-package co.dalicious.integration.client.user.entity;
+package co.dalicious.domain.address.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -38,7 +38,7 @@ public class Region {
     @Comment("동/읍/리")
     private String village;
 
-    @Column(name = "client__my_spot_zone_fk")
+    @Column(name = "client__my_spot_zone_fk", columnDefinition = "BIGINT UNSIGNED")
     @Comment("마이스팟 존")
     private BigInteger mySpotZoneIds;
 

@@ -1,5 +1,6 @@
 package co.dalicious.domain.delivery.entity;
 
+import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -69,6 +70,6 @@ public class DeliveryInstance {
     }
 
     public String getDeliveryCode() {
-        return DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
+        return this.spot instanceof CorporationSpot ? spot.getId().toString() : DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
     }
 }

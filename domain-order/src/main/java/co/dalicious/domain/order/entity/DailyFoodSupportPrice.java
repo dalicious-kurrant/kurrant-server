@@ -104,7 +104,7 @@ public class DailyFoodSupportPrice {
         List<OrderItemDailyFood> orderItemDailyFoods = this.orderItemDailyFoodGroup.getOrderDailyFoods();
 
         // 주문 그룹이 메드트로닉일 경우
-        if(this.group.getId().equals(BigInteger.valueOf(97))) {
+        if(this.group.getId().equals(BigInteger.valueOf(97)) || this.group.getId().equals(BigInteger.valueOf(154))) {
             BigDecimal totalSupportPrice = BigDecimal.ZERO;
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                 // 취소된 상품은 제외
@@ -163,7 +163,7 @@ public class DailyFoodSupportPrice {
                 .toList();
 
         // 주문 그룹이 메드트로닉일 경우
-        if(this.group.getId().equals(BigInteger.valueOf(97))) {
+        if(this.group.getId().equals(BigInteger.valueOf(97)) || this.group.getId().equals(BigInteger.valueOf(154))) {
             Integer count = 0;
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                 count += orderItemDailyFood.getCount();

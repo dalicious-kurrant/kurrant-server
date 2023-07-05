@@ -68,6 +68,7 @@ public class BoardServiceImpl implements BoardService {
            result.add(noticeMapper.toDto(notice));
         }
 
+
         List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllPushAlarmHashByUserIdAndIsRead(securityUser.getId(), false);
         if(!pushAlarmHashes.isEmpty()) sseService.send(securityUser.getId(), 6, null, null, null);
 

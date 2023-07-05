@@ -84,7 +84,7 @@ public class UserSupportPriceUtil {
 
     public static BigDecimal getUsableSupportPrice(Spot spot, List<DailyFoodSupportPrice> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
         //TODO: 추후 수정
-        if(!spot.getGroup().getName().contains("메드트로닉")) {
+        if(!spot.getGroup().getName().contains("메드트로닉") || !spot.getGroup().getName().contains("밀당PT")) {
             BigDecimal supportPrice =  getGroupSupportPriceByDiningType(spot, diningType, serviceDate);
             BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(spot, userSupportPriceHistories, serviceDate, diningType);
             return supportPrice.subtract(usedSupportPrice);

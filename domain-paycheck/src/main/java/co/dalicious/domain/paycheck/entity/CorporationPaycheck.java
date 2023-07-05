@@ -181,7 +181,7 @@ public class CorporationPaycheck {
     }
 
     public String getOrdersFileName() {
-        return " 식수내역_" + this.yearMonth.getYear() + "-" +
+        return " 거래명세서_" + this.yearMonth.getYear() + "-" +
                 ((this.yearMonth.getMonthValue() < 10) ? "0" + String.valueOf(this.yearMonth.getMonthValue()) : String.valueOf(this.yearMonth.getMonthValue()));
     }
 
