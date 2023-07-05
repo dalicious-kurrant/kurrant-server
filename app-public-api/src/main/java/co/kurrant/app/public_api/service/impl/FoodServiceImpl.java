@@ -34,6 +34,8 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.enums.FoodCategory;
+import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
@@ -138,9 +140,9 @@ public class FoodServiceImpl implements FoodService {
             RetrieveDailyFoodDto.DiningType diningTypeDto = new RetrieveDailyFoodDto.DiningType(diningType.getCode(), deliveryTimesStr);
             diningTypes.add(diningTypeDto);
         }
-
         List<DailyFood> dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(group, selectedDate);
         List<DailyFoodDto> dailyFoodDtos = getDailyFoodDtos(user, group, spot, selectedDate, dailyFoodList);
+
 
         return RetrieveDailyFoodDto.builder()
                 .diningTypes(diningTypes)
@@ -321,8 +323,10 @@ public class FoodServiceImpl implements FoodService {
             double reviewAverage = averageAndTotalCount.getReviewAverage();
             Integer totalCount = averageAndTotalCount.getTotalCount();
 
+            Integer sort = sortByFoodTag(dailyFood);
+
             DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
-            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList, reviewAverage, totalCount);
+            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList, reviewAverage, totalCount, sort);
             dailyFoodDtos.add(dailyFoodDto);
         }
 
@@ -331,6 +335,39 @@ public class FoodServiceImpl implements FoodService {
                     .sorted(Comparator.<DailyFoodDto>comparingInt(dto -> dto.getRank() != null && dto.getRank().equals(1) ? 0 : 1)
                             .thenComparing(DailyFoodDto::getStatus)).toList();
         }
-        return dailyFoodDtos;
+        return dailyFoodDtos.stream().sorted(Comparator.comparing(DailyFoodDto::getSort).reversed()).toList();
+    }
+
+    private Integer sortByFoodTag(DailyFood dailyFood) {
+        if (!dailyFood.getFood().getFoodTags().isEmpty()){
+            for (FoodTag foodTag : dailyFood.getFood().getFoodTags()){
+               if (foodTag.getCategory().equals("식품 타입")){
+                   if (foodTag.getCode().equals(11003)){    //정찬도시락
+                       return 10;
+                   }
+                   if (foodTag.getCode().equals(11007)){    //한그릇음식
+                       return 9;
+                   }
+                   if (foodTag.getCode().equals(11004)){    //산후조리식
+                       return 8;
+                   }
+                   if (foodTag.getCode().equals(11005)){    //다이어트식
+                       return 7;
+                   }
+                   if (foodTag.getCode().equals(11006)){    //프로틴식
+                       return 6;
+                   }
+                   if (foodTag.getCode().equals(11002)){    //샐러드
+                       return 5;
+                   }
+                   if (foodTag.getCode().equals(11001)){    //간편식
+                       return 3;
+                   }
+               }
+            }
+
+        }
+
+        return 0;
     }
 }
