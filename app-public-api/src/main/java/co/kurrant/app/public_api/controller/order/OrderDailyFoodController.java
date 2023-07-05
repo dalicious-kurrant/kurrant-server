@@ -29,6 +29,16 @@ import java.time.LocalDate;
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
 
+    @Operation(summary = "정기 식사 주문하기(나이스빌링)", description = "정기 식사를 구매한다.")
+    @PostMapping("/nice")
+    public ResponseMessage userOrderByDateNice(Authentication authentication, @RequestBody OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.orderDailyFoodsNice(securityUser, orderItemDailyFoodReqDto))
+                .message("식사 주문에 성공하였습니다.")
+                .build();
+    }
+
     @Operation(summary = "유저 식사 일정 가져오기", description = "유저의 주문 정보를 가져온다.")
     @GetMapping("")
     public ResponseMessage userOrderByDate(Authentication authentication,
@@ -82,16 +92,6 @@ public class OrderDailyFoodController {
         orderDailyFoodService.cancelOrderItemDailyFood(securityUser, idDto.getId());
         return ResponseMessage.builder()
                 .message("정기식사 부분 환불에 성공하였습니다.")
-                .build();
-    }
-
-    @Operation(summary = "정기 식사 주문하기(나이스빌링)", description = "정기 식사를 구매한다.")
-    @PostMapping("/nice")
-    public ResponseMessage userOrderByDateNice(Authentication authentication, @RequestBody OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(orderDailyFoodService.orderDailyFoodsNice(securityUser, orderItemDailyFoodReqDto))
-                .message("식사 주문에 성공하였습니다.")
                 .build();
     }
 
