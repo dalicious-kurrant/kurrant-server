@@ -6,9 +6,10 @@ import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface PushService {
-    void sendToPush(PushRequestDto pushRequestDto);
+    void sendToPushByKey(List<PushRequestDtoByUser> pushRequestDtoByUsers, Map<String, String> keys);
     void sendToPush(List<PushRequestDtoByUser> pushRequestDtoByUsers);
     void sendToPush(BatchAlarmDto batchAlarmDto, PushCondition pushCondition);
 

@@ -43,40 +43,23 @@ public class PushServiceImpl implements PushService {
     private final PushAlarmMapper pushAlarmMapper;
 
     @Override
-    public void sendToPush(PushRequestDto pushRequestDto) {
+    public void sendToPushByKey(List<PushRequestDtoByUser> pushRequestDtoByUsers, Map<String, String> keys) {
 
-        List<String> tokenList = pushRequestDto.getTokenList();
-        String title = pushRequestDto.getTitle();
-        String content = pushRequestDto.getMessage();
-        String page = pushRequestDto.getPage();
-        Map<String, String> keys = pushRequestDto.getKeys();
+        List<Message> messages = new ArrayList<>();
 
-        List<Message> messages;
-
-        // 관련 파라미터가 있으면
-        if(keys != null && !keys.isEmpty()) {
-            messages = tokenList.stream().map(token -> Message.builder()
+        for (PushRequestDtoByUser requestDtoByUser : pushRequestDtoByUsers) {
+            if(requestDtoByUser == null) continue;
+            Message message = Message.builder()
                     .putData("time", LocalDateTime.now().toString())
-                    .putData("page", page)
+                    .putData("page", requestDtoByUser.getPage())
                     .putAllData(keys)
                     .setNotification(Notification.builder()
-                            .setTitle(title)
-                            .setBody(content)
+                            .setTitle(requestDtoByUser.getTitle())
+                            .setBody(requestDtoByUser.getMessage())
                             .build())
-                    .setToken(token)
-                    .build()).collect(Collectors.toList());
-        }
-        // 없으면
-        else {
-            messages = tokenList.stream().map(token -> Message.builder()
-                    .putData("time", LocalDateTime.now().toString())
-                    .putData("page", page)
-                    .setNotification(Notification.builder()
-                            .setTitle(title)
-                            .setBody(content)
-                            .build())
-                    .setToken(token)
-                    .build()).collect(Collectors.toList());
+                    .setToken(requestDtoByUser.getToken())
+                    .build();
+            messages.add(message);
         }
 
         if(messages.isEmpty()) return;
@@ -94,7 +77,7 @@ public class PushServiceImpl implements PushService {
 
                 for(int i = 0; i < responses.size(); i++) {
                     if(!responses.get(i).isSuccessful()) {
-                        failedTokens.add(tokenList.get(i));
+                        failedTokens.add(pushRequestDtoByUsers.get(i).getToken());
                     }
                 }
                 System.out.println("List of tokens are not valid FCM token : " + failedTokens);
