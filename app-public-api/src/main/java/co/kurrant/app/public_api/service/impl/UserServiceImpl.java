@@ -456,6 +456,7 @@ public class UserServiceImpl implements UserService {
             if (selectedGroup.get().getClientStatus() == ClientStatus.WITHDRAWAL) {
                 selectedGroup.get().updateStatus(ClientStatus.BELONG);
                 openGroup.updateOpenGroupUserCount(1, true);
+                sseService.send(user.getId(), 7, null, null, null);
                 return;
             }
             return;
@@ -464,7 +465,7 @@ public class UserServiceImpl implements UserService {
         UserGroup userCorporation = userGroupMapper.toUserGroup(user, group, ClientStatus.BELONG);
         userGroupRepository.save(userCorporation);
         openGroup.updateOpenGroupUserCount(1, true);
-        notificationHashRepository.save(sseService.createNotification(user.getId(), 7, null, LocalDate.now(ZoneId.of("Asia/Seoul")), openGroup.getId(), null));
+        sseService.send(user.getId(), 7, null, null, null);
     }
 
     @Override
