@@ -340,34 +340,28 @@ public class FoodServiceImpl implements FoodService {
 
     private Integer sortByFoodTag(DailyFood dailyFood) {
         if (!dailyFood.getFood().getFoodTags().isEmpty()){
-            for (FoodTag foodTag : dailyFood.getFood().getFoodTags()){
-               if (foodTag.getCategory().equals("식품 타입")){
-                   if (foodTag.getCode().equals(11003)){    //정찬도시락
-                       return 10;
-                   }
-                   if (foodTag.getCode().equals(11007)){    //한그릇음식
-                       return 9;
-                   }
-                   if (foodTag.getCode().equals(11004)){    //산후조리식
-                       return 8;
-                   }
-                   if (foodTag.getCode().equals(11005)){    //다이어트식
-                       return 7;
-                   }
-                   if (foodTag.getCode().equals(11006)){    //프로틴식
-                       return 6;
-                   }
-                   if (foodTag.getCode().equals(11002)){    //샐러드
-                       return 5;
-                   }
-                   if (foodTag.getCode().equals(11001)){    //간편식
-                       return 3;
-                   }
-               }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11003))){    //정찬도시락
+                return 10;
             }
-
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11007))){    //한그릇음식
+                return 9;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11004))){    //산후조리식
+                return 8;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11005))){    //다이어트식
+                return 7;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11006))){    //프로틴식
+                return 6;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11002))){    //샐러드
+                return 5;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11001))){    //간편식
+                return 3;
+            }
         }
-
         return 0;
     }
 }

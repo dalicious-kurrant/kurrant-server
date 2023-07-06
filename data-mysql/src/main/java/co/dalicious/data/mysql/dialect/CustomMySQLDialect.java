@@ -12,7 +12,7 @@ public class CustomMySQLDialect extends MySQL8SpatialDialect {
     public CustomMySQLDialect() {
         super();
         registerHibernateType(Types.BIGINT, BigIntegerUserType.class.getName());
-        registerHibernateType(Types.BINARY, GeometryUserType.class.getName());
+        registerHibernateType(Types.LONGVARBINARY, GeometryUserType.class.getName());
         registerHibernateType(Types.BIT, BooleanBit1Type.class.getName());
     }
 }

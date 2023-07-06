@@ -175,7 +175,7 @@ public interface OrderMapper {
             orderItemDailyFoodGroupDto.setSpotName(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getSpotName());
             orderItemDailyFoodGroupDto.setUserName(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getName());
             orderItemDailyFoodGroupDto.setUserEmail(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getEmail());
-            orderItemDailyFoodGroupDto.setPhone(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getPhone());
+            orderItemDailyFoodGroupDto.setPhone(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getPhone() != null ? ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getPhone() : orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getPhone());
             orderItemDailyFoodGroupDto.setOrderCode(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getCode());
             orderItemDailyFoodGroupDto.setOrderDateTime(timeStampToString(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getCreatedDateTime()));
             orderItemDailyFoodGroupDto.setTotalPrice(orderItemDailyFoodGroup.getTotalPriceByGroup());
