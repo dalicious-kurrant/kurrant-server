@@ -6,6 +6,7 @@ import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
@@ -78,6 +79,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final PushService pushService;
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushAlarmHashRepository pushAlarmHashRepository;
+    private final SseService sseService;
 
     @Override
     @Transactional
@@ -139,6 +141,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                     .type(AlarmType.MEAL.getAlarmType())
                     .build();
             pushAlarmHashes.add(pushAlarmHash);
+
+            sseService.send(user.getId(), 6, null, null, null);
         }
         pushService.sendToPush(pushRequestDtoByUsers);
         pushAlarmHashRepository.saveAll(pushAlarmHashes);
@@ -355,6 +359,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                         .type(AlarmType.MEAL.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
+                sseService.send(user.getId(), 6, null, null, null);
             }
         }
         pushService.sendToPush(pushRequestDtoByUsers);

@@ -1,11 +1,13 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.alarm.dto.PushRequestDto;
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
+import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -48,11 +50,11 @@ public class ReviewServiceImpl implements ReviewService {
     private final MakersRepository makersRepository;
     private final PushUtil pushUtil;
     private final PushService pushService;
-    private final PushAlarmHashRepository pushAlarmHashRepository;
     private final KeywordRepository keywordRepository;
     private final KeywordMapper keywordMapper;
     private final QKeywordRepository qKeywordRepository;
     private final FoodRepository foodRepository;
+    private SseService sseService;
 
     @Override
     @Transactional(readOnly = true)
@@ -124,23 +126,13 @@ public class ReviewServiceImpl implements ReviewService {
 
         AdminComments adminComments = reviewMapper.toAdminComment(reqDto, reviews);
         commentsRepository.save(adminComments);
+        sseService.send(reviews.getUser().getId(), 8, null, null, adminComments.getId());
 
         // 댓글 생성 푸시알림
-        BigInteger userId = reviews.getUser().getId();
-        Map<String, Set<BigInteger>> userIdsMap = Collections.singletonMap("userIds", new HashSet<>(Collections.singletonList(userId)));
-
-        PushRequestDto pushRequestDto = pushUtil.sendToType(userIdsMap, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
-        pushService.sendToPush(pushRequestDto);
-
-        PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
-                .title(pushRequestDto.getTitle())
-                .message(pushRequestDto.getMessage())
-                .isRead(false)
-                .userId(userId)
-                .type(AlarmType.REVIEW.getAlarmType())
-                .reviewId(reviews.getId())
-                .build();
-        pushAlarmHashRepository.save(pushAlarmHash);
+        PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(reviews.getUser(), PushCondition.REVIEW_GET_COMMENT, null);
+        pushService.sendToPushByKey(List.of(pushRequestDtoByUser), Collections.singletonMap("reviewId", String.valueOf(reviews.getId())));
+        sseService.send(reviews.getUser().getId(), 6, null, null, null);
+        pushUtil.savePushAlarmHash(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), reviews.getUser().getId(), AlarmType.REVIEW, reviews.getId());
     }
 
     @Override

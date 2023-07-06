@@ -8,6 +8,7 @@ import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.address.entity.Region;
@@ -79,7 +80,7 @@ public class GroupServiceImpl implements GroupService {
     private final PushService pushService;
     private final QUserGroupRepository qUserGroupRepository;
     private final UserSpotRepository userSpotRepository;
-    private final NotificationHashRepository notificationHashRepository;
+    private final SseService sseService;
 
     @Override
     @Transactional
@@ -406,18 +407,9 @@ public class GroupServiceImpl implements GroupService {
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, pushCondition);
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
+                    sseService.send(user.getId(), 6, null, null, null);
                 }
-
-                notificationHashRepository.save(
-                        NotificationHash.builder()
-                        .userId(user.getId())
-                        .type(7)
-                        .content(null)
-                        .createDate(LocalDate.now(ZoneId.of("Asia/Seoul")))
-                        .isRead(false)
-                        .groupId(mySpotZone.getId())
-                        .commentId(null)
-                        .build());
+                sseService.send(user.getId(), 7, null, mySpotZone.getId(), null);
             });
         }
     }

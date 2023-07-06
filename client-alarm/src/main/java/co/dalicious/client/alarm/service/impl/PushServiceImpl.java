@@ -44,7 +44,6 @@ public class PushServiceImpl implements PushService {
 
     @Override
     public void sendToPush(PushRequestDto pushRequestDto) {
-
         List<String> tokenList = pushRequestDto.getTokenList();
         String title = pushRequestDto.getTitle();
         String content = pushRequestDto.getMessage();
@@ -95,6 +94,51 @@ public class PushServiceImpl implements PushService {
                 for(int i = 0; i < responses.size(); i++) {
                     if(!responses.get(i).isSuccessful()) {
                         failedTokens.add(tokenList.get(i));
+                    }
+                }
+                System.out.println("List of tokens are not valid FCM token : " + failedTokens);
+            }
+        } catch(FirebaseMessagingException e) {
+            System.out.println("전송실패 : " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void sendToPushByKey(List<PushRequestDtoByUser> pushRequestDtoByUsers, Map<String, String> keys) {
+
+        List<Message> messages = new ArrayList<>();
+
+        for (PushRequestDtoByUser requestDtoByUser : pushRequestDtoByUsers) {
+            if(requestDtoByUser == null) continue;
+            Message message = Message.builder()
+                    .putData("time", LocalDateTime.now().toString())
+                    .putData("page", requestDtoByUser.getPage())
+                    .putAllData(keys)
+                    .setNotification(Notification.builder()
+                            .setTitle(requestDtoByUser.getTitle())
+                            .setBody(requestDtoByUser.getMessage())
+                            .build())
+                    .setToken(requestDtoByUser.getToken())
+                    .build();
+            messages.add(message);
+        }
+
+        if(messages.isEmpty()) return;
+
+        //알림 발송
+        BatchResponse response;
+        try {
+
+            response = FirebaseMessaging.getInstance(FirebaseApp.getInstance("dalicious-v1")).sendAll(messages);
+
+            //응답처리
+            if(response.getFailureCount() > 0) {
+                List<SendResponse> responses = response.getResponses();
+                List<String> failedTokens = new ArrayList<>();
+
+                for(int i = 0; i < responses.size(); i++) {
+                    if(!responses.get(i).isSuccessful()) {
+                        failedTokens.add(pushRequestDtoByUsers.get(i).getToken());
                     }
                 }
                 System.out.println("List of tokens are not valid FCM token : " + failedTokens);

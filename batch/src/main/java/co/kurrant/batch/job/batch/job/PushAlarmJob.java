@@ -6,6 +6,7 @@ import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.client.sse.SseService;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
@@ -55,6 +56,7 @@ public class PushAlarmJob {
     private final PushUtil pushUtil;
     private final PushService pushService;
     private final EntityManager entityManager;
+    private final SseService sseService;
     private final int CHUNK_SIZE = 500;
 
     @Bean(name = "pushAlarmJob1")
@@ -269,6 +271,7 @@ public class PushAlarmJob {
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, PushCondition.LAST_ORDER_BY_DAILYFOOD, null);
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, PushCondition.LAST_ORDER_BY_DAILYFOOD);
+                    sseService.send(user.getId(), 6, null, null, null);
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.MEAL, null);
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
                 } catch (Exception ignored) {
@@ -293,6 +296,7 @@ public class PushAlarmJob {
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, pushCondition);
+                    sseService.send(user.getId(), 6, null, null, null);
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
 
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
