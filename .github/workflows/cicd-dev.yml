@@ -179,16 +179,16 @@ jobs:
           echo "${{ secrets.DATA_FLYWAY_DEV }}" > ./application-dev.yaml
         shell: bash
 
-      - name: 빌드 및 FlywayApplication (dev) 실행
-        run: |
-          cd ./data-flyway/build/libs/
-          java -Dspring.profiles.active=dev -jar data-flyway.jar
-
       - name: gradlew 실행 권한 추가
         run: chmod +x gradlew
 
       - name: Gradle 빌드
         run: ./gradlew build
+
+      - name: 빌드 및 FlywayApplication (dev) 실행
+        run: |
+          cd ./data-flyway/build/libs/
+          java -Dspring.profiles.active=dev -jar data-flyway.jar
 
       - name: Docker 빌드
         run: |
