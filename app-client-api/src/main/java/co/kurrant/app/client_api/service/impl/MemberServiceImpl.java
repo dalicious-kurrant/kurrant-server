@@ -242,8 +242,10 @@ public class MemberServiceImpl implements MemberService {
             if(email == null || email.isBlank()) throw new ApiException(ExceptionEnum.NOT_VALID_EMAIL);
 
             if (employee.isPresent()) {
+                email = email.replace(" ", "");
                 qEmployeeRepository.patchEmployee(employeeDto.getId(), phone, email, name);
             } else {
+                email = email.replace(" ", "");
                 Employee newEmployee = employeeMapper.toEntity(email, name, phone, corporation);
                 employeeRepository.save(newEmployee);
             }
