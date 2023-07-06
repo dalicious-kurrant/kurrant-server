@@ -295,10 +295,9 @@ public class UserServiceImpl implements UserService {
                         .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
                         .forEach(g -> g.updateOpenGroupUserCount(1, true));
             }
+            user.changePhoneNumber(saveUserListRequestDto.getPhone());
             if (saveUserListRequestDto.getName() != null && !user.getName().equals(saveUserListRequestDto.getName()))
                 user.updateName(saveUserListRequestDto.getName());
-            if (saveUserListRequestDto.getPhone() != null)
-                user.changePhoneNumber(saveUserListRequestDto.getPhone());
             if (saveUserListRequestDto.getRole() != null && !user.getRole().equals(Role.ofRoleName(saveUserListRequestDto.getRole())))
                 user.updateRole(Role.ofRoleName(saveUserListRequestDto.getRole()));
             if (saveUserListRequestDto.getStatus() != null && !user.getUserStatus().equals(UserStatus.ofCode(saveUserListRequestDto.getStatus())))
