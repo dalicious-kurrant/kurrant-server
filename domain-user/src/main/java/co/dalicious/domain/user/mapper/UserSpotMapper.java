@@ -1,4 +1,4 @@
-package co.dalicious.integration.client.user.mapper;
+package co.dalicious.domain.user.mapper;
 
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;

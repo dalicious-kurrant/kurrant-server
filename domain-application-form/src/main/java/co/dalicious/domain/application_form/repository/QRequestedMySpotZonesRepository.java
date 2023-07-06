@@ -16,8 +16,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static co.dalicious.domain.address.entity.QRegion.region;
 import static co.dalicious.domain.application_form.entity.QRequestedMySpotZones.requestedMySpotZones;
-import static co.dalicious.integration.client.user.entity.QRegion.region;
 
 
 @Repository

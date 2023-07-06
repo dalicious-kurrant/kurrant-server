@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.TextStyle;
@@ -84,7 +85,7 @@ public class UserSupportPriceUtil {
 
     public static BigDecimal getUsableSupportPrice(Spot spot, List<DailyFoodSupportPrice> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
         //TODO: 추후 수정
-        if(!spot.getGroup().getName().contains("메드트로닉")) {
+        if(!spot.getGroup().getId().equals(BigInteger.valueOf(97)) && !spot.getGroup().getId().equals(BigInteger.valueOf(154))) {
             BigDecimal supportPrice =  getGroupSupportPriceByDiningType(spot, diningType, serviceDate);
             BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(spot, userSupportPriceHistories, serviceDate, diningType);
             return supportPrice.subtract(usedSupportPrice);

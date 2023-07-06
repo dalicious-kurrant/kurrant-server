@@ -46,7 +46,8 @@ public interface OrderMapper {
     OrderDailyFood toExtraOrderEntity(User user, Spot spot, String orderCode);
 
     @Mapping(target = "orderStatus", constant = "COMPLETED")
-    @Mapping(target = "deliveryFee", constant = "0") // TODO: 배송비 추가가 필요한 경우 수정 필요
+    @Mapping(target = "deliveryFee", constant = "0")
+        // TODO: 배송비 추가가 필요한 경우 수정 필요
     OrderItemDailyFoodGroup toOrderItemDailyFoodGroup(ServiceDiningDto serviceDiningDto);
 
     @Mapping(source = "order", target = "order")
@@ -71,7 +72,9 @@ public interface OrderMapper {
     @Mapping(source = "spot.name", target = "spotName")
     @Mapping(source = "spot", target = "spot")
     @Mapping(target = "orderType", constant = "DAILYFOOD")
-    OrderDailyFood toEntity(User user, Spot spot, String orderCode);
+    @Mapping(source = "phone", target = "phone")
+    @Mapping(source = "memo", target = "memo")
+    OrderDailyFood toEntity(User user, Spot spot, String orderCode, String phone, String memo);
 
     @Mapping(source = "id", target = "orderItemDailyFoodId")
     @Mapping(source = "dailyFood.food.makers.name", target = "makers")
@@ -172,7 +175,7 @@ public interface OrderMapper {
             orderItemDailyFoodGroupDto.setSpotName(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getSpotName());
             orderItemDailyFoodGroupDto.setUserName(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getName());
             orderItemDailyFoodGroupDto.setUserEmail(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getEmail());
-            orderItemDailyFoodGroupDto.setPhone(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getPhone());
+            orderItemDailyFoodGroupDto.setPhone(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getPhone() != null ? ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getPhone() : orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getPhone());
             orderItemDailyFoodGroupDto.setOrderCode(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getCode());
             orderItemDailyFoodGroupDto.setOrderDateTime(timeStampToString(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getCreatedDateTime()));
             orderItemDailyFoodGroupDto.setTotalPrice(orderItemDailyFoodGroup.getTotalPriceByGroup());

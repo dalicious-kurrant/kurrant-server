@@ -35,12 +35,11 @@ public class SseController {
 
     @Description(value = "sse 알림 조회")
     @GetMapping("/v1/notification")
-    public ResponseMessage getAllNotification(Authentication authentication, @RequestParam Integer type) {
+    public ResponseMessage getAllNotification(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        BigInteger userId = userUtil.getUserId(securityUser);
         return ResponseMessage.builder()
                 .message("알림 목록 조회에 성공했습니다.")
-                .data(sseService.getAllNotification(userId, type))
+                .data(sseService.getAllNotification(securityUser.getId()))
                 .build();
     }
 

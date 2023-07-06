@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.board.entity.CustomerService;
@@ -38,9 +39,11 @@ public class BoardServiceImpl implements BoardService {
     private final CustomerServiceMapper customerServiceMapper;
     private final UserUtil userUtil;
     private final QGroupRepository qGroupRepository;
+    private final SseService sseService;
 
     @Override
-    public List<NoticeDto>  noticeList(Integer status, BigInteger groupId) {
+    @Transactional
+    public List<NoticeDto>  noticeList(Integer status, BigInteger groupId, SecurityUser securityUser) {
         List<NoticeDto> result = new ArrayList<>();
         List<Notice> noticeList = qNoticeRepository.findAllByType(status);
 
@@ -64,10 +67,12 @@ public class BoardServiceImpl implements BoardService {
         for (Notice notice:noticeList){
            result.add(noticeMapper.toDto(notice));
         }
+
         return result.stream().sorted(Comparator.comparing(NoticeDto::getCreated).reversed()).toList();
     }
 
     @Override
+    @Transactional
     public List<CustomerServiceDto> customerBoardList() {
         List<CustomerServiceDto> result = new ArrayList<>();
         List<CustomerService> customerServiceList = qCustomerBoardRepository.findAll();
@@ -78,6 +83,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional
     public List<PushResponseDto> alarmBoardList(SecurityUser securityUser) {
         List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllByUserIdOrderByCreatedDateTimeDesc(securityUser.getId());
         List<PushResponseDto> alarmResponseDtos = new ArrayList<>();
@@ -93,5 +99,13 @@ public class BoardServiceImpl implements BoardService {
         User user = userUtil.getUser(securityUser);
         List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllByUserIdOrderByCreatedDateTimeDesc(user.getId());
         pushAlarmHashRepository.deleteAll(pushAlarmHashes);
+    }
+
+    @Override
+    @Transactional
+    public void readAllAlarm(SecurityUser securityUser, List<String> ids) {
+        User user = userUtil.getUser(securityUser);
+        List<PushAlarmHash> pushAlarmHashes = ids.stream().map(id ->pushAlarmHashRepository.findAllPushAlarmHashByUserIdAndId(user.getId(), id)).toList();
+        pushAlarmHashes.forEach(v -> v.updateRead(true));
     }
 }

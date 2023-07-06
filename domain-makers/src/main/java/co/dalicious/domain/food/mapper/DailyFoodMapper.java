@@ -14,9 +14,11 @@ import co.dalicious.system.enums.DiscountType;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.dto.DailyFoodDto;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
 import org.mapstruct.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
 
 import java.math.BigInteger;
@@ -74,7 +76,7 @@ public interface DailyFoodMapper {
     default DailyFood toDailyFood(List<Group> groups, FoodDto.DailyFood dailyFoodDto, List<Food> foods, DailyFoodGroup dailyFoodGroup) {
         Food food = Food.getFood(foods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
         if (food == null) {
-            throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE400020", "'" + dailyFoodDto.getMakersName() + "'의 '" + dailyFoodDto.getFoodName() + "' 상품 정보를 찾을 수 없습니다.");
         }
         Group group = Group.getGroup(groups, dailyFoodDto.getGroupName());
         if (group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
@@ -99,6 +101,9 @@ public interface DailyFoodMapper {
 
     ;
 
+    @Mapping(source = "sort", target = "sort")
+    @Mapping(source = "totalCount", target = "totalReviewCount")
+    @Mapping(source = "reviewAverage", target = "reviewAverage")
     @Mapping(source = "dailyFood.diningType.code", target = "diningType")
     @Mapping(source = "dailyFood.food.id", target = "foodId")
     @Mapping(source = "dailyFood.food.name", target = "foodName")
@@ -118,7 +123,7 @@ public interface DailyFoodMapper {
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
-    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends);
+    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount, Integer sort);
 
     @AfterMapping
     default void afterMapping(@MappingTarget DailyFoodDto dto, DailyFood dailyFood, Integer capacity, List<UserRecommends> userRecommends) {

@@ -10,6 +10,7 @@ import co.dalicious.domain.user.dto.SaveDailyReportReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.dalicious.domain.user.dto.SaveDailyReportDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
+import co.dalicious.domain.user.dto.UserGroupDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -48,6 +49,7 @@ public interface UserService {
     void settingOpenGroup(SecurityUser securityUser, BigInteger groupId);
     // 유저가 속한 그룹 정보 리스트
     GroupCountDto getClients(SecurityUser securityUser);
+    UserGroupDto getClientManagement(SecurityUser securityUser);
     Integer isHideEmail(SecurityUser securityUser);
     Object createNiceBillingKeyFirst(SecurityUser securityUser, Integer typeId, BillingKeyDto billingKeyDto) throws IOException, ParseException;
     List<CreditCardResponseDto> getCardList(SecurityUser securityUser);

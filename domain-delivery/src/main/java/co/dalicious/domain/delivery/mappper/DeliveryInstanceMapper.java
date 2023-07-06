@@ -11,6 +11,7 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.enums.DiningType;
@@ -151,7 +152,7 @@ public interface DeliveryInstanceMapper {
             foodBySpot.setSpotName(spot.getName());
             foodBySpot.setGroupName(getGroupName(spot));
             foodBySpot.setUserName(Hibernate.getClass(spot) == CorporationSpot.class ? null : deliveryInstance.getOrderItemDailyFoods().get(0).getOrder().getUser().getName());
-            foodBySpot.setPhone(Hibernate.getClass(spot) == CorporationSpot.class ? null : deliveryInstance.getOrderItemDailyFoods().get(0).getOrder().getUser().getPhone());
+            foodBySpot.setPhone(Hibernate.getClass(spot) == CorporationSpot.class ? null : ((OrderDailyFood) Hibernate.unproxy(deliveryInstance.getOrderItemDailyFoods().get(0).getOrder())).getPhone());
             foodBySpot.setFoods(toFood(Collections.singletonList(deliveryInstance)));
             foodBySpot.setFoodCount(foodBySpot.getFoodCount());
             foodBySpots.add(foodBySpot);

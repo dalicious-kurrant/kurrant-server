@@ -1,11 +1,13 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.alarm.dto.PushRequestDto;
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
+import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -48,11 +50,11 @@ public class ReviewServiceImpl implements ReviewService {
     private final MakersRepository makersRepository;
     private final PushUtil pushUtil;
     private final PushService pushService;
-    private final PushAlarmHashRepository pushAlarmHashRepository;
     private final KeywordRepository keywordRepository;
     private final KeywordMapper keywordMapper;
     private final QKeywordRepository qKeywordRepository;
     private final FoodRepository foodRepository;
+    private SseService sseService;
 
     @Override
     @Transactional(readOnly = true)
@@ -64,11 +66,12 @@ public class ReviewServiceImpl implements ReviewService {
         Boolean isMakersComment = !parameters.containsKey("isMakersComment") || parameters.get("isMakersComment") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isMakersComment")));
         Boolean isAdminComment = !parameters.containsKey("isAdminComment") || parameters.get("isAdminComment") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isAdminComment")));
         Boolean isReport = !parameters.containsKey("isReport") || parameters.get("isReport") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isReport")));
+        Boolean forMakers = !parameters.containsKey("forMakers") || parameters.get("forMakers") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("forMakers")));
         LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate") == null ? null : DateUtils.stringToDate(String.valueOf(parameters.get("startDate")));
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate") == null ? null : DateUtils.stringToDate(String.valueOf(parameters.get("endDate")));
 
         //서비스 날 기준으로 작성자, 주문번호, 주문 상품 이름, 작성자, 메이커스 댓글 여부, 관리자 댓글 여부, 신고여부, 메이커스로 필터링한 리뷰 조회 - 삭제 포함
-        Page<Reviews> reviewsList = qReviewRepository.findAllByFilter(makersId, orderCode, orderItemName, writer, startDate, endDate, isReport, isMakersComment, isAdminComment, limit, page, pageable);
+        Page<Reviews> reviewsList = qReviewRepository.findAllByFilter(makersId, orderCode, orderItemName, writer, startDate, endDate, isReport, forMakers, isMakersComment, isAdminComment, limit, page, pageable);
         List<Makers> makersList = makersRepository.findAll();
         long count = qReviewRepository.pendingReviewCount();
 
@@ -123,23 +126,13 @@ public class ReviewServiceImpl implements ReviewService {
 
         AdminComments adminComments = reviewMapper.toAdminComment(reqDto, reviews);
         commentsRepository.save(adminComments);
+        sseService.send(reviews.getUser().getId(), 8, null, null, adminComments.getId());
 
         // 댓글 생성 푸시알림
-        BigInteger userId = reviews.getUser().getId();
-        Map<String, Set<BigInteger>> userIdsMap = Collections.singletonMap("userIds", new HashSet<>(Collections.singletonList(userId)));
-
-        PushRequestDto pushRequestDto = pushUtil.sendToType(userIdsMap, PushCondition.REVIEW_GET_COMMENT, reviews.getId(), "reviewId", null);
-        pushService.sendToPush(pushRequestDto);
-
-        PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
-                .title(pushRequestDto.getTitle())
-                .message(pushRequestDto.getMessage())
-                .isRead(false)
-                .userId(userId)
-                .type(AlarmType.REVIEW.getAlarmType())
-                .reviewId(reviews.getId())
-                .build();
-        pushAlarmHashRepository.save(pushAlarmHash);
+        PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(reviews.getUser(), PushCondition.REVIEW_GET_COMMENT, null);
+        pushService.sendToPushByKey(List.of(pushRequestDtoByUser), Collections.singletonMap("reviewId", String.valueOf(reviews.getId())));
+        sseService.send(reviews.getUser().getId(), 6, null, null, null);
+        pushUtil.savePushAlarmHash(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), reviews.getUser().getId(), AlarmType.REVIEW, reviews.getId());
     }
 
     @Override
@@ -200,7 +193,8 @@ public class ReviewServiceImpl implements ReviewService {
         keywordRepository.deleteAllByFoodId(food.getId());
 
         for (String name : keywordDto.getNames()) {
-            Integer keywordCount = qReviewRepository.findKeywordCount(name, food.getId());
+            Long keywordCount1 = qReviewRepository.findKeywordCount(name, food.getId());
+            int keywordCount = keywordCount1.intValue();
             Keyword keyword = keywordMapper.toEntity(name, keywordCount, food);
             keywordRepository.save(keyword);
         }
