@@ -27,18 +27,14 @@ jobs:
 
       - name: data-flyway application.yaml(dev) 생성
         run: |
-          cd ./data-flyway/src/main
-          mkdir resources
-          cd resources
+          cd ./data-flyway/src/main/resources
           touch ./application-dev.yaml
           echo "${{ secrets.DATA_FLYWAY_DEV }}" > ./application-dev.yaml
         shell: bash
 
       - name: data-flyway application.yaml(prod) 생성
         run: |
-          cd ./data-flyway/src/main
-          mkdir resources
-          cd resources
+          cd ./data-flyway/src/main/resources
           touch ./application-prod.yaml
           echo "${{ secrets.DATA_FLYWAY_PROD }}" > ./application-prod.yaml
         shell: bash
