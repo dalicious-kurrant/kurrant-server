@@ -207,7 +207,7 @@ public class CartServiceImpl implements CartService {
                     .groupName(spot.getGroup().getName())
                     .phone(getPhoneNumberForOrder(user, spot))
                     // TODO: 스팟 변경시 변경 필요
-                    .clientStatus(GroupDataType.ofClass(spot.getClass()).getCode())
+                    .groupType(GroupDataType.ofClass(spot.getClass()).getCode())
                     .cartDailyFoodDtoList(cartDailyFoodListDtos)
                     .build();
             spotCartsList.add(spotCarts);
