@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -165,7 +166,9 @@ public class MemberServiceImpl implements MemberService {
 
         List<String> emails = dtoList.getSaveUserList().stream()
                 .map(ClientUserWaitingListSaveRequestDto::getEmail)
-                .toList();
+                .filter(Objects::nonNull)
+                .filter(Predicate.not(String::isEmpty))
+                .collect(Collectors.toList());
 
         // 삭제
         List<Employee> employees = employeeRepository.findAllByCorporation(corporation);

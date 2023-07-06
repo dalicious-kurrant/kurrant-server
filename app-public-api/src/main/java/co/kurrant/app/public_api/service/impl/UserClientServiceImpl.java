@@ -122,6 +122,7 @@ public class UserClientServiceImpl implements UserClientService {
         UserGroup userGroup = isGroupMember(user, unproxiedGroup);
         // 유저 그룹 상태를 탈퇴로 만든다.
         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
+        if(userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
         List<UserSpot> userSpots = user.getUserSpots();
         Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
                 .findAny();

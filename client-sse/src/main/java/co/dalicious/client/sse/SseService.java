@@ -1,7 +1,9 @@
 package co.dalicious.client.sse;
 
+import co.dalicious.client.sse.dto.SseResponseDto;
 import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
+import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +17,10 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -59,12 +63,12 @@ public class SseService {
     public void send(BigInteger receiver, Integer type, String content, BigInteger groupId, BigInteger commentId) {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         NotificationHash notification = createNotification(receiver, type, content, today, groupId, commentId);
+        notificationHashRepository.save(notification);
         String id = String.valueOf(receiver);
 
         // 로그인 한 유저의 SseEmitter 모두 가져오기
         Map<String, SseEmitter> sseEmitters = emitterRepository.findAllStartWithById(id);
         if(sseEmitters.isEmpty()) return;
-        System.out.println("sseEmitters = " + sseEmitters);
         sseEmitters.forEach(
                 (key, emitter) -> {
                     // 데이터 캐시 저장(유실된 데이터 처리하기 위함)
@@ -73,7 +77,6 @@ public class SseService {
                     sendToClient(emitter, key, notification);
                 }
         );
-        notificationHashRepository.save(notification);
     }
 
     //notification 생성
@@ -122,13 +125,28 @@ public class SseService {
     }
 
     @Transactional(readOnly = true)
-    public Integer getAllNotification(BigInteger userId, Integer type) {
-        List<NotificationHash> notificationList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
+    public List<SseResponseDto> getAllNotification(BigInteger userId) {
+        List<NotificationHash> notificationList = notificationHashRepository.findAllByUserIdAndIsRead(userId, false);
 
-        //읽을 알림이 있는지 확인
-        if(notificationList.size() == 0) { throw new ApiException(ExceptionEnum.ALREADY_READ); }
+        List<SseResponseDto> sseResponseDtos = new ArrayList<>();
 
-        //읽을 알림의 갯수 보내기
-        return notificationList.size();
+        if(notificationList.isEmpty()) return sseResponseDtos;
+
+        sseResponseDtos = notificationList.stream().map(v -> {
+            SseResponseDto sseResponseDto = new SseResponseDto();
+
+            sseResponseDto.setId(v.getId());
+            sseResponseDto.setType(v.getType());
+            sseResponseDto.setContent(v.getContent());
+            sseResponseDto.setCreateDate(DateUtils.localDateToString(v.getCreateDate()));
+            sseResponseDto.setIsRead(false);
+            sseResponseDto.setGroupId(v.getGroupId());
+            sseResponseDto.setCommentId(v.getCommentId());
+
+            return sseResponseDto;
+
+        }).collect(Collectors.toList());
+
+        return sseResponseDtos;
     }
 }
