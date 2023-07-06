@@ -172,7 +172,7 @@ jobs:
     needs: build-image
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to server
+      - name: 배포
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEV_HOST }}
