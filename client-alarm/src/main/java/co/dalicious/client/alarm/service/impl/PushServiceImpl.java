@@ -43,6 +43,67 @@ public class PushServiceImpl implements PushService {
     private final PushAlarmMapper pushAlarmMapper;
 
     @Override
+    public void sendToPush(PushRequestDto pushRequestDto) {
+        List<String> tokenList = pushRequestDto.getTokenList();
+        String title = pushRequestDto.getTitle();
+        String content = pushRequestDto.getMessage();
+        String page = pushRequestDto.getPage();
+        Map<String, String> keys = pushRequestDto.getKeys();
+
+        List<Message> messages;
+
+        // 관련 파라미터가 있으면
+        if(keys != null && !keys.isEmpty()) {
+            messages = tokenList.stream().map(token -> Message.builder()
+                    .putData("time", LocalDateTime.now().toString())
+                    .putData("page", page)
+                    .putAllData(keys)
+                    .setNotification(Notification.builder()
+                            .setTitle(title)
+                            .setBody(content)
+                            .build())
+                    .setToken(token)
+                    .build()).collect(Collectors.toList());
+        }
+        // 없으면
+        else {
+            messages = tokenList.stream().map(token -> Message.builder()
+                    .putData("time", LocalDateTime.now().toString())
+                    .putData("page", page)
+                    .setNotification(Notification.builder()
+                            .setTitle(title)
+                            .setBody(content)
+                            .build())
+                    .setToken(token)
+                    .build()).collect(Collectors.toList());
+        }
+
+        if(messages.isEmpty()) return;
+
+        //알림 발송
+        BatchResponse response;
+        try {
+
+            response = FirebaseMessaging.getInstance(FirebaseApp.getInstance("dalicious-v1")).sendAll(messages);
+
+            //응답처리
+            if(response.getFailureCount() > 0) {
+                List<SendResponse> responses = response.getResponses();
+                List<String> failedTokens = new ArrayList<>();
+
+                for(int i = 0; i < responses.size(); i++) {
+                    if(!responses.get(i).isSuccessful()) {
+                        failedTokens.add(tokenList.get(i));
+                    }
+                }
+                System.out.println("List of tokens are not valid FCM token : " + failedTokens);
+            }
+        } catch(FirebaseMessagingException e) {
+            System.out.println("전송실패 : " + e.getMessage());
+        }
+    }
+
+    @Override
     public void sendToPushByKey(List<PushRequestDtoByUser> pushRequestDtoByUsers, Map<String, String> keys) {
 
         List<Message> messages = new ArrayList<>();
