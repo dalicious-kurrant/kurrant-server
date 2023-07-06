@@ -34,15 +34,6 @@ jobs:
           echo "${{ secrets.DATA_FLYWAY_DEV }}" > ./application-dev.yaml
         shell: bash
 
-      - name: data-flyway application.yaml(prod) 생성
-        run: |
-          cd ./data-flyway/src/main
-          mkdir resources
-          cd resources
-          touch ./application-prod.yaml
-          echo "${{ secrets.DATA_FLYWAY_PROD }}" > ./application-prod.yaml
-        shell: bash
-
       - name: gradlew 실행 권한 추가
         run: chmod +x gradlew
 
@@ -53,11 +44,6 @@ jobs:
         run: |
           cd ./data-flyway/build/libs/
           java -Dspring.profiles.active=dev -jar data-flyway.jar
-
-      - name: 빌드 및 FlywayApplication (prod) 실행
-        run: |
-          cd ./data-flyway/build/libs/
-          java -Dspring.profiles.active=prod -jar data-flyway.jar
 
   build-image:
     needs: run-flyway
