@@ -28,16 +28,16 @@ public class CartResDto {
         private BigInteger spotId;
         private String spotName;
         private String groupName;
-        private Integer clientStatus;
+        private Integer groupType;
         private String phone;
         private List<CartDailyFoodDto> cartDailyFoodDtoList;
 
         @Builder
-        public SpotCarts(BigInteger spotId, String spotName, String groupName, Integer clientStatus, List<CartDailyFoodDto> cartDailyFoodDtoList, String phone) {
+        public SpotCarts(BigInteger spotId, String spotName, String groupName, Integer groupType, List<CartDailyFoodDto> cartDailyFoodDtoList, String phone) {
             this.spotId = spotId;
             this.spotName = spotName;
             this.groupName = groupName;
-            this.clientStatus = clientStatus;
+            this.groupType = groupType;
             this.cartDailyFoodDtoList = cartDailyFoodDtoList;
             this.phone = phone;
         }

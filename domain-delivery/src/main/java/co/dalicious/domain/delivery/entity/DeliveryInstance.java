@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.math.BigInteger;
@@ -70,6 +71,8 @@ public class DeliveryInstance {
     }
 
     public String getDeliveryCode() {
-        return this.spot instanceof CorporationSpot ? spot.getId().toString() : DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
+        return Hibernate.getClass(this.spot) == CorporationSpot.class
+                ? spot.getId().toString()
+                : DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
     }
 }

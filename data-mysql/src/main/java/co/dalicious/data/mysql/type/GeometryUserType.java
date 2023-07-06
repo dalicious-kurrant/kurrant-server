@@ -4,23 +4,21 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
-import org.locationtech.jts.io.WKTWriter;
+import org.locationtech.jts.io.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-
+import java.util.Arrays;
 public class GeometryUserType implements UserType {
-
-    private final int[] sqlTypesSupported = new int[] { Types.BINARY };
 
     @Override
     public int[] sqlTypes() {
-        return sqlTypesSupported;
+        // This is the "default" type we will map to.
+        return new int[]{Types.LONGVARBINARY};
     }
 
     @Override
@@ -31,11 +29,11 @@ public class GeometryUserType implements UserType {
     @Override
     public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String geometryAsString = rs.getString(names[0]);
+        byte[] bytes = rs.getBytes(names[0]);
         try {
-            return new WKTReader().read(geometryAsString);
+            return new WKBReader().read(bytes);
         } catch (ParseException e) {
-            throw new HibernateException("Failed to convert String to Geometry: " + geometryAsString, e);
+            throw new HibernateException("Failed to convert String to Geometry: " + Arrays.toString(bytes), e);
         }
     }
 
@@ -43,13 +41,18 @@ public class GeometryUserType implements UserType {
     public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException {
         if (value == null) {
-            st.setNull(index, Types.BINARY);
+            st.setNull(index, Types.LONGVARBINARY);
         } else {
             Geometry geometry = (Geometry) value;
-            String geometryAsString = new WKTWriter().write(geometry);
-            st.setString(index, geometryAsString);
+            byte[] bytes = new WKBWriter().write(geometry);
+            if (bytes.length <= 255) {
+                st.setBinaryStream(index, new ByteArrayInputStream(bytes), bytes.length);
+            } else {
+                st.setBinaryStream(index, new ByteArrayInputStream(bytes), bytes.length);
+            }
         }
     }
+
 
     @Override
     public Object deepCopy(Object value) throws HibernateException {
@@ -90,3 +93,4 @@ public class GeometryUserType implements UserType {
         return x.hashCode();
     }
 }
+
