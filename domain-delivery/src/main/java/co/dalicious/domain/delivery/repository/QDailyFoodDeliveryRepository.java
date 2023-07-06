@@ -54,6 +54,7 @@ public class QDailyFoodDeliveryRepository {
                         orderItemDailyFood.dailyFood.serviceDate.eq(serviceDate),
                         orderItemDailyFood.dailyFood.diningType.eq(diningType),
                         orderItemDailyFood.deliveryTime.eq(deliveryTime))
+                .limit(1)
                 .fetchOne());
     }
 
