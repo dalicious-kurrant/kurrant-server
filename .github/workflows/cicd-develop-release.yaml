@@ -51,13 +51,13 @@ jobs:
 
       - name: 빌드 및 FlywayApplication (dev) 실행
         run: |
-          cd ./data-flyway/src/main/java/co/dalicious/data/flyway
-          java -jar ./build/libs/data-flyway.jar -D spring.profiles.actvie=dev
+          cd ./data-flyway/build/libs/
+          java -Dspring.profiles.active=dev -jar data-flyway.jar
 
       - name: 빌드 및 FlywayApplication (prod) 실행
         run: |
-          cd ./data-flyway/src/main/java/co/dalicious/data/flyway
-          java -jar ./build/libs/data-flyway.jar -D spring.profiles.actvie=prod
+          cd ./data-flyway/build/libs/
+          java -Dspring.profiles.active=prod -jar data-flyway.jar
 
   build-image:
     needs: run-flyway
