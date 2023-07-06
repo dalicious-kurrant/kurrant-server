@@ -495,9 +495,6 @@ public class UserServiceImpl implements UserService {
                 }))
                 .toList();
 
-        List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 7, false);
-        if(!notificationHashList.isEmpty()) notificationHashList.forEach(v -> sseService.send(v.getUserId(), v.getType(), v.getContent(), v.getGroupId(), v.getCommentId()));
-
         return userGroupMapper.toGroupCountDto(spotListResponseDtoList);
     }
 
