@@ -172,11 +172,23 @@ jobs:
           echo "${{ secrets.SYSTEM_CORE_MAP }}" > ./application-map.properties
         shell: bash
 
+      - name: data-flyway application.yaml(dev) 생성
+        run: |
+          cd ./data-flyway/src/main/resources
+          touch ./application-dev.yaml
+          echo "${{ secrets.DATA_FLYWAY_DEV }}" > ./application-dev.yaml
+        shell: bash
+
       - name: gradlew 실행 권한 추가
         run: chmod +x gradlew
 
       - name: Gradle 빌드
         run: ./gradlew build
+
+      - name: 빌드 및 FlywayApplication (dev) 실행
+        run: |
+          cd ./data-flyway/build/libs/
+          java -Dspring.profiles.active=dev -jar data-flyway.jar
 
       - name: Docker 빌드
         run: |
@@ -207,6 +219,10 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
 
 
+  deploy:
+    needs: build-image
+    runs-on: ubuntu-latest
+    steps:
       - name: 배포
         uses: appleboy/ssh-action@master
         with:
@@ -215,6 +231,7 @@ jobs:
           key: ${{ secrets.DEV_PRIVATE_KEY }}
           envs: GITHUB_SHA
           script: |
+            docker images $(docker images -q)
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
             docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1
