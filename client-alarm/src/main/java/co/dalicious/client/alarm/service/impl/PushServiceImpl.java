@@ -166,8 +166,6 @@ public class PushServiceImpl implements PushService {
             messages.add(message);
         }
 
-
-
         if (messages.isEmpty()) return;
 
         //알림 발송

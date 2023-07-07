@@ -364,21 +364,21 @@ public class UserServiceImpl implements UserService {
         }
 
         // TODO: 프라이빗 스팟 초대 시 푸시알림 추가
-        List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmForCorporationUser.stream()
-                .map(user -> {
-                    PushCondition pushCondition = PushCondition.NEW_SPOT;
-                    String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
-                    pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
-                    return pushUtil.getPushRequest(user, pushCondition, message);
-                }).toList();
-        if(pushRequestDtoByUsers.size() > 500) {
-            List<List<PushRequestDtoByUser>> slicePushRequestDtoByUsers = pushUtil.sliceByChunkSize(pushRequestDtoByUsers);
+        if(!pushAlarmForCorporationUser.isEmpty()) {
+            List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmForCorporationUser.stream()
+                    .map(user -> {
+                        PushCondition pushCondition = PushCondition.NEW_SPOT;
+                        String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
+                        pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
+                        return pushUtil.getPushRequest(user, pushCondition, message);
+                    }).toList();
 
-            for(List<PushRequestDtoByUser> list : slicePushRequestDtoByUsers) {
-                pushService.sendToPush(list);
+            if(pushRequestDtoByUsers.size() > 500) {
+                List<List<PushRequestDtoByUser>> slicePushRequestDtoByUsers = pushUtil.sliceByChunkSize(pushRequestDtoByUsers);
+                slicePushRequestDtoByUsers.forEach(pushService::sendToPush);
             }
+            else pushService.sendToPush(pushRequestDtoByUsers);
         }
-        else pushService.sendToPush(pushRequestDtoByUsers);
     }
 
     @Override
