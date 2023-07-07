@@ -247,14 +247,16 @@ public class MemberServiceImpl implements MemberService {
         }
 
         // TODO: 프라이빗 스팟 초대 시 푸시알림 추가
-        List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmUserList.stream()
-                .map(user -> {
-                    PushCondition pushCondition = PushCondition.NEW_SPOT;
-                    String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
-                    pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
-                    return pushUtil.getPushRequest(user, pushCondition, message);
-                }).toList();
+        if(!pushAlarmUserList.isEmpty()) {
+            List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmUserList.stream()
+                    .map(user -> {
+                        PushCondition pushCondition = PushCondition.NEW_SPOT;
+                        String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
+                        pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
+                        return pushUtil.getPushRequest(user, pushCondition, message);
+                    }).toList();
 
-        pushService.sendToPush(pushRequestDtoByUsers);
+            pushService.sendToPush(pushRequestDtoByUsers);
+        }
     }
 }
