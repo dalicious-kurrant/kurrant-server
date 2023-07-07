@@ -304,8 +304,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public Object reviewStarCount(BigInteger dailyFoodId) {
-        Map<Integer, Integer> starCountMap = new ConcurrentHashMap<>();
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
+        Map<Integer, Integer> starCountMap = new ConcurrentHashMap<>();
         List<Reviews> reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
             starCountMap.put(1, 0);
             starCountMap.put(2, 0);

@@ -50,15 +50,6 @@ public class FoodController {
                 .build();
     }
 
-    @Operation(summary = "메뉴 할인 정보 불러오기", description = "특정 메뉴의 할인 정보를 불러온다.")
-    @GetMapping("/{dailyFoodId}/discount")
-    public ResponseMessage getFoodDiscount(Authentication authentication, @PathVariable BigInteger dailyFoodId){
-        return ResponseMessage.builder()
-                .data(foodService.getFoodDiscount(dailyFoodId))
-                .message("상품 상세정보 조회 성공!")
-                .build();
-    }
-
     @Operation(summary = "메뉴 상세 리뷰 불러오기", description = "특정 메뉴의 리뷰를 불러온다.")
     @GetMapping("/{dailyFoodId}/review")
     public ResponseMessage getFoodReview(Authentication authentication, @PathVariable BigInteger dailyFoodId,
@@ -108,6 +99,15 @@ public class FoodController {
         return ResponseMessage.builder()
                 .data(foodService.foodReviewKeyword(dailyFoodId))
                 .message("리뷰 키워드 조회")
+                .build();
+    }
+
+    @Operation(summary = "메뉴 할인 정보 불러오기", description = "특정 메뉴의 할인 정보를 불러온다.")
+    @GetMapping("/{dailyFoodId}/discount")
+    public ResponseMessage getFoodDiscount(Authentication authentication, @PathVariable BigInteger dailyFoodId){
+        return ResponseMessage.builder()
+                .data(foodService.getFoodDiscount(dailyFoodId))
+                .message("상품 상세정보 조회 성공!")
                 .build();
     }
 

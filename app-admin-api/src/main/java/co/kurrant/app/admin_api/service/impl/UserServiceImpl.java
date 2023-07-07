@@ -55,8 +55,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final DepartmentMapper departmentMapper;
-    private final UserDepartmentMapper userDepartmentMapper;
     private final UserHistoryMapper userHistoryMapper;
     private final QGroupRepository qGroupRepository;
     private final PasswordEncoder passwordEncoder;
@@ -70,15 +68,12 @@ public class UserServiceImpl implements UserService {
     private final ProviderEmailRepository providerEmailRepository;
     private final UserSpotRepository userSpotRepository;
     private final UserValidator userValidator;
-    private final UserDepartmentRepository userDepartmentRepository;
     private final FoodRepository foodRepository;
-    private final DepartmentRepository departmentRepository;
     private final UserTasteTestDataRepository userTasteTestDataRepository;
     private final QUserTasteTestDataRepository qUserTasteTestDataRepository;
     private final PointUtil pointUtil;
     private final PushUtil pushUtil;
     private final PushService pushService;
-    private final NotificationHashRepository notificationHashRepository;
     private final SseService sseService;
 
 

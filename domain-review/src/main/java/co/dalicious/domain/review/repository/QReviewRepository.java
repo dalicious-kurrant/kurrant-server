@@ -275,11 +275,20 @@ public class QReviewRepository {
 
 
     public Page<Reviews> findAllByFoodIdSort(BigInteger id, Integer photo, String star,String keyword, Pageable pageable, Integer sort) {
-
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(photo != null && photo != 0) {
+            whereClause.and(reviews.images.isNotEmpty());
+        }
+        if(star != null && star.length() != 0) {
+            whereClause.and(starFilter(star));
+        }
+        if(keyword != null && !keyword.equals("")) {
+            whereClause.and(keywordFilter(keyword));
+        }
 
      if (sort == 0){ //별점순
          QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                 .where(reviews.food.id.eq(id), photoFilter(photo), starFilter(star), keywordFilter(keyword), reviews.forMakers.eq(false))
+                 .where(reviews.food.id.eq(id),whereClause, reviews.forMakers.eq(false))
                  .orderBy(reviews.satisfaction.desc(),
                          reviews.createdDateTime.desc())
                  .offset(pageable.getOffset())
@@ -290,7 +299,7 @@ public class QReviewRepository {
 
         if (sort == 1){    //최신순
             QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                 .where(reviews.food.id.eq(id), photoFilter(photo), starFilter(star), keywordFilter(keyword), reviews.forMakers.eq(false))
+                 .where(reviews.food.id.eq(id), whereClause, reviews.forMakers.eq(false))
                  .orderBy(reviews.createdDateTime.desc(),
                          reviews.satisfaction.desc())
                  .offset(pageable.getOffset())
@@ -300,7 +309,7 @@ public class QReviewRepository {
         }
         //추천순
         QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                .where(reviews.food.id.eq(id), photoFilter(photo), starFilter(star), keywordFilter(keyword), reviews.forMakers.eq(false))
+                .where(reviews.food.id.eq(id), whereClause, reviews.forMakers.eq(false))
                 .orderBy(reviews.good.desc(),
                         reviews.createdDateTime.desc())
                 .offset(pageable.getOffset())
@@ -311,9 +320,6 @@ public class QReviewRepository {
 
     //별점필터
     private BooleanExpression starFilter(String starFilter){
-        if (starFilter == null){
-            return null;
-        }
         List<Integer> stars = new ArrayList<>();
         List<String> list = Arrays.stream(starFilter.split(",")).toList();
         for (String star : list){
@@ -324,15 +330,11 @@ public class QReviewRepository {
 
     //키워드필터
     private BooleanExpression keywordFilter(String keywordFilter){
-        if (keywordFilter == null || keywordFilter.equals("")) return null;
-
         return reviews.content.contains(keywordFilter);
     }
 
     //포토필터
     private BooleanExpression photoFilter(Integer photo){
-        if (photo == null) return null;
-
         return reviews.images.isNotEmpty();
     }
 
