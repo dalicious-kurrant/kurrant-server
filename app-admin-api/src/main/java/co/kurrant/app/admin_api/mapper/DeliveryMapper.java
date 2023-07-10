@@ -54,7 +54,10 @@ public interface DeliveryMapper {
                                             }).toList();
 
                                     DeliveryDto.DeliveryGroup deliveryGroup = toDeliveryGroup(instances.get(0));
-                                    deliveryGroup.setMakersList(deliveryMakersList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryMakers::getPickupTime)).toList());
+                                    List<DeliveryDto.DeliveryMakers> deliveryMakers = deliveryMakersList.stream()
+                                            .sorted(Comparator.comparing(v -> v.getPickupTime() != null ? LocalTime.parse(v.getPickupTime()) : null))
+                                            .toList();
+                                    deliveryGroup.setMakersList(deliveryMakers);
                                     return deliveryGroup;
                                 }).toList());
                     });
@@ -92,6 +95,7 @@ public interface DeliveryMapper {
     @Mapping(source = "makers.id", target = "makersId")
     @Mapping(source = "makers.name", target = "makersName")
     @Mapping(target = "address", expression = "java(dto.getMakers().getAddress().addressToString())")
+    @Mapping(source = "pickUpTime", target = "pickupTime")
     DeliveryDto.DeliveryMakers toDeliveryMakers(DeliveryInstance dto);
 
     default DeliveryDto.DeliveryManifest toDeliveryManifest(DailyFoodDelivery dailyFoodDelivery) {
