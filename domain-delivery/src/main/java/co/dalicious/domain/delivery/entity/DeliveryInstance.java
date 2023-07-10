@@ -75,4 +75,8 @@ public class DeliveryInstance {
                 ? spot.getId().toString()
                 : DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
     }
+
+    public LocalTime getPickUpTime() {
+        return this.pickUpTime == null ? this.deliveryTime.minusMinutes(30) : this.pickUpTime;
+    }
 }
