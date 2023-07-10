@@ -5,10 +5,7 @@ import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.sse.SseService;
-import co.dalicious.data.redis.entity.NotificationHash;
-import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.Department;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.mapper.DepartmentMapper;
@@ -16,6 +13,7 @@ import co.dalicious.domain.client.repository.DepartmentRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
+import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.UserDto;
@@ -36,13 +34,9 @@ import org.hibernate.Hibernate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -85,34 +79,37 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public long deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
+    public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
 
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
 
-        //code로 CorporationId 찾기 (=GroupId)
-        BigInteger groupId = deleteMemberRequestDto.getGroupId();
-
         if (userIdList.size() == 0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
-        for (BigInteger userId : userIdList) {
-            User deleteUser = userRepository.findById(userId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-            //주문 체크
-            long isOrder = qOrderRepository.orderCheck(deleteUser);
-            //주문내역이 없다면 해당유저 찐 삭제
-            if (isOrder == 0) {
-                long deleteReal = qUserRepository.deleteReal(deleteUser);
-                if (deleteReal != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
-            }
+        List<User> users = qUserRepository.getUserAllById(userIdList);
+        List<ProviderEmail> providerEmails = qProviderEmailRepository.findAllByUsers(users);
+//        List<UserHistory> userHistoryList = new ArrayList<>();
+        users.forEach(user -> {
+            List<Order> orders = qOrderRepository.findOrderNotDelivered(user);
+            // 배송 전인 주문내역이 없으면 탈퇴
+            if(orders.isEmpty()) {
+                // sns 가입 내역 삭제
+                List<ProviderEmail> userProviderEmails = providerEmails.stream().filter(v -> v.getUser().equals(user)).toList();
+                providerEmailRepository.deleteAll(userProviderEmails);
 
-            UserHistory userHistory = userHistoryMapper.toEntity(deleteUser, groupId);
+                // user group withdrawal
+                List<UserGroup> userGroups = user.getGroups();
+                userGroups.forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
 
-            userHistoryRepository.save(userHistory);
-            if (isOrder != 0) {
-                Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
-                if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
+                // user spot delete
+                List<UserSpot> userSpots = user.getUserSpots();
+                userSpotRepository.deleteAll(userSpots);
+
+                // user withdrawal
+                user.withdrawUser();
             }
-        }
-        return 1;
+            // 배송 전인 주문내역이 있으면 에러
+            else throw new ApiException(ExceptionEnum.EXIST_WAITING_DELIVERY_ORDER);
+        });
     }
 
     @Override

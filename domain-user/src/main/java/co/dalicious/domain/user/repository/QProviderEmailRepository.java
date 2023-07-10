@@ -1,6 +1,7 @@
 package co.dalicious.domain.user.repository;
 
 import co.dalicious.domain.user.entity.ProviderEmail;
+import co.dalicious.domain.user.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -17,6 +18,12 @@ public class QProviderEmailRepository {
     public List<ProviderEmail> getProviderEmails(List<String> emails) {
         return jpaQueryFactory.selectFrom(providerEmail)
                 .where(providerEmail.email.in(emails))
+                .fetch();
+    }
+
+    public List<ProviderEmail> findAllByUsers(List<User> userList) {
+        return jpaQueryFactory.selectFrom(providerEmail)
+                .where(providerEmail.user.in(userList))
                 .fetch();
     }
 }
