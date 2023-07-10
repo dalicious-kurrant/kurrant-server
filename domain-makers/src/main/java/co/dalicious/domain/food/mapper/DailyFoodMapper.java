@@ -66,7 +66,15 @@ public interface DailyFoodMapper {
         for (DailyFoodGroup dailyFoodGroup : dailyFoodMap.keySet()) {
             List<FoodDto.DailyFood> dailyFoodDtos = dailyFoodMap.get(dailyFoodGroup);
             for (FoodDto.DailyFood dailyFoodDto : dailyFoodDtos) {
-                dailyFoods.add(toDailyFood(groups, dailyFoodDto, foods, dailyFoodGroup));
+                DailyFood dailyFood = toDailyFood(groups, dailyFoodDto, foods, dailyFoodGroup);
+                // 메이커스/음식 주문 가능 수량이 존재하지 않을 경우
+                if(dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()) == null) {
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000018", dailyFood.getFood().getMakers().getId() + "번 메이커스의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
+                }
+                if(dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()) == null) {
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000019", dailyFood.getFood().getId() + "번 음식의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
+                }
+                dailyFoods.add(dailyFood);
             }
         }
         return dailyFoods;

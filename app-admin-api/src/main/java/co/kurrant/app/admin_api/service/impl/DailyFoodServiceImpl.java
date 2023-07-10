@@ -40,8 +40,10 @@ import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.mapper.ScheduleMapper;
 import co.kurrant.app.admin_api.service.DailyFoodService;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -248,8 +250,16 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                     .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
             Group group = Group.getGroup(updateGroups, dailyFoodDto.getGroupName());
             // 그룹이 가지고 있지 않은 식사 타입을 추가할 경우
-            if (!group.getDiningTypes().contains(DiningType.ofCode(dailyFoodDto.getDiningType()))) {
+            DiningType diningType = DiningType.ofCode(dailyFoodDto.getDiningType());
+            if (!group.getDiningTypes().contains(diningType)) {
                 throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+            }
+            // 메이커스/음식 주문 가능 수량이 존재하지 않을 경우
+            if(dailyFood.getFood().getMakers().getMakersCapacity(diningType) == null) {
+                throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000018", dailyFood.getFood().getMakers().getId() + "번 메이커스의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
+            }
+            if(dailyFood.getFood().getFoodCapacity(diningType) == null) {
+                throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000018", dailyFood.getFood().getId() + "번 음식의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
             }
             // 푸시 알림 전송을 위해 등록대기였던 식단 추가
             DailyFood waitingDailyFood = null;
