@@ -15,14 +15,15 @@ import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.mapper.FoodMapper;
 import co.dalicious.domain.order.repository.DailyFoodSupportPriceRepository;
+import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
 import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
+import co.dalicious.domain.recommend.dto.UserRecommendByPeriodWhereData;
 import co.dalicious.domain.recommend.dto.UserRecommendWhereData;
 import co.dalicious.domain.recommend.entity.UserRecommends;
 import co.dalicious.domain.recommend.repository.QUserRecommendRepository;
-import co.dalicious.domain.review.dto.AverageAndTotalCount;
 import co.dalicious.domain.review.entity.Comments;
 import co.dalicious.domain.review.entity.ReviewGood;
 import co.dalicious.domain.review.entity.Reviews;
@@ -31,15 +32,14 @@ import co.dalicious.domain.review.mapper.ReviewMapper;
 import co.dalicious.domain.review.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
-import co.dalicious.system.enums.FoodCategory;
-import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
-import co.dalicious.system.util.NumberUtils;
+import co.dalicious.system.util.PeriodDto;
+import co.kurrant.app.public_api.dto.food.DailyFoodResDto;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
+import co.kurrant.app.public_api.mapper.food.PublicDailyFoodMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.service.UserUtil;
@@ -82,6 +82,8 @@ public class FoodServiceImpl implements FoodService {
     private final QReviewGoodRepository qReviewGoodRepository;
     private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final QKeywordRepository qKeywordRepository;
+    private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
+    private final PublicDailyFoodMapper publicDailyFoodMapper;
 
 
     @Override
@@ -154,6 +156,38 @@ public class FoodServiceImpl implements FoodService {
                 .serviceDays(serviceDays)
                 .build();
 
+    }
+
+    @Override
+    @Transactional
+    public DailyFoodResDto getDailyFoodByPeriod(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate) {
+        // 유저가 그룹에 속해있는지 확인
+        User user = userUtil.getUser(securityUser);
+
+        Spot spot = spotRepository.findById(spotId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
+        );
+        Group group = spot.getGroup();
+
+        List<UserGroup> userGroups = user.getActiveUserGroups();
+        userGroups.stream().filter(v -> v.getGroup().equals(group))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
+
+        // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
+        List<DailyFood> dailyFoodList = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate, group);
+        List<DailyFoodSupportPrice> dailyFoodSupportPriceList = Hibernate.unproxy(group) instanceof Corporation
+                ? qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBySpotBetweenServiceDate(user, group, startDate, endDate)
+                : new ArrayList<>();
+        Map<DailyFood, Integer> dailyFoodCountMap = orderDailyFoodUtil.getRemainFoodsCount(dailyFoodList);
+
+        Set<BigInteger> foodIds = dailyFoodList.stream().map(v -> v.getFood().getId()).collect(Collectors.toSet());
+        List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
+                new UserRecommendByPeriodWhereData(user.getId(), group.getId(), foodIds, new PeriodDto(startDate, endDate)));
+
+        List<Reviews> reviewList = qReviewRepository.findAllByfoodIds(foodIds);
+
+        return publicDailyFoodMapper.toDailyFoodResDto(dailyFoodList, group, spot, dailyFoodSupportPriceList, dailyFoodCountMap, userRecommendList, reviewList, user);
     }
 
     @Override
@@ -318,13 +352,20 @@ public class FoodServiceImpl implements FoodService {
         List<BigInteger> foodIds = dailyFoodList.stream().map(v -> v.getFood().getId()).collect(Collectors.toList());
         List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
                 UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, selectedDate));
+        List<Reviews> reviewList = qReviewRepository.findAllByfoodIds(foodIds);
 
         for (DailyFood dailyFood : dailyFoodList) {
+            int sumStar = 0;
 
-            AverageAndTotalCount averageAndTotalCount = qReviewRepository.findAllByFoodIdPageableLess(dailyFood.getFood().getId());
+            List<Reviews> totalReviewsList = reviewList.stream()
+                    .filter(v -> v.getFood().equals(dailyFood.getFood()))
+                    .toList();
+            for (Reviews reviews : totalReviewsList) {
+                sumStar += reviews.getSatisfaction();
+            }
 
-            double reviewAverage = averageAndTotalCount.getReviewAverage();
-            Integer totalCount = averageAndTotalCount.getTotalCount();
+            Integer totalCount = totalReviewsList.size();
+            Double reviewAverage = Math.round(sumStar / (double) totalCount * 100) / 100.0;
 
             Integer sort = sortByFoodTag(dailyFood);
 
