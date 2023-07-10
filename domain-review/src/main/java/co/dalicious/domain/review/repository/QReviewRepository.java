@@ -238,9 +238,15 @@ public class QReviewRepository {
                 .fetch();
     }
 
-    public List<Reviews> findAllByIds(Set<BigInteger> ids) {
+    public List<Reviews> findAllByIds(Collection<BigInteger> ids) {
         return queryFactory.selectFrom(reviews)
                 .where(reviews.id.in(ids))
+                .fetch();
+    }
+
+    public List<Reviews> findAllByfoodIds(Collection<BigInteger> ids) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.in(ids))
                 .fetch();
     }
 

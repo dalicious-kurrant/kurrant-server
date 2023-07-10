@@ -73,6 +73,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -408,7 +409,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
                     // 배송정보 입력
                     // TODO: 배송시간 추가
-                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, user, dailyFood, null);
+                    LocalTime tempDeliveryTime = spot.getMealInfo(dailyFood.getDiningType()).getDeliveryTimes().get(0);
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, user, dailyFood, tempDeliveryTime);
                     orderItemDailyFoods.add(orderItemDailyFood);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
                     supportPrice = supportPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
