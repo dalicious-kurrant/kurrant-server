@@ -1,17 +1,12 @@
 package co.dalicious.domain.order.repository;
 
 import co.dalicious.domain.order.entity.Order;
-import co.dalicious.domain.order.entity.OrderDailyFood;
-import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
-import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.system.util.DateUtils;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -21,7 +16,6 @@ import java.util.List;
 import java.util.Set;
 
 import static co.dalicious.domain.order.entity.QOrder.order;
-import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 
@@ -68,6 +62,13 @@ public class QOrderRepository {
     public List<Order> findAllByIds(Set<BigInteger> ids) {
         return queryFactory.selectFrom(order)
                 .where(order.id.in(ids))
+                .fetch();
+    }
+
+    public List<Order> findOrderNotDelivered(User user) {
+        return queryFactory.selectFrom(order)
+                .leftJoin(orderItemDailyFood).on(order.eq(orderItemDailyFood.order))
+                .where(order.user.eq(user), orderItemDailyFood.orderStatus.in(OrderStatus.beforeDelivered()))
                 .fetch();
     }
 }
