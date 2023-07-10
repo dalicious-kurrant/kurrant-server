@@ -94,7 +94,6 @@ public interface PublicDailyFoodMapper {
 
     }
 
-    @Mapping(source = "sort", target = "sort")
     @Mapping(source = "totalCount", target = "totalReviewCount")
     @Mapping(source = "reviewAverage", target = "reviewAverage")
     @Mapping(source = "dailyFood.diningType.code", target = "diningType")
