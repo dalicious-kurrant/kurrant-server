@@ -80,6 +80,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final SseService sseService;
+    private final FoodCapacityRepository foodCapacityRepository;
 
     @Override
     @Transactional
@@ -240,6 +241,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         }
 
+        List<FoodCapacity> newFoodCapacities = new ArrayList<>();
         MultiValueMap<Group, DailyFood> groupMap = new LinkedMultiValueMap<>();
         dailyFoods.forEach(dailyFood -> {
             FoodDto.DailyFood dailyFoodDto = dailyFoodList.stream()
@@ -269,9 +271,18 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()));
             }
 
+            Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
+            FoodCapacity foodCapacity = food.getFoodCapacity(DiningType.ofCode(dailyFoodDto.getDiningType()));
+
+            // 수량이 기존과 다르거나 메이커스 수량과 다르면
+            if (dailyFoodDto.getMakersCapacity().equals(dailyFoodDto.getFoodCapacity()) && foodCapacity == null) {
+                newFoodCapacities.add(FoodCapacity.builder().food(food).capacity(dailyFoodDto.getFoodCapacity()).diningType(DiningType.ofCode(dailyFoodDto.getDiningType())).build());
+            } else if (!Objects.equals(foodCapacity.getCapacity(), dailyFoodDto.getFoodCapacity())) {
+            foodCapacity.updateCapacity(dailyFoodDto.getFoodCapacity());
+            }
+
             // 식단을 구매한 사람이 없다면
             if (dailyFoodDto.getFoodCapacity().equals(dailyFoodDto.getFoodCount())) {
-                Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
                 dailyFood.updateDiningType(DiningType.ofCode(dailyFoodDto.getDiningType()));
                 dailyFood.updateServiceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()));
                 dailyFood.updateFood(food);
@@ -282,6 +293,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 groupMap.add(waitingDailyFood.getGroup(),waitingDailyFood);
             }
         });
+        foodCapacityRepository.saveAll(newFoodCapacities);
 
         List<BigInteger> newDailyFoodIds = dailyFoodList.stream()
                 .map(FoodDto.DailyFood::getDailyFoodId)
