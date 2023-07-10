@@ -7,6 +7,9 @@ import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.entity.OrderDailyFood;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
 import co.kurrant.app.admin_api.dto.delivery.ServiceDateDto;
@@ -17,11 +20,9 @@ import org.mapstruct.Named;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
@@ -39,21 +40,28 @@ public interface DeliveryMapper {
                         Map<Spot, List<DeliveryInstance>> spotListMap = value.stream().collect(Collectors.groupingBy(DeliveryInstance::getSpot));
                         deliveryGroupList.set(spotListMap.values().stream()
                                 .map(instances -> {
-                                    Map<Makers, List<DeliveryInstance>> makersListMap = instances.stream().collect(Collectors.groupingBy(DeliveryInstance::getMakers));
+                                    Map<Makers, DeliveryInstance> makersListMap = instances.stream().collect(Collectors.toMap(DeliveryInstance::getMakers, Function.identity()));
                                     List<DeliveryDto.DeliveryMakers> deliveryMakersList = makersListMap.values().stream()
-                                            .map(deliveryInstanceList -> {
-                                                List<DeliveryDto.DeliveryFood> deliveryFoodList = deliveryInstanceList.stream()
-                                                        .map(v -> toDeliveryFood(v.getOrderItemDailyFoods().get(0).getDailyFood(), v.getItemCount()))
+                                            .map(values -> {
+                                                List<DailyFood> dailyFoodList = values.getOrderItemDailyFoods().stream()
+                                                        .filter(orderItemDailyFood -> OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus()))
+                                                        .map(OrderItemDailyFood::getDailyFood)
+                                                        .toList();
+                                                List<DeliveryDto.DeliveryFood> deliveryFoodList = dailyFoodList.stream()
+                                                        .map(v -> toDeliveryFood(v, values.getItemCount(v)))
                                                         .sorted(Comparator.comparing(DeliveryDto.DeliveryFood::getFoodId))
                                                         .toList();
 
-                                                DeliveryDto.DeliveryMakers deliveryMakers = toDeliveryMakers(deliveryInstanceList.get(0));
+                                                DeliveryDto.DeliveryMakers deliveryMakers = toDeliveryMakers(values);
                                                 deliveryMakers.setFoods(deliveryFoodList);
                                                 return deliveryMakers;
                                             }).toList();
 
                                     DeliveryDto.DeliveryGroup deliveryGroup = toDeliveryGroup(instances.get(0));
-                                    deliveryGroup.setMakersList(deliveryMakersList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryMakers::getPickupTime)).toList());
+                                    List<DeliveryDto.DeliveryMakers> deliveryMakers = deliveryMakersList.stream()
+                                            .sorted(Comparator.comparing(v -> v.getPickupTime() != null ? LocalTime.parse(v.getPickupTime()) : null))
+                                            .toList();
+                                    deliveryGroup.setMakersList(deliveryMakers);
                                     return deliveryGroup;
                                 }).toList());
                     });
@@ -75,20 +83,12 @@ public interface DeliveryMapper {
     @Mapping(source = "spot.address", target = "address", qualifiedByName = "getAddress")
     DeliveryDto.DeliveryGroup toDeliveryGroup(DeliveryInstance dto);
 
-    @Mapping(source = "spot.group.id", target = "groupId")
-    @Mapping(source = "spot.group.name", target = "groupName")
-    @Mapping(source = "deliveryTime", target = "deliveryTime")
-    @Mapping(source = "diningType", target = "diningType")
-    @Mapping(source = "spot.name", target = "spotName")
-    @Mapping(source = "spot.id", target = "spotId")
-    @Mapping(target = "address", expression = "java(spot.getAddress().addressToString())")
-    @Mapping(source = "deliveryMakersList", target = "makersList")
-    DeliveryDto.DeliveryGroup toDeliveryGroup(Spot spot, Integer diningType, LocalTime deliveryTime, List<DeliveryDto.DeliveryMakers> deliveryMakersList);
-
     @Named("getAddress")
     default String getAddress(Address address) {
         if(address == null) return null;
-        return String.valueOf(address.getAddress1() + ", " + address.getAddress2());
+        StringBuilder addressBuider = new StringBuilder();
+        addressBuider.append(address.getAddress1()).append(", ").append(address.getAddress2());
+        return String.valueOf(addressBuider);
     }
 
     @Mapping(source = "dailyFood.food.name", target = "foodName")
@@ -99,14 +99,8 @@ public interface DeliveryMapper {
     @Mapping(source = "makers.id", target = "makersId")
     @Mapping(source = "makers.name", target = "makersName")
     @Mapping(target = "address", expression = "java(dto.getMakers().getAddress().addressToString())")
+    @Mapping(source = "pickUpTime", target = "pickupTime")
     DeliveryDto.DeliveryMakers toDeliveryMakers(DeliveryInstance dto);
-
-    @Mapping(source = "makers.id", target = "makersId")
-    @Mapping(source = "makers.name", target = "makersName")
-    @Mapping(source = "pickupTime", target = "pickupTime")
-    @Mapping(source = "deliveryFoodList", target = "foods")
-    @Mapping(target = "address", expression = "java(makers.getAddress().addressToString())")
-    DeliveryDto.DeliveryMakers toDeliveryMakers(Makers makers, List<DeliveryDto.DeliveryFood> deliveryFoodList, LocalTime pickupTime);
 
     default DeliveryDto.DeliveryManifest toDeliveryManifest(DailyFoodDelivery dailyFoodDelivery) {
         return DeliveryDto.DeliveryManifest.builder()
@@ -138,4 +132,20 @@ public interface DeliveryMapper {
     @Mapping(source = "serviceDateDto.serviceDate", target = "serviceDate")
     @Mapping(source = "deliveryGroupList", target = "group")
     DeliveryDto.DeliveryInfo toDeliveryInfo(ServiceDateDto serviceDateDto, List<DeliveryDto.DeliveryGroup> deliveryGroupList);
+
+    @Mapping(source = "makers.id", target = "makersId")
+    @Mapping(source = "makers.name", target = "makersName")
+    @Mapping(source = "pickupTime", target = "pickupTime")
+    @Mapping(source = "deliveryFoodList", target = "foods")
+    @Mapping(target = "address", expression = "java(makers.getAddress().addressToString())")
+    DeliveryDto.DeliveryMakers toDeliveryMakers(Makers makers, List<DeliveryDto.DeliveryFood> deliveryFoodList, LocalTime pickupTime);
+    @Mapping(source = "spot.group.id", target = "groupId")
+    @Mapping(source = "spot.group.name", target = "groupName")
+    @Mapping(source = "deliveryTime", target = "deliveryTime")
+    @Mapping(source = "diningType", target = "diningType")
+    @Mapping(source = "spot.name", target = "spotName")
+    @Mapping(source = "spot.id", target = "spotId")
+    @Mapping(source = "spot.address", target = "address", qualifiedByName = "getAddress")
+    @Mapping(source = "deliveryMakersList", target = "makersList")
+    DeliveryDto.DeliveryGroup toDeliveryGroup(Spot spot, Integer diningType, LocalTime deliveryTime, List<DeliveryDto.DeliveryMakers> deliveryMakersList);
 }
