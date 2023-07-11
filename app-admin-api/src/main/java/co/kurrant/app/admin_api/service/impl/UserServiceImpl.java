@@ -117,6 +117,7 @@ public class UserServiceImpl implements UserService {
         saveUserListRequestDtoList = saveUserListRequestDtoList.stream()
                 .peek(dto -> dto.setEmail(dto.getEmail().trim()))
                 .filter(dto -> dto.getStatus() != null)
+                .peek(v -> System.out.println("v.getStatus() = " + v.getStatus()))
                 .collect(Collectors.toList());
         System.out.println("saveUserListRequestDtoList.size() = " + saveUserListRequestDtoList.size());
 
