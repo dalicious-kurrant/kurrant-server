@@ -129,4 +129,16 @@ public class QUserGroupRepository {
                 .where(userGroup.group.in(groups))
                 .fetch();
     }
+
+    public Map<BigInteger, String> findAllUserFirebaseTokenByGroupIds(List<BigInteger> groupIds) {
+        List<Tuple> userResult = queryFactory.select(user.firebaseToken, user.id)
+                .from(userGroup)
+                .leftJoin(userGroup.user, user)
+                .where(userGroup.group.id.in(groupIds), userGroup.clientStatus.eq(ClientStatus.BELONG), user.firebaseToken.isNotNull())
+                .fetch();
+
+        Map<BigInteger, String> userIdMap = new HashMap<>();
+        userResult.forEach(v -> userIdMap.put(v.get(user.id), v.get(user.firebaseToken)));
+        return userIdMap;
+    }
 }

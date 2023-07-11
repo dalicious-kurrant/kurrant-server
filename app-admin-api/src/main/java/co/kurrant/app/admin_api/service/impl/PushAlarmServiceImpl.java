@@ -5,41 +5,42 @@ import co.dalicious.client.alarm.dto.HandlePushAlarmDto;
 import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
+import co.dalicious.client.alarm.entity.enums.HandlePushAlarmType;
 import co.dalicious.client.alarm.entity.enums.PushStatus;
+import co.dalicious.client.alarm.mapper.PushAlarmMapper;
+import co.dalicious.client.alarm.repository.PushAlarmRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.KakaoUtil;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
+import co.dalicious.domain.user.repository.QUserSpotRepository;
 import co.dalicious.domain.user.repository.UserRepository;
-import co.dalicious.client.alarm.mapper.PushAlarmMapper;
-import co.dalicious.client.alarm.repository.PushAlarmRepository;
-import co.dalicious.client.alarm.entity.enums.HandlePushAlarmType;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.repository.GroupRepository;
 import co.kurrant.app.admin_api.dto.alimtalk.AlimtalkTestDto;
 import co.kurrant.app.admin_api.mapper.PushAlarmTypeMapper;
 import co.kurrant.app.admin_api.service.PushAlarmService;
-import com.querydsl.core.Tuple;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.ParseException;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,6 +58,8 @@ public class PushAlarmServiceImpl implements PushAlarmService {
     private final KakaoUtil kakaoUtil;
     private final PushUtil pushUtil;
     private final PushAlarmHashRepository pushAlarmHashRepository;
+    private final QUserGroupRepository qUserGroupRepository;
+    private final QUserSpotRepository qUserSpotRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -135,7 +138,12 @@ public class PushAlarmServiceImpl implements PushAlarmService {
 
         List<PushAlarmHash> pushAlarmHashList = new ArrayList<>();
         for (HandlePushAlarmDto.HandlePushAlarmReqDto reqDto : reqDtoList) {
-            Map<BigInteger, String> userWithFcmToken = qUserRepository.findAllUserFirebaseToken(reqDto.getGroupIds(), reqDto.getSpotIds(), reqDto.getUserIds());
+            Map<BigInteger, String> userWithFcmToken = new HashMap<>();
+
+            if (reqDto.getType().equals(HandlePushAlarmType.GROUP.getCode())) userWithFcmToken = qUserGroupRepository.findAllUserFirebaseTokenByGroupIds(reqDto.getGroupIds());
+            else if (reqDto.getType().equals(HandlePushAlarmType.SPOT.getCode())) userWithFcmToken = qUserSpotRepository.findAllUserSpotFirebaseToken(reqDto.getSpotIds());
+            else if (reqDto.getType().equals(HandlePushAlarmType.USER.getCode())) userWithFcmToken = qUserRepository.findAllUserFirebaseToken(reqDto.getUserIds());
+
             List<String> allUserFcmToken = new ArrayList<>(userWithFcmToken.values());
 
             // 푸시 알림은 한 api에 500개만 전공가능 함으로 500개가 넘어가면 잘라야 한다.
