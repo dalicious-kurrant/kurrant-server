@@ -114,6 +114,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
+        System.out.println("saveUserListRequestDtoList.size() = " + saveUserListRequestDtoList.size());
         saveUserListRequestDtoList = saveUserListRequestDtoList.stream()
                 .peek(dto -> dto.setEmail(dto.getEmail().trim()))
                 .filter(dto -> dto.getStatus() != null)
