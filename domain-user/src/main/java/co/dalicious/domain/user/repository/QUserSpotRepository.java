@@ -1,13 +1,15 @@
 package co.dalicious.domain.user.repository;
 
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.enums.PushCondition;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static co.dalicious.domain.user.entity.QUser.user;
@@ -36,6 +38,19 @@ public class QUserSpotRepository {
             return null;
         }
         return user;
+    }
+
+    public Map<BigInteger, String> findAllUserSpotFirebaseToken(List<BigInteger> spotIds) {
+        List<Tuple> userResult = queryFactory.select(user.id, user.firebaseToken)
+                .from(userSpot)
+                .leftJoin(userSpot.user, user)
+                .where(userSpot.spot.id.in(spotIds),
+                        user.firebaseToken.isNotNull())
+                .fetch();
+
+        Map<BigInteger, String> userIdMap = new HashMap<>();
+        userResult.forEach(v -> userIdMap.put(v.get(user.id), v.get(user.firebaseToken)));
+        return userIdMap;
     }
 
     public List<User> findAllUserSpotFirebaseToken(Set<BigInteger> spotIds) {
