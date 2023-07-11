@@ -409,10 +409,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     }
 
                     // 8. 주문 상품(OrderItemDailyFood) 저장
-                    OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
+                    LocalTime tempDeliveryTime = spot.getMealInfo(dailyFood.getDiningType()).getDeliveryTimes().get(0);
+                    OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup, tempDeliveryTime));
                     // 배송정보 입력
                     // TODO: 배송시간 추가
-                    LocalTime tempDeliveryTime = spot.getMealInfo(dailyFood.getDiningType()).getDeliveryTimes().get(0);
                     deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, user, dailyFood, tempDeliveryTime);
                     orderItemDailyFoods.add(orderItemDailyFood);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
