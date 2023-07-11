@@ -317,10 +317,25 @@ public class FoodServiceImpl implements FoodService {
         List<BigInteger> foodIds = dailyFoodList.stream().map(v -> v.getFood().getId()).collect(Collectors.toList());
         List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
                 UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, selectedDate));
+        List<Reviews> reviewList = qReviewRepository.findAllByfoodIds(foodIds);
 
         for (DailyFood dailyFood : dailyFoodList) {
+            int sumStar = 0;
+
+            List<Reviews> totalReviewsList = reviewList.stream()
+                    .filter(v -> v.getFood().equals(dailyFood.getFood()))
+                    .toList();
+            for (Reviews reviews : totalReviewsList) {
+                sumStar += reviews.getSatisfaction();
+            }
+
+            Integer totalCount = totalReviewsList.size();
+            Double reviewAverage = Math.round(sumStar / (double) totalCount * 100) / 100.0;
+
+            Integer sort = sortByFoodTag(dailyFood);
+
             DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
-            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList);
+            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList, reviewAverage, totalCount, sort);
             dailyFoodDtos.add(dailyFoodDto);
         }
 
@@ -329,6 +344,33 @@ public class FoodServiceImpl implements FoodService {
                     .sorted(Comparator.<DailyFoodDto>comparingInt(dto -> dto.getRank() != null && dto.getRank().equals(1) ? 0 : 1)
                             .thenComparing(DailyFoodDto::getStatus)).toList();
         }
-        return dailyFoodDtos;
+        return dailyFoodDtos.stream().sorted(Comparator.comparing(DailyFoodDto::getSort).reversed()).toList();
+    }
+
+    private Integer sortByFoodTag(DailyFood dailyFood) {
+        if (!dailyFood.getFood().getFoodTags().isEmpty()) {
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11003))) {    //정찬도시락
+                return 10;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11007))) {    //한그릇음식
+                return 9;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11004))) {    //산후조리식
+                return 8;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11005))) {    //다이어트식
+                return 7;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11006))) {    //프로틴식
+                return 6;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11002))) {    //샐러드
+                return 5;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11001))) {    //간편식
+                return 3;
+            }
+        }
+        return 0;
     }
 }

@@ -346,6 +346,12 @@ public class QReviewRepository {
                 .fetchOne());
     }
 
+    public List<Reviews> findAllByfoodIds(Collection<BigInteger> ids) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.in(ids))
+                .fetch();
+    }
+
      /*
     *   QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
