@@ -30,6 +30,7 @@ import org.springframework.util.MultiValueMap;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,7 +62,8 @@ public interface OrderMapper {
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
     @Mapping(source = "orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
-    OrderItemDailyFood toExtraOrderItemEntity(Order order, DailyFood dailyFood, ExtraOrderDto.Request extraOrderDto, DiscountDto discountDto, OrderItemDailyFoodGroup orderItemDailyFoodGroup);
+    @Mapping(source = "deliveryTime", target = "deliveryTime")
+    OrderItemDailyFood toExtraOrderItemEntity(Order order, DailyFood dailyFood, ExtraOrderDto.Request extraOrderDto, DiscountDto discountDto, OrderItemDailyFoodGroup orderItemDailyFoodGroup, LocalTime deliveryTime);
 
     @Mapping(source = "orderCode", target = "code")
     @Mapping(source = "spot.address", target = "address")
