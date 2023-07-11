@@ -8,8 +8,6 @@ import co.dalicious.client.sse.SseService;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
-import co.dalicious.domain.client.mapper.DepartmentMapper;
-import co.dalicious.domain.client.repository.DepartmentRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
@@ -19,7 +17,6 @@ import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
-import co.dalicious.domain.user.mapper.UserDepartmentMapper;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.PointUtil;
@@ -28,9 +25,11 @@ import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -146,10 +145,15 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toSet());
 
         Map<User, SaveUserListRequestDto> userUpdateMap = new HashMap<>();
+        List<User> deleteUserList = new ArrayList<>();
         for (ProviderEmail providerEmail : providerEmails) {
             saveUserListRequestDtoList.stream()
                     .filter(v -> v.getEmail().equals(providerEmail.getEmail()))
                     .findAny().ifPresent(saveUserListRequestDto -> userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto));
+
+            saveUserListRequestDtoList.stream()
+                    .filter(v -> v.getStatus().equals(UserStatus.INACTIVE.getCode()) && providerEmail.getEmail().equals(v.getEmail()))
+                    .findAny().ifPresent(v -> deleteUserList.add(providerEmail.getUser()));
         }
 
         Set<User> pushAlarmForCorporationUser = new HashSet<>();
@@ -319,6 +323,30 @@ public class UserServiceImpl implements UserService {
                 user.changeMarketingAgreement(saveUserListRequestDto.getMarketingAgree(), saveUserListRequestDto.getMarketingAlarm(), saveUserListRequestDto.getOrderAlarm());
             }
 
+        }
+
+        // 탈퇴
+        for(User user : deleteUserList) {
+            List<Order> orders = qOrderRepository.findOrderNotDelivered(user);
+            // 배송 전인 주문내역이 없으면 탈퇴
+            if(orders.isEmpty()) {
+                // sns 가입 내역 삭제
+                List<ProviderEmail> userProviderEmails = providerEmails.stream().filter(v -> v.getUser().equals(user)).toList();
+                providerEmailRepository.deleteAll(userProviderEmails);
+
+                // user group withdrawal
+                List<UserGroup> userGroups = user.getGroups();
+                userGroups.forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
+
+                // user spot delete
+                List<UserSpot> userSpots = user.getUserSpots();
+                userSpotRepository.deleteAll(userSpots);
+
+                // user withdrawal
+                user.withdrawUser();
+            }
+            // 배송 전인 주문내역이 있으면 에러
+            else throw new CustomException(HttpStatus.BAD_REQUEST, "CE400025", user.getName() + "님은 아직 배송 대기 중인 상품이 있어 탈퇴처리 할 수 없습니다.");
         }
 
         // FIXME: 신규 생성 요청
