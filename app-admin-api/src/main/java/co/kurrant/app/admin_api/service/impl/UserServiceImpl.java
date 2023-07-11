@@ -149,11 +149,19 @@ public class UserServiceImpl implements UserService {
         for (ProviderEmail providerEmail : providerEmails) {
             saveUserListRequestDtoList.stream()
                     .filter(v -> v.getEmail().equals(providerEmail.getEmail()) && !v.getStatus().equals(UserStatus.INACTIVE.getCode()))
-                    .findAny().ifPresent(saveUserListRequestDto -> userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto));
+                    .findAny().ifPresent(saveUserListRequestDto -> {
+                        userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto);
+                        System.out.println("providerEmail = " + providerEmail.getUser().getName());
+                        System.out.println("saveUserListRequestDto.getStatus() = " + saveUserListRequestDto.getStatus());
+                    });
 
             saveUserListRequestDtoList.stream()
                     .filter(v -> v.getStatus().equals(UserStatus.INACTIVE.getCode()) && providerEmail.getEmail().equals(v.getEmail()))
-                    .findAny().ifPresent(v -> deleteUserList.add(providerEmail.getUser()));
+                    .findAny().ifPresent(v -> {
+                        deleteUserList.add(providerEmail.getUser());
+                        System.out.println("providerEmail = " + providerEmail.getUser().getName());
+                        System.out.println("v.getStatus() = " + v.getStatus());
+                    });
         }
 
         Set<User> pushAlarmForCorporationUser = new HashSet<>();
@@ -327,6 +335,7 @@ public class UserServiceImpl implements UserService {
 
         // 탈퇴
         for(User user : deleteUserList) {
+            System.out.println("user.getName() = " + user.getName());
             List<Order> orders = qOrderRepository.findOrderNotDelivered(user);
             // 배송 전인 주문내역이 없으면 탈퇴
             if(orders.isEmpty()) {
