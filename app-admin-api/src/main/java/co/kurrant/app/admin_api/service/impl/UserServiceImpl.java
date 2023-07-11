@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService {
     public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
         saveUserListRequestDtoList = saveUserListRequestDtoList.stream()
                 .peek(dto -> dto.setEmail(dto.getEmail().trim()))
-                .filter(dto -> dto.getStatus() != null && dto.getStatus() != 0)
+                .filter(dto -> dto.getStatus() != null)
                 .collect(Collectors.toList());
 
         List<String> emails = saveUserListRequestDtoList.stream()
@@ -148,7 +148,7 @@ public class UserServiceImpl implements UserService {
         List<User> deleteUserList = new ArrayList<>();
         for (ProviderEmail providerEmail : providerEmails) {
             saveUserListRequestDtoList.stream()
-                    .filter(v -> v.getEmail().equals(providerEmail.getEmail()))
+                    .filter(v -> v.getEmail().equals(providerEmail.getEmail()) && !v.getStatus().equals(UserStatus.INACTIVE.getCode()))
                     .findAny().ifPresent(saveUserListRequestDto -> userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto));
 
             saveUserListRequestDtoList.stream()
