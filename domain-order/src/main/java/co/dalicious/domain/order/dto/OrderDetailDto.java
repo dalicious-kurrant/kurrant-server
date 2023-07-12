@@ -17,6 +17,7 @@ public class OrderDetailDto {
     private String serviceDate;
     private String diningType;
     private List<OrderItemDto> orderItemDtoList;
+    private Integer totalCalorie;
 
     @Getter
     @Setter
