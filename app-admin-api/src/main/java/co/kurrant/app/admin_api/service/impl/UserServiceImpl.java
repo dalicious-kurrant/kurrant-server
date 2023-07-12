@@ -206,13 +206,12 @@ public class UserServiceImpl implements UserService {
 
             if (groupsName.isEmpty()) {
                 // Case 1: 요청의 groupName 값이 null일 경우 기존의 UserGroup 철회
-                user.getGroups().forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
-
-                // open group의 경우 count 빼기
                 user.getGroups().stream()
-                        .filter(userGroup -> userGroup.getGroup() instanceof OpenGroup)
-                        .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
-                        .forEach(g -> g.updateOpenGroupUserCount(1, false));
+                        .filter(userGroup -> userGroup.getClientStatus().equals(ClientStatus.BELONG))
+                        .forEach(userGroup -> {
+                            userGroup.updateStatus(ClientStatus.WITHDRAWAL);
+                            if(userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
+                        });
 
             } else if (user.getGroups().isEmpty()) {
                 // Case 2: 유저에 포함된 그룹이 없을 때
@@ -337,7 +336,10 @@ public class UserServiceImpl implements UserService {
 
                 // user group withdrawal
                 List<UserGroup> userGroups = user.getGroups();
-                userGroups.forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
+                userGroups.forEach(userGroup -> {
+                    userGroup.updateStatus(ClientStatus.WITHDRAWAL);
+                    if(userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
+                });
 
                 // user spot delete
                 List<UserSpot> userSpots = user.getUserSpots();
@@ -381,11 +383,16 @@ public class UserServiceImpl implements UserService {
                     .orElse(List.of());
 
             Group.getGroups(groups, groupsName).stream()
-                    .map(group -> UserGroup.builder()
-                            .group(group)
-                            .user(user)
-                            .clientStatus(ClientStatus.BELONG)
-                            .build())
+                    .map(group -> {
+                        UserGroup newUserGroup = UserGroup.builder()
+                                .group(group)
+                                .user(user)
+                                .clientStatus(ClientStatus.BELONG)
+                                .build();
+
+                        if(group instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, true);
+                        return newUserGroup;
+                    })
                     .forEach(userGroupRepository::save);
         }
 
