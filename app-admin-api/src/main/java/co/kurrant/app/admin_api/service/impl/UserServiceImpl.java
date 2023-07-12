@@ -23,8 +23,10 @@ import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -113,7 +115,7 @@ public class UserServiceImpl implements UserService {
     public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
         saveUserListRequestDtoList = saveUserListRequestDtoList.stream()
                 .peek(dto -> dto.setEmail(dto.getEmail().trim()))
-                .filter(dto -> dto.getStatus() != null && dto.getStatus() != 0)
+                .filter(dto -> dto.getStatus() != null)
                 .collect(Collectors.toList());
 
         List<String> emails = saveUserListRequestDtoList.stream()
@@ -142,10 +144,15 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toSet());
 
         Map<User, SaveUserListRequestDto> userUpdateMap = new HashMap<>();
+        List<User> deleteUserList = new ArrayList<>();
         for (ProviderEmail providerEmail : providerEmails) {
             saveUserListRequestDtoList.stream()
-                    .filter(v -> v.getEmail().equals(providerEmail.getEmail()))
+                    .filter(v -> v.getEmail().equals(providerEmail.getEmail()) && !v.getStatus().equals(UserStatus.INACTIVE.getCode()))
                     .findAny().ifPresent(saveUserListRequestDto -> userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto));
+
+            saveUserListRequestDtoList.stream()
+                    .filter(v -> v.getStatus().equals(UserStatus.INACTIVE.getCode()) && providerEmail.getEmail().equals(v.getEmail()))
+                    .findAny().ifPresent(v -> deleteUserList.add(providerEmail.getUser()));
         }
 
         for (User user : userUpdateMap.keySet()) {
@@ -274,9 +281,34 @@ public class UserServiceImpl implements UserService {
 
         }
 
+        // 탈퇴
+        for(User user : deleteUserList) {
+            System.out.println("user.getName() = " + user.getName() + "탈퇴");
+            List<Order> orders = qOrderRepository.findOrderNotDelivered(user);
+            // 배송 전인 주문내역이 없으면 탈퇴
+            if(orders.isEmpty()) {
+                // sns 가입 내역 삭제
+                List<ProviderEmail> userProviderEmails = providerEmails.stream().filter(v -> v.getUser().equals(user)).toList();
+                providerEmailRepository.deleteAll(userProviderEmails);
+
+                // user group withdrawal
+                List<UserGroup> userGroups = user.getGroups();
+                userGroups.forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
+
+                // user spot delete
+                List<UserSpot> userSpots = user.getUserSpots();
+                userSpotRepository.deleteAll(userSpots);
+
+                // user withdrawal
+                user.withdrawUser();
+            }
+            // 배송 전인 주문내역이 있으면 에러
+            else throw new CustomException(HttpStatus.BAD_REQUEST, "CE400025", user.getName() + "님은 아직 배송 대기 중인 상품이 있어 탈퇴처리 할 수 없습니다.");
+        }
+
         // FIXME: 신규 생성 요청
         List<SaveUserListRequestDto> createUserDtos = saveUserListRequestDtoList.stream()
-                .filter(v -> !updateUserEmails.contains(v.getEmail()))
+                .filter(v -> !updateUserEmails.contains(v.getEmail()) && v.getStatus() != 0)
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
             // 이미 있는 핸드폰 번호인지 확인
