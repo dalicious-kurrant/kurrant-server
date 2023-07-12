@@ -34,7 +34,7 @@ public class SimpleJwtTokenProvider {
 
     private final UserDetailsService userDetailsService;
 
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 8 * 60 * 60 * 1000L; // 8시간
+     private static final long ACCESS_TOKEN_EXPIRE_TIME = 8 * 60 * 60 * 1000L; // 8시간
 
     @PostConstruct
     protected void init() {

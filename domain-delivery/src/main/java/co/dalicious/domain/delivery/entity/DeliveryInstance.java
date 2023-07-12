@@ -2,6 +2,7 @@ package co.dalicious.domain.delivery.entity;
 
 import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -74,5 +75,16 @@ public class DeliveryInstance {
         return Hibernate.getClass(this.spot) == CorporationSpot.class
                 ? spot.getId().toString()
                 : DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
+    }
+
+    public LocalTime getPickUpTime() {
+        return this.pickUpTime == null ? this.deliveryTime.minusMinutes(30) : this.pickUpTime;
+    }
+
+    public Integer getItemCount(DailyFood dailyFood) {
+        return dailyFoodDeliveries.stream()
+                .filter(v -> OrderStatus.completePayment().contains(v.getOrderItemDailyFood().getOrderStatus()) && v.getOrderItemDailyFood().getDailyFood().equals(dailyFood))
+                .map(v -> v.getOrderItemDailyFood().getCount())
+                .reduce(0, Integer::sum);
     }
 }

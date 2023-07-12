@@ -103,11 +103,9 @@ public class OrderUtil {
             if (spot.getDeliveryTime(dailyFood.getDiningType()) == null || LocalDateTime.now().isBefore(membershipBenefitTime)) {
 
                 return DiscountDto.getDiscount(dailyFood);
-//                return DiscountDto.getDiscount(dailyFood.getFood());
             }
         }
         return DiscountDto.getDiscountWithoutMembership(dailyFood);
-//        return DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
     }
 
     public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {

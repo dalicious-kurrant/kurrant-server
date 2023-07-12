@@ -1,7 +1,9 @@
 package co.dalicious.domain.food.repository;
 
 
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
@@ -170,7 +172,7 @@ public class QDailyFoodRepository {
 
         return queryFactory.selectFrom(dailyFood)
                 .leftJoin(dailyFood.group, group)
-                .where(whereClause)
+                .where(whereClause, group.instanceOf(Corporation.class).or(group.instanceOf(OpenGroup.class)))
                 .distinct()
                 .fetch();
     }

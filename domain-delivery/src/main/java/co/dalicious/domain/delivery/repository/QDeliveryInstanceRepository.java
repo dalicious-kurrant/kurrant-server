@@ -1,16 +1,10 @@
 package co.dalicious.domain.delivery.repository;
 
-import co.dalicious.domain.client.entity.CorporationSpot;
-import co.dalicious.domain.client.entity.MySpot;
-import co.dalicious.domain.client.entity.OpenGroupSpot;
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
-import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -92,6 +86,7 @@ public class QDeliveryInstanceRepository {
                 .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood)
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
                 .where(dailyFood.in(dailyFoodList), orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .distinct()
                 .fetch();
     }
 

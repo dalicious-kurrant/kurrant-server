@@ -74,7 +74,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
 
-        if(orderItemDailyFoods.isEmpty() || orderItemDailyFoods == null) return null;
+        if (orderItemDailyFoods.isEmpty() || orderItemDailyFoods == null) return null;
 
         // service date 묶기
         MultiValueMap<ServiceDateDto, OrderItemDailyFood> serviceDateDtoMap = new LinkedMultiValueMap<>();
@@ -126,7 +126,10 @@ public class DeliveryServiceImpl implements DeliveryService {
                                 .collect(Collectors.toList());
 
                         deliveryMakersList = deliveryMakersList.stream()
-                                .sorted(Comparator.comparing(deliveryMakers -> LocalTime.parse(deliveryMakers.getPickupTime())))
+                                .sorted(Comparator.comparing(deliveryMakers ->
+                                                deliveryMakers.getPickupTime() != null ? LocalTime.parse(deliveryMakers.getPickupTime()) : null,
+                                        Comparator.nullsFirst(Comparator.naturalOrder())
+                                ))
                                 .collect(Collectors.toList());
 
                         return deliveryMapper.toDeliveryGroup(spot, diningType.getCode(), serviceDateDto.getDeliveryTime(), deliveryMakersList);

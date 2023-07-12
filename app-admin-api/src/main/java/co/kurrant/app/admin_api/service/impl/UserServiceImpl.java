@@ -5,23 +5,18 @@ import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.sse.SseService;
-import co.dalicious.data.redis.entity.NotificationHash;
-import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.Department;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
-import co.dalicious.domain.client.mapper.DepartmentMapper;
-import co.dalicious.domain.client.repository.DepartmentRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
+import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
-import co.dalicious.domain.user.mapper.UserDepartmentMapper;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.PointUtil;
@@ -30,19 +25,17 @@ import co.kurrant.app.admin_api.dto.user.*;
 import co.kurrant.app.admin_api.mapper.UserMapper;
 import co.kurrant.app.admin_api.service.UserService;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -55,8 +48,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final DepartmentMapper departmentMapper;
-    private final UserDepartmentMapper userDepartmentMapper;
     private final UserHistoryMapper userHistoryMapper;
     private final QGroupRepository qGroupRepository;
     private final PasswordEncoder passwordEncoder;
@@ -70,15 +61,12 @@ public class UserServiceImpl implements UserService {
     private final ProviderEmailRepository providerEmailRepository;
     private final UserSpotRepository userSpotRepository;
     private final UserValidator userValidator;
-    private final UserDepartmentRepository userDepartmentRepository;
     private final FoodRepository foodRepository;
-    private final DepartmentRepository departmentRepository;
     private final UserTasteTestDataRepository userTasteTestDataRepository;
     private final QUserTasteTestDataRepository qUserTasteTestDataRepository;
     private final PointUtil pointUtil;
     private final PushUtil pushUtil;
     private final PushService pushService;
-    private final NotificationHashRepository notificationHashRepository;
     private final SseService sseService;
 
 
@@ -90,34 +78,37 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public long deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
+    public void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto) {
 
         List<BigInteger> userIdList = deleteMemberRequestDto.getUserIdList();
 
-        //code로 CorporationId 찾기 (=GroupId)
-        BigInteger groupId = deleteMemberRequestDto.getGroupId();
-
         if (userIdList.size() == 0) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
-        for (BigInteger userId : userIdList) {
-            User deleteUser = userRepository.findById(userId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-            //주문 체크
-            long isOrder = qOrderRepository.orderCheck(deleteUser);
-            //주문내역이 없다면 해당유저 찐 삭제
-            if (isOrder == 0) {
-                long deleteReal = qUserRepository.deleteReal(deleteUser);
-                if (deleteReal != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
-            }
+        List<User> users = qUserRepository.getUserAllById(userIdList);
+        List<ProviderEmail> providerEmails = qProviderEmailRepository.findAllByUsers(users);
+//        List<UserHistory> userHistoryList = new ArrayList<>();
+        users.forEach(user -> {
+            List<Order> orders = qOrderRepository.findOrderNotDelivered(user);
+            // 배송 전인 주문내역이 없으면 탈퇴
+            if(orders.isEmpty()) {
+                // sns 가입 내역 삭제
+                List<ProviderEmail> userProviderEmails = providerEmails.stream().filter(v -> v.getUser().equals(user)).toList();
+                providerEmailRepository.deleteAll(userProviderEmails);
 
-            UserHistory userHistory = userHistoryMapper.toEntity(deleteUser, groupId);
+                // user group withdrawal
+                List<UserGroup> userGroups = user.getGroups();
+                userGroups.forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
 
-            userHistoryRepository.save(userHistory);
-            if (isOrder != 0) {
-                Long deleteResult = qUserGroupRepository.deleteMember(userId, groupId);
-                if (deleteResult != 1) throw new ApiException(ExceptionEnum.USER_PATCH_ERROR);
+                // user spot delete
+                List<UserSpot> userSpots = user.getUserSpots();
+                userSpotRepository.deleteAll(userSpots);
+
+                // user withdrawal
+                user.withdrawUser();
             }
-        }
-        return 1;
+            // 배송 전인 주문내역이 있으면 에러
+            else throw new ApiException(ExceptionEnum.EXIST_WAITING_DELIVERY_ORDER);
+        });
     }
 
     @Override
@@ -125,7 +116,7 @@ public class UserServiceImpl implements UserService {
     public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
         saveUserListRequestDtoList = saveUserListRequestDtoList.stream()
                 .peek(dto -> dto.setEmail(dto.getEmail().trim()))
-                .filter(dto -> dto.getStatus() != null && dto.getStatus() != 0)
+                .filter(dto -> dto.getStatus() != null)
                 .collect(Collectors.toList());
 
         List<String> emails = saveUserListRequestDtoList.stream()
@@ -154,10 +145,15 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toSet());
 
         Map<User, SaveUserListRequestDto> userUpdateMap = new HashMap<>();
+        List<User> deleteUserList = new ArrayList<>();
         for (ProviderEmail providerEmail : providerEmails) {
             saveUserListRequestDtoList.stream()
-                    .filter(v -> v.getEmail().equals(providerEmail.getEmail()))
+                    .filter(v -> v.getEmail().equals(providerEmail.getEmail()) && !v.getStatus().equals(UserStatus.INACTIVE.getCode()))
                     .findAny().ifPresent(saveUserListRequestDto -> userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto));
+
+            saveUserListRequestDtoList.stream()
+                    .filter(v -> v.getStatus().equals(UserStatus.INACTIVE.getCode()) && providerEmail.getEmail().equals(v.getEmail()))
+                    .findAny().ifPresent(v -> deleteUserList.add(providerEmail.getUser()));
         }
 
         Set<User> pushAlarmForCorporationUser = new HashSet<>();
@@ -295,10 +291,9 @@ public class UserServiceImpl implements UserService {
                         .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
                         .forEach(g -> g.updateOpenGroupUserCount(1, true));
             }
+            user.changePhoneNumber(saveUserListRequestDto.getPhone());
             if (saveUserListRequestDto.getName() != null && !user.getName().equals(saveUserListRequestDto.getName()))
                 user.updateName(saveUserListRequestDto.getName());
-            if (saveUserListRequestDto.getPhone() != null)
-                user.changePhoneNumber(saveUserListRequestDto.getPhone());
             if (saveUserListRequestDto.getRole() != null && !user.getRole().equals(Role.ofRoleName(saveUserListRequestDto.getRole())))
                 user.updateRole(Role.ofRoleName(saveUserListRequestDto.getRole()));
             if (saveUserListRequestDto.getStatus() != null && !user.getUserStatus().equals(UserStatus.ofCode(saveUserListRequestDto.getStatus())))
@@ -330,9 +325,34 @@ public class UserServiceImpl implements UserService {
 
         }
 
+        // 탈퇴
+        for(User user : deleteUserList) {
+            System.out.println("user.getName() = " + user.getName() + "탈퇴");
+            List<Order> orders = qOrderRepository.findOrderNotDelivered(user);
+            // 배송 전인 주문내역이 없으면 탈퇴
+            if(orders.isEmpty()) {
+                // sns 가입 내역 삭제
+                List<ProviderEmail> userProviderEmails = providerEmails.stream().filter(v -> v.getUser().equals(user)).toList();
+                providerEmailRepository.deleteAll(userProviderEmails);
+
+                // user group withdrawal
+                List<UserGroup> userGroups = user.getGroups();
+                userGroups.forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
+
+                // user spot delete
+                List<UserSpot> userSpots = user.getUserSpots();
+                userSpotRepository.deleteAll(userSpots);
+
+                // user withdrawal
+                user.withdrawUser();
+            }
+            // 배송 전인 주문내역이 있으면 에러
+            else throw new CustomException(HttpStatus.BAD_REQUEST, "CE400025", user.getName() + "님은 아직 배송 대기 중인 상품이 있어 탈퇴처리 할 수 없습니다.");
+        }
+
         // FIXME: 신규 생성 요청
         List<SaveUserListRequestDto> createUserDtos = saveUserListRequestDtoList.stream()
-                .filter(v -> !updateUserEmails.contains(v.getEmail()))
+                .filter(v -> !updateUserEmails.contains(v.getEmail()) && v.getStatus() != 0)
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
             // 이미 있는 핸드폰 번호인지 확인
@@ -370,21 +390,21 @@ public class UserServiceImpl implements UserService {
         }
 
         // TODO: 프라이빗 스팟 초대 시 푸시알림 추가
-        List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmForCorporationUser.stream()
-                .map(user -> {
-                    PushCondition pushCondition = PushCondition.NEW_SPOT;
-                    String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
-                    pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
-                    return pushUtil.getPushRequest(user, pushCondition, message);
-                }).toList();
-        if(pushRequestDtoByUsers.size() > 500) {
-            List<List<PushRequestDtoByUser>> slicePushRequestDtoByUsers = pushUtil.sliceByChunkSize(pushRequestDtoByUsers);
+        if(!pushAlarmForCorporationUser.isEmpty()) {
+            List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmForCorporationUser.stream()
+                    .map(user -> {
+                        PushCondition pushCondition = PushCondition.NEW_SPOT;
+                        String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
+                        pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
+                        return pushUtil.getPushRequest(user, pushCondition, message);
+                    }).toList();
 
-            for(List<PushRequestDtoByUser> list : slicePushRequestDtoByUsers) {
-                pushService.sendToPush(list);
+            if(pushRequestDtoByUsers.size() > 500) {
+                List<List<PushRequestDtoByUser>> slicePushRequestDtoByUsers = pushUtil.sliceByChunkSize(pushRequestDtoByUsers);
+                slicePushRequestDtoByUsers.forEach(pushService::sendToPush);
             }
+            else pushService.sendToPush(pushRequestDtoByUsers);
         }
-        else pushService.sendToPush(pushRequestDtoByUsers);
     }
 
     @Override
