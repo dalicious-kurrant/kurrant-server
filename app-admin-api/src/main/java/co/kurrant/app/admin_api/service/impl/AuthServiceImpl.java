@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
         authorities.add(admin.getRole().getAuthority());
         LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(admin.getUsername(), authorities);
 
-        return LoginResponseDto.create(loginResponseDto, admin);
+        return new LoginResponseDto(loginResponseDto, admin);
     }
 
 }

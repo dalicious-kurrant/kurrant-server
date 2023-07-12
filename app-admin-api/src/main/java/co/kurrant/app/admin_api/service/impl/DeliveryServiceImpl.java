@@ -1,5 +1,7 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.core.dto.request.LoginTokenDto;
+import co.dalicious.client.core.filter.provider.SimpleJwtTokenProvider;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -19,24 +21,35 @@ import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import co.kurrant.app.admin_api.dto.Code;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
 import co.kurrant.app.admin_api.dto.delivery.ServiceDateDto;
+import co.kurrant.app.admin_api.dto.user.LoginResponseDto;
 import co.kurrant.app.admin_api.mapper.DeliveryMapper;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.service.DeliveryService;
+import co.kurrant.app.admin_api.util.DeliveryCodeUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -58,6 +71,21 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final GroupMapper groupMapper;
     private final QGroupRepository qGroupRepository;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final SimpleJwtTokenProvider jwtTokenProvider;
+    private final DeliveryCodeUtil deliveryCodeUtil;
+
+
+    @Override
+    public LoginResponseDto login(Code loginCode) throws IOException {
+        List<Code> codes = deliveryCodeUtil.getEntireDeliveryCodes();
+        Code code = codes.stream()
+                .filter(v -> v.getCode().equals(loginCode.getCode()))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
+        LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(code.getCode(), Collections.singletonList(Role.USER.getAuthority()));
+
+        return new LoginResponseDto(loginResponseDto.getAccessToken(), loginResponseDto.getAccessTokenExpiredIn(), code.getCode());
+    }
 
     @Override
     @Transactional(readOnly = true)

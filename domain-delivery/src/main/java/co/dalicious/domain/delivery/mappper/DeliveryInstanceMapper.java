@@ -28,11 +28,11 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface DeliveryInstanceMapper {
-    default DeliveryInstance toEntity(DailyFood dailyFood, Spot spot, Integer orderNumber, LocalTime deliveryTime) {
+    default DeliveryInstance toEntity(DailyFood dailyFood, Spot spot, Integer orderNumber, LocalTime deliveryTime, LocalTime pickUpTime) {
         return DeliveryInstance.builder()
                 .serviceDate(dailyFood.getServiceDate())
                 .deliveryTime(deliveryTime)
-                .pickUpTime(deliveryTime.minusMinutes(30))
+                .pickUpTime(pickUpTime)
                 .diningType(dailyFood.getDiningType())
                 .orderNumber(orderNumber)
                 .makers(dailyFood.getFood().getMakers())

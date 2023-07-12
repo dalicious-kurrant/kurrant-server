@@ -9,6 +9,7 @@ import co.dalicious.domain.delivery.repository.DeliveryInstanceRepository;
 import co.dalicious.domain.delivery.repository.QDailyFoodDeliveryRepository;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.user.entity.User;
@@ -32,7 +33,12 @@ public class DeliveryUtils {
         DeliveryInstance deliveryInstance = getDeliveryInstance(spot, user, dailyFood, deliveryTime);
         if(deliveryInstance == null) {
             Integer deliveryOrderNumber = getNewOrderNumber(spot, dailyFood, deliveryTime);
-            deliveryInstance = deliveryInstanceMapper.toEntity(dailyFood, spot, deliveryOrderNumber, deliveryTime);
+            LocalTime pickUpTime = dailyFood.getDailyFoodGroup().getDeliverySchedules().stream()
+                    .filter(v -> v.getDeliveryTime().equals(deliveryTime))
+                    .findAny()
+                    .map(DeliverySchedule::getPickupTime)
+                    .orElse(deliveryTime.minusMinutes(30));
+            deliveryInstance = deliveryInstanceMapper.toEntity(dailyFood, spot, deliveryOrderNumber, deliveryTime, pickUpTime);
             deliveryInstanceRepository.save(deliveryInstance);
         }
         DailyFoodDelivery dailyFoodDelivery = new DailyFoodDelivery(deliveryInstance, orderItemDailyFood);
