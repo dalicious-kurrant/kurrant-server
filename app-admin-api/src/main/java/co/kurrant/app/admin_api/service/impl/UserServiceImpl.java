@@ -148,12 +148,10 @@ public class UserServiceImpl implements UserService {
         List<User> deleteUserList = new ArrayList<>();
         for (ProviderEmail providerEmail : providerEmails) {
             saveUserListRequestDtoList.stream()
-                    .filter(v -> !v.getStatus().equals(providerEmail.getUser().getUserStatus().getCode()))
                     .filter(v -> v.getEmail().equals(providerEmail.getEmail()) && !v.getStatus().equals(UserStatus.INACTIVE.getCode()))
                     .findAny().ifPresent(saveUserListRequestDto -> userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto));
 
             saveUserListRequestDtoList.stream()
-                    .filter(v -> !v.getStatus().equals(providerEmail.getUser().getUserStatus().getCode()))
                     .filter(v -> v.getStatus().equals(UserStatus.INACTIVE.getCode()) && providerEmail.getEmail().equals(v.getEmail()))
                     .findAny().ifPresent(v -> deleteUserList.add(providerEmail.getUser()));
         }
@@ -354,7 +352,7 @@ public class UserServiceImpl implements UserService {
 
         // FIXME: 신규 생성 요청
         List<SaveUserListRequestDto> createUserDtos = saveUserListRequestDtoList.stream()
-                .filter(v -> !updateUserEmails.contains(v.getEmail()))
+                .filter(v -> !updateUserEmails.contains(v.getEmail()) && v.getStatus() != 0)
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
             // 이미 있는 핸드폰 번호인지 확인
