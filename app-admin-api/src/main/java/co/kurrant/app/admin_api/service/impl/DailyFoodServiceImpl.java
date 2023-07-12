@@ -40,8 +40,10 @@ import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.mapper.ScheduleMapper;
 import co.kurrant.app.admin_api.service.DailyFoodService;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -80,6 +82,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final SseService sseService;
+    private final FoodCapacityRepository foodCapacityRepository;
 
     @Override
     @Transactional
@@ -240,6 +243,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         }
 
+        List<FoodCapacity> newFoodCapacities = new ArrayList<>();
         MultiValueMap<Group, DailyFood> groupMap = new LinkedMultiValueMap<>();
         dailyFoods.forEach(dailyFood -> {
             FoodDto.DailyFood dailyFoodDto = dailyFoodList.stream()
@@ -248,8 +252,16 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                     .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
             Group group = Group.getGroup(updateGroups, dailyFoodDto.getGroupName());
             // 그룹이 가지고 있지 않은 식사 타입을 추가할 경우
-            if (!group.getDiningTypes().contains(DiningType.ofCode(dailyFoodDto.getDiningType()))) {
+            DiningType diningType = DiningType.ofCode(dailyFoodDto.getDiningType());
+            if (!group.getDiningTypes().contains(diningType)) {
                 throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+            }
+            // 메이커스/음식 주문 가능 수량이 존재하지 않을 경우
+            if(dailyFood.getFood().getMakers().getMakersCapacity(diningType) == null) {
+                throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000018", dailyFood.getFood().getMakers().getId() + "번 메이커스의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
+            }
+            if(dailyFood.getFood().getFoodCapacity(diningType) == null) {
+                throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000018", dailyFood.getFood().getId() + "번 음식의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
             }
             // 푸시 알림 전송을 위해 등록대기였던 식단 추가
             DailyFood waitingDailyFood = null;
@@ -269,9 +281,18 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()));
             }
 
+            Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
+            FoodCapacity foodCapacity = food.getFoodCapacity(DiningType.ofCode(dailyFoodDto.getDiningType()));
+
+            // 수량이 기존과 다르거나 메이커스 수량과 다르면
+            if (dailyFoodDto.getMakersCapacity().equals(dailyFoodDto.getFoodCapacity()) && foodCapacity == null) {
+                newFoodCapacities.add(FoodCapacity.builder().food(food).capacity(dailyFoodDto.getFoodCapacity()).diningType(DiningType.ofCode(dailyFoodDto.getDiningType())).build());
+            } else if (!Objects.equals(foodCapacity.getCapacity(), dailyFoodDto.getFoodCapacity())) {
+            foodCapacity.updateCapacity(dailyFoodDto.getFoodCapacity());
+            }
+
             // 식단을 구매한 사람이 없다면
             if (dailyFoodDto.getFoodCapacity().equals(dailyFoodDto.getFoodCount())) {
-                Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
                 dailyFood.updateDiningType(DiningType.ofCode(dailyFoodDto.getDiningType()));
                 dailyFood.updateServiceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()));
                 dailyFood.updateFood(food);
@@ -282,6 +303,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 groupMap.add(waitingDailyFood.getGroup(),waitingDailyFood);
             }
         });
+        foodCapacityRepository.saveAll(newFoodCapacities);
 
         List<BigInteger> newDailyFoodIds = dailyFoodList.stream()
                 .map(FoodDto.DailyFood::getDailyFoodId)

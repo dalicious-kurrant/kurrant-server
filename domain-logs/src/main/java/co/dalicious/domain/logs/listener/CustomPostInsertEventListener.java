@@ -31,22 +31,16 @@ public class CustomPostInsertEventListener implements PostInsertEventListener {
 
     @Override
     public void onPostInsert(PostInsertEvent event) {
-        if (!isAdminRequest()) {
-            return;
-        }
-
-        if (event.getEntity() instanceof AdminLogs) {
+        if (!isAdminRequest() || event.getEntity() instanceof AdminLogs) {
             return;
         }
 
         String hardwareName = NetworkUtils.getLocalMacAddress();
         Object entity = event.getEntity();
-        // And you can access the new state of the entity:
         Object[] newState = event.getState();
-        // You can also access the names of the properties:
         String[] properties = event.getPersister().getPropertyNames();
         List<String> logs = new ArrayList<>();
-        // Now you can create log entries
+
         for (int i = 0; i < properties.length; i++) {
             if (newState[i] != null) {
                 if (newState[i] instanceof Collection<?> collection) {
@@ -59,7 +53,6 @@ public class CustomPostInsertEventListener implements PostInsertEventListener {
                                 try {
                                     String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "[" + index + "]" + "의 " + field.getName() + "가 " + '"' + field.get(element) + '"' + "로 설정.";
                                     logs.add(logEntry);
-                                    System.out.println(logEntry);
                                 } catch (IllegalAccessException e) {
                                     e.printStackTrace();
                                 }
@@ -75,17 +68,20 @@ public class CustomPostInsertEventListener implements PostInsertEventListener {
                         try {
                             String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 " + field.getName() + "가 " + '"' + field.get(newState[i]) + '"' + "로 설정.";
                             logs.add(logEntry);
-                            System.out.println(logEntry);
                         } catch (IllegalAccessException e) {
                             e.printStackTrace();
                         }
                     }
                     // The property has been set, create a log entry
+                }
+                else {
                     String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "가 " + newState[i] + "로 설정.";
                     logs.add(logEntry);
                 }
             }
-            if(logs.isEmpty()) return;
+        }
+
+        if(!logs.isEmpty()) {
             adminLogsRepository.save(AdminLogs.builder()
                     .logType(LogType.CREATE)
                     .controllerType(RequestContextHolder.getCurrentControllerType())
@@ -97,6 +93,7 @@ public class CustomPostInsertEventListener implements PostInsertEventListener {
                     .build());
         }
     }
+
 
     @Override
     public boolean requiresPostCommitHanding(EntityPersister persister) {
