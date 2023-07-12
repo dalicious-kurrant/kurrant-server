@@ -116,7 +116,6 @@ public class UserServiceImpl implements UserService {
     public void saveUserList(List<SaveUserListRequestDto> saveUserListRequestDtoList) {
         saveUserListRequestDtoList = saveUserListRequestDtoList.stream()
                 .peek(dto -> dto.setEmail(dto.getEmail().trim()))
-                .peek(v -> System.out.println("v.getStatus() = " + v.getStatus()))
                 .filter(dto -> dto.getStatus() != null)
                 .collect(Collectors.toList());
 
@@ -150,19 +149,11 @@ public class UserServiceImpl implements UserService {
         for (ProviderEmail providerEmail : providerEmails) {
             saveUserListRequestDtoList.stream()
                     .filter(v -> v.getEmail().equals(providerEmail.getEmail()) && !v.getStatus().equals(UserStatus.INACTIVE.getCode()))
-                    .findAny().ifPresent(saveUserListRequestDto -> {
-                        userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto);
-                        System.out.println("providerEmail = " + providerEmail.getUser().getName());
-                        System.out.println("saveUserListRequestDto.getStatus() = " + saveUserListRequestDto.getStatus());
-                    });
+                    .findAny().ifPresent(saveUserListRequestDto -> userUpdateMap.put(providerEmail.getUser(), saveUserListRequestDto));
 
             saveUserListRequestDtoList.stream()
                     .filter(v -> v.getStatus().equals(UserStatus.INACTIVE.getCode()) && providerEmail.getEmail().equals(v.getEmail()))
-                    .findAny().ifPresent(v -> {
-                        deleteUserList.add(providerEmail.getUser());
-                        System.out.println("providerEmail = " + providerEmail.getUser().getName());
-                        System.out.println("v.getStatus() = " + v.getStatus());
-                    });
+                    .findAny().ifPresent(v -> deleteUserList.add(providerEmail.getUser()));
         }
 
         Set<User> pushAlarmForCorporationUser = new HashSet<>();
@@ -336,7 +327,7 @@ public class UserServiceImpl implements UserService {
 
         // 탈퇴
         for(User user : deleteUserList) {
-            System.out.println("user.getName() = " + user.getName());
+            System.out.println("user.getName() = " + user.getName() + "탈퇴");
             List<Order> orders = qOrderRepository.findOrderNotDelivered(user);
             // 배송 전인 주문내역이 없으면 탈퇴
             if(orders.isEmpty()) {
@@ -361,7 +352,7 @@ public class UserServiceImpl implements UserService {
 
         // FIXME: 신규 생성 요청
         List<SaveUserListRequestDto> createUserDtos = saveUserListRequestDtoList.stream()
-                .filter(v -> !updateUserEmails.contains(v.getEmail()))
+                .filter(v -> !updateUserEmails.contains(v.getEmail()) && v.getStatus() != 0)
                 .toList();
         for (SaveUserListRequestDto createUserDto : createUserDtos) {
             // 이미 있는 핸드폰 번호인지 확인
