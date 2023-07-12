@@ -1,7 +1,6 @@
 package co.dalicious.domain.delivery.mappper;
 
 import co.dalicious.domain.client.entity.CorporationSpot;
-import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.client.entity.OpenGroupSpot;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -20,7 +19,6 @@ import org.mapstruct.Mapper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.swing.text.html.Option;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -86,13 +84,13 @@ public interface DeliveryInstanceMapper {
         MultiValueMap<LocalTime, DeliveryInstance> itemsByTime = new LinkedMultiValueMap<>();
         List<OrderDailyFoodByMakersDto.DeliveryGroups> deliveryGroupsList = new ArrayList<>();
         for (DeliveryInstance deliveryInstance : deliveryInstances) {
-            itemsByTime.add(deliveryInstance.getDeliveryTime(), deliveryInstance);
+            itemsByTime.add(deliveryInstance.getPickUpTime(), deliveryInstance);
         }
         for (LocalTime localTime : itemsByTime.keySet()) {
             OrderDailyFoodByMakersDto.DeliveryGroups deliveryGroups = new OrderDailyFoodByMakersDto.DeliveryGroups();
             // FIXME: OrderItemDailyFood에 LocalTime이 없을 경우?
             List<OrderDailyFoodByMakersDto.FoodBySpot> foodBySpots = toFoodBySpot(itemsByTime.get(localTime));
-            deliveryGroups.setDeliveryTime(DateUtils.timeToString(localTime));
+            deliveryGroups.setPickiupTime(DateUtils.timeToString(localTime));
             deliveryGroups.setFoods(toFood(itemsByTime.get(localTime)));
             deliveryGroups.setFoodCount(deliveryGroups.getFoodCount());
             deliveryGroups.setFoodBySpots(foodBySpots);
@@ -100,7 +98,7 @@ public interface DeliveryInstanceMapper {
             deliveryGroupsList.add(deliveryGroups);
         }
         deliveryGroupsList = deliveryGroupsList.stream()
-                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.DeliveryGroups::getDeliveryTime))
+                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.DeliveryGroups::getPickiupTime))
                 .toList();
         return deliveryGroupsList;
     }
@@ -145,7 +143,7 @@ public interface DeliveryInstanceMapper {
 
             foodBySpot.setDeliveryId(deliveryInstance.getDeliveryCode());
             foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot)).getCode());
-            foodBySpot.setPickUpTime(DateUtils.timeToString(deliveryInstance.getPickUpTime()));
+            foodBySpot.setDeliveryTime(DateUtils.timeToString(deliveryInstance.getDeliveryTime()));
             foodBySpot.setAddress1(spot.getAddress().addressToString());
             foodBySpot.setAddress2(spot.getAddress().getAddress3());
             foodBySpot.setSpotName(spot.getName());
@@ -157,7 +155,7 @@ public interface DeliveryInstanceMapper {
             foodBySpots.add(foodBySpot);
         }
         foodBySpots = foodBySpots.stream()
-                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.FoodBySpot::getPickUpTime))
+                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.FoodBySpot::getDeliveryTime))
                 .toList();
         return foodBySpots;
     }
