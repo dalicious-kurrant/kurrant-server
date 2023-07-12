@@ -71,4 +71,10 @@ public class QDailyReportRepository {
                 .orderBy(dailyReport.eatDate.asc())
                 .fetch();
     }
+
+    public List<DailyReport> findAllByUserId(BigInteger userId) {
+        return queryFactory.selectFrom(dailyReport)
+                .where(dailyReport.user.id.eq(userId))
+                .fetch();
+    }
 }
