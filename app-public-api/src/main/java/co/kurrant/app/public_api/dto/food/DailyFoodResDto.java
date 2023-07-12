@@ -25,6 +25,7 @@ public class DailyFoodResDto {
         private Integer diningType;
         private List<String> serviceDays;
         private List<String> times;
+        private List<SupportPriceByDay> supportPriceByDays;
 
         public ServiceInfo(Integer diningType, List<String> serviceDays, List<String> times) {
             this.diningType = diningType;
@@ -40,5 +41,17 @@ public class DailyFoodResDto {
         private Integer diningType;
         private BigDecimal supportPrice;
         private List<DailyFoodDto> dailyFoodDtos;
+    }
+
+    @Getter
+    @Setter
+    public static class SupportPriceByDay {
+        private String day;
+        private BigDecimal supportPrice;
+
+        public SupportPriceByDay(String day, BigDecimal supportPrice) {
+            this.day = day;
+            this.supportPrice = supportPrice;
+        }
     }
 }

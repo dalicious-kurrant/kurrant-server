@@ -1,7 +1,10 @@
 package co.kurrant.app.public_api.mapper.food;
 
+import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.CorporationMealInfo;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -14,6 +17,7 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.recommend.entity.UserRecommends;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.enums.FoodTag;
@@ -53,6 +57,19 @@ public interface PublicDailyFoodMapper {
                     .toList();
             List<String> serviceDays = DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays());
             DailyFoodResDto.ServiceInfo diningTypeDto = new DailyFoodResDto.ServiceInfo(diningType.getCode(), serviceDays, deliveryTimesStr);
+
+            // 요일별 식사 지원금
+            if(Hibernate.getClass(group).equals(Corporation.class) && group.getMealInfo(diningType) != null) {
+                List<DailyFoodResDto.SupportPriceByDay> supportPriceByDays = new ArrayList<>();
+                CorporationMealInfo corporationMealInfo = (CorporationMealInfo) Hibernate.unproxy(group.getMealInfo(diningType));
+                List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices = corporationMealInfo.getServiceDaysAndSupportPrices();
+                for (ServiceDaysAndSupportPrice serviceDaysAndSupportPrice : serviceDaysAndSupportPrices) {
+                    for (Days supportDay : serviceDaysAndSupportPrice.getSupportDays()) {
+                        supportPriceByDays.add(new DailyFoodResDto.SupportPriceByDay(supportDay.getDays(), serviceDaysAndSupportPrice.getSupportPrice()));
+                    }
+                }
+                diningTypeDto.setSupportPriceByDays(supportPriceByDays);
+            }
             diningTypeDtos.add(diningTypeDto);
         }
         return diningTypeDtos;
