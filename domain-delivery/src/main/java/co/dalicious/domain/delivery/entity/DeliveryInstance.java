@@ -87,4 +87,8 @@ public class DeliveryInstance {
                 .map(v -> v.getOrderItemDailyFood().getCount())
                 .reduce(0, Integer::sum);
     }
+
+    public void updatePickUpTime(LocalTime pickUpTime) {
+        this.pickUpTime = pickUpTime;
+    }
 }

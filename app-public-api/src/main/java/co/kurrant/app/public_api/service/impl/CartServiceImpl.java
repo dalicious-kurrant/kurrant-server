@@ -5,28 +5,28 @@ import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.food.util.FoodUtils;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.mapper.CartDailyFoodMapper;
-import co.dalicious.domain.order.mapper.CartDailyFoodsResMapper;
-import co.dalicious.domain.order.repository.*;
+import co.dalicious.domain.order.repository.CartDailyFoodRepository;
+import co.dalicious.domain.order.repository.CartRepository;
+import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
-import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.service.CartService;
+import co.kurrant.app.public_api.util.UserUtil;
 import exception.ApiException;
 import exception.CustomException;
 import exception.ExceptionEnum;
@@ -40,11 +40,9 @@ import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -117,7 +115,7 @@ public class CartServiceImpl implements CartService {
                 // 중복되는 DailyFood가 장바구니에 존재하지 않는다면 추가하기
                 LocalTime deliveryTime = DateUtils.stringToLocalTime(cartDto.getDeliveryTime());
                 if(deliveryTime == null || !mealInfo.getDeliveryTimes().contains(deliveryTime)) {
-                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE400011", "올바른 배송시간이 아닙니다.");
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE400011", "배송시간을 선택해주세요.");
                 }
                 CartDailyFood cartDailyFood = new CartDailyFood(user, cartDto.getCount(), dailyFood, spot, deliveryTime);
                 cartDailyFoodRepository.save(cartDailyFood);

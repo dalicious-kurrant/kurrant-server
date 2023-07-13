@@ -29,7 +29,9 @@ jobs:
     - name: app-makers-api application.yaml(prod) 생성
       run: |
         cd ./app-makers-api/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application.yaml
         echo "${{ secrets.APP_MAKERS_API_PROD_YAML }}" > ./application.yaml
@@ -40,7 +42,9 @@ jobs:
     - name: client-core application-jwt.properties 생성
       run: |
         cd ./client-core/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-jwt.properties
         echo "${{ secrets.CLIENT_CORE_JWT_PROPERTIES }}" > ./application-jwt.properties
@@ -49,7 +53,9 @@ jobs:
     - name: client-external-mail application-mail.properties 생성
       run: |
         cd ./client-external-mail/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-mail.properties
         echo "${{ secrets.CLIENT_EXTERNAL_MAIL_PROPERTIES }}" > ./application-mail.properties
@@ -58,7 +64,9 @@ jobs:
     - name: client-external-sms application-mail.properties 생성
       run: |
         cd ./client-external-sms/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-sms.properties
         echo "${{ secrets.CLIENT_EXTERNAL_SMS_PROPERTIES }}" > ./application-sms.properties
@@ -67,7 +75,9 @@ jobs:
     - name: data-redis application-redis.yml 생성
       run: |
         cd ./data-redis/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-redis.properties
         echo "${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}" > ./application-redis.properties
@@ -76,7 +86,9 @@ jobs:
     - name: domain-payment application-payment.properties 생성
       run: |
         cd ./domain-payment/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-payment.properties
         echo "${{ secrets.DOMAIN_PAYMENT_PROD_PROPERTIES }}" > ./application-payment.properties
@@ -85,7 +97,9 @@ jobs:
     - name: domain-file application-s3.properties 생성
       run: |
         cd ./domain-file/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-s3.properties
         echo "${{ secrets.DOMAIN_FILE_S3_PROPERTIES }}" > ./application-s3.properties
@@ -94,7 +108,9 @@ jobs:
     - name: system-core application-alimtalk.properties 생성
       run: |
         cd ./system-core/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-alimtalk.properties
         echo "${{ secrets.SYSTEM_CORE_ALIMTALK }}" > ./application-alimtalk.properties
@@ -103,7 +119,9 @@ jobs:
     - name: client-alarm application-map.properties 생성
       run: |
         cd ./domain-address/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-map.properties
         echo "${{ secrets.SYSTEM_CORE_MAP }}" > ./application-map.properties

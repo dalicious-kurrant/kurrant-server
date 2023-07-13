@@ -1,5 +1,6 @@
 package co.dalicious.domain.delivery.repository;
 
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -35,6 +36,16 @@ public class QDeliveryInstanceRepository {
                         deliveryInstance.makers.eq(makers),
                         deliveryInstance.spot.eq(spot))
                 .fetchOne());
+    }
+
+    public List<DeliveryInstance> findAllBy(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Makers makers, Group group) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .where(deliveryInstance.deliveryTime.eq(deliveryTime),
+                        deliveryInstance.diningType.eq(diningType),
+                        deliveryInstance.serviceDate.eq(serviceDate),
+                        deliveryInstance.makers.eq(makers),
+                        deliveryInstance.spot.group.eq(group))
+                .fetch();
     }
 
     public List<DeliveryInstance> findByFilter(LocalDate startDate, LocalDate endDate, List<DiningType> diningTypes, Makers makers) {

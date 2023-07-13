@@ -18,18 +18,19 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
-  @Override
-  public void handle(HttpServletRequest request, HttpServletResponse response,
-      AccessDeniedException exception) throws IOException {
-    CustomAccessDeniedHandler.log.warn("Access denied!");
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response,
+                       AccessDeniedException exception) throws IOException {
+        CustomAccessDeniedHandler.log.warn("Access denied!");
 
-    ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
 
-    ApiException ex = new ApiException(ExceptionEnum.UNAUTHORIZED);
-    PrintWriter out = response.getWriter();
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
-    out.print(mapper.writeValueAsString(ex));
-    out.flush();
-  }
+        ApiException ex = new ApiException(ExceptionEnum.UNAUTHORIZED);
+        PrintWriter out = response.getWriter();
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        out.print(mapper.writeValueAsString(ex));
+        out.flush();
+    }
 }

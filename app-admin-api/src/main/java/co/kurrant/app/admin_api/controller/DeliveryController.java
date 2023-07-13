@@ -1,16 +1,19 @@
 package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.annotation.ControllerMarker;
+import co.dalicious.client.core.dto.request.LoginTokenDto;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
+import co.kurrant.app.admin_api.dto.Code;
 import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
 import co.kurrant.app.admin_api.service.DeliveryService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +24,17 @@ import java.util.Map;
 public class DeliveryController {
 
     private final DeliveryService deliveryService;
+
+    @ControllerMarker(ControllerType.DELIVERY)
+    @Operation(summary = "배송 일정 조회", description = "배송 날짜를 기준으로 배송 일정을 조회한다.")
+    @PostMapping("/login")
+    public ResponseMessage login(@RequestBody Code code) throws IOException {
+        return ResponseMessage.builder()
+                .data(deliveryService.login(code))
+                .message("인증에 성공하였습니다")
+                .build();
+    }
+
 
     @ControllerMarker(ControllerType.DELIVERY)
     @Operation(summary = "배송 일정 조회", description = "배송 날짜를 기준으로 배송 일정을 조회한다.")

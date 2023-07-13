@@ -4,6 +4,7 @@ import co.dalicious.client.core.filter.SimpleJwtAuthenticationFilter;
 import co.dalicious.client.core.filter.provider.SimpleJwtTokenProvider;
 import co.dalicious.client.core.handler.CustomAccessDeniedHandler;
 import co.dalicious.client.core.handler.CustomAuthenticationHandler;
+import co.dalicious.domain.user.entity.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,16 +42,17 @@ public class SecurityConfig {
 //            .antMatchers("/v1/**").permitAll() // 테스트용
             .antMatchers("/success").permitAll()
             .antMatchers("/v1/clients/all").permitAll()
-            .antMatchers("/v1/auth/login").permitAll()
-            .antMatchers("/v1/delivery/**").permitAll()// 테스트용
+            .antMatchers("/swagger-ui/**").permitAll() // swagger
+            .antMatchers("/v1/auth/login", "/v1/delivery/login").permitAll()
+            .antMatchers("/v1/delivery/**").hasAnyRole(Role.ADMIN.getRoleName(), Role.USER.getRoleName())
+            .antMatchers("/v1/**").hasRole(Role.ADMIN.getRoleName())
             //.antMatchers("/v1/users/all").permitAll() // 테스트용
             // .antMatchers("/v1/boards/**").permitAll() // swagger
             // .antMatchers("/swagger-resources/**").permitAll() // swagger
-            .antMatchers("/swagger-ui/**").permitAll() // swagger
             // .antMatchers("/v1/auth/**").permitAll() // 가입 및 인증 주소는 누구나 접근가능
             // .antMatchers(HttpMethod.GET, "/exception/**", "/helloworld/**",
             // "/actuator/health").permitAll() // 등록된 GET요청 리소스는 누구나 접근가능
-            .anyRequest().hasRole("ADMIN").and() // 그외 나머지 요청은 모두 인증된 회원만 접근 가능
+            .anyRequest().hasRole(Role.ADMIN.getRoleName()).and() // 그외 나머지 요청은 모두 인증된 회원만 접근 가능
             .exceptionHandling().accessDeniedHandler(new CustomAccessDeniedHandler()).and()
             .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationHandler())
             .and()

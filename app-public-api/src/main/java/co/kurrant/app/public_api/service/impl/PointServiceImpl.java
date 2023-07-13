@@ -14,20 +14,17 @@ import co.dalicious.domain.user.dto.PointResponseDto;
 import co.dalicious.domain.user.entity.Founders;
 import co.dalicious.domain.user.entity.PointHistory;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.repository.QFoundersRepository;
 import co.dalicious.domain.user.repository.QPointHistoryRepository;
 import co.kurrant.app.public_api.mapper.PointHistoryMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.PointService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 

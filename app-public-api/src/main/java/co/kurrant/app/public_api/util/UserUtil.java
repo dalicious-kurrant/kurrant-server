@@ -1,4 +1,4 @@
-package co.kurrant.app.public_api.service;
+package co.kurrant.app.public_api.util;
 
 import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.domain.user.entity.User;
