@@ -60,4 +60,19 @@ public class QuartzSchedule {
     private List<LocalTime> getDeliveryTimes() {
         return qDeliveryInstanceRepository.getTodayDeliveryTimes();
     }
+
+    public List<String> getGroupAndMakersAndFoodLastOrderTimeCron() {
+        List<String> crons = new ArrayList<>();
+        List<DayAndTime> groupLastOrderTimes = getGroupLastOrderTime();
+        List<DayAndTime> makersLastOrderTimes = getMakersLastOrderTime();
+        List<DayAndTime> foodsLastOrderTimes = getFoodsLastOrderTime();
+        Set<DayAndTime> dayAndTimes = new HashSet<>();
+        dayAndTimes.addAll(groupLastOrderTimes);
+        dayAndTimes.addAll(makersLastOrderTimes);
+        dayAndTimes.addAll(foodsLastOrderTimes);
+        for (DayAndTime dayAndTime : dayAndTimes) {
+            crons.add(String.format("0 %d %d * * ?", dayAndTime.getTime().getMinute(), dayAndTime.getTime().getHour()));
+        }
+        return crons;
+    }
 }
