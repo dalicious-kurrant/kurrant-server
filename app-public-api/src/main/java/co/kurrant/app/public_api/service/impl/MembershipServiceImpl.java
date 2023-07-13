@@ -25,7 +25,7 @@ import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.dalicious.domain.user.repository.QMembershipRepository;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import co.kurrant.app.public_api.service.MembershipService;
 
 import exception.ApiException;

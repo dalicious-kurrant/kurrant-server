@@ -6,7 +6,6 @@ import co.dalicious.client.core.repository.RefreshTokenRepository;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.client.sse.SseService;
-import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
@@ -55,26 +54,27 @@ import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.ParseException;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -118,7 +118,7 @@ public class UserServiceImpl implements UserService {
     private final DailyFoodRepository dailyFoodRepository;
     private final ApplicationUtil applicationUtil;
     private final SseService sseService;
-    private final NotificationHashRepository notificationHashRepository;
+    private final ResourceLoader resourceLoader;
 
 
     @Override
@@ -1247,6 +1247,24 @@ public class UserServiceImpl implements UserService {
             dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(), null));
         }
 
+    }
+
+    @Override
+    public String generateRandomNickName(SecurityUser securityUser) throws IOException {
+        InputStream nounInputStream = this.getClass().getClassLoader().getResourceAsStream("nickname/noun.csv");
+        BufferedReader nounReader = new BufferedReader(new InputStreamReader(nounInputStream));
+        InputStream adjectiveInputStream = this.getClass().getClassLoader().getResourceAsStream("nickname/adjective.csv");
+        BufferedReader adjectiveReader = new BufferedReader(new InputStreamReader(adjectiveInputStream));
+
+        List<String> nouns = nounReader.lines().toList();
+        List<String> adjectives = adjectiveReader.lines().toList();
+
+        Random rand = new Random();
+
+        String randomNoun = nouns.get(rand.nextInt(nouns.size()));
+        String randomAdjective = adjectives.get(rand.nextInt(adjectives.size()));
+
+        return randomAdjective + randomNoun;
     }
 
     private SaveDailyReportDto generatedSaveDailyReportDto(DailyFood dailyFood) {

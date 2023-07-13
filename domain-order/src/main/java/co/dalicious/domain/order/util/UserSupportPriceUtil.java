@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.util;
 
 import co.dalicious.domain.client.entity.CorporationMealInfo;
+import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
@@ -85,6 +86,9 @@ public class UserSupportPriceUtil {
 
     public static BigDecimal getUsableSupportPrice(Spot spot, List<DailyFoodSupportPrice> userSupportPriceHistories, LocalDate serviceDate, DiningType diningType) {
         //TODO: 추후 수정
+        if(!(spot instanceof CorporationSpot)) {
+            return null;
+        }
         if(!spot.getGroup().getId().equals(BigInteger.valueOf(97)) && !spot.getGroup().getId().equals(BigInteger.valueOf(154))) {
             BigDecimal supportPrice =  getGroupSupportPriceByDiningType(spot, diningType, serviceDate);
             BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(spot, userSupportPriceHistories, serviceDate, diningType);
