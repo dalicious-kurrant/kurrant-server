@@ -91,7 +91,7 @@ public interface DeliveryInstanceMapper {
             OrderDailyFoodByMakersDto.DeliveryGroups deliveryGroups = new OrderDailyFoodByMakersDto.DeliveryGroups();
             // FIXME: OrderItemDailyFood에 LocalTime이 없을 경우?
             List<OrderDailyFoodByMakersDto.FoodBySpot> foodBySpots = toFoodBySpot(itemsByTime.get(localTime));
-            deliveryGroups.setPickiupTime(DateUtils.timeToString(localTime));
+            deliveryGroups.setPickUpTime(DateUtils.timeToString(localTime));
             deliveryGroups.setFoods(toFood(itemsByTime.get(localTime)));
             deliveryGroups.setFoodCount(deliveryGroups.getFoodCount());
             deliveryGroups.setFoodBySpots(foodBySpots);
@@ -99,7 +99,7 @@ public interface DeliveryInstanceMapper {
             deliveryGroupsList.add(deliveryGroups);
         }
         deliveryGroupsList = deliveryGroupsList.stream()
-                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.DeliveryGroups::getPickiupTime))
+                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.DeliveryGroups::getPickUpTime))
                 .toList();
         return deliveryGroupsList;
     }
