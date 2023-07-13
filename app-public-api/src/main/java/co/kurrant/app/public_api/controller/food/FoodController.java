@@ -27,7 +27,7 @@ public class FoodController {
 
     private final FoodService foodService;
 
-    @Operation(summary = "식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
+    @Operation(summary = "식단 조회", description = "특정스팟의 원하는 한 날짜의 식단을 조회한다.")
     @GetMapping("")
     public ResponseMessage getDailyFood(Authentication authentication,
                                         @RequestParam BigInteger spotId,
@@ -40,7 +40,7 @@ public class FoodController {
                 .build();
     }
 
-    @Operation(summary = "식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
+    @Operation(summary = "여러날짜 식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
     @GetMapping("/period")
     public ResponseMessage getDailyFoodByPeriod(Authentication authentication,
                                                 @RequestParam BigInteger spotId,

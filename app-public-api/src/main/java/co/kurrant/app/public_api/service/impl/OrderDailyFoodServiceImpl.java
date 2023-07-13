@@ -307,9 +307,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             List<OrderItemDailyFood> orderItemDailyFoods = multiValueMap.get(orderDetail);
             if (orderItemDailyFoods == null || orderItemDailyFoods.isEmpty()) continue;
 
+            Integer totalCalorie = 0;
             List<OrderItemDto> orderItemDtoList = new ArrayList<>();
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                 OrderItemDto orderItemDto = orderItemDailyFoodListMapper.toDto(orderItemDailyFood);
+                if (orderItemDailyFood.getDailyFood().getFood().getCalorie() != null ) totalCalorie += orderItemDailyFood.getDailyFood().getFood().getCalorie();
                 orderItemDtoList.add(orderItemDto);
             }
 
@@ -318,7 +320,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                             .thenComparing(OrderItemDto::getOrderStatus, Comparator.reverseOrder()))
                     .toList();
 
-            OrderDetailDto orderDetailDto = orderItemDailyFoodListMapper.toOrderDetailDto(orderDetail, orderItemDtoList);
+            OrderDetailDto orderDetailDto = orderItemDailyFoodListMapper.toOrderDetailDto(orderDetail, orderItemDtoList, totalCalorie);
             orderDetailDtos.add(orderDetailDto);
         }
 

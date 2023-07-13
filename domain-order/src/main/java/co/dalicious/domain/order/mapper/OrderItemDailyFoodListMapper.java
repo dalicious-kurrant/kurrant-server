@@ -36,12 +36,13 @@ public interface OrderItemDailyFoodListMapper {
         return orderItemDto;
     }
 
-    default OrderDetailDto toOrderDetailDto(OrderDetailDto.OrderDetail orderDetail, List<OrderItemDto> orderItemDtoList) {
+    default OrderDetailDto toOrderDetailDto(OrderDetailDto.OrderDetail orderDetail, List<OrderItemDto> orderItemDtoList, Integer totalCalorie) {
         OrderDetailDto orderDetailDto = new OrderDetailDto();
 
         orderDetailDto.setServiceDate(DateUtils.localDateToString(orderDetail.getServiceDate()));
         orderDetailDto.setDiningType(orderDetail.getDiningType().getDiningType());
         orderDetailDto.setOrderItemDtoList(orderItemDtoList);
+        orderDetailDto.setTotalCalorie(totalCalorie);
 
         return orderDetailDto;
     }

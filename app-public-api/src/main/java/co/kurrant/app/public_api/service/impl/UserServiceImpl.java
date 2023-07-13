@@ -1153,7 +1153,16 @@ public class UserServiceImpl implements UserService {
         //해당 날짜에 주문한 내역을 불러오기
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllUserIdAndDate(user.getId(), LocalDate.parse(dto.getStartDate()), LocalDate.parse(dto.getEndDate()));
 
+        List<DailyReport> dailyReports = qDailyReportRepository.findAllByUserId(user.getId());
+
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
+            //기존 등록된 dailyReport는 중복되지 않도록 처리
+            if (dailyReports.stream().anyMatch(v -> v.getFoodName().equals(orderItemDailyFood.getDailyFood().getFood().getName())) &&
+                    dailyReports.stream().anyMatch(v -> v.getEatDate().equals(orderItemDailyFood.getDailyFood().getServiceDate()))
+            ){
+                continue;
+            }
+
             //매핑 후 저장
             String imageLocation = null;
             if (!orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty()) {
