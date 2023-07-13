@@ -60,7 +60,7 @@ public class DriverController {
 
     @ControllerMarker(ControllerType.DRIVER)
     @Operation(summary = "배송 기사 일정 엑셀 추가", description = "배송 기사 일정을 엑셀 추가한다.")
-    @GetMapping("/schedules")
+    @PostMapping("/schedules")
     public ResponseMessage excelDriverSchedule(@RequestBody List<ScheduleDto> scheduleDtos) {
         return ResponseMessage.builder()
                 .message("배송 기사 일정을 엑셀 추가에 성공하였습니다.")
