@@ -23,4 +23,9 @@ public class Driver {
 
     @Comment("배송 기사 코드")
     private String code;
+
+    public Driver(String name, String code) {
+        this.name = name;
+        this.code = code;
+    }
 }
