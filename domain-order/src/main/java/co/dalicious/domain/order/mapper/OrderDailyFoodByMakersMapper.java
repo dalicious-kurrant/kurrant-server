@@ -2,16 +2,15 @@ package co.dalicious.domain.order.mapper;
 
 import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.OpenGroupSpot;
+import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
-import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import org.hibernate.Hibernate;
@@ -71,13 +70,19 @@ public interface OrderDailyFoodByMakersMapper {
         MultiValueMap<LocalTime, OrderItemDailyFood> itemsByTime = new LinkedMultiValueMap<>();
         List<OrderDailyFoodByMakersDto.DeliveryGroups> deliveryGroupsList = new ArrayList<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            itemsByTime.add(orderItemDailyFood.getDeliveryTime(), orderItemDailyFood);
+            List<DeliverySchedule> deliverySchedules = orderItemDailyFood.getDailyFood().getDailyFoodGroup().getDeliverySchedules();
+            LocalTime pickupTime = deliverySchedules.stream()
+                    .filter(v -> v.getDeliveryTime().equals(orderItemDailyFood.getDeliveryTime()))
+                    .findAny()
+                    .map(DeliverySchedule::getPickupTime)
+                    .orElse(null);
+            itemsByTime.add(pickupTime, orderItemDailyFood);
         }
         for (LocalTime localTime : itemsByTime.keySet()) {
             OrderDailyFoodByMakersDto.DeliveryGroups deliveryGroups = new OrderDailyFoodByMakersDto.DeliveryGroups();
             // FIXME: OrderItemDailyFood에 LocalTime이 없을 경우?
             List<OrderDailyFoodByMakersDto.FoodBySpot> foodBySpots = toFoodBySpot(itemsByTime.get(localTime));
-            deliveryGroups.setDeliveryTime(DateUtils.timeToString(localTime));
+            deliveryGroups.setPickUpTime(localTime == null ? null : DateUtils.timeToString(localTime));
             deliveryGroups.setFoods(toFoods(itemsByTime.get(localTime)));
             deliveryGroups.setFoodCount(deliveryGroups.getFoodCount());
             deliveryGroups.setFoodBySpots(foodBySpots);
@@ -85,7 +90,7 @@ public interface OrderDailyFoodByMakersMapper {
             deliveryGroupsList.add(deliveryGroups);
         }
         deliveryGroupsList = deliveryGroupsList.stream()
-                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.DeliveryGroups::getDeliveryTime))
+                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.DeliveryGroups::getPickUpTime))
                 .toList();
         return deliveryGroupsList;
     }
@@ -124,7 +129,7 @@ public interface OrderDailyFoodByMakersMapper {
             //FIXME: 배송 ID 설정
             foodBySpot.setDeliveryId(spot.getId().toString());
             foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot)).getCode());
-            foodBySpot.setPickUpTime(DateUtils.timeToString(spotMap.get(spot).get(0).getDailyFood().getDailyFoodGroup().getPickUpTime(spotMap.get(spot).get(0).getDeliveryTime())));
+            foodBySpot.setDeliveryTime(DateUtils.timeToString(orderItemDailyFoods.get(0).getDeliveryTime()));
             foodBySpot.setAddress1(spot.getAddress().addressToString());
             foodBySpot.setAddress2(spot.getAddress().getAddress2()); //수정 필요
             foodBySpot.setSpotName(spot.getName());
@@ -137,7 +142,7 @@ public interface OrderDailyFoodByMakersMapper {
         }
         foodBySpots = foodBySpots.stream()
                 .sorted(Comparator.comparing(
-                        OrderDailyFoodByMakersDto.FoodBySpot::getPickUpTime,
+                        OrderDailyFoodByMakersDto.FoodBySpot::getDeliveryTime,
                         Comparator.nullsLast(Comparator.naturalOrder())
                 ))
                 .collect(Collectors.toList());
