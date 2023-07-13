@@ -14,6 +14,8 @@ import java.math.BigInteger;
 public class UserHomeResponseDto {
     private BigInteger userId;
     private String name;
+    private String nickname;
+
     private String phone;
     private String email;
     private Boolean isMembership;

@@ -88,6 +88,10 @@ public class User {
     @Comment("사용자 명")
     private String name;
 
+    @Column(name = "nickname", columnDefinition = "VARCHAR(32)")
+    @Comment("사용자 명")
+    private String nickname;
+
     @Embedded
     private Image avatar;
 
@@ -178,7 +182,7 @@ public class User {
     }
 
     @Builder
-    public User(BigInteger id, String password, String name, Role role,
+    public User(BigInteger id, String password, String name, String nickname, Role role,
                 UserStatus userStatus, String phone, String email,
                 BigDecimal point, GourmetType gourmetType, Boolean isMembership, Boolean marketingAgree,
                 Timestamp marketingAgreedDateTime, Boolean marketingAlarm, Boolean orderAlarm, Timestamp recentLoginDateTime,
@@ -186,6 +190,7 @@ public class User {
         this.id = id;
         this.password = password;
         this.name = name;
+        this.nickname = nickname;
         this.role = role;
         this.userStatus = userStatus;
         this.phone = phone;
@@ -418,5 +423,9 @@ public class User {
         return this.getUserSpots().stream()
                 .filter(v -> v.getSpot().getStatus().equals(SpotStatus.ACTIVE))
                 .toList();
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
     }
 }
