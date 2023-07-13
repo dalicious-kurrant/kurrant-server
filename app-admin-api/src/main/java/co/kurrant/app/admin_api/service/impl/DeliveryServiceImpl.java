@@ -119,18 +119,19 @@ public class DeliveryServiceImpl implements DeliveryService {
                                 .collect(Collectors.groupingBy(orderItemDailyFood -> orderItemDailyFood.getDailyFood().getFood().getMakers()));
 
                         DiningType diningType = spotOrderItemDailyFoodList.get(0).getDailyFood().getDiningType();
-                        LocalTime pickupTime = spotOrderItemDailyFoodList.stream()
-                                .flatMap(orderItemDailyFood -> orderItemDailyFood.getDailyFood().getDailyFoodGroup().getDeliverySchedules().stream())
-                                .filter(deliverySchedule -> deliverySchedule.getDeliveryTime().equals(serviceDateDto.getDeliveryTime()))
-                                .map(DeliverySchedule::getPickupTime)
-                                .findFirst()
-                                .orElse(null);
 
                         List<DeliveryDto.DeliveryMakers> deliveryMakersList = makersOrderItemDailyFoodMap.entrySet().stream()
                                 .sorted(Comparator.comparing(makersEntry -> makersEntry.getValue().get(0).getDailyFood().getId()))
                                 .map(makersEntry -> {
                                     Makers makers = makersEntry.getKey();
                                     List<OrderItemDailyFood> makersOrderItemDailyFoodList = makersEntry.getValue();
+
+                                    LocalTime pickupTime = makersOrderItemDailyFoodList.stream()
+                                            .flatMap(orderItemDailyFood -> orderItemDailyFood.getDailyFood().getDailyFoodGroup().getDeliverySchedules().stream())
+                                            .filter(deliverySchedule -> deliverySchedule.getDeliveryTime().equals(serviceDateDto.getDeliveryTime()))
+                                            .map(DeliverySchedule::getPickupTime)
+                                            .findFirst()
+                                            .orElse(null);
 
                                     Map<DailyFood, Integer> dailyFoodIntegerMap = makersOrderItemDailyFoodList.stream()
                                             .sorted(Comparator.comparing(orderItemDailyFood -> orderItemDailyFood.getDailyFood().getId()))
