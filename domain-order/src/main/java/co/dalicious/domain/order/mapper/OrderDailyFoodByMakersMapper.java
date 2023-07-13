@@ -82,7 +82,7 @@ public interface OrderDailyFoodByMakersMapper {
             OrderDailyFoodByMakersDto.DeliveryGroups deliveryGroups = new OrderDailyFoodByMakersDto.DeliveryGroups();
             // FIXME: OrderItemDailyFood에 LocalTime이 없을 경우?
             List<OrderDailyFoodByMakersDto.FoodBySpot> foodBySpots = toFoodBySpot(itemsByTime.get(localTime));
-            deliveryGroups.setPickiupTime(localTime == null ? null : DateUtils.timeToString(localTime));
+            deliveryGroups.setPickUpTime(localTime == null ? null : DateUtils.timeToString(localTime));
             deliveryGroups.setFoods(toFoods(itemsByTime.get(localTime)));
             deliveryGroups.setFoodCount(deliveryGroups.getFoodCount());
             deliveryGroups.setFoodBySpots(foodBySpots);
@@ -90,7 +90,7 @@ public interface OrderDailyFoodByMakersMapper {
             deliveryGroupsList.add(deliveryGroups);
         }
         deliveryGroupsList = deliveryGroupsList.stream()
-                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.DeliveryGroups::getPickiupTime))
+                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.DeliveryGroups::getPickUpTime))
                 .toList();
         return deliveryGroupsList;
     }

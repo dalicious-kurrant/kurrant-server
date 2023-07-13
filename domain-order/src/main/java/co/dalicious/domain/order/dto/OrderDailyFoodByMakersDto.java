@@ -42,7 +42,7 @@ public class OrderDailyFoodByMakersDto {
     @Getter
     @Setter
     public static class DeliveryGroups {
-        private String pickiupTime;
+        private String pickUpTime;
         private Integer spotCount;
         private List<Food> foods;
         private Integer foodCount;
