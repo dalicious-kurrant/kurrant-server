@@ -14,10 +14,12 @@ import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
+import co.dalicious.domain.user.dto.TestDataResponseDto;
 import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
+import co.dalicious.domain.user.mapper.UserTasteTestDataMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.user.validator.UserValidator;
@@ -68,6 +70,7 @@ public class UserServiceImpl implements UserService {
     private final PushUtil pushUtil;
     private final PushService pushService;
     private final SseService sseService;
+    private final UserTasteTestDataMapper userTasteTestDataMapper;
 
 
     @Override
@@ -504,5 +507,18 @@ public class UserServiceImpl implements UserService {
         }
 
         return "테스트 데이터 삭제 성공!";
+    }
+
+    @Override
+    public  List<TestDataResponseDto> getTestData() {
+
+        List<UserTasteTestData> userTasteTestDataList = qUserTasteTestDataRepository.findAll();
+        List<TestDataResponseDto> resultList = new ArrayList<>();
+
+        for (UserTasteTestData userTasteTestData : userTasteTestDataList){
+            TestDataResponseDto dto = userTasteTestDataMapper.toDto(userTasteTestData);
+            resultList.add(dto);
+        }
+        return resultList;
     }
 }
