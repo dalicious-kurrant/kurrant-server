@@ -444,4 +444,8 @@ public class User {
             return nickname + "(" + name + ")";
         }
     }
+
+    public String getNickname() {
+        return this.nickname == null ? this.name : this.nickname;
+    }
 }
