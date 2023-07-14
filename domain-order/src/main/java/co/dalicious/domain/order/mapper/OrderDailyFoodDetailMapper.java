@@ -3,6 +3,7 @@ package co.dalicious.domain.order.mapper;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.order.dto.OrderDailyFoodDetailDto;
 import co.dalicious.domain.order.entity.*;
+import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.NumberUtils;
 import org.mapstruct.Mapper;
@@ -20,7 +21,7 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(source = "orderDailyFood.code", target = "code")
     @Mapping(target = "orderDate", expression = "java(DateUtils.toISOLocalDate(orderDailyFood.getCreatedDateTime()))")
     @Mapping(source = "orderDailyFood.orderType.orderType", target = "orderType")
-    @Mapping(source = "orderDailyFood.user.name", target = "userName")
+    @Mapping(source = "orderDailyFood.user", target = "userName", qualifiedByName = "getNameAndNickName")
     @Mapping(source = "orderDailyFood.groupName", target = "groupName")
     @Mapping(source = "orderDailyFood.spotName", target = "spotName")
     @Mapping(source = "orderDailyFood.ho", target = "ho")
@@ -53,6 +54,11 @@ public interface OrderDailyFoodDetailMapper {
     @Mapping(target = "price", expression = "java(orderItemDailyFood.getDiscountedPrice().multiply(BigDecimal.valueOf(orderItemDailyFood.getCount())))")
     @Mapping(target = "isBeforeLastOrderTime", expression = "java(!orderItemDailyFood.getDailyFood().getDailyFoodStatus().equals(DailyFoodStatus.SOLD_OUT))")
     OrderDailyFoodDetailDto.OrderItem orderItemDailyFoodToDto(OrderItemDailyFood orderItemDailyFood);
+
+    @Named("getNameAndNickName")
+    default String getNameAndNickName(User user) {
+        return user.getNameAndNickname();
+    }
 
     @Named("getSupportPrice")
     default BigDecimal getSupportPrice(OrderDailyFood orderDailyFood) {

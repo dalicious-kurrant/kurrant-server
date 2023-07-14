@@ -18,7 +18,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class WordsUtil {
     public static void isContainingSwearWords(String word) {
-        InputStream inputStream = WordsUtil.class.getClassLoader().getResourceAsStream("nickname/adjective.csv");
+        InputStream inputStream = WordsUtil.class.getClassLoader().getResourceAsStream("fwords/fword_list.csv");
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
         List<String> swearWords = reader.lines().toList();
 

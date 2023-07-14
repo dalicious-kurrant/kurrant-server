@@ -53,6 +53,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -181,7 +182,7 @@ public class AuthServiceImpl implements AuthService {
 
     // Sms 인증
     @Override
-    public void sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+    public String sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
         // 인증을 요청하는 위치 파악하기
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
         switch (requiredAuth) {
@@ -205,6 +206,11 @@ public class AuthServiceImpl implements AuthService {
         // Redis에 인증번호 저장
         CertificationHash certificationHash = CertificationHash.builder().id(null).type(type).to(smsMessageRequestDto.getTo()).certificationNumber(key).build();
         certificationHashRepository.save(certificationHash);
+
+        if (requiredAuth == RequiredAuth.SIGNUP) {
+            return UserUtil.generateRandomNickName();
+        }
+        return null;
     }
 
     // 회원가입
@@ -237,7 +243,14 @@ public class AuthServiceImpl implements AuthService {
 
         // 기존에 회원가입을 한 이력이 없는 유저라면 -> 유저 생성
         if (user == null) {
-            UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail().trim()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
+            UserDto userDto = UserDto.builder()
+                    .email(signUpRequestDto.getEmail().trim())
+                    .phone(signUpRequestDto.getPhone())
+                    .password(hashedPassword)
+                    .name(signUpRequestDto.getName())
+                    .nickname(signUpRequestDto.getNickname())
+                    .role(Role.USER)
+                    .build();
 
             // Corporation가 null로 대입되는 오류 발생 -> nullable = true 설정
             user = userMapper.toEntity(userDto);

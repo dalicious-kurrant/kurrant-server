@@ -1,6 +1,5 @@
 package co.dalicious.domain.user.entity;
 
-import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.user.converter.GourmetTypeConverter;
@@ -30,6 +29,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @DynamicInsert
@@ -89,7 +89,7 @@ public class User {
     private String name;
 
     @Column(name = "nickname", columnDefinition = "VARCHAR(32)")
-    @Comment("사용자 명")
+    @Comment("사용자 닉네임")
     private String nickname;
 
     @Embedded
@@ -172,13 +172,14 @@ public class User {
     private List<PushCondition> pushConditionList;
 
     @Builder
-    public User(BigInteger id, String password, String name, Role role, String email, String phone) {
+    public User(BigInteger id, String password, String name, Role role, String email, String phone, String nickname) {
         this.id = id;
         this.password = password;
         this.name = name;
         this.role = role;
         this.email = email;
         this.phone = phone;
+        this.nickname = nickname;
     }
 
     @Builder
@@ -186,7 +187,7 @@ public class User {
                 UserStatus userStatus, String phone, String email,
                 BigDecimal point, GourmetType gourmetType, Boolean isMembership, Boolean marketingAgree,
                 Timestamp marketingAgreedDateTime, Boolean marketingAlarm, Boolean orderAlarm, Timestamp recentLoginDateTime,
-                Timestamp createdDateTime, Timestamp updatedDateTime, List<PushCondition> pushConditionList){
+                List<PushCondition> pushConditionList){
         this.id = id;
         this.password = password;
         this.name = name;
@@ -203,10 +204,10 @@ public class User {
         this.marketingAlarm = marketingAlarm;
         this.orderAlarm = orderAlarm;
         this.recentLoginDateTime = recentLoginDateTime;
-        this.createdDateTime = createdDateTime;
-        this.updatedDateTime = updatedDateTime;
         this.pushConditionList = pushConditionList;
     }
+
+
 
 
     public void changePassword(String password) {
@@ -427,5 +428,20 @@ public class User {
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public String getNameAndNickname() {
+        String nickname = Optional.ofNullable(this.nickname).orElse("");
+        String name = Optional.ofNullable(this.name).orElse("");
+
+        if(nickname.isEmpty() && name.isEmpty()) {
+            return null;
+        } else if(nickname.isEmpty()) {
+            return name;
+        } else if(name.isEmpty()) {
+            return nickname;
+        } else {
+            return nickname + "(" + name + ")";
+        }
     }
 }

@@ -22,6 +22,7 @@ public class Driver {
     private String name;
 
     @Comment("배송 기사 코드")
+    @Column(unique = true)
     private String code;
 
     public Driver(String name, String code) {

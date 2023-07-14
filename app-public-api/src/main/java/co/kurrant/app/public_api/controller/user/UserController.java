@@ -159,13 +159,13 @@ public class UserController {
                 .build();
     }
 
-    @Operation(summary = "이름변경", description = "로그인한 유저의 이름이 없을시(애플로그인) 이름을 설정한다.")
-    @PostMapping("/setting/nickName")
+    @Operation(summary = "닉네임 변경", description = "닉네임을 설정한다.")
+    @PostMapping("/setting/nickname")
     public ResponseMessage changeNickname(Authentication authentication ,@RequestBody ChangeNameDto changeNameDto){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.changeNickname(securityUser, changeNameDto.getName());
         return ResponseMessage.builder()
-                .message("유저 이름이 변경되었습니다.")
+                .message("유저 닉네임이 변경되었습니다.")
                 .build();
     }
 
