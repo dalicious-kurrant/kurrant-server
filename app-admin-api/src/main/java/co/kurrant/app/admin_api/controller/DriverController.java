@@ -44,6 +44,7 @@ public class DriverController {
     @Operation(summary = "배송 기사 삭제", description = "배송 기사를 삭제한다.")
     @DeleteMapping("")
     public ResponseMessage deleteDrivers(@RequestBody OrderDto.IdList idList) {
+        driverService.deleteDrivers(idList);
         return ResponseMessage.builder()
                 .message("배송 기사 삭제에 성공하였습니다.")
                 .build();

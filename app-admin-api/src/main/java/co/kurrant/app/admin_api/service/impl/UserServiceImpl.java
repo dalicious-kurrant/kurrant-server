@@ -294,6 +294,7 @@ public class UserServiceImpl implements UserService {
                         .forEach(g -> g.updateOpenGroupUserCount(1, true));
             }
             user.changePhoneNumber(saveUserListRequestDto.getPhone());
+            user.updateNickname(saveUserListRequestDto.getNickname());
             if (saveUserListRequestDto.getName() != null && !user.getName().equals(saveUserListRequestDto.getName()))
                 user.updateName(saveUserListRequestDto.getName());
             if (saveUserListRequestDto.getRole() != null && !user.getRole().equals(Role.ofRoleName(saveUserListRequestDto.getRole())))
@@ -368,6 +369,7 @@ public class UserServiceImpl implements UserService {
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
                     .phone(createUserDto.getPhone())
                     .name(createUserDto.getName())
+                    .nickname(createUserDto.getNickname())
                     .role(createUserDto.getRole() == null ? Role.USER : Role.ofRoleName(createUserDto.getRole()))
                     .paymentPassword((createUserDto.getPaymentPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPaymentPassword())).build();
 
