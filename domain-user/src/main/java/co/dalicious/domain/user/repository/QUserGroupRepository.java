@@ -34,7 +34,7 @@ public class QUserGroupRepository {
         return queryFactory.select(userGroup.user)
                 .from(userGroup)
                 .where(userGroup.group.id.eq(corporationId),
-                        userGroup.group.isActive,
+                        userGroup.group.isActive.isTrue(),
                         userGroup.clientStatus.ne(ClientStatus.WITHDRAWAL))
                 .fetch();
     }
@@ -43,7 +43,7 @@ public class QUserGroupRepository {
         return queryFactory.selectFrom(userGroup)
                 .where(userGroup.user.id.eq(userId),
                         userGroup.group.id.eq(groupId),
-                        userGroup.group.isActive,
+                        userGroup.group.isActive.isTrue(),
                         userGroup.clientStatus.eq(ClientStatus.BELONG))
                 .fetch();
     }
@@ -52,7 +52,7 @@ public class QUserGroupRepository {
         return queryFactory.selectFrom(userGroup)
                 .where(
                         userGroup.group.id.eq(groupId),
-                        userGroup.group.isActive,
+                        userGroup.group.isActive.isTrue(),
                         userGroup.clientStatus.eq(ClientStatus.BELONG))
                 .fetch();
     }
