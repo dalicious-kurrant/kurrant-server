@@ -33,10 +33,9 @@ public class PublicController {
 
     @Operation(summary = "랜덤 닉네임 생성", description = "랜덤 닉네임을 생성한다.")
     @GetMapping("/nicknames")
-    public ResponseMessage generateRandomNickname(Authentication authentication) throws IOException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
+    public ResponseMessage generateRandomNickname() throws IOException {
         return ResponseMessage.builder()
-                .data(userService.generateRandomNickName(securityUser))
+                .data(userService.generateRandomNickName())
                 .message("랜덤 닉네임 생성에 성공하셨습니다.")
                 .build();
     }

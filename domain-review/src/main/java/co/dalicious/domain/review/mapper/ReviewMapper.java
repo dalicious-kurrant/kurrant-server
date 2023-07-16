@@ -151,8 +151,13 @@ public interface ReviewMapper {
     @Mapping(target = "createdDate", expression = "java(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()))")
     @Mapping(source = "reviews.content", target = "content")
     @Mapping(target = "isReport", expression = "java(reviews.getIsReports() == null || !reviews.getIsReports() ? false : true)")
-    @Mapping(source = "reviews.user.name", target = "writer")
+    @Mapping(source = "reviews.user", target = "writer", qualifiedByName = "getNameAndNickname")
     ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
+
+    @Named("getNameAndNickname")
+    default String getNameAndNickname(User user) {
+        return user.getNameAndNickname();
+    }
 
     default ReviewAdminResDto.ReviewDetail toReviewDetails(Reviews reviews) {
         ReviewAdminResDto.ReviewDetail reviewDetail = new ReviewAdminResDto.ReviewDetail();

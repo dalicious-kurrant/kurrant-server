@@ -55,6 +55,7 @@ public class DriverController {
     @GetMapping("/schedules")
     public ResponseMessage getDriverSchedule(@RequestParam Map<String, Object> parameters) {
         return ResponseMessage.builder()
+                .data(driverService.getDriverSchedule(parameters))
                 .message("배송 기사 일정을 조회에 성공하였습니다.")
                 .build();
     }

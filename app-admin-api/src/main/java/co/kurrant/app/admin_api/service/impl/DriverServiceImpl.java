@@ -1,17 +1,23 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.delivery.entity.Driver;
+import co.dalicious.domain.delivery.entity.DriverSchedule;
 import co.dalicious.domain.delivery.repository.DriverRepository;
+import co.dalicious.domain.delivery.repository.QDriverScheduleRepository;
+import co.dalicious.domain.food.dto.DeliveryInfoDto;
+import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.dto.OrderDto;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.delivery.DriverDto;
 import co.kurrant.app.admin_api.dto.delivery.ScheduleDto;
+import co.kurrant.app.admin_api.mapper.DriverScheduleMapper;
 import co.kurrant.app.admin_api.service.DriverService;
-import exception.ApiException;
 import exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +27,9 @@ import java.util.Map;
 public class DriverServiceImpl implements DriverService {
 
     private final DriverRepository driverRepository;
+    private final QDailyFoodRepository qDailyFoodRepository;
+    private final QDriverScheduleRepository qDriverScheduleRepository;
+    private final DriverScheduleMapper driverScheduleMapper;
 
     @Override
     public List<Driver> getDrivers() {
@@ -48,7 +57,13 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public List<ScheduleDto> getDriverSchedule(Map<String, Object> parameters) {
-        return null;
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+
+        List<DeliveryInfoDto> tuples = qDailyFoodRepository.groupingByServiceDateAndRoute(startDate, endDate);
+        List<DriverSchedule> driverSchedules = qDriverScheduleRepository.findByPeriod(startDate, endDate);
+
+        return driverScheduleMapper.toScheduleDtos(tuples, driverSchedules);
     }
 
     @Override

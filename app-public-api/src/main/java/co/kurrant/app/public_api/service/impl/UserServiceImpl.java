@@ -910,20 +910,7 @@ public class UserServiceImpl implements UserService {
                 .sum();
     }
     @Override
-    public String generateRandomNickName(SecurityUser securityUser) throws IOException {
-        InputStream nounInputStream = this.getClass().getClassLoader().getResourceAsStream("nickname/noun.csv");
-        BufferedReader nounReader = new BufferedReader(new InputStreamReader(nounInputStream));
-        InputStream adjectiveInputStream = this.getClass().getClassLoader().getResourceAsStream("nickname/adjective.csv");
-        BufferedReader adjectiveReader = new BufferedReader(new InputStreamReader(adjectiveInputStream));
-
-        List<String> nouns = nounReader.lines().toList();
-        List<String> adjectives = adjectiveReader.lines().toList();
-
-        Random rand = new Random();
-
-        String randomNoun = nouns.get(rand.nextInt(nouns.size()));
-        String randomAdjective = adjectives.get(rand.nextInt(adjectives.size()));
-
-        return randomAdjective + randomNoun;
+    public String generateRandomNickName() throws IOException {
+        return UserUtil.generateRandomNickName();
     }
 }

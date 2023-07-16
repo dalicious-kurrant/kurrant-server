@@ -47,6 +47,9 @@ public class DeliveryInstance {
     @OneToMany(mappedBy = "deliveryInstance", fetch = FetchType.LAZY)
     private List<DailyFoodDelivery> dailyFoodDeliveries;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private DriverSchedule driverSchedule;
+
     @Builder
     public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, LocalTime pickUpTime, Integer orderNumber, Makers makers, Spot spot) {
         this.serviceDate = serviceDate;
@@ -77,8 +80,8 @@ public class DeliveryInstance {
                 : DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
     }
 
-    public LocalTime getPickUpTime() {
-        return this.pickUpTime == null ? this.deliveryTime.minusMinutes(30) : this.pickUpTime;
+    public LocalTime getPickUpTime(LocalTime deliveryTime) {
+        return this.dailyFoodDeliveries.get(0).getOrderItemDailyFood().getDailyFood().getDailyFoodGroup().getPickUpTime(deliveryTime);
     }
 
     public Integer getItemCount(DailyFood dailyFood) {

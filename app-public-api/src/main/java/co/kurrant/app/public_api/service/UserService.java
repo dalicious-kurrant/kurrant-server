@@ -71,5 +71,5 @@ public interface UserService {
 
     void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto);
 
-    String generateRandomNickName(SecurityUser securityUser) throws IOException;
+    String generateRandomNickName() throws IOException;
 }
