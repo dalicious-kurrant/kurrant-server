@@ -137,4 +137,5 @@ public class Address {
         }
     }
 
+    public void updateAddress2(String address2) { this.address2 = address2; }
 }
