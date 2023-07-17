@@ -54,6 +54,7 @@ public interface DeliveryMapper {
 
                                                 DeliveryDto.DeliveryMakers deliveryMakers = toDeliveryMakers(values);
                                                 deliveryMakers.setFoods(deliveryFoodList);
+                                                deliveryMakers.setPickupTime(DateUtils.timeToString(dailyFoodList.get(0).getDailyFoodGroup().getPickUpTime(key)));
                                                 return deliveryMakers;
                                             }).toList();
 
@@ -99,7 +100,6 @@ public interface DeliveryMapper {
     @Mapping(source = "makers.id", target = "makersId")
     @Mapping(source = "makers.name", target = "makersName")
     @Mapping(target = "address", expression = "java(dto.getMakers().getAddress().addressToString())")
-    @Mapping(source = "pickUpTime", target = "pickupTime")
     DeliveryDto.DeliveryMakers toDeliveryMakers(DeliveryInstance dto);
 
     default DeliveryDto.DeliveryManifest toDeliveryManifest(DailyFoodDelivery dailyFoodDelivery) {

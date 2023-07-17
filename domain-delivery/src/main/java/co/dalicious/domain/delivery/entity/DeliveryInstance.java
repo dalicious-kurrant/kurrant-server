@@ -1,5 +1,6 @@
 package co.dalicious.domain.delivery.entity;
 
+import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
@@ -12,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.math.BigInteger;
@@ -33,7 +35,6 @@ public class DeliveryInstance {
     @Convert(converter = DiningTypeConverter.class)
     private DiningType diningType;
     private LocalTime deliveryTime;
-    private LocalTime pickUpTime;
     private Integer orderNumber;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -46,11 +47,10 @@ public class DeliveryInstance {
     private List<DailyFoodDelivery> dailyFoodDeliveries;
 
     @Builder
-    public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, LocalTime pickUpTime, Integer orderNumber, Makers makers, Spot spot) {
+    public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Integer orderNumber, Makers makers, Spot spot) {
         this.serviceDate = serviceDate;
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
-        this.pickUpTime = pickUpTime;
         this.orderNumber = orderNumber;
         this.makers = makers;
         this.spot = spot;
@@ -70,7 +70,9 @@ public class DeliveryInstance {
     }
 
     public String getDeliveryCode() {
-        return DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
+        return Hibernate.getClass(this.spot) == CorporationSpot.class
+                ? spot.getId().toString()
+                : DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
     }
 
     public Integer getItemCount(DailyFood dailyFood) {
@@ -78,5 +80,13 @@ public class DeliveryInstance {
                 .filter(v -> OrderStatus.completePayment().contains(v.getOrderItemDailyFood().getOrderStatus()) && v.getOrderItemDailyFood().getDailyFood().equals(dailyFood))
                 .map(v -> v.getOrderItemDailyFood().getCount())
                 .reduce(0, Integer::sum);
+    }
+
+    public LocalTime getPickupTime(LocalTime deliveryTime) {
+        return this.getOrderItemDailyFoods().stream()
+                .map(v -> v.getDailyFood().getDailyFoodGroup())
+                .map(v -> v.getPickUpTime(deliveryTime))
+                .findAny()
+                .orElse(null);
     }
 }

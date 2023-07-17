@@ -1,5 +1,6 @@
 package co.dalicious.domain.delivery.utils;
 
+import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.client.entity.OpenGroupSpot;
 import co.dalicious.domain.client.entity.Spot;
@@ -33,7 +34,7 @@ public class DeliveryUtils {
     public void saveDeliveryInstance(OrderItemDailyFood orderItemDailyFood, Spot spot, User user, DailyFood dailyFood, LocalTime deliveryTime) {
         DeliveryInstance deliveryInstance = getDeliveryInstance(spot, user, dailyFood, deliveryTime);
         if(deliveryInstance == null) {
-            Integer deliveryOrderNumber = getNewOrderNumber(dailyFood, deliveryTime);
+            Integer deliveryOrderNumber = getNewOrderNumber(spot, dailyFood, deliveryTime);
             deliveryInstance = deliveryInstanceMapper.toEntity(dailyFood, spot, deliveryOrderNumber, deliveryTime);
             deliveryInstanceRepository.save(deliveryInstance);
         }
@@ -50,7 +51,8 @@ public class DeliveryUtils {
                 .orElse(null);
     }
 
-    public Integer getNewOrderNumber(DailyFood dailyFood, LocalTime deliveryTime) {
+    public Integer getNewOrderNumber(Spot spot, DailyFood dailyFood, LocalTime deliveryTime) {
+        if(spot instanceof CorporationSpot) return null;
         Integer currentMaxNumber = qDeliveryInstanceRepository.getMaxOrderNumber(dailyFood.getServiceDate(), dailyFood.getDiningType(), deliveryTime, dailyFood.getFood().getMakers());
         return ++currentMaxNumber;
     }
