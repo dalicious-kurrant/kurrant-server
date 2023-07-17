@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -45,6 +46,9 @@ public class DeliveryInstance {
 
     @OneToMany(mappedBy = "deliveryInstance", fetch = FetchType.LAZY)
     private List<DailyFoodDelivery> dailyFoodDeliveries;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private DriverSchedule driverSchedule;
 
     @Builder
     public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Integer orderNumber, Makers makers, Spot spot) {
@@ -86,7 +90,8 @@ public class DeliveryInstance {
         return this.getOrderItemDailyFoods().stream()
                 .map(v -> v.getDailyFood().getDailyFoodGroup())
                 .map(v -> v.getPickUpTime(deliveryTime))
-                .findAny()
+                .filter(Objects::nonNull)
+                .findFirst()
                 .orElse(null);
     }
 }
