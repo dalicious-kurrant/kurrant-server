@@ -341,13 +341,20 @@ public class DailyReportServiceImpl implements DailyReportService {
 
         if (orderItemDailyFoodList.isEmpty()) return resultList;
 
-
+        List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDate(user.getId(), date);
+        Boolean isDuplicated = false;
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
+
+            if (dailyReportList.stream().anyMatch(v -> v.getEatDate().equals(orderItemDailyFood.getDailyFood().getServiceDate()) &&
+                    v.getFoodName().equals(orderItemDailyFood.getDailyFood().getFood().getName()))){
+                isDuplicated = true;
+            }
+
             String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
             String location = null;
             if (!orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty())
                 location = orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation();
-            OrderByDateAndDiningTypeResDto orderByDateDto = orderItemDailyFoodDailyReportMapper.toOrderByDateDto(orderItemDailyFood, location, spotName);
+            OrderByDateAndDiningTypeResDto orderByDateDto = orderItemDailyFoodDailyReportMapper.toOrderByDateDto(orderItemDailyFood, location, spotName, isDuplicated);
             resultList.add(orderByDateDto);
         }
 
