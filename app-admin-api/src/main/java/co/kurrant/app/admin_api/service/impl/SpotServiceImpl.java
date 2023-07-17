@@ -80,6 +80,7 @@ public class SpotServiceImpl implements SpotService {
             spotDiningTypes.retainAll(spot.getGroup().getDiningTypes());
             spot.updateDiningTypes(spotDiningTypes);
             spot.updateName(spotMap.get(spot).getSpotName());
+            spot.updateAddress2(spotMap.get(spot).getAddress2());
         }
 
         // FIXME 스팟 생성
