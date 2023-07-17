@@ -331,6 +331,7 @@ public class DailyReportServiceImpl implements DailyReportService {
     }
 
     @Override
+    @Transactional
     public Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType) {
         List<OrderByDateAndDiningTypeResDto> resultList = new ArrayList<>();
 
