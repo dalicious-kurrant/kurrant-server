@@ -17,7 +17,7 @@ import java.math.BigInteger;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "delivery__driver_route", uniqueConstraints=@UniqueConstraint(columnNames={"group_id", "makers_id", "driverSchedule_id"}))
+@Table(name = "delivery__driver_route", uniqueConstraints=@UniqueConstraint(columnNames={"group_id", "makers_id", "driver_schedule_id"}))
 public class DriverRoute {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
