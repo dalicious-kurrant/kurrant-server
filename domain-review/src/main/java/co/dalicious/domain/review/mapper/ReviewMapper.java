@@ -77,7 +77,7 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.createdDateTime", target = "createDate", qualifiedByName = "getCreateDate")
     @Mapping(source = "reviews.updatedDateTime", target = "updateDate", qualifiedByName = "getCreateDate")
     @Mapping(source = "reviews.satisfaction", target = "satisfaction")
-    @Mapping(source = "user.name", target = "userName")
+    @Mapping(source = "user.nickname", target = "userName")
     @Mapping(source = "reviews.good", target = "good")
     @Mapping(source = "reviews.id", target = "reviewId")
     FoodReviewListDto toFoodReviewListDto(Reviews reviews, User user, List<Comments> commentsList, boolean isGood, boolean isWriter);
@@ -151,8 +151,13 @@ public interface ReviewMapper {
     @Mapping(target = "createdDate", expression = "java(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()))")
     @Mapping(source = "reviews.content", target = "content")
     @Mapping(target = "isReport", expression = "java(reviews.getIsReports() == null || !reviews.getIsReports() ? false : true)")
-    @Mapping(source = "reviews.user.name", target = "writer")
+    @Mapping(source = "reviews.user", target = "writer", qualifiedByName = "getNameAndNickname")
     ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
+
+    @Named("getNameAndNickname")
+    default String getNameAndNickname(User user) {
+        return user.getNameAndNickname();
+    }
 
     default ReviewAdminResDto.ReviewDetail toReviewDetails(Reviews reviews) {
         ReviewAdminResDto.ReviewDetail reviewDetail = new ReviewAdminResDto.ReviewDetail();
@@ -164,7 +169,7 @@ public interface ReviewMapper {
         reviewDetail.setContentOrigin(reviews.getContentOrigin());
         reviewDetail.setSatisfactionOrigin(reviews.getSatisfactionOrigin());
         reviewDetail.setForMakers(reviews.getForMakers());
-        reviewDetail.setWriter(reviews.getUser().getName());
+        reviewDetail.setWriter(reviews.getUser().getNickname());
         reviewDetail.setFoodName(reviews.getFood().getName());
         reviewDetail.setIsDelete(reviews.getIsDelete());
         reviewDetail.setIsReport(reviews.getIsReports());
@@ -197,7 +202,7 @@ public interface ReviewMapper {
         reviewListDto.setUpdateDate(DateUtils.toISOLocalDate(reviews.getUpdatedDateTime()));
         reviewListDto.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
         reviewListDto.setForMakers(reviews.getForMakers());
-        reviewListDto.setWriter(reviews.getUser().getName());
+        reviewListDto.setWriter(reviews.getUser().getNickname());
         reviewListDto.setIsReport(reviews.getIsReports());
         reviewListDto.setOrderItemName(getItemName(reviews.getOrderItem()));
         reviewListDto.setIsMakersComments(false);
@@ -226,7 +231,7 @@ public interface ReviewMapper {
         reviewDetail.setUpdateDate(DateUtils.toISOLocalDate(reviews.getUpdatedDateTime()));
         reviewDetail.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
         reviewDetail.setForMakers(reviews.getForMakers());
-        reviewDetail.setWriter(reviews.getUser().getName());
+        reviewDetail.setWriter(reviews.getUser().getNickname());
         reviewDetail.setItemName(getItemName(reviews.getOrderItem()));
         reviewDetail.setIsReport(reviews.getIsReports());
 

@@ -10,6 +10,8 @@ import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -83,7 +85,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final SseService sseService;
     private final FoodCapacityRepository foodCapacityRepository;
-
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
     @Override
     @Transactional
     public void approveSchedule(PeriodDto.PeriodStringDto periodStringDto) {
@@ -231,7 +233,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             dailyFoodGroupMap.add(dailyFoodGroupDto, dailyFood);
         }
 
-        //FIXME: ???
+
         for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
             List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
             List<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()
@@ -276,9 +278,11 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             DeliverySchedule deliverySchedule = dailyFood.getDailyFoodGroup().getDeliverySchedules().stream()
                     .filter(deliverySchedule1 -> deliverySchedule1.getDeliveryTime().equals(DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime())))
                     .findAny().orElse(null);
-
-            if (deliverySchedule != null && !Objects.equals(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), deliverySchedule.getPickupTime())) {
+            LocalTime pickUpTime = DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime());
+            if (deliverySchedule != null && !Objects.equals(pickUpTime, deliverySchedule.getPickupTime())) {
                 dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()));
+                List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllBy(dailyFood.getServiceDate(), dailyFood.getDiningType(), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()), dailyFood.getFood().getMakers(), group);
+                deliveryInstances.forEach(v -> v.updatePickUpTime(pickUpTime));
             }
 
             Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
@@ -288,7 +292,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             if (dailyFoodDto.getMakersCapacity().equals(dailyFoodDto.getFoodCapacity()) && foodCapacity == null) {
                 newFoodCapacities.add(FoodCapacity.builder().food(food).capacity(dailyFoodDto.getFoodCapacity()).diningType(DiningType.ofCode(dailyFoodDto.getDiningType())).build());
             } else if (!Objects.equals(foodCapacity.getCapacity(), dailyFoodDto.getFoodCapacity())) {
-            foodCapacity.updateCapacity(dailyFoodDto.getFoodCapacity());
+                foodCapacity.updateCapacity(dailyFoodDto.getFoodCapacity());
             }
 
             // 식단을 구매한 사람이 없다면

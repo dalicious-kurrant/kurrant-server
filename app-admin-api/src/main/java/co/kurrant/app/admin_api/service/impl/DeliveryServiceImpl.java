@@ -10,6 +10,8 @@ import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.entity.Driver;
+import co.dalicious.domain.delivery.repository.DriverRepository;
 import co.dalicious.domain.delivery.repository.QDailyFoodDeliveryRepository;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -35,21 +37,15 @@ import co.kurrant.app.admin_api.mapper.DeliveryMapper;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.service.DeliveryService;
-import co.kurrant.app.admin_api.util.DeliveryCodeUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.io.File;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -72,19 +68,15 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final QGroupRepository qGroupRepository;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final SimpleJwtTokenProvider jwtTokenProvider;
-    private final DeliveryCodeUtil deliveryCodeUtil;
+    private final DriverRepository driverRepository;
 
 
     @Override
-    public LoginResponseDto login(Code loginCode) throws IOException {
-        List<Code> codes = deliveryCodeUtil.getEntireDeliveryCodes();
-        Code code = codes.stream()
-                .filter(v -> v.getCode().equals(loginCode.getCode()))
-                .findAny()
+    public LoginResponseDto login(Code loginCode) {
+        Driver driver = driverRepository.findByCode(loginCode.getCode())
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
-        LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(code.getCode(), Collections.singletonList(Role.USER.getAuthority()));
-
-        return new LoginResponseDto(loginResponseDto.getAccessToken(), loginResponseDto.getAccessTokenExpiredIn(), code.getCode());
+        LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(driver.getCode(), Collections.singletonList(Role.USER.getAuthority()));
+        return new LoginResponseDto(loginResponseDto.getAccessToken(), loginResponseDto.getAccessTokenExpiredIn(), driver.getCode());
     }
 
     @Override
@@ -127,18 +119,19 @@ public class DeliveryServiceImpl implements DeliveryService {
                                 .collect(Collectors.groupingBy(orderItemDailyFood -> orderItemDailyFood.getDailyFood().getFood().getMakers()));
 
                         DiningType diningType = spotOrderItemDailyFoodList.get(0).getDailyFood().getDiningType();
-                        LocalTime pickupTime = spotOrderItemDailyFoodList.stream()
-                                .flatMap(orderItemDailyFood -> orderItemDailyFood.getDailyFood().getDailyFoodGroup().getDeliverySchedules().stream())
-                                .filter(deliverySchedule -> deliverySchedule.getDeliveryTime().equals(serviceDateDto.getDeliveryTime()))
-                                .map(DeliverySchedule::getPickupTime)
-                                .findFirst()
-                                .orElse(null);
 
                         List<DeliveryDto.DeliveryMakers> deliveryMakersList = makersOrderItemDailyFoodMap.entrySet().stream()
                                 .sorted(Comparator.comparing(makersEntry -> makersEntry.getValue().get(0).getDailyFood().getId()))
                                 .map(makersEntry -> {
                                     Makers makers = makersEntry.getKey();
                                     List<OrderItemDailyFood> makersOrderItemDailyFoodList = makersEntry.getValue();
+
+                                    LocalTime pickupTime = makersOrderItemDailyFoodList.stream()
+                                            .flatMap(orderItemDailyFood -> orderItemDailyFood.getDailyFood().getDailyFoodGroup().getDeliverySchedules().stream())
+                                            .filter(deliverySchedule -> deliverySchedule.getDeliveryTime().equals(serviceDateDto.getDeliveryTime()))
+                                            .map(DeliverySchedule::getPickupTime)
+                                            .findFirst()
+                                            .orElse(null);
 
                                     Map<DailyFood, Integer> dailyFoodIntegerMap = makersOrderItemDailyFoodList.stream()
                                             .sorted(Comparator.comparing(orderItemDailyFood -> orderItemDailyFood.getDailyFood().getId()))
