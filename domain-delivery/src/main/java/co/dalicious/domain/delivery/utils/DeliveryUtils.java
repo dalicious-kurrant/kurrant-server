@@ -33,12 +33,7 @@ public class DeliveryUtils {
         DeliveryInstance deliveryInstance = getDeliveryInstance(spot, user, dailyFood, deliveryTime);
         if(deliveryInstance == null) {
             Integer deliveryOrderNumber = getNewOrderNumber(spot, dailyFood, deliveryTime);
-            LocalTime pickUpTime = dailyFood.getDailyFoodGroup().getDeliverySchedules().stream()
-                    .filter(v -> v.getDeliveryTime().equals(deliveryTime))
-                    .findAny()
-                    .map(DeliverySchedule::getPickupTime)
-                    .orElse(deliveryTime.minusMinutes(30));
-            deliveryInstance = deliveryInstanceMapper.toEntity(dailyFood, spot, deliveryOrderNumber, deliveryTime, pickUpTime);
+            deliveryInstance = deliveryInstanceMapper.toEntity(dailyFood, spot, deliveryOrderNumber, deliveryTime);
             deliveryInstanceRepository.save(deliveryInstance);
         }
         DailyFoodDelivery dailyFoodDelivery = new DailyFoodDelivery(deliveryInstance, orderItemDailyFood);

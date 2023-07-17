@@ -20,6 +20,8 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -35,7 +37,6 @@ public class DeliveryInstance {
     @Convert(converter = DiningTypeConverter.class)
     private DiningType diningType;
     private LocalTime deliveryTime;
-    private LocalTime pickUpTime;
     private Integer orderNumber;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -48,11 +49,10 @@ public class DeliveryInstance {
     private List<DailyFoodDelivery> dailyFoodDeliveries;
 
     @Builder
-    public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, LocalTime pickUpTime, Integer orderNumber, Makers makers, Spot spot) {
+    public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Integer orderNumber, Makers makers, Spot spot) {
         this.serviceDate = serviceDate;
         this.diningType = diningType;
         this.deliveryTime = deliveryTime;
-        this.pickUpTime = pickUpTime;
         this.orderNumber = orderNumber;
         this.makers = makers;
         this.spot = spot;
@@ -77,14 +77,18 @@ public class DeliveryInstance {
                 : DateUtils.formatWithoutSeparator(this.serviceDate) + this.makers.getId() + "-" + this.orderNumber;
     }
 
-    public LocalTime getPickUpTime() {
-        return this.pickUpTime == null ? this.deliveryTime.minusMinutes(30) : this.pickUpTime;
-    }
-
     public Integer getItemCount(DailyFood dailyFood) {
         return dailyFoodDeliveries.stream()
                 .filter(v -> OrderStatus.completePayment().contains(v.getOrderItemDailyFood().getOrderStatus()) && v.getOrderItemDailyFood().getDailyFood().equals(dailyFood))
                 .map(v -> v.getOrderItemDailyFood().getCount())
                 .reduce(0, Integer::sum);
+    }
+
+    public LocalTime getPickupTime(LocalTime deliveryTime) {
+        return this.getOrderItemDailyFoods().stream()
+                .map(v -> v.getDailyFood().getDailyFoodGroup())
+                .map(v -> v.getPickUpTime(deliveryTime))
+                .findAny()
+                .orElse(null);
     }
 }
