@@ -1,2 +1,0 @@
-alter table delivery__delivery_instance
-drop column pick_up_time;
