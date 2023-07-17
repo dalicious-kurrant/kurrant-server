@@ -47,9 +47,6 @@ public class DeliveryInstance {
     @OneToMany(mappedBy = "deliveryInstance", fetch = FetchType.LAZY)
     private List<DailyFoodDelivery> dailyFoodDeliveries;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private DriverSchedule driverSchedule;
-
     @Builder
     public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Integer orderNumber, Makers makers, Spot spot) {
         this.serviceDate = serviceDate;
