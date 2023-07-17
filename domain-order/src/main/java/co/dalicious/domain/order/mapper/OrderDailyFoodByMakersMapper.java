@@ -90,7 +90,7 @@ public interface OrderDailyFoodByMakersMapper {
             deliveryGroupsList.add(deliveryGroups);
         }
         deliveryGroupsList = deliveryGroupsList.stream()
-                .sorted(Comparator.comparing(v -> v.getPickUpTime() != null ? LocalTime.parse(v.getPickUpTime()) : null))
+                .sorted(Comparator.comparing(v -> (v.getPickUpTime() != null ? LocalTime.parse(v.getPickUpTime()) : LocalTime.MIN), Comparator.nullsLast(LocalTime::compareTo)))
                 .toList();
         return deliveryGroupsList;
     }
