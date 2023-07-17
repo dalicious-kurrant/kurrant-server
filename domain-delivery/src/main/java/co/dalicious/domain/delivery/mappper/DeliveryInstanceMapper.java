@@ -7,7 +7,9 @@ import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.DailyFoodGroup;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
@@ -26,11 +28,10 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface DeliveryInstanceMapper {
-    default DeliveryInstance toEntity(DailyFood dailyFood, Spot spot, Integer orderNumber, LocalTime deliveryTime, LocalTime pickUpTime) {
+    default DeliveryInstance toEntity(DailyFood dailyFood, Spot spot, Integer orderNumber, LocalTime deliveryTime) {
         return DeliveryInstance.builder()
                 .serviceDate(dailyFood.getServiceDate())
                 .deliveryTime(deliveryTime)
-                .pickUpTime(pickUpTime)
                 .diningType(dailyFood.getDiningType())
                 .orderNumber(orderNumber)
                 .makers(dailyFood.getFood().getMakers())
@@ -85,7 +86,7 @@ public interface DeliveryInstanceMapper {
         MultiValueMap<LocalTime, DeliveryInstance> itemsByTime = new LinkedMultiValueMap<>();
         List<OrderDailyFoodByMakersDto.DeliveryGroups> deliveryGroupsList = new ArrayList<>();
         for (DeliveryInstance deliveryInstance : deliveryInstances) {
-            itemsByTime.add(deliveryInstance.getPickUpTime(), deliveryInstance);
+            itemsByTime.add(deliveryInstance.getPickupTime(deliveryInstance.getDeliveryTime()), deliveryInstance);
         }
         for (LocalTime localTime : itemsByTime.keySet()) {
             OrderDailyFoodByMakersDto.DeliveryGroups deliveryGroups = new OrderDailyFoodByMakersDto.DeliveryGroups();
