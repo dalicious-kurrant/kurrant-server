@@ -1,10 +1,12 @@
 package co.dalicious.domain.delivery.entity;
 
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiningType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.sun.istack.NotNull;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -18,7 +20,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "delivery__driver_schedule")
+@Table(name = "delivery__driver_schedule", uniqueConstraints=@UniqueConstraint(columnNames={"delivery_date", "e_dining_type", "delivery_time", "driver_id"}))
 public class DriverSchedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +28,7 @@ public class DriverSchedule {
     private BigInteger id;
 
     @Comment("배송 날짜")
+    @Column(name = "delivery_date", nullable = false)
     private LocalDate deliveryDate;
 
     @NotNull
@@ -35,6 +38,7 @@ public class DriverSchedule {
     private DiningType diningType;
 
     @Comment("배송 시간")
+    @Column(name = "delivery_time", nullable = false)
     private LocalTime deliveryTime;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -44,4 +48,16 @@ public class DriverSchedule {
     @OneToMany(mappedBy = "driverSchedule", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference(value = "driver_schedule_fk")
     private List<DriverRoute> driverRoutes;
+
+    @Builder
+    public DriverSchedule(LocalDate deliveryDate, DiningType diningType, LocalTime deliveryTime, Driver driver) {
+        this.deliveryDate = deliveryDate;
+        this.diningType = diningType;
+        this.deliveryTime = deliveryTime;
+        this.driver = driver;
+    }
+
+    public Group getGroup() {
+        return this.driverRoutes.get(0).getGroup();
+    }
 }

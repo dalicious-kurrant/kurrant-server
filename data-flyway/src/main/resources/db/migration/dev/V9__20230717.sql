@@ -1,3 +1,14 @@
+CREATE TABLE delivery__driver
+(
+    id   BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
+    name VARCHAR(255)                   NULL COMMENT '배송 기사 이름',
+    code VARCHAR(255)                   NULL COMMENT '배송 기사 코드',
+    CONSTRAINT pk_delivery__driver PRIMARY KEY (id)
+);
+
+ALTER TABLE delivery__driver
+    ADD CONSTRAINT uc_delivery__driver_code UNIQUE (code);
+
 CREATE TABLE delivery__driver_schedule
 (
     id            BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,

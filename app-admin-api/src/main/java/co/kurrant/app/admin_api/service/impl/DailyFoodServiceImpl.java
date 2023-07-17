@@ -281,8 +281,6 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             LocalTime pickUpTime = DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime());
             if (deliverySchedule != null && !Objects.equals(pickUpTime, deliverySchedule.getPickupTime())) {
                 dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()));
-                List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllBy(dailyFood.getServiceDate(), dailyFood.getDiningType(), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()), dailyFood.getFood().getMakers(), group);
-                deliveryInstances.forEach(v -> v.updatePickUpTime(pickUpTime));
             }
 
             Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());

@@ -64,6 +64,7 @@ public class DriverController {
     @Operation(summary = "배송 기사 일정 엑셀 추가", description = "배송 기사 일정을 엑셀 추가한다.")
     @PostMapping("/schedules")
     public ResponseMessage excelDriverSchedule(@RequestBody List<ScheduleDto> scheduleDtos) {
+        driverService.excelDriverSchedule(scheduleDtos);
         return ResponseMessage.builder()
                 .message("배송 기사 일정을 엑셀 추가에 성공하였습니다.")
                 .build();
