@@ -20,8 +20,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -86,12 +85,13 @@ public class DeliveryInstance {
                 .map(v -> v.getOrderItemDailyFood().getCount())
                 .reduce(0, Integer::sum);
     }
-  
+
     public LocalTime getPickupTime(LocalTime deliveryTime) {
         return this.getOrderItemDailyFoods().stream()
                 .map(v -> v.getDailyFood().getDailyFoodGroup())
                 .map(v -> v.getPickUpTime(deliveryTime))
-                .findAny()
+                .filter(Objects::nonNull)
+                .findFirst()
                 .orElse(null);
     }
 }
