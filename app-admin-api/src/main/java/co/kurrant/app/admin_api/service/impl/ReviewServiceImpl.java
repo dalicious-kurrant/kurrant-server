@@ -51,7 +51,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final KeywordMapper keywordMapper;
     private final QKeywordRepository qKeywordRepository;
     private final FoodRepository foodRepository;
-    private SseService sseService;
+    private final SseService sseService;
 
     @Override
     @Transactional(readOnly = true)
