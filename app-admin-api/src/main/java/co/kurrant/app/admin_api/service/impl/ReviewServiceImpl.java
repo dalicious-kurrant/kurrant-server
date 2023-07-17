@@ -123,7 +123,9 @@ public class ReviewServiceImpl implements ReviewService {
 
         AdminComments adminComments = reviewMapper.toAdminComment(reqDto, reviews);
         commentsRepository.save(adminComments);
-        sseService.send(reviews.getUser().getId(), 8, null, null, adminComments.getId());
+        if (reviews.getUser().getId() != null){ //에러방지 - userId 못가져오면 sse발송 안되게 처리
+            sseService.send(reviews.getUser().getId(), 8, null, null, adminComments.getId());
+        }
 
         // 댓글 생성 푸시알림
         PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(reviews.getUser(), PushCondition.REVIEW_GET_COMMENT, null);
