@@ -47,6 +47,9 @@ public class DeliveryInstance {
     @OneToMany(mappedBy = "deliveryInstance", fetch = FetchType.LAZY)
     private List<DailyFoodDelivery> dailyFoodDeliveries;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private DriverSchedule driverSchedule;
+
     @Builder
     public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Integer orderNumber, Makers makers, Spot spot) {
         this.serviceDate = serviceDate;
@@ -87,8 +90,7 @@ public class DeliveryInstance {
         return this.getOrderItemDailyFoods().stream()
                 .map(v -> v.getDailyFood().getDailyFoodGroup())
                 .map(v -> v.getPickUpTime(deliveryTime))
-                .filter(Objects::nonNull)
-                .findFirst()
+                .findAny()
                 .orElse(null);
     }
 }
