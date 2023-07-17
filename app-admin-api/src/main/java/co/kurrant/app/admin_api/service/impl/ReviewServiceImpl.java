@@ -123,7 +123,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         AdminComments adminComments = reviewMapper.toAdminComment(reqDto, reviews);
         commentsRepository.save(adminComments);
-        if (reviews.getUser().getId() != null){ //에러방지 - userId 못가져오면 sse발송 안되게 처리
+        if (reviews.getUser().getId() != null && adminComments.getId() != null){ //에러방지 - userId 못가져오면 sse발송 안되게 처리
             sseService.send(reviews.getUser().getId(), 8, null, null, adminComments.getId());
         }
 
