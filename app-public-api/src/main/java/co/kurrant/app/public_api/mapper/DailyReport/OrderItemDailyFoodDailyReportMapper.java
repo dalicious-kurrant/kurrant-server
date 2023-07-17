@@ -23,10 +23,11 @@ public interface OrderItemDailyFoodDailyReportMapper {
 
     @Mapping(source = "orderItemDailyFood.dailyFood.id", target = "dailyFoodId")
     @Mapping(source = "location", target = "imageLocation")
+    @Mapping(source = "isDuplicated", target = "isDuplicated")
     @Mapping(source = "spotName", target = "spotName")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.name", target = "foodName")
     @Mapping(source = "orderItemDailyFood.dailyFood.food.makers.name", target = "makersName")
-    OrderByDateAndDiningTypeResDto toOrderByDateDto(OrderItemDailyFood orderItemDailyFood, String location, String spotName);
+    OrderByDateAndDiningTypeResDto toOrderByDateDto(OrderItemDailyFood orderItemDailyFood, String location, String spotName, Boolean isDuplicated);
 
 
     @Named("nullToZero")
