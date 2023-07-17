@@ -250,7 +250,8 @@ public class QReviewRepository {
 
     public List<Reviews> findAllByfoodIds(Collection<BigInteger> ids) {
         return queryFactory.selectFrom(reviews)
-                .where(reviews.food.id.in(ids))
+                .where(reviews.food.id.in(ids),
+                        reviews.forMakers.eq(Boolean.FALSE)) //사장님만 보이기는 제외
                 .fetch();
     }
 
@@ -440,4 +441,9 @@ public class QReviewRepository {
         return averageAndTotalCount;
     }
 
+    public List<Reviews> findAllByfoodIdsAndForMakers(BigInteger foodId) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(Boolean.FALSE))
+                .fetch();
+    }
 }

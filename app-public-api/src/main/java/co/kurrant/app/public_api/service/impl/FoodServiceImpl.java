@@ -236,7 +236,8 @@ public class FoodServiceImpl implements FoodService {
 
         //리뷰와 유저정보 가져오기
         Page<Reviews> pageReviews = null;
-        List<Reviews> totalReviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+        //Total 리뷰 조회 (사장님에게만보이기는 제외)
+        List<Reviews> totalReviewsList = qReviewRepository.findAllByfoodIdsAndForMakers(dailyFood.getFood().getId());
         if (totalReviewsList.size() == 0) {
             GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
                     BigInteger.valueOf(0));
@@ -292,7 +293,7 @@ public class FoodServiceImpl implements FoodService {
         GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort, reviewWrite);
         List<String> keywords = qKeywordRepository.findAllByFoodId(dailyFood.getFood().getId());
         getFoodReviewResponseDto.setKeywords(keywords);
-        getFoodReviewResponseDto.setStars(getStarRate(dailyFood));
+        getFoodReviewResponseDto.setStars(getStarRate(totalReviewsList));
 
         return ItemPageableResponseDto.<GetFoodReviewResponseDto>builder().items(getFoodReviewResponseDto).count(pageReviews.getNumberOfElements())
                 .total(pageReviews.getTotalPages()).limit(pageable.getPageSize()).isLast(pageReviews.isLast()).build();
@@ -409,9 +410,8 @@ public class FoodServiceImpl implements FoodService {
         return 0;
     }
 
-    private Map<Integer, Integer> getStarRate(DailyFood dailyFood) {
+    private Map<Integer, Integer> getStarRate(List<Reviews> reviewsList) {
         Map<Integer, Integer> starCountMap = new ConcurrentHashMap<>();
-        List<Reviews> reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
         starCountMap.put(1, 0);
         starCountMap.put(2, 0);
         starCountMap.put(3, 0);
