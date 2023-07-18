@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,7 +13,7 @@ public class FoodDto {
     @Setter
     public static class DailyFood {
         private BigInteger dailyFoodId;
-        private String deliveryTime;
+        private List<String> deliveryTime;
         private Integer diningType;
         private Integer foodCapacity;
         private Integer foodCount;
@@ -22,7 +23,7 @@ public class FoodDto {
         private String groupName;
         private Integer makersCapacity;
         private String makersName;
-        private String makersPickupTime;
+        private List<String> makersPickupTime;
         private String serviceDate;
     }
 }
