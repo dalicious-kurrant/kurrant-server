@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Math.class, UserRepository.class})
@@ -347,16 +348,17 @@ public interface ReviewMapper {
     }
 
     default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starAverage, Integer totalReview, BigInteger foodId, Integer sort,
-                                                                BigInteger reviewWrite) {
+                                                                BigInteger reviewWrite, List<String> keywords, Map<Integer, Integer> stars) {
         GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
-        foodReviewListDtoList = foodReviewListDtoList.stream()
-                .sorted(Comparator.comparing(FoodReviewListDto::getCreateDate).reversed())
-                .toList();
         getFoodReviewResponseDto.setReviewList(foodReviewListDtoList);
         getFoodReviewResponseDto.setStarAverage(starAverage);
         getFoodReviewResponseDto.setTotalReview(totalReview);
         getFoodReviewResponseDto.setFoodId(foodId);
         getFoodReviewResponseDto.setReviewWrite(reviewWrite);
+        getFoodReviewResponseDto.setKeywords(keywords);
+        getFoodReviewResponseDto.setStars(stars);
+
+
 
         return getFoodReviewResponseDto;
 
