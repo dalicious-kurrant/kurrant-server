@@ -16,7 +16,7 @@ public class ScheduleDto {
         private Integer diningType;
         private String groupName;
         private Integer groupCapacity;
-        private String deliveryTime;
+        private List<String> deliveryTime;
         private List<MakersSchedule> makersSchedules;
 
     }
@@ -27,7 +27,7 @@ public class ScheduleDto {
         private String makersName;
         private Integer makersCapacity;
         private Integer makersCount;
-        private String makersPickupTime;
+        private List<String> makersPickupTime;
         private List<FoodSchedule> foodSchedules;
     }
 

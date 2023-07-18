@@ -174,6 +174,9 @@ public interface DailyFoodMapper {
     }
 
     default void updateDeliverySchedule(List<String> deliveryTimeList, List<String> pickupTimeList, @MappingTarget DailyFoodGroup dailyFoodGroup) {
+        if(deliveryTimeList.size() != pickupTimeList.size()) {
+            throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+        }
         List<DeliverySchedule> newDeliveryScheduleList = new ArrayList<>();
         for (String deliveryTime : deliveryTimeList) {
             newDeliveryScheduleList.add(new DeliverySchedule(DateUtils.stringToLocalTime(deliveryTime), DateUtils.stringToLocalTime(pickupTimeList.get(deliveryTimeList.indexOf(deliveryTime)))));
