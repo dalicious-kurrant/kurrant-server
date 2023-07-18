@@ -302,6 +302,7 @@ public class AuthServiceImpl implements AuthService {
                 .spotStatus(spotStatus.getCode())
                 .isActive(user.getUserStatus().equals(UserStatus.ACTIVE))
                 .leftWithdrawDays(leftWithdrawDays)
+                .hasNickname(!user.getNickname().isEmpty())
                 .build();
     }
 

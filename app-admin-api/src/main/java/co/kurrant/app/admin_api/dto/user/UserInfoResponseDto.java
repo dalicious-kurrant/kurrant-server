@@ -17,6 +17,8 @@ public class UserInfoResponseDto {
     private String password;
     @Schema(description = "이름")
     private String userName;
+    @Schema(description = "닉네임")
+    private String nickname;
     @Schema(description = "유저타입")
     private String role;
     @Schema(description = "탈퇴 상태")
@@ -55,6 +57,8 @@ public class UserInfoResponseDto {
     private String kakaoEmail;
     @Schema(description = "네이버 이메일")
     private String naverEmail;
+    @Schema(description = "구글 이메일")
+    private String googleEmail;
     @Schema(description = "페이스북 이메알")
     private String facebookEmail;
     @Schema(description = "애플 이메일")

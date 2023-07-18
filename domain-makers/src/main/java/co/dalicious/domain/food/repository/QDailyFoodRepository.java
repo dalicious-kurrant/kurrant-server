@@ -63,6 +63,7 @@ public class QDailyFoodRepository {
                 .selectFrom(dailyFood)
                 .where(dailyFood.serviceDate.goe(startDate),
                         dailyFood.serviceDate.loe(endDate),
+                        dailyFood.dailyFoodStatus.in(DailyFoodStatus.SALES, DailyFoodStatus.SOLD_OUT, DailyFoodStatus.PASS_LAST_ORDER_TIME),
                         whereCause)
                 .fetch();
     }

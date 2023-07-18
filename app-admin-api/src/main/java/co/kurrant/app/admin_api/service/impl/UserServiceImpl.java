@@ -304,7 +304,6 @@ public class UserServiceImpl implements UserService {
             if (saveUserListRequestDto.getPoint() != null) {
                 BigDecimal point = BigDecimal.valueOf(saveUserListRequestDto.getPoint());
                 if (!user.getPoint().equals(point)) {
-
                     BigDecimal differencePoint = point.subtract(user.getPoint());
                     // 차액이 플러스면
                     if(differencePoint.compareTo(BigDecimal.valueOf(0)) > 0) {
