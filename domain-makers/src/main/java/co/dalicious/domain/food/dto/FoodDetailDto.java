@@ -33,4 +33,5 @@ public class FoodDetailDto {
     private Integer carbohydrate;
     private List<OriginDto> origins;
     private List<String> allergies;
+    private String lastOrderTime;
 }
