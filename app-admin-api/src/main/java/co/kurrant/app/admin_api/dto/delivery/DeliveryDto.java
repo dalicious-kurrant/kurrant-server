@@ -28,6 +28,7 @@ public class DeliveryDto {
     @NoArgsConstructor
     public static class DeliveryInfo {
         private String serviceDate;
+        private String deliveryTime;
         private List<DeliveryGroup> group;
     }
 
@@ -39,7 +40,6 @@ public class DeliveryDto {
         private String spotName;
         private BigInteger spotId;
         private String address;
-        private String deliveryTime;
         private Integer diningType;
         private List<DeliveryMakers> makersList;
     }

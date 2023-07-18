@@ -156,7 +156,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                         return deliveryMapper.toDeliveryGroup(spot, diningType.getCode(), serviceDateDto.getDeliveryTime(), deliveryMakersList);
                     }).toList();
 
-            deliveryInfoList.add(deliveryMapper.toDeliveryInfo(serviceDateDto.getServiceDate(), deliveryGroupList));
+            deliveryInfoList.add(deliveryMapper.toDeliveryInfo(serviceDateDto, deliveryGroupList));
         }
         if (groups != null && !groups.isEmpty()) {
             spotAllList = spotAllList.stream()
