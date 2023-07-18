@@ -233,16 +233,16 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             dailyFoodGroupMap.add(dailyFoodGroupDto, dailyFood);
         }
 
-//        for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
-//            List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
-//            List<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()
-//                    .flatMap(v -> v.getMakersPickupTime().stream())
-//                    .map(DateUtils::stringToLocalTime)
-//                    .toList();
-//            if (makersPickupTimes.stream().distinct().count() > 1) {
-//                throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
-//            }
-//        }
+        for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
+            List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
+            List<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()
+                    .flatMap(v -> v.getMakersPickupTime().stream())
+                    .map(DateUtils::stringToLocalTime)
+                    .toList();
+            if (makersPickupTimes.stream().distinct().count() > sortedDailyFoodDto.get(0).getMakersPickupTime().size()) {
+                throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+            }
+        }
 
         List<FoodCapacity> newFoodCapacities = new ArrayList<>();
         MultiValueMap<Group, DailyFood> groupMap = new LinkedMultiValueMap<>();
