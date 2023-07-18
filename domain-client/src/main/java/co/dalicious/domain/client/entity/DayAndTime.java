@@ -1,9 +1,13 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.system.util.DateUtils;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 @Getter
@@ -23,6 +27,18 @@ public class DayAndTime {
             return "0일전 " + timeStr;
         } else {
             return this.getDay() + "일전 " + timeStr;
+        }
+    }
+
+    public String dayAndTimeToStringByDate(LocalDate date) {
+        String timeStr = this.getTime().toString();
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd");
+
+        if (this.getDay() == null) {
+            return date.format(dateTimeFormatter) + " " + timeStr;
+        } else {
+            return date.minusDays(this.getDay()).format(dateTimeFormatter) + " " + timeStr;
         }
     }
 
@@ -56,6 +72,10 @@ public class DayAndTime {
             }
             return new DayAndTime(day, time);
         }
+    }
+
+    public static LocalDate toLocalDate(DayAndTime dayAndTime){
+        return LocalDate.now().minusDays(dayAndTime.getDay());
     }
 
     @Override

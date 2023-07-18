@@ -18,6 +18,7 @@ public interface OrderItemDailyFoodListMapper {
     default OrderItemDto toDto(OrderItemDailyFood orderItemDailyFood) {
         OrderItemDto orderItemDto = new OrderItemDto();
 
+        orderItemDto.setLastOrderTime(orderItemDailyFood.getLastOrderTime());
         orderItemDto.setId(orderItemDailyFood.getId());
         orderItemDto.setDailyFoodId(orderItemDailyFood.getDailyFood().getId());
         orderItemDto.setDeliveryTime(DateUtils.timeToString(orderItemDailyFood.getDeliveryTime()));

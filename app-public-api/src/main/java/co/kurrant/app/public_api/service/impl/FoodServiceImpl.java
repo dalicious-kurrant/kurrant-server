@@ -200,6 +200,16 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
 
+        String lastOrderTime = null;
+
+        if (dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime() != null){
+            lastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime().dayAndTimeToStringByDate(dailyFood.getServiceDate());
+        }
+
+        if (dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime() != null){
+            lastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime().dayAndTimeToStringByDate(dailyFood.getServiceDate());
+        }
+
         Spot spot = user.getDefaultUserSpot().getSpot();
         DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getGroup(), spot, dailyFood);
         FoodDetailDto foodDetailDto = foodMapper.toDto(dailyFood, discountDto);
@@ -208,6 +218,8 @@ public class FoodServiceImpl implements FoodService {
         DiscountDto discountedDto = DiscountDto.getDiscount(dailyFood);
         foodDetailDto.setTotalDiscountRate(discountedDto.getPrice().subtract(discountedDto.getMembershipDiscountPrice()).subtract(discountedDto.getMakersDiscountPrice()).subtract(discountedDto.getPeriodDiscountPrice()).intValue());
         foodDetailDto.setTotalDiscountedPrice(discountedDto.getPrice().subtract(discountedDto.getPrice().subtract(discountedDto.getMembershipDiscountPrice()).subtract(discountedDto.getMakersDiscountPrice()).subtract(discountedDto.getPeriodDiscountPrice())).divide(discountDto.getPrice(), 3).multiply(BigDecimal.valueOf(100L)));
+        foodDetailDto.setLastOrderTime(lastOrderTime);
+
         return foodDetailDto;
     }
 
@@ -355,8 +367,18 @@ public class FoodServiceImpl implements FoodService {
                 UserRecommendWhereData.createUserRecommendWhereData(user.getId(), group.getId(), foodIds, selectedDate));
         List<Reviews> reviewList = qReviewRepository.findAllByfoodIds(foodIds);
 
+        String lastOrderTime = null;
+
         for (DailyFood dailyFood : dailyFoodList) {
             int sumStar = 0;
+
+            if (dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime() != null){
+                lastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime().dayAndTimeToStringByDate(dailyFood.getServiceDate());
+            }
+
+            if (dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime() != null){
+                lastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime().dayAndTimeToStringByDate(dailyFood.getServiceDate());
+            }
 
             List<Reviews> totalReviewsList = reviewList.stream()
                     .filter(v -> v.getFood().equals(dailyFood.getFood()))
@@ -371,7 +393,7 @@ public class FoodServiceImpl implements FoodService {
             Integer sort = sortByFoodTag(dailyFood);
 
             DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
-            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList, reviewAverage, totalCount, sort);
+            DailyFoodDto dailyFoodDto = dailyFoodMapper.toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList, reviewAverage, totalCount, sort, lastOrderTime);
             dailyFoodDtos.add(dailyFoodDto);
         }
 
