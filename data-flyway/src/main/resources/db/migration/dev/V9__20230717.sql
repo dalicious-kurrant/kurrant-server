@@ -22,7 +22,7 @@ CREATE TABLE delivery__driver_route
 (
     id                 BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
     e_delivery_status  INT                            NULL,
-    spot_id            BIGINT UNSIGNED                NOT NULL,
+    group_id            BIGINT UNSIGNED                NOT NULL,
     makers_id          BIGINT UNSIGNED                NOT NULL,
     driver_schedule_id BIGINT UNSIGNED                NOT NULL,
     CONSTRAINT pk_delivery__driver_route PRIMARY KEY (id)
@@ -40,7 +40,7 @@ ALTER TABLE delivery__driver_route
     ADD CONSTRAINT FK_DELIVERY__DRIVER_ROUTE_ON_MAKERS FOREIGN KEY (makers_id) REFERENCES makers__makers (id);
 
 ALTER TABLE delivery__driver_route
-    ADD CONSTRAINT FK_DELIVERY__DRIVER_ROUTE_ON_SPOT FOREIGN KEY (group_id) REFERENCES client__spot (id);
+    ADD CONSTRAINT FK_DELIVERY__DRIVER_ROUTE_ON_SPOT FOREIGN KEY (group_id) REFERENCES client__group (id);
 
 ALTER TABLE delivery__driver_schedule
     ADD CONSTRAINT FK_DELIVERY__DRIVER_SCHEDULE_ON_DRIVER FOREIGN KEY (driver_id) REFERENCES delivery__driver (id);
