@@ -233,17 +233,16 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             dailyFoodGroupMap.add(dailyFoodGroupDto, dailyFood);
         }
 
-
-        for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
-            List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
-            List<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()
-                    .map(v -> DateUtils.stringToLocalTime(v.getMakersPickupTime()))
-                    .toList();
-            if (makersPickupTimes.stream().distinct().count() > 1) {
-                throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
-            }
-
-        }
+//        for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
+//            List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
+//            List<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()
+//                    .flatMap(v -> v.getMakersPickupTime().stream())
+//                    .map(DateUtils::stringToLocalTime)
+//                    .toList();
+//            if (makersPickupTimes.stream().distinct().count() > 1) {
+//                throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+//            }
+//        }
 
         List<FoodCapacity> newFoodCapacities = new ArrayList<>();
         MultiValueMap<Group, DailyFood> groupMap = new LinkedMultiValueMap<>();
@@ -275,16 +274,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 waitingDailyFood = null;
             }
 
-            DeliverySchedule deliverySchedule = dailyFood.getDailyFoodGroup().getDeliverySchedules().stream()
-                    .filter(deliverySchedule1 -> deliverySchedule1.getDeliveryTime().equals(DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime())))
-                    .findAny().orElse(null);
-            LocalTime pickUpTime = DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime());
-            if (deliverySchedule != null && !Objects.equals(pickUpTime, deliverySchedule.getPickupTime())) {
-                dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()));
-            }
-            else if(deliverySchedule == null) {
-                dailyFood.getDailyFoodGroup().updateDeliverySchedules(new DeliverySchedule(DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()), DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime())));
-            }
+            dailyFoodMapper.updateDeliverySchedule(dailyFoodDto.getDeliveryTime(), dailyFoodDto.getMakersPickupTime(), dailyFood.getDailyFoodGroup());
 
             Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
             FoodCapacity foodCapacity = food.getFoodCapacity(DiningType.ofCode(dailyFoodDto.getDiningType()));
@@ -342,8 +332,12 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             for(FoodDto.DailyFood dailyFood : Objects.requireNonNull(dailyFoodDtos)) {
                 Makers makers = makersList.stream().filter(v -> v.getName().equals(dailyFood.getMakersName())).findAny()
                         .orElse(null);
-                if(makers != null && FoodUtils.isValidDeliveryTime(makers, DiningType.ofCode(dailyFood.getDiningType()), DateUtils.stringToLocalTime(dailyFood.getDeliveryTime()))) {
-                    deliveryScheduleMap.put(dailyFood.getDeliveryTime(), dailyFood.getMakersPickupTime());
+                if(makers != null) {
+                    for (String deliveryTime : dailyFood.getDeliveryTime()) {
+                        if(FoodUtils.isValidDeliveryTime(makers, DiningType.ofCode(dailyFood.getDiningType()), DateUtils.stringToLocalTime(deliveryTime))) {
+                            deliveryScheduleMap.put(deliveryTime, dailyFood.getMakersPickupTime().get(dailyFood.getDeliveryTime().indexOf(deliveryTime)));
+                        }
+                    }
                 }
             }
 

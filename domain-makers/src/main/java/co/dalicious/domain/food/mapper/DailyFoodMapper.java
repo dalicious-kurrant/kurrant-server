@@ -23,6 +23,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
@@ -51,7 +52,7 @@ public interface DailyFoodMapper {
     default DailyFoodGroup toDailyFoodGroup(Map<String, String> deliveryScheduleMap) {
         List<DeliverySchedule> deliveryScheduleList = new ArrayList<>();
 
-        deliveryScheduleMap.keySet().stream().forEach(deliveryTime -> {
+        deliveryScheduleMap.keySet().forEach(deliveryTime -> {
             DeliverySchedule deliverySchedule = new DeliverySchedule(DateUtils.stringToLocalTime(deliveryTime), DateUtils.stringToLocalTime(deliveryScheduleMap.get(deliveryTime)));
             deliveryScheduleList.add(deliverySchedule);
         });
@@ -182,5 +183,14 @@ public interface DailyFoodMapper {
     default String getMakersName(DailyFood dailyFood) {
         Makers makers = (Makers) Hibernate.unproxy(dailyFood.getFood().getMakers());
         return makers.getName();
+    }
+
+    default void updateDeliverySchedule(List<String> deliveryTimeList, List<String> pickupTimeList, @MappingTarget DailyFoodGroup dailyFoodGroup) {
+        List<DeliverySchedule> newDeliveryScheduleList = new ArrayList<>();
+        for (String deliveryTime : deliveryTimeList) {
+            newDeliveryScheduleList.add(new DeliverySchedule(DateUtils.stringToLocalTime(deliveryTime), DateUtils.stringToLocalTime(pickupTimeList.get(deliveryTimeList.indexOf(deliveryTime)))));
+        }
+
+        dailyFoodGroup.updateDeliverySchedules(newDeliveryScheduleList);
     }
 }

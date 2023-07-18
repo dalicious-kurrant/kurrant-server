@@ -59,13 +59,5 @@ public class DailyFoodGroup {
                 deliverySchedule.updatePickupTime(pickupTime);
             }
         });
-
-    }
-
-    public void updateDeliverySchedules(DeliverySchedule deliverySchedules) {
-        List<DeliverySchedule> deliverySchedulesList = this.deliverySchedules != null ? this.deliverySchedules : new ArrayList<>();
-        deliverySchedulesList.add(deliverySchedules);
-
-        this.deliverySchedules = deliverySchedulesList;
     }
 }
