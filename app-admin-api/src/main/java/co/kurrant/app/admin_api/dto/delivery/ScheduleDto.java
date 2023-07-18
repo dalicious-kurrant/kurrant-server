@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.dto.delivery;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigInteger;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@NoArgsConstructor
 public class ScheduleDto {
     private String id;
     private String deliveryDate;
@@ -32,5 +34,13 @@ public class ScheduleDto {
 
     public Boolean isTempDto() {
         return this.id.startsWith("temp");
+    }
+
+    public BigInteger getDatabaseId() {
+        if(!isTempDto()) {
+            String[] ids = this.getId().split("_");
+            return BigInteger.valueOf(Integer.parseInt(ids[0]));
+        }
+        return null;
     }
 }

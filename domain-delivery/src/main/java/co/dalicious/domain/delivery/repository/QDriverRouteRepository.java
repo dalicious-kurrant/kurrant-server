@@ -16,6 +16,7 @@ import java.util.List;
 
 import static co.dalicious.domain.delivery.entity.QDriver.driver;
 import static co.dalicious.domain.delivery.entity.QDriverRoute.driverRoute;
+import static co.dalicious.domain.delivery.entity.QDriverSchedule.driverSchedule;
 
 @Repository
 @RequiredArgsConstructor
@@ -29,6 +30,12 @@ public class QDriverRouteRepository {
                         driverRoute.driverSchedule.deliveryTime.eq(selectedDriverRoute.getDriverSchedule().getDeliveryTime()),
                         driverRoute.group.eq(selectedDriverRoute.getGroup()),
                         driverRoute.makers.eq(selectedDriverRoute.getMakers()))
+                .fetch();
+    }
+
+    public List<DriverRoute> findByPeriod(LocalDate startDate, LocalDate endDate) {
+        return queryFactory.selectFrom(driverRoute)
+                .where(driverRoute.driverSchedule.deliveryDate.goe(startDate), driverRoute.driverSchedule.deliveryDate.loe(endDate))
                 .fetch();
     }
 

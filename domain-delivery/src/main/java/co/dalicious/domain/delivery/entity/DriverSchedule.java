@@ -16,6 +16,8 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -45,7 +47,7 @@ public class DriverSchedule {
     @JoinColumn(name = "driver_id")
     private Driver driver;
 
-    @OneToMany(mappedBy = "driverSchedule", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "driverSchedule", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonBackReference(value = "driver_schedule_fk")
     private List<DriverRoute> driverRoutes;
 
@@ -57,7 +59,21 @@ public class DriverSchedule {
         this.driver = driver;
     }
 
-    public Group getGroup() {
-        return this.driverRoutes.get(0).getGroup();
+    public Set<Group> getGroups() {
+        return this.driverRoutes.stream()
+                .map(DriverRoute::getGroup)
+                .collect(Collectors.toSet());
+    }
+
+    public void updateDriver(Driver driver) {
+        this.driver = driver;
+    }
+
+    public void updateDriverRoutes(List<DriverRoute> driverRoutes) {
+        this.driverRoutes = driverRoutes;
+    }
+
+    public void addDriverRoutes(List<DriverRoute> driverRoutes) {
+        this.driverRoutes.addAll(driverRoutes);
     }
 }
