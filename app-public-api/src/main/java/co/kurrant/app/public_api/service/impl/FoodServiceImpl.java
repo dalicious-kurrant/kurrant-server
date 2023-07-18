@@ -242,6 +242,8 @@ public class FoodServiceImpl implements FoodService {
 
         List<FoodReviewListDto> foodReviewListDtoList = new ArrayList<>();
         List<FoodReviewListDto> sortedFoodReviewListDtoList = new ArrayList<>();
+        List<String> keywords = new ArrayList<>();
+        Map<Integer, Integer> stars = new HashMap<>();
 
         //유저와 DailyFood 정보 가져오기
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
@@ -252,7 +254,7 @@ public class FoodServiceImpl implements FoodService {
         List<Reviews> totalReviewsList = qReviewRepository.findAllByfoodIdsAndForMakers(dailyFood.getFood().getId());
         if (totalReviewsList.size() == 0) {
             GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
-                    BigInteger.valueOf(0));
+                    BigInteger.valueOf(0), keywords, stars);
             return ItemPageableResponseDto.<GetFoodReviewResponseDto>builder().items(getFoodReviewResponseDto).count(0)
                     .total(0).limit(pageable.getPageSize()).isLast(true).build();
         }
@@ -301,11 +303,9 @@ public class FoodServiceImpl implements FoodService {
         if (orderItemDailyFood != null && orderItemDailyFood.getCreatedDateTime().toLocalDateTime().toLocalDate().plusDays(5).isBefore(LocalDate.now())) {
             reviewWrite = BigInteger.valueOf(0);
         }
+        keywords = qKeywordRepository.findAllByFoodId(dailyFood.getFood().getId());
 
-        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort, reviewWrite);
-        List<String> keywords = qKeywordRepository.findAllByFoodId(dailyFood.getFood().getId());
-        getFoodReviewResponseDto.setKeywords(keywords);
-        getFoodReviewResponseDto.setStars(getStarRate(totalReviewsList));
+        GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort, reviewWrite, keywords, getStarRate(totalReviewsList));
 
         return ItemPageableResponseDto.<GetFoodReviewResponseDto>builder().items(getFoodReviewResponseDto).count(pageReviews.getNumberOfElements())
                 .total(pageReviews.getTotalPages()).limit(pageable.getPageSize()).isLast(pageReviews.isLast()).build();
