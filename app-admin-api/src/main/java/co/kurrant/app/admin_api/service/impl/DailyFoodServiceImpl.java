@@ -282,7 +282,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             if (deliverySchedule != null && !Objects.equals(pickUpTime, deliverySchedule.getPickupTime())) {
                 dailyFood.getDailyFoodGroup().updatePickupTime(DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime()), DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()));
             }
-            else {
+            else if(deliverySchedule == null) {
                 dailyFood.getDailyFoodGroup().updateDeliverySchedules(new DeliverySchedule(DateUtils.stringToLocalTime(dailyFoodDto.getDeliveryTime()), DateUtils.stringToLocalTime(dailyFoodDto.getMakersPickupTime())));
             }
 
