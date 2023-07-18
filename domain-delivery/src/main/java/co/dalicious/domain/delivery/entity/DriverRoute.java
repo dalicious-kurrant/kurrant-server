@@ -37,7 +37,7 @@ public class DriverRoute {
     @JoinColumn(name = "makers_id")
     private Makers makers;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JsonManagedReference(value = "driver_schedule_fk")
     private DriverSchedule driverSchedule;
 
@@ -45,6 +45,10 @@ public class DriverRoute {
         this.deliveryStatus = deliveryStatus;
         this.group = group;
         this.makers = makers;
+        this.driverSchedule = driverSchedule;
+    }
+
+    public void updateDriverSchedule(DriverSchedule driverSchedule) {
         this.driverSchedule = driverSchedule;
     }
 }

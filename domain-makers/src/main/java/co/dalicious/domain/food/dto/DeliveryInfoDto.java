@@ -43,6 +43,13 @@ public class DeliveryInfoDto {
             this.deliveryTime = deliveryInfoDto.getDeliveryTime();
         }
 
+        public Key(LocalDate serviceDate, DiningType diningType, Group group, LocalTime deliveryTime) {
+            this.serviceDate = serviceDate;
+            this.diningType = diningType;
+            this.group = group;
+            this.deliveryTime = deliveryTime;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;

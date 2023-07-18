@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,18 +42,21 @@ public interface DriverScheduleMapper {
         }
         for (DeliveryInfoDto.Key key : deliveryInfoDtoMap.keySet()) {
             List<DeliveryInfoDto> deliveryInfoDtoList = deliveryInfoDtoMap.get(key);
-            driverSchedules = driverSchedules.stream()
+            List<DriverSchedule> selectedDriverSchedules = driverSchedules.stream()
                     .filter(v -> v.getDeliveryDate().equals(key.getServiceDate()) &&
                             v.getDiningType().equals(key.getDiningType()) &&
-                            v.getDeliveryTime().equals(key.getDeliveryTime()))
+                            v.getDeliveryTime().equals(key.getDeliveryTime()) &&
+                            v.getGroups().contains(key.getGroup()))
                     .toList();
-            if (driverSchedules.isEmpty()) {
+            if (selectedDriverSchedules.isEmpty()) {
                 scheduleDtos.add(toScheduleDtoByDailyFood(Objects.requireNonNull(deliveryInfoDtoList)));
                 continue;
             }
-            List<DriverRoute> driverRoutes = getDriverRoute(deliveryInfoDtoList, driverSchedules);
-            List<Makers> makers = driverRoutes.stream().map(DriverRoute::getMakers).toList();
-            deliveryInfoDtoList.removeIf(v -> makers.contains(v.getMakers()));
+            List<DriverRoute> driverRoutes = getDriverRoute(deliveryInfoDtoList, selectedDriverSchedules);
+            for (DriverRoute driverRoute : driverRoutes) {
+                deliveryInfoDtoList.removeIf(v -> v.getMakers().equals(driverRoute.getMakers()) && v.getGroup().equals(driverRoute.getGroup()));
+            }
+            driverSchedules.removeAll(selectedDriverSchedules);
             scheduleDtos.addAll(toScheduleDtoByDriverRoute(driverRoutes));
         }
         return scheduleDtos;
@@ -76,7 +80,7 @@ public interface DriverScheduleMapper {
 
     default String generateTempId(DeliveryInfoDto deliveryInfoDto) {
         return "temp"
-        + DateUtils.formatWithoutSeparator(deliveryInfoDto.getServiceDate())
+                + DateUtils.formatWithoutSeparator(deliveryInfoDto.getServiceDate())
                 + deliveryInfoDto.getDiningType().getCode() + deliveryInfoDto.getDeliveryTime().getHour()
                 + deliveryInfoDto.getDeliveryTime().getMinute()
                 + deliveryInfoDto.getGroup().getId() + "_1";
@@ -87,24 +91,30 @@ public interface DriverScheduleMapper {
         Set<DriverSchedule> driverScheduleSet = driverRoutes.stream().map(DriverRoute::getDriverSchedule)
                 .collect(Collectors.toSet());
         for (DriverSchedule driverSchedule : driverScheduleSet) {
-            scheduleDtos.add(toScheduleDto(driverSchedule));
+            scheduleDtos.addAll(toScheduleDto(driverSchedule));
         }
         return scheduleDtos;
     }
 
-    default ScheduleDto toScheduleDto(DriverSchedule driverSchedule) {
-        List<String> makersNames = driverSchedule.getDriverRoutes().stream()
-                .map(v -> v.getMakers().getName())
-                .toList();
-        return ScheduleDto.builder()
-                .id(driverSchedule.getId().toString())
-                .deliveryDate(DateUtils.localDateToString(driverSchedule.getDeliveryDate()))
-                .diningType(driverSchedule.getDiningType().getDiningType())
-                .deliveryTime(DateUtils.timeToString(driverSchedule.getDeliveryTime()))
-                .groupName(driverSchedule.getDriverRoutes().get(0).getGroup().getName())
-                .makersNames(makersNames)
-                .driver(driverSchedule.getDriver().getName())
-                .build();
+    default List<ScheduleDto> toScheduleDto(DriverSchedule driverSchedule) {
+        List<ScheduleDto> scheduleDtos = new ArrayList<>();
+        MultiValueMap<String, String> nameMap = new LinkedMultiValueMap<>();
+        driverSchedule.getDriverRoutes()
+                .forEach(v -> nameMap.add(v.getGroup().getName(), v.getMakers().getName()));
+        int i = 0;
+        for (String groupName : nameMap.keySet()) {
+            scheduleDtos.add(ScheduleDto.builder()
+                    .id(driverSchedule.getId().toString() + "_" + i)
+                    .deliveryDate(DateUtils.localDateToString(driverSchedule.getDeliveryDate()))
+                    .diningType(driverSchedule.getDiningType().getDiningType())
+                    .deliveryTime(DateUtils.timeToString(driverSchedule.getDeliveryTime()))
+                    .groupName(groupName)
+                    .makersNames(nameMap.get(groupName))
+                    .driver(driverSchedule.getDriver().getName())
+                    .build());
+            i++;
+        }
+        return scheduleDtos;
     }
 
     default DriverRoute getDriverSchedule(DeliveryInfoDto deliveryInfoDto, List<DriverSchedule> driverSchedules) {
@@ -119,7 +129,7 @@ public interface DriverScheduleMapper {
                 .orElse(null);
     }
 
-    default List<DriverRoute> getDriverRoute(List<DeliveryInfoDto> deliveryInfoDtos, List<DriverSchedule> driverSchedules) {
+    default List<DriverRoute> getDriverRoute(List<DeliveryInfoDto> deliveryInfoDtos, Collection<DriverSchedule> driverSchedules) {
         List<Makers> makers = deliveryInfoDtos.stream().map(DeliveryInfoDto::getMakers).toList();
         return driverSchedules.stream()
                 .flatMap(driverSchedule -> driverSchedule.getDriverRoutes().stream())

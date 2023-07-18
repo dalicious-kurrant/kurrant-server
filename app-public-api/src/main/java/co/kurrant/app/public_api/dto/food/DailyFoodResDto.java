@@ -47,11 +47,22 @@ public class DailyFoodResDto {
     @Setter
     public static class SupportPriceByDay {
         private String day;
-        private BigDecimal supportPrice;
+        private String supportPrice;
 
         public SupportPriceByDay(String day, BigDecimal supportPrice) {
             this.day = day;
-            this.supportPrice = supportPrice;
+            if(supportPrice.compareTo(BigDecimal.valueOf(62471004L)) == 0 ) {
+                this.supportPrice = "금액의 50%";
+                return;
+            }
+            int price = supportPrice.intValue();
+            String formattedPrice;
+            if (price < 1000) {
+                formattedPrice = String.valueOf(price);
+            } else {
+                formattedPrice = String.format("%,d", price);
+            }
+            this.supportPrice = formattedPrice;
         }
     }
 }
