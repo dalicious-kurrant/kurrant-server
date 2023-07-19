@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.SpotRepository;
@@ -200,15 +201,7 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
 
-        String lastOrderTime = null;
-
-        if (dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime() != null){
-            lastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime().dayAndTimeToStringByDate(dailyFood.getServiceDate());
-        }
-
-        if (dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime() != null){
-            lastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime().dayAndTimeToStringByDate(dailyFood.getServiceDate());
-        }
+        String lastOrderTime = getLastOrderTime(dailyFood);
 
         Spot spot = user.getDefaultUserSpot().getSpot();
         DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getGroup(), spot, dailyFood);
@@ -221,6 +214,17 @@ public class FoodServiceImpl implements FoodService {
         foodDetailDto.setLastOrderTime(lastOrderTime);
 
         return foodDetailDto;
+    }
+
+    private String getLastOrderTime(DailyFood dailyFood) {
+        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTIme = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+
+        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
+        if (makersLastOrderTime != null && DayAndTime.toLocalDate(makersLastOrderTime).isBefore(DayAndTime.toLocalDate(mealInfoLastOrderTIme))){
+            return makersLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+        }
+        return mealInfoLastOrderTIme.dayAndTimeToStringByDate(dailyFood.getServiceDate());
     }
 
     @Override
