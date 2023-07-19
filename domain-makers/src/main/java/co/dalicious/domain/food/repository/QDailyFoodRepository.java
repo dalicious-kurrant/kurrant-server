@@ -161,29 +161,6 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
-    public List<DailyFood> findAllFilterGroupAndSpot(LocalDate start, LocalDate end, List<Group> groups, List<Spot> spotList) {
-        BooleanBuilder whereClause = new BooleanBuilder();
-
-        if (start != null) {
-            whereClause.and(dailyFood.serviceDate.goe(start));
-        }
-        if (end != null) {
-            whereClause.and(dailyFood.serviceDate.loe(end));
-        }
-        if (groups != null && !groups.isEmpty()) {
-            whereClause.and(group.in(groups));
-        }
-        if (spotList != null && !spotList.isEmpty()) {
-            whereClause.and(group.spots.any().in(spotList));
-        }
-
-        return queryFactory.selectFrom(dailyFood)
-                .leftJoin(dailyFood.group, group)
-                .where(whereClause, group.instanceOf(Corporation.class).or(group.instanceOf(OpenGroup.class)))
-                .distinct()
-                .fetch();
-    }
-
     public List<DeliveryInfoDto> groupingByServiceDateAndRoute(LocalDate startDate, LocalDate endDate) {
         List<Tuple> tuples = queryFactory.select(dailyFood.serviceDate, dailyFood.diningType, group, makers, deliverySchedule.deliveryTime)
                 .from(dailyFood)

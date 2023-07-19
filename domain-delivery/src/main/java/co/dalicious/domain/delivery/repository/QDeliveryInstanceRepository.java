@@ -1,6 +1,8 @@
 package co.dalicious.domain.delivery.repository;
 
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.delivery.entity.QDailyFoodDelivery.dailyFoodDelivery;
 import static co.dalicious.domain.delivery.entity.QDeliveryInstance.deliveryInstance;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
@@ -91,12 +94,28 @@ public class QDeliveryInstanceRepository {
         return Objects.requireNonNullElse(maxOrderNumber, 0);
     }
 
-    public List<DeliveryInstance> findByDailyFoodAndOrderStatus(List<DailyFood> dailyFoodList) {
+    public List<DeliveryInstance> findByDailyFoodAndOrderStatus(LocalDate start, LocalDate end, List<Group> groups, List<Spot> spotList) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if (start != null) {
+            whereClause.and(deliveryInstance.serviceDate.goe(start));
+        }
+        if (end != null) {
+            whereClause.and(deliveryInstance.serviceDate.loe(end));
+        }
+        if (groups != null && !groups.isEmpty()) {
+            whereClause.and(group.in(groups));
+        }
+        if (spotList != null && !spotList.isEmpty()) {
+            whereClause.and(deliveryInstance.spot.in(spotList));
+        }
+
         return queryFactory.selectFrom(deliveryInstance)
                 .leftJoin(dailyFoodDelivery).on(deliveryInstance.dailyFoodDeliveries.contains(dailyFoodDelivery))
                 .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood)
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
-                .where(dailyFood.in(dailyFoodList), orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .leftJoin(dailyFood.group, group)
+                .where(whereClause, orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
                 .distinct()
                 .fetch();
     }
