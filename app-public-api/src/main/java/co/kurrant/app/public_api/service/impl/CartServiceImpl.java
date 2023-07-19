@@ -170,15 +170,8 @@ public class CartServiceImpl implements CartService {
                 cartFood.setCapacity(dailyFoodCapacityMap.get(dailyFood));
 
                 //주문마감시간 추가
-                String lastOrderTime = null;
+                String lastOrderTime = getLastOrderTime(dailyFood);
 
-                if (dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime() != null){
-                    lastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime().dayAndTimeToStringByDate(dailyFood.getServiceDate());
-                }
-
-                if (dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime() != null){
-                    lastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime().dayAndTimeToStringByDate(dailyFood.getServiceDate());
-                }
                 cartFood.setLastOrderTime(lastOrderTime);
                 cartDailyFoodDtoMap.add(serviceDiningDto, cartFood);
             }
@@ -228,6 +221,17 @@ public class CartServiceImpl implements CartService {
                 .spotCarts(spotCartsList)
                 .userPoint(user.getPoint())
                 .build();
+    }
+
+    private String getLastOrderTime(DailyFood dailyFood) {
+        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTIme = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+
+        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
+        if (makersLastOrderTime != null && DayAndTime.toLocalDate(makersLastOrderTime).isBefore(DayAndTime.toLocalDate(mealInfoLastOrderTIme))){
+            return makersLastOrderTime.dayAndTimeToStringByDateForCart(dailyFood.getServiceDate());
+        }
+        return mealInfoLastOrderTIme.dayAndTimeToStringByDateForCart(dailyFood.getServiceDate());
     }
 
     @Override
