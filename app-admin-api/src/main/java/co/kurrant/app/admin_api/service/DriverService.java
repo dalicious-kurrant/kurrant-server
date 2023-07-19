@@ -1,5 +1,7 @@
 package co.kurrant.app.admin_api.service;
 
+import co.dalicious.domain.delivery.dto.DeliveryInstanceDto;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.delivery.entity.Driver;
 import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.admin_api.dto.delivery.DriverDto;
@@ -13,5 +15,8 @@ public interface DriverService {
     void postDrivers(List<DriverDto> driverDtos);
     void deleteDrivers(OrderDto.IdList idList);
     List<ScheduleDto> getDriverSchedule(Map<String, Object> parameters);
-    void excelDriverSchedule(List<ScheduleDto> scheduleDtos);
+    void postDriverSchedule(List<ScheduleDto> scheduleDtos);
+
+    List<DeliveryInstanceDto> getDriverSchedule2(Map<String, Object> parameters);
+    void postDriverSchedule2(List<DeliveryInstanceDto> deliveryInstances);
 }

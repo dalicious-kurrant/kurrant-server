@@ -51,6 +51,16 @@ public class QDeliveryInstanceRepository {
                 .fetch();
     }
 
+    public List<DeliveryInstance> findAllBy(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, List<String> makersNames, String groupName) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .where(deliveryInstance.deliveryTime.eq(deliveryTime),
+                        deliveryInstance.diningType.eq(diningType),
+                        deliveryInstance.serviceDate.eq(serviceDate),
+                        deliveryInstance.makers.name.in(makersNames),
+                        deliveryInstance.spot.group.name.eq(groupName))
+                .fetch();
+    }
+
     public List<DeliveryInstance> findByFilter(LocalDate startDate, LocalDate endDate, List<DiningType> diningTypes, Makers makers) {
         BooleanBuilder whereClause = new BooleanBuilder();
         if (startDate != null) {

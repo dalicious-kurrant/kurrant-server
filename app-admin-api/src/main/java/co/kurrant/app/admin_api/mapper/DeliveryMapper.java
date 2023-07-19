@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
 public interface DeliveryMapper {
 
-    default List<DeliveryDto.DeliveryInfo> getDeliveryInfoList(List<DeliveryInstance> deliveryInstances) {
+    default List<DeliveryDto.DeliveryInfo> getDeliveryInfoList(Collection<DeliveryInstance> deliveryInstances) {
         Map<ServiceDateDto, List<DeliveryInstance>> serviceDateMap = deliveryInstances.stream().collect(Collectors.groupingBy(v -> new ServiceDateDto(v.getServiceDate(), v.getDeliveryTime())));
 
         List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();

@@ -4,12 +4,12 @@ import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.OpenGroupSpot;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.delivery.dto.DeliveryInstanceDto;
 import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.food.dto.DeliveryInfoDto;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.DailyFoodGroup;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
@@ -22,6 +22,7 @@ import org.mapstruct.Mapper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import javax.transaction.Transactional;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -227,6 +228,83 @@ public interface DeliveryInstanceMapper {
         foodsList = foodsList.stream()
                 .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.Foods::getFoodId)).toList();
         return foodsList;
+    }
+
+    @Transactional
+    default List<DeliveryInstanceDto> toScheduleDtos(List<DeliveryInfoDto> deliveryInfoDtos, List<DeliveryInstance> deliveryInstances) {
+        List<DeliveryInstanceDto> deliveryInstanceDtos = new ArrayList<>();
+        MultiValueMap<DeliveryInfoDto.Key, DeliveryInfoDto> deliveryInfoDtoMap = new LinkedMultiValueMap<>();
+        for (DeliveryInfoDto deliveryInfoDto : deliveryInfoDtos) {
+            deliveryInfoDtoMap.add(new DeliveryInfoDto.Key(deliveryInfoDto), deliveryInfoDto);
+        }
+        // 식사일정과 그룹이 같고, 메이커스만 다른 DeliveryInstance를 가져온다.
+        for (DeliveryInfoDto.Key key : deliveryInfoDtoMap.keySet()) {
+            List<DeliveryInfoDto> deliveryInfoDtoList = deliveryInfoDtoMap.get(key);
+            List<DeliveryInstance> selectedDeliveryInstances = deliveryInstances.stream()
+                    .filter(v -> v.getServiceDate().equals(key.getServiceDate()) &&
+                            v.getDiningType().equals(key.getDiningType()) &&
+                            v.getDeliveryTime().equals(key.getDeliveryTime()) &&
+                            v.getSpot().getGroup().equals(key.getGroup()))
+                    .toList();
+            if (selectedDeliveryInstances.isEmpty()) {
+                deliveryInstanceDtos.add(toScheduleDtoByDailyFood(Objects.requireNonNull(deliveryInfoDtoList)));
+                continue;
+            }
+            for (DeliveryInstance selectedDeliveryInstance : selectedDeliveryInstances) {
+                deliveryInfoDtoList.removeIf(v -> v.hasSameValue(selectedDeliveryInstance.getServiceDate(), selectedDeliveryInstance.getDiningType(), selectedDeliveryInstance.getSpot().getGroup(), selectedDeliveryInstance.getMakers(), selectedDeliveryInstance.getDeliveryTime()));
+            }
+            deliveryInstanceDtos.addAll(toScheduleDtoByDeliveryInstance(selectedDeliveryInstances));
+        }
+        return deliveryInstanceDtos;
+    }
+
+    default DeliveryInstanceDto toScheduleDtoByDailyFood(List<DeliveryInfoDto> deliveryInfoDto) {
+        List<String> makersNames = deliveryInfoDto.stream()
+                .map(v -> v.getMakers().getName())
+                .toList();
+
+        return DeliveryInstanceDto.builder()
+                .id(generateTempId(deliveryInfoDto.get(0)))
+                .deliveryDate(DateUtils.localDateToString(deliveryInfoDto.get(0).getServiceDate()))
+                .diningType(deliveryInfoDto.get(0).getDiningType().getDiningType())
+                .deliveryTime(DateUtils.timeToString(deliveryInfoDto.get(0).getDeliveryTime()))
+                .groupName(deliveryInfoDto.get(0).getGroup().getName())
+                .makersNames(makersNames)
+                .driver(null)
+                .build();
+    }
+
+    default List<DeliveryInstanceDto> toScheduleDtoByDeliveryInstance(List<DeliveryInstance> deliveryInstances) {
+        return deliveryInstances.stream()
+                .collect(Collectors.groupingBy(
+                        deliveryInstance -> Optional.ofNullable(deliveryInstance.getDriver()),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ))
+                .entrySet().stream()
+                .map(entry -> {
+                    List<DeliveryInstance> instances = entry.getValue();
+                    List<String> makersName = instances.stream()
+                            .map(deliveryInstance -> deliveryInstance.getMakers().getName())
+                            .toList();
+                    return DeliveryInstanceDto.builder()
+                            .id(instances.get(0).getId().toString())
+                            .deliveryDate(DateUtils.localDateToString(instances.get(0).getServiceDate()))
+                            .diningType(instances.get(0).getDiningType().getDiningType())
+                            .deliveryTime(DateUtils.timeToString(instances.get(0).getDeliveryTime()))
+                            .groupName(instances.get(0).getSpot().getGroup().getName())
+                            .makersNames(makersName)
+                            .driver(entry.getKey().isPresent() ? entry.getKey().get().getName() : null)
+                            .build();
+                }).toList();
+    }
+
+    default String generateTempId(DeliveryInfoDto deliveryInfoDto) {
+        return "temp"
+                + DateUtils.formatWithoutSeparator(deliveryInfoDto.getServiceDate())
+                + deliveryInfoDto.getDiningType().getCode() + deliveryInfoDto.getDeliveryTime().getHour()
+                + deliveryInfoDto.getDeliveryTime().getMinute()
+                + deliveryInfoDto.getGroup().getId() + "_1";
     }
 
     default String getGroupName(Spot spot) {

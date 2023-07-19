@@ -227,6 +227,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<Food> updateFoods = qFoodRepository.findByMakers(updateMakersList);
         List<Group> updateGroups = qGroupRepository.findAllByNames(updateGroupNames);
 
+        // FIXME: DailyFoodGroup의 재정의. 제대로 사용하지 못하고 있음.
         MultiValueMap<DailyFoodGroupDto, FoodDto.DailyFood> dailyFoodGroupMap = new LinkedMultiValueMap<>();
 
         for (FoodDto.DailyFood dailyFood : dailyFoodList) {

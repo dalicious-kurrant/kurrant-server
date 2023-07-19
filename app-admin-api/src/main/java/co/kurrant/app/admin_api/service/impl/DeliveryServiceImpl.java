@@ -36,6 +36,7 @@ import co.kurrant.app.admin_api.dto.user.LoginResponseDto;
 import co.kurrant.app.admin_api.mapper.DeliveryMapper;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
+import co.kurrant.app.admin_api.model.SecurityUser;
 import co.kurrant.app.admin_api.service.DeliveryService;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -99,17 +100,17 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     @Transactional(readOnly = true)
-    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
+    public DeliveryDto getDeliverySchedule(SecurityUser driver, String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
+        String driverCode = driver.getUsername();
+
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
 
-        List<Group> groupAllList = qGroupRepository.findAllExceptForMySpot();
-        List<Group> groups = (groupIds == null) ? null : groupAllList.stream().filter(group -> groupIds.contains(group.getId())).toList();
-        // 그룹과 연관된 스팟만 보여주기
-        List<Spot> spotAllList = groups == null || groups.isEmpty() ? groupAllList.stream().flatMap(group -> group.getSpots().stream()).toList() : groups.stream().flatMap(group -> group.getSpots().stream()).toList();
-        List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
+        List<DailyFoodDelivery> dailyFoodDeliveries = qDailyFoodDeliveryRepository.findAllFilterGroupAndSpot(startDate, endDate, groupIds, spotIds, driverCode);
+        Set<DeliveryInstance> deliveryInstanceList = dailyFoodDeliveries.stream().map(DailyFoodDelivery::getDeliveryInstance).collect(Collectors.toSet());
 
-        List<DeliveryInstance> deliveryInstanceList = qDeliveryInstanceRepository.findByDailyFoodAndOrderStatus(startDate, endDate, groups, spots);
+        Set<Spot> spotAllList = deliveryInstanceList.stream().map(DeliveryInstance::getSpot).collect(Collectors.toSet());
+        Set<Group> groupAllList = spotAllList.stream().map(Spot::getGroup).collect(Collectors.toSet());
 
         if (deliveryInstanceList.isEmpty()) return DeliveryDto.create(groupAllList, null, spotAllList);
         return DeliveryDto.create(groupAllList, deliveryMapper.getDeliveryInfoList(deliveryInstanceList), spotAllList);

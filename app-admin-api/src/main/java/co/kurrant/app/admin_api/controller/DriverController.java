@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.domain.delivery.dto.DeliveryInstanceDto;
 import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.admin_api.dto.delivery.DriverDto;
 import co.kurrant.app.admin_api.dto.delivery.ScheduleDto;
@@ -61,10 +62,30 @@ public class DriverController {
     }
 
     @ControllerMarker(ControllerType.DRIVER)
-    @Operation(summary = "배송 기사 일정 엑셀 추가", description = "배송 기사 일정을 엑셀 추가한다.")
+    @Operation(summary = "배송 기사 일정 추가", description = "배송 기사 일정을 엑셀 추가한다.")
     @PostMapping("/schedules")
-    public ResponseMessage excelDriverSchedule(@RequestBody List<ScheduleDto> scheduleDtos) {
-        driverService.excelDriverSchedule(scheduleDtos);
+    public ResponseMessage postDriverSchedule(@RequestBody List<ScheduleDto> scheduleDtos) {
+        driverService.postDriverSchedule(scheduleDtos);
+        return ResponseMessage.builder()
+                .message("배송 기사 일정을 엑셀 추가에 성공하였습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DRIVER)
+    @Operation(summary = "배송 기사 일정 조회", description = "배송 기사 일정을 조회한다.")
+    @GetMapping("/schedules2")
+    public ResponseMessage getDriverSchedule2(@RequestParam Map<String, Object> parameters) {
+        return ResponseMessage.builder()
+                .data(driverService.getDriverSchedule2(parameters))
+                .message("배송 기사 일정을 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DRIVER)
+    @Operation(summary = "배송 기사 일정 추가", description = "배송 기사 일정을 엑셀 추가한다.")
+    @PostMapping("/schedules2")
+    public ResponseMessage postDriverSchedule2(@RequestBody List<DeliveryInstanceDto> deliveryInstanceDtos) {
+        driverService.postDriverSchedule2(deliveryInstanceDtos);
         return ResponseMessage.builder()
                 .message("배송 기사 일정을 엑셀 추가에 성공하였습니다.")
                 .build();
