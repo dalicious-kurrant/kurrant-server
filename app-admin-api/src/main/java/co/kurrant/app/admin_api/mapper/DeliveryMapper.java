@@ -42,41 +42,7 @@ public interface DeliveryMapper {
             deliveryInfoList.add(deliveryInfo);
         }
 
-        return serviceDateMap.keySet().stream()
-                .map(serviceDate -> {
-                    AtomicReference<List<DeliveryDto.DeliveryGroup>> deliveryGroupList = new AtomicReference<>(new ArrayList<>());
-                        Map<Spot, List<DeliveryInstance>> spotListMap = serviceDateMap.get(serviceDate).stream().collect(Collectors.groupingBy(DeliveryInstance::getSpot));
-                        deliveryGroupList.set(spotListMap.values().stream()
-                                .map(instances -> {
-                                    Map<Makers, DeliveryInstance> makersListMap = instances.stream().collect(Collectors.toMap(DeliveryInstance::getMakers, Function.identity()));
-                                    List<DeliveryDto.DeliveryMakers> deliveryMakersList = makersListMap.values().stream()
-                                            .map(values -> {
-                                                List<DailyFood> dailyFoodList = values.getOrderItemDailyFoods().stream()
-                                                        .filter(orderItemDailyFood -> OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus()))
-                                                        .map(OrderItemDailyFood::getDailyFood)
-                                                        .toList();
-                                                List<DeliveryDto.DeliveryFood> deliveryFoodList = dailyFoodList.stream()
-                                                        .map(v -> toDeliveryFood(v, values.getItemCount(v)))
-                                                        .sorted(Comparator.comparing(DeliveryDto.DeliveryFood::getFoodId))
-                                                        .toList();
-
-                                                DeliveryDto.DeliveryMakers deliveryMakers = toDeliveryMakers(values);
-                                                deliveryMakers.setFoods(deliveryFoodList);
-                                                deliveryMakers.setPickupTime(DateUtils.timeToString(dailyFoodList.get(0).getDailyFoodGroup().getPickUpTime(serviceDate.getDeliveryTime())));
-                                                return deliveryMakers;
-                                            }).toList();
-
-                                    DeliveryDto.DeliveryGroup deliveryGroup = toDeliveryGroup(instances.get(0));
-                                    List<DeliveryDto.DeliveryMakers> deliveryMakers = deliveryMakersList.stream()
-                                            .sorted(Comparator.comparing(v -> v.getPickupTime() != null ? LocalTime.parse(v.getPickupTime()) : null))
-                                            .toList();
-                                    deliveryGroup.setMakersList(deliveryMakers);
-                                    return deliveryGroup;
-                                }).toList());
-                    return toDeliveryInfo(serviceDate, deliveryGroupList.get().stream().sorted(Comparator.comparing(DeliveryDto.DeliveryGroup::getSpotId)).toList());
-                })
-                .sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate).thenComparing(DeliveryDto.DeliveryInfo::getDeliveryTime))
-                .toList();
+        return deliveryInfoList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate).thenComparing(DeliveryDto.DeliveryInfo::getDeliveryTime)).toList();
     }
 
     @Mapping(source = "spot.group.id", target = "groupId")
@@ -104,7 +70,7 @@ public interface DeliveryMapper {
 
             deliveryGroupList.add(deliveryGroup);
         }
-        return deliveryGroupList;
+        return deliveryGroupList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryGroup::getSpotId)).toList();
     }
 
     default List<DeliveryDto.DeliveryMakers> toDeliveryMakers(List<DeliveryInstance> deliveryInstances){
@@ -120,13 +86,31 @@ public interface DeliveryMapper {
             deliveryMakers.setPickupTime(DateUtils.timeToString(makersMap.get(makers).getPickupTime(makersMap.get(makers).getDeliveryTime())));
             deliveryMakers.setFoods(toDeliveryFood(makersMap.get(makers)));
             deliveryMakers.setTotalCount(deliveryMakers.getCount(deliveryMakers.getFoods()));
+
+            deliveryMakersList.add(deliveryMakers);
         }
-        return deliveryMakersList;
+        return deliveryMakersList.stream().sorted(Comparator.comparing(v -> v.getPickupTime() == null ? null : v.getPickupTime())).toList();
     };
 
-    default DeliveryDto.DeliveryFood toDeliveryFood(DeliveryInstance deliveryInstance) {
+    default List<DeliveryDto.DeliveryFood> toDeliveryFood(DeliveryInstance deliveryInstance) {
+        List<DeliveryDto.DeliveryFood> deliveryFoodList = new ArrayList<>();
+        List<DailyFood> dailyFoodList = deliveryInstance.getOrderItemDailyFoods().stream()
+                .filter(orderItemDailyFood -> OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus()))
+                .map(OrderItemDailyFood::getDailyFood)
+                .toList();
 
-    };
+        for(DailyFood dailyFood : dailyFoodList) {
+            DeliveryDto.DeliveryFood deliveryFood = new DeliveryDto.DeliveryFood();
+
+            deliveryFood.setFoodId(dailyFood.getFood().getId());
+            deliveryFood.setFoodName(dailyFood.getFood().getName());
+            deliveryFood.setFoodCount(deliveryInstance.getItemCount(dailyFood));
+
+            deliveryFoodList.add(deliveryFood);
+        }
+
+        return deliveryFoodList;
+    }
 
     @Named("getAddress")
     default String getAddress(Address address) {
