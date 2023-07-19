@@ -1,9 +1,6 @@
 package co.dalicious.domain.order.repository;
 
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.domain.client.entity.OpenGroup;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
@@ -508,9 +505,29 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
-    public List<OrderItemDailyFood> findByDailyFoodAndOrderStatus(List<DailyFood> dailyFoodList) {
+    public List<OrderItemDailyFood> findByDailyFoodAndOrderStatus(LocalDate start, LocalDate end, List<Group> groups, List<Spot> spotList) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if (start != null) {
+            whereClause.and(dailyFood.serviceDate.goe(start));
+        }
+        if (end != null) {
+            whereClause.and(dailyFood.serviceDate.loe(end));
+        }
+        if (groups != null && !groups.isEmpty()) {
+            whereClause.and(group.in(groups));
+        }
+        if (spotList != null && !spotList.isEmpty()) {
+            whereClause.and(spot.in(spotList));
+        }
+
         return queryFactory.selectFrom(orderItemDailyFood)
-                .where(orderItemDailyFood.dailyFood.in(dailyFoodList), orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(dailyFood.group, group)
+                .leftJoin(orderItemDailyFood.order, order)
+                .leftJoin(orderDailyFood).on(order.id.eq(orderDailyFood.id))
+                .leftJoin(orderDailyFood.spot, spot)
+                .where(whereClause, orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
                 .fetch();
     }
 
