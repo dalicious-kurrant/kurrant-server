@@ -178,8 +178,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<Spot> spotAllList = groups == null || groups.isEmpty() ? groupAllList.stream().flatMap(group -> group.getSpots().stream()).toList() : groups.stream().flatMap(group -> group.getSpots().stream()).toList();
         List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
 
-        List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
-        List<DeliveryInstance> deliveryInstanceList = qDeliveryInstanceRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
+//        List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
+        List<DeliveryInstance> deliveryInstanceList = qDeliveryInstanceRepository.findByDailyFoodAndOrderStatus(startDate, endDate, groups, spots);
 
         List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
         if (deliveryInstanceList.isEmpty()) return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
