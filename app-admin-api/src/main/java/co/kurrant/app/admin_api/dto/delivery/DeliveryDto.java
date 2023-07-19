@@ -51,7 +51,14 @@ public class DeliveryDto {
         private String makersName;
         private String pickupTime;
         private String address;
+        private Integer totalCount;
         private List<DeliveryFood> foods;
+
+        public Integer getCount(List<DeliveryFood> deliveryFoodList)  {
+            return deliveryFoodList.stream()
+                    .map(DeliveryFood::getFoodCount)
+                    .reduce(0, Integer::sum);
+        }
     }
 
     @Getter

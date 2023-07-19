@@ -31,6 +31,17 @@ public interface DeliveryMapper {
     default List<DeliveryDto.DeliveryInfo> getDeliveryInfoList(List<DeliveryInstance> deliveryInstances) {
         Map<ServiceDateDto, List<DeliveryInstance>> serviceDateMap = deliveryInstances.stream().collect(Collectors.groupingBy(v -> new ServiceDateDto(v.getServiceDate(), v.getDeliveryTime())));
 
+        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
+        for(ServiceDateDto serviceDateDto : serviceDateMap.keySet()) {
+            DeliveryDto.DeliveryInfo deliveryInfo = new DeliveryDto.DeliveryInfo();
+
+            deliveryInfo.setDeliveryTime(DateUtils.timeToString(serviceDateDto.getDeliveryTime()));
+            deliveryInfo.setServiceDate(DateUtils.localDateToString(serviceDateDto.getServiceDate()));
+            deliveryInfo.setGroup(toDeliveryGroup(serviceDateMap.get(serviceDateDto)));
+
+            deliveryInfoList.add(deliveryInfo);
+        }
+
         return serviceDateMap.keySet().stream()
                 .map(serviceDate -> {
                     AtomicReference<List<DeliveryDto.DeliveryGroup>> deliveryGroupList = new AtomicReference<>(new ArrayList<>());
@@ -75,6 +86,47 @@ public interface DeliveryMapper {
     @Mapping(source = "spot.id", target = "spotId")
     @Mapping(source = "spot.address", target = "address", qualifiedByName = "getAddress")
     DeliveryDto.DeliveryGroup toDeliveryGroup(DeliveryInstance dto);
+
+    default List<DeliveryDto.DeliveryGroup> toDeliveryGroup(List<DeliveryInstance> deliveryInstances) {
+        List<DeliveryDto.DeliveryGroup> deliveryGroupList = new ArrayList<>();
+        Map<Spot, List<DeliveryInstance>> spotMap = deliveryInstances.stream().collect(Collectors.groupingBy(DeliveryInstance::getSpot));
+
+        for(Spot spot : spotMap.keySet()) {
+            DeliveryDto.DeliveryGroup deliveryGroup = new DeliveryDto.DeliveryGroup();
+
+            deliveryGroup.setGroupId(spot.getGroup().getId());
+            deliveryGroup.setGroupName(spot.getGroup().getName());
+            deliveryGroup.setDiningType(spotMap.get(spot).get(0).getDiningType().getCode());
+            deliveryGroup.setSpotId(spot.getId());
+            deliveryGroup.setSpotName(spot.getName());
+            deliveryGroup.setAddress(spot.getAddress().addressToString());
+            deliveryGroup.setMakersList(toDeliveryMakers(spotMap.get(spot)));
+
+            deliveryGroupList.add(deliveryGroup);
+        }
+        return deliveryGroupList;
+    }
+
+    default List<DeliveryDto.DeliveryMakers> toDeliveryMakers(List<DeliveryInstance> deliveryInstances){
+        List<DeliveryDto.DeliveryMakers> deliveryMakersList = new ArrayList<>();
+        Map<Makers, DeliveryInstance> makersMap = deliveryInstances.stream().collect(Collectors.toMap(DeliveryInstance::getMakers, Function.identity()));
+
+        for(Makers makers : makersMap.keySet()) {
+            DeliveryDto.DeliveryMakers deliveryMakers = new DeliveryDto.DeliveryMakers();
+
+            deliveryMakers.setMakersId(makers.getId());
+            deliveryMakers.setMakersName(makers.getName());
+            deliveryMakers.setAddress(makers.getAddress().addressToString());
+            deliveryMakers.setPickupTime(DateUtils.timeToString(makersMap.get(makers).getPickupTime(makersMap.get(makers).getDeliveryTime())));
+            deliveryMakers.setFoods(toDeliveryFood(makersMap.get(makers)));
+            deliveryMakers.setTotalCount(deliveryMakers.getCount(deliveryMakers.getFoods()));
+        }
+        return deliveryMakersList;
+    };
+
+    default DeliveryDto.DeliveryFood toDeliveryFood(DeliveryInstance deliveryInstance) {
+
+    };
 
     @Named("getAddress")
     default String getAddress(Address address) {
