@@ -332,13 +332,14 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             for(FoodDto.DailyFood dailyFood : Objects.requireNonNull(dailyFoodDtos)) {
                 Makers makers = makersList.stream().filter(v -> v.getName().equals(dailyFood.getMakersName())).findAny()
                         .orElse(null);
-                if(makers != null) {
+                if(makers != null && dailyFood.getMakersPickupTime().size() == dailyFood.getDeliveryTime().size()) {
                     for (String deliveryTime : dailyFood.getDeliveryTime()) {
                         if(FoodUtils.isValidDeliveryTime(makers, DiningType.ofCode(dailyFood.getDiningType()), DateUtils.stringToLocalTime(deliveryTime))) {
                             deliveryScheduleMap.put(deliveryTime, dailyFood.getMakersPickupTime().get(dailyFood.getDeliveryTime().indexOf(deliveryTime)));
                         }
                     }
                 }
+                else if(dailyFood.getDeliveryTime().size() != dailyFood.getMakersPickupTime().size()) throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
             }
 
             DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(deliveryScheduleMap));
