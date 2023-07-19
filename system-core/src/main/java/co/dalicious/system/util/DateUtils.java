@@ -92,6 +92,14 @@ public class DateUtils {
         return sb.toString();
     }
 
+    public static List<String> timesToStringList(List<LocalTime> times) {
+        List<String> stringList = new ArrayList<>();
+        for (LocalTime time : times) {
+            stringList.add(timeToString(time));
+        }
+        return stringList;
+    }
+
     public static String timeToStringWithAMPM(LocalTime time) {
         return time.format(DateTimeFormatter.ofPattern("hh:mm a"));
     }
