@@ -245,7 +245,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         MultiValueMap<Group, DailyFood> groupMap = new LinkedMultiValueMap<>();
         dailyFoods.forEach(dailyFood -> {
             FoodDto.DailyFood dailyFoodDto = dailyFoodList.stream()
-                    .filter(v -> v.getDailyFoodId().equals(dailyFood.getId()))
+                    .filter(v -> v.getDailyFoodId() != null && v.getDailyFoodId().equals(dailyFood.getId()))
                     .findAny()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
             Group group = Group.getGroup(updateGroups, dailyFoodDto.getGroupName());
