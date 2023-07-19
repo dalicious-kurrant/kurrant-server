@@ -66,4 +66,12 @@ public class DeliveryInfoDto {
             return Objects.hash(serviceDate, diningType, group, deliveryTime);
         }
     }
+
+    public Boolean hasSameValue(LocalDate serviceDate, DiningType diningType, Group group, Makers makers, LocalTime deliveryTime) {
+        return this.serviceDate.equals(serviceDate) &&
+                this.diningType.equals(diningType) &&
+                this.group.equals(group) &&
+                this.makers.equals(makers) &&
+                this.deliveryTime.equals(deliveryTime);
+    }
 }

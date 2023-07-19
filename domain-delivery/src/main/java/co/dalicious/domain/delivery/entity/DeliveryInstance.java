@@ -39,9 +39,11 @@ public class DeliveryInstance {
     private Integer orderNumber;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn
     private Makers makers;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn
     private Spot spot;
 
     @OneToMany(mappedBy = "deliveryInstance", fetch = FetchType.LAZY)
@@ -49,6 +51,9 @@ public class DeliveryInstance {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private DriverSchedule driverSchedule;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Driver driver;
 
     @Builder
     public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Integer orderNumber, Makers makers, Spot spot) {
@@ -92,5 +97,9 @@ public class DeliveryInstance {
                 .map(v -> v.getPickUpTime(deliveryTime))
                 .findAny()
                 .orElse(null);
+    }
+
+    public void updateDriver(Driver driver) {
+        this.driver = driver;
     }
 }

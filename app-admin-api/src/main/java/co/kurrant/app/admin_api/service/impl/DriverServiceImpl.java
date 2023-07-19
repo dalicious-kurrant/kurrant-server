@@ -2,10 +2,13 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.delivery.dto.DeliveryInstanceDto;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.delivery.entity.Driver;
 import co.dalicious.domain.delivery.entity.DriverRoute;
 import co.dalicious.domain.delivery.entity.DriverSchedule;
 import co.dalicious.domain.delivery.entity.enums.DeliveryStatus;
+import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
 import co.dalicious.domain.delivery.repository.*;
 import co.dalicious.domain.food.dto.DeliveryInfoDto;
 import co.dalicious.domain.food.entity.Makers;
@@ -44,6 +47,8 @@ public class DriverServiceImpl implements DriverService {
     private final QDriverRepository qDriverRepository;
     private final DriverRouteRepository driverRouteRepository;
     private final QDriverRouteRepository qDriverRouteRepository;
+    private final DeliveryInstanceMapper deliveryInstanceMapper;
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
 
     @Override
     public List<Driver> getDrivers() {
@@ -83,7 +88,7 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
-    public void excelDriverSchedule(List<ScheduleDto> scheduleDtos) {
+    public void postDriverSchedule(List<ScheduleDto> scheduleDtos) {
         Set<String> makersNames = scheduleDtos.stream()
                 .flatMap(dto -> dto.getMakersNames().stream())
                 .collect(Collectors.toSet());
@@ -115,6 +120,32 @@ public class DriverServiceImpl implements DriverService {
             deleteOldRoutes(driverSchedule, driverRoutes);
 
             driverRouteRepository.saveAll(driverRoutes);
+        }
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<DeliveryInstanceDto> getDriverSchedule2(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+
+        List<DeliveryInfoDto> tuples = qDailyFoodRepository.groupingByServiceDateAndRoute(startDate, endDate);
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByPeriod(startDate, endDate);
+
+        return deliveryInstanceMapper.toScheduleDtos(tuples, deliveryInstances);
+    }
+
+    @Override
+    @Transactional
+    public void postDriverSchedule2(List<DeliveryInstanceDto> deliveryInstanceDtos) {
+        Set<String> driverNames = deliveryInstanceDtos.stream()
+                .map(DeliveryInstanceDto::getDriver)
+                .collect(Collectors.toSet());
+        List<Driver> drivers = qDriverRepository.findAllByDriverNames(driverNames);
+        for (DeliveryInstanceDto scheduleDto : deliveryInstanceDtos) {
+            List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllBy(DateUtils.stringToDate(scheduleDto.getDeliveryDate()), DiningType.ofString(scheduleDto.getDiningType()), DateUtils.stringToLocalTime(scheduleDto.getDeliveryTime()), scheduleDto.getMakersNames(), scheduleDto.getGroupName());
+            Driver driver = drivers.stream().filter(v -> v.getName().equals(scheduleDto.getDriver())).findAny().orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400028", "일치하는 배송 기사를 찾을 수 없습니다."));
+            deliveryInstances.forEach(v -> v.updateDriver(driver));
         }
     }
 
@@ -158,7 +189,7 @@ public class DriverServiceImpl implements DriverService {
     private DriverRoute createNewDriverRoute(DriverSchedule driverSchedule, Group group, Makers maker) {
         DriverRoute newDriverRoute = new DriverRoute(DeliveryStatus.WAIT_DELIVERY, group, maker, driverSchedule);
         List<DriverRoute> duplicatedDriverRoutes = qDriverRouteRepository.findAllByDriverRoute(newDriverRoute);
-        if(!duplicatedDriverRoutes.isEmpty()) {
+        if (!duplicatedDriverRoutes.isEmpty()) {
             driverRouteRepository.deleteAllInBatch(duplicatedDriverRoutes);
             driverRouteRepository.flush();
         }
@@ -167,7 +198,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     private void deleteOldRoutes(DriverSchedule driverSchedule, List<DriverRoute> newRoutes) {
-        if(driverSchedule.getDriverRoutes() == null) return;
+        if (driverSchedule.getDriverRoutes() == null) return;
         driverSchedule.getDriverRoutes().stream()
                 .filter(oldRoute -> newRoutes.stream().noneMatch(newRoute -> newRoute.getMakers().getName().equals(oldRoute.getMakers().getName())))
                 .forEach(driverRouteRepository::delete);
@@ -189,6 +220,6 @@ public class DriverServiceImpl implements DriverService {
 
     private DriverSchedule findDriverSchedule(ScheduleDto scheduleDto) {
         return qDriverScheduleRepository.find(DateUtils.stringToDate(scheduleDto.getDeliveryDate()), DiningType.ofString(scheduleDto.getDiningType()),
-                        DateUtils.stringToLocalTime(scheduleDto.getDeliveryTime()), scheduleDto.getDriver());
+                DateUtils.stringToLocalTime(scheduleDto.getDeliveryTime()), scheduleDto.getDriver());
     }
 }

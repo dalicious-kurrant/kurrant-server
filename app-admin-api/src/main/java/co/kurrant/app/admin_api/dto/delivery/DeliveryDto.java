@@ -13,6 +13,7 @@ import lombok.Setter;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -105,7 +106,7 @@ public class DeliveryDto {
         }
     }
 
-    public static DeliveryDto create (List<Group> groupList, List<DeliveryInfo> deliveryInfoList, List<Spot> spotList) {
+    public static DeliveryDto create (Collection<Group> groupList, List<DeliveryInfo> deliveryInfoList, Collection<Spot> spotList) {
         List<GroupInfo> groupInfos = groupList.stream().map(group -> GroupInfo.create(group.getId(), group.getName())).toList();
         List<SpotInfo> spotInfos = spotList.stream().map(spot -> SpotInfo.create(spot.getId(), spot.getName())).toList();
 

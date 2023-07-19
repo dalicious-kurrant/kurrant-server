@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -28,5 +29,16 @@ public class UserUtil {
             throw new ApiException(ExceptionEnum.ACCESS_TOKEN_ERROR);
         }
         return (SecurityUser) authentication.getPrincipal();
+    }
+
+    public static SecurityUser driver(Authentication authentication) {
+        if(authentication == null) {
+            return null;
+        }
+        return (SecurityUser) authentication.getPrincipal();
+    }
+
+    public String getCode(SecurityUser securityUser) {
+        return securityUser == null ? null : securityUser.getUsername();
     }
 }
