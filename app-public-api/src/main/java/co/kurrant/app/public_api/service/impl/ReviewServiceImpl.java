@@ -305,7 +305,7 @@ public class ReviewServiceImpl implements ReviewService {
     public Object reviewStarCount(BigInteger dailyFoodId) {
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
         Map<Integer, Integer> starCountMap = new ConcurrentHashMap<>();
-        List<Reviews> reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+        List<Reviews> reviewsList = qReviewRepository.findAllByFoodIdForStar(dailyFood.getFood().getId());
             starCountMap.put(1, 0);
             starCountMap.put(2, 0);
             starCountMap.put(3, 0);

@@ -440,4 +440,10 @@ public class QReviewRepository {
                 .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(Boolean.FALSE))
                 .fetch();
     }
+
+    public List<Reviews> findAllByFoodIdForStar(BigInteger foodId) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(Boolean.FALSE))
+                .fetch();
+    }
 }
