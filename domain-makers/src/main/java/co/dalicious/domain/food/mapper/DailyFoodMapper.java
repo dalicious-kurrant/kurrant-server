@@ -193,9 +193,7 @@ public interface DailyFoodMapper {
         for (String deliveryTimeString : deliveryTimeList) {
             LocalTime deliveryTime = DateUtils.stringToLocalTime(deliveryTimeString);
             LocalTime pickupTime = DateUtils.stringToLocalTime(pickupTimeList.get(deliveryTimeList.indexOf(deliveryTimeString)));
-            if(dailyFoodGroup.getDailyFoods().get(0).getGroup().getMealInfo(dailyFoodGroup.getDailyFoods().get(0).getDiningType()).getDeliveryTimes().contains(deliveryTime)){
-                newDeliveryScheduleList.add(new DeliverySchedule(deliveryTime, pickupTime));
-            }
+            newDeliveryScheduleList.add(new DeliverySchedule(deliveryTime, pickupTime));
         }
 
         dailyFoodGroup.updateDeliverySchedules(newDeliveryScheduleList);

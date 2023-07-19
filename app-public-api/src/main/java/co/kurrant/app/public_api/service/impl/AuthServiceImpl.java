@@ -268,6 +268,7 @@ public class AuthServiceImpl implements AuthService {
         ProviderEmail providerEmail = ProviderEmail.builder().email(mail).provider(Provider.GENERAL).user(user).build();
         providerEmailRepository.save(providerEmail);
 
+        //FIXME: 구성원 초대에 있는 유저 user group 추가
         //가입가능리스트에서 삭제
         if (employeeList.size() >= 1) {
             employeeRepository.deleteAllByEmail(employeeList.get(0).getEmail());

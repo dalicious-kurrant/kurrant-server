@@ -236,11 +236,11 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
             List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
-            List<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()
+            Set<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()
                     .flatMap(v -> v.getMakersPickupTime().stream())
                     .map(DateUtils::stringToLocalTime)
-                    .toList();
-            if (makersPickupTimes.stream().distinct().count() > sortedDailyFoodDto.get(0).getMakersPickupTime().size()) {
+                    .collect(Collectors.toSet());
+            if (sortedDailyFoodDto.stream().anyMatch(v -> v.getMakersPickupTime().size() != makersPickupTimes.size())) {
                 throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
             }
         }
@@ -275,8 +275,9 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 waitingDailyFood = null;
             }
 
-            // 그룹이 가진 배송시간보다 많은 배송시간을 요청한 경우
-            if(dailyFoodDto.getDeliveryTime().size() != dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getDeliveryTimes().size()) {
+            List<LocalTime> groupDeliveryTimes = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getDeliveryTimes();
+            // 그룹이 가진 배송시간과 다른 배송시간을 요청한 경우
+            if(dailyFoodDto.getDeliveryTime().size() != groupDeliveryTimes.size() || dailyFoodDto.getDeliveryTime().stream().anyMatch(v -> !groupDeliveryTimes.contains(DateUtils.stringToLocalTime(v)))){
                 throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
             }
             dailyFoodMapper.updateDeliverySchedule(dailyFoodDto.getDeliveryTime(), dailyFoodDto.getMakersPickupTime(), dailyFood.getDailyFoodGroup());
@@ -346,6 +347,9 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 MealInfo mealInfo = groups.stream().filter(v -> v.getName().equals(dailyFood.getGroupName()))
                         .map(v -> v.getMealInfo(diningType))
                         .findAny().orElse(null);
+
+                if(deliveryTimeList.stream().anyMatch(v -> Objects.requireNonNull(mealInfo).getDeliveryTimes().contains(DateUtils.stringToLocalTime(v)))) throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+
                 if(makers != null && dailyFood.getMakersPickupTime().size() == dailyFood.getDeliveryTime().size()) {
                     for (int i = 0; i < deliveryTimeList.size(); i++) {
                         String deliveryTime = deliveryTimeList.get(i);
