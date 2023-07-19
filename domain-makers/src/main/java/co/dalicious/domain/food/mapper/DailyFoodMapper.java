@@ -190,8 +190,12 @@ public interface DailyFoodMapper {
             throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
         }
         List<DeliverySchedule> newDeliveryScheduleList = new ArrayList<>();
-        for (String deliveryTime : deliveryTimeList) {
-            newDeliveryScheduleList.add(new DeliverySchedule(DateUtils.stringToLocalTime(deliveryTime), DateUtils.stringToLocalTime(pickupTimeList.get(deliveryTimeList.indexOf(deliveryTime)))));
+        for (String deliveryTimeString : deliveryTimeList) {
+            LocalTime deliveryTime = DateUtils.stringToLocalTime(deliveryTimeString);
+            LocalTime pickupTime = DateUtils.stringToLocalTime(pickupTimeList.get(deliveryTimeList.indexOf(deliveryTimeString)));
+            if(dailyFoodGroup.getDailyFoods().get(0).getGroup().getMealInfo(dailyFoodGroup.getDailyFoods().get(0).getDiningType()).getDeliveryTimes().contains(deliveryTime)){
+                newDeliveryScheduleList.add(new DeliverySchedule(deliveryTime, pickupTime));
+            }
         }
 
         dailyFoodGroup.updateDeliverySchedules(newDeliveryScheduleList);

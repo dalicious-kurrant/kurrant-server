@@ -10,6 +10,7 @@ import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
@@ -274,6 +275,10 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 waitingDailyFood = null;
             }
 
+            // 그룹이 가진 배송시간보다 많은 배송시간을 요청한 경우
+            if(dailyFoodDto.getDeliveryTime().size() != dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getDeliveryTimes().size()) {
+                throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+            }
             dailyFoodMapper.updateDeliverySchedule(dailyFoodDto.getDeliveryTime(), dailyFoodDto.getMakersPickupTime(), dailyFood.getDailyFoodGroup());
 
             Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
@@ -330,16 +335,27 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
             Map<String, String> deliveryScheduleMap = new HashMap<>();
             for(FoodDto.DailyFood dailyFood : Objects.requireNonNull(dailyFoodDtos)) {
+                List<String> deliveryTimeList = dailyFood.getDeliveryTime();
+                List<String> makersPickupTimeList = dailyFood.getMakersPickupTime();
+                DiningType diningType = DiningType.ofCode(dailyFood.getDiningType());
+
+                if(dailyFood.getDeliveryTime().size() != dailyFood.getMakersPickupTime().size()) throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+
                 Makers makers = makersList.stream().filter(v -> v.getName().equals(dailyFood.getMakersName())).findAny()
                         .orElse(null);
+                MealInfo mealInfo = groups.stream().filter(v -> v.getName().equals(dailyFood.getGroupName()))
+                        .map(v -> v.getMealInfo(diningType))
+                        .findAny().orElse(null);
                 if(makers != null && dailyFood.getMakersPickupTime().size() == dailyFood.getDeliveryTime().size()) {
-                    for (String deliveryTime : dailyFood.getDeliveryTime()) {
-                        if(FoodUtils.isValidDeliveryTime(makers, DiningType.ofCode(dailyFood.getDiningType()), DateUtils.stringToLocalTime(deliveryTime))) {
-                            deliveryScheduleMap.put(deliveryTime, dailyFood.getMakersPickupTime().get(dailyFood.getDeliveryTime().indexOf(deliveryTime)));
+                    for (int i = 0; i < deliveryTimeList.size(); i++) {
+                        String deliveryTime = deliveryTimeList.get(i);
+                        LocalTime deliveryLocalTime = DateUtils.stringToLocalTime(deliveryTime);
+
+                        if(FoodUtils.isValidDeliveryTime(makers, diningType, deliveryLocalTime) && Objects.requireNonNull(mealInfo).getDeliveryTimes().contains(deliveryLocalTime)) {
+                            deliveryScheduleMap.put(deliveryTime, makersPickupTimeList.get(i));
                         }
                     }
                 }
-                else if(dailyFood.getDeliveryTime().size() != dailyFood.getMakersPickupTime().size()) throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
             }
 
             DailyFoodGroup dailyFoodGroup = dailyFoodGroupRepository.save(dailyFoodMapper.toDailyFoodGroup(deliveryScheduleMap));
