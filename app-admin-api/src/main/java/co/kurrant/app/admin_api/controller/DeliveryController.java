@@ -1,13 +1,11 @@
 package co.kurrant.app.admin_api.controller;
 
 import co.dalicious.client.core.annotation.ControllerMarker;
-import co.dalicious.client.core.dto.request.LoginTokenDto;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
-import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.PeriodDto;
+import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.admin_api.dto.Code;
-import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
+import co.kurrant.app.admin_api.dto.delivery.DeliveryStatusVo;
 import co.kurrant.app.admin_api.model.SecurityUser;
 import co.kurrant.app.admin_api.service.DeliveryService;
 import co.kurrant.app.admin_api.util.UserUtil;
@@ -31,7 +29,7 @@ public class DeliveryController {
     @ControllerMarker(ControllerType.DELIVERY)
     @Operation(summary = "배송 기사 로그인", description = "배송 기사 로그인")
     @PostMapping("/login")
-    public ResponseMessage login(@RequestBody Code code) throws IOException {
+    public ResponseMessage login(@RequestBody Code code) {
         return ResponseMessage.builder()
                 .data(deliveryService.login(code))
                 .message("인증에 성공하였습니다")
@@ -71,6 +69,28 @@ public class DeliveryController {
         return ResponseMessage.builder()
                 .message("배송 업체 배송일정 조회에 성공하였습니다.")
                 .data(deliveryService.getDeliveryManifest(parameters))
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DELIVERY)
+    @Operation(summary = "배송 완료 요청", description = "배송 완료 신청")
+    @PostMapping("/status/complete")
+    public ResponseMessage requestDeliveryComplete(Authentication authentication, @RequestBody DeliveryStatusVo deliveryStatusVo) {
+        SecurityUser driver = UserUtil.driver(authentication);
+        deliveryService.requestDeliveryComplete(driver, deliveryStatusVo);
+        return ResponseMessage.builder()
+                .message("배송 완료 요청에 성공하였습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DELIVERY)
+    @Operation(summary = "배송 완료 취소", description = "배송 완료 취소")
+    @PostMapping("/status/cancel")
+    public ResponseMessage cancelDeliveryComplete(Authentication authentication, @RequestBody DeliveryStatusVo deliveryStatusVo) {
+        SecurityUser driver = UserUtil.driver(authentication);
+        deliveryService.cancelDeliveryComplete(driver, deliveryStatusVo);
+        return ResponseMessage.builder()
+                .message("배송 완료 요청 취소에 성공하였습니다.")
                 .build();
     }
 

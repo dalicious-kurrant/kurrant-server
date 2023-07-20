@@ -4,23 +4,19 @@ import co.dalicious.domain.client.dto.GroupInfo;
 import co.dalicious.domain.client.dto.SpotInfo;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.delivery.entity.enums.DeliveryStatus;
-import co.dalicious.system.util.DateUtils;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 
 @Getter
 @Setter
 @Builder
-public class DeliveryDto {
+public class DeliveryVo {
     private List<GroupInfo> groupInfoList;
     private List<SpotInfo> spotInfoList;
     private List<DeliveryInfo> deliveryInfoList;
@@ -108,11 +104,11 @@ public class DeliveryDto {
         }
     }
 
-    public static DeliveryDto create (Collection<Group> groupList, List<DeliveryInfo> deliveryInfoList, Collection<Spot> spotList) {
+    public static DeliveryVo create (Collection<Group> groupList, List<DeliveryInfo> deliveryInfoList, Collection<Spot> spotList) {
         List<GroupInfo> groupInfos = groupList.stream().map(group -> GroupInfo.create(group.getId(), group.getName())).toList();
         List<SpotInfo> spotInfos = spotList.stream().map(spot -> SpotInfo.create(spot.getId(), spot.getName())).toList();
 
-        return DeliveryDto.builder()
+        return DeliveryVo.builder()
                 .groupInfoList(groupInfos)
                 .spotInfoList(spotInfos)
                 .deliveryInfoList(deliveryInfoList)

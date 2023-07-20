@@ -111,4 +111,8 @@ public class DeliveryInstance {
     public void updateDriver(Driver driver) {
         this.driver = driver;
     }
+
+    public void updateDeliveryStatus(DeliveryStatus deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
+    }
 }

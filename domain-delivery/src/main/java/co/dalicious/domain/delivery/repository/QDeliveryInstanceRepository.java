@@ -5,6 +5,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.entity.enums.DeliveryStatus;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -14,6 +15,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collection;
@@ -136,6 +138,14 @@ public class QDeliveryInstanceRepository {
                 .from(deliveryInstance)
                 .where(deliveryInstance.serviceDate.eq(LocalDate.now()))
                 .distinct()
+                .fetch();
+    }
+
+    public List<DeliveryInstance> findAllBySpotAndTimeAndDriver(BigInteger spotId, LocalTime deliveryTime, String driver) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .where(deliveryInstance.spot.id.eq(spotId), deliveryInstance.serviceDate.eq(LocalDate.now()),
+                        deliveryInstance.deliveryTime.eq(deliveryTime), deliveryInstance.driver.code.eq(driver),
+                        deliveryInstance.deliveryStatus.in(DeliveryStatus.WAIT_DELIVERY))
                 .fetch();
     }
 }
