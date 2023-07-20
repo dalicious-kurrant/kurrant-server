@@ -36,4 +36,5 @@ public class FoodDetailDto {
     private List<OriginDto> origins;
     private List<String> allergies;
     private String lastOrderTime;
+    private Boolean isMembership;
 }
