@@ -448,4 +448,8 @@ public class User {
     public String getNickname() {
         return this.nickname == null ? this.name : this.nickname;
     }
+    
+    public Boolean hasNickname() {
+        return !this.nickname.isEmpty();
+    }
 }

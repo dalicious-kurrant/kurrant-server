@@ -60,6 +60,7 @@ public interface DeliveryMapper {
             deliveryGroup.setGroupName(spot.getGroup().getName());
             deliveryGroup.setDiningType(spotMap.get(spot).get(0).getDiningType().getCode());
             deliveryGroup.setSpotId(spot.getId());
+            deliveryGroup.setDeliveryStatus(null);
             deliveryGroup.setSpotName(spot.getName());
             deliveryGroup.setAddress(spot.getAddress().addressToString());
             deliveryGroup.setMakersList(toDeliveryMakers(spotMap.get(spot)));

@@ -4,6 +4,7 @@ import co.dalicious.domain.client.dto.GroupInfo;
 import co.dalicious.domain.client.dto.SpotInfo;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.delivery.entity.enums.DeliveryStatus;
 import co.dalicious.system.util.DateUtils;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,6 +41,7 @@ public class DeliveryDto {
         private String groupName;
         private String spotName;
         private BigInteger spotId;
+        private Integer deliveryStatus;
         private String address;
         private Integer diningType;
         private List<DeliveryMakers> makersList;
