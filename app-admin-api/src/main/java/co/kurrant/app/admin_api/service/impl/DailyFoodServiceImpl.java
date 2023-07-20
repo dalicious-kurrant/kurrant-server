@@ -242,7 +242,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                     .map(DateUtils::stringToLocalTime)
                     .collect(Collectors.toSet());
             if (sortedDailyFoodDto.stream().anyMatch(v -> v.getMakersPickupTime().size() != makersPickupTimes.size())) {
-                throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+                throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000019", dailyFoodGroupDto.getGroupName() + "스팟의 " + dailyFoodGroupDto.getMakersName() + " 상품별 픽업시간이 동일 하지 않습니다.");
             }
         }
 
@@ -279,7 +279,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             List<LocalTime> groupDeliveryTimes = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getDeliveryTimes();
             // 그룹이 가진 배송시간과 다른 배송시간을 요청한 경우
             if(dailyFoodDto.getDeliveryTime().size() != groupDeliveryTimes.size() || dailyFoodDto.getDeliveryTime().stream().anyMatch(v -> !groupDeliveryTimes.contains(DateUtils.stringToLocalTime(v)))){
-                throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+                throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000020", dailyFoodDto.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다.");
             }
             dailyFoodMapper.updateDeliverySchedule(dailyFoodDto.getDeliveryTime(), dailyFoodDto.getMakersPickupTime(), dailyFood.getDailyFoodGroup());
 
@@ -341,7 +341,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 List<String> makersPickupTimeList = dailyFood.getMakersPickupTime();
                 DiningType diningType = DiningType.ofCode(dailyFood.getDiningType());
 
-                if(dailyFood.getDeliveryTime().size() != dailyFood.getMakersPickupTime().size()) throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+                if(dailyFood.getDeliveryTime().size() != dailyFood.getMakersPickupTime().size()) throw new ApiException(ExceptionEnum.EXCEL_TIME_LIST_NOT_EQUAL);
 
                 Makers makers = makersList.stream().filter(v -> v.getName().equals(dailyFood.getMakersName())).findAny()
                         .orElse(null);
@@ -349,7 +349,9 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                         .map(v -> v.getMealInfo(diningType))
                         .findAny().orElse(null);
 
-                if(deliveryTimeList.stream().anyMatch(v -> Objects.requireNonNull(mealInfo).getDeliveryTimes().contains(DateUtils.stringToLocalTime(v)))) throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+                if(deliveryTimeList.stream().anyMatch(v -> Objects.requireNonNull(mealInfo).getDeliveryTimes().contains(DateUtils.stringToLocalTime(v)))) {
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000020", dailyFood.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다.");
+                }
 
                 if(makers != null && dailyFood.getMakersPickupTime().size() == dailyFood.getDeliveryTime().size()) {
                     for (int i = 0; i < deliveryTimeList.size(); i++) {
