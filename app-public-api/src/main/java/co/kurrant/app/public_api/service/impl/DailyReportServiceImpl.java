@@ -27,6 +27,7 @@ import co.kurrant.app.public_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -341,12 +342,14 @@ public class DailyReportServiceImpl implements DailyReportService {
 
         if (orderItemDailyFoodList.isEmpty()) return resultList;
 
-        List<DailyReport> dailyReportList = qDailyReportRepository.findByUserIdAndDate(user.getId(), date);
-        Boolean isDuplicated = false;
-        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
+        List<String> dailyReportList = qDailyReportRepository.findByUserIdAndDateToString(user.getId(), date);
 
-            if (dailyReportList.stream().anyMatch(v -> v.getEatDate().equals(orderItemDailyFood.getDailyFood().getServiceDate()) &&
-                    v.getFoodName().equals(orderItemDailyFood.getDailyFood().getFood().getName()))){
+
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
+            boolean isDuplicated = false;
+
+            if (dailyReportList.contains(orderItemDailyFood.getDailyFood().getFood().getName()) &&
+                orderItemDailyFood.getDailyFood().getServiceDate().toString().equals(date)) {
                 isDuplicated = true;
             }
 
