@@ -187,7 +187,7 @@ public interface DailyFoodMapper {
 
     default void updateDeliverySchedule(List<String> deliveryTimeList, List<String> pickupTimeList, @MappingTarget DailyFoodGroup dailyFoodGroup) {
         if(deliveryTimeList.size() != pickupTimeList.size()) {
-            throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+            throw new ApiException(ExceptionEnum.EXCEL_TIME_LIST_NOT_EQUAL);
         }
         List<DeliverySchedule> newDeliveryScheduleList = new ArrayList<>();
         for (String deliveryTimeString : deliveryTimeList) {
