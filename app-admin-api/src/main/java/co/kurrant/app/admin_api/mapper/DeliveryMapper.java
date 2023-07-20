@@ -33,93 +33,93 @@ import java.util.stream.Collectors;
 public interface DeliveryMapper {
 
     default List<DeliveryDto.DeliveryInfo> getDeliveryInfoList(Collection<DeliveryInstance> deliveryInstances) {
-        Map<ServiceDateDto, List<DeliveryInstance>> serviceDateMap = deliveryInstances.stream().collect(Collectors.groupingBy(v -> new ServiceDateDto(v.getServiceDate(), v.getDeliveryTime())));
+        return deliveryInstances.stream()
+                .collect(Collectors.groupingBy(v -> new ServiceDateDto(v.getServiceDate(), v.getDeliveryTime())))
+                .entrySet().stream()
+                .map(entry -> {
+                    ServiceDateDto serviceDateDto = entry.getKey();
+                    List<DeliveryInstance> instances = entry.getValue();
 
-        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
-        for(ServiceDateDto serviceDateDto : serviceDateMap.keySet()) {
-            DeliveryDto.DeliveryInfo deliveryInfo = new DeliveryDto.DeliveryInfo();
-
-            deliveryInfo.setDeliveryTime(DateUtils.timeToString(serviceDateDto.getDeliveryTime()));
-            deliveryInfo.setServiceDate(DateUtils.localDateToString(serviceDateDto.getServiceDate()));
-            deliveryInfo.setGroup(toDeliveryGroup(serviceDateMap.get(serviceDateDto)));
-
-            deliveryInfoList.add(deliveryInfo);
-        }
-
-        return deliveryInfoList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate).thenComparing(DeliveryDto.DeliveryInfo::getDeliveryTime)).toList();
+                    DeliveryDto.DeliveryInfo deliveryInfo = new DeliveryDto.DeliveryInfo();
+                    deliveryInfo.setDeliveryTime(DateUtils.timeToString(serviceDateDto.getDeliveryTime()));
+                    deliveryInfo.setServiceDate(DateUtils.localDateToString(serviceDateDto.getServiceDate()));
+                    deliveryInfo.setGroup(toDeliveryGroup(instances));
+                    return deliveryInfo;
+                })
+                .sorted(Comparator.comparing(DeliveryDto.DeliveryInfo::getServiceDate)
+                        .thenComparing(DeliveryDto.DeliveryInfo::getDeliveryTime))
+                .collect(Collectors.toList());
     }
 
     default List<DeliveryDto.DeliveryGroup> toDeliveryGroup(List<DeliveryInstance> deliveryInstances) {
-        List<DeliveryDto.DeliveryGroup> deliveryGroupList = new ArrayList<>();
-        Map<Spot, List<DeliveryInstance>> spotMap = deliveryInstances.stream().collect(Collectors.groupingBy(DeliveryInstance::getSpot));
+        return deliveryInstances.stream()
+                .collect(Collectors.groupingBy(DeliveryInstance::getSpot))
+                .entrySet().stream()
+                .map(entry -> {
+                    Spot spot = entry.getKey();
+                    List<DeliveryInstance> instancesBySpot = entry.getValue();
+                    DeliveryInstance firstInstance = instancesBySpot.get(0);
 
-        for(Spot spot : spotMap.keySet()) {
-            DeliveryDto.DeliveryGroup deliveryGroup = new DeliveryDto.DeliveryGroup();
+                    DeliveryDto.DeliveryGroup deliveryGroup = new DeliveryDto.DeliveryGroup();
+                    deliveryGroup.setGroupId(spot.getGroup().getId());
+                    deliveryGroup.setGroupName(spot.getGroup().getName());
+                    deliveryGroup.setDiningType(firstInstance.getDiningType().getCode());
+                    deliveryGroup.setSpotId(spot.getId());
+                    deliveryGroup.setDeliveryStatus(null); // Consider if this line is really necessary since it always sets null
+                    deliveryGroup.setSpotName(spot.getName());
+                    deliveryGroup.setAddress(spot.getAddress().addressToString());
+                    deliveryGroup.setMakersList(toDeliveryMakers(instancesBySpot));
 
-            deliveryGroup.setGroupId(spot.getGroup().getId());
-            deliveryGroup.setGroupName(spot.getGroup().getName());
-            deliveryGroup.setDiningType(spotMap.get(spot).get(0).getDiningType().getCode());
-            deliveryGroup.setSpotId(spot.getId());
-            deliveryGroup.setDeliveryStatus(null);
-            deliveryGroup.setSpotName(spot.getName());
-            deliveryGroup.setAddress(spot.getAddress().addressToString());
-            deliveryGroup.setMakersList(toDeliveryMakers(spotMap.get(spot)));
-
-            deliveryGroupList.add(deliveryGroup);
-        }
-        return deliveryGroupList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryGroup::getSpotId)).toList();
+                    return deliveryGroup;
+                })
+                .sorted(Comparator.comparing(DeliveryDto.DeliveryGroup::getSpotId))
+                .collect(Collectors.toList());
     }
 
-    default List<DeliveryDto.DeliveryMakers> toDeliveryMakers(List<DeliveryInstance> deliveryInstances){
-        List<DeliveryDto.DeliveryMakers> deliveryMakersList = new ArrayList<>();
-        MultiValueMap<Makers, DeliveryInstance> makersMap = new LinkedMultiValueMap<>();
-        for (DeliveryInstance deliveryInstance : deliveryInstances) {
-            makersMap.add(deliveryInstance.getMakers(), deliveryInstance);
-        }
+    default List<DeliveryDto.DeliveryMakers> toDeliveryMakers(List<DeliveryInstance> deliveryInstances) {
+        return deliveryInstances.stream()
+                .collect(Collectors.groupingBy(DeliveryInstance::getMakers))
+                .entrySet().stream()
+                .flatMap(entry -> entry.getValue().stream()
+                        .map(deliveryInstanceByMaker -> {
+                            Makers makers = entry.getKey();
+                            DeliveryDto.DeliveryMakers deliveryMakers = new DeliveryDto.DeliveryMakers();
 
-        for(Makers makers : makersMap.keySet()) {
-            List<DeliveryInstance> deliveryInstancesByMakers = makersMap.get(makers);
-            for (DeliveryInstance deliveryInstancesByMaker : deliveryInstancesByMakers) {
-                DeliveryDto.DeliveryMakers deliveryMakers = new DeliveryDto.DeliveryMakers();
+                            deliveryMakers.setMakersId(makers.getId());
+                            deliveryMakers.setMakersName(makers.getName());
+                            deliveryMakers.setAddress(makers.getAddress().addressToString());
+                            deliveryMakers.setPickupTime(DateUtils.timeToString(deliveryInstanceByMaker.getPickupTime(deliveryInstanceByMaker.getDeliveryTime())));
+                            deliveryMakers.setFoods(toDeliveryFood(deliveryInstanceByMaker));
+                            deliveryMakers.setTotalCount(deliveryMakers.getCount(deliveryMakers.getFoods()));
 
-                deliveryMakers.setMakersId(makers.getId());
-                deliveryMakers.setMakersName(makers.getName());
-                deliveryMakers.setAddress(makers.getAddress().addressToString());
-                deliveryMakers.setPickupTime(DateUtils.timeToString(deliveryInstancesByMaker.getPickupTime(deliveryInstancesByMaker.getDeliveryTime())));
-                deliveryMakers.setFoods(toDeliveryFood(deliveryInstancesByMaker));
-                deliveryMakers.setTotalCount(deliveryMakers.getCount(deliveryMakers.getFoods()));
-
-                deliveryMakersList.add(deliveryMakers);
-            }
-
-
-        }
-        return deliveryMakersList.stream().sorted(Comparator.comparing(v -> (v.getPickupTime() != null ? LocalTime.parse(v.getPickupTime()) : LocalTime.MIN), Comparator.nullsLast(LocalTime::compareTo))).toList();
+                            return deliveryMakers;
+                        }))
+                .sorted(Comparator.comparing(v -> (v.getPickupTime() != null ? LocalTime.parse(v.getPickupTime()) : LocalTime.MIN), Comparator.nullsLast(LocalTime::compareTo)))
+                .collect(Collectors.toList());
     }
+
 
     default List<DeliveryDto.DeliveryFood> toDeliveryFood(DeliveryInstance deliveryInstance) {
-        List<DeliveryDto.DeliveryFood> deliveryFoodList = new ArrayList<>();
-        List<DailyFood> dailyFoodList = deliveryInstance.getOrderItemDailyFoods().stream()
+        return deliveryInstance.getOrderItemDailyFoods().stream()
                 .filter(orderItemDailyFood -> OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus()))
                 .map(OrderItemDailyFood::getDailyFood)
-                .toList();
+                .distinct() // This is used to mimic the set behavior of your previous implementation
+                .map(dailyFood -> {
+                    DeliveryDto.DeliveryFood deliveryFood = new DeliveryDto.DeliveryFood();
 
-        for(DailyFood dailyFood : dailyFoodList) {
-            DeliveryDto.DeliveryFood deliveryFood = new DeliveryDto.DeliveryFood();
+                    deliveryFood.setFoodId(dailyFood.getFood().getId());
+                    deliveryFood.setFoodName(dailyFood.getFood().getName());
+                    deliveryFood.setFoodCount(deliveryInstance.getItemCount(dailyFood));
 
-            deliveryFood.setFoodId(dailyFood.getFood().getId());
-            deliveryFood.setFoodName(dailyFood.getFood().getName());
-            deliveryFood.setFoodCount(deliveryInstance.getItemCount(dailyFood));
-
-            deliveryFoodList.add(deliveryFood);
-        }
-
-        return deliveryFoodList;
+                    return deliveryFood;
+                })
+                .collect(Collectors.toList());
     }
+
 
     @Named("getAddress")
     default String getAddress(Address address) {
-        if(address == null) return null;
+        if (address == null) return null;
         StringBuilder addressBuider = new StringBuilder();
         addressBuider.append(address.getAddress1()).append(", ").append(address.getAddress2());
         return String.valueOf(addressBuider);
@@ -153,12 +153,12 @@ public interface DeliveryMapper {
 
     default List<DeliveryDto.DeliveryInfo> getDeliveryInfoListByOrderItemDailyFood(List<OrderItemDailyFood> orderItemDailyFoods) {
         MultiValueMap<ServiceDateDto, OrderItemDailyFood> serviceDateDtoMap = new LinkedMultiValueMap<>();
-        for(OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
             serviceDateDtoMap.add(new ServiceDateDto(orderItemDailyFood.getDailyFood().getServiceDate(), orderItemDailyFood.getDeliveryTime()), orderItemDailyFood);
         }
 
         List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
-        for(ServiceDateDto serviceDateDto : serviceDateDtoMap.keySet()) {
+        for (ServiceDateDto serviceDateDto : serviceDateDtoMap.keySet()) {
             DeliveryDto.DeliveryInfo deliveryInfo = new DeliveryDto.DeliveryInfo();
 
             deliveryInfo.setDeliveryTime(DateUtils.timeToString(serviceDateDto.getDeliveryTime()));
@@ -177,7 +177,7 @@ public interface DeliveryMapper {
                 .filter(orderItemDailyFood -> Hibernate.unproxy(orderItemDailyFood.getOrder()) instanceof OrderDailyFood)
                 .collect(Collectors.groupingBy(orderItemDailyFood -> ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot()));
 
-        for(Spot spot : spotMap.keySet()) {
+        for (Spot spot : spotMap.keySet()) {
             DeliveryDto.DeliveryGroup deliveryGroup = new DeliveryDto.DeliveryGroup();
 
             deliveryGroup.setGroupId(spot.getGroup().getId());
@@ -193,12 +193,12 @@ public interface DeliveryMapper {
         return deliveryGroupList.stream().sorted(Comparator.comparing(DeliveryDto.DeliveryGroup::getSpotId)).toList();
     }
 
-    default List<DeliveryDto.DeliveryMakers> toDeliveryMakersByOrderItemDailyFood(List<OrderItemDailyFood> orderItemDailyFoods){
+    default List<DeliveryDto.DeliveryMakers> toDeliveryMakersByOrderItemDailyFood(List<OrderItemDailyFood> orderItemDailyFoods) {
         List<DeliveryDto.DeliveryMakers> deliveryMakersList = new ArrayList<>();
         Map<Makers, List<OrderItemDailyFood>> makersMap = orderItemDailyFoods.stream()
                 .collect(Collectors.groupingBy(orderItemDailyFood -> orderItemDailyFood.getDailyFood().getFood().getMakers()));
 
-        for(Makers makers : makersMap.keySet()) {
+        for (Makers makers : makersMap.keySet()) {
             DeliveryDto.DeliveryMakers deliveryMakers = new DeliveryDto.DeliveryMakers();
 
             deliveryMakers.setMakersId(makers.getId());
@@ -227,7 +227,7 @@ public interface DeliveryMapper {
                 .sorted(Comparator.comparing(orderItemDailyFood -> orderItemDailyFood.getDailyFood().getId()))
                 .collect(Collectors.groupingBy(OrderItemDailyFood::getDailyFood, Collectors.summingInt(OrderItemDailyFood::getCount)));
 
-        for(DailyFood dailyFood : dailyFoodMap.keySet()) {
+        for (DailyFood dailyFood : dailyFoodMap.keySet()) {
             DeliveryDto.DeliveryFood deliveryFood = new DeliveryDto.DeliveryFood();
 
             deliveryFood.setFoodId(dailyFood.getFood().getId());

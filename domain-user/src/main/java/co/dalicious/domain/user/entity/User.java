@@ -450,6 +450,6 @@ public class User {
     }
     
     public Boolean hasNickname() {
-        return !this.nickname.isEmpty();
+        return this.nickname != null && !this.nickname.isEmpty();
     }
 }
