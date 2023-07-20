@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface FoodMapper {
+    @Mapping(source = "dailyFood.id", target = "dailyFoodId")
     @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
     @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountedPrice")
     @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountedRate")
