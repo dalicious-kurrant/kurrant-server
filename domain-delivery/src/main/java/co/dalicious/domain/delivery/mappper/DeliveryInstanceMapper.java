@@ -1,6 +1,7 @@
 package co.dalicious.domain.delivery.mappper;
 
 import co.dalicious.domain.client.entity.CorporationSpot;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroupSpot;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -10,6 +11,7 @@ import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.dto.DeliveryInfoDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
@@ -17,6 +19,8 @@ import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.springframework.util.LinkedMultiValueMap;
@@ -27,8 +31,39 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface DeliveryInstanceMapper {
+    default List<DeliveryInstance> toEntities(DeliveryInstanceDto deliveryInstanceDto, List<Makers> makers, List<Group> groups) {
+        List<DeliveryInstance> deliveryInstances = new ArrayList<>();
+        Group group = groups.stream().filter(v -> v.getName().equals(deliveryInstanceDto.getGroupName())).findAny().orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        for (String makersName : deliveryInstanceDto.getMakersNames()) {
+            Makers maker = makers.stream().filter(v -> v.getName().equals(makersName)).findAny().orElseThrow(() -> new ApiException(ExceptionEnum.NOT_MATCHED_MAKERS));
+            if(group.getSpots().size() > 1) {
+                for (Spot spot : group.getSpots()) {
+                    deliveryInstances.add(DeliveryInstance.builder()
+                            .serviceDate(DateUtils.stringToDate(deliveryInstanceDto.getDeliveryDate()))
+                            .deliveryTime(DateUtils.stringToLocalTime(deliveryInstanceDto.getDeliveryTime()))
+                            .diningType(DiningType.ofString(deliveryInstanceDto.getDiningType()))
+                            .orderNumber(null) // TODO: MySpot 구현 필요
+                            .makers(maker)
+                            .spot(spot)
+                            .build());
+                }
+            } else  {
+                deliveryInstances.add(DeliveryInstance.builder()
+                        .serviceDate(DateUtils.stringToDate(deliveryInstanceDto.getDeliveryDate()))
+                        .deliveryTime(DateUtils.stringToLocalTime(deliveryInstanceDto.getDeliveryTime()))
+                        .diningType(DiningType.ofString(deliveryInstanceDto.getDiningType()))
+                        .orderNumber(null)
+                        .makers(maker)
+                        .spot(group.getSpots().get(0))
+                        .build());
+            }
+
+        }
+        return deliveryInstances;
+    }
+
     default DeliveryInstance toEntity(DailyFood dailyFood, Spot spot, Integer orderNumber, LocalTime deliveryTime) {
         return DeliveryInstance.builder()
                 .serviceDate(dailyFood.getServiceDate())
@@ -39,6 +74,7 @@ public interface DeliveryInstanceMapper {
                 .spot(spot)
                 .build();
     }
+
 
     default OrderDailyFoodByMakersDto.ByPeriod toDto(List<DeliveryInstance> deliveryInstances) {
         OrderDailyFoodByMakersDto.ByPeriod byPeriod = new OrderDailyFoodByMakersDto.ByPeriod();
@@ -253,15 +289,18 @@ public interface DeliveryInstanceMapper {
             for (DeliveryInstance selectedDeliveryInstance : selectedDeliveryInstances) {
                 deliveryInfoDtoList.removeIf(v -> v.hasSameValue(selectedDeliveryInstance.getServiceDate(), selectedDeliveryInstance.getDiningType(), selectedDeliveryInstance.getSpot().getGroup(), selectedDeliveryInstance.getMakers(), selectedDeliveryInstance.getDeliveryTime()));
             }
+            if(!deliveryInfoDtoList.isEmpty()) {
+                deliveryInstanceDtos.add(toScheduleDtoByDailyFood(Objects.requireNonNull(deliveryInfoDtoList)));
+            }
             deliveryInstanceDtos.addAll(toScheduleDtoByDeliveryInstance(selectedDeliveryInstances));
         }
         return deliveryInstanceDtos;
     }
 
     default DeliveryInstanceDto toScheduleDtoByDailyFood(List<DeliveryInfoDto> deliveryInfoDto) {
-        List<String> makersNames = deliveryInfoDto.stream()
+        Set<String> makersNames = deliveryInfoDto.stream()
                 .map(v -> v.getMakers().getName())
-                .toList();
+                .collect(Collectors.toSet());;
 
         return DeliveryInstanceDto.builder()
                 .id(generateTempId(deliveryInfoDto.get(0)))
@@ -284,9 +323,9 @@ public interface DeliveryInstanceMapper {
                 .entrySet().stream()
                 .map(entry -> {
                     List<DeliveryInstance> instances = entry.getValue();
-                    List<String> makersName = instances.stream()
+                    Set<String> makersName = instances.stream()
                             .map(deliveryInstance -> deliveryInstance.getMakers().getName())
-                            .toList();
+                            .collect(Collectors.toSet());
                     return DeliveryInstanceDto.builder()
                             .id(instances.get(0).getId().toString())
                             .deliveryDate(DateUtils.localDateToString(instances.get(0).getServiceDate()))

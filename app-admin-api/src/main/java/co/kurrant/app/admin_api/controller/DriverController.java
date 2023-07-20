@@ -50,7 +50,6 @@ public class DriverController {
                 .message("배송 기사 삭제에 성공하였습니다.")
                 .build();
     }
-
     @ControllerMarker(ControllerType.DRIVER)
     @Operation(summary = "배송 기사 일정 조회", description = "배송 기사 일정을 조회한다.")
     @GetMapping("/schedules")
@@ -64,28 +63,8 @@ public class DriverController {
     @ControllerMarker(ControllerType.DRIVER)
     @Operation(summary = "배송 기사 일정 추가", description = "배송 기사 일정을 엑셀 추가한다.")
     @PostMapping("/schedules")
-    public ResponseMessage postDriverSchedule(@RequestBody List<ScheduleDto> scheduleDtos) {
-        driverService.postDriverSchedule(scheduleDtos);
-        return ResponseMessage.builder()
-                .message("배송 기사 일정을 엑셀 추가에 성공하였습니다.")
-                .build();
-    }
-
-    @ControllerMarker(ControllerType.DRIVER)
-    @Operation(summary = "배송 기사 일정 조회", description = "배송 기사 일정을 조회한다.")
-    @GetMapping("/schedules2")
-    public ResponseMessage getDriverSchedule2(@RequestParam Map<String, Object> parameters) {
-        return ResponseMessage.builder()
-                .data(driverService.getDriverSchedule2(parameters))
-                .message("배송 기사 일정을 조회에 성공하였습니다.")
-                .build();
-    }
-
-    @ControllerMarker(ControllerType.DRIVER)
-    @Operation(summary = "배송 기사 일정 추가", description = "배송 기사 일정을 엑셀 추가한다.")
-    @PostMapping("/schedules2")
-    public ResponseMessage postDriverSchedule2(@RequestBody List<DeliveryInstanceDto> deliveryInstanceDtos) {
-        driverService.postDriverSchedule2(deliveryInstanceDtos);
+    public ResponseMessage postDriverSchedule(@RequestBody List<DeliveryInstanceDto> deliveryInstanceDtos) {
+        driverService.postDriverSchedule(deliveryInstanceDtos);
         return ResponseMessage.builder()
                 .message("배송 기사 일정을 엑셀 추가에 성공하였습니다.")
                 .build();

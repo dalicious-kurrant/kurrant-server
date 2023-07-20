@@ -14,6 +14,7 @@ import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
 import co.kurrant.app.admin_api.dto.delivery.ServiceDateDto;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -70,19 +71,27 @@ public interface DeliveryMapper {
 
     default List<DeliveryDto.DeliveryMakers> toDeliveryMakers(List<DeliveryInstance> deliveryInstances){
         List<DeliveryDto.DeliveryMakers> deliveryMakersList = new ArrayList<>();
-        Map<Makers, DeliveryInstance> makersMap = deliveryInstances.stream().collect(Collectors.toMap(DeliveryInstance::getMakers, Function.identity()));
+        MultiValueMap<Makers, DeliveryInstance> makersMap = new LinkedMultiValueMap<>();
+        for (DeliveryInstance deliveryInstance : deliveryInstances) {
+            makersMap.add(deliveryInstance.getMakers(), deliveryInstance);
+        }
 
         for(Makers makers : makersMap.keySet()) {
-            DeliveryDto.DeliveryMakers deliveryMakers = new DeliveryDto.DeliveryMakers();
+            List<DeliveryInstance> deliveryInstancesByMakers = makersMap.get(makers);
+            for (DeliveryInstance deliveryInstancesByMaker : deliveryInstancesByMakers) {
+                DeliveryDto.DeliveryMakers deliveryMakers = new DeliveryDto.DeliveryMakers();
 
-            deliveryMakers.setMakersId(makers.getId());
-            deliveryMakers.setMakersName(makers.getName());
-            deliveryMakers.setAddress(makers.getAddress().addressToString());
-            deliveryMakers.setPickupTime(DateUtils.timeToString(makersMap.get(makers).getPickupTime(makersMap.get(makers).getDeliveryTime())));
-            deliveryMakers.setFoods(toDeliveryFood(makersMap.get(makers)));
-            deliveryMakers.setTotalCount(deliveryMakers.getCount(deliveryMakers.getFoods()));
+                deliveryMakers.setMakersId(makers.getId());
+                deliveryMakers.setMakersName(makers.getName());
+                deliveryMakers.setAddress(makers.getAddress().addressToString());
+                deliveryMakers.setPickupTime(DateUtils.timeToString(deliveryInstancesByMaker.getPickupTime(deliveryInstancesByMaker.getDeliveryTime())));
+                deliveryMakers.setFoods(toDeliveryFood(deliveryInstancesByMaker));
+                deliveryMakers.setTotalCount(deliveryMakers.getCount(deliveryMakers.getFoods()));
 
-            deliveryMakersList.add(deliveryMakers);
+                deliveryMakersList.add(deliveryMakers);
+            }
+
+
         }
         return deliveryMakersList.stream().sorted(Comparator.comparing(v -> (v.getPickupTime() != null ? LocalTime.parse(v.getPickupTime()) : LocalTime.MIN), Comparator.nullsLast(LocalTime::compareTo))).toList();
     }

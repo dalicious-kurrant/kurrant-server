@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -51,7 +52,7 @@ public class QDeliveryInstanceRepository {
                 .fetch();
     }
 
-    public List<DeliveryInstance> findAllBy(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, List<String> makersNames, String groupName) {
+    public List<DeliveryInstance> findAllBy(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Collection<String> makersNames, String groupName) {
         return queryFactory.selectFrom(deliveryInstance)
                 .where(deliveryInstance.deliveryTime.eq(deliveryTime),
                         deliveryInstance.diningType.eq(diningType),
