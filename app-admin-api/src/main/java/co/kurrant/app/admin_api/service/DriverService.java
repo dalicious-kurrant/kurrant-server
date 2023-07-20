@@ -14,9 +14,6 @@ public interface DriverService {
     List<Driver> getDrivers();
     void postDrivers(List<DriverDto> driverDtos);
     void deleteDrivers(OrderDto.IdList idList);
-    List<ScheduleDto> getDriverSchedule(Map<String, Object> parameters);
-    void postDriverSchedule(List<ScheduleDto> scheduleDtos);
-
-    List<DeliveryInstanceDto> getDriverSchedule2(Map<String, Object> parameters);
-    void postDriverSchedule2(List<DeliveryInstanceDto> deliveryInstances);
+    List<DeliveryInstanceDto> getDriverSchedule(Map<String, Object> parameters);
+    void postDriverSchedule(List<DeliveryInstanceDto> deliveryInstances);
 }

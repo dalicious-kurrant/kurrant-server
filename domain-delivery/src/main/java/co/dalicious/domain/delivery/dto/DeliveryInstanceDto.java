@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @NoArgsConstructor
@@ -15,11 +16,11 @@ public class DeliveryInstanceDto {
     private String diningType;
     private String deliveryTime;
     private String groupName;
-    private List<String> makersNames;
+    private Set<String> makersNames;
     private String driver;
 
     @Builder
-    public DeliveryInstanceDto(String id, String deliveryDate, String diningType, String deliveryTime, String groupName, List<String> makersNames, String driver) {
+    public DeliveryInstanceDto(String id, String deliveryDate, String diningType, String deliveryTime, String groupName, Set<String> makersNames, String driver) {
         this.id = id;
         this.deliveryDate = deliveryDate;
         this.diningType = diningType;

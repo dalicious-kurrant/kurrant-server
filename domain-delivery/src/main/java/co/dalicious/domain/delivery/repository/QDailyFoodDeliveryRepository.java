@@ -123,7 +123,7 @@ public class QDailyFoodDeliveryRepository {
             whereClause.and(orderDailyFood.spot.id.in(spotIds));
         }
         if(driverCode != null) {
-            whereClause.and(dailyFoodDelivery.deliveryInstance.driverSchedule.driver.code.eq(driverCode));
+            whereClause.and(dailyFoodDelivery.deliveryInstance.driver.code.eq(driverCode));
         }
         return queryFactory.selectFrom(dailyFoodDelivery)
                 .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood)
