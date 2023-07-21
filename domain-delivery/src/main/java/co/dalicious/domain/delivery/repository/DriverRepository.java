@@ -9,5 +9,5 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface DriverRepository extends JpaRepository<Driver, BigInteger> {
-    Optional<Driver> findByCode(String code);
+    Optional<Driver> findByName(String name);
 }
