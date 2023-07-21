@@ -106,6 +106,6 @@ public class BoardServiceImpl implements BoardService {
     public void readAllAlarm(SecurityUser securityUser, List<String> ids) {
         User user = userUtil.getUser(securityUser);
         List<PushAlarmHash> pushAlarmHashes = ids.stream().map(id ->pushAlarmHashRepository.findAllPushAlarmHashByUserIdAndId(user.getId(), id)).toList();
-        pushAlarmHashes.forEach(v -> v.updateRead(true));
+        if (!pushAlarmHashes.isEmpty()) pushAlarmHashes.forEach(v -> v.updateRead(true));
     }
 }
