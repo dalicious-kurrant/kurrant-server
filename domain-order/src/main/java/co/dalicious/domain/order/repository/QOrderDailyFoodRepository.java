@@ -99,10 +99,11 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
-    public List<OrderItemDailyFood> findByServiceDate(LocalDate today) {
+    public List<OrderItemDailyFood> findByUserAndServiceDate(User user, LocalDate today, LocalDate endDate) {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
-                .where(orderItemDailyFood.dailyFood.serviceDate.eq(today))
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .where(dailyFood.serviceDate.between(today, endDate), orderItemDailyFood.order.user.eq(user))
                 .fetch();
     }
 
