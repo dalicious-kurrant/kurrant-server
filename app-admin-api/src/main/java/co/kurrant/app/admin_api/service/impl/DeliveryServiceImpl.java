@@ -146,23 +146,23 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public void requestDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo) {
-        if(securityUser == null || securityUser.getUsername().equals("admin")) {
+        if (securityUser == null || securityUser.getUsername().equals("admin")) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
-        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllBySpotAndTimeAndDriver(deliveryStatusVo.getSpotId(), DateUtils.stringToLocalTime(deliveryStatusVo.getDeliveryTime()), securityUser.getUsername());
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllWaitDeliveryBySpotAndTimeAndDriver(deliveryStatusVo.getSpotId(), DateUtils.stringToLocalTime(deliveryStatusVo.getDeliveryTime()), securityUser.getUsername());
         for (DeliveryInstance deliveryInstance : deliveryInstances) {
-            if(deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.WAIT_DELIVERY)) {
+            if (deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.WAIT_DELIVERY)) {
                 deliveryInstance.updateDeliveryStatus(DeliveryStatus.REQUEST_DELIVERED);
 
-                ScheduledFuture<?> scheduledFuture = taskScheduler.schedule(() -> finalizeDelivery(deliveryInstance.getId()), new Date(System.currentTimeMillis() + 20 * 1000));
+                ScheduledFuture<?> scheduledFuture = taskScheduler.schedule(() -> finalizeDelivery(deliveryInstance.getId()), new Date(System.currentTimeMillis() + 10 * 1000));
                 scheduledTasks.put(deliveryInstance.getId(), scheduledFuture);
             }
         }
     }
 
     public void finalizeDelivery(BigInteger deliveryInstanceId) {
-        DeliveryInstance deliveryInstance  = deliveryInstanceRepository.findById(deliveryInstanceId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
-        if (deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.REQUEST_DELIVERED))  {
+        DeliveryInstance deliveryInstance = deliveryInstanceRepository.findById(deliveryInstanceId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        if (deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.REQUEST_DELIVERED)) {
             deliveryInstance.updateDeliveryStatus(DeliveryStatus.DELIVERED);
             deliveryInstanceRepository.save(deliveryInstance);
         }
@@ -171,18 +171,18 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public void cancelDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo) {
-        if(securityUser == null || securityUser.getUsername().equals("admin")) {
+        if (securityUser == null || securityUser.getUsername().equals("admin")) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
-        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllBySpotAndTimeAndDriver(deliveryStatusVo.getSpotId(), DateUtils.stringToLocalTime(deliveryStatusVo.getDeliveryTime()), securityUser.getUsername());
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllRequestDeliveredBySpotAndTimeAndDriver(deliveryStatusVo.getSpotId(), DateUtils.stringToLocalTime(deliveryStatusVo.getDeliveryTime()), securityUser.getUsername());
 
         for (DeliveryInstance deliveryInstance : deliveryInstances) {
-            if(deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.REQUEST_DELIVERED)) {
+            if (deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.REQUEST_DELIVERED)) {
                 deliveryInstance.updateDeliveryStatus(DeliveryStatus.WAIT_DELIVERY);
             }
 
             ScheduledFuture<?> scheduledFuture = scheduledTasks.get(deliveryInstance.getId());
-            if(scheduledFuture != null) {
+            if (scheduledFuture != null) {
                 scheduledFuture.cancel(true);
                 scheduledTasks.remove(deliveryInstance.getId());
             }

@@ -335,7 +335,7 @@ public class UserServiceImpl implements UserService {
             if(orders.isEmpty()) {
                 // sns 가입 내역 삭제
                 List<ProviderEmail> userProviderEmails = providerEmails.stream().filter(v -> v.getUser().equals(user)).toList();
-                providerEmailRepository.deleteAll(userProviderEmails);
+                providerEmailRepository.deleteAllInBatch(userProviderEmails);
 
                 // user group withdrawal
                 List<UserGroup> userGroups = user.getGroups();

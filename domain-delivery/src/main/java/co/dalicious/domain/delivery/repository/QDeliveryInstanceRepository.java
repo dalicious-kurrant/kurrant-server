@@ -141,11 +141,19 @@ public class QDeliveryInstanceRepository {
                 .fetch();
     }
 
-    public List<DeliveryInstance> findAllBySpotAndTimeAndDriver(BigInteger spotId, LocalTime deliveryTime, String driver) {
+    public List<DeliveryInstance> findAllWaitDeliveryBySpotAndTimeAndDriver(BigInteger spotId, LocalTime deliveryTime, String driver) {
         return queryFactory.selectFrom(deliveryInstance)
                 .where(deliveryInstance.spot.id.eq(spotId), deliveryInstance.serviceDate.eq(LocalDate.now()),
                         deliveryInstance.deliveryTime.eq(deliveryTime), deliveryInstance.driver.code.eq(driver),
                         deliveryInstance.deliveryStatus.in(DeliveryStatus.WAIT_DELIVERY))
+                .fetch();
+    }
+
+    public List<DeliveryInstance> findAllRequestDeliveredBySpotAndTimeAndDriver(BigInteger spotId, LocalTime deliveryTime, String driver) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .where(deliveryInstance.spot.id.eq(spotId), deliveryInstance.serviceDate.eq(LocalDate.now()),
+                        deliveryInstance.deliveryTime.eq(deliveryTime), deliveryInstance.driver.code.eq(driver),
+                        deliveryInstance.deliveryStatus.in(DeliveryStatus.REQUEST_DELIVERED))
                 .fetch();
     }
 }
