@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,6 +39,7 @@ public class DeliveryVo {
         private String spotName;
         private BigInteger spotId;
         private Integer deliveryStatus;
+        private String closeableTime;
         private String address;
         private Integer diningType;
         private List<DeliveryMakers> makersList;

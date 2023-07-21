@@ -113,7 +113,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         Set<Group> groupAllList = spotAllList.stream().map(Spot::getGroup).collect(Collectors.toSet());
 
         if (deliveryInstanceList.isEmpty()) return DeliveryVo.create(groupAllList, null, spotAllList);
-        return DeliveryVo.create(groupAllList, deliveryMapper.getDeliveryInfoList(deliveryInstanceList), spotAllList);
+        return DeliveryVo.create(groupAllList, deliveryMapper.getDeliveryInfoList(deliveryInstanceList, scheduledTasks), spotAllList);
     }
 
     @Override
