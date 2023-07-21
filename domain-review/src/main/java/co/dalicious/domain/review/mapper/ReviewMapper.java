@@ -78,11 +78,15 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.createdDateTime", target = "createDate", qualifiedByName = "getCreateDate")
     @Mapping(source = "reviews.updatedDateTime", target = "updateDate", qualifiedByName = "getCreateDate")
     @Mapping(source = "reviews.satisfaction", target = "satisfaction")
-    @Mapping(source = "user", target = "userName", qualifiedByName = "getNameAndNickname")
+    @Mapping(source = "user", target = "userName", qualifiedByName = "getNameOrNickname")
     @Mapping(source = "reviews.good", target = "good")
     @Mapping(source = "reviews.id", target = "reviewId")
     FoodReviewListDto toFoodReviewListDto(Reviews reviews, User user, List<Comments> commentsList, boolean isGood, boolean isWriter);
 
+    @Named("getNameOrNickname")
+    default String getNameOrNickname(User user) {
+        return user.getNickname();
+    }
     @Named("getCreateDate")
     default String getCreateDate(Timestamp createdDateTime) {
         return createdDateTime.toString().substring(0, 10);

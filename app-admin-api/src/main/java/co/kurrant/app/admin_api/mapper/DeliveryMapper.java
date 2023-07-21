@@ -21,14 +21,20 @@ import org.mapstruct.Named;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.math.BigInteger;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
 public interface DeliveryMapper {
 
-    default List<DeliveryVo.DeliveryInfo> getDeliveryInfoList(Collection<DeliveryInstance> deliveryInstances) {
+    default List<DeliveryVo.DeliveryInfo> getDeliveryInfoList(Collection<DeliveryInstance> deliveryInstances, Map<BigInteger, ScheduledFuture<?>> scheduledTasks) {
         return deliveryInstances.stream()
                 .collect(Collectors.groupingBy(v -> new ServiceDateVo(v.getServiceDate(), v.getDeliveryTime())))
                 .entrySet().stream()
@@ -39,7 +45,7 @@ public interface DeliveryMapper {
                     DeliveryVo.DeliveryInfo deliveryInfo = new DeliveryVo.DeliveryInfo();
                     deliveryInfo.setDeliveryTime(DateUtils.timeToString(serviceDateVo.getDeliveryTime()));
                     deliveryInfo.setServiceDate(DateUtils.localDateToString(serviceDateVo.getServiceDate()));
-                    deliveryInfo.setGroup(toDeliveryGroup(instances));
+                    deliveryInfo.setGroup(toDeliveryGroup(instances, scheduledTasks));
                     return deliveryInfo;
                 })
                 .sorted(Comparator.comparing(DeliveryVo.DeliveryInfo::getServiceDate)
@@ -47,7 +53,7 @@ public interface DeliveryMapper {
                 .collect(Collectors.toList());
     }
 
-    default List<DeliveryVo.DeliveryGroup> toDeliveryGroup(List<DeliveryInstance> deliveryInstances) {
+    default List<DeliveryVo.DeliveryGroup> toDeliveryGroup(List<DeliveryInstance> deliveryInstances, Map<BigInteger, ScheduledFuture<?>> scheduledTasks) {
         return deliveryInstances.stream()
                 .collect(Collectors.groupingBy(DeliveryInstance::getSpot))
                 .entrySet().stream()
@@ -61,13 +67,22 @@ public interface DeliveryMapper {
                             .filter(v -> v.equals(DeliveryStatus.WAIT_DELIVERY) || v.equals(DeliveryStatus.REQUEST_DELIVERED))
                             .findAny()
                             .orElse(DeliveryStatus.DELIVERED);
+                    String cloaeableTime = null;
+                    if(deliveryStatus.equals(DeliveryStatus.REQUEST_DELIVERED)) {
+                        ScheduledFuture<?> scheduledFuture = scheduledTasks.get(instancesBySpot.get(0).getId());
+                        if (scheduledFuture != null) {
+                            long remainingMillis = scheduledFuture.getDelay(TimeUnit.MILLISECONDS);
+                            cloaeableTime = DateUtils.localDateTimeToString(LocalDateTime.ofInstant(Instant.ofEpochMilli(System.currentTimeMillis() + remainingMillis), ZoneId.systemDefault()));
+                        }
+                    }
 
                     DeliveryVo.DeliveryGroup deliveryGroup = new DeliveryVo.DeliveryGroup();
                     deliveryGroup.setGroupId(spot.getGroup().getId());
                     deliveryGroup.setGroupName(spot.getGroup().getName());
                     deliveryGroup.setDiningType(firstInstance.getDiningType().getCode());
                     deliveryGroup.setSpotId(spot.getId());
-                    deliveryGroup.setDeliveryStatus(deliveryStatus.getCode()); // Consider if this line is really necessary since it always sets null
+                    deliveryGroup.setDeliveryStatus(deliveryStatus.getCode());
+                    deliveryGroup.setCloseableTime(cloaeableTime);
                     deliveryGroup.setSpotName(spot.getName());
                     deliveryGroup.setAddress(spot.getAddress().addressToString());
                     deliveryGroup.setMakersList(toDeliveryMakers(instancesBySpot));
