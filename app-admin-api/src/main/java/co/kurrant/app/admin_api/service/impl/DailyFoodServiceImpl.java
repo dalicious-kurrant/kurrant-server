@@ -277,10 +277,13 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 waitingDailyFood = null;
             }
 
-            List<LocalTime> groupDeliveryTimes = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getDeliveryTimes();
+            List<String> groupDeliveryTimes = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getDeliveryTimes().stream().map(DateUtils::timeToString).toList();
             // 그룹이 가진 배송시간과 다른 배송시간을 요청한 경우
-            if(dailyFoodDto.getDeliveryTime().size() != groupDeliveryTimes.size() || dailyFoodDto.getDeliveryTime().stream().anyMatch(v -> !groupDeliveryTimes.contains(DateUtils.stringToLocalTime(v)))){
-                throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000020", dailyFoodDto.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다.");
+            if(dailyFoodDto.getDeliveryTime().stream().anyMatch(v -> !groupDeliveryTimes.contains(v))){
+                throw new CustomException(
+                        HttpStatus.BAD_REQUEST,
+                        "CE4000020",
+                        dailyFoodDto.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다." + StringUtils.StringListToString(dailyFoodDto.getDeliveryTime()) + " -> " + StringUtils.StringListToString(groupDeliveryTimes));
             }
             dailyFoodMapper.updateDeliverySchedule(dailyFoodDto.getDeliveryTime(), dailyFoodDto.getMakersPickupTime(), dailyFood.getDailyFoodGroup());
 
