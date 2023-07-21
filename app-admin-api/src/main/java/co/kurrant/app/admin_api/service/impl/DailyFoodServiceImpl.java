@@ -229,12 +229,13 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
         for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
             List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
-            Set<LocalTime> makersPickupTimes = sortedDailyFoodDto.stream()
-                    .flatMap(v -> v.getMakersPickupTime().stream())
-                    .map(DateUtils::stringToLocalTime)
-                    .collect(Collectors.toSet());
-            if (sortedDailyFoodDto.stream().anyMatch(v -> v.getMakersPickupTime().size() != makersPickupTimes.size())) {
-                throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000019", dailyFoodGroupDto.getGroupName() + "스팟의 " + dailyFoodGroupDto.getMakersName() + " 상품별 픽업시간이 동일 하지 않습니다.");
+            List<List<String>> makersPickupTimes = sortedDailyFoodDto.stream()
+                    .map(FoodDto.DailyFood::getMakersPickupTime)
+                    .toList();
+            for (int i = 0; i < sortedDailyFoodDto.size(); i++ ) {
+                if(sortedDailyFoodDto.get(i).getMakersPickupTime().size() != makersPickupTimes.get(i).size()){
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000019", dailyFoodGroupDto.getGroupName() + "스팟의 " + dailyFoodGroupDto.getMakersName() + " 상품별 픽업시간이 동일 하지 않습니다.");
+                }
             }
         }
 
