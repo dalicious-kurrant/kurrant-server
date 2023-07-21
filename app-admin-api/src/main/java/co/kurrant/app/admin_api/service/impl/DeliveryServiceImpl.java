@@ -76,7 +76,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     public LoginResponseDto login(Code loginCode) {
         Driver driver = driverRepository.findByCode(loginCode.getCode())
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
-        LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(driver.getCode(), Collections.singletonList(Role.USER.getAuthority()));
+        LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(driver.getName(), Collections.singletonList(Role.USER.getAuthority()));
         return new LoginResponseDto(loginResponseDto.getAccessToken(), loginResponseDto.getAccessTokenExpiredIn(), driver.getName());
     }
 
