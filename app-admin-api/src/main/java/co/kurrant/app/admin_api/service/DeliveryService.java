@@ -18,7 +18,7 @@ public interface DeliveryService {
     DeliveryVo getDelivery(String startDate, String endDate, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll);
     DeliveryVo getDeliverySchedule(SecurityUser driver, String startDate, String endDate, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll);
     List<DeliveryVo.DeliveryManifest> getDeliveryManifest(Map<String, Object> parameters);
-    void requestDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo);
+    Integer requestDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo);
     void cancelDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo);
     List<MakersDto.Makers> getDeliverMakersByDate(Map<String, Object> parameters);
     List<String> getDeliveryTimesByDate(Map<String, Object> parameters);

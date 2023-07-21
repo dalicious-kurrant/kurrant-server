@@ -145,7 +145,8 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     @Transactional
-    public void requestDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo) {
+    public Integer requestDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo) {
+        final int cancelableTime = 60 * 1000;
         if (securityUser == null || securityUser.getUsername().equals("admin")) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
@@ -154,10 +155,11 @@ public class DeliveryServiceImpl implements DeliveryService {
             if (deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.WAIT_DELIVERY)) {
                 deliveryInstance.updateDeliveryStatus(DeliveryStatus.REQUEST_DELIVERED);
 
-                ScheduledFuture<?> scheduledFuture = taskScheduler.schedule(() -> finalizeDelivery(deliveryInstance.getId()), new Date(System.currentTimeMillis() + 10 * 1000));
+                ScheduledFuture<?> scheduledFuture = taskScheduler.schedule(() -> finalizeDelivery(deliveryInstance.getId()), new Date(System.currentTimeMillis() + cancelableTime));
                 scheduledTasks.put(deliveryInstance.getId(), scheduledFuture);
             }
         }
+        return cancelableTime;
     }
 
     public void finalizeDelivery(BigInteger deliveryInstanceId) {

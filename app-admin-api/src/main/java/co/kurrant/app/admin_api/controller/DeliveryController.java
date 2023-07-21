@@ -77,8 +77,8 @@ public class DeliveryController {
     @PostMapping("/status/complete")
     public ResponseMessage requestDeliveryComplete(Authentication authentication, @RequestBody DeliveryStatusVo deliveryStatusVo) {
         SecurityUser driver = UserUtil.driver(authentication);
-        deliveryService.requestDeliveryComplete(driver, deliveryStatusVo);
         return ResponseMessage.builder()
+                .data(deliveryService.requestDeliveryComplete(driver, deliveryStatusVo))
                 .message("배송 완료 요청에 성공하였습니다.")
                 .build();
     }
