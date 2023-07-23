@@ -736,7 +736,7 @@ public class ExcelServiceImpl implements ExcelService {
         // 수수료 셀 추가
         Row chargeRow = sheet.createRow(startRow + 1);
         Cell cell2 = chargeRow.createCell(6);
-        cell2.setCellValue("배송 수수료");
+        cell2.setCellValue("물류비");
         cell2.setCellStyle(boldCenter(sheet.getWorkbook()));
 
         Cell cell2_2 = chargeRow.createCell(7);

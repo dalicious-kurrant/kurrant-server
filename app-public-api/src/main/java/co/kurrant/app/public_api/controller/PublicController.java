@@ -31,13 +31,12 @@ public class PublicController {
                 .build();
     }
 
-    @Operation(summary = "멤버십 구독 정보 조회", description = "멤버십 구독 정보를 조회한다.")
+    @Operation(summary = "랜덤 닉네임 생성", description = "랜덤 닉네임을 생성한다.")
     @GetMapping("/nicknames")
-    public ResponseMessage generateRandomNickname(Authentication authentication) throws IOException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
+    public ResponseMessage generateRandomNickname() throws IOException {
         return ResponseMessage.builder()
-                .data(userService.generateRandomNickName(securityUser))
-                .message("멤버십 구독 정보 조회에 성공하셨습니다.")
+                .data(userService.generateRandomNickName())
+                .message("랜덤 닉네임 생성에 성공하셨습니다.")
                 .build();
     }
 }

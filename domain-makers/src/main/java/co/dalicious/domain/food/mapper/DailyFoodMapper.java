@@ -111,6 +111,7 @@ public interface DailyFoodMapper {
     ;
 
     @Mapping(source = "sort", target = "sort")
+    @Mapping(source = "lastOrderTime", target = "lastOrderTime")
     @Mapping(source = "totalCount", target = "totalReviewCount")
     @Mapping(source = "reviewAverage", target = "reviewAverage")
     @Mapping(source = "dailyFood.diningType.code", target = "diningType")
@@ -132,7 +133,7 @@ public interface DailyFoodMapper {
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
-    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount, Integer sort);
+    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount, Integer sort, String lastOrderTime);
 
     @AfterMapping
     default void afterMapping(@MappingTarget DailyFoodDto dto, DailyFood dailyFood, Integer capacity, List<UserRecommends> userRecommends) {
@@ -186,11 +187,13 @@ public interface DailyFoodMapper {
 
     default void updateDeliverySchedule(List<String> deliveryTimeList, List<String> pickupTimeList, @MappingTarget DailyFoodGroup dailyFoodGroup) {
         if(deliveryTimeList.size() != pickupTimeList.size()) {
-            throw new ApiException(ExceptionEnum.EXCEL_INTEGRITY_ERROR);
+            throw new ApiException(ExceptionEnum.EXCEL_TIME_LIST_NOT_EQUAL);
         }
         List<DeliverySchedule> newDeliveryScheduleList = new ArrayList<>();
-        for (String deliveryTime : deliveryTimeList) {
-            newDeliveryScheduleList.add(new DeliverySchedule(DateUtils.stringToLocalTime(deliveryTime), DateUtils.stringToLocalTime(pickupTimeList.get(deliveryTimeList.indexOf(deliveryTime)))));
+        for (String deliveryTimeString : deliveryTimeList) {
+            LocalTime deliveryTime = DateUtils.stringToLocalTime(deliveryTimeString);
+            LocalTime pickupTime = DateUtils.stringToLocalTime(pickupTimeList.get(deliveryTimeList.indexOf(deliveryTimeString)));
+            newDeliveryScheduleList.add(new DeliverySchedule(deliveryTime, pickupTime));
         }
 
         dailyFoodGroup.updateDeliverySchedules(newDeliveryScheduleList);

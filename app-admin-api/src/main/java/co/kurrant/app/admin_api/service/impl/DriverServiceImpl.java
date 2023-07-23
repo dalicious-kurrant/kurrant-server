@@ -1,26 +1,44 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.delivery.dto.DeliveryInstanceDto;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.delivery.entity.Driver;
-import co.dalicious.domain.delivery.repository.DriverRepository;
+import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
+import co.dalicious.domain.delivery.repository.*;
+import co.dalicious.domain.food.dto.DeliveryInfoDto;
+import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.food.repository.QMakersRepository;
 import co.dalicious.domain.order.dto.OrderDto;
+import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.delivery.DriverDto;
-import co.kurrant.app.admin_api.dto.delivery.ScheduleDto;
 import co.kurrant.app.admin_api.service.DriverService;
-import exception.ApiException;
 import exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import javax.transaction.Transactional;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService {
 
     private final DriverRepository driverRepository;
+    private final QDailyFoodRepository qDailyFoodRepository;
+    private final QMakersRepository qMakersRepository;
+    private final QGroupRepository qGroupRepository;
+    private final QDriverRepository qDriverRepository;
+    private final DeliveryInstanceMapper deliveryInstanceMapper;
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
+    private final DeliveryInstanceRepository deliveryInstanceRepository;
+
 
     @Override
     public List<Driver> getDrivers() {
@@ -47,14 +65,40 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public List<ScheduleDto> getDriverSchedule(Map<String, Object> parameters) {
-        return null;
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<DeliveryInstanceDto> getDriverSchedule(Map<String, Object> parameters) {
+        LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
+        LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
+
+        List<DeliveryInfoDto> tuples = qDailyFoodRepository.groupingByServiceDateAndRoute(startDate, endDate);
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByPeriod(startDate, endDate);
+
+        return deliveryInstanceMapper.toScheduleDtos(tuples, deliveryInstances);
     }
 
     @Override
-    public void excelDriverSchedule(List<ScheduleDto> scheduleDtos) {
-
+    @Transactional
+    public void postDriverSchedule(List<DeliveryInstanceDto> deliveryInstanceDtos) {
+        Set<String> driverNames = deliveryInstanceDtos.stream()
+                .map(DeliveryInstanceDto::getDriver)
+                .collect(Collectors.toSet());
+        Set<String> makersNames = deliveryInstanceDtos.stream()
+                .flatMap(dto -> dto.getMakersNames().stream())
+                .collect(Collectors.toSet());
+        Set<String> groupNames = deliveryInstanceDtos.stream()
+                .map(DeliveryInstanceDto::getGroupName)
+                .collect(Collectors.toSet());
+        List<Driver> drivers = qDriverRepository.findAllByDriverNames(driverNames);
+        List<Makers> makers = qMakersRepository.getMakersByName(makersNames);
+        List<Group> groups = qGroupRepository.findAllByNames(groupNames);
+        for (DeliveryInstanceDto scheduleDto : deliveryInstanceDtos) {
+            if (scheduleDto.isTempDto()) {
+                List<DeliveryInstance> deliveryInstances = deliveryInstanceMapper.toEntities(scheduleDto, makers, groups);
+                deliveryInstanceRepository.saveAll(deliveryInstances);
+            }
+            List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllBy(DateUtils.stringToDate(scheduleDto.getDeliveryDate()), DiningType.ofString(scheduleDto.getDiningType()), DateUtils.stringToLocalTime(scheduleDto.getDeliveryTime()), scheduleDto.getMakersNames(), scheduleDto.getGroupName());
+            Driver driver = drivers.stream().filter(v -> v.getName().equals(scheduleDto.getDriver())).findAny().orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400028", "일치하는 배송 기사를 찾을 수 없습니다."));
+            deliveryInstances.forEach(v -> v.updateDriver(driver));
+        }
     }
-
-
 }

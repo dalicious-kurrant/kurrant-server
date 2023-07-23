@@ -2,6 +2,8 @@ package co.dalicious.domain.delivery.entity;
 
 import co.dalicious.domain.client.entity.CorporationSpot;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.delivery.entity.converter.DeliveryStatusConverter;
+import co.dalicious.domain.delivery.entity.enums.DeliveryStatus;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -24,27 +26,43 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "delivery__delivery_instance")
+@Table(name = "delivery__delivery_instance", uniqueConstraints=@UniqueConstraint(columnNames={"service_date", "e_dining_type", "delivery_time", "makers_id"}))
 public class DeliveryInstance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private BigInteger id;
 
+    @Column(name = "service_date")
     private LocalDate serviceDate;
     @Convert(converter = DiningTypeConverter.class)
+    @Column(name = "e_dining_type")
     private DiningType diningType;
+
+    @Convert(converter = DeliveryStatusConverter.class)
+    @Column(name = "e_delivery_status", columnDefinition = "default 0")
+    private DeliveryStatus deliveryStatus = DeliveryStatus.WAIT_DELIVERY;
+
+    @Column(name = "delivery_time")
     private LocalTime deliveryTime;
+
+    @Column(name = "order_number")
     private Integer orderNumber;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "makers_id")
     private Makers makers;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "spot_id")
     private Spot spot;
 
     @OneToMany(mappedBy = "deliveryInstance", fetch = FetchType.LAZY)
     private List<DailyFoodDelivery> dailyFoodDeliveries;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "driver_id")
+    private Driver driver;
 
     @Builder
     public DeliveryInstance(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Integer orderNumber, Makers makers, Spot spot) {
@@ -88,5 +106,13 @@ public class DeliveryInstance {
                 .map(v -> v.getPickUpTime(deliveryTime))
                 .findAny()
                 .orElse(null);
+    }
+
+    public void updateDriver(Driver driver) {
+        this.driver = driver;
+    }
+
+    public void updateDeliveryStatus(DeliveryStatus deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
     }
 }

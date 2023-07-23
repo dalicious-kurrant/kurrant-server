@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.NumberUtils;
@@ -129,4 +130,18 @@ public class OrderItemDailyFood extends OrderItem {
         }
         return null;
     }
+
+    public String getLastOrderTime(){
+
+        DayAndTime makersLastOrderTime = this.dailyFood.getFood().getMakers().getMakersCapacity(this.dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTIme = this.dailyFood.getGroup().getMealInfo(this.dailyFood.getDiningType()).getLastOrderTime();
+
+        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
+        if (makersLastOrderTime != null && DayAndTime.toLocalDate(makersLastOrderTime).isBefore(DayAndTime.toLocalDate(mealInfoLastOrderTIme))){
+            return makersLastOrderTime.dayAndTimeToStringByDate(this.dailyFood.getServiceDate());
+        }
+        return mealInfoLastOrderTIme.dayAndTimeToStringByDate(this.dailyFood.getServiceDate());
+
+    }
+
 }

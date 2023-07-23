@@ -168,6 +168,11 @@ public class CartServiceImpl implements CartService {
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, spot, dailyFood);
                 CartDailyFoodDto.DailyFood cartFood = cartDailyFoodMapper.toDto(cartDailyFood, discountDto);
                 cartFood.setCapacity(dailyFoodCapacityMap.get(dailyFood));
+
+                //주문마감시간 추가
+                String lastOrderTime = getLastOrderTime(dailyFood);
+
+                cartFood.setLastOrderTime(lastOrderTime);
                 cartDailyFoodDtoMap.add(serviceDiningDto, cartFood);
             }
             // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
@@ -216,6 +221,17 @@ public class CartServiceImpl implements CartService {
                 .spotCarts(spotCartsList)
                 .userPoint(user.getPoint())
                 .build();
+    }
+
+    private String getLastOrderTime(DailyFood dailyFood) {
+        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTIme = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+
+        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
+        if (makersLastOrderTime != null && DayAndTime.toLocalDate(makersLastOrderTime).isBefore(DayAndTime.toLocalDate(mealInfoLastOrderTIme))){
+            return makersLastOrderTime.dayAndTimeToStringByDateForCart(dailyFood.getServiceDate());
+        }
+        return mealInfoLastOrderTIme.dayAndTimeToStringByDateForCart(dailyFood.getServiceDate());
     }
 
     @Override

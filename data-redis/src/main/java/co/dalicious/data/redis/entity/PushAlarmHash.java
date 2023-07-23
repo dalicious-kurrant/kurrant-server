@@ -41,7 +41,7 @@ public class PushAlarmHash {
         this.reviewId = reviewId;
     }
 
-    public void updateRead(Boolean read) {
+    public void setRead(Boolean read) {
         isRead = read;
     }
 }

@@ -9,6 +9,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.order.dto.SpotDeliveryTimeDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.system.enums.DiningType;
@@ -90,7 +91,7 @@ public interface OrderDailyFoodByMakersMapper {
             deliveryGroupsList.add(deliveryGroups);
         }
         deliveryGroupsList = deliveryGroupsList.stream()
-                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.DeliveryGroups::getPickUpTime))
+                .sorted(Comparator.comparing(v -> (v.getPickUpTime() != null ? LocalTime.parse(v.getPickUpTime()) : LocalTime.MIN), Comparator.nullsLast(LocalTime::compareTo)))
                 .toList();
         return deliveryGroupsList;
     }
@@ -119,23 +120,24 @@ public interface OrderDailyFoodByMakersMapper {
     }
 
     default List<OrderDailyFoodByMakersDto.FoodBySpot> toFoodBySpot(List<OrderItemDailyFood> orderItemDailyFoods) {
-        MultiValueMap<Spot, OrderItemDailyFood> spotMap = new LinkedMultiValueMap<>();
+        MultiValueMap<SpotDeliveryTimeDto, OrderItemDailyFood> spotMap = new LinkedMultiValueMap<>();
         List<OrderDailyFoodByMakersDto.FoodBySpot> foodBySpots = new ArrayList<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            spotMap.add(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot(), orderItemDailyFood);
+            SpotDeliveryTimeDto spotDeliveryTimeDto = new SpotDeliveryTimeDto(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot(), orderItemDailyFood.getDeliveryTime());
+            spotMap.add(spotDeliveryTimeDto, orderItemDailyFood);
         }
-        for (Spot spot : spotMap.keySet()) {
+        for (SpotDeliveryTimeDto spot : spotMap.keySet()) {
             OrderDailyFoodByMakersDto.FoodBySpot foodBySpot = new OrderDailyFoodByMakersDto.FoodBySpot();
             //FIXME: 배송 ID 설정
-            foodBySpot.setDeliveryId(spot.getId().toString());
-            foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot)).getCode());
-            foodBySpot.setDeliveryTime(DateUtils.timeToString(orderItemDailyFoods.get(0).getDeliveryTime()));
-            foodBySpot.setAddress1(spot.getAddress().addressToString());
-            foodBySpot.setAddress2(spot.getAddress().getAddress2()); //수정 필요
-            foodBySpot.setSpotName(spot.getName());
-            foodBySpot.setGroupName(spot instanceof MySpot ? null : spot.getGroup().getName());
-            foodBySpot.setUserName(Hibernate.getClass(spot) == CorporationSpot.class ? null : spotMap.get(spot).get(0).getOrder().getUser().getName());
-            foodBySpot.setPhone(Hibernate.getClass(spot) == CorporationSpot.class ? null : spotMap.get(spot).get(0).getOrder().getUser().getPhone());
+            foodBySpot.setDeliveryId(spot.getSpot().getId().toString());
+            foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot.getSpot())).getCode());
+            foodBySpot.setDeliveryTime(DateUtils.timeToString(spot.getDeliveryTime()));
+            foodBySpot.setAddress1(spot.getSpot().getAddress().addressToString());
+            foodBySpot.setAddress2(spot.getSpot().getAddress().getAddress2()); //수정 필요
+            foodBySpot.setSpotName(spot.getSpot().getName());
+            foodBySpot.setGroupName(spot.getSpot() instanceof MySpot ? null : spot.getSpot().getGroup().getName());
+            foodBySpot.setUserName(Hibernate.getClass(spot.getSpot()) == CorporationSpot.class ? null : spotMap.get(spot).get(0).getOrder().getUser().getName());
+            foodBySpot.setPhone(Hibernate.getClass(spot.getSpot()) == CorporationSpot.class ? null : spotMap.get(spot).get(0).getOrder().getUser().getPhone());
             foodBySpot.setFoods(toFoods(spotMap.get(spot)));
             foodBySpot.setFoodCount(foodBySpot.getFoodCount());
             foodBySpots.add(foodBySpot);

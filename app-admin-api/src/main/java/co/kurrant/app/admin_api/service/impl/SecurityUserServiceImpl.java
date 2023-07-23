@@ -22,9 +22,9 @@ public class SecurityUserServiceImpl implements UserDetailsService {
         if(username.equals("admin")){
             return new SecurityUser(username, "15779612", Role.ADMIN);
         }
-        Driver driver = driverRepository.findByCode(username)
+        Driver driver = driverRepository.findByName(username)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
-        if(driver.getCode().equals(username)) {
+        if(driver.getName().equals(username)) {
             return new SecurityUser(username, "15779612", Role.USER);
         }
         throw new ApiException(ExceptionEnum.UNAUTHORIZED);

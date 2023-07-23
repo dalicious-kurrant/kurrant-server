@@ -10,18 +10,18 @@ import java.util.Objects;
 
 @Getter
 @Setter
-public class ServiceDateDto {
+public class ServiceDateVo {
     private LocalDate serviceDate;
     private LocalTime deliveryTime;
 
     @Builder
-    public ServiceDateDto(LocalDate serviceDate, LocalTime deliveryTime) {
+    public ServiceDateVo(LocalDate serviceDate, LocalTime deliveryTime) {
         this.serviceDate = serviceDate;
         this.deliveryTime = deliveryTime;
     }
 
     public boolean equals(Object obj) {
-        if(obj instanceof ServiceDateDto tmp) {
+        if(obj instanceof ServiceDateVo tmp) {
             return serviceDate.equals(tmp.serviceDate) && deliveryTime.equals(tmp.deliveryTime);
         }
         return false;

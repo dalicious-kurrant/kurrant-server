@@ -250,7 +250,8 @@ public class QReviewRepository {
 
     public List<Reviews> findAllByfoodIds(Collection<BigInteger> ids) {
         return queryFactory.selectFrom(reviews)
-                .where(reviews.food.id.in(ids))
+                .where(reviews.food.id.in(ids),
+                        reviews.forMakers.eq(Boolean.FALSE)) //사장님만 보이기는 제외
                 .fetch();
     }
 
@@ -292,17 +293,16 @@ public class QReviewRepository {
             whereClause.and(keywordFilter(keyword));
         }
 
-     if (sort == 0){ //별점순
-         QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                 .where(reviews.food.id.eq(id),whereClause, reviews.forMakers.eq(false))
-                 .orderBy(reviews.satisfaction.desc(),
-                         reviews.createdDateTime.desc())
-                 .offset(pageable.getOffset())
-                 .limit(pageable.getPageSize())
-                 .fetchResults();
-         return new PageImpl<>(result.getResults(), pageable, result.getTotal());
-     }
-
+        if (sort == 0){ //별점순
+            QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
+                    .where(reviews.food.id.eq(id), whereClause, reviews.forMakers.eq(false))
+                    .orderBy(reviews.satisfaction.desc(),
+                            reviews.createdDateTime.desc())
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .fetchResults();
+            return new PageImpl<>(result.getResults(), pageable, result.getTotal());
+        }
         if (sort == 1){    //최신순
             QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
                  .where(reviews.food.id.eq(id), whereClause, reviews.forMakers.eq(false))
@@ -337,11 +337,6 @@ public class QReviewRepository {
     //키워드필터
     private BooleanExpression keywordFilter(String keywordFilter){
         return reviews.content.contains(keywordFilter);
-    }
-
-    //포토필터
-    private BooleanExpression photoFilter(Integer photo){
-        return reviews.images.isNotEmpty();
     }
 
     public void plusLike(BigInteger reviewId) {
@@ -440,4 +435,15 @@ public class QReviewRepository {
         return averageAndTotalCount;
     }
 
+    public List<Reviews> findAllByfoodIdsAndForMakers(BigInteger foodId) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(Boolean.FALSE))
+                .fetch();
+    }
+
+    public List<Reviews> findAllByFoodIdForStar(BigInteger foodId) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(Boolean.FALSE))
+                .fetch();
+    }
 }

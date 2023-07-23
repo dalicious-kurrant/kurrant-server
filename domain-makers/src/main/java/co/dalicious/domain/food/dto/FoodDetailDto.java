@@ -4,12 +4,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
 @Schema(description = "식품 상세정보 DTO")
 @Getter
 @Setter
 public class FoodDetailDto {
+    private BigInteger dailyFoodId;
     private String makersName;
     private String name;
     private Integer capacity;
@@ -33,4 +35,6 @@ public class FoodDetailDto {
     private Integer carbohydrate;
     private List<OriginDto> origins;
     private List<String> allergies;
+    private String lastOrderTime;
+    private Boolean isMembership;
 }

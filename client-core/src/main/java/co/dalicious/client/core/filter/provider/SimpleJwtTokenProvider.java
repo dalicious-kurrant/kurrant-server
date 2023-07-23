@@ -43,9 +43,9 @@ public class SimpleJwtTokenProvider {
     }
 
     // Jwt 토큰 생성
-    public LoginTokenDto createToken(String userPk, List<String> roles) {
+    public LoginTokenDto createToken(String userName, List<String> roles) {
         // Access Token 생성
-        Claims claims = Jwts.claims().setSubject(userPk);
+        Claims claims = Jwts.claims().setSubject(userName);
         claims.put("roles", roles);
         Date now = new Date();
 

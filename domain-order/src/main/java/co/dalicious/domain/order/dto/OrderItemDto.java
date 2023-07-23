@@ -13,6 +13,7 @@ public class OrderItemDto {
     private BigInteger dailyFoodId;
     private String name;
     private String deliveryTime;
+    private String lastOrderTime;
     private Integer dailyFoodStatus;
     private Integer orderStatus;
     private String makers;

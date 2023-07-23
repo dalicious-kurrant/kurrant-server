@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.security.core.Authentication;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -19,7 +20,7 @@ public interface AuthService {
     // 이메일 인증
     void mailConfirm(Authentication authentication, MailMessageDto mailMessageDto, String type) throws Exception;
     // Sms 인증
-    void sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException;
+    String sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws IOException, NoSuchAlgorithmException, InvalidKeyException;
     // 회원가입
     User signUp(SignUpRequestDto signUpRequestDto);
     // 로그인

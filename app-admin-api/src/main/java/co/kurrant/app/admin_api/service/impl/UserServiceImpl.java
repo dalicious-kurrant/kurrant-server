@@ -294,6 +294,7 @@ public class UserServiceImpl implements UserService {
                         .forEach(g -> g.updateOpenGroupUserCount(1, true));
             }
             user.changePhoneNumber(saveUserListRequestDto.getPhone());
+            user.updateNickname(saveUserListRequestDto.getNickname());
             if (saveUserListRequestDto.getName() != null && !user.getName().equals(saveUserListRequestDto.getName()))
                 user.updateName(saveUserListRequestDto.getName());
             if (saveUserListRequestDto.getRole() != null && !user.getRole().equals(Role.ofRoleName(saveUserListRequestDto.getRole())))
@@ -303,7 +304,6 @@ public class UserServiceImpl implements UserService {
             if (saveUserListRequestDto.getPoint() != null) {
                 BigDecimal point = BigDecimal.valueOf(saveUserListRequestDto.getPoint());
                 if (!user.getPoint().equals(point)) {
-
                     BigDecimal differencePoint = point.subtract(user.getPoint());
                     // 차액이 플러스면
                     if(differencePoint.compareTo(BigDecimal.valueOf(0)) > 0) {
@@ -335,7 +335,7 @@ public class UserServiceImpl implements UserService {
             if(orders.isEmpty()) {
                 // sns 가입 내역 삭제
                 List<ProviderEmail> userProviderEmails = providerEmails.stream().filter(v -> v.getUser().equals(user)).toList();
-                providerEmailRepository.deleteAll(userProviderEmails);
+                providerEmailRepository.deleteAllInBatch(userProviderEmails);
 
                 // user group withdrawal
                 List<UserGroup> userGroups = user.getGroups();
@@ -368,6 +368,7 @@ public class UserServiceImpl implements UserService {
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
                     .phone(createUserDto.getPhone())
                     .name(createUserDto.getName())
+                    .nickname(createUserDto.getNickname())
                     .role(createUserDto.getRole() == null ? Role.USER : Role.ofRoleName(createUserDto.getRole()))
                     .paymentPassword((createUserDto.getPaymentPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPaymentPassword())).build();
 

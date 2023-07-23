@@ -1,9 +1,6 @@
 package co.kurrant.app.public_api.mapper.food;
 
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.CorporationMealInfo;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.dalicious.domain.food.dto.DiscountDto;
@@ -112,6 +109,7 @@ public interface PublicDailyFoodMapper {
     }
 
     @Mapping(source = "sort", target = "sort")
+    @Mapping(source = "dailyFood", target = "lastOrderTime" , qualifiedByName = "getLastOrderTime")
     @Mapping(source = "totalCount", target = "totalReviewCount")
     @Mapping(source = "reviewAverage", target = "reviewAverage")
     @Mapping(source = "dailyFood.diningType.code", target = "diningType")
@@ -134,6 +132,19 @@ public interface PublicDailyFoodMapper {
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
     DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount, Integer sort);
+
+    @Named("getLastOrderTime")
+    default String getLastOrderTime(DailyFood dailyFood){
+        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTIme = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+
+        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
+        if (makersLastOrderTime != null && DayAndTime.toLocalDate(makersLastOrderTime).isBefore(DayAndTime.toLocalDate(mealInfoLastOrderTIme))){
+            return makersLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+        }
+        return mealInfoLastOrderTIme.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+
+    }
 
     @Named("getStatus")
     default Integer getStatus(DailyFoodStatus dailyFoodStatus) {

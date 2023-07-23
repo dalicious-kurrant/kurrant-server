@@ -18,6 +18,7 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.*;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.client_api.dto.MemberIdListDto;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.dto.MemberListResponseDto;
@@ -242,10 +243,10 @@ public class MemberServiceImpl implements MemberService {
             if(email == null || email.isBlank()) throw new ApiException(ExceptionEnum.NOT_VALID_EMAIL);
 
             if (employee.isPresent()) {
-                email = email.replace(" ", "");
+                email = email.replaceAll("\\s", "");
                 qEmployeeRepository.patchEmployee(employeeDto.getId(), phone, email, name);
             } else {
-                email = email.replace(" ", "");
+                email = email.replaceAll("\\s", "");
                 Employee newEmployee = employeeMapper.toEntity(email, name, phone, corporation);
                 employeeRepository.save(newEmployee);
             }
