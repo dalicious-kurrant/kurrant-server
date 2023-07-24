@@ -17,6 +17,8 @@ import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.order.repository.OrderItemDailyFoodRepository;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.Role;
@@ -38,8 +40,10 @@ import co.kurrant.app.admin_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
@@ -67,6 +71,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final Map<BigInteger, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
     private final TaskScheduler taskScheduler;
     private final DeliveryInstanceRepository deliveryInstanceRepository;
+    private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
 
 
     @Override
@@ -98,7 +103,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional(readOnly = true)
     public DeliveryVo getDeliverySchedule(SecurityUser driver, String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
-        String driverCode = UserUtil.getCode(driver) == null ? null : driver.getUsername().equals("admin") ? null : UserUtil.getCode(driver);
+            String driverCode = UserUtil.getCode(driver) == null ? null : driver.getUsername().equals("admin") ? null : UserUtil.getCode(driver);
 
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
@@ -159,11 +164,18 @@ public class DeliveryServiceImpl implements DeliveryService {
         return cancelableTime;
     }
 
+    @Transactional
     public void finalizeDelivery(BigInteger deliveryInstanceId) {
         DeliveryInstance deliveryInstance = deliveryInstanceRepository.findById(deliveryInstanceId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         if (deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.REQUEST_DELIVERED)) {
             deliveryInstance.updateDeliveryStatus(DeliveryStatus.DELIVERED);
             deliveryInstanceRepository.save(deliveryInstance);
+            List<OrderItemDailyFood> orderItemDailyFoods = deliveryInstance.getOrderItemDailyFoods();
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                orderItemDailyFood = (OrderItemDailyFood) Hibernate.unproxy(orderItemDailyFood);
+                orderItemDailyFood.updateOrderStatus(OrderStatus.DELIVERED);
+            }
+            orderItemDailyFoodRepository.saveAll(orderItemDailyFoods);
         }
     }
 
