@@ -101,7 +101,7 @@ public interface PublicDailyFoodMapper {
                     dailyFoodByDate.setServiceDate(DateUtils.localDateToString(entry.getKey().getKey()));
                     dailyFoodByDate.setDiningType(entry.getKey().getValue().getCode());
                     dailyFoodByDate.setSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, entry.getKey().getKey(), entry.getKey().getValue()));
-                    dailyFoodByDate.setDailyFoodDtos(dailyFoodDtos);
+                    dailyFoodByDate.setDailyFoodDtos(dailyFoodDtos.stream().sorted(Comparator.comparing(DailyFoodDto::getSort).reversed()).toList());
                     return dailyFoodByDate;
                 })
                 .toList();
