@@ -1,7 +1,17 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
+import co.dalicious.client.alarm.repository.PushAlarmRepository;
+import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
+import co.dalicious.client.alarm.service.PushService;
+import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.LoginTokenDto;
 import co.dalicious.client.core.filter.provider.SimpleJwtTokenProvider;
+import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -17,8 +27,11 @@ import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.order.repository.OrderItemDailyFoodRepository;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
@@ -38,8 +51,10 @@ import co.kurrant.app.admin_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
@@ -67,6 +82,12 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final Map<BigInteger, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
     private final TaskScheduler taskScheduler;
     private final DeliveryInstanceRepository deliveryInstanceRepository;
+    private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
+    private final QPushAlarmsRepository qPushAlarmsRepository;
+    private final SseService sseService;
+    private final PushService pushService;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
+    private final PushUtil pushUtil;
 
 
     @Override
@@ -98,7 +119,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional(readOnly = true)
     public DeliveryVo getDeliverySchedule(SecurityUser driver, String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
-        String driverCode = driver.getUsername().equals("admin") ? null : UserUtil.getCode(driver);
+            String driverCode = UserUtil.getCode(driver) == null ? null : driver.getUsername().equals("admin") ? null : UserUtil.getCode(driver);
 
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
@@ -159,11 +180,43 @@ public class DeliveryServiceImpl implements DeliveryService {
         return cancelableTime;
     }
 
+    @Transactional
     public void finalizeDelivery(BigInteger deliveryInstanceId) {
-        DeliveryInstance deliveryInstance = deliveryInstanceRepository.findById(deliveryInstanceId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        DeliveryInstance deliveryInstance = deliveryInstanceRepository.findByIdWithDailyFoodDeliveries(deliveryInstanceId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
+        List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
+        List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
         if (deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.REQUEST_DELIVERED)) {
             deliveryInstance.updateDeliveryStatus(DeliveryStatus.DELIVERED);
             deliveryInstanceRepository.save(deliveryInstance);
+            List<OrderItemDailyFood> orderItemDailyFoods = deliveryInstance.getOrderItemDailyFoods();
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                if(OrderStatus.beforeDelivered().contains(orderItemDailyFood.getOrderStatus())) {
+                    orderItemDailyFood.updateOrderStatus(OrderStatus.DELIVERED);
+                }
+
+                // PUSH ALARM 옵션
+                User user = orderItemDailyFood.getOrder().getUser();
+                String foodName = orderItemDailyFood.getName();
+                String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
+                String message = PushUtil.getContextDeliveredOrderItem(pushAlarms.getMessage(), user.getName(), foodName, spotName);
+                PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(user, PushCondition.DELIVERED_ORDER_ITEM, message);
+                if(pushRequestDtoByUser != null) {
+                    pushRequestDtoByUsers.add(pushRequestDtoByUser);
+                }
+                PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                        .title(PushCondition.DELIVERED_ORDER_ITEM.getTitle())
+                        .isRead(false)
+                        .message(message)
+                        .userId(user.getId())
+                        .type(AlarmType.ORDER_STATUS.getAlarmType())
+                        .build();
+                pushAlarmHashes.add(pushAlarmHash);
+                sseService.send(user.getId(), 6, null, null, null);
+            }
+            orderItemDailyFoodRepository.saveAll(orderItemDailyFoods);
+            pushService.sendToPush(pushRequestDtoByUsers);
+            pushAlarmHashRepository.saveAll(pushAlarmHashes);
         }
     }
 

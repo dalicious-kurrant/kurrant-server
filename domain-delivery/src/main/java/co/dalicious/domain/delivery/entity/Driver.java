@@ -19,6 +19,7 @@ public class Driver {
     private BigInteger id;
 
     @Comment("배송 기사 이름")
+    @Column(unique = true)
     private String name;
 
     @Comment("배송 기사 코드")
