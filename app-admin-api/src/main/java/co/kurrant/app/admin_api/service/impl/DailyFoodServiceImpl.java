@@ -271,11 +271,11 @@ public class DailyFoodServiceImpl implements DailyFoodService {
 
             List<String> groupDeliveryTimes = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getDeliveryTimes().stream().map(DateUtils::timeToString).toList();
             // 그룹이 가진 배송시간과 다른 배송시간을 요청한 경우
-            if(dailyFoodDto.getDeliveryTime().stream().anyMatch(v -> !groupDeliveryTimes.contains(v))){
+            if(dailyFoodDto.getDeliveryTime().size() != groupDeliveryTimes.size() || dailyFoodDto.getDeliveryTime().stream().anyMatch(v -> !groupDeliveryTimes.contains(v))){
                 throw new CustomException(
                         HttpStatus.BAD_REQUEST,
                         "CE4000020",
-                        dailyFoodDto.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다." + StringUtils.StringListToString(dailyFoodDto.getDeliveryTime()) + " -> " + StringUtils.StringListToString(groupDeliveryTimes));
+                        dailyFoodDto.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다. " + StringUtils.StringListToString(dailyFoodDto.getDeliveryTime()) + " -> " + StringUtils.StringListToString(groupDeliveryTimes));
             }
             dailyFoodMapper.updateDeliverySchedule(dailyFoodDto.getDeliveryTime(), dailyFoodDto.getMakersPickupTime(), dailyFood.getDailyFoodGroup());
 
@@ -345,8 +345,11 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                         .map(v -> v.getMealInfo(diningType))
                         .findAny().orElse(null);
 
-                if(deliveryTimeList.stream().anyMatch(v -> Objects.requireNonNull(mealInfo).getDeliveryTimes().contains(DateUtils.stringToLocalTime(v)))) {
-                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000020", dailyFood.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다.");
+                List<String> groupDeliveryTimes = DateUtils.timesToStringList(Objects.requireNonNull(mealInfo).getDeliveryTimes());
+
+                if(deliveryTimeList.size() != groupDeliveryTimes.size() || deliveryTimeList.stream().anyMatch(v -> !groupDeliveryTimes.contains(v))) {
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000020",
+                            dailyFood.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다. " + StringUtils.StringListToString(deliveryTimeList) + " -> " + StringUtils.StringListToString(groupDeliveryTimes));
                 }
 
                 if(makers != null && dailyFood.getMakersPickupTime().size() == dailyFood.getDeliveryTime().size()) {
