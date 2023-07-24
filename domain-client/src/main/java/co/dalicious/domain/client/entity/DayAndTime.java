@@ -1,13 +1,12 @@
 package co.dalicious.domain.client.entity;
 
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.util.DateUtils;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
@@ -132,5 +131,25 @@ public class DayAndTime {
             default:
                 return "일";
         }
+    }
+
+    public Boolean isValidDayAndTime(Integer minusTime, Integer plusTime) {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        LocalDate nowDate = now.toLocalDate();
+        LocalTime nowTime = now.toLocalTime();
+
+        String nowDayOfWeek = getDayInKorean(nowDate.getDayOfWeek().getValue());
+        String defaultDayOfWeek = getDayInKorean(nowDate.minusDays(this.getDay()).getDayOfWeek().getValue());
+
+        LocalTime limitTime;
+        if(minusTime != null) {
+            limitTime = now.toLocalTime().minusHours(minusTime);
+            return nowDayOfWeek.equals(defaultDayOfWeek) && nowTime.isBefore(this.getTime()) && nowTime.isAfter(limitTime);
+        }
+        else if (plusTime != null) {
+            limitTime = now.toLocalTime().plusHours(plusTime);
+            return nowDayOfWeek.equals(defaultDayOfWeek) && nowTime.isAfter(this.getTime()) && nowTime.isBefore(limitTime);
+        }
+        return null;
     }
 }

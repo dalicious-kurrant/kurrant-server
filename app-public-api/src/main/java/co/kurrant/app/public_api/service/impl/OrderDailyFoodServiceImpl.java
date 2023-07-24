@@ -392,7 +392,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         //오늘이 무슨 요일인지 체크
         LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
         LocalDate endDate = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(14);
-        String dayOfWeek = now.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
 
         // Get registered spots
         List<UserSpot> userSpots = user.getUserSpots();
@@ -408,18 +407,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // Check the meal type, serviceable days, and closing time of the default spot
         List<MealInfo> mealInfos = defaultSpot.getMealInfos();
-        List<OrderByServiceDateNotyDto> notyDtos = mealInfos.stream().map(OrderByServiceDateNotyDto::createOrderByServiceDateNotyDto).collect(Collectors.toList());
 
         // 오늘 주문 여부 확인. 오늘 주문한 기록이 없으면
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndServiceDate(user, now, endDate);
         List<OrderItemDailyFood> todayOrderItemDailyFoods = orderItemDailyFoods.stream().filter(v -> v.getDailyFood().getServiceDate().equals(now)).toList();
         if (todayOrderItemDailyFoods.isEmpty()) {
-            lastOrderTimeNotification(user, dayOfWeek, notyDtos, now);
+            lastOrderTimeNotification(user, mealInfos);
         }
 
         // 제공하는 dining type 중 하나라도 하지 않았다면
         if (todayOrderItemDailyFoods.stream().anyMatch(v -> !defaultSpot.getGroup().getDiningTypes().contains(v.getDailyFood().getDiningType()))) {
-            lastOrderTimeNotification(user, dayOfWeek, notyDtos, now);
+            lastOrderTimeNotification(user, mealInfos);
         }
 
         // 다음주 주문이 없을 때
@@ -444,38 +442,21 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     }
 
-    private void lastOrderTimeNotification(User user, String dayOfWeek, List<OrderByServiceDateNotyDto> notyDtos, LocalDate now) {
+    private void lastOrderTimeNotification(User user, List<MealInfo> mealInfos) {
         //오늘 주문한게 없고,
-        for (OrderByServiceDateNotyDto notyDto : notyDtos) {
-            LocalTime curranTime = LocalTime.now(ZoneId.of("Asia/Seoul"));
-            String isServiceDay = notyDto.getServiceDays().stream().filter(serviceDay -> serviceDay.equalsIgnoreCase(dayOfWeek)).findFirst().orElse(null);
-
-            if (notyDto.getMembershipBenefitTime() != null) {
+        for (MealInfo mealInfo : mealInfos) {
+            if (mealInfo.getMembershipBenefitTime() != null && mealInfo.getMembershipBenefitTime().isValidDayAndTime(2, null)) {
                 // 오늘이 멤버십 할인 시간
-                Integer day = notyDto.getMembershipBenefitTime().getDay();
-                LocalTime time = notyDto.getMembershipBenefitTime().getTime();
+                String content = "내일 " + mealInfo.getDiningType().getDiningType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(mealInfo.getLastOrderTime().getTime()) + "까지 해야 멤버십 할인을 받을 수 있어요!";
+                sseService.send(user.getId(), 4, content, null, null);
+                return;
 
-                String membershipDayOfWeek = now.minusDays(day).getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA);
-                LocalTime membershipTime = time.minusHours(2);
-
-                if (dayOfWeek.equalsIgnoreCase(membershipDayOfWeek) && curranTime.isAfter(membershipTime) && curranTime.isBefore(time)) {
-                    String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "까지 해야 멤버십 할인을 받을 수 있어요!";
-                    sseService.send(user.getId(), 4, content, null, null);
-                    return;
-                }
             }
-            if (notyDto.getLastOrderTime() != null) {
-                Integer day = notyDto.getLastOrderTime().getDay();
-                LocalTime time = notyDto.getLastOrderTime().getTime();
-
-                String lastOrderDayOfWeek = now.minusDays(day).getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA);
-                LocalTime lastOrderNoticeTime = time.minusHours(2);
-                // 서비스 가능일 이고, 오늘이 서비스 가능일이 아니면 나가기
-                if (dayOfWeek.equalsIgnoreCase(lastOrderDayOfWeek) && curranTime.isAfter(lastOrderNoticeTime) && curranTime.isBefore(time)) {
-                    String content = "내일 " + notyDto.getType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(time) + "에 마감이예요!";
-                    sseService.send(user.getId(), 4, content, null, null);
-                    return;
-                }
+            // 서비스 가능일 이고, 오늘이 서비스 가능일이 아니면 나가기
+            if(mealInfo.getLastOrderTime() != null && mealInfo.getLastOrderTime().isValidDayAndTime(2, null)) {
+                String content = "내일 " + mealInfo.getDiningType().getDiningType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(mealInfo.getLastOrderTime().getTime()) + "에 마감이예요!";
+                sseService.send(user.getId(), 4, content, null, null);
+                return;
             }
         }
     }
