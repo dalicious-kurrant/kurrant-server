@@ -76,7 +76,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     public LoginResponseDto login(Code loginCode) {
         Driver driver = driverRepository.findByCode(loginCode.getCode())
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
-        LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(driver.getName(), Collections.singletonList(Role.USER.getAuthority()));
+        LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(driver.getCode(), Collections.singletonList(Role.USER.getAuthority()));
         return new LoginResponseDto(loginResponseDto.getAccessToken(), loginResponseDto.getAccessTokenExpiredIn(), driver.getName());
     }
 
@@ -101,7 +101,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional(readOnly = true)
     public DeliveryVo getDeliverySchedule(SecurityUser driver, String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
-        String driverCode = driver == null ? null : driver.getUsername().equals("admin") ? null : driver.getUsername();
+        String driverCode = driver.getUsername().equals("admin") ? null : UserUtil.getCode(driver);
 
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);

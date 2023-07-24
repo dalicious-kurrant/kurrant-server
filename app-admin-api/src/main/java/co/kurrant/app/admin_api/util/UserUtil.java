@@ -38,7 +38,7 @@ public class UserUtil {
         return (SecurityUser) authentication.getPrincipal();
     }
 
-    public String getCode(SecurityUser securityUser) {
+    public static String getCode(SecurityUser securityUser) {
         return securityUser == null ? null : securityUser.getUsername();
     }
 }
