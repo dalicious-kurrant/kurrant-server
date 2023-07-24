@@ -98,7 +98,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional(readOnly = true)
     public DeliveryVo getDeliverySchedule(SecurityUser driver, String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
-        String driverCode = driver.getUsername().equals("admin") ? null : UserUtil.getCode(driver);
+        String driverCode = UserUtil.getCode(driver) == null ? null : driver.getUsername().equals("admin") ? null : UserUtil.getCode(driver);
 
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
