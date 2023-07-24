@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface NotificationHashRepository extends CrudRepository<NotificationHash, BigInteger> {
+public interface NotificationHashRepository extends CrudRepository<NotificationHash, String> {
     List<NotificationHash> findAllByUserIdAndTypeAndIsRead(BigInteger userId, Integer type, boolean isRead);
     List<NotificationHash> findAllByUserIdAndIsRead(BigInteger userId, boolean isRead);
 }
