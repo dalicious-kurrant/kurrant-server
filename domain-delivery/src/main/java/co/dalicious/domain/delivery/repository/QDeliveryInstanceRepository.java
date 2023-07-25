@@ -27,7 +27,9 @@ import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.delivery.entity.QDailyFoodDelivery.dailyFoodDelivery;
 import static co.dalicious.domain.delivery.entity.QDeliveryInstance.deliveryInstance;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
+import static co.dalicious.domain.user.entity.QUser.user;
 
 @Repository
 @RequiredArgsConstructor
@@ -131,6 +133,19 @@ public class QDeliveryInstanceRepository {
                 .where(whereClause, orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
                 .distinct()
                 .fetch();
+    }
+
+    public DeliveryInstance findByIdJoinFetch(BigInteger id) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .leftJoin(deliveryInstance.dailyFoodDeliveries, dailyFoodDelivery).fetchJoin()
+                .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood).fetchJoin()
+                .leftJoin(orderItemDailyFood.order, order).fetchJoin()
+                .leftJoin(order.user, user).fetchJoin()
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood).fetchJoin()
+                .leftJoin(dailyFood.group, group).fetchJoin()
+                .where(deliveryInstance.id.eq(id)
+                        .and(orderItemDailyFood.orderStatus.in(OrderStatus.completePayment())))
+                .fetchOne();
     }
 
     public List<LocalTime> getTodayDeliveryTimes() {
