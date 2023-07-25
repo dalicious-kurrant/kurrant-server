@@ -20,9 +20,11 @@ import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.delivery.utils.DeliveryUtils;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.FoodCapacity;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.food.repository.QFoodCapacityRepository;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
@@ -117,6 +119,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DeliveryInstanceMapper deliveryInstanceMapper;
     private final QUserGroupRepository qUserGroupRepository;
     private final SseService sseService;
+    private final QFoodCapacityRepository qFoodCapacityRepository;
 
     @Override
     @Transactional
@@ -153,10 +156,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         assert makersId != null;
         Makers makers = makersRepository.findById(makersId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+        List<FoodCapacity> foodCapacities = qFoodCapacityRepository.getFoodCapacitiesByMakers(makers);
 
         // FIXME: 기존 로직
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
-        return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList);
+        return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList, foodCapacities);
     }
 
     @Override
@@ -169,10 +173,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         assert makersId != null;
         Makers makers = makersRepository.findById(makersId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+        List<FoodCapacity> foodCapacities = qFoodCapacityRepository.getFoodCapacitiesByMakers(makers);
 
         // FIXME: 배송 도메인 추가 로직
         List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByFilter(startDate, endDate, DiningTypesUtils.codesToDiningTypes(diningTypes), makers);
-        return deliveryInstanceMapper.toDto(deliveryInstances);
+        return deliveryInstanceMapper.toDto(deliveryInstances, foodCapacities);
     }
 
     @Override

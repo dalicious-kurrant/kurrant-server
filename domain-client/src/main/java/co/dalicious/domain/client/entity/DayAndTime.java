@@ -152,4 +152,9 @@ public class DayAndTime {
         }
         return null;
     }
+
+    public LocalDateTime dayAndTimeToLocalDateTime(LocalDate serviceDate) {
+        LocalDateTime now = serviceDate.atTime(this.time);
+        return now.minusDays(this.day);
+    }
 }

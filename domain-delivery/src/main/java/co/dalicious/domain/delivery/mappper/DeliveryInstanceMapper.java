@@ -11,7 +11,9 @@ import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.food.dto.DeliveryInfoDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.food.entity.FoodCapacity;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.util.FoodUtils;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
@@ -27,11 +29,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = DateUtils.class)
+@Mapper(componentModel = "spring", imports = {DateUtils.class, FoodUtils.class})
 public interface DeliveryInstanceMapper {
     default List<DeliveryInstance> toEntities(DeliveryInstanceDto deliveryInstanceDto, List<Makers> makers, List<Group> groups) {
         List<DeliveryInstance> deliveryInstances = new ArrayList<>();
@@ -76,7 +80,7 @@ public interface DeliveryInstanceMapper {
     }
 
 
-    default OrderDailyFoodByMakersDto.ByPeriod toDto(List<DeliveryInstance> deliveryInstances) {
+    default OrderDailyFoodByMakersDto.ByPeriod toDto(List<DeliveryInstance> deliveryInstances, List<FoodCapacity> foodCapacities) {
         OrderDailyFoodByMakersDto.ByPeriod byPeriod = new OrderDailyFoodByMakersDto.ByPeriod();
 
         // 1. 메이커스 음식별 개수 및 상세정보
@@ -88,13 +92,13 @@ public interface DeliveryInstanceMapper {
         byPeriod.setFoodByDateDiningTypes(foodByDateDiningTypes);
 
         // 3. 고객사별 식사일정
-        List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> deliveryGroupsByDates = toDeliveryGroupsByDate(deliveryInstances);
+        List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> deliveryGroupsByDates = toDeliveryGroupsByDate(deliveryInstances, foodCapacities);
         byPeriod.setDeliveryGroupsByDates(deliveryGroupsByDates);
 
         return byPeriod;
     }
 
-    default List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> toDeliveryGroupsByDate(List<DeliveryInstance> deliveryInstances) {
+    default List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> toDeliveryGroupsByDate(List<DeliveryInstance> deliveryInstances, List<FoodCapacity> foodCapacities) {
         List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> deliveryGroupsByDates = new ArrayList<>();
         MultiValueMap<ServiceDiningDto, DeliveryInstance> deliveryGroupsByDatesMap = new LinkedMultiValueMap<>();
         for (DeliveryInstance deliveryInstance : deliveryInstances) {
@@ -108,6 +112,12 @@ public interface DeliveryInstanceMapper {
             deliveryGroupsByDate.setDiningType(serviceDiningDto.getDiningType().getDiningType());
             deliveryGroupsByDate.setSpotCount(deliveryGroupsByDatesMap.get(serviceDiningDto).stream().map(DeliveryInstance::getSpot).collect(Collectors.toSet()).size());
             deliveryGroupsByDate.setDeliveryGroups(toDeliveryGroups(deliveryInstances));
+
+            LocalDateTime lastOrderTime = FoodUtils.getLastOrderTime(deliveryGroupsByDatesMap.get(serviceDiningDto).get(0).getMakers(), serviceDiningDto.getDiningType(), serviceDiningDto.getServiceDate(), foodCapacities);
+            deliveryGroupsByDate.setLastOrderTime(DateUtils.localDateTimeToString(lastOrderTime));
+            if(lastOrderTime.isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) deliveryGroupsByDate.setBeforeLastOrderTime(false);
+            deliveryGroupsByDate.setBeforeLastOrderTime(true);
+
             deliveryGroupsByDates.add(deliveryGroupsByDate);
         }
 

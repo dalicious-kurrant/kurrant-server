@@ -182,7 +182,13 @@ public class DateUtils {
             limitDayAndTime = limitDayAndTime.plusDays(5);
         }
 
+        long dateTime = ChronoUnit.MINUTES.between(now, limitDayAndTime);
+        long day = dateTime % 60 % 24;
+        long hour = (dateTime - (dateTime % 60 % 24)) % 60;
+        long min = (dateTime - (dateTime % 60 % 24 % 60));
+
         long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
+        if(now.toLocalTime().isAfter(limitDayAndTime.toLocalTime())) leftDay = leftDay - 1;
         long hoursLeft = now.until(limitDayAndTime, ChronoUnit.HOURS);
         hoursLeft = hoursLeft % 24;
         now = now.plusHours(hoursLeft);
