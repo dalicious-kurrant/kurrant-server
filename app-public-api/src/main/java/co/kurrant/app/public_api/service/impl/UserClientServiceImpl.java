@@ -36,6 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.*;
@@ -54,6 +55,7 @@ public class UserClientServiceImpl implements UserClientService {
     private final OpenGroupMapper openGroupMapper;
     private final UserGroupMapper userGroupMapper;
     private final MySpotZoneRepository mySpotZoneRepository;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -97,7 +99,7 @@ public class UserClientServiceImpl implements UserClientService {
         if (spot instanceof MySpot mySpot && !user.getId().equals(mySpot.getUserId())) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
-        Group group = (Group) Hibernate.unproxy(spot.getGroup());
+        Group group = spot.getGroup();
         isGroupMember(user, group);
 
         // 유저 스팟에 등록되지 않은 경우
@@ -106,7 +108,6 @@ public class UserClientServiceImpl implements UserClientService {
         }
         userSpot.updateDefault(true);
         return spot.getId();
-
     }
 
     //TODO :  추후 마이 스팟 이용 갯수가 늘어나면 spotId 삭제 방식으로 변경 필요
@@ -230,14 +231,25 @@ public class UserClientServiceImpl implements UserClientService {
     }
 
     private void resetDefaultSpot(User user) {
-        UserSpot defaultSpot = user.getDefaultUserSpot();
-        if (defaultSpot != null) defaultSpot.updateDefault(false);
+        List<UserSpot> userSpots = user.getUserSpots();
+        List<UserSpot> deleteSpots = new ArrayList<>();
+        for (UserSpot userSpot : userSpots) {
+            if(!Hibernate.unproxy(userSpot.getSpot()).equals(MySpot.class)) {
+                deleteSpots.add(userSpot);
+            }
+            else {
+                userSpot.updateDefault(false);
+            }
+        }
+        userSpotRepository.deleteAllInBatch(deleteSpots);
+        userSpotRepository.flush();
+        entityManager.refresh(user);
     }
 
     private UserGroup isGroupMember(User user, Group group) {
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         return groups.stream()
-                .filter(v -> Hibernate.unproxy(v.getGroup()).equals(group))
+                .filter(v -> v.getGroup().equals(group))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
     }

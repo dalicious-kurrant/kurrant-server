@@ -1,5 +1,6 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.user.converter.GourmetTypeConverter;
@@ -451,5 +452,12 @@ public class User {
     
     public Boolean hasNickname() {
         return this.nickname != null && !this.nickname.isEmpty();
+    }
+
+    public UserGroup getUserGroupByGroup(Group group) {
+        return this.groups.stream()
+                .filter(v -> v.getGroup().equals(group))
+                .findAny()
+                .orElse(null);
     }
 }
