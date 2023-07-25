@@ -31,13 +31,13 @@ public class QOrderItemRepository {
                 .execute();
     }
 
-    public List<OrderItem> findByUserAndOrderStatusBeforeToday(User user, OrderStatus orderStatus, LocalDate today) {
+    public List<OrderItem> findByUserAndOrderStatusBeforeToday(User user, OrderStatus orderStatus, LocalDate startDate, LocalDate endDate) {
         return queryFactory
                 .selectFrom(orderItem)
                 .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
                 .where(orderItem.orderStatus.eq(orderStatus),
                         orderItem.order.user.eq(user),
-                        orderItemDailyFood.dailyFood.serviceDate.between(today.minusDays(5), today))
+                        orderItemDailyFood.dailyFood.serviceDate.between(startDate, endDate))
                 .fetch();
     }
 
