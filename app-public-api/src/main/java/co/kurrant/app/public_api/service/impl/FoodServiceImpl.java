@@ -212,7 +212,7 @@ public class FoodServiceImpl implements FoodService {
         foodDetailDto.setTotalDiscountRate(discountedDto.getPrice().subtract(discountedDto.getMembershipDiscountPrice()).subtract(discountedDto.getMakersDiscountPrice()).subtract(discountedDto.getPeriodDiscountPrice()).intValue());
         foodDetailDto.setTotalDiscountedPrice(discountedDto.getPrice().subtract(discountedDto.getPrice().subtract(discountedDto.getMembershipDiscountPrice()).subtract(discountedDto.getMakersDiscountPrice()).subtract(discountedDto.getPeriodDiscountPrice())).divide(discountDto.getPrice(), 3).multiply(BigDecimal.valueOf(100L)));
         foodDetailDto.setLastOrderTime(lastOrderTime);
-        foodDetailDto.setIsMembership(user.getIsMembership());
+        foodDetailDto.setIsMembership(user.getIsMembership() || ((Group) Hibernate.unproxy(dailyFood.getGroup()) instanceof Corporation corporation && corporation.getIsMembershipSupport()));
 
         return foodDetailDto;
     }

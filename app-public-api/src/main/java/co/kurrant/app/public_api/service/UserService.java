@@ -72,4 +72,6 @@ public interface UserService {
     void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto);
 
     String generateRandomNickName() throws IOException;
+
+    Boolean isMembershipSupport(SecurityUser securityUser);
 }

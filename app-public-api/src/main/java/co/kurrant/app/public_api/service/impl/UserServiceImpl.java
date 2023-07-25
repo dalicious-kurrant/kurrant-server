@@ -12,6 +12,7 @@ import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.application_form.utils.ApplicationUtil;
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -61,6 +62,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -912,5 +914,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public String generateRandomNickName() throws IOException {
         return UserUtil.generateRandomNickName();
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public Boolean isMembershipSupport(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        return user.getActiveUserGroups().stream()
+                .map(UserGroup::getGroup)
+                .filter(group -> Hibernate.getClass(group).equals(Corporation.class))
+                .anyMatch(group -> ((Corporation) Hibernate.unproxy(group)).getIsMembershipSupport());
     }
 }

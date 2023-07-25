@@ -1,25 +1,28 @@
 package co.dalicious.domain.food.util;
 
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.food.dto.DiscountDto;
-import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.food.entity.MakersCapacity;
+import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
+import co.dalicious.domain.food.repository.QFoodRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.NumberUtils;
 import exception.ApiException;
 import exception.CustomException;
 import exception.ExceptionEnum;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
+import java.util.*;
 
+@RequiredArgsConstructor
 public class FoodUtils {
     public static BigDecimal discountedPriceByRate(BigDecimal price, Integer discountRate) {
         return NumberUtils.roundToOneDigit(price.multiply(BigDecimal.valueOf((100.0 - discountRate) / 100.0)));
@@ -79,6 +82,25 @@ public class FoodUtils {
 
         return (deliveryTime.isAfter(minTime) || deliveryTime.equals(minTime))
                 && (deliveryTime.isBefore(maxTime) || deliveryTime.equals(maxTime));
+    }
+
+    // 상품과 메이커스 통틀어 가장 늦은 주문 마감시간
+    public static LocalDateTime getLastOrderTime(Makers makers, DiningType diningType, LocalDate serviceDate, List<FoodCapacity> foodCapacities) {
+        DayAndTime makersLastOrderTime = makers.getLastOrderTime(diningType);
+
+        Optional<LocalDateTime> latestTime = foodCapacities.stream()
+                .filter(v -> v.getDiningType().equals(diningType) && v.getLastOrderTime() != null)
+                .map(FoodCapacity::getLastOrderTime)
+                .map(v -> v.dayAndTimeToLocalDateTime(serviceDate))
+                .max(Comparator.naturalOrder());
+
+        if (makersLastOrderTime != null) {
+            LocalDateTime makersTime = makersLastOrderTime.dayAndTimeToLocalDateTime(serviceDate);
+            if(latestTime.isEmpty()) return makersTime;
+            latestTime = latestTime.map(latest -> latest.isAfter(makersTime) ? latest : makersTime);
+        }
+
+        return latestTime.orElse(serviceDate.atTime(DateUtils.stringToLocalTime("10:00")));
     }
 
 

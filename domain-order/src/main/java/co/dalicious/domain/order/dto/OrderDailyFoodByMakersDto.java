@@ -30,6 +30,8 @@ public class OrderDailyFoodByMakersDto {
         private String serviceDate;
         private String diningType;
         private Integer spotCount;
+        private String lastOrderTime;
+        private Boolean beforeLastOrderTime;
         private List<DeliveryGroups> deliveryGroups;
 
         public Integer getSpotCount() {

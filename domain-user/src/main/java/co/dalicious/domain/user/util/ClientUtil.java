@@ -31,12 +31,15 @@ public class ClientUtil {
         // 해당 이메일로 등록된 사원이 존재한다면 유저 정보에 기업 저장 (복수의 스팟이 가능)
         if (!employees.isEmpty()) {
             for (Employee employee : employees) {
-                UserGroup userCorporation = UserGroup.builder()
-                        .user(user)
-                        .group(employee.getCorporation())
-                        .clientStatus(ClientStatus.BELONG)
-                        .build();
-                userGroupRepository.save(userCorporation);
+                UserGroup userGroup = user.getUserGroupByGroup(employee.getCorporation());
+                if(userGroup == null) {
+                    UserGroup userCorporation = UserGroup.builder()
+                            .user(user)
+                            .group(employee.getCorporation())
+                            .clientStatus(ClientStatus.BELONG)
+                            .build();
+                    userGroupRepository.save(userCorporation);
+                }
             }
             return true;
         }

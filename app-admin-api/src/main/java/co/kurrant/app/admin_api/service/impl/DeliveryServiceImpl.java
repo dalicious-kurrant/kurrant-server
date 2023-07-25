@@ -164,7 +164,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public Integer requestDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo) {
-        final int cancelableTime = 60 * 1000;
+        final int cancelableTime = 1 * 1000;
         if (securityUser == null || securityUser.getUsername().equals("admin")) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
@@ -182,7 +182,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Transactional
     public void finalizeDelivery(BigInteger deliveryInstanceId) {
-        DeliveryInstance deliveryInstance = deliveryInstanceRepository.findByIdWithDailyFoodDeliveries(deliveryInstanceId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        DeliveryInstance deliveryInstance = qDeliveryInstanceRepository.findByIdJoinFetch(deliveryInstanceId);
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
         List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
