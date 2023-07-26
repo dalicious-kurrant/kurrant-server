@@ -42,7 +42,7 @@ public interface RequestedMySpotMapper {
     };
 
     @Mapping(target = "address", expression = "java(createAddress(requestDto.getAddress()))")
-    @Mapping(target = "name", expression = "java(requestDto.getMySpotName() == null ? requestDto.getAddress().addressToString() : requestDto.getMySpotName())")
+    @Mapping(target = "name", expression = "java(requestDto.getMySpotName() == null ? requestDto.getAddress().getAddress2() == null ? requestDto.getAddress().getAddress1() : requestDto.getAddress().getAddress1() + \" \" + requestDto.getAddress().getAddress2() : requestDto.getMySpotName())")
     void updateRequestedMySpot(MySpotZoneApplicationFormRequestDto requestDto, @MappingTarget RequestedMySpot requestedMySpot) throws ParseException;
 
     default Address createAddress(CreateAddressRequestDto address) throws ParseException {
