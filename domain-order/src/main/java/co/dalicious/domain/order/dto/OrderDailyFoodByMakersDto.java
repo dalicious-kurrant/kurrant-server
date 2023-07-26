@@ -89,6 +89,8 @@ public class OrderDailyFoodByMakersDto {
         private String serviceDate;
         private String diningType;
         private Integer totalCount;
+        private String lastOrderTime;
+        private Boolean beforeLastOrderTime;
         private List<Food> foods;
     }
 
