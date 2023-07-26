@@ -164,7 +164,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public Integer requestDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo) {
-        final int cancelableTime = 1 * 1000;
+        final int cancelableTime = 60 * 1000;
         if (securityUser == null || securityUser.getUsername().equals("admin")) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
