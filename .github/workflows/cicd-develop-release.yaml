@@ -36,7 +36,7 @@ jobs:
           touch ./application.yaml
           echo "${{ secrets.APP_PUBLIC_API_RELEASE_TEST_YML }}" > ./application.yaml
           touch ./application-dev.yaml
-          echo "${{ secrets.APP_PUBLIC_API_RELEASE_TEST_RELEASE_TEST_YML }}" > ./application-dev.yaml
+          echo "${{ secrets.APP_PUBLIC_API_RELEASE_TEST_RELEASE_TEST_YML }}" > ./application-test.yaml
         shell: bash
 
       - name: client-core application-jwt.properties 생성
