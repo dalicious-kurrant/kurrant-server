@@ -5,6 +5,7 @@ import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.board.entity.CustomerService;
 import co.dalicious.domain.board.entity.Notice;
+import co.dalicious.domain.board.mapper.NoticeMapper;
 import co.dalicious.domain.board.repository.QCustomerBoardRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -12,18 +13,14 @@ import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.kurrant.app.public_api.service.BoardService;
 import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
-import co.kurrant.app.public_api.dto.board.NoticeDto;
+import co.dalicious.domain.board.dto.NoticeDto;
 import co.kurrant.app.public_api.mapper.board.CustomerServiceMapper;
-import co.kurrant.app.public_api.mapper.board.NoticeMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.util.UserUtil;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -38,32 +35,12 @@ public class BoardServiceImpl implements BoardService {
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final CustomerServiceMapper customerServiceMapper;
     private final UserUtil userUtil;
-    private final QGroupRepository qGroupRepository;
-    private final SseService sseService;
 
     @Override
     @Transactional
-    public List<NoticeDto>  noticeList(Integer status, BigInteger groupId, SecurityUser securityUser) {
+    public List<NoticeDto>  allNoticeList(SecurityUser securityUser) {
         List<NoticeDto> result = new ArrayList<>();
-        List<Notice> noticeList = qNoticeRepository.findAllByType(status);
-
-
-        //status가 3이고 스팟ID가 NULL이 아니면 스팟공지만 리턴
-        if (status == 3 && groupId != null){
-
-            //스팟 검증
-            BigInteger findGroupId = qGroupRepository.findById(groupId);
-            if (findGroupId != null){
-                List<Notice> spotNoticeList = qNoticeRepository.findAllSpotNotice(findGroupId);
-                for (Notice notice:spotNoticeList){
-                    result.add(noticeMapper.toDto(notice));
-                }
-                return result;
-            } else{
-                throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
-            }
-        }
-
+        List<Notice> noticeList = qNoticeRepository.findAllNotice();
         for (Notice notice:noticeList){
            result.add(noticeMapper.toDto(notice));
         }
