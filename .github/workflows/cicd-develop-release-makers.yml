@@ -145,9 +145,9 @@ jobs:
     - name: 배포
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.PROD_HOST }}
+        host: ${{ secrets.DEV_HOST }}
         username: ubuntu
-        key: ${{ secrets.PROD_PRIVATE_KEY }}
+        key: ${{ secrets.DEV_PRIVATE_KEY }}
         envs: GITHUB_SHA
         script: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
