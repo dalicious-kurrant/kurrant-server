@@ -3,16 +3,18 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.domain.file.entity.embeddable.enums.DirName;
+import co.dalicious.domain.file.service.ImageService;
 import co.kurrant.app.admin_api.service.GroupService;
 import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ import java.math.BigInteger;
 public class PublicController {
     private final AdminPaycheckService adminPaycheckService;
     private final GroupService groupService;
+    private final ImageService imageService;
 
     @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "메이커스 조회", description = "메이커스 조회")
@@ -69,6 +72,16 @@ public class PublicController {
         return ResponseMessage.builder()
                 .data(adminPaycheckService.getSpartplusLog())
                 .message("스파크플러스 로그 조회에 성공하였습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.PUBLIC)
+    @Operation(summary = "이미지 업로드", description = "이미지 S3 업로드")
+    @PostMapping("/image/upload/{dirName}")
+    public ResponseMessage uploadImage(@RequestPart MultipartFile file, @PathVariable Integer dirName) throws IOException {
+        return ResponseMessage.builder()
+                .data(imageService.upload(file, DirName.ofCode(dirName).getName()))
+                .message("이미지 업로드에 성공하였습니다.")
                 .build();
     }
 }
