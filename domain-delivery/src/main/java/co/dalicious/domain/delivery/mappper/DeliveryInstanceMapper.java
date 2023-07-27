@@ -88,7 +88,7 @@ public interface DeliveryInstanceMapper {
         byPeriod.setTotalFoods(foods);
 
         // 2. 메이커스 기간별 음식 개수
-        List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = toFoodByDateDiningType(deliveryInstances);
+        List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = toFoodByDateDiningType(deliveryInstances, foodCapacities);
         byPeriod.setFoodByDateDiningTypes(foodByDateDiningTypes);
 
         // 3. 고객사별 식사일정
@@ -216,7 +216,7 @@ public interface DeliveryInstanceMapper {
         return foodBySpots;
     }
 
-    default List<OrderDailyFoodByMakersDto.FoodByDateDiningType> toFoodByDateDiningType(List<DeliveryInstance> deliveryInstances) {
+    default List<OrderDailyFoodByMakersDto.FoodByDateDiningType> toFoodByDateDiningType(List<DeliveryInstance> deliveryInstances, List<FoodCapacity> foodCapacities) {
         List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = deliveryInstances.stream()
                 .sorted(Comparator.comparing(DeliveryInstance::getServiceDate)
                         .thenComparing(DeliveryInstance::getDiningType))
@@ -234,6 +234,11 @@ public interface DeliveryInstanceMapper {
                     foodByDateDiningType.setTotalCount(entry.getValue().stream()
                             .map(DeliveryInstance::getItemCount)
                             .reduce(0, Integer::sum));
+                    LocalDateTime lastOrderTime = FoodUtils.getLastOrderTime(entry.getValue().get(0).getMakers(), entry.getKey().getValue(), entry.getKey().getKey(), foodCapacities);
+                    foodByDateDiningType.setLastOrderTime(DateUtils.localDateTimeToString(lastOrderTime));
+                    if(lastOrderTime.isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) foodByDateDiningType.setBeforeLastOrderTime(false);
+                    foodByDateDiningType.setBeforeLastOrderTime(true);
+
                     return foodByDateDiningType;
                 })
                 .toList();

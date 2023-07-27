@@ -46,19 +46,7 @@ public class PointServiceImpl implements PointService {
         User user = userUtil.getUser(securityUser);
 
         //포인트 히스토리를 찾는다. - 유저가 같고 포인트가 영이 아닌 것.
-        Page<PointHistory> pointHistoryPage = null;
-        // 전체 내역
-        if(condition == 0) {
-            pointHistoryPage = qPointHistoryRepository.findAllPointHistory(user, pageable);
-        }
-        // 적립 내역
-        else if (condition == 1) {
-            pointHistoryPage = qPointHistoryRepository.findAllPointHistoryByRewardStatus(user, pageable);
-        }
-        // 사용 내역
-        else if (condition == 2) {
-            pointHistoryPage = qPointHistoryRepository.findAllPointHistoryByUseStatus(user, pageable);
-        }
+        Page<PointHistory> pointHistoryPage = qPointHistoryRepository.findAllPointHistoryByType(user, pageable, condition);
         List<PointResponseDto.PointHistoryDto> pointHistoryDtoList = new ArrayList<>();
         PointResponseDto pointResponseDto;
         if(pointHistoryPage == null || pointHistoryPage.isEmpty()) {

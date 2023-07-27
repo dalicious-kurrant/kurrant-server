@@ -39,7 +39,7 @@ public interface OrderDailyFoodByMakersMapper {
             diningTypeServiceDateMap.add(serviceDiningDto, orderItemDailyFood);
             foodMap.add(orderItemDailyFood.getDailyFood().getFood(), orderItemDailyFood);
         }
-        List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = toFoodByDateDiningType(diningTypeServiceDateMap);
+        List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = toFoodByDateDiningType(diningTypeServiceDateMap, foodCapacities);
         List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> deliveryGroupsByDates = toDeliveryGroupsByDate(diningTypeServiceDateMap, foodCapacities);
         List<OrderDailyFoodByMakersDto.Foods> foods = toFoods(foodMap);
 
@@ -159,7 +159,7 @@ public interface OrderDailyFoodByMakersMapper {
         return foodBySpots;
     }
 
-    default List<OrderDailyFoodByMakersDto.FoodByDateDiningType> toFoodByDateDiningType(MultiValueMap<ServiceDiningDto, OrderItemDailyFood> multiValueMap) {
+    default List<OrderDailyFoodByMakersDto.FoodByDateDiningType> toFoodByDateDiningType(MultiValueMap<ServiceDiningDto, OrderItemDailyFood> multiValueMap, List<FoodCapacity> foodCapacities) {
         List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = new ArrayList<>();
         for (ServiceDiningDto serviceDiningDto : multiValueMap.keySet()) {
             List<OrderItemDailyFood> orderItemDailyFoods = multiValueMap.get(serviceDiningDto);
@@ -179,6 +179,11 @@ public interface OrderDailyFoodByMakersMapper {
             foodByDateDiningType.setDiningType(serviceDiningDto.getDiningType().getDiningType());
             foodByDateDiningType.setTotalCount(totalCount);
             foodByDateDiningType.setFoods(foodList);
+
+            LocalDateTime lastOrderTime = FoodUtils.getLastOrderTime(foodCapacities.get(0).getFood().getMakers(), serviceDiningDto.getDiningType(), serviceDiningDto.getServiceDate(), foodCapacities);
+            foodByDateDiningType.setLastOrderTime(DateUtils.localDateTimeToString(lastOrderTime));
+            if(lastOrderTime.isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) foodByDateDiningType.setBeforeLastOrderTime(false);
+            foodByDateDiningType.setBeforeLastOrderTime(true);
 
             foodByDateDiningTypes.add(foodByDateDiningType);
         }

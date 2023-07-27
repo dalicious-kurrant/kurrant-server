@@ -193,6 +193,7 @@ public class DailyReportServiceImpl implements DailyReportService {
     }
 
     @Override
+    @Transactional
     public Object getTestData() {
 
         List<UserTestDataDto> userTestDataList = new ArrayList<>();

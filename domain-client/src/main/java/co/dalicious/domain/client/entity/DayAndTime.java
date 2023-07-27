@@ -21,7 +21,8 @@ public class DayAndTime {
         this.time = time;
     }
 
-    public String dayAndTimeToString() {
+    @Override
+    public String toString() {
         String timeStr = this.getTime().toString();
         if (this.getDay() == null) {
             return "0일전 " + timeStr;

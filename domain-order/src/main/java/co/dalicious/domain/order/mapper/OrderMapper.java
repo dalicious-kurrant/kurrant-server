@@ -183,6 +183,7 @@ public interface OrderMapper {
             orderItemDailyFoodGroupDto.setTotalPrice(orderItemDailyFoodGroup.getTotalPriceByGroup());
             orderItemDailyFoodGroupDto.setSupportPrice(orderItemDailyFoodGroup.getUsingSupportPrice());
             orderItemDailyFoodGroupDto.setPayPrice(orderItemDailyFoodGroup.getPayPrice());
+            orderItemDailyFoodGroupDto.setPoint(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getPoint());
             orderItemDailyFoodGroupDto.setDeliveryPrice((orderItemDailyFoodGroup.getOrderStatus() != OrderStatus.CANCELED) ? orderItemDailyFoodGroup.getDeliveryFee() : BigDecimal.ZERO);
             orderItemDailyFoodGroupDto.setIsMembership(orderItemDailyFoodGroup.isMembershipApplied() || membership.isPresent());
             orderItemDailyFoodGroupDto.setOrderItemDailyFoods(orderItemDailyFoodsToDtos(orderItemDailyFoodGroup.getOrderDailyFoods()));
