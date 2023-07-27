@@ -270,7 +270,7 @@ public class FoodServiceImpl implements FoodService {
         //대댓글과 별점 추가
         int isReview = 0;
         int sumStar = 0;    //별점 계산을 위한 총 별점
-
+        if (totalReviewsList.stream().anyMatch(v -> v.getUser().getId().equals(user.getId()))) isReview = 1;
         for (Reviews reviews : pageReviews) {
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList = commentsRepository.findAllByReviewsId(reviews.getId());
@@ -278,8 +278,7 @@ public class FoodServiceImpl implements FoodService {
             //좋아요 눌렀는지 여부 조회
             boolean isGood = false;
             //조회한 유저가 리뷰 작성자인지 여부
-            boolean isWriter = optionalUser.get().getId().equals(user.getId());
-            if (isWriter) isReview = 1;
+            boolean isWriter = reviews.getUser().getId().equals(user.getId());
             Optional<ReviewGood> reviewGood = qReviewGoodRepository.foodReviewLikeCheckByUserId(user.getId(), reviews.getId());
             if (reviewGood.isPresent()) isGood = true;
             FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList, isGood, isWriter);
@@ -287,7 +286,6 @@ public class FoodServiceImpl implements FoodService {
         }
         for (Reviews reviews : totalReviewsList) {
             sumStar += reviews.getSatisfaction();
-            if (reviews.getUser().getId().equals(user.getId())) isReview = 2;
         }
 
         Integer totalReviewSize = totalReviewsList.size();
