@@ -26,7 +26,7 @@ jobs:
           distribution: 'adopt'
 
       # app-public-api의 설정파일(.yaml) 생성
-      - name: app-public-api application.yaml(prod) 생성
+      - name: app-public-api application.yaml(test) 생성
         run: |
           cd ./app-public-api/src/main
           if [ ! -d resources ]; then
@@ -102,7 +102,7 @@ jobs:
           fi
           cd resources
           touch ./application-s3.properties
-          echo "${{ secrets.DOMAIN_FILE_S3_PROPERTIES }}" > ./application-s3.properties
+          echo "${{ secrets.DOMAIN_FILE_DEV_S3_PROPERTIES }}" > ./application-s3.properties
         shell: bash
 
       - name: system-core application-alimtalk.properties 생성
