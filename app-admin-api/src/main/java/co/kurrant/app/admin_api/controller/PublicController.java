@@ -22,7 +22,6 @@ import java.util.List;
 public class PublicController {
     private final AdminPaycheckService adminPaycheckService;
     private final GroupService groupService;
-    private final ImageService imageService;
 
     @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "메이커스 조회", description = "메이커스 조회")
@@ -72,16 +71,6 @@ public class PublicController {
         return ResponseMessage.builder()
                 .data(adminPaycheckService.getSpartplusLog())
                 .message("스파크플러스 로그 조회에 성공하였습니다.")
-                .build();
-    }
-
-    @ControllerMarker(ControllerType.PUBLIC)
-    @Operation(summary = "이미지 업로드", description = "이미지 S3 업로드")
-    @PostMapping("/image/upload/{dirName}")
-    public ResponseMessage uploadImage(@RequestPart MultipartFile file, @PathVariable Integer dirName) throws IOException {
-        return ResponseMessage.builder()
-                .data(imageService.upload(file, DirName.ofCode(dirName).getName()))
-                .message("이미지 업로드에 성공하였습니다.")
                 .build();
     }
 }
