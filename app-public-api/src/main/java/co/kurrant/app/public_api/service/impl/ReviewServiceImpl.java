@@ -5,6 +5,7 @@ import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.file.entity.embeddable.enums.DirName;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
@@ -101,7 +102,7 @@ public class ReviewServiceImpl implements ReviewService {
 
             List<Image> images = new ArrayList<>();
             if (fileList != null && !fileList.isEmpty()) {
-                List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
+                List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, DirName.REVIEW.getName());
                 images.addAll(Image.toImages(imageResponseDtos));
             }
 
@@ -262,7 +263,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         if(fileList != null && !fileList.isEmpty()) {
-            List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
+            List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, DirName.REVIEW.getName());
             imageList.addAll(Image.toImages(imageResponseDtos));
             // 기존 리뷰가 사진이 없다가 수정시 사진을 넣으면 포인트 지급
             BigDecimal rewardPoint = pointUtil.findReviewPointWhenUpdate(user, reviews.getId());
