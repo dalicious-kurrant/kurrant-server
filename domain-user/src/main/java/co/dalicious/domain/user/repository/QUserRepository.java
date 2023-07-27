@@ -216,14 +216,6 @@ public class QUserRepository {
         return userIdMap;
     }
 
-    public List<String> findUserFirebaseToken(List<BigInteger> userIds) {
-
-        return queryFactory.select(user.firebaseToken)
-                .from(user)
-                .where(user.id.in(userIds), user.firebaseToken.isNotNull())
-                .fetch();
-    }
-
     public List<User> findUserFirebaseToken(Set<BigInteger> userIds) {
 
         return queryFactory.selectFrom(user)
@@ -237,5 +229,11 @@ public class QUserRepository {
                 .where(user.phone.eq(to))
                 .limit(1)
                 .fetchOne());
+    }
+
+    public List<User> findAllByNotNullFirebaseToken() {
+        return queryFactory.selectFrom(user)
+                .where(user.firebaseToken.isNotNull())
+                .fetch();
     }
 }

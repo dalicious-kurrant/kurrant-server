@@ -141,4 +141,12 @@ public class QUserGroupRepository {
         userResult.forEach(v -> userIdMap.put(v.get(user.id), v.get(user.firebaseToken)));
         return userIdMap;
     }
+
+    public List<User> findAllUserByGroupIdsAadFirebaseTokenNotNull(List<BigInteger> groupIds) {
+        return queryFactory.select(user)
+                .from(userGroup)
+                .leftJoin(userGroup.user, user)
+                .where(userGroup.group.id.in(groupIds), userGroup.clientStatus.eq(ClientStatus.BELONG), user.firebaseToken.isNotNull())
+                .fetch();
+    }
 }

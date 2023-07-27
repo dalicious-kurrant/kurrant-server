@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.mapper.board;
 
 import co.dalicious.domain.board.entity.Notice;
-import co.dalicious.domain.board.entity.enums.BoardStatus;
+import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.dto.board.NoticeDto;
 import org.mapstruct.Mapper;
@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 public interface NoticeMapper{
     @Mapping(source = "notice.createdDateTime", target = "created", qualifiedByName = "timeFormat")
     @Mapping(source = "notice.updatedDateTime", target = "updated", qualifiedByName = "timeFormat")
-    @Mapping(source = "notice.status", target = "status", qualifiedByName = "generatedStatus")
+    @Mapping(source = "notice.isStatus", target = "status")
     NoticeDto toDto(Notice notice);
 
     @Named("timeFormat")
@@ -23,7 +23,7 @@ public interface NoticeMapper{
     }
 
     @Named("generatedStatus")
-    default Integer generatedStatus(BoardStatus status){
+    default Integer generatedStatus(BoardType status){
         return status.getCode();
     }
 
