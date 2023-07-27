@@ -67,6 +67,7 @@ public class OrderDto {
         private String orderDateTime;
         private BigDecimal totalPrice;
         private BigDecimal supportPrice;
+        private BigDecimal point;
         private BigDecimal payPrice;
         private BigDecimal deliveryPrice;
         private Boolean isMembership;
