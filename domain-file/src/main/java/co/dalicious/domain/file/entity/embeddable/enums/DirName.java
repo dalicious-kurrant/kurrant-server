@@ -8,7 +8,11 @@ import java.util.Arrays;
 
 @Getter
 public enum DirName {
-    BOARD("공지사항", 0);
+    BOARD("board", 0),
+    REVIEW("reviews", 1),
+    BANNER("banner", 2),
+    FOOD("food", 3),
+    ;
 
     private final String name;
     private final Integer code;
