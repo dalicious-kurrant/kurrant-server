@@ -287,6 +287,7 @@ public class FoodServiceImpl implements FoodService {
         }
         for (Reviews reviews : totalReviewsList) {
             sumStar += reviews.getSatisfaction();
+            if (reviews.getUser().getId().equals(user.getId())) isReview = 2;
         }
 
         Integer totalReviewSize = totalReviewsList.size();
