@@ -8,6 +8,7 @@ import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.file.entity.embeddable.enums.DirName;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.*;
@@ -252,7 +253,7 @@ public class FoodServiceImpl implements FoodService {
         }
 
         if (files != null && !files.isEmpty()) {
-            List<ImageResponseDto> imageResponseDtos = imageService.upload(files, "food");
+            List<ImageResponseDto> imageResponseDtos = imageService.upload(files, DirName.FOOD.getName());
             images.addAll(Image.toImages(imageResponseDtos));
         }
 
