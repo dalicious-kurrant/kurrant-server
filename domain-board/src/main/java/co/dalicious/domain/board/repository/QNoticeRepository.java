@@ -25,9 +25,27 @@ public class QNoticeRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public List<Notice> findAllByType(Boolean type) {
+    public List<Notice> findAllNotice() {
         return queryFactory.selectFrom(notice)
-                .where(notice.isPushAlarm.eq(type))
+                .where(notice.isStatus.isTrue(), notice.boardType.in(BoardType.showAll()))
+                .fetch();
+    }
+
+    public List<Notice> findAllByTypeAndGroup(BoardType type, BigInteger groupId) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(groupId != null) {
+            List<Tuple> groupIdResults = queryFactory.select(notice.id, notice.groupIds).from(notice).fetch();
+            List<BigInteger> noticeIds = groupIdResults.stream()
+                    .filter(v -> v.get(notice.groupIds) != null && v.get(notice.groupIds).contains(groupId))
+                    .map(v -> v.get(notice.id))
+                    .toList();
+
+            whereCause.and(notice.id.in(noticeIds));
+        }
+
+        return queryFactory.selectFrom(notice)
+                .where(notice.boardType.eq(type),notice.isStatus.isTrue())
                 .fetch();
     }
 

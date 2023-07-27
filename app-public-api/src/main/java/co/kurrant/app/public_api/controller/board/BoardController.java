@@ -21,13 +21,13 @@ public class BoardController {
 
     private final BoardService boardService;
 
-    @Operation(summary = "공지사항 조회", description = "공지사항을 불러온다.")
+    @Operation(summary = "전체 공지사항 조회", description = "전체 공지사항을 불러온다.")
     @GetMapping("notices")
-    public ResponseMessage noticeList(Authentication authentication, @RequestParam Integer status, @RequestParam (required = false) BigInteger spotId){
+    public ResponseMessage allNoticeList(Authentication authentication){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(boardService.noticeList(status, spotId, securityUser))
-                .message("공지사항을 불러오는데 성공했습니다.")
+                .data(boardService.allNoticeList(securityUser))
+                .message("전체 공지사항을 불러오는데 성공했습니다.")
                 .build();
     }
 

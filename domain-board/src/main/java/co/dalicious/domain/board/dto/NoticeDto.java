@@ -1,12 +1,10 @@
-package co.kurrant.app.public_api.dto.board;
+package co.dalicious.domain.board.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
 
-@Schema(description = "공지사항 응답 DTO")
 @Getter
 @Setter
 public class NoticeDto {
@@ -15,5 +13,5 @@ public class NoticeDto {
     private String updated;
     private String title;
     private String content;
-    private Integer status;
+    private Boolean status;
 }
