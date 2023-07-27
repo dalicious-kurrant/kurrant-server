@@ -160,6 +160,19 @@ public class PushUtil {
         return template;
     }
 
+    @Transactional(readOnly = true)
+    public String getContextAppNotice(String title, PushCondition pushCondition) {
+        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
+        String template = pushAlarms.getMessage();
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("noticeTitle", title);
+
+        StringSubstitutor sub = new StringSubstitutor(valuesMap);
+        template = sub.replace(template);
+        return template;
+    }
+
+
     @Transactional
     public PushAlarmHash createPushAlarmHash (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger reviewId) {
         return PushAlarmHash.builder()
@@ -181,6 +194,21 @@ public class PushUtil {
                 .userId(userId)
                 .type(alarmType.getAlarmType())
                 .reviewId(reviewId)
+                .noticeId(null)
+                .build();
+        pushAlarmHashRepository.save(pushAlarmHash);
+    }
+
+    @Transactional
+    public void savePushAlarmHashByNotice (String title, String message, BigInteger userId, AlarmType alarmType, BigInteger noticeId) {
+        PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                .title(title)
+                .message(message)
+                .isRead(false)
+                .userId(userId)
+                .type(alarmType.getAlarmType())
+                .reviewId(null)
+                .noticeId(noticeId)
                 .build();
         pushAlarmHashRepository.save(pushAlarmHash);
     }

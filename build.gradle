@@ -198,6 +198,7 @@ project(':app-admin-api') {
         implementation project(':domain-application-form')
         implementation project(':data-redis')
         implementation project(':client-sse')
+        implementation project(':domain-board')
     }
 }
 
