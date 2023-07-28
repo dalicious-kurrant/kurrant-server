@@ -38,10 +38,10 @@ public class Notice {
     @Column(columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
-    
+
     @Comment("공지 제목")
     private String title;
-    
+
     @Lob
     @Comment("공지 내용")
     private String content;
