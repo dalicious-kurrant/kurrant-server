@@ -295,18 +295,14 @@ public class FoodServiceImpl implements FoodService {
         BigInteger reviewWrite = null;
         //주문에 대한 리뷰를 작성했는지
         if (isReview == 1) reviewWrite = BigInteger.valueOf(0);
-        //주문 한 적 있는지
+        //주문 한 적 있고 5일지 지나지 않았다면 orderItemDailyFoodId 반환
         OrderItemDailyFood orderItemDailyFood = qOrderItemDailyFoodRepository.findAllByUserAndDailyFood(user.getId(), dailyFood.getFood().getId());
-        if (orderItemDailyFood != null && isReview != 1) {
+        if (orderItemDailyFood != null && isReview != 1 && orderItemDailyFood.getDailyFood().getServiceDate().plusDays(5).isBefore(LocalDate.now())) {
             reviewWrite = orderItemDailyFood.getId();
         } else {
             reviewWrite = BigInteger.valueOf(0);
         }
 
-        //주문 기한이 5일이 지났는지(orderItemDailyFood +5일이 오늘보다 작다면)
-        if (orderItemDailyFood != null && orderItemDailyFood.getCreatedDateTime().toLocalDateTime().toLocalDate().plusDays(5).isBefore(LocalDate.now())) {
-            reviewWrite = BigInteger.valueOf(0);
-        }
         keywords = qKeywordRepository.findAllByFoodId(dailyFood.getFood().getId());
 
         GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort, reviewWrite, keywords, getStarRate(totalReviewsList));
