@@ -50,7 +50,7 @@ public class Notice {
     private String content;
 
     @Comment("스팟 공지일 경우 스팟ID")
-    @Column(name="spotId", columnDefinition = "BIGINT UNSIGNED")
+    @Column(name="spot_id", columnDefinition = "BIGINT UNSIGNED")
     private BigInteger spotId;
 
     @ColumnDefault(value = "1")
