@@ -9,6 +9,7 @@ import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.board.dto.AppBoardRequestDto;
 import co.dalicious.domain.board.dto.AppBoardResponseDto;
+import co.dalicious.domain.board.dto.MakersBoardRequestDto;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.domain.board.mapper.NoticeMapper;
@@ -97,6 +98,7 @@ public class BoardServiceImpl implements BoardService {
             sseType = 2;
         }
 
+        System.out.println("notice.getTitle() = " + notice.getTitle());
         String customMessage = pushUtil.getContextAppNotice(notice.getTitle(), PushCondition.NEW_NOTICE);
         List<PushRequestDtoByUser> pushRequestDtoByUserList = new ArrayList<>();
         for (User user : users) {
@@ -110,5 +112,20 @@ public class BoardServiceImpl implements BoardService {
 
         pushService.sendToPush(pushRequestDtoByUserList);
         notice.updatePushAlarm(true);
+    }
+
+    @Override
+    public void createMakersBoard(MakersBoardRequestDto requestDto) {
+
+    }
+
+    @Override
+    public ListItemResponseDto<AppBoardResponseDto> getMakersBoard(Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
+        return null;
+    }
+
+    @Override
+    public void updateMakersBoard(BigInteger noticeId, MakersBoardRequestDto requestDto) {
+
     }
 }
