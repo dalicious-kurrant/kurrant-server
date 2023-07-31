@@ -14,7 +14,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import static co.dalicious.domain.board.entity.QNotice.notice;
@@ -31,13 +30,13 @@ public class QNoticeRepository {
                 .fetch();
     }
 
-    public Page<Notice> findAllNoticeBySpotFilter(BigInteger groupId, Pageable pageable) {
+    public Page<Notice> findAllNoticeBySpotFilter(List<BigInteger> groupIds, Pageable pageable) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
-        if(groupId != null) {
+        if(groupIds != null && !groupIds.isEmpty()) {
             List<Tuple> groupIdResults = queryFactory.select(notice.id, notice.groupIds).from(notice).fetch();
             List<BigInteger> noticeIds = groupIdResults.stream()
-                    .filter(v -> v.get(notice.groupIds) != null && v.get(notice.groupIds).contains(groupId))
+                    .filter(v -> v.get(notice.groupIds) != null && v.get(notice.groupIds).stream().anyMatch(groupIds::contains))
                     .map(v -> v.get(notice.id))
                     .toList();
 
@@ -45,12 +44,12 @@ public class QNoticeRepository {
             whereCause.and(notice.id.in(noticeIds));
         }
         else {
-            whereCause.and(notice.boardType.in(BoardType.showAll()));
+            whereCause.and(notice.boardType.in(BoardType.showApp()));
         }
 
 
         QueryResults<Notice> results = queryFactory.selectFrom(notice)
-                .where(whereCause)
+                .where(whereCause, notice.isStatus.isTrue())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .fetchResults();

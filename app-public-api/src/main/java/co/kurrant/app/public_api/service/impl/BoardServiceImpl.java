@@ -7,11 +7,11 @@ import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.board.dto.NoticeDto;
 import co.dalicious.domain.board.entity.CustomerService;
 import co.dalicious.domain.board.entity.Notice;
+import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.domain.board.mapper.NoticeMapper;
 import co.dalicious.domain.board.repository.QCustomerBoardRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
@@ -19,8 +19,6 @@ import co.kurrant.app.public_api.mapper.board.CustomerServiceMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.BoardService;
 import co.kurrant.app.public_api.util.UserUtil;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -100,12 +98,15 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     @Transactional(readOnly = true)
-    public ListItemResponseDto<NoticeDto> noticeList(SecurityUser securityUser, BigInteger groupId, OffsetBasedPageRequest pageable) {
+    public ListItemResponseDto<NoticeDto> noticeList(SecurityUser securityUser, Integer type, OffsetBasedPageRequest pageable) {
         // 유저가 속한 그룹이 맞는지 확인
         User user = userUtil.getUser(securityUser);
-        if(groupId != null && user.getGroups().stream().noneMatch(v -> v.getGroup().getId().equals(groupId) && v.getClientStatus().equals(ClientStatus.BELONG))) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
+        List<BigInteger> uesrGroupList = null;
+        if(type != null && type.equals(BoardType.SPOT.getCode())) {
+            uesrGroupList = user.getGroups().stream().filter(v -> v.getClientStatus().equals(ClientStatus.BELONG)).map(v -> v.getGroup().getId()).toList();
+        }
 
-        Page<Notice> noticeList = qNoticeRepository.findAllNoticeBySpotFilter(groupId, pageable);
+        Page<Notice> noticeList = qNoticeRepository.findAllNoticeBySpotFilter(uesrGroupList, pageable);
         if(noticeList.isEmpty()) {
             return ListItemResponseDto.<NoticeDto>builder().items(null).count(0).limit(pageable.getPageSize()).offset(pageable.getOffset()).total((long) noticeList.getTotalPages()).isLast(true).build();
         }

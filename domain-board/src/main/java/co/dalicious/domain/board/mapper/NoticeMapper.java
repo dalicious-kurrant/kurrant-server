@@ -47,6 +47,7 @@ public interface NoticeMapper {
     }
 
     @Mapping(target = "boardType", expression = "java(BoardType.ofCode(requestDto.getBoardType()))")
+    @Mapping(target = "isPushAlarm", ignore = true)
     void updateNotice(AppBoardRequestDto requestDto, @MappingTarget Notice notice);
 
     @Mapping(source = "notice.createdDateTime", target = "created", qualifiedByName = "timeFormat")
@@ -57,10 +58,5 @@ public interface NoticeMapper {
     @Named("timeFormat")
     default String timeFormat(Timestamp date){
         return DateUtils.format(date, "yyyy-MM-dd");
-    }
-
-    @Named("generatedStatus")
-    default Integer generatedStatus(BoardType status){
-        return status.getCode();
     }
 }

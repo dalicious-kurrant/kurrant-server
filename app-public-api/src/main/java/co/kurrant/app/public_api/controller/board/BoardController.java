@@ -74,13 +74,13 @@ public class BoardController {
 
     @Operation(summary = "공지사항 조회", description = "공지사항을 불러온다.")
     @GetMapping("notices")
-    public ResponseMessage noticeList(Authentication authentication, @RequestParam(required = false) BigInteger groupId,
+    public ResponseMessage noticeList(Authentication authentication, @RequestParam(required = false) Integer type,
                                       @RequestParam(required = false, defaultValue = "15") Integer limit,
                                       @RequestParam Integer page) {
         OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(boardService.noticeList(securityUser, groupId, pageable))
+                .data(boardService.noticeList(securityUser, type, pageable))
                 .message("공지사항을 불러오는데 성공했습니다.")
                 .build();
     }
