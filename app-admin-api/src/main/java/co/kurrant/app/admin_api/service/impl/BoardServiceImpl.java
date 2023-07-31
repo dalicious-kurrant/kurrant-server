@@ -89,7 +89,7 @@ public class BoardServiceImpl implements BoardService {
 
         int sseType;
         List<User> users;
-        if(notice.getGroupIds().isEmpty()) {
+        if(notice.getGroupIds() == null || notice.getGroupIds().isEmpty()) {
             users = qUserRepository.findAllByNotNullFirebaseToken();
             sseType = 1;
         } else {
