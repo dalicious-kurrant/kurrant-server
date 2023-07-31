@@ -11,7 +11,13 @@ public enum BoardType {
     ALL("전체공지", 0),
     SPOT("스팟공지", 1),
     POPUP("팝업", 2),
-    EVENT("이벤트 공지", 3);
+    EVENT("이벤트 공지", 3),
+    MAKERS("메이커스 공지", 4),
+    CLIENT("고객사 공지", 5),
+    APPROVE_CHANGE_INFO("정보 변경 승인", 6),
+    APPROVE_CHANGE_PRICE("가격 변경 승인", 7),
+    PAYCHECK_COMPLETE("정산 완료", 8),
+    ;
 
 
     private final String status;
@@ -30,7 +36,7 @@ public enum BoardType {
 
     }
 
-    public static List<BoardType> showAll() {
+    public static List<BoardType> showApp() {
         List<BoardType> list = new ArrayList<>();
         list.add(BoardType.ALL);
         list.add(BoardType.POPUP);

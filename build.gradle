@@ -290,6 +290,7 @@ project(':domain-board') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
+        implementation project(':domain-file')
     }
 }
 
