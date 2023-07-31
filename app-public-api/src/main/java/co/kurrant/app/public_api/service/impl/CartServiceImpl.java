@@ -225,13 +225,13 @@ public class CartServiceImpl implements CartService {
 
     private String getLastOrderTime(DailyFood dailyFood) {
         DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
-        DayAndTime mealInfoLastOrderTIme = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
 
         //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
-        if (makersLastOrderTime != null && DayAndTime.toLocalDate(makersLastOrderTime).isBefore(DayAndTime.toLocalDate(mealInfoLastOrderTIme))){
+        if (makersLastOrderTime != null && DayAndTime.isBefore(makersLastOrderTime, mealInfoLastOrderTime)){
             return makersLastOrderTime.dayAndTimeToStringByDateForCart(dailyFood.getServiceDate());
         }
-        return mealInfoLastOrderTIme.dayAndTimeToStringByDateForCart(dailyFood.getServiceDate());
+        return mealInfoLastOrderTime.dayAndTimeToStringByDateForCart(dailyFood.getServiceDate());
     }
 
     @Override
