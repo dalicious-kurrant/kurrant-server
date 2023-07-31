@@ -86,13 +86,12 @@ public class BoardServiceImpl implements BoardService {
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
         if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_PUSH_ALARM);
 
-        int sseType = 0;
-        List<User> users = new ArrayList<>();
-        if(BoardType.showAll().contains(notice.getBoardType())) {
+        int sseType;
+        List<User> users;
+        if(notice.getGroupIds().isEmpty()) {
             users = qUserRepository.findAllByNotNullFirebaseToken();
             sseType = 1;
-        }
-        if (notice.getBoardType().equals(BoardType.SPOT)) {
+        } else {
             users = qUserGroupRepository.findAllUserByGroupIdsAadFirebaseTokenNotNull(notice.getGroupIds());
             sseType = 2;
         }
