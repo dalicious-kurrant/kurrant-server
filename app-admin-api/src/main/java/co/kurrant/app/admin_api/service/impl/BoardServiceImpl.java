@@ -10,9 +10,12 @@ import co.dalicious.client.sse.SseService;
 import co.dalicious.domain.board.dto.AppBoardRequestDto;
 import co.dalicious.domain.board.dto.AppBoardResponseDto;
 import co.dalicious.domain.board.dto.MakersBoardRequestDto;
+import co.dalicious.domain.board.entity.MakersNotice;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardType;
+import co.dalicious.domain.board.mapper.BackOfficeNoticeMapper;
 import co.dalicious.domain.board.mapper.NoticeMapper;
+import co.dalicious.domain.board.repository.BackOfficeNoticeRepository;
 import co.dalicious.domain.board.repository.NoticeRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -47,6 +50,8 @@ public class BoardServiceImpl implements BoardService {
     private final PushService pushService;
     private final SseService sseService;
     private final QUserRepository qUserRepository;
+    private final BackOfficeNoticeRepository backOfficeNoticeRepository;
+    private final BackOfficeNoticeMapper backOfficeNoticeMapper;
 
     @Override
     @Transactional
@@ -115,8 +120,10 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional
     public void createMakersBoard(MakersBoardRequestDto requestDto) {
-
+        MakersNotice notice = backOfficeNoticeMapper.toMakersNotice(requestDto);
+        backOfficeNoticeRepository.save(notice);
     }
 
     @Override
