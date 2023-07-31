@@ -270,7 +270,7 @@ public class FoodServiceImpl implements FoodService {
         //대댓글과 별점 추가
         int isReview = 0;
         int sumStar = 0;    //별점 계산을 위한 총 별점
-
+        if (totalReviewsList.stream().anyMatch(v -> v.getUser().getId().equals(user.getId()))) isReview = 1;
         for (Reviews reviews : pageReviews) {
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList = commentsRepository.findAllByReviewsId(reviews.getId());
@@ -278,8 +278,7 @@ public class FoodServiceImpl implements FoodService {
             //좋아요 눌렀는지 여부 조회
             boolean isGood = false;
             //조회한 유저가 리뷰 작성자인지 여부
-            boolean isWriter = optionalUser.get().getId().equals(user.getId());
-            if (isWriter) isReview = 1;
+            boolean isWriter = reviews.getUser().getId().equals(user.getId());
             Optional<ReviewGood> reviewGood = qReviewGoodRepository.foodReviewLikeCheckByUserId(user.getId(), reviews.getId());
             if (reviewGood.isPresent()) isGood = true;
             FoodReviewListDto foodReviewListDto = reviewMapper.toFoodReviewListDto(reviews, optionalUser.get(), commentsList, isGood, isWriter);
@@ -296,18 +295,14 @@ public class FoodServiceImpl implements FoodService {
         BigInteger reviewWrite = null;
         //주문에 대한 리뷰를 작성했는지
         if (isReview == 1) reviewWrite = BigInteger.valueOf(0);
-        //주문 한 적 있는지
+        //주문 한 적 있고 5일지 지나지 않았다면 orderItemDailyFoodId 반환
         OrderItemDailyFood orderItemDailyFood = qOrderItemDailyFoodRepository.findAllByUserAndDailyFood(user.getId(), dailyFood.getFood().getId());
-        if (orderItemDailyFood != null && isReview != 1) {
+        if (orderItemDailyFood != null && isReview != 1 && orderItemDailyFood.getDailyFood().getServiceDate().plusDays(5).isBefore(LocalDate.now())) {
             reviewWrite = orderItemDailyFood.getId();
         } else {
             reviewWrite = BigInteger.valueOf(0);
         }
 
-        //주문 기한이 5일이 지났는지(orderItemDailyFood +5일이 오늘보다 작다면)
-        if (orderItemDailyFood != null && orderItemDailyFood.getCreatedDateTime().toLocalDateTime().toLocalDate().plusDays(5).isBefore(LocalDate.now())) {
-            reviewWrite = BigInteger.valueOf(0);
-        }
         keywords = qKeywordRepository.findAllByFoodId(dailyFood.getFood().getId());
 
         GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort, reviewWrite, keywords, getStarRate(totalReviewsList));

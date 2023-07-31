@@ -132,8 +132,8 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
         if (fieldName != null) {
             sb.append("의 ").append(fieldName);
         }
-        sb.append(" 값이 ").append('"').append(oldValue.toString()).append('"')
-                .append("에서 ").append('"').append(newValue.toString()).append('"')
+        sb.append(" 값이 ").append('"').append(oldValue == null ? null : oldValue.toString()).append('"')
+                .append("에서 ").append('"').append(newValue == null ? null : newValue.toString()).append('"')
                 .append("로 변경.");
         return sb.toString();
     }
