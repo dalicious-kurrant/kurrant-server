@@ -35,7 +35,7 @@ public interface NoticeMapper {
             appBoardResponseDto.setTitle(notice.getTitle());
             appBoardResponseDto.setContent(notice.getContent());
             appBoardResponseDto.setBoardType(notice.getBoardType().getCode());
-            appBoardResponseDto.setGroupNames(groupNameMap.keySet().stream().filter(v -> notice.getGroupIds().contains(v)).map(groupNameMap::get).toList());
+            appBoardResponseDto.setGroupNames(notice.getGroupIds() == null || notice.getGroupIds().isEmpty() ? null : groupNameMap.keySet().stream().filter(v -> notice.getGroupIds().contains(v)).map(groupNameMap::get).toList());
             appBoardResponseDto.setIsStatus(notice.getIsStatus());
             appBoardResponseDto.setIsPushAlarm(notice.getIsPushAlarm());
             appBoardResponseDto.setCreateDate(DateUtils.toISOLocalDate(notice.getCreatedDateTime()));

@@ -14,13 +14,11 @@ import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.domain.board.mapper.NoticeMapper;
 import co.dalicious.domain.board.repository.NoticeRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
-import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.service.BoardService;
 import exception.ApiException;
@@ -31,7 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -86,13 +86,12 @@ public class BoardServiceImpl implements BoardService {
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
         if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_PUSH_ALARM);
 
-        int sseType = 0;
-        List<User> users = new ArrayList<>();
-        if(BoardType.showAll().contains(notice.getBoardType())) {
+        int sseType;
+        List<User> users;
+        if(notice.getGroupIds().isEmpty()) {
             users = qUserRepository.findAllByNotNullFirebaseToken();
             sseType = 1;
-        }
-        if (notice.getBoardType().equals(BoardType.SPOT)) {
+        } else {
             users = qUserGroupRepository.findAllUserByGroupIdsAadFirebaseTokenNotNull(notice.getGroupIds());
             sseType = 2;
         }
