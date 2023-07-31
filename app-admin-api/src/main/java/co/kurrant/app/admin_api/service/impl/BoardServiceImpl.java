@@ -83,7 +83,8 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public void postPushAlarm(BigInteger noticeId) {
-        Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
+        Notice notice = noticeRepository.findByIdAndIsStatus(noticeId, true);
+        if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
         if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_PUSH_ALARM);
 
         int sseType;
