@@ -1,5 +1,7 @@
 package co.kurrant.app.public_api.service;
 
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
 import co.dalicious.domain.board.dto.NoticeDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
@@ -14,5 +16,5 @@ public interface BoardService {
     List<PushResponseDto> alarmBoardList(SecurityUser securityUser);
     void deleteAllAlarm(SecurityUser securityUser);
     void readAllAlarm(SecurityUser securityUser, List<String> ids);
-    List<NoticeDto> noticeList(SecurityUser securityUser, BigInteger groupId);
+    ListItemResponseDto<NoticeDto> noticeList(SecurityUser securityUser, BigInteger groupId, OffsetBasedPageRequest pageable);
 }
