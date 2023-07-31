@@ -25,13 +25,13 @@ public class QNoticeRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public List<Notice> findAllNotice() {
+    public List<Notice> findPopupNotice() {
         return queryFactory.selectFrom(notice)
-                .where(notice.isStatus.isTrue(), notice.boardType.in(BoardType.showAll()))
+                .where(notice.isStatus.isTrue(), notice.boardType.in(BoardType.POPUP))
                 .fetch();
     }
 
-    public List<Notice> findAllByTypeAndGroup(BoardType type, BigInteger groupId) {
+    public Page<Notice> findAllNoticeBySpotFilter(BigInteger groupId, Pageable pageable) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(groupId != null) {
@@ -41,19 +41,21 @@ public class QNoticeRepository {
                     .map(v -> v.get(notice.id))
                     .toList();
 
+            whereCause.and(notice.boardType.eq(BoardType.SPOT));
             whereCause.and(notice.id.in(noticeIds));
         }
+        else {
+            whereCause.and(notice.boardType.in(BoardType.showAll()));
+        }
 
-        return queryFactory.selectFrom(notice)
-                .where(notice.boardType.eq(type),notice.isStatus.isTrue())
-                .fetch();
-    }
 
-    public List<Notice> findAllSpotNotice(BigInteger spotId) {
-        return queryFactory.selectFrom(notice)
-                .where(notice.boardType.eq(BoardType.SPOT),
-                        notice.groupIds.contains(spotId))
-                .fetch();
+        QueryResults<Notice> results = queryFactory.selectFrom(notice)
+                .where(whereCause)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
     public List<Notice> findAllByIds(Set<BigInteger> ids) {

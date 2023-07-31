@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.board.dto.AppBoardRequestDto;
+import co.kurrant.app.admin_api.dto.IdDto;
 import co.kurrant.app.admin_api.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +56,8 @@ public class BoardController {
     @ControllerMarker(ControllerType.BOARD)
     @Operation(summary = "앱 공지사항 푸시알림", description = "앱 공지사항 푸시알림을 전송합니다.")
     @PostMapping("/app/push")
-    public ResponseMessage postPushAlarm(@RequestBody BigInteger noticeId) {
-        boardService.postPushAlarm(noticeId);
+    public ResponseMessage postPushAlarm(@RequestBody IdDto noticeId) {
+        boardService.postPushAlarm(noticeId.getId());
         return ResponseMessage.builder()
                 .message("앱 공지사항 푸시알림 전송에 성공했습니다.")
                 .build();

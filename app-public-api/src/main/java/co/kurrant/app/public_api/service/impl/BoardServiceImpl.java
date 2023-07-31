@@ -1,26 +1,32 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.client.sse.SseService;
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
+import co.dalicious.domain.board.dto.NoticeDto;
 import co.dalicious.domain.board.entity.CustomerService;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.mapper.NoticeMapper;
 import co.dalicious.domain.board.repository.QCustomerBoardRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
-import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.user.entity.User;
-import co.kurrant.app.public_api.dto.board.PushResponseDto;
-import co.kurrant.app.public_api.service.BoardService;
+import co.dalicious.domain.user.entity.UserGroup;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
-import co.dalicious.domain.board.dto.NoticeDto;
+import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.kurrant.app.public_api.mapper.board.CustomerServiceMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
+import co.kurrant.app.public_api.service.BoardService;
 import co.kurrant.app.public_api.util.UserUtil;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -37,10 +43,10 @@ public class BoardServiceImpl implements BoardService {
     private final UserUtil userUtil;
 
     @Override
-    @Transactional
-    public List<NoticeDto>  allNoticeList(SecurityUser securityUser) {
+    @Transactional(readOnly = true)
+    public List<NoticeDto>  popupNoticeList(SecurityUser securityUser) {
         List<NoticeDto> result = new ArrayList<>();
-        List<Notice> noticeList = qNoticeRepository.findAllNotice();
+        List<Notice> noticeList = qNoticeRepository.findPopupNotice();
         for (Notice notice:noticeList){
            result.add(noticeMapper.toDto(notice));
         }
@@ -90,5 +96,26 @@ public class BoardServiceImpl implements BoardService {
                     pushAlarmHashRepository.save(v);
                 });
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ListItemResponseDto<NoticeDto> noticeList(SecurityUser securityUser, BigInteger groupId, OffsetBasedPageRequest pageable) {
+        // 유저가 속한 그룹이 맞는지 확인
+        User user = userUtil.getUser(securityUser);
+        if(groupId != null && user.getGroups().stream().noneMatch(v -> v.getGroup().getId().equals(groupId) && v.getClientStatus().equals(ClientStatus.BELONG))) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
+
+        Page<Notice> noticeList = qNoticeRepository.findAllNoticeBySpotFilter(groupId, pageable);
+        if(noticeList.isEmpty()) {
+            return ListItemResponseDto.<NoticeDto>builder().items(null).count(0).limit(pageable.getPageSize()).offset(pageable.getOffset()).total((long) noticeList.getTotalPages()).isLast(true).build();
+        }
+
+        List<NoticeDto> noticeDtos = new ArrayList<>();
+        for (Notice notice : noticeList){
+            noticeDtos.add(noticeMapper.toDto(notice));
+        }
+
+        return ListItemResponseDto.<NoticeDto>builder().items(noticeDtos).count(noticeList.getNumberOfElements()).limit(pageable.getPageSize())
+                .offset(pageable.getOffset()).total((long) noticeList.getTotalPages()).isLast(noticeList.isLast()).build();
     }
 }
