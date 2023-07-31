@@ -38,9 +38,9 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     @Transactional
-    public List<NoticeDto>  allNoticeList(SecurityUser securityUser) {
+    public List<NoticeDto>  popupNoticeList(SecurityUser securityUser) {
         List<NoticeDto> result = new ArrayList<>();
-        List<Notice> noticeList = qNoticeRepository.findAllNotice();
+        List<Notice> noticeList = qNoticeRepository.findPopupNotice();
         for (Notice notice:noticeList){
            result.add(noticeMapper.toDto(notice));
         }

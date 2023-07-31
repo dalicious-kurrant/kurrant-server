@@ -25,9 +25,9 @@ public class QNoticeRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public List<Notice> findAllNotice() {
+    public List<Notice> findPopupNotice() {
         return queryFactory.selectFrom(notice)
-                .where(notice.isStatus.isTrue(), notice.boardType.in(BoardType.showAll()))
+                .where(notice.isStatus.isTrue(), notice.boardType.in(BoardType.POPUP))
                 .fetch();
     }
 

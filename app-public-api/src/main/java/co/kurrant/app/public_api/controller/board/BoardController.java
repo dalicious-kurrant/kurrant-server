@@ -21,13 +21,13 @@ public class BoardController {
 
     private final BoardService boardService;
 
-    @Operation(summary = "전체 공지사항 조회", description = "전체 공지사항을 불러온다.")
-    @GetMapping("notices")
-    public ResponseMessage allNoticeList(Authentication authentication){
+    @Operation(summary = "팝업 공지사항 조회", description = "팝업 공지사항을 불러온다.")
+    @GetMapping("notices/popup")
+    public ResponseMessage popupNoticeList(Authentication authentication){
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(boardService.allNoticeList(securityUser))
-                .message("전체 공지사항을 불러오는데 성공했습니다.")
+                .data(boardService.popupNoticeList(securityUser))
+                .message("팝업 공지사항을 불러오는데 성공했습니다.")
                 .build();
     }
 
@@ -67,6 +67,16 @@ public class BoardController {
         boardService.readAllAlarm(securityUser, ids);
         return ResponseMessage.builder()
                 .message("알림을 모두 읽었습니다.")
+                .build();
+    }
+
+    @Operation(summary = "공지사항 조회", description = "공지사항을 불러온다.")
+    @GetMapping("notices")
+    public ResponseMessage noticeList(Authentication authentication, @RequestParam(required = false) BigInteger groupId){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(boardService.noticeList(securityUser, groupId))
+                .message("공지사항을 불러오는데 성공했습니다.")
                 .build();
     }
 
