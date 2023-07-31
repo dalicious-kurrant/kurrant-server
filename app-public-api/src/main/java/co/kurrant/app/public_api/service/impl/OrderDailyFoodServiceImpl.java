@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.SpotRepository;
@@ -35,7 +35,6 @@ import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
-import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
@@ -57,9 +56,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.format.TextStyle;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -69,7 +66,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final UserUtil userUtil;
-    private final TossUtil tossUtil;
     private final NiceUtil niceUtil;
     private final SpotRepository spotRepository;
     private final QCartDailyFoodRepository qCartDailyFoodRepository;

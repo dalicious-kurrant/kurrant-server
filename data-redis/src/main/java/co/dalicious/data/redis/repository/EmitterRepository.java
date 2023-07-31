@@ -1,4 +1,4 @@
-package co.dalicious.client.sse;
+package co.dalicious.data.redis.repository;
 
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 

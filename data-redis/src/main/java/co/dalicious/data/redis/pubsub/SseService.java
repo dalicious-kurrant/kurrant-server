@@ -1,7 +1,8 @@
-package co.dalicious.client.sse;
+package co.dalicious.data.redis.pubsub;
 
-import co.dalicious.client.sse.dto.SseResponseDto;
+import co.dalicious.data.redis.dto.SseResponseDto;
 import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.repository.EmitterRepository;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import org.yaml.snakeyaml.emitter.Emitter;
 
 import java.io.IOException;
 import java.math.BigInteger;

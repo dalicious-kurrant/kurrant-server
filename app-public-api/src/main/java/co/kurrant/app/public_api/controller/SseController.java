@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.pubsub.SseService;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;

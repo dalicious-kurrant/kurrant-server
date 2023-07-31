@@ -1,7 +1,6 @@
 package co.kurrant.batch.job.batch.job;
 
 import co.dalicious.client.alarm.dto.BatchAlarmDto;
-import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
@@ -40,7 +39,6 @@ import javax.persistence.TypedQuery;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 

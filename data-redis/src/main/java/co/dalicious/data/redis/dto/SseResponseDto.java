@@ -1,4 +1,4 @@
-package co.dalicious.client.sse.dto;
+package co.dalicious.data.redis.dto;
 
 import lombok.Builder;
 import lombok.Getter;
