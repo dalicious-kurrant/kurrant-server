@@ -49,7 +49,7 @@ public class BackOfficeNotice {
 
     @ElementCollection
     @Comment("이미지 경로")
-    @CollectionTable(name = "reviews__images")
+    @CollectionTable(name = "board__images")
     private List<Image> images;
 
     @Column(name="status")
