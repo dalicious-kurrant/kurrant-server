@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.data.redis.pubsub.EventPublisher;
 import co.dalicious.data.redis.pubsub.SseEventService;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.order.dto.OrderDto;
@@ -23,7 +22,7 @@ import java.math.BigInteger;
 public class SseController {
 
     private final SseService sseService;
-    private final EventPublisher eventPublisher;
+    private final SseEventService sseEventService;
     private final UserUtil userUtil;
 
     @Description(value = "sse 구독")
@@ -38,7 +37,7 @@ public class SseController {
     @Description(value = "메세지 전송")
     @PostMapping(value = "/v1/notification/send")
     public void subscribe(@RequestBody OrderDto.IdList idList) {
-        eventPublisher.publishEvent(StringUtils.BigIntegerListToString(idList.getIdList()));
+        sseEventService.send(idList.getIdList());
     }
 
     @Description(value = "sse 알림 조회")

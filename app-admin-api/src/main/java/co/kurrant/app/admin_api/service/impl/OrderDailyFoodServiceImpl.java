@@ -7,7 +7,6 @@ import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.data.redis.entity.PushAlarmHash;
-import co.dalicious.data.redis.pubsub.EventPublisher;
 import co.dalicious.data.redis.pubsub.SseEventService;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
@@ -121,7 +120,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DeliveryInstanceMapper deliveryInstanceMapper;
     private final QUserGroupRepository qUserGroupRepository;
     private final SseService sseService;
-    private final EventPublisher eventPublisher;
+    private final SseEventService sseEventService;
     private final QFoodCapacityRepository qFoodCapacityRepository;
 
     @Override
@@ -325,7 +324,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
-        eventPublisher.publishEvent(StringUtils.BigIntegerListToString(makersIds));
+        sseEventService.send(makersIds);
         return failMessage.toString();
     }
 
@@ -439,7 +438,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             order.updateTotalDeliveryFee(BigDecimal.ZERO);
             order.updatePoint(BigDecimal.ZERO);
         }
-        eventPublisher.publishEvent(StringUtils.BigIntegerListToString(makersIds));
+        sseEventService.send(makersIds);
     }
 
     @Override

@@ -3,7 +3,7 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
-import co.dalicious.data.redis.pubsub.EventPublisher;
+import co.dalicious.data.redis.pubsub.SseEventService;
 import co.dalicious.domain.file.entity.embeddable.enums.DirName;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.order.dto.OrderDto;
@@ -28,7 +28,7 @@ import java.util.List;
 public class PublicController {
     private final AdminPaycheckService adminPaycheckService;
     private final GroupService groupService;
-    private final EventPublisher eventPublisher;
+    private final SseEventService sseEventService;
 
     @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "메이커스 조회", description = "메이커스 조회")
@@ -84,6 +84,6 @@ public class PublicController {
     @Description(value = "메세지 전송")
     @PostMapping(value = "/notification/send")
     public void subscribe(@RequestBody OrderDto.IdList idList) {
-        eventPublisher.publishEvent(StringUtils.BigIntegerListToString(idList.getIdList()));
+        sseEventService.send(idList.getIdList());
     }
 }
