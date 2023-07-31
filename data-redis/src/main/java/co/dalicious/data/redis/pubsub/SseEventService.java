@@ -5,8 +5,14 @@ import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -16,12 +22,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 @RequiredArgsConstructor
 public class SseEventService {
     private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 30;
-    private final EmitterRepository emitterRepository;
+    private final RedisOperations<String, String> eventRedisOperations;
+    private static final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
+    private final RedisMessageListenerContainer redisMessageListenerContainer;
 
     public SseEmitter subscribe(BigInteger makersId, String lastEventId) {
         //구독한 유저를 특정하기 위한 id.
@@ -31,22 +40,14 @@ public class SseEventService {
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
         System.out.println("emitter = " + emitter);
 
-        //기존 emitter 중 완료 되거나 시간이 초과되어 연결이 끊긴 emitter를 삭제한다.
-        emitter.onCompletion(() -> emitterRepository.deleteById(id));
-        emitter.onTimeout(() -> emitterRepository.deleteById(id));
+        final MessageListener messageListener = (message, pattern) -> {
+            sendToClient(emitter, id, "EventStream Created. [makersId=" + makersId + "]");
+        };
 
-        emitterRepository.save(id, emitter);
-
-        // 503 에러를 방지하기 위한 더미 이벤트 전송. 연결 중 한 번도 이벤트를 보낸 적이 없다면 다음 연결 때 503에러를 낸다.
-        sendToClient(emitter, id, "EventStream Created. [makersId=" + makersId + "]");
+        redisMessageListenerContainer.addMessageListener(messageListener, ChannelTopic.of(getChannelName(id)));
 
         // 클라이언트가 미수신한 Event 목록이 존재할 경우 전송하여 Event 유실을 예방
-        if (!lastEventId.isEmpty()) {
-            Map<String, Object> events = emitterRepository.findAllEventCacheStartWithId(String.valueOf(makersId));
-            events.entrySet().stream()
-                    .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
-                    .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getValue()));
-        }
+        checkEmitterStatus(emitter, messageListener);
 
         return emitter;
     }
@@ -58,29 +59,34 @@ public class SseEventService {
                     .name("message")
                     .data(data));
         } catch (IOException exception) {
-            emitterRepository.deleteAllEmitterStartWithId(id);
+            emitters.remove(emitter);
             throw new ApiException(ExceptionEnum.CONNECTION_ERROR);
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @TransactionalEventListener
     public void send(Collection<BigInteger> receivers) {
         String notification = "Reload! " + "(" + DateUtils.localDateTimeToString(LocalDateTime.now()) + ")";
 
         for (BigInteger receiver : receivers) {
             String id = String.valueOf(receiver);
-
-            // Fetch SseEmitter for each receiver
-            Map<String, SseEmitter> sseEmitters = emitterRepository.findAllStartWithById(id);
-            if (sseEmitters.isEmpty()) continue;
-            sseEmitters.forEach(
-                    (key, emitter) -> {
-                        // Store the data in cache to handle any lost data
-                        emitterRepository.saveEventCache(key, notification);
-                        // Send the data
-                        sendToClient(emitter, key, notification);
-                    }
-            );
+            eventRedisOperations.convertAndSend(getChannelName(id), notification);
         }
+    }
+
+    private void checkEmitterStatus(final SseEmitter emitter, final MessageListener messageListener) {
+        emitter.onCompletion(() -> {
+            emitters.remove(emitter);
+            redisMessageListenerContainer.removeMessageListener(messageListener);
+        });
+        emitter.onTimeout(() -> {
+            emitters.remove(emitter);
+            redisMessageListenerContainer.removeMessageListener(messageListener);
+        });
+    }
+
+    private String getChannelName(final String makersId) {
+        return "topics:" + makersId;
     }
 }

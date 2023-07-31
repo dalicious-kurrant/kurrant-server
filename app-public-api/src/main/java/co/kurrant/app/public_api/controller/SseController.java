@@ -37,9 +37,7 @@ public class SseController {
 
     @Description(value = "메세지 전송")
     @PostMapping(value = "/v1/notification/send")
-    public void subscribe(Authentication authentication,
-                          @RequestBody OrderDto.IdList idList) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
+    public void subscribe(@RequestBody OrderDto.IdList idList) {
         eventPublisher.publishEvent(StringUtils.BigIntegerListToString(idList.getIdList()));
     }
 
