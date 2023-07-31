@@ -14,13 +14,11 @@ import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.domain.board.mapper.NoticeMapper;
 import co.dalicious.domain.board.repository.NoticeRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
-import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.service.BoardService;
 import exception.ApiException;
@@ -31,7 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
