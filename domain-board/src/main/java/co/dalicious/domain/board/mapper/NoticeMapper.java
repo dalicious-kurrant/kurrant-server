@@ -46,8 +46,11 @@ public interface NoticeMapper {
         return appBoardResponseDtos;
     }
 
-    @Mapping(target = "boardType", expression = "java(BoardType.ofCode(requestDto.getBoardType()))")
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "isPushAlarm", ignore = true)
+    @Mapping(target = "updatedDateTime", ignore = true)
+    @Mapping(target = "createdDateTime", ignore = true)
+    @Mapping(target = "boardType", expression = "java(BoardType.ofCode(requestDto.getBoardType()))")
     void updateNotice(AppBoardRequestDto requestDto, @MappingTarget Notice notice);
 
     @Mapping(source = "notice.createdDateTime", target = "created", qualifiedByName = "timeFormat")
