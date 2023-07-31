@@ -3,10 +3,7 @@ package co.dalicious.domain.board.entity;
 import co.dalicious.domain.board.converter.GroupIdListConverter;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,6 +16,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "board__notice")
 public class Notice {
@@ -76,25 +74,5 @@ public class Notice {
 
     public void updatePushAlarm(Boolean pushAlarm) {
         isPushAlarm = pushAlarm;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public void setGroupIds(List<BigInteger> groupIds) {
-        this.groupIds = groupIds;
-    }
-
-    public void setStatus(Boolean status) {
-        isStatus = status;
-    }
-
-    public void setBoardType(BoardType boardType) {
-        this.boardType = boardType;
     }
 }
