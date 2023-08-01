@@ -257,4 +257,11 @@ public class QUserRepository {
                 .limit(1)
                 .fetchOne());
     }
+
+    public Optional<User> findOneByEmail(String email) {
+        return Optional.ofNullable(queryFactory.selectFrom(user)
+                .where(user.email.eq(email))
+                .limit(1)
+                .fetchOne());
+    }
 }
