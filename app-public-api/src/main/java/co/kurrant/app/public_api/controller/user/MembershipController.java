@@ -3,7 +3,7 @@ package co.kurrant.app.public_api.controller.user;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.order.dto.OrderMembershipReqDto;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import co.kurrant.app.public_api.service.MembershipService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

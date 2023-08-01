@@ -28,7 +28,7 @@ import co.dalicious.system.util.DistanceUtil;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import com.querydsl.core.Tuple;
 import exception.ApiException;
 import exception.ExceptionEnum;

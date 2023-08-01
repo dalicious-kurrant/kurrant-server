@@ -1,13 +1,10 @@
 package co.kurrant.app.public_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.client.sse.NotificationReqDto;
 import co.dalicious.client.sse.SseService;
-import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Description;
 import org.springframework.web.bind.annotation.*;

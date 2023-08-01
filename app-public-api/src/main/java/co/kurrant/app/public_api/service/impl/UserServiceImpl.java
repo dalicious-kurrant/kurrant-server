@@ -53,8 +53,9 @@ import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
+import co.kurrant.app.public_api.util.WordsUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.querydsl.core.Tuple;
 import exception.ApiException;
@@ -68,8 +69,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -1228,6 +1228,31 @@ public class UserServiceImpl implements UserService {
             dailyReportRepository.save(dailyReportMapper.toEntity(user, dailyReportDto, "add", dailyFood.getFood().getMakers().getName(), null));
         }
 
+    }
+
+    @Override
+    public String generateRandomNickName(SecurityUser securityUser) throws IOException {
+        InputStream nounInputStream = UserUtil.class.getClassLoader().getResourceAsStream("nickname/noun.csv");
+        BufferedReader nounReader = new BufferedReader(new InputStreamReader(nounInputStream));
+        InputStream adjectiveInputStream = UserUtil.class.getClassLoader().getResourceAsStream("nickname/adjective.csv");
+        BufferedReader adjectiveReader = new BufferedReader(new InputStreamReader(adjectiveInputStream));
+
+        List<String> nouns = nounReader.lines().toList();
+        List<String> adjectives = adjectiveReader.lines().toList();
+
+        Random rand = new Random();
+
+        String randomNoun = nouns.get(rand.nextInt(nouns.size()));
+        String randomAdjective = adjectives.get(rand.nextInt(adjectives.size()));
+
+        return randomAdjective + randomNoun;
+    }
+
+    @Override
+    public void changeNickname(SecurityUser securityUser, String nickname) {
+        User user = userUtil.getUser(securityUser);
+        WordsUtil.isContainingSwearWords(nickname);
+        user.updateNickname(nickname);
     }
 
     private SaveDailyReportDto generatedSaveDailyReportDto(DailyFood dailyFood) {

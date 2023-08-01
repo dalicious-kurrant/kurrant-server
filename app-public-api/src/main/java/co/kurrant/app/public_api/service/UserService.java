@@ -93,4 +93,8 @@ public interface UserService {
     Object getMealHistory(SecurityUser securityUser, String startDate, String endDate);
 
     void saveDailyReport(SecurityUser securityUser, SaveDailyReportReqDto saveDailyReportDto);
+
+    String generateRandomNickName(SecurityUser securityUser) throws IOException;
+
+    void changeNickname(SecurityUser securityUser, String nickname);
 }
