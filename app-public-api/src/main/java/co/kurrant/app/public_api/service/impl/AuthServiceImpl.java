@@ -215,7 +215,7 @@ public class AuthServiceImpl implements AuthService {
 
     // 회원가입
     @Override
-    public User signUp(SignUpRequestDto signUpRequestDto) {
+    public void signUp(SignUpRequestDto signUpRequestDto) {
 
         //가입가능 리스트에 있는 유저검색
         List<Employee> employeeList = employeeRepository.findAllByEmail(signUpRequestDto.getEmail());
@@ -273,7 +273,6 @@ public class AuthServiceImpl implements AuthService {
             employeeRepository.deleteAllByEmail(employeeList.get(0).getEmail());
         }
 
-        return user;
     }
 
     // 유저 인증 완료 후 토큰 발급
