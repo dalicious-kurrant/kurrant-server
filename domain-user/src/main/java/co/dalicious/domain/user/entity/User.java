@@ -442,6 +442,7 @@ public class User {
     }
 
     public UserGroup getUserGroupByGroup(Group group) {
+        if (group == null) return null;
         return this.groups.stream()
                 .filter(v -> v.getGroup().equals(group))
                 .findAny()
