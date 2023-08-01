@@ -1,10 +1,8 @@
 package co.dalicious.domain.board.mapper;
 
 import co.dalicious.domain.board.dto.*;
-import co.dalicious.domain.board.entity.BackOfficeNotice;
 import co.dalicious.domain.board.entity.ClientNotice;
 import co.dalicious.domain.board.entity.MakersNotice;
-import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.system.util.DateUtils;
 import org.mapstruct.Mapper;
@@ -58,7 +56,7 @@ public interface BackOfficeNoticeMapper {
     @Mapping(source = "isStatus", target = "status")
     NoticeDto toDto(MakersNotice notice);
 
-    default List<NoticeDto> getNoticeDtoList(Page<MakersNotice> makersNotices) {
+    default List<NoticeDto> getMakersNoticeDtoList(Page<MakersNotice> makersNotices) {
         return makersNotices.stream().map(this::toDto).toList();
     }
 
@@ -95,6 +93,11 @@ public interface BackOfficeNoticeMapper {
     @Mapping(target = "boardType", expression = "java(notice.getBoardType().getCode())")
     @Mapping(source = "isStatus", target = "status")
     NoticeDto toDto(ClientNotice notice);
+
+    default List<NoticeDto> getClientNoticeDtoList(Page<ClientNotice> clientNotices) {
+        return clientNotices.stream().map(this::toDto).toList();
+    }
+
 
     @Mapping(target = "boardType", expression = "java(BoardType.ofCode(requestDto.getBoardType()))")
     @Mapping(target = "isAlarmTalk", defaultValue = "false")

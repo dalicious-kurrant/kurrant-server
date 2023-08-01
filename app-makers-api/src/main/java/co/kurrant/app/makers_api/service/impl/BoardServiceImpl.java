@@ -2,7 +2,6 @@ package co.kurrant.app.makers_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.board.dto.MakersBoardResponseDto;
 import co.dalicious.domain.board.dto.NoticeDto;
 import co.dalicious.domain.board.entity.MakersNotice;
 import co.dalicious.domain.board.entity.enums.BoardType;
@@ -17,10 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +35,7 @@ public class BoardServiceImpl implements BoardService {
 
         if(makersNotices.isEmpty()) ListItemResponseDto.<NoticeDto>builder().items(null).limit(pageable.getPageSize()).offset(pageable.getOffset()).count(0).total((long) makersNotices.getTotalPages()).build();
 
-        List<NoticeDto> noticeDtos = backOfficeNoticeMapper.getNoticeDtoList(makersNotices);
+        List<NoticeDto> noticeDtos = backOfficeNoticeMapper.getMakersNoticeDtoList(makersNotices);
 
         return ListItemResponseDto.<NoticeDto>builder().items(noticeDtos).limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .count(makersNotices.getNumberOfElements()).total((long) makersNotices.getTotalPages()).isLast(makersNotices.isLast()).build();
