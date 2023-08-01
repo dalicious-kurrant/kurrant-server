@@ -1,5 +1,6 @@
 package co.dalicious.domain.board.entity;
 
+import co.dalicious.domain.board.converter.BoardTypeConverter;
 import co.dalicious.domain.board.converter.GroupIdListConverter;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -55,6 +56,7 @@ public class Notice {
 
     @Column(name="e_type")
     @Comment("상태 0:전체공지/1:스팟공지/2:팝업/3:이벤트 공지")
+    @Convert(converter = BoardTypeConverter.class)
     private BoardType boardType;
 
     @ColumnDefault(value = "0")

@@ -1,9 +1,6 @@
 package co.dalicious.domain.board.mapper;
 
-import co.dalicious.domain.board.dto.AppBoardRequestDto;
-import co.dalicious.domain.board.dto.AppBoardResponseDto;
-import co.dalicious.domain.board.dto.MakersBoardRequestDto;
-import co.dalicious.domain.board.dto.MakersBoardResponseDto;
+import co.dalicious.domain.board.dto.*;
 import co.dalicious.domain.board.entity.BackOfficeNotice;
 import co.dalicious.domain.board.entity.MakersNotice;
 import co.dalicious.domain.board.entity.Notice;
@@ -53,4 +50,14 @@ public interface BackOfficeNoticeMapper {
     @Mapping(target = "createdDateTime", ignore = true)
     @Mapping(target = "boardType", expression = "java(BoardType.ofCode(requestDto.getBoardType()))")
     void updateNotice(MakersBoardRequestDto requestDto, @MappingTarget MakersNotice notice);
+
+    @Mapping(target = "created", expression = "java(DateUtils.toISOLocalDate(notice.getCreatedDateTime()))")
+    @Mapping(target = "updated", expression = "java(DateUtils.toISOLocalDate(notice.getUpdatedDateTime()))")
+    @Mapping(target = "boardType", expression = "java(notice.getBoardType().getCode())")
+    @Mapping(source = "isStatus", target = "status")
+    NoticeDto toDto(MakersNotice notice);
+
+    default List<NoticeDto> getNoticeDtoList(Page<MakersNotice> makersNotices) {
+        return makersNotices.stream().map(this::toDto).toList();
+    }
 }
