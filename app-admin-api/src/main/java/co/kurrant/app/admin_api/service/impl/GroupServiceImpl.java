@@ -247,6 +247,7 @@ public class GroupServiceImpl implements GroupService {
         if (group instanceof Corporation corporation) {
             groupMapper.updateCorporation(groupInfoList, corporation);
             corporation.updateAddress(address);
+            corporation.updatePrepaidCategories(groupMapper.toPrepaidCategories(groupInfoList.getPrepaidCategoryList()));
         } else if (group instanceof OpenGroup openGroup) {
             openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), true);
         }

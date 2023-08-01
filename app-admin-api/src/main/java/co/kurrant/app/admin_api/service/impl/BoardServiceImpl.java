@@ -145,7 +145,7 @@ public class BoardServiceImpl implements BoardService {
 
         if(backOfficeNoticeList.isEmpty()) ListItemResponseDto.<MakersBoardResponseDto>builder().items(null).limit(pageable.getPageSize()).offset(pageable.getOffset()).count(0).total((long) backOfficeNoticeList.getTotalPages()).build();
 
-        Map<BigInteger, String> makersNameMap = qMakersRepository.findByIdMapIdAndName(backOfficeNoticeList.stream().filter(Objects::nonNull).map(MakersNotice::getMakersId).collect(Collectors.toSet()));
+        Map<BigInteger, String> makersNameMap = qMakersRepository.findByIdMapIdAndName(backOfficeNoticeList.stream().filter(v-> v.getMakersId() != null).map(MakersNotice::getMakersId).collect(Collectors.toSet()));
         List<MakersBoardResponseDto> appBoardResponseDtos = backOfficeNoticeMapper.toDto(backOfficeNoticeList, makersNameMap);
 
         return ListItemResponseDto.<MakersBoardResponseDto>builder().items(appBoardResponseDtos).limit(pageable.getPageSize()).offset(pageable.getOffset())
