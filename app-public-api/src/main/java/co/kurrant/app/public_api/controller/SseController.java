@@ -9,6 +9,7 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Description;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -22,7 +23,7 @@ import java.math.BigInteger;
 public class SseController {
 
     private final SseService sseService;
-    private final SseEventService sseEventService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final UserUtil userUtil;
 
     @Description(value = "sse 구독")
@@ -37,7 +38,7 @@ public class SseController {
     @Description(value = "메세지 전송")
     @PostMapping(value = "/v1/notification/send")
     public void subscribe(@RequestBody OrderDto.IdList idList) {
-        sseEventService.send(idList.getIdList());
+        applicationEventPublisher.publishEvent(idList.getIdList());
     }
 
     @Description(value = "sse 알림 조회")
