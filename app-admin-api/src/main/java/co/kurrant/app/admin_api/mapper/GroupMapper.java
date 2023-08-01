@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.mapper;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.dto.UpdateGroupListDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -275,6 +276,12 @@ public interface GroupMapper {
     @Mapping(target = "mealInfos", ignore = true)
     void updateCorporation(GroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;
 
+    @Mapping(target = "membershipEndDate", expression = "java(DateUtils.stringToDate(groupDto.getMembershipEndDate()))")
+    @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.codesToDiningTypes(groupDto.getDiningTypes()))")
+    @Mapping(target = "deliveryFeeOption", expression = "java(DeliveryFeeOption.ofString(groupDto.getDeliveryFeeOption()))")
+    @Mapping(target = "mealInfos", ignore = true)
+    void updateCorporation(UpdateGroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;
+
     default void updateMealInfo(GroupListDto.MealInfo mealInfoDto, Group group, @MappingTarget MealInfo mealInfo) {
         if(mealInfo instanceof CorporationMealInfo corporationMealInfo) {
             updateCorporationMealInfo(mealInfoDto, group, corporationMealInfo);
@@ -307,6 +314,7 @@ public interface GroupMapper {
 
     default GroupListDto.PrepaidCategory toPrepaidCategoryDto(PrepaidCategory prepaidCategory) {
         return GroupListDto.PrepaidCategory.builder()
+                .code(prepaidCategory.getPaycheckCategoryItem().getCode())
                 .paycheckCategoryItem(prepaidCategory.getPaycheckCategoryItem().getPaycheckCategoryItem())
                 .count(prepaidCategory.getCount())
                 .price(prepaidCategory.getPrice() == null ? null : prepaidCategory.getPrice().intValue())
