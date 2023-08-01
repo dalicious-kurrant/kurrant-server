@@ -586,7 +586,7 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findIdRequestDto.phone, RequiredAuth.FIND_ID);
 
         // 유저 가져오기
-        User user = userRepository.findOneByPhone(findIdRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        User user = qUserRepository.findOneByPhone(findIdRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
 
         // 아이디 찾기 응답 Response 생성
         List<ProviderEmailDto> connectedSns = new ArrayList<>();
@@ -619,7 +619,7 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findPasswordEmailRequestDto.getEmail(), RequiredAuth.FIND_PASSWORD);
 
         // 유저 정보 가져오기
-        User user = userRepository.findOneByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        User user = qUserRepository.findOneByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
         // 비밀번호 변경
         String hashedPassword = passwordEncoder.encode(password);
         user.changePassword(hashedPassword);
