@@ -1,10 +1,11 @@
 package co.dalicious.domain.board.entity;
 
-import co.dalicious.domain.board.converter.GroupIdListConverter;
 import co.dalicious.domain.board.entity.enums.BoardType;
-import co.dalicious.domain.file.entity.embeddable.Image;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
@@ -13,7 +14,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.util.List;
 
 @Entity
 @Getter
@@ -47,11 +47,6 @@ public class BackOfficeNotice {
     @Comment("공지 내용")
     private String content;
 
-    @ElementCollection
-    @Comment("이미지 경로")
-    @CollectionTable(name = "board__images")
-    private List<Image> images;
-
     @Column(name="status")
     @Comment("상태 0:비활성 / 1:활성")
     private Boolean isStatus;
@@ -64,11 +59,9 @@ public class BackOfficeNotice {
     @Comment("상태 0:비활성 / 1:활성")
     private Boolean isAlarmTalk;
 
-    @Builder
-    public BackOfficeNotice(String title, String content, List<Image> images, Boolean isStatus, BoardType boardType, Boolean isAlarmTalk) {
+    public BackOfficeNotice(String title, String content, Boolean isStatus, BoardType boardType, Boolean isAlarmTalk) {
         this.title = title;
         this.content = content;
-        this.images = images;
         this.isStatus = isStatus;
         this.boardType = boardType;
         this.isAlarmTalk = isAlarmTalk;

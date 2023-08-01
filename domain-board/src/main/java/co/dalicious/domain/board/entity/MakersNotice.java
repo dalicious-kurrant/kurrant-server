@@ -21,8 +21,8 @@ public class MakersNotice extends BackOfficeNotice {
     private BigInteger makersId;
 
     @Builder
-    public MakersNotice(String title, String content, List<Image> images, Boolean isStatus, BoardType boardType, Boolean isAlarmTalk, BigInteger makersId) {
-        super(title, content, images, isStatus, boardType, isAlarmTalk);
+    public MakersNotice(String title, String content, Boolean isStatus, BoardType boardType, Boolean isAlarmTalk, BigInteger makersId) {
+        super(title, content, isStatus, boardType, isAlarmTalk);
         this.makersId = makersId;
     }
 }
