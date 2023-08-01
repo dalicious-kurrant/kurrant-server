@@ -277,4 +277,13 @@ public class UserController {
                 .build();
     }
 
+    @Operation(summary = "유저의 기업 멤버십 여부", description = "로그인 한 유저 정보를 불러온다.")
+    @GetMapping("/corporation-membership")
+    public ResponseMessage isMembershipSupport(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .message("기업 멤버십 여부 조회에 성공하였습니다.")
+                .data(userService.isMembershipSupport(securityUser))
+                .build();
+    }
 }

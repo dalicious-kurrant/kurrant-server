@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static co.dalicious.domain.user.entity.QDailyReport.dailyReport;
 
@@ -43,6 +44,18 @@ public class QDailyReportRepository {
 
     }
 
+    public List<String> findByUserIdAndDateToString(BigInteger userId, String stringDate) {
+
+        LocalDate date = LocalDate.parse(stringDate);
+
+        return queryFactory.select(dailyReport.foodName)
+                .from(dailyReport)
+                .where(dailyReport.user.id.eq(userId),
+                        dailyReport.eatDate.eq(date))
+                .fetch();
+
+    }
+
     public void saveDailyReportFood(BigInteger userId, LocalDate startDate, LocalDate endDate) {
 
 
@@ -69,6 +82,12 @@ public class QDailyReportRepository {
                 .having(dailyReport.user.id.eq(userId),
                         dailyReport.eatDate.between(startDate, endDate))
                 .orderBy(dailyReport.eatDate.asc())
+                .fetch();
+    }
+
+    public List<DailyReport> findAllByUserId(BigInteger userId) {
+        return queryFactory.selectFrom(dailyReport)
+                .where(dailyReport.user.id.eq(userId))
                 .fetch();
     }
 }

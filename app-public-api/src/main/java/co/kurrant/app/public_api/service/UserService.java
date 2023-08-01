@@ -68,33 +68,8 @@ public interface UserService {
 
     void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto);
 
-    String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto);
-
-    Object getCountry();
-
-    Object getFavoriteCountryFoods(Integer code);
-
-    Object getJobType(Integer category, String code);
-
-    Object getFoodImage(List<BigInteger> foodId);
-
-    Object getTestData();
-
-    Boolean userPreferenceCheck(SecurityUser securityUser);
-
-    List<PushResponseDto> getAlarms(SecurityUser securityUser);
-    void insertMyFood(SecurityUser securityUser, SaveDailyReportDto saveDailyReportDto);
-    Object getReport(SecurityUser securityUser, String date);
-    void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto);
-    String deleteReport(SecurityUser securityUser, BigInteger reportId);
-    Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType);
-    void allChangeAlarmSetting(SecurityUser securityUser, Boolean isActive);
-
-    Object getMealHistory(SecurityUser securityUser, String startDate, String endDate);
-
-    void saveDailyReport(SecurityUser securityUser, SaveDailyReportReqDto saveDailyReportDto);
-
     String generateRandomNickName(SecurityUser securityUser) throws IOException;
 
     void changeNickname(SecurityUser securityUser, String nickname);
+    Boolean isMembershipSupport(SecurityUser securityUser);
 }

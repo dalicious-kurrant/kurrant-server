@@ -1,5 +1,6 @@
 package co.dalicious.domain.recommend.repository;
 
+import co.dalicious.domain.recommend.dto.UserRecommendByPeriodWhereData;
 import co.dalicious.domain.recommend.dto.UserRecommendWhereData;
 import co.dalicious.domain.recommend.entity.UserRecommends;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -21,6 +22,16 @@ public class QUserRecommendRepository {
                 .where(userRecommends.userId.eq(data.getUserId()),
                         userRecommends.groupId.eq(data.getGroupId()),
                         userRecommends.serviceDate.eq(data.getServiceDate()),
+                        userRecommends.foodId.in(data.getFoodId()))
+                .fetch();
+    }
+
+    public List<UserRecommends> getUserRecommends(UserRecommendByPeriodWhereData data) {
+        return queryFactory.selectFrom(userRecommends)
+                .where(userRecommends.userId.eq(data.getUserId()),
+                        userRecommends.groupId.eq(data.getGroupId()),
+                        userRecommends.serviceDate.goe(data.getPeriodDto().getStartDate()),
+                        userRecommends.serviceDate.loe(data.getPeriodDto().getEndDate()),
                         userRecommends.foodId.in(data.getFoodId()))
                 .fetch();
     }
