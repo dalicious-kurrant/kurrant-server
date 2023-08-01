@@ -25,3 +25,4 @@ create table board__images
         foreign key (back_office_notice_id) references board__back_office_notice (id)
 )
     charset = utf8mb4;
+

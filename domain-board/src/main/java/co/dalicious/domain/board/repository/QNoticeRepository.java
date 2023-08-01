@@ -87,6 +87,7 @@ public class QNoticeRepository {
 
         QueryResults<Notice> results = queryFactory.selectFrom(notice)
                 .where(whereCause)
+                .orderBy(notice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .fetchResults();

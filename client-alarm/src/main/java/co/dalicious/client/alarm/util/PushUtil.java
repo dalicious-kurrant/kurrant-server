@@ -165,7 +165,7 @@ public class PushUtil {
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(pushCondition);
         String template = pushAlarms.getMessage();
         Map<String, String> valuesMap = new HashMap<>();
-        valuesMap.put("noticeTitle", title);
+        valuesMap.put("title", title);
 
         StringSubstitutor sub = new StringSubstitutor(valuesMap);
         template = sub.replace(template);

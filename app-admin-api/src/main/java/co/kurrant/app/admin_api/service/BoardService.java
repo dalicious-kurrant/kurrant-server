@@ -5,8 +5,12 @@ import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.board.dto.AppBoardRequestDto;
 import co.dalicious.domain.board.dto.AppBoardResponseDto;
 import co.dalicious.domain.board.dto.MakersBoardRequestDto;
+import co.dalicious.domain.board.dto.MakersBoardResponseDto;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 
 public interface BoardService {
@@ -15,7 +19,7 @@ public interface BoardService {
     void updateAppBoard(BigInteger noticeId, AppBoardRequestDto requestDto);
     void postPushAlarm(BigInteger noticeId);
     void createMakersBoard(MakersBoardRequestDto requestDto);
-    ListItemResponseDto<AppBoardResponseDto> getMakersBoard(Map<String, Object> parameters, OffsetBasedPageRequest pageable);
+    ListItemResponseDto<MakersBoardResponseDto> getMakersBoard(Map<String, Object> parameters, OffsetBasedPageRequest pageable);
     void updateMakersBoard(BigInteger noticeId, MakersBoardRequestDto requestDto);
 
 }

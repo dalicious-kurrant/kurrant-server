@@ -10,6 +10,7 @@ import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.domain.food.mapper.MakersCapacityMapper;
 import co.dalicious.system.enums.DiningType;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.Geometry;
@@ -19,7 +20,9 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static co.dalicious.domain.food.entity.QMakers.makers;
@@ -230,5 +233,19 @@ public class QMakersRepository {
         return queryFactory.selectFrom(makers)
                 .where(makers.id.in(makersIds))
                 .fetch();
+    }
+
+    public Map<BigInteger, String> findByIdMapIdAndName(Set<BigInteger> makersIds) {
+        List<Tuple> results = queryFactory.select(makers.id, makers.name)
+                .from(makers)
+                .where(makers.id.in(makersIds))
+                .fetch();
+
+        Map<BigInteger, String> map = new HashMap<>();
+
+        for (Tuple result : results) {
+            map.put(result.get(makers.id), result.get(makers.name));
+        }
+        return map;
     }
 }

@@ -11,9 +11,13 @@ import co.kurrant.app.admin_api.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -76,7 +80,7 @@ public class BoardController {
 
     @ControllerMarker(ControllerType.BOARD)
     @Operation(summary = "메이커스 공지사항 조회", description = "메이커스 공지사항을 조회한다")
-    @GetMapping("/makser")
+    @GetMapping("/makers")
     public ResponseMessage getMakersBoard(@RequestParam(required = false) Map<String, Object> parameters,
                                        @RequestParam(required = false, defaultValue = "15") Integer limit,
                                        @RequestParam Integer page) {

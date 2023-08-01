@@ -10,12 +10,19 @@ import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.board.dto.AppBoardRequestDto;
 import co.dalicious.domain.board.dto.AppBoardResponseDto;
 import co.dalicious.domain.board.dto.MakersBoardRequestDto;
+import co.dalicious.domain.board.dto.MakersBoardResponseDto;
+import co.dalicious.domain.board.entity.BackOfficeNotice;
+import co.dalicious.domain.board.entity.MakersNotice;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardType;
+import co.dalicious.domain.board.mapper.BackOfficeNoticeMapper;
 import co.dalicious.domain.board.mapper.NoticeMapper;
+import co.dalicious.domain.board.repository.BackOfficeNoticeRepository;
 import co.dalicious.domain.board.repository.NoticeRepository;
+import co.dalicious.domain.board.repository.QBackOfficeNoticeRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.food.repository.QMakersRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
@@ -33,6 +40,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,6 +55,10 @@ public class BoardServiceImpl implements BoardService {
     private final PushService pushService;
     private final SseService sseService;
     private final QUserRepository qUserRepository;
+    private final BackOfficeNoticeRepository backOfficeNoticeRepository;
+    private final BackOfficeNoticeMapper backOfficeNoticeMapper;
+    private final QBackOfficeNoticeRepository qBackOfficeNoticeRepository;
+    private final QMakersRepository qMakersRepository;
 
     @Override
     @Transactional
@@ -115,17 +127,37 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    @Transactional
     public void createMakersBoard(MakersBoardRequestDto requestDto) {
-
+        MakersNotice notice = backOfficeNoticeMapper.toMakersNotice(requestDto);
+        backOfficeNoticeRepository.save(notice);
     }
 
     @Override
-    public ListItemResponseDto<AppBoardResponseDto> getMakersBoard(Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
-        return null;
+    @Transactional(readOnly = true)
+    public ListItemResponseDto<MakersBoardResponseDto> getMakersBoard(Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
+        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId") == null ? null : BigInteger.valueOf(Long.parseLong(String.valueOf(parameters.get("makersId"))));
+        Boolean isStatus = !parameters.containsKey("isStatus") || parameters.get("isStatus") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isStatus")));
+        Boolean isAlarmTalk = !parameters.containsKey("isAlarmTalk") || parameters.get("isAlarmTalk") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isAlarmTalk")));
+        BoardType boardType = !parameters.containsKey("boardType") || parameters.get("boardType") == null ? null : BoardType.ofCode(Integer.parseInt(String.valueOf(parameters.get("boardType"))));
+
+        Page<MakersNotice> backOfficeNoticeList = (Page<MakersNotice>) qBackOfficeNoticeRepository.findAllByParameters(makersId, null, isStatus, isAlarmTalk, boardType, pageable);
+
+        if(backOfficeNoticeList.isEmpty()) ListItemResponseDto.<MakersBoardResponseDto>builder().items(null).limit(pageable.getPageSize()).offset(pageable.getOffset()).count(0).total((long) backOfficeNoticeList.getTotalPages()).build();
+
+        Map<BigInteger, String> makersNameMap = qMakersRepository.findByIdMapIdAndName(backOfficeNoticeList.stream().filter(Objects::nonNull).map(MakersNotice::getMakersId).collect(Collectors.toSet()));
+        List<MakersBoardResponseDto> appBoardResponseDtos = backOfficeNoticeMapper.toDto(backOfficeNoticeList, makersNameMap);
+
+        return ListItemResponseDto.<MakersBoardResponseDto>builder().items(appBoardResponseDtos).limit(pageable.getPageSize()).offset(pageable.getOffset())
+                .count(backOfficeNoticeList.getNumberOfElements()).total((long) backOfficeNoticeList.getTotalPages()).isLast(backOfficeNoticeList.isLast()).build();
     }
 
     @Override
+    @Transactional
     public void updateMakersBoard(BigInteger noticeId, MakersBoardRequestDto requestDto) {
-
+        MakersNotice makersNotice = (MakersNotice) backOfficeNoticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
+        backOfficeNoticeMapper.updateNotice(requestDto, makersNotice);
     }
+
+
 }
