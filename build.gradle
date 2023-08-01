@@ -256,7 +256,7 @@ project(':batch') {
         implementation project(':domain-payment')
         implementation project(':domain-paycheck')
         implementation project(':domain-delivery')
-        implementation project(':client-sse')
+        implementation project(':data-redis')
     }
 }
 

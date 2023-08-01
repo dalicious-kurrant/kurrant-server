@@ -1,10 +1,7 @@
 package co.dalicious.domain.client.entity;
 
-import co.dalicious.system.enums.Days;
-import co.dalicious.system.util.DateUtils;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +16,14 @@ public class DayAndTime {
     public DayAndTime(Integer day, LocalTime time) {
         this.day = day;
         this.time = time;
+    }
+
+    public static boolean isBefore(DayAndTime makersLastOrderTime, DayAndTime mealInfoLastOrderTime) {
+        if (makersLastOrderTime.getDay() == null && mealInfoLastOrderTime.getDay() == null){
+            return makersLastOrderTime.getTime().isBefore(mealInfoLastOrderTime.getTime());
+        } else {
+            return makersLastOrderTime.getDay() != null;
+        }
     }
 
     @Override
